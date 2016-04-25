@@ -4,8 +4,9 @@ CREATE TABLE public.archimatediagrammodel
   name character varying(255),
   documentation character varying(65535),
   type character varying(255),
-  CONSTRAINT pk_dia_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_archimatediagrammodel_id PRIMARY KEY (id)
+);
+ALTER TABLE archimatediagrammodel OWNER TO archi;
 
 CREATE TABLE public.archimateelement
 (
@@ -13,8 +14,9 @@ CREATE TABLE public.archimateelement
   name character varying(255),
   type character varying(50),
   documentation character varying(65535),
-  CONSTRAINT pk_elm_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_archimateelement_id PRIMARY KEY (id)
+);
+ALTER TABLE archimateelement OWNER TO archi;
 
 CREATE TABLE public.diagrammodelarchimateobject
 (
@@ -31,8 +33,10 @@ CREATE TABLE public.diagrammodelarchimateobject
   textalignment integer,
   rank integer,
   indent integer,
-  CONSTRAINT pk_diagram_objects_id PRIMARY KEY (id)
-)
+  type integer,
+  CONSTRAINT pk_diagrammodelarchimateobject_id PRIMARY KEY (id)
+);
+ALTER TABLE diagrammodelarchimateobject OWNER TO archi;
 
 CREATE TABLE public.diagrammodelgroup
 (
@@ -50,7 +54,8 @@ CREATE TABLE public.diagrammodelgroup
   targetconnections character varying(255),
   parent character varying(255),
   CONSTRAINT pk_diagrammodelgroup_id PRIMARY KEY (id)
-)
+);
+ALTER TABLE diagrammodelgroup OWNER TO archi;
 
 CREATE TABLE public.diagrammodelarchimateconnection
 (
@@ -70,8 +75,9 @@ CREATE TABLE public.diagrammodelarchimateconnection
   type integer,
   rank integer,
   indent integer,
-  CONSTRAINT pk_connections_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_diagrammodelarchimateconnection_id PRIMARY KEY (id)
+);
+ALTER TABLE diagrammodelarchimateconnection OWNER TO archi;
 
 CREATE TABLE public.model
 (
@@ -81,10 +87,11 @@ CREATE TABLE public.model
   owner character varying(50),
   creation date,
   checkin date,
-  user character varying(50),
+  "user" character varying(50),
   version character varying(255)[],
-  CONSTRAINT pk_models_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_model_id PRIMARY KEY (id)
+);
+ALTER TABLE model OWNER TO archi;
 
 CREATE TABLE public.point
 (
@@ -95,8 +102,9 @@ CREATE TABLE public.point
   w integer,
   h integer,
   rank integer,
-  CONSTRAINT pk_bounds_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_point_id PRIMARY KEY (id)
+);
+ALTER TABLE point OWNER TO archi;
 
 CREATE TABLE public.property
 (
@@ -104,8 +112,9 @@ CREATE TABLE public.property
   value character varying(255),
   parent character varying(255),
   id integer NOT NULL DEFAULT nextval('properties_id_seq'::regclass),
-  CONSTRAINT pk_properties_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_property_id PRIMARY KEY (id)
+);
+ALTER TABLE property OWNER TO archi;
 
 CREATE TABLE public.relationship
 (
@@ -115,5 +124,6 @@ CREATE TABLE public.relationship
   target character varying(50),
   type character varying(50),
   documentation character varying(65535),
-  CONSTRAINT pk_rel_id PRIMARY KEY (id)
-)
+  CONSTRAINT pk_relationship_id PRIMARY KEY (id)
+);
+ALTER TABLE relationship OWNER TO archi;
