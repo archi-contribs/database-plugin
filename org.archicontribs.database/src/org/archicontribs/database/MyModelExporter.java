@@ -21,6 +21,7 @@ import org.archicontribs.database.DatabasePlugin.Level;
 import org.archicontribs.database.DatabasePlugin.Mode;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
@@ -64,6 +65,8 @@ public class MyModelExporter implements IModelExporter {
 		if ( id.length == 2 ) {
 			oldModelId = id[0];
 			//oldVersion = id[1];
+		} else {
+			oldModelId = model.getId();
 		}
 
 		try {
@@ -94,7 +97,7 @@ public class MyModelExporter implements IModelExporter {
 				if ( (eObject = iter.next()) instanceof IIdentifier ) {
 					id = ((IIdentifier)eObject).getId().split("-");
 					if ( id.length == 2 && id[0].equals(oldModelId) )
-						((IIdentifier)eObject).setId(newModelId+"-"+id[0]);
+						((IIdentifier)eObject).setId(newModelId+"-"+id[1]);
 				}
 			}
 		}
@@ -175,6 +178,9 @@ public class MyModelExporter implements IModelExporter {
 			}
 
 			db.commit();
+			// we remove the 'dirty' flag i.e. we consider the model as saved
+			CommandStack stack = (CommandStack)model.getAdapter(CommandStack.class);
+			stack.markSaveLocation();
 			//TODO: how to remove the dirty flag ? 
 		} catch (Exception e) {
 			DatabasePlugin.popup(Level.Error, "An error occured while exporting your model to the database.\n\nThe transaction has been rolled back and the database is left unmodified.", e);
@@ -225,8 +231,8 @@ public class MyModelExporter implements IModelExporter {
 		String target=null;
 		for (IDiagramModelConnection c: obj.getTargetConnections()) target = (target == null) ? c.getId() : target + "," + c.getId();
 
-		DatabasePlugin.update(db, "INSERT INTO DiagramModelArchimateObject (id, parent, defaulttextalignment, fillcolor, font, fontcolor, linecolor, linewidth, name, textAlignment, element, targetconnections, rank, indent)",
-				obj.getId(), parent, obj.getDefaultTextAlignment(), obj.getFillColor(), obj.getFont(), obj.getFontColor(), obj.getLineColor(), obj.getLineWidth(), obj.getName(), obj.getTextAlignment(), obj.getArchimateElement().getId(), target, rank, indent);
+		DatabasePlugin.update(db, "INSERT INTO DiagramModelArchimateObject (id, parent, fillcolor, font, fontcolor, linecolor, linewidth, name, textAlignment, element, targetconnections, rank, indent, type)",
+				obj.getId(), parent, obj.getFillColor(), obj.getFont(), obj.getFontColor(), obj.getLineColor(), obj.getLineWidth(), obj.getName(), obj.getTextAlignment(), obj.getArchimateElement().getId(), target, rank, indent, obj.getType());
 		exportPoint(obj.getId(), obj.getBounds(), 0);
 
 		for (int i=0; i < obj.getSourceConnections().size(); i++) {

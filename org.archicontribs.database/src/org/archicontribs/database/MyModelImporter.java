@@ -30,7 +30,6 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelBendpoint;
-import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelGroup;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IProperty;
@@ -183,7 +182,7 @@ public class MyModelImporter implements IModelImporter, ISelectedModelImporter {
 			IDiagramModel diagram = (IDiagramModel)IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type")));
 			diagram.setId(result.getString("id").trim());
 			diagram.setName(result.getString("name").trim());
-			diagram.setDocumentation(result.getString("documentation").trim());
+			if ( result.getString("documentation") != null ) diagram.setDocumentation(result.getString("documentation").trim());
 			importProperties(db, diagram.getId(), diagram.getProperties());
 			model.getDefaultFolderForElement(diagram).getElements().add(diagram);
 		}
@@ -230,7 +229,7 @@ public class MyModelImporter implements IModelImporter, ISelectedModelImporter {
 			}
 			DiagramModelArchimateObject obj = (DiagramModelArchimateObject) IArchimateFactory.eINSTANCE.createDiagramModelArchimateObject();
 			obj.setId(result.getString("id").trim());
-			obj.setName(result.getString("name").trim());
+			//obj.setName(result.getString("name").trim());
 			obj.setArchimateElement((IArchimateElement) ArchimateModelUtils.getObjectByID(model,result.getString("element").trim()));
 			if ( result.getString("fillcolor") != null ) obj.setFillColor(result.getString("fillcolor").trim());
 			if ( result.getString("font") != null)       obj.setFont(result.getString("font").trim());
@@ -238,6 +237,7 @@ public class MyModelImporter implements IModelImporter, ISelectedModelImporter {
 			if ( result.getString("linecolor") != null ) obj.setLineColor(result.getString("linecolor").trim());
 			obj.setLineWidth(result.getInt("linewidth"));
 			obj.setTextAlignment(result.getInt("textalignment"));
+			obj.setType(result.getInt("type"));
 
 			importPoint(db, obj);
 
@@ -279,7 +279,7 @@ public class MyModelImporter implements IModelImporter, ISelectedModelImporter {
 				DatabasePlugin.popup(Level.Error,  "Cannot found target "+result.getString("target").trim());
 			DiagramModelArchimateConnection conn = (DiagramModelArchimateConnection) IArchimateFactory.eINSTANCE.createDiagramModelArchimateConnection();
 			conn.setId(result.getString("id").trim());
-			conn.setName(result.getString("name").trim());
+			//conn.setName(result.getString("name").trim());
 			if ( result.getString("documentation") != null ) conn.setDocumentation(result.getString("documentation").trim());
 			if ( result.getString("font") != null )          conn.setFont(result.getString("font").trim());
 			if ( result.getString("fontcolor") != null )     conn.setFontColor(result.getString("fontcolor").trim());
