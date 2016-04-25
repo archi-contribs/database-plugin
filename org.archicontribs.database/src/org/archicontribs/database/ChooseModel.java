@@ -36,7 +36,7 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.util.Logger;
-import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.graphics.Point;
 
 public class ChooseModel extends Dialog {
 	private ResultSet result = null;
@@ -44,17 +44,20 @@ public class ChooseModel extends Dialog {
 	private IArchimateModel model;
 	private Connection db;
 	private Mode mode;
-	private Table table;
+	private Table tblId;
+	private Table tblVersion;
+	private Button btnSame;
+	private Button btnMinor;
+	private Button btnMajor;
 	private Text id;
 	private Text name;
 	private Text purpose;
-	private Text owner;
-	private Text created;
-	private Button checkIn;
+	private Text user;
+	private Text comment;
 	private Button btnNew;
 	private Button okButton;
 	private Button cancelButton;
-	
+
 
 	//TODO: allow to create a new project (ie use of the "new" button")
 
@@ -108,6 +111,174 @@ public class ChooseModel extends Dialog {
 		dialog.setSize(800, 525);
 		dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - dialog.getSize().y) / 2);
 		dialog.setLayout(null);
+		
+		/*******************/
+		
+		ScrolledComposite compositeId = new ScrolledComposite(dialog, SWT.BORDER | SWT.V_SCROLL);
+		compositeId.setAlwaysShowScrollBars(true);
+		compositeId.setBounds(10, 10, 400, 450);
+		compositeId.setExpandHorizontal(true);
+		compositeId.setExpandVertical(true);
+
+		TableViewer tableViewerId = new TableViewer(compositeId, SWT.FULL_SELECTION);
+		tblId = tableViewerId.getTable();
+		tblId.setHeaderVisible(true);
+		tblId.setLinesVisible(true);
+		tblId.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				//TODO : show last version
+				//TODO : populate version list if import, calculate next minor and major if export (replace current version by default)
+				try {
+					Statement stmt = db.createStatement();
+					ResultSet models = stmt.executeQuery("SELECT * FROM Model WHERE id = '"+tblId.getSelection()[0].getText()+"'");
+					if ( models.next() ) {
+						id.setText(models.getString("id"));
+						name.setText(models.getString("name"));
+						if ( models.getString("purpose") != null ) purpose.setText(models.getString("purpose"));
+						if ( models.getString("owner") != null ) user.setText(models.getString("owner"));
+						if ( models.getDate("creation") != null ) comment.setText(models.getDate("creation").toString());
+						okButton.setEnabled(true);
+					}
+					models.close();
+					stmt.close();
+				} catch (SQLException ee) {
+					Logger.logError("Cannot retreive details about model " + tblId.getSelection()[0].getText(), ee);
+				}
+			}
+		});
+		tblId.addListener(SWT.MouseDoubleClick, new Listener() {
+			public void handleEvent(Event event) {
+				//TODO : replace current version by default
+				okButton.notifyListeners(SWT.Selection, new Event());
+			}	
+		});
+
+
+		TableColumn columnId = new TableColumn(tblId, SWT.NONE);
+		columnId.setResizable(false);
+		columnId.setMoveable(true);
+		columnId.setWidth(100);
+		columnId.setText("ID");
+		columnId.addListener(SWT.Selection, sortListener);
+
+		TableColumn columnName = new TableColumn(tblId, SWT.NONE);
+		columnName.setResizable(false);
+		columnName.setWidth(280);
+		columnName.setText("Name");
+		columnName.addListener(SWT.Selection, sortListener);
+
+		compositeId.setContent(tblId);
+		compositeId.setMinSize(tblId.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+
+		/*******************/
+		
+		Label lblId = new Label(dialog, SWT.NONE);
+		lblId.setBounds(420, 45, 55, 15);
+		lblId.setText("ID :");
+
+		id = new Text(dialog, SWT.BORDER);
+		id.setEditable(false);
+		id.setBounds(521, 42, 132, 21);
+		id.setTextLimit(5);
+		
+		/*******************/
+		
+		if ( mode == Mode.Import ) {
+			ScrolledComposite compositeVersion = new ScrolledComposite(dialog, SWT.BORDER | SWT.V_SCROLL);
+			compositeVersion.setExpandVertical(true);
+			compositeVersion.setExpandHorizontal(true);
+			compositeVersion.setAlwaysShowScrollBars(true);
+			compositeVersion.setBounds(521, 81, 265, 56);
+			compositeVersion.setMinSize(new Point(397, 41));
+			
+			TableViewer tableViewerVersion = new TableViewer(compositeVersion, SWT.FULL_SELECTION);
+			tblVersion = tableViewerVersion.getTable();
+			tblVersion.setEnabled(false);
+			tblVersion.setHeaderVisible(true);
+			tblVersion.setLinesVisible(true);
+			tblVersion.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					//TODO : fill user, comment text fields
+				}
+			});
+			tblVersion.addListener(SWT.MouseDoubleClick, new Listener() {
+				public void handleEvent(Event event) {
+					okButton.notifyListeners(SWT.Selection, new Event());
+				}	
+			});
+	
+	
+			TableColumn columnVersion = new TableColumn(tblVersion, SWT.NONE);
+			columnVersion.setResizable(false);
+			columnVersion.setMoveable(true);
+			columnVersion.setWidth(50);
+			columnVersion.setText("Version");
+			columnVersion.addListener(SWT.Selection, sortListener);
+	
+			TableColumn columnDate = new TableColumn(tblVersion, SWT.NONE);
+			columnDate.setResizable(false);
+			columnDate.setWidth(195);
+			columnDate.setText("Date");
+			columnDate.addListener(SWT.Selection, sortListener);
+	
+			compositeVersion.setContent(tblVersion);
+			compositeVersion.setMinSize(tblVersion.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		} else {
+			btnSame = new Button(dialog, SWT.CHECK);
+			btnSame.setEnabled(false);
+			btnSame.setBounds(521, 80, 55, 16);
+
+			btnMinor = new Button(dialog, SWT.CHECK);
+			btnMinor.setEnabled(false);
+			btnMinor.setBounds(521, 124, 55, 16);
+
+			btnMajor = new Button(dialog, SWT.CHECK);
+			btnMajor.setEnabled(false);
+			btnMajor.setBounds(521, 102, 55, 16);
+		}
+
+		/*******************/
+		
+		Label lblName = new Label(dialog, SWT.NONE);
+		lblName.setBounds(420, 158, 55, 15);
+		lblName.setText("Name :");
+
+		name = new Text(dialog, SWT.BORDER);
+		name.setEditable(false);
+		name.setBounds(521, 155, 265, 21);
+
+		Label lblPurpose = new Label(dialog, SWT.NONE);
+		lblPurpose.setBounds(420, 198, 55, 15);
+		lblPurpose.setText("Purpose :");
+
+		purpose = new Text(dialog, SWT.BORDER | SWT.V_SCROLL);
+		purpose.setEditable(false);
+		purpose.setBounds(521, 195, 265, 155);
+
+		Label lblUser = new Label(dialog, SWT.NONE);
+		lblUser.setBounds(420, 373, 55, 15);
+		lblUser.setText("User :");
+
+		user = new Text(dialog, SWT.BORDER);
+		user.setEditable(false);
+		user.setBounds(521, 370, 134, 21);
+
+		Label lblComment = new Label(dialog, SWT.NONE);
+		lblComment.setBounds(420, 410, 89, 15);
+		lblComment.setText("Comment :");
+
+		comment = new Text(dialog, SWT.BORDER);
+		comment.setEditable(false);
+		comment.setBounds(521, 407, 263, 21);
+
+		Label lblVersion = new Label(dialog, SWT.NONE);
+		lblVersion.setBounds(420, 81, 55, 15);
+		lblVersion.setText("Version :");
+		
+		btnNew = new Button(dialog, SWT.NONE);
+		btnNew.setEnabled(false);
+		btnNew.setBounds(326, 466, 75, 25);
+		btnNew.setText("New ...");
 
 		okButton = new Button(dialog, SWT.PUSH);
 		okButton.setEnabled(false);
@@ -116,9 +287,10 @@ public class ChooseModel extends Dialog {
 		okButton.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) {
+				//TODO : show last version
 				try {
 					Statement stmt = db.createStatement();
-					ResultSet models = stmt.executeQuery("SELECT *, false as new FROM Model WHERE id = '"+table.getSelection()[0].getText()+"'");
+					ResultSet models = stmt.executeQuery("SELECT *, false as new FROM Model WHERE id = '"+tblId.getSelection()[0].getText()+"'");
 					if ( models.next() ) {
 						result = models;
 						dialog.close();
@@ -128,7 +300,7 @@ public class ChooseModel extends Dialog {
 						stmt.close();
 					}
 				} catch (SQLException ee) {
-					Logger.logError("Cannot retreive details about model " + table.getSelection()[0].getText(), ee);
+					Logger.logError("Cannot retreive details about model " + tblId.getSelection()[0].getText(), ee);
 				}
 			}
 		});
@@ -140,150 +312,6 @@ public class ChooseModel extends Dialog {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) { dialog.close(); }
 		});
-
-		FormData cancelButtonFormData = new FormData();
-		cancelButtonFormData.right = new FormAttachment(100,-2);
-		cancelButtonFormData.bottom = new FormAttachment(100,-2);
-
-		FormData okButtonFormData = new FormData();
-		okButtonFormData.right = new FormAttachment(cancelButton,-10);
-		okButtonFormData.bottom = new FormAttachment(100,-2);
-
-		FormData tableCompositeFormData = new FormData();
-		tableCompositeFormData.right = new FormAttachment(100,-2);
-		tableCompositeFormData.left = new FormAttachment(0,2);
-		tableCompositeFormData.top = new FormAttachment(0,2);
-		tableCompositeFormData.bottom = new FormAttachment(cancelButton,-5);
-
-		Label lblId = new Label(dialog, SWT.NONE);
-		lblId.setBounds(420, 45, 55, 15);
-		lblId.setText("ID :");
-
-		id = new Text(dialog, SWT.BORDER);
-		id.setEditable(false);
-		id.setBounds(521, 42, 132, 21);
-
-		Label lblName = new Label(dialog, SWT.NONE);
-		lblName.setBounds(420, 80, 55, 15);
-		lblName.setText("Name :");
-
-		name = new Text(dialog, SWT.BORDER);
-		name.setEditable(false);
-		name.setBounds(519, 80, 265, 21);
-
-		Label lblPurpose = new Label(dialog, SWT.NONE);
-		lblPurpose.setBounds(420, 115, 55, 15);
-		lblPurpose.setText("Purpose :");
-
-		purpose = new Text(dialog, SWT.BORDER | SWT.V_SCROLL);
-		purpose.setEditable(false);
-		purpose.setBounds(521, 112, 265, 155);
-
-		Label lblOwner = new Label(dialog, SWT.NONE);
-		lblOwner.setBounds(420, 345, 55, 15);
-		lblOwner.setText("Owner :");
-
-		owner = new Text(dialog, SWT.BORDER);
-		owner.setEditable(false);
-		owner.setBounds(521, 339, 134, 21);
-
-		Label lblCreated = new Label(dialog, SWT.NONE);
-		lblCreated.setBounds(420, 380, 89, 15);
-		lblCreated.setText("Created :");
-
-		created = new Text(dialog, SWT.BORDER);
-		created.setEditable(false);
-		created.setBounds(521, 377, 134, 21);
-
-		Label lblCheckIn = new Label(dialog, SWT.NONE);
-		lblCheckIn.setBounds(420, 415, 55, 15);
-		lblCheckIn.setText("Check in :");
-
-		checkIn = new Button(dialog, SWT.CHECK);
-		checkIn.setEnabled(false);
-		checkIn.setBounds(521, 414, 13, 16);
-
-		btnNew = new Button(dialog, SWT.NONE);
-		btnNew.setEnabled(false);
-		btnNew.setBounds(326, 466, 75, 25);
-		btnNew.setText("New ...");
-
-		ScrolledComposite scrolledComposite = new ScrolledComposite(dialog, SWT.BORDER | SWT.V_SCROLL);
-		scrolledComposite.setAlwaysShowScrollBars(true);
-		scrolledComposite.setBounds(10, 10, 400, 450);
-		scrolledComposite.setExpandHorizontal(true);
-		scrolledComposite.setExpandVertical(true);
-
-		TableViewer tableViewer = new TableViewer(scrolledComposite, SWT.FULL_SELECTION);
-		table = tableViewer.getTable();
-		table.setHeaderVisible(true);
-		table.setLinesVisible(true);
-		table.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				try {
-					Statement stmt = db.createStatement();
-					ResultSet models = stmt.executeQuery("SELECT * FROM Model WHERE id = '"+table.getSelection()[0].getText()+"'");
-					if ( models.next() ) {
-						id.setText(models.getString("id"));
-						name.setText(models.getString("name"));
-						if ( models.getString("purpose") != null ) purpose.setText(models.getString("purpose"));
-						if ( models.getString("owner") != null ) owner.setText(models.getString("owner"));
-						if ( models.getDate("creation") != null ) created.setText(models.getDate("creation").toString());
-						if ( models.getString("checkin") != null ) checkIn.setSelection(!models.getString("checkin").isEmpty());
-						okButton.setEnabled(true);
-					}
-					models.close();
-					stmt.close();
-				} catch (SQLException ee) {
-					Logger.logError("Cannot retreive details about model " + table.getSelection()[0].getText(), ee);
-				}
-			}
-		});
-		table.addListener(SWT.MouseDoubleClick, new Listener() {
-			public void handleEvent(Event event) {
-				okButton.notifyListeners(SWT.Selection, new Event());
-			}	
-		});
-
-
-		TableColumn columnId = new TableColumn(table, SWT.NONE);
-		columnId.setResizable(false);
-		columnId.setMoveable(true);
-		columnId.setWidth(100);
-		columnId.setText("ID");
-		columnId.addListener(SWT.Selection, sortListener);
-
-		TableColumn columnName = new TableColumn(table, SWT.NONE);
-		columnName.setResizable(false);
-		columnName.setWidth(280);
-		columnName.setText("Name");
-		columnName.addListener(SWT.Selection, sortListener);
-
-		scrolledComposite.setContent(table);
-		scrolledComposite.setMinSize(table.computeSize(SWT.DEFAULT, SWT.DEFAULT));
-		
-		Label lblVersion = new Label(dialog, SWT.NONE);
-		lblVersion.setBounds(420, 296, 55, 15);
-		lblVersion.setText("Version :");
-		
-		if ( mode == Mode.Import ) {
-			Combo version = new Combo(dialog, SWT.NONE);
-			version.setEnabled(false);
-			version.setBounds(520, 302, 91, 23);
-		} else {
-			Button btnSame = new Button(dialog, SWT.CHECK);
-			btnSame.setEnabled(false);
-			btnSame.setBounds(521, 280, 55, 16);
-			
-			Button btnMinor = new Button(dialog, SWT.CHECK);
-			btnMinor.setEnabled(false);
-			btnMinor.setBounds(521, 295, 55, 16);
-			
-			Button btnMajor = new Button(dialog, SWT.CHECK);
-			btnMajor.setEnabled(false);
-			btnMajor.setBounds(521, 310, 55, 16);
-		}
-
 	}
 
 	private void loadValues() throws SQLException {
@@ -292,12 +320,12 @@ public class ChooseModel extends Dialog {
 
 		int index=0;
 		while(models.next()) {
-			TableItem tableItem = new TableItem(table, SWT.NONE);
+			TableItem tableItem = new TableItem(tblId, SWT.NONE);
 			tableItem.setText(0, models.getString("id").trim());
 			tableItem.setText(1, models.getString("name").trim());
 			if ( model != null && model.getId().equals(models.getString("id").trim()+"-"+models.getString("id").trim()) ) {
-				table.setSelection(index);
-				table.notifyListeners(SWT.Selection, new Event());
+				tblId.setSelection(index);
+				tblId.notifyListeners(SWT.Selection, new Event());
 			}
 			index++;
 		}
@@ -307,20 +335,20 @@ public class ChooseModel extends Dialog {
 
 	private Listener sortListener = new Listener() {
 		public void handleEvent(Event e) {
-			TableItem[] items = table.getItems();
+			TableItem[] items = tblId.getItems();
 			Collator collator = Collator.getInstance(Locale.getDefault());
 			TableColumn column = (TableColumn) e.widget;
 
-			if (column == table.getSortColumn()) {
-				table.setSortDirection(table.getSortDirection() == SWT.DOWN ? SWT.UP : SWT.DOWN);
+			if (column == tblId.getSortColumn()) {
+				tblId.setSortDirection(tblId.getSortDirection() == SWT.DOWN ? SWT.UP : SWT.DOWN);
 			} else {
-				table.setSortColumn(column);
-				table.setSortDirection(SWT.UP);
+				tblId.setSortColumn(column);
+				tblId.setSortDirection(SWT.UP);
 			}
 
 			int columnIndex = -1;
-			for ( int c=0; c < table.getColumnCount(); c++) {
-				if ( column == table.getColumn(c) ) {
+			for ( int c=0; c < tblId.getColumnCount(); c++) {
+				if ( column == tblId.getColumn(c) ) {
 					columnIndex = c;
 					break;
 				}
@@ -331,14 +359,14 @@ public class ChooseModel extends Dialog {
 					for (int j = 0; j < i; j++) {
 						String value2 = items[j].getText(columnIndex);
 						boolean inf = collator.compare(value1, value2) < 0;
-						if ( table.getSortDirection() == SWT.DOWN)
+						if ( tblId.getSortDirection() == SWT.DOWN)
 							inf = ! inf;
 						if (inf) {
 							String[] values = { items[i].getText(0),items[i].getText(1) };
 							items[i].dispose();
-							TableItem item = new TableItem(table, SWT.NONE, j);
+							TableItem item = new TableItem(tblId, SWT.NONE, j);
 							item.setText(values);
-							items = table.getItems();
+							items = tblId.getItems();
 							break;
 						}
 					}
