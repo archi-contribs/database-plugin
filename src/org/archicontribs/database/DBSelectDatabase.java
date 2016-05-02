@@ -39,6 +39,7 @@ public class DBSelectDatabase extends Dialog {
 	private Text username;
 	private Text password;
 	private Button remember;
+	private Button doNotAskAgain;
 	private Button btnOk;
 	private Button btnCancel;
 
@@ -59,12 +60,18 @@ public class DBSelectDatabase extends Dialog {
 	public Connection open() {
 		createContents();
 		loadValues();
-		dialog.open();
-		dialog.layout();
-		Display display = getParent().getDisplay();
-		while (!dialog.isDisposed()) {
-			if (!display.readAndDispatch()) {
-				display.sleep();
+		if ( remember.getSelection() && doNotAskAgain.getSelection() && !driver.getText().isEmpty() ) {
+			connectToDatabase();
+		}
+		//if we cannot connect to the database, then we force the window opening
+		if ( db == null ) {
+			dialog.open();
+			dialog.layout();
+			Display display = getParent().getDisplay();
+			while (!dialog.isDisposed()) {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
 			}
 		}
 		return db;
@@ -137,7 +144,13 @@ public class DBSelectDatabase extends Dialog {
 
 		remember = new Button(dialog, SWT.CHECK);
 		remember.setText("Remember");
-		remember.setBounds(133, 250, 79, 16);
+		remember.setSelection(false);
+		remember.setBounds(10, 250, 79, 16);
+
+		doNotAskAgain = new Button(dialog, SWT.CHECK);
+		doNotAskAgain.setText("Do not ask me again");
+		doNotAskAgain.setSelection(false);
+		doNotAskAgain.setBounds(90, 250, 125, 16);
 
 		btnOk = new Button(dialog, SWT.NONE);
 		btnOk.setBounds(226, 246, 75, 25);
@@ -176,22 +189,11 @@ public class DBSelectDatabase extends Dialog {
 		btnOk.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) {
-				try {
-					Class.forName("org."+driver.getText().toLowerCase()+".Driver");
-				} catch (ClassNotFoundException ee) {
-					DBPlugin.popup(Level.Error, "Cannot load 'org."+driver.getText().toLowerCase()+".Driver' driver.", ee);
-					return;
+				connectToDatabase();
+				if ( db != null ) {
+					saveValues();
+					((Button) e.getSource()).getShell().close(); 
 				}
-
-				try {
-					db = DriverManager.getConnection("jdbc:" + driver.getText().toLowerCase() + "://" + server.getText() + ":" + port.getText() + "/" + database.getText(), username.getText(), password.getText());
-					db.setAutoCommit(false);
-				} catch (SQLException ee) {
-					DBPlugin.popup(Level.Error, "Cannot connect to the database.", ee);
-					return;
-				}
-				saveValues();
-				((Button) e.getSource()).getShell().close(); 
 			}
 		});
 
@@ -199,6 +201,23 @@ public class DBSelectDatabase extends Dialog {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) { db = null ; ((Button) e.getSource()).getShell().close(); }
 		});
+	}
+
+	private void connectToDatabase() {
+		try {
+			Class.forName("org."+driver.getText().toLowerCase()+".Driver");
+		} catch (ClassNotFoundException ee) {
+			DBPlugin.popup(Level.Error, "Cannot load 'org."+driver.getText().toLowerCase()+".Driver' driver.", ee);
+			return;
+		}
+
+		try {
+			db = DriverManager.getConnection("jdbc:" + driver.getText().toLowerCase() + "://" + server.getText() + ":" + port.getText() + "/" + database.getText(), username.getText(), password.getText());
+			db.setAutoCommit(false);
+		} catch (SQLException ee) {
+			DBPlugin.popup(Level.Error, "Cannot connect to the database.", ee);
+			return;
+		} 
 	}
 
 	private void loadValues() {
@@ -212,6 +231,7 @@ public class DBSelectDatabase extends Dialog {
 		port.setText(store.getString("port"));
 		database.setText(store.getString("database"));
 		remember.setSelection(store.getBoolean("remember"));
+		doNotAskAgain.setSelection(store.getBoolean("doNotAskAgain"));
 		username.setText(store.getString("username"));
 		password.setText(store.getString("password"));
 	}
@@ -227,6 +247,7 @@ public class DBSelectDatabase extends Dialog {
 			store.setValue("username", username.getText());
 			store.setValue("password", password.getText());
 			store.setValue("remember", remember.getSelection());
+			store.setValue("doNotAskAgain", doNotAskAgain.getSelection());
 		} else {
 			store.setValue("driver","");
 			store.setValue("server", "");
@@ -235,6 +256,7 @@ public class DBSelectDatabase extends Dialog {
 			store.setValue("username", "");
 			store.setValue("password", "");
 			store.setValue("remember", false);
+			store.setValue("doNotAskAgain", false);
 		}
 		try {
 			store.save();

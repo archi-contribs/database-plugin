@@ -66,7 +66,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		if ( _model != null && ! MessageDialog.openQuestion(Display.getDefault().getActiveShell(), DBPlugin.pluginTitle, "Please be aware that, as you already have a model opened, you won't be able to save modifications done to this model.\n\rAre you sure you wish to import a new model ?") ) {
 			return;
 		}
-		
+
 		nbImported = 0; //TODO: calculate more detailed statistics and check with values stored in the database
 		nbElement = 0;
 		nbRelation = 0;
@@ -121,7 +121,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			importDiagramModelArchimateObject(dbModel);
 			importSourceConnections(dbModel);
 			importTargetConnections(dbModel);
-			
+
 			//TODO: import all the other types folders, images, etc ...)
 			String msg = "Import done.";
 			msg += "\n\n"+nbImported+" components imported in total :";
@@ -141,7 +141,6 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			try { db.close(); } catch (Exception ee) {}
 			return;
 		}
-		try { db.close(); } catch (Exception ee) {}
 	}
 
 
@@ -203,10 +202,10 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 					break;
 				}
 			}
-			
+
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("class"))));
 			nbImported++;
-			
+
 			//setting common properties
 			dbObject.setId(result.getString("id"), _dbModel.getId(),_dbModel.getVersion());
 			dbObject.setFillColor(result.getString("fillcolor"));
@@ -216,7 +215,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setLineWidth(result.getInt("linewidth"));
 			dbObject.setTextAlignment(result.getInt("textalignment"));
 			importBounds(dbObject);
-			
+
 			//setting specific properties
 			switch (result.getString("class")) {
 			case "DiagramModelArchimateObject" :
@@ -247,7 +246,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	private void importSourceConnections(DBModel _dbModel) throws SQLException {
 		DBObject dbParent = null;
 		String oldParent = null;
-		
+
 		ResultSet result = DBPlugin.select(db, "SELECT * FROM DiagramModelArchimateConnection WHERE model = ? AND version = ? ORDER BY parent, rank", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
@@ -280,8 +279,8 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setTextPosition(result.getInt("textposition"));
 			dbObject.setType(result.getInt("type"));
 			if ( "DiagramModelArchimateConnection".equals(result.getString("class")) )  dbObject.setRelationship(result.getString("relationship"));
-			
-			
+
+
 			importBendpoints(dbObject);
 			importProperties(dbObject);
 			dbParent.getSourceConnections().add((IDiagramModelConnection)dbObject.getEObject());
@@ -305,7 +304,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		}
 		result.close();
 	}
-	
+
 	private void importBendpoints(DBObject _dbObject) throws SQLException {
 		ResultSet result = DBPlugin.select(db, "SELECT x, y, w, h FROM Point WHERE parent = ? AND model = ? AND version = ? ORDER BY rank", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
 		while(result.next()) {

@@ -84,7 +84,6 @@ public class DBExporter implements IModelExporter {
 		}
 
 		try {
-
 			// if the model already exists in the database, we ask the user to confirm the replacement
 			ResultSet res = DBPlugin.select(db, "SELECT * FROM Model WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 			if ( res.next() ) {
@@ -96,9 +95,10 @@ public class DBExporter implements IModelExporter {
 			}
 			try { res.close(); } catch (SQLException ee) {}
 
-
-			// we set the new model id and version
+			// we change the Id, version, name and purpose in case they've been changed in the ChooseModel window 
 			dbModel.setId(modelSelected.get("id"), modelSelected.get("version"));
+			dbModel.setName(modelSelected.get("name"));
+			dbModel.setPurpose(modelSelected.get("purpose"));
 
 			// we set (or change) the id and the version of all model components
 			DBObject dbObject;
@@ -227,9 +227,7 @@ public class DBExporter implements IModelExporter {
 			DBPlugin.popup(Level.Error, "An error occured while exporting your model to the database.\n\nThe transaction has been rolled back and the database is left unmodified.", e);
 			try { db.rollback(); } catch (Exception ee) {}
 		}
-		finally {
-			try { db.close(); } catch (SQLException e) {}
-		}
+		try { db.close(); } catch (SQLException e) {}
 	}
 	
 	private void exportProperties(DBObject _dbObject) throws SQLException {

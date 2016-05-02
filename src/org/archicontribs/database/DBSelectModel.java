@@ -297,7 +297,7 @@ public class DBSelectModel extends Dialog {
 		lblPurpose.setBounds(426, 284, 55, 15);
 		lblPurpose.setText("Purpose :");
 
-		purpose = new Text(dialog, SWT.BORDER | SWT.V_SCROLL);
+		purpose = new Text(dialog, SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
 		purpose.setBounds(519, 281, 265, 155);
 		purpose.setEditable(mode == Mode.Export);
 
@@ -332,6 +332,7 @@ public class DBSelectModel extends Dialog {
 				modelSelected.put("name", name.getText());
 				modelSelected.put("purpose", purpose.getText());
 				modelSelected.put("owner", owner.getText());
+				modelSelected.put("note", note.getText());
 				modelSelected.put("period", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()));
 				if ( mode == Mode.Import ) {
 					modelSelected.put("version", tblVersion.getSelection()[0].getText(0));
@@ -357,6 +358,8 @@ public class DBSelectModel extends Dialog {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) { dialog.close(); }
 		});
+		//TODO: change the focus tab list
+		//Control[] list = new Control[] { c1, b6, tb1, c4, c2, l2 }; shell.setTabList(list);
 	}
 
 	/**
@@ -463,6 +466,7 @@ public class DBSelectModel extends Dialog {
 					purpose.setText(models.getString("purpose") == null ? "" : models.getString("purpose"));
 					if ( mode == Mode.Export ) {
 						owner.setText(models.getString("owner") == null ? "" : models.getString("owner"));
+						note.setText(models.getString("note") == null ? "" : models.getString("note"));
 						if ( models.getString("version") == null ) {
 							actualVersion.setText(models.getString("version"));
 							actualVersion.setEnabled(false);
