@@ -29,12 +29,9 @@ import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.ArchimateModelUtils;
 
 /**
- * Import from PostGreSQL
+ * Import from Database
  * 
  * @author Hervé JOUIN
- * 
- * version 1.0 : 25/03/2016
- * 		plugin creation
  */
 
 //TODO: manage roles

@@ -20,9 +20,14 @@ import com.archimatetool.model.util.Logger;
  * Database Model Exporter
  * 
  * @author Herve Jouin
+ *
+ * 
+ * v0.1 : 25/03/2016		plugin creation
+ * v0.2 : 01/05/2016		Add models versionning
+ * v0.3 : 08/05/2016		Add import filtering
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.2";
+	public static String pluginVersion = "0.3";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
@@ -60,9 +65,22 @@ public class DBPlugin {
 	}
 	public static ResultSet select(Connection db, String request, String... parameters) throws SQLException {
 		PreparedStatement pstmt = db.prepareStatement(request, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.TYPE_SCROLL_INSENSITIVE);
-		for (int rank=0 ; rank < parameters.length ; rank++)
+		for (int rank=0 ; rank < min(parameters.length, count(request, '?')) ; rank++)
 			pstmt.setString(rank+1, parameters[rank]);
 		return pstmt.executeQuery();
+	}
+	public static int count(String _string, char _c)
+	{
+	    int count = 0;
+	    for (int i=0; i < _string.length(); i++)
+	        if (_string.charAt(i) == _c) count++;
+	    return count;
+	}
+	public static int max(int _a, int _b) {
+		return _a > _b ? _a : _b;
+	}
+	public static int min(int _a, int _b) {
+		return _a < _b ? _a : _b;
 	}
 	@SafeVarargs
 	public static final <T> void update(Connection db, String request, T...args) throws SQLException {
@@ -97,4 +115,12 @@ public class DBPlugin {
 		}
 		return "1.0";
 	}
+	
+    public static String capitalize(String phrase) {
+        if (phrase.isEmpty()) return phrase;
+        StringBuilder result = new StringBuilder();
+        for ( String s: phrase.split(" ") )
+        	result.append(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
+        return result.toString();
+    }
 }

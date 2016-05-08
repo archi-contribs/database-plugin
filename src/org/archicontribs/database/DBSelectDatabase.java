@@ -29,6 +29,11 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * Database Model Exporter
+ * 
+ * @author Herve Jouin
+ */
 public class DBSelectDatabase extends Dialog {
 	private Connection db;
 	private Shell dialog;
