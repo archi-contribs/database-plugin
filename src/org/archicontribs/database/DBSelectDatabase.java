@@ -210,9 +210,14 @@ public class DBSelectDatabase extends Dialog {
 
 	private void connectToDatabase() {
 		try {
-			Class.forName("org."+driver.getText().toLowerCase()+".Driver");
+			switch (driver.getText().toLowerCase()) {
+			case "postgresql" : Class.forName("org.postgresql.Driver"); break;
+			case "mysql"      : Class.forName("com.mysql.jdbc.Driver"); break;
+			case "oracle"     : Class.forName("oracle.jdbc.driver.OracleDriver"); break;
+			}
+			
 		} catch (ClassNotFoundException ee) {
-			DBPlugin.popup(Level.Error, "Cannot load 'org."+driver.getText().toLowerCase()+".Driver' driver.", ee);
+			DBPlugin.popup(Level.Error, "Cannot load "+ driver.getText() +" driver.", ee);
 			return;
 		}
 
