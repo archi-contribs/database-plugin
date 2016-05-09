@@ -222,7 +222,7 @@ public class DBSelectDatabase extends Dialog {
 		}
 
 		try {
-			db = DriverManager.getConnection("jdbc:" + driver.getText().toLowerCase() + "://" + server.getText() + ":" + port.getText() + "/" + database.getText(), username.getText(), password.getText());
+			db = DriverManager.getConnection("jdbc:" + driver.getText().toLowerCase() + "://" + server.getText() + ":" + port.getText() + "/" + database.getText()+"?useSSL=false", username.getText(), password.getText());
 			db.setAutoCommit(false);
 		} catch (SQLException ee) {
 			DBPlugin.popup(Level.Error, "Cannot connect to the database.", ee);
