@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+   <extension
+      point="com.archimatetool.editor.exportHandler">
+      <exportHandler
+            class="org.archicontribs.database.DBExporter"
+            id="org.archicontribs.database.DBExporter"
+            label="Export model to database">
+      </exportHandler>
+   </extension>
+   <extension
+      point="com.archimatetool.editor.importHandler">
+      <importHandler
+            class="org.archicontribs.database.DBImporter"
+            id="org.archicontribs.database.DBImporter"
+            label="import model from database">
+      </importHandler>
+   </extension>
+</plugin>
