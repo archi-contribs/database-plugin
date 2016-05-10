@@ -142,7 +142,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 
 
 	private void importArchimateElement(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM ArchimateElement WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM archimateelement WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			nbImported++;
@@ -156,7 +156,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importRelationship(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM Relationship WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM relationship WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			nbImported++;
@@ -173,7 +173,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importArchimateDiagramModel(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM ArchimateDiagramModel WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM archimatediagrammodel WHERE model = ? AND version = ?", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			nbImported++;
@@ -190,7 +190,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		DBObject dbParent = null;
 		String oldParent = null;
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM DiagramModelArchimateObject WHERE model = ? AND version = ? ORDER BY indent, rank, parent", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateobject WHERE model = ? AND version = ? ORDER BY indent, rank, parent", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
 				dbParent = new DBObject(_dbModel, ArchimateModelUtils.getObjectByID(_dbModel.getModel(),_dbModel.getVersionnedId(result.getString("parent"))));
@@ -244,7 +244,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		DBObject dbParent = null;
 		String oldParent = null;
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM DiagramModelArchimateConnection WHERE model = ? AND version = ? ORDER BY parent, rank", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateconnection WHERE model = ? AND version = ? ORDER BY parent, rank", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
 				dbParent = new DBObject(_dbModel, ArchimateModelUtils.getObjectByID(_dbModel.getModel(),_dbModel.getVersionnedId(result.getString("parent"))));
@@ -286,7 +286,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importTargetConnections(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT id, targetconnections FROM DiagramModelArchimateObject WHERE model = ? AND version = ? AND targetconnections IS NOT NULL", _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT id, targetconnections FROM diagrammodelarchimateobject WHERE model = ? AND version = ? AND targetconnections IS NOT NULL", _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, ArchimateModelUtils.getObjectByID(_dbModel.getModel(), _dbModel.getVersionnedId(result.getString("id"))));
 			for ( String target: result.getString("targetconnections").split(",")) {
@@ -303,7 +303,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importBendpoints(DBObject _dbObject) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT x, y, w, h FROM Point WHERE parent = ? AND model = ? AND version = ? ORDER BY rank", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT x, y, w, h FROM point WHERE parent = ? AND model = ? AND version = ? ORDER BY rank", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
 		while(result.next()) {
 			_dbObject.setBendpoint(result.getInt("x"), result.getInt("y"), result.getInt("w"), result.getInt("h"));
 			nbImported++;
@@ -313,7 +313,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importBounds(DBObject _dbObject) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT x, y, w, h FROM Point WHERE parent = ? AND model = ? AND version = ? ORDER BY rank", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT x, y, w, h FROM point WHERE parent = ? AND model = ? AND version = ? ORDER BY rank", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
 		while(result.next()) {
 			_dbObject.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("w"), result.getInt("h"));
 			nbImported++;
@@ -323,7 +323,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importProperties(DBObject _dbObject) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM Property WHERE parent = ? AND model = ? AND version = ?", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM property WHERE parent = ? AND model = ? AND version = ?", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion());
 		while(result.next()) {
 			IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 			nbImported++;
@@ -335,7 +335,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		result.close();
 	}
 	private void importProperties(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM Property WHERE parent = ? AND model = ? AND version = ?", _dbModel.getId(), _dbModel.getId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM property WHERE parent = ? AND model = ? AND version = ?", _dbModel.getId(), _dbModel.getId(), _dbModel.getVersion());
 		while(result.next()) {
 			IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 			nbImported++;

@@ -25,9 +25,10 @@ import com.archimatetool.model.util.Logger;
  * v0.1 : 25/03/2016		plugin creation
  * v0.2 : 01/05/2016		Add models versionning
  * v0.3 : 08/05/2016		Add import filtering
+ * v0.4 : 10/05/2016		Add Oracle driver and use lowercase only table names to increase Windows/Linux portability
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.3";
+	public static String pluginVersion = "0.4";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";

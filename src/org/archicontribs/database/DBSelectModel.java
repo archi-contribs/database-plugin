@@ -307,11 +307,15 @@ public class DBSelectModel extends Dialog {
 
 		Label lblowner = new Label(dialog, SWT.NONE);
 		lblowner.setBounds(426, 170, 55, 15);
-		lblowner.setText("owner :");
+		lblowner.setText("Owner :");
 
 		owner = new Text(dialog, SWT.BORDER);
 		owner.setBounds(521, 168, 205, 21);
-		owner.setEditable(mode == Mode.Export);
+		if ( mode == Mode.Export ) {
+			owner.setText(System.getProperty("user.name"));
+		} else {
+			owner.setEditable(false);
+		}
 
 		Label lblNote = new Label(dialog, SWT.NONE);
 		lblNote.setBounds(426, 134, 89, 15);
@@ -602,8 +606,8 @@ public class DBSelectModel extends Dialog {
 	 *  This method is called when the method is opened and each time a filter is applied or cancelled. 
 	 */
 	private void loadValuesFromDatabase() throws SQLException {
-		//System.out.println("loadValuesFromDatabase : SELECT m1.model, m1.name, m1.version FROM Model AS m1 JOIN (SELECT model, MAX(version) AS version FROM Model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
-		ResultSet result = DBPlugin.select(db, "SELECT m1.model, m1.name, m1.version FROM Model AS m1 JOIN (SELECT model, MAX(version) AS version FROM Model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
+		//System.out.println("loadValuesFromDatabase : SELECT m1.model, m1.name, m1.version FROM model AS m1 JOIN (SELECT model, MAX(version) AS version FROM model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
+		ResultSet result = DBPlugin.select(db, "SELECT m1.model, m1.name, m1.version FROM model AS m1 JOIN (SELECT model, MAX(version) AS version FROM model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
 		tblId.setRedraw(false);
 		tblId.removeAll();
 		tblVersion.removeAll();
@@ -699,15 +703,15 @@ public class DBSelectModel extends Dialog {
 					tblVersion.removeAll();
 				
 
-				//System.out.println("selectModelListener : SELECT * FROM Model WHERE model = ? " + filterVersions + " ORDER BY version >>> " + tblId.getSelection()[0].getText() + "<<<");
-				versions = DBPlugin.select(db, "SELECT * FROM Model WHERE model = ? " + filterVersions + " ORDER BY version", tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText());
+				//System.out.println("selectModelListener : SELECT * FROM model WHERE model = ? " + filterVersions + " ORDER BY version >>> " + tblId.getSelection()[0].getText() + "<<<");
+				versions = DBPlugin.select(db, "SELECT * FROM model WHERE model = ? " + filterVersions + " ORDER BY version", tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText(), tblId.getSelection()[0].getText());
 				
 				while ( versions.next() ) {
 					id.setText(versions.getString("model") == null ? "" : versions.getString("model"));
 					name.setText(versions.getString("name") == null ? "" : versions.getString("name"));
 					purpose.setText(versions.getString("purpose") == null ? "" : versions.getString("purpose"));
 					if ( mode == Mode.Export ) {
-						owner.setText(versions.getString("owner") == null ? "" : versions.getString("owner"));
+						//owner.setText(versions.getString("owner") == null ? "" : versions.getString("owner"));
 						note.setText(versions.getString("note") == null ? "" : versions.getString("note"));
 						if ( versions.getString("version") == null ) {
 							actualVersion.setText(versions.getString("version"));

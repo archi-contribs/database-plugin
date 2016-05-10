@@ -120,8 +120,14 @@ public class DBSelectDatabase extends Dialog {
 		port = new Text(dialog, SWT.BORDER);
 		port.addVerifyListener(new VerifyListener() {
 			public void verifyText(VerifyEvent e) {
-				if (e.character != 0 && !Character.isDigit(e.character))
+				try {
+					String value = port.getText().substring(0, e.start) + e.text + port.getText().substring(e.end);
+					if ( !value.isEmpty() ) {
+						Integer.valueOf(value);
+					}
+				} catch (Exception ee) {
 					e.doit = false;
+				}
 			}
 		});
 		port.setBounds(80, 92, 75, 21);
@@ -181,10 +187,10 @@ public class DBSelectDatabase extends Dialog {
 		driver.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				if ( port.getText().isEmpty() ) {
-					switch(driver.getText()) {
-					case "mySQL" : port.setText("13306"); break;
-					case "Oracle" : port.setText("1521"); break;
-					case "PostGreSQL" : port.setText("5432"); break;
+					switch(driver.getText().toLowerCase()) {
+					case "mysql" : port.setText("3306"); break;
+					case "oracle" : port.setText("1521"); break;
+					case "postgresql" : port.setText("5432"); break;
 					default : port.setText("");
 					}
 				}
@@ -222,7 +228,11 @@ public class DBSelectDatabase extends Dialog {
 		}
 
 		try {
-			db = DriverManager.getConnection("jdbc:" + driver.getText().toLowerCase() + "://" + server.getText() + ":" + port.getText() + "/" + database.getText()+"?useSSL=false", username.getText(), password.getText());
+			switch (driver.getText().toLowerCase()) {
+			case "postgresql" : db = DriverManager.getConnection("jdbc:postgresql://" + server.getText() + ":" + port.getText() + "/" + database.getText(), username.getText(), password.getText());  break;
+			case "mysql"      : db = DriverManager.getConnection("jdbc:mysql://" + server.getText() + ":" + port.getText() + "/" + database.getText()+"?useSSL=false", username.getText(), password.getText());  break;
+			case "oracle"     : db = DriverManager.getConnection("jdbc:oracle:thin:@" + server.getText() + ":" + port.getText()+ ":" + database.getText(), username.getText(), password.getText()); break;
+			}
 			db.setAutoCommit(false);
 		} catch (SQLException ee) {
 			DBPlugin.popup(Level.Error, "Cannot connect to the database.", ee);

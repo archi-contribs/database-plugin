@@ -85,7 +85,7 @@ public class DBExporter implements IModelExporter {
 
 		try {
 			// if the model already exists in the database, we ask the user to confirm the replacement
-			ResultSet res = DBPlugin.select(db, "SELECT * FROM Model WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
+			ResultSet res = DBPlugin.select(db, "SELECT * FROM model WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 			if ( res.next() ) {
 				if ( !MessageDialog.openQuestion(Display.getDefault().getActiveShell(), DBPlugin.pluginTitle, "You're about to replace the existing model "+modelSelected.get("name")+" ("+modelSelected.get("id")+") version "+modelSelected.get("version")+" in the database.\n\nAre you sure ?") ) {
 					try { res.close(); } catch (SQLException ee) {}
@@ -109,11 +109,11 @@ public class DBExporter implements IModelExporter {
 			}
 
 			// we remove the old components (if any) from the database
-			for(String table: asList("Model", "ArchimateDiagramModel", "ArchimateElement", "DiagramModelArchimateConnection", "DiagramModelArchimateObject", /*"DiagramModelGroup", "DiagramModelNote", */"Relationship", "Point", "Property"))
+			for(String table: asList("Model", "archimatediagrammodel", "archimateelement", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "relationship", "point", "property"))
 				DBPlugin.sql(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 
 			// we save the model itself
-			DBPlugin.update(db, "INSERT INTO Model (model, version, name, purpose, owner, period, note)", modelSelected.get("id"), modelSelected.get("version"), modelSelected.get("name"), modelSelected.get("purpose"), modelSelected.get("owner"), modelSelected.get("period"), modelSelected.get("note"));
+			DBPlugin.update(db, "INSERT INTO model (model, version, name, purpose, owner, period, note)", modelSelected.get("id"), modelSelected.get("version"), modelSelected.get("name"), modelSelected.get("purpose"), modelSelected.get("owner"), modelSelected.get("period"), modelSelected.get("note"));
 			exportProperties(dbModel);
 
 			// we save the components
@@ -154,7 +154,7 @@ public class DBExporter implements IModelExporter {
 						break ;
 
 					case "ArchimateDiagramModel" :
-						DBPlugin.update(db, "INSERT INTO ArchimateDiagramModel (id, model, version, name, documentation, connectionroutertype, viewpoint, type)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getDocumentation(), dbObject.getConnectionRouterType(), dbObject.getViewpoint(), dbObject.getClassSimpleName());
+						DBPlugin.update(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getDocumentation(), dbObject.getConnectionRouterType(), dbObject.getViewpoint(), dbObject.getClassSimpleName());
 						nbExported++;
 						nbDiagram++;
 						exportProperties(dbObject);
@@ -178,14 +178,14 @@ public class DBExporter implements IModelExporter {
 
 					default:
 						if ( eObject instanceof IArchimateElement ) {
-							DBPlugin.update(db, "INSERT INTO ArchimateElement (id, model, version, name, type, documentation)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getClassSimpleName(), dbObject.getDocumentation()); 
+							DBPlugin.update(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getClassSimpleName(), dbObject.getDocumentation()); 
 							nbExported++;
 							nbElement++;
 							exportProperties(dbObject);
 						}
 						else {
 							if ( eObject instanceof IRelationship ) {
-								DBPlugin.update(db, "INSERT INTO Relationship (id, model, version, name, source, target, type, documentation)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getSourceId(), dbObject.getTargetId(), dbObject.getClassSimpleName(), dbObject.getDocumentation()); 
+								DBPlugin.update(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getSourceId(), dbObject.getTargetId(), dbObject.getClassSimpleName(), dbObject.getDocumentation()); 
 								nbExported++;
 								nbRelation++;
 								exportProperties(dbObject);
@@ -251,7 +251,7 @@ public class DBExporter implements IModelExporter {
 	private void exportDiagramModelArchimateObject(String _parentId, DBObject _archimateObject, int _rank, int _indent) throws SQLException {
 		String targetConnections = _archimateObject.getTargetConnectionsString();
 		//we specify all the fields in the INSERT request as the DBObject return null values if not set (but does not trigger an exception)
-		DBPlugin.update(db, "INSERT INTO DiagramModelArchimateObject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelement, targetconnections, rank, indent, type, class, bordertype, content, documentation, name)",
+		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelement, targetconnections, rank, indent, type, class, bordertype, content, documentation, name)",
 				_archimateObject.getId(), _archimateObject.getModelId(), _archimateObject.getVersion(), _parentId, _archimateObject.getFillColor(), _archimateObject.getFont(), _archimateObject.getFontColor(), _archimateObject.getLineColor(), _archimateObject.getLineWidth(), _archimateObject.getTextAlignment(), _archimateObject.getArchimateElementId(), targetConnections, _rank, _indent, _archimateObject.getType(), _archimateObject.getEClassName(), _archimateObject.getBorderType(), _archimateObject.getContent(), _archimateObject.getDocumentation(), _archimateObject.getName());
 		nbExported++;
 		nbDiagramObject++;
@@ -274,7 +274,7 @@ public class DBExporter implements IModelExporter {
 		exportProperties(_archimateObject);
 	}
 	private void exportDiagramModelArchimateConnection(String _parentId, DBObject _connection, int _rank) throws SQLException {
-		DBPlugin.update(db, "INSERT INTO DiagramModelArchimateConnection (id, model, version, parent, documentation, font, fontcolor, linecolor, linewidth, relationship, source, target, text, textposition, type, rank, class)", _connection.getId(), _connection.getModelId(), _connection.getVersion(), _parentId, _connection.getDocumentation(), _connection.getFont(), _connection.getFontColor(), _connection.getLineColor(), _connection.getLineWidth(), _connection.getRelationshipId(), _connection.getSourceId(), _connection.getTargetId(), _connection.getText(), _connection.getTextPosition(),	_connection.getType(), _rank, _connection.getEClassName());
+		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateconnection (id, model, version, parent, documentation, font, fontcolor, linecolor, linewidth, relationship, source, target, text, textposition, type, rank, class)", _connection.getId(), _connection.getModelId(), _connection.getVersion(), _parentId, _connection.getDocumentation(), _connection.getFont(), _connection.getFontColor(), _connection.getLineColor(), _connection.getLineWidth(), _connection.getRelationshipId(), _connection.getSourceId(), _connection.getTargetId(), _connection.getText(), _connection.getTextPosition(),	_connection.getType(), _rank, _connection.getEClassName());
 		nbExported++;
 		nbConnection++;
 		exportBendpoints(_connection);
@@ -282,14 +282,14 @@ public class DBExporter implements IModelExporter {
 	}
 	private void exportBounds(DBObject _dbObject) throws SQLException {
 		IBounds bounds = _dbObject.getBounds();
-		DBPlugin.update(db, "INSERT INTO Point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0);
+		DBPlugin.update(db, "INSERT INTO point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0);
 		nbExported++;
 		nbBound++;
 	}
 	private void exportBendpoints(DBObject _dbObject) throws SQLException {
 		int rank=0;
 		for ( IDiagramModelBendpoint point: _dbObject.getBendpoints() ) {
-			DBPlugin.update(db, "INSERT INTO Point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), point.getStartX(), point.getStartY(), point.getEndX(), point.getEndY(), rank++);
+			DBPlugin.update(db, "INSERT INTO point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), point.getStartX(), point.getStartY(), point.getEndX(), point.getEndY(), rank++);
 			nbExported++;
 			nbBendpoint++;
 		}
