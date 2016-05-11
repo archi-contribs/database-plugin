@@ -109,7 +109,7 @@ public class DBExporter implements IModelExporter {
 			}
 
 			// we remove the old components (if any) from the database
-			for(String table: asList("Model", "archimatediagrammodel", "archimateelement", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "relationship", "point", "property"))
+			for(String table: asList("model", "archimatediagrammodel", "archimateelement", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "relationship", "point", "property"))
 				DBPlugin.sql(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 
 			// we save the model itself
