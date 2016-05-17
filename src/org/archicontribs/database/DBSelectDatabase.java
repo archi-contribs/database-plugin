@@ -97,7 +97,7 @@ public class DBSelectDatabase extends Dialog {
 
 		driver = new Combo(dialog, SWT.NONE);
 		driver.setToolTipText("Choose database brand");
-		driver.setItems(new String[] {"MySQL", "Oracle", "PostGreSQL"});
+		driver.setItems(new String[] {"MySQL", "Oracle", "PostGreSQL", "SQLite"});
 		driver.setBounds(80, 17, 169, 400);
 		driver.addVerifyListener(new VerifyListener() {
 			public void verifyText(VerifyEvent e) {
@@ -166,33 +166,18 @@ public class DBSelectDatabase extends Dialog {
 		btnOk = new Button(dialog, SWT.NONE);
 		btnOk.setBounds(226, 246, 75, 25);
 		btnOk.setText("Ok");
-		btnOk.setEnabled(false);
 
 		btnCancel = new Button(dialog, SWT.NONE);
 		btnCancel.setBounds(307, 246, 75, 25);
 		btnCancel.setText("Cancel");
 
-		ModifyListener check = new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				btnOk.setEnabled( !driver.getText().isEmpty() && !server.getText().isEmpty() && !port.getText().isEmpty() && !database.getText().isEmpty() && !username.getText().isEmpty() && !password.getText().isEmpty() );
-			}
-		};
-		driver.addModifyListener(check);
-		server.addModifyListener(check);
-		port.addModifyListener(check);
-		database.addModifyListener(check);
-		username.addModifyListener(check);
-		password.addModifyListener(check);
-
 		driver.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				if ( port.getText().isEmpty() ) {
-					switch(driver.getText().toLowerCase()) {
-					case "mysql" : port.setText("3306"); break;
-					case "oracle" : port.setText("1521"); break;
-					case "postgresql" : port.setText("5432"); break;
-					default : port.setText("");
-					}
+				switch(driver.getText().toLowerCase()) {
+				case "mysql" : port.setText("3306"); break;
+				case "oracle" : port.setText("1521"); break;
+				case "postgresql" : port.setText("5432"); break;
+				default : port.setText("");
 				}
 			}
 		});
@@ -220,8 +205,9 @@ public class DBSelectDatabase extends Dialog {
 			case "postgresql" : Class.forName("org.postgresql.Driver"); break;
 			case "mysql"      : Class.forName("com.mysql.jdbc.Driver"); break;
 			case "oracle"     : Class.forName("oracle.jdbc.driver.OracleDriver"); break;
+			case "sqlite"     : Class.forName("org.sqlite.JDBC"); break;
 			}
-			
+
 		} catch (ClassNotFoundException ee) {
 			DBPlugin.popup(Level.Error, "Cannot load "+ driver.getText() +" driver.", ee);
 			return;
@@ -232,6 +218,7 @@ public class DBSelectDatabase extends Dialog {
 			case "postgresql" : db = DriverManager.getConnection("jdbc:postgresql://" + server.getText() + ":" + port.getText() + "/" + database.getText(), username.getText(), password.getText());  break;
 			case "mysql"      : db = DriverManager.getConnection("jdbc:mysql://" + server.getText() + ":" + port.getText() + "/" + database.getText()+"?useSSL=false", username.getText(), password.getText());  break;
 			case "oracle"     : db = DriverManager.getConnection("jdbc:oracle:thin:@" + server.getText() + ":" + port.getText()+ ":" + database.getText(), username.getText(), password.getText()); break;
+			case "sqlite"     : db = DriverManager.getConnection("jdbc:sqlite:"+server.getText());
 			}
 			db.setAutoCommit(false);
 		} catch (SQLException ee) {

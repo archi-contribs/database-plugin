@@ -3,10 +3,18 @@ package org.archicontribs.database;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.canvas.model.ICanvasModel;
+import com.archimatetool.canvas.model.ICanvasModelBlock;
+import com.archimatetool.canvas.model.ICanvasModelSticky;
+import com.archimatetool.canvas.model.IHintProvider;
+import com.archimatetool.canvas.model.IIconic;
+import com.archimatetool.canvas.model.INotesContent;
+import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -18,9 +26,12 @@ import com.archimatetool.model.IDiagramModelGroup;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.IFolder;
+import com.archimatetool.model.IFolderContainer;
 import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ILineObject;
+import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
@@ -32,10 +43,14 @@ import com.archimatetool.model.util.ArchimateModelUtils;
 public class DBObject {
 	private DBModel dbModel;
 	private EObject object;
-	
+
 	public DBObject(DBModel _dbModel, EObject _object) {
 		dbModel = _dbModel;
 		object = _object;
+	}
+	public DBObject(DBModel _dbModel, String _id) {
+		dbModel = _dbModel;
+		object = ArchimateModelUtils.getObjectByID(_dbModel.getModel(),_id);
 	}
 	public EObject getEObject() {
 		return object;
@@ -55,27 +70,28 @@ public class DBObject {
 	}
 	public void setId(String _id, String _modelId, String _version) {
 		try {  
-			((IIdentifier)object).setId(_modelId + DBPlugin.Separator + _id + DBPlugin.Separator + _version);
+			((IIdentifier)object).setId(_id + DBPlugin.Separator + _modelId + DBPlugin.Separator + _version);
 		} catch (Exception e) {}
 	}
-	public String getModelId() {
+	public String getId() {
 		try {
 			if ( isVersionned() ) return ((IIdentifier)object).getId().split(DBPlugin.Separator)[0];
+			return ((IIdentifier)object).getId();
 		} catch (Exception e) {}
 		return null;
 	}
-	public String getId() {
+	public String getModelId() {
 		try {
 			if ( isVersionned() ) return ((IIdentifier)object).getId().split(DBPlugin.Separator)[1];
 			return ((IIdentifier)object).getId();
 		} catch (Exception e) {}
-		return null;
+		return dbModel.getModelId();
 	}
 	public String getVersion() {
 		try {
 			if ( isVersionned() ) return ((IIdentifier)object).getId().split(DBPlugin.Separator)[2];
 		} catch (Exception e) {}
-		return null;
+		return dbModel.getVersion();
 	}
 	public Boolean isVersionned() {
 		try {
@@ -122,10 +138,10 @@ public class DBObject {
 	}
 	public void setSource(String _source) {
 		try {
-			((IRelationship)object).setSource((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.getVersionnedId(_source)));
+			((IRelationship)object).setSource((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_source)));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setSource((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.getVersionnedId(_source)));
+			((IDiagramModelConnection)object).setSource((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_source)));
 		} catch (Exception e) {}
 	}
 	public String getTargetId() {
@@ -139,10 +155,10 @@ public class DBObject {
 	}
 	public void setTarget(String _target) {
 		try {
-			((IRelationship)object).setTarget((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.getVersionnedId(_target)));
+			((IRelationship)object).setTarget((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_target)));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.getVersionnedId(_target)));
+			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_target)));
 		} catch (Exception e) {}
 	}
 	public String getRelationshipId() {
@@ -153,7 +169,7 @@ public class DBObject {
 	}
 	public void setRelationship(String _relationship) {
 		try {
-			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship) ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.getVersionnedId(_relationship)));
+			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship) ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_relationship)));
 		} catch (Exception e) {}
 	}
 	public EList<IDiagramModelObject> getChildren() {
@@ -179,6 +195,14 @@ public class DBObject {
 		} catch (Exception e) {}
 		try {
 			((IDiagramModelGroup)object).getChildren().add((IDiagramModelObject)_dbObject.getEObject());
+			return;
+		} catch (Exception e) {}
+		try {
+			((ICanvasModel)object).getChildren().add((ICanvasModelBlock)_dbObject.getEObject());
+			return;
+		} catch (Exception e) {}
+		try {
+			((ICanvasModel)object).getChildren().add((ICanvasModelSticky)_dbObject.getEObject());
 			return;
 		} catch (Exception e) {}
 	}
@@ -219,7 +243,7 @@ public class DBObject {
 	}
 	public void setFont(String _font) {
 		try {
-			 ((IFontAttribute)object).setFont(_font);
+			((IFontAttribute)object).setFont(_font);
 		} catch (Exception e) {}
 	}
 	public String getFontColor() {
@@ -420,5 +444,125 @@ public class DBObject {
 			((ITextContent)object).setContent(_content);
 		} catch (Exception e) {}
 	}
-	//TODO: utile de créer les setters correspondants ???
+	public String getHintTitle() {
+		try {
+			return ((IHintProvider)object).getHintTitle();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setHintTitle(String _title) {
+		try {
+			((IHintProvider)object).setHintTitle(_title);
+		} catch (Exception e) {}
+	}
+	public String getHintContent() {
+		try {
+			return ((ICanvasModel)object).getHintContent();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setHintContent(String _content) {
+		try {
+			((ICanvasModel)object).setHintContent(_content);
+		} catch (Exception e) {}
+	}
+	public String getImagePath() {
+		try {
+			return ((IIconic)object).getImagePath();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setImagePath(String _path) {
+		try {
+			((IIconic)object).setImagePath(_path);
+		} catch (Exception e) {}
+	}
+	public int getImagePosition() {
+		try {
+			return ((IIconic)object).getImagePosition();
+		} catch (Exception e) {}
+		return 0;
+	}
+	public void setImagePosition(int _position) {
+		try {
+			((IIconic)object).setImagePosition(_position);
+		} catch (Exception e) {}
+	}
+	public boolean isLocked() {
+		try {
+			return ((ILockable)object).isLocked();
+		} catch (Exception e) {}
+		return false;
+	}
+	public void setLocked(boolean _locked) {
+		try {
+			((ILockable)object).setLocked(_locked);
+		} catch (Exception e) {}
+	}
+	public String getBorderColor() {
+		try {
+			return ((IBorderObject)object).getBorderColor();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setBorderColor(String _color) {
+		try {
+			((IBorderObject)object).setBorderColor(_color);
+		} catch (Exception e) {}
+	}
+	public String getNotes() {
+		try {
+			return ((INotesContent)object).getNotes();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setNotes(String _notes) {
+		try {
+			((INotesContent)object).setNotes(_notes);
+		} catch (Exception e) {}
+	}
+	public EList<IFolder> getFolders() {
+		try {
+			return ((IFolderContainer)object).getFolders();
+		} catch (Exception e) {}
+		return null;
+	}
+	public String getFolder() {
+		try {
+			return DBPlugin.getId(((IIdentifier)object.eContainer()).getId());
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setFolder(String _id) {
+		String id = DBPlugin.isVersionned(_id) ? _id : DBPlugin.generateId(_id, getModelId(), getVersion());
+		IFolder folder = getFolderById(dbModel.getFolders(), id);
+		
+		if ( folder != null ) {
+			
+			if ( object instanceof IFolder ) {
+				folder.getFolders().add((IFolder)object);
+			} else {
+				folder.getElements().add(object);
+			}
+		}
+	}
+	public FolderType getFolderType() {
+		try {
+			return ((IFolder)object).getType();
+		} catch (Exception e) {}
+		return null;
+	}
+	private IFolder getFolderById(EList<IFolder> _folders, String _id) {
+		if ( _folders == null ) return null;
+		for ( IFolder f: _folders ) {
+			if ( f.getId().equals(_id) ) {
+				return f;
+			}
+			IFolder folder = getFolderById(f.getFolders(), _id);
+			if ( folder != null ) {
+				return folder;
+			}
+		}
+		return null;		
+	}
 }

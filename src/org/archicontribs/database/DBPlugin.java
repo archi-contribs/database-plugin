@@ -14,8 +14,6 @@ import java.sql.SQLException;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
-import com.archimatetool.model.util.Logger;
-
 /**
  * Database Model Exporter
  * 
@@ -26,49 +24,47 @@ import com.archimatetool.model.util.Logger;
  * v0.2 : 01/05/2016		Add models versionning
  * v0.3 : 08/05/2016		Add import filtering
  * v0.4 : 10/05/2016		Add Oracle driver and use lowercase only table names to increase Windows/Linux portability
+ * v0.5 : 15/05/2016		Allow to import several projects in a single model
+ * 							Add support for folders and canvas
+ * 							Add SQLite driver
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.4";
+	public static String pluginVersion = "0.5";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
 
 	public enum Level { Info, Warning, Error };
+	
+	public static String SharedModelId = "Shared-0.0";
+	public static String SharedFolderName = "Models";
 
+	private static boolean showDebug = false;
+	
+	public static void debug(Object _obj){
+		if ( showDebug ) System.out.println(_obj);
+	}
+	
 	public static void popup(Level level, String msg) {
 		popup(level,msg,null);
 	}
 	public static void popup(Level level, String msg, Exception e) {
 		String msg2 = msg;
 		if ( e != null) msg2 += "\n\n" + e.getMessage();
-
+		debug(msg2);
 		switch ( level ) {
 		case Info :
-			//Logger.logInfo(msg, e);
 			MessageDialog.openInformation(Display.getDefault().getActiveShell(), pluginTitle, msg2);
 			break;
 		case Warning :
-			Logger.logWarning(msg, e);
 			MessageDialog.openWarning(Display.getDefault().getActiveShell(), pluginTitle, msg2);
 			break;
 		case Error :
-			Logger.logError(msg, e);
 			MessageDialog.openError(Display.getDefault().getActiveShell(), pluginTitle, msg2);
 			break;
 		}
-	}
-	public static void sql(Connection db, String request, String... parameters) throws SQLException {
-		PreparedStatement pstmt = db.prepareStatement(request);
-		for (int rank=0 ; rank < parameters.length ; rank++)
-			pstmt.setString(rank+1, parameters[rank]);
-		pstmt.executeUpdate();
-		pstmt.close();
-	}
-	public static ResultSet select(Connection db, String request, String... parameters) throws SQLException {
-		PreparedStatement pstmt = db.prepareStatement(request, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.TYPE_SCROLL_INSENSITIVE);
-		for (int rank=0 ; rank < min(parameters.length, count(request, '?')) ; rank++)
-			pstmt.setString(rank+1, parameters[rank]);
-		return pstmt.executeQuery();
+		if ( e != null ) 
+			e.printStackTrace(System.err);
 	}
 	public static int count(String _string, char _c)
 	{
@@ -83,6 +79,21 @@ public class DBPlugin {
 	public static int min(int _a, int _b) {
 		return _a < _b ? _a : _b;
 	}
+	public static void sql(Connection db, String request, String... parameters) throws SQLException {
+		PreparedStatement pstmt = db.prepareStatement(request);
+		for (int rank=0 ; rank < parameters.length ; rank++)
+			pstmt.setString(rank+1, parameters[rank]);
+		//debug(pstmt.toString());
+		pstmt.executeUpdate();
+		pstmt.close();
+	}
+	public static ResultSet select(Connection db, String request, String... parameters) throws SQLException {
+		PreparedStatement pstmt = db.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+		for (int rank=0 ; rank < min(parameters.length, count(request, '?')) ; rank++)
+			pstmt.setString(rank+1, parameters[rank]);
+		//debug(pstmt.toString());
+		return pstmt.executeQuery();
+	}
 	@SafeVarargs
 	public static final <T> void update(Connection db, String request, T...args) throws SQLException {
 		for (int rank=0 ; rank < args.length ; rank++) request += rank == 0 ? " VALUES (?" : ",?";
@@ -95,10 +106,15 @@ public class DBPlugin {
 			} else {
 				if ( args[rank] instanceof String )
 					pstmt.setString(rank+1, (String)args[rank]);
-				else
+				else if ( args[rank] instanceof Integer )
 					pstmt.setInt(rank+1, (int)args[rank]);
+				else if ( args[rank] instanceof Boolean )
+					pstmt.setBoolean(rank+1, (boolean)args[rank]);
+				else 
+					DBPlugin.popup(Level.Error, "heinnn ???");
 			}
 		}
+		//debug(pstmt.toString());
 		pstmt.executeUpdate();
 		pstmt.close();
 	}
@@ -116,12 +132,41 @@ public class DBPlugin {
 		}
 		return "1.0";
 	}
-	
     public static String capitalize(String phrase) {
         if (phrase.isEmpty()) return phrase;
         StringBuilder result = new StringBuilder();
         for ( String s: phrase.split(" ") )
         	result.append(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
         return result.toString();
+    }
+    public static boolean isVersionned(String _id ) {
+    	if ( _id == null ) return false;
+    	return _id.contains(Separator);
+    }
+    public static String generateModelId(String _modelId, String _version) {
+    	return _modelId+Separator+_version;
+    }
+    public static String generateId(String _id, String _modelId, String _version) {
+    	if ( _modelId == null ) return _id;
+    	return _id+Separator+_modelId+Separator+_version;
+    }
+    public static String getId(String _id) {
+    	if ( isVersionned(_id) )
+    		return _id.split(Separator)[0];
+    	return _id;
+    }
+    public static String getModelId(String _id) {
+    	if ( isVersionned(_id) ) {
+    		String[] s = _id.split(Separator);
+    		return s[s.length-2];
+    	}
+    	return _id;
+    }
+    public static String getVersion(String _id) {
+    	if ( isVersionned(_id) ) {
+    		String[] s = _id.split(Separator);
+    		return s[s.length-1];
+    	}
+    	return "0.0";
     }
 }
