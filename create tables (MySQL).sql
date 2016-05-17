@@ -1,140 +1,220 @@
-CREATE TABLE archi.archimatediagrammodel
+CREATE TABLE archimatediagrammodel
 (
-  id varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
-
-  connectionroutertype int,  
-  documentation varchar(7500),
-  name varchar(255) NOT NULL,
-  type varchar(50),
-  viewpoint int,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  CONSTRAINT pk_archimatediagrammodel PRIMARY KEY (id, model, version)
-);
+  connectionroutertype integer,
+  documentation character varying(4096),
+  folder character varying(255),
+  name character varying(255) NOT NULL,
+  type character varying(50),
+  viewpoint integer,
+  
+  CONSTRAINT pk_archimatediagrammodel PRIMARY KEY (id, model, version));
 
-CREATE TABLE archi.archimateelement
+CREATE TABLE archimateelement
 (
-  id varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  documentation varchar(7500),
-  name varchar(255) NOT NULL,
-  type varchar(50),
+  documentation character varying(4096),
+  folder character varying(255),
+  name character varying(255) NOT NULL,
+  type character varying(50),
   
-  CONSTRAINT pk_archimateelement PRIMARY KEY (id, model, version)
-);
+  CONSTRAINT pk_archimateelement PRIMARY KEY (id, model, version));
 
-CREATE TABLE archi.diagrammodelarchimateconnection
+CREATE TABLE canvasmodel
 (
-  id varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
-
-  documentation varchar(7500),
-  linewidth int,
-  font varchar(255),
-  fontcolor varchar(255),
-  linecolor varchar(255),
-  parent varchar(255) NOT NULL,
-  relationship varchar(255),
-  source varchar(255),
-  target varchar(255),
-  text varchar(255),
-  textposition varchar(255),
-  type int,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  indent int,
-  rank int,
-  class varchar(255),
+  documentation character varying(4096),
+  folder character varying(255),
+  name character varying(255),
+  hinttitle character varying(255),
+  hintcontent character varying(4096),
+  connectionroutertype integer,
+  
+  CONSTRAINT pk_canvasmodel PRIMARY KEY (id, model, version));
 
-  CONSTRAINT pk_diagrammodelarchimateconnection PRIMARY KEY (id, model, version)
-);
-
-CREATE TABLE archi.diagrammodelarchimateobject
+CREATE TABLE canvasmodelblock
 (
-  id varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  archimateelement varchar(255),
-  bordertype int,
-  content varchar(7500),
-  documentation varchar(7500),
-  linecolor varchar(255),
-  linewidth int,
-  font varchar(255),
-  fontcolor varchar(255),
-  fillcolor varchar(255),
-  name varchar(255),
-  parent varchar(255) NOT NULL,
-  targetconnections varchar(255),
-  textalignment int,
-  type int,
-	
-  rank int,
-  indent int,
-  class varchar(255),
+  parent character varying(255),
+  bordercolor character varying(255),
+  content character varying(4096),
+  fillcolor character varying(255),
+  font character varying(255),
+  fontcolor character varying(255),
+  hintcontent character varying(4096),
+  hinttitle character varying(255),
+  imagepath character varying(4096),
+  imageposition integer,
+  islocked boolean,
+  linecolor character varying(255),
+  linewidth integer,
+  name character varying(255),
+  textalignment integer,
+  textposition integer,
+  
+  indent integer,
+  rank integer,
+  
+  CONSTRAINT pk_canvasmodelblock PRIMARY KEY (id, model, version));
 
-  CONSTRAINT pk_diagrammodelarchimateobject PRIMARY KEY (id, model, version)
-);
-
-CREATE TABLE archi.model
+CREATE TABLE canvasmodelsticky
 (
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  name varchar(255) NOT NULL,
-  owner varchar(50),
-  period varchar(50),
-  purpose varchar(7500),
-  note varchar(255),
+  parent character varying(50),
+  bordercolor character varying(255),
+  content character varying(4096),
+  fillcolor character varying(255),
+  font character varying(255),
+  fontcolor character varying(255),
+  imagepath character varying(4096),
+  imageposition integer,
+  linecolor character varying(255),
+  linewidth integer,
+  notes character varying(4096),
+  name character varying(255),
+  source character varying(255),
+  target character varying(255),
+  textalignment integer,
+  textposition integer,
   
-  CONSTRAINT pk_model PRIMARY KEY (model, version)
-);
+  indent integer,
+  rank integer,
+  
+  CONSTRAINT pk_canvasmodelsticky PRIMARY KEY (id, model, version));
 
-CREATE TABLE archi.point
+CREATE TABLE diagrammodelarchimateconnection
 (
-  parent varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
-
-  x int,
-  y int,
-  w int,
-  h int,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  rank int NOT NULL,
+  class character varying(255),
+  documentation character varying(4096),
+  linewidth integer,
+  font character varying(255),
+  fontcolor character varying(255),
+  linecolor character varying(255),
+  parent character varying(255) NOT NULL,
+  relationship character varying(255),
+  source character varying(255),
+  target character varying(255),
+  text character varying(255),
+  textposition character varying(255),
+  type integer,
   
-  CONSTRAINT pk_point PRIMARY KEY (parent, model, version, rank)
-);
+  indent integer,
+  rank integer,
+  
+  CONSTRAINT pk_diagrammodelarchimateconnection PRIMARY KEY (id, model, version));
 
-CREATE TABLE archi.property
+CREATE TABLE diagrammodelarchimateobject
 (
-  parent varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  name varchar(50) NOT NULL,
-  value varchar(255),
+  archimateelement character varying(255),
+  bordertype integer,
+  class character varying(255),
+  content character varying(4096),
+  documentation character varying(4096),
+  linecolor character varying(255),
+  linewidth integer,
+  font character varying(255),
+  fontcolor character varying(255),
+  fillcolor character varying(255),
+  name character varying(255),
+  parent character varying(255) NOT NULL,
+  targetconnections character varying(255),
+  textalignment integer,
+  type integer,
   
-  CONSTRAINT pk_property PRIMARY KEY (parent, model, version, name)
-);
+  indent integer,
+  rank integer,
 
-CREATE TABLE archi.relationship
+  CONSTRAINT pk_diagrammodelarchimateobject PRIMARY KEY (id, model, version));
+
+CREATE TABLE folder
 (
-  id varchar(50) NOT NULL,
-  model varchar(50) NOT NULL,
-  version varchar(50) NOT NULL,
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
   
-  documentation varchar(7500),
-  name varchar(255) NOT NULL,
-  source varchar(50),
-  target varchar(50),
-  type varchar(50),
+  documentation character varying(4096),
+  parent character varying(50),
+  type integer,
+  name character varying(255),
   
-  CONSTRAINT pk_relationship PRIMARY KEY (id, model, version)
-);
+  rank integer,
+  
+  CONSTRAINT pk_folder PRIMARY KEY (id, model, version));
 
- 
+CREATE TABLE model
+(
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
+  name character varying(255) NOT NULL,
+  
+  note character varying(255),
+  owner character varying(50),
+  period character varying(50),
+  purpose character varying(4096),
+  
+  CONSTRAINT pk_model PRIMARY KEY (model, version));
+
+CREATE TABLE point
+(
+  parent character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
+  
+  x integer,
+  y integer,
+  w integer,
+  h integer,
+  
+  rank integer,
+  
+  CONSTRAINT pk_point PRIMARY KEY (parent, model, version, rank));
+
+CREATE TABLE property
+(
+  id character varying(50) NOT NULL,
+  parent character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
+  
+  name character varying(4096) NOT NULL,
+  value character varying(4096),
+
+  CONSTRAINT pk_property PRIMARY KEY (id, model, version, parent));
+
+CREATE TABLE relationship
+(
+  id character varying(50) NOT NULL,
+  model character varying(50) NOT NULL,
+  version character varying(50) NOT NULL,
+  
+  documentation character varying(4096),
+  name character varying(255) NOT NULL,
+  source character varying(50),
+  target character varying(50),
+  type character varying(50),
+  folder character varying(255),
+  
+  CONSTRAINT pk_relationship PRIMARY KEY (id, model, version)); 
