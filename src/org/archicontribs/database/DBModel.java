@@ -1,3 +1,8 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
 package org.archicontribs.database;
 
 import org.eclipse.emf.common.util.BasicEList;
@@ -11,18 +16,6 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperty;
-
-
-//*
-//*
-//*  REFAIRE LE DBMODEL EN AJOUTANT UN PROJET
-//*  IMPLEMENTE SOUS LA FORME D'UN DOSSIER
-//*  
-//*  SI PROJET POSITIONNE ALORS DBMODEL.GetId = ID projet
-//*  SINON, GetId = Id model
-//*
-//*
-//*
 
 
 public class DBModel {
@@ -99,6 +92,7 @@ public class DBModel {
 		}
 		if ( !sharedFolderExists ) {
 			IFolder sharedModelsFolder = addFolder(model.getFolders(), DBPlugin.SharedFolderName);
+			addFolder(sharedModelsFolder.getFolders(), DBPlugin.ExternalFolderName);
 			folder = addFolder(sharedModelsFolder.getFolders(), _name, _modelId, _version);
 			folder.setDocumentation(_purpose);
 		}
@@ -109,7 +103,7 @@ public class DBModel {
 	}
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name, String _modelId, String _version) {
 		IFolder subFolder = IArchimateFactory.eINSTANCE.createFolder();
-		subFolder.setId(DBPlugin.generateModelId(_modelId, _version));
+		subFolder.setId(DBPlugin.generateId(null, _modelId, _version));
 		subFolder.setName(_name);
 		_parentFolder.add(subFolder);
 		return subFolder;
@@ -119,9 +113,6 @@ public class DBModel {
 		if ( folder != null )
 			return DBPlugin.isVersionned(folder.getId());
 		return DBPlugin.isVersionned(model.getId());
-	}
-	public String generateId(String _id) {
-		return DBPlugin.generateId(_id, getModelId(), getVersion());
 	}
 	public String getModelId() {
 		return folder!=null  ? DBPlugin.getModelId(folder.getId()) : DBPlugin.getModelId(model.getId()) ;

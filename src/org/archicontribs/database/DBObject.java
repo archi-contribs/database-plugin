@@ -1,7 +1,16 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
 package org.archicontribs.database;
 
+import org.archicontribs.database.DBPlugin.Level;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.ecore.impl.EObjectImpl;
 
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.canvas.model.ICanvasModelBlock;
@@ -14,6 +23,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IDiagramModel;
@@ -83,7 +93,6 @@ public class DBObject {
 	public String getModelId() {
 		try {
 			if ( isVersionned() ) return ((IIdentifier)object).getId().split(DBPlugin.Separator)[1];
-			return ((IIdentifier)object).getId();
 		} catch (Exception e) {}
 		return dbModel.getModelId();
 	}
@@ -138,10 +147,10 @@ public class DBObject {
 	}
 	public void setSource(String _source) {
 		try {
-			((IRelationship)object).setSource((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_source)));
+			((IRelationship)object).setSource((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_source, getModelId(), getVersion())));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setSource((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_source)));
+			((IDiagramModelConnection)object).setSource((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_source, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public String getTargetId() {
@@ -155,10 +164,10 @@ public class DBObject {
 	}
 	public void setTarget(String _target) {
 		try {
-			((IRelationship)object).setTarget((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_target)));
+			((IRelationship)object).setTarget((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_target, getModelId(), getVersion())));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_target)));
+			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_target, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public String getRelationshipId() {
@@ -169,7 +178,7 @@ public class DBObject {
 	}
 	public void setRelationship(String _relationship) {
 		try {
-			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship) ArchimateModelUtils.getObjectByID(dbModel.getModel(), dbModel.generateId(_relationship)));
+			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship) ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_relationship, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public EList<IDiagramModelObject> getChildren() {
@@ -351,14 +360,56 @@ public class DBObject {
 	}
 	public String getArchimateElementId() {
 		try {
-			return (new DBObject (dbModel, ((IDiagramModelArchimateObject)object).getArchimateElement())).getId();
+			return ((IDiagramModelArchimateObject)object).getArchimateElement().getId();
 		} catch (Exception e) {}
 		return null;
 	}
-	public void setArchimateElement(EObject _eObject) {
+	public String getArchimateElementName() {
 		try {
-			if (_eObject != null)((IDiagramModelArchimateObject)object).setArchimateElement((IArchimateElement)_eObject);
+			return ((IDiagramModelArchimateObject)object).getArchimateElement().getName();
 		} catch (Exception e) {}
+		return null;
+	}
+	public String getArchimateElementClass() {
+		try {
+			return ((IDiagramModelArchimateObject)object).getArchimateElement().getClass().getSimpleName();
+		} catch (Exception e) {}
+		return null;
+	}
+	public void setArchimateElement(String _id, String _name, String _class) {
+		try {
+			if ( getModelId().equals(DBPlugin.getModelId(_id)) ) { 
+				IArchimateElement child = (IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), _id);
+				if ( child == null ) {
+					//TODO: add proxy instead
+					DBPlugin.popup(Level.Error,"Unknown ArchimateElement " + _id);
+				} else {
+					DBPlugin.debug("   setting ArchimateElement " + child.getName() + " ("+child.getId()+")");
+					((IDiagramModelArchimateObject)object).setArchimateElement(child);
+				}
+			} else {
+				IArchimateElement child = (IArchimateElement)IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(_class));
+				((EObjectImpl)child).eSetProxyURI(URI.createURI(_id));
+				child.setId(_id);
+				child.setName(DBPlugin.getModelId(_id)+":"+_name);
+				child.setDocumentation("Load model ID '"+DBPlugin.getModelId(_id)+"' to import element.");
+				DBPlugin.popup(Level.Error,"   setting proxy to ArchimateElement "  + child.getName() + " ("+child.getId()+")");
+				((IDiagramModelArchimateObject)object).setArchimateElement(child);
+				//we add it to the "external elements" folder
+				for ( IFolder f: dbModel.getFolders() ) {
+					if ( f.getName().equals(DBPlugin.SharedFolderName) ) {
+						for ( IFolder ff: f.getFolders() ) {
+							if ( ff.getName().equals(DBPlugin.ExternalFolderName) ) {
+								ff.getElements().add(child);
+								return;
+							}
+						}
+					}
+				}
+			}
+		} catch (Exception e) {
+			DBPlugin.popup(Level.Error, "proxy", e);
+		}
 	}
 	@SuppressWarnings("deprecation")
 	public String getText() {
@@ -534,28 +585,36 @@ public class DBObject {
 		return null;
 	}
 	public void setFolder(String _id) {
-		String id = DBPlugin.isVersionned(_id) ? _id : DBPlugin.generateId(_id, getModelId(), getVersion());
-		IFolder folder = getFolderById(dbModel.getFolders(), id);
+		DBPlugin.debug("   searching folder id " + _id);
+		IFolder folder = getFolderById(dbModel.getFolders(), _id);
 		
 		if ( folder != null ) {
-			
 			if ( object instanceof IFolder ) {
 				folder.getFolders().add((IFolder)object);
+				DBPlugin.debug("      adding subfolder to folder" + folder.getName());
 			} else {
 				folder.getElements().add(object);
+				DBPlugin.debug("      adding element to folder " + folder.getName());
 			}
+		} else {
+			DBPlugin.debug("      do not know the folder container !!!");;
 		}
 	}
-	public FolderType getFolderType() {
+	public FolderType getFolderType(int _rank) {
 		try {
-			return ((IFolder)object).getType();
+			IFolder f = (IFolder)object;
+				// if _rank == 0 and the getType()==0, then we are in shared mode and need to retreive the type in the parent folder
+			if ( (_rank == 0) && (f.getType().getValue() == 0) ) {
+				f= (IFolder)f.eContainer();
+			}
+			return f.getType();
 		} catch (Exception e) {}
 		return null;
 	}
-	private IFolder getFolderById(EList<IFolder> _folders, String _id) {
+	public IFolder getFolderById(EList<IFolder> _folders, String _id) {
 		if ( _folders == null ) return null;
 		for ( IFolder f: _folders ) {
-			if ( f.getId().equals(_id) ) {
+			if ( DBPlugin.getId(f.getId()).equals(_id) ) {
 				return f;
 			}
 			IFolder folder = getFolderById(f.getFolders(), _id);

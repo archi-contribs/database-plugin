@@ -10,6 +10,7 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.UUID;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
@@ -20,24 +21,30 @@ import org.eclipse.swt.widgets.Display;
  * @author Herve Jouin
  *
  * 
- * v0.1 : 25/03/2016		plugin creation
- * v0.2 : 01/05/2016		Add models versionning
+ * v0.1 : 25/03/2016		plug-in creation
+ * v0.2 : 01/05/2016		Add models version
  * v0.3 : 08/05/2016		Add import filtering
- * v0.4 : 10/05/2016		Add Oracle driver and use lowercase only table names to increase Windows/Linux portability
+ * v0.4 : 10/05/2016		Add Oracle driver and use lower case only table names to increase Windows/Linux portability
  * v0.5 : 15/05/2016		Allow to import several projects in a single model
  * 							Add support for folders and canvas
  * 							Add SQLite driver
+ * v0.6 : 22/05/2016		bug corrections (especially regarding folders)
+ * 							few optimizations
+ * 							Import and export elements from other models is now possible even if it needs improvements
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.5";
+	public static String pluginVersion = "0.6";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
+	
+	public static String[] allTables = { "archimatediagrammodel", "archimateelement", "canvasmodel", "canvasmodelblock", "canvasmodelsticky", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "folder", "model",  "point", "property", "relationship" };
 
 	public enum Level { Info, Warning, Error };
 	
 	public static String SharedModelId = "Shared-0.0";
 	public static String SharedFolderName = "Models";
+	public static String ExternalFolderName = "External Elements";
 
 	private static boolean showDebug = false;
 	
@@ -81,7 +88,7 @@ public class DBPlugin {
 	}
 	public static void sql(Connection db, String request, String... parameters) throws SQLException {
 		PreparedStatement pstmt = db.prepareStatement(request);
-		for (int rank=0 ; rank < parameters.length ; rank++)
+		for (int rank=0 ; rank < min(parameters.length, count(request, '?')) ; rank++)
 			pstmt.setString(rank+1, parameters[rank]);
 		//debug(pstmt.toString());
 		pstmt.executeUpdate();
@@ -148,6 +155,7 @@ public class DBPlugin {
     }
     public static String generateId(String _id, String _modelId, String _version) {
     	if ( _modelId == null ) return _id;
+    	if ( _id == null ) return UUID.randomUUID().toString().split("-")[0]+Separator+_modelId+Separator+_version;
     	return _id+Separator+_modelId+Separator+_version;
     }
     public static String getId(String _id) {

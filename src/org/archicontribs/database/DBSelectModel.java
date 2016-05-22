@@ -21,6 +21,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
@@ -48,6 +49,9 @@ import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.util.Logger;
+import org.eclipse.swt.widgets.Scale;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.widgets.Composite;
 
 
 //Sorry if the code is not optimized, but I used a generator :)
@@ -66,7 +70,7 @@ public class DBSelectModel extends Dialog {
 	private String filterModels = "";
 	private String filterVersions = "";
 
-	private int oldSelectedItemIndex = -1;
+	private int oldSelectedItemIndex;
 
 	/**
 	 * Create the dialog.
@@ -101,6 +105,7 @@ public class DBSelectModel extends Dialog {
 	 */
 	public DBList open(Connection _db) throws SQLException {
 		db = _db;
+		oldSelectedItemIndex = -1;
 		if ( action == Action.Unknown )
 			action = Action.Import;
 		Display display = getParent().getDisplay();
@@ -123,46 +128,50 @@ public class DBSelectModel extends Dialog {
 		Color grey = new Color(null, 220,220,220);
 		dialog = new Shell(getParent(), SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL);
 		dialog.setText(DBPlugin.pluginTitle);
-		dialog.setText(DBPlugin.pluginTitle + DBPlugin.pluginVersion);
 		dialog.setSize(840, 700);
 		dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - dialog.getSize().y) / 2);
 		dialog.setLayout(null);
 
 		/**************************************************/
-
-		lblId = new Text(dialog, SWT.BORDER);
-		lblId.setBounds(10, 38, 103, 21);
+		
+		Composite compositeId = new Composite(dialog, SWT.BORDER);
+		compositeId.setBounds(10, 30, 103, 18);
+		
+		lblId = new Label(compositeId, SWT.NONE);
+		lblId.setAlignment(SWT.CENTER);
+		lblId.setBounds(0, 0, 103, 18);
+		lblId.setText("ID");
 		lblId.addMouseListener(sortColumns);
-		lblId.setEditable(false);
-		lblId.setText("             ID");
-
 
 		id = new Text(dialog, SWT.BORDER);
 		id.setBounds(10, 10, 103, 21);
 		id.setEditable(action == Action.Export);
 		id.setTextLimit(11);		// 5 digits before the dot, 5 digits after plus the dot itself
 		id.addListener(SWT.Verify, new Listener() { public void handleEvent(Event e) { e.doit = !e.text.matches("^.*[^a-zA-Z0-9 ].*$"); }});
-
-		lblName = new Text(dialog, SWT.BORDER);
-		lblName.setBounds(112, 38, 298, 21);
+		
+		Composite compositeName = new Composite(dialog, SWT.BORDER);
+		compositeName.setBounds(112, 30, 298, 18);
+		
+		lblName = new Label(compositeName, SWT.NONE);
+		lblName.setAlignment(SWT.CENTER);
+		lblName.setBounds(0, 0, 298, 18);
+		lblName.setText("Name");
 		lblName.addMouseListener(sortColumns);
-		lblName.setText("                                      Name");
-		lblName.setEditable(false);
 
 		name = new Text(dialog, SWT.BORDER);
 		name.setTextLimit(255);
-		name.setBounds(112, 10, 299, 21);
+		name.setBounds(112, 10, 298, 21);
 		name.setEditable(action == Action.Export);
 
 		/**************************************************/
 
-		ScrolledComposite compositeId = new ScrolledComposite(dialog, SWT.BORDER | SWT.V_SCROLL);
-		compositeId.setBounds(10, 58, 400, 307);
-		compositeId.setAlwaysShowScrollBars(true);
-		compositeId.setExpandHorizontal(true);
-		compositeId.setExpandVertical(true);
+		ScrolledComposite compositeTblId = new ScrolledComposite(dialog, SWT.BORDER | SWT.V_SCROLL);
+		compositeTblId.setBounds(10, 47, 400, 320);
+		compositeTblId.setAlwaysShowScrollBars(true);
+		compositeTblId.setExpandHorizontal(true);
+		compositeTblId.setExpandVertical(true);
 
-		TableViewer tableViewerId = new TableViewer(compositeId, SWT.FULL_SELECTION);
+		TableViewer tableViewerId = new TableViewer(compositeTblId, SWT.FULL_SELECTION);
 		tblId = tableViewerId.getTable();
 		tblId.setLinesVisible(true);
 		tblId.addListener(SWT.Selection, selectModelListener);
@@ -170,19 +179,21 @@ public class DBSelectModel extends Dialog {
 		if ( action == Action.Import )
 			tblId.addListener(SWT.MouseDoubleClick, new Listener() { public void handleEvent(Event event) { btnOK.notifyListeners(SWT.Selection, new Event()); }});
 
-		compositeId.setContent(tblId);
-		compositeId.setMinSize(tblId.computeSize(SWT.DEFAULT, SWT.DEFAULT));
+		compositeTblId.setContent(tblId);
+		compositeTblId.setMinSize(tblId.computeSize(SWT.DEFAULT, SWT.DEFAULT));
 
 		columnId = new TableColumn(tblId, SWT.NONE);
 		columnId.setResizable(false);
 		columnId.setMoveable(true);
 		columnId.setWidth(100);
 		columnId.setText("ID");
+		columnId.setData( new Label[]{lblId, lblName} );
 
 		columnName = new TableColumn(tblId, SWT.NONE);
 		columnName.setResizable(false);
 		columnName.setWidth(280);
 		columnName.setText("Name");
+		columnName.setData(new Label[]{lblName, lblId});
 
 		/**************************************************/
 
@@ -194,7 +205,7 @@ public class DBSelectModel extends Dialog {
 		compositeVersion.setExpandVertical(true);
 		compositeVersion.setExpandHorizontal(true);
 		compositeVersion.setAlwaysShowScrollBars(true);
-		compositeVersion.setBounds(520, 10, 305, 98);
+		compositeVersion.setBounds(520, 10, 305, 92);
 
 		TableViewer tableViewerVersion = new TableViewer(compositeVersion, SWT.FULL_SELECTION);
 		tblVersion = tableViewerVersion.getTable();
@@ -292,21 +303,21 @@ public class DBSelectModel extends Dialog {
 		/**************************************************/
 
 		Label lblNote = new Label(dialog, SWT.NONE);
-		lblNote.setBounds(426, 123, 89, 15);
+		lblNote.setBounds(426, 113, 89, 15);
 		lblNote.setText("Release note :");
 
 		note = new Text(dialog, SWT.BORDER);
-		note.setBounds(520, 120, 305, 21);
+		note.setBounds(520, 110, 305, 21);
 		note.setEditable(action == Action.Export);
 
 		/**************************************************/
 
 		Label lblOwner = new Label(dialog, SWT.NONE);
-		lblOwner.setBounds(426, 153, 55, 15);
+		lblOwner.setBounds(426, 138, 55, 15);
 		lblOwner.setText("Owner :");
 
 		owner = new Text(dialog, SWT.BORDER);
-		owner.setBounds(520, 150, 150, 21);
+		owner.setBounds(520, 135, 150, 21);
 		if ( action == Action.Export ) {
 			owner.setText(System.getProperty("user.name"));
 		} else {
@@ -316,32 +327,51 @@ public class DBSelectModel extends Dialog {
 		/**************************************************/
 
 		Label lblPurpose = new Label(dialog, SWT.NONE);
-		lblPurpose.setBounds(426, 183, 55, 15);
+		lblPurpose.setBounds(426, 163, 55, 15);
 		lblPurpose.setText("Purpose :");
 
 		purpose = new Text(dialog, SWT.MULTI | SWT.WRAP | SWT.BORDER | SWT.V_SCROLL);
-		purpose.setBounds(520, 180, 305, 155);
+		purpose.setBounds(520, 160, 305, 135);
 		purpose.setEditable(action == Action.Export);
 
 		/**************************************************/
 
 		lblMode = new Label(dialog, SWT.NONE);
-		lblMode.setBounds(426, 350, 80, 15);
+		lblMode.setBounds(426, 305, 80, 15);
 		lblMode.setText(action==Action.Import ? "Import mode :" : "Export :");
 
 		grpMode = new Group(dialog, SWT.NONE);
-		grpMode.setBounds(521, 340, 305, 30);
+		grpMode.setBounds(521, 295, 305, 30);
 		grpMode.setLayout(null);
 
 		btnShared = new Button(grpMode, SWT.RADIO);
 		btnShared.setBounds(6, 10, 96, 16);
 		btnShared.setSelection(true);
 		btnShared.setText(action==Action.Import ? "Shared" : "Export");
+		if ( action == Action.Import ) {
+			btnShared.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					lblAutoDepth.setVisible(true);
+					lblDepth.setVisible(true);
+					scaleDepth.setVisible(true);
+				}
+			});
+		}
 
 		btnStandalone = new Button(grpMode, SWT.RADIO);
 		btnStandalone.setBounds(150, 10, 96, 16);
 		btnStandalone.setText(action==Action.Import ? "Standalone" : "Do not Export");
-
+		if ( action == Action.Import ) {
+			btnStandalone.addSelectionListener(new SelectionAdapter() {
+				@Override
+				public void widgetSelected(SelectionEvent e) {
+					lblAutoDepth.setVisible(false);
+					lblDepth.setVisible(false);
+					scaleDepth.setVisible(false);
+				}
+			});
+		}
 
 		/**************************************************/
 
@@ -357,7 +387,8 @@ public class DBSelectModel extends Dialog {
 		btnDelete = new Button(dialog, SWT.NONE);
 		btnDelete.setBounds(10, 379, 75, 25);
 		btnDelete.setText("Delete");
-		btnDelete.setEnabled(false);
+		btnDelete.setEnabled(action==Action.Import);
+		btnDelete.addSelectionListener(BtnDeleteListener);
 
 		btnChangeId = new Button(dialog, SWT.NONE);
 		btnChangeId.setText("Change ID");
@@ -579,8 +610,32 @@ public class DBSelectModel extends Dialog {
 		btnCancelFilter.setText("Cancel filter");
 		btnCancelFilter.setBounds(749, 639, 75, 25);
 		btnCancelFilter.setVisible(false);
+		
+		lblAutoDepth = new Label(dialog, SWT.NONE);
+		lblAutoDepth.setBounds(426, 345, 89, 15);
+		lblAutoDepth.setText("Auto depth :");
+		lblAutoDepth.setVisible(action == Action.Import);
+		
+		lblDepth = new Label(dialog, SWT.NONE);
+		lblDepth.setBounds(520, 345, 55, 15);
+		lblDepth.setText("Infinite");
+		lblDepth.setVisible(action == Action.Import);
+		
+		scaleDepth = new Scale(dialog, SWT.NONE);
+		scaleDepth.setSelection(100);
+		scaleDepth.addSelectionListener(new SelectionAdapter() {
+			@Override
+			public void widgetSelected(SelectionEvent e) {
+				if ( scaleDepth.getSelection() == 0 ) lblDepth.setText("None");
+				else if ( scaleDepth.getSelection() == 100 ) lblDepth.setText("Infinite");
+				else lblDepth.setText(Integer.toString(scaleDepth.getSelection()));
+			}
+		});
+		scaleDepth.setBounds(581, 331, 244, 40);
+		scaleDepth.setVisible(action == Action.Import);
+		
 		btnCancelFilter.addSelectionListener(BtnCancelFilterListener);
-
+		
 		btnCancel.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) { this.widgetDefaultSelected(e); }
 			public void widgetDefaultSelected(SelectionEvent e) { dialog.close(); }
@@ -625,26 +680,30 @@ public class DBSelectModel extends Dialog {
 				tableItem.setText(0, dbModel.getModelId());
 				tableItem.setText(1, dbModel.getName());
 
-				id.setText(dbModel.getModelId());
+/*				id.setText(dbModel.getModelId());
 				name.setText(dbModel.getName());
 				purpose.setText(dbModel.getPurpose()!=null ? dbModel.getPurpose() : "");
 				actualVersion.setText(dbModel.getVersion());
 				minorVersion.setText(DBPlugin.incMinor(dbModel.getVersion()));
 				majorVersion.setText(DBPlugin.incMajor(dbModel.getVersion()));
 				customVersion.setText("");
-				checkMinor.setSelection(true);
+				checkMinor.setSelection(true);*/
 
-				tableItem.setData("id", id.getText());
-				tableItem.setData("name", name.getText());
-				tableItem.setData("purpose", purpose.getText());
-				tableItem.setData("owner", owner.getText());
-				tableItem.setData("note", note.getText());
+				tableItem.setData("id", dbModel.getModelId());
+				tableItem.setData("name", dbModel.getName());
+				tableItem.setData("purpose", dbModel.getPurpose()!=null ? dbModel.getPurpose() : "");
+				tableItem.setData("owner", System.getProperty("user.name"));
+				tableItem.setData("note", "");
 				tableItem.setData("export", btnShared.getSelection());
-				tableItem.setData("actual_version", actualVersion.getText());
-				if ( checkActual.getSelection() ) tableItem.setData("version", actualVersion.getText()); else
-					if ( checkMinor.getSelection() )  tableItem.setData("version", minorVersion.getText());  else
-						if ( checkMajor.getSelection() )  tableItem.setData("version", majorVersion.getText());  else
-							tableItem.setData("version", customVersion.getText());
+				tableItem.setData("actual_version", dbModel.getVersion());
+				if ( checkActual.getSelection() ) tableItem.setData("version", dbModel.getVersion()); else
+					if ( checkMinor.getSelection() )  tableItem.setData("version", dbModel.getVersion());  else
+						if ( checkMajor.getSelection() )  tableItem.setData("version", dbModel.getVersion());  else
+							tableItem.setData("version", "");
+			}
+			if ( tblId.getItems().length > 0 ) {			
+				tblId.setSelection(0);
+				tblId.notifyListeners(SWT.Selection, new Event());
 			}
 		} else {
 			loadValuesFromDatabase();
@@ -652,11 +711,6 @@ public class DBSelectModel extends Dialog {
 		compositeVersion.setVisible(action==Action.Import);
 		versionGrp.setVisible(action == Action.Export);
 		btnApplyFilter.setEnabled(action==Action.Import);
-		
-		if ( tblId.getItems().length > 0 ) {			
-			tblId.setSelection(0);
-			tblId.notifyListeners(SWT.Selection, new Event());
-		}
 	}
 
 	/*
@@ -668,6 +722,7 @@ public class DBSelectModel extends Dialog {
 		//System.out.println("loadValuesFromDatabase : SELECT m1.model, m1.name, m1.version FROM model AS m1 JOIN (SELECT model, MAX(version) AS version FROM model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
 		ResultSet result = DBPlugin.select(db, "SELECT m1.model, m1.name, m1.version FROM model AS m1 JOIN (SELECT model, MAX(version) AS version FROM model GROUP BY model) AS m2 ON m1.model = m2.model and m1.version = m2.version" + filterModels);
 		tblId.setRedraw(false);
+		tblId.removeAll();
 		tblVersion.removeAll();
 		while(result.next()) {
 			TableItem tableItem = new TableItem(tblId, SWT.NONE);
@@ -682,6 +737,10 @@ public class DBSelectModel extends Dialog {
 				majorVersion.setText(DBPlugin.incMajor(result.getString("version")));
 			}
 		}
+		if ( tblId.getItems().length > 0 ) {			
+			tblId.setSelection(0);
+			tblId.notifyListeners(SWT.Selection, new Event());
+		}
 		tblId.setRedraw(true);
 		result.close();
 	}
@@ -692,33 +751,38 @@ public class DBSelectModel extends Dialog {
 	 * This callback is called each time there is a double click on the columns' header
 	 */
 	private MouseAdapter sortColumns = new MouseAdapter() {
-		public void mouseDoubleClick(MouseEvent e) {
+		public void mouseUp(MouseEvent e) {
 			Collator collator = Collator.getInstance(Locale.getDefault());
-			Table table;
 			TableItem[] items;
 			TableColumn column;
 
-			if ( e.widget.equals(lblId)) {
-				table = tblId;
+			if ( e.widget.equals(lblId))
 				column = columnId;
-			} else if ( e.widget.equals(lblName)) {
-				table = tblId;
+			else 
 				column = columnName;
-			} else
-				return;
 
-			items = table.getItems();
+			items = tblId.getItems();
 
-			if (column == table.getSortColumn()) {
-				table.setSortDirection(table.getSortDirection() == SWT.DOWN ? SWT.UP : SWT.DOWN);
+			if (column == tblId.getSortColumn()) {
+				tblId.setSortDirection(tblId.getSortDirection() == SWT.DOWN ? SWT.UP : SWT.DOWN);
 			} else {
-				table.setSortColumn(column);
-				table.setSortDirection(SWT.UP);
+				tblId.setSortColumn(column);
+				tblId.setSortDirection(SWT.UP);
 			}
+			
+			Label oldLabel = ((Label[])tblId.getSortColumn().getData())[1];
+			String txt = oldLabel.getText().contains(" ") ? oldLabel.getText().split(" ")[0] : oldLabel.getText();
+			oldLabel.setText(txt);
+			
+			Label newLabel = ((Label[])tblId.getSortColumn().getData())[0];
+			txt = newLabel.getText().contains(" ") ? newLabel.getText().split(" ")[0] : newLabel.getText();
+			txt += " ";
+			txt += tblId.getSortDirection() == SWT.DOWN ? "(v)" : "(^)";
+			newLabel.setText(txt);
 
 			int columnIndex = -1;
-			for ( int c=0; c < table.getColumnCount(); c++) {
-				if ( column == table.getColumn(c) ) {
+			for ( int c=0; c < tblId.getColumnCount(); c++) {
+				if ( column == tblId.getColumn(c) ) {
 					columnIndex = c;
 					break;
 				}
@@ -729,19 +793,14 @@ public class DBSelectModel extends Dialog {
 					for (int j = 0; j < i; j++) {
 						String value2 = items[j].getText(columnIndex);
 						boolean inf = collator.compare(value1, value2) < 0;
-						if ( table.getSortDirection() == SWT.DOWN)
+						if ( tblId.getSortDirection() == SWT.DOWN)
 							inf = ! inf;
 						if (inf) {
 							String[] values = { items[i].getText(0),items[i].getText(1) };
 							items[i].dispose();
-							TableItem item = new TableItem(table, SWT.NONE, j);
-							//TODO:
-							//TODO : recupérer les data !!!!!
-							//TODO:
-							//TODO:
-							//TODO:
+							TableItem item = new TableItem(tblId, SWT.NONE, j);
 							item.setText(values);
-							items = table.getItems();
+							items = tblId.getItems();
 							break;
 						}
 					}
@@ -1110,6 +1169,38 @@ public class DBSelectModel extends Dialog {
 		}
 		public void widgetDefaultSelected(SelectionEvent event) {}
 	};
+	private SelectionListener BtnDeleteListener = new SelectionListener() {
+		public void widgetSelected(SelectionEvent event) {
+			MessageDialog confirm = new MessageDialog(dialog, DBPlugin.pluginTitle, null,
+				    "Warning, you're going to remove the project "+name.getText() + " ("+id.getText()+"). Be aware that this operation cannot be undone !\n\nPlease confirm what you wish to remove exactly ...",
+				    MessageDialog.QUESTION, new String[] { "Whole model", "version "+tblVersion.getSelection()[0].getText(0)+" only", "cancel" }, 0);
+			String where = null;
+			switch ( confirm.open() ) {
+			case 0 :
+				DBPlugin.debug("Removing whole model !!!");
+				where = "WHERE model = ?";
+				break;
+			case 1 :
+				DBPlugin.debug("removing one version only");
+				where = "WHERE model = ? and VERSION = ?";
+				break;
+			case 2 :
+				DBPlugin.debug("cancelled");
+				return;
+			}
+			for(String table: DBPlugin.allTables ) {
+				DBPlugin.debug("   table " + table);
+				try {
+					DBPlugin.sql(db, "DELETE FROM "+table+" "+where, id.getText(), tblVersion.getSelection()[0].getText(0));
+					db.commit();
+				} catch (SQLException e) { Logger.logError("delete from +"+table+" : SQL Exception !!!", e); }
+			}
+			try {
+				loadValuesFromDatabase();
+			} catch (SQLException e) { Logger.logError("loadValuesFromDatabase : SQL Exception !!!", e); }
+		}
+		public void widgetDefaultSelected(SelectionEvent e) {}
+	};
 	private SelectionListener BtnOKListener = new SelectionListener() {
 		public void widgetSelected(SelectionEvent event) {
 			if ( !id.getText().isEmpty() ) { 
@@ -1158,9 +1249,9 @@ public class DBSelectModel extends Dialog {
 	private DBModel dbModel;
 	private Connection db;
 	private Action action = Action.Unknown;
-	private Text lblId;
+	private Label lblId;
 	private Text id;
-	private Text lblName;
+	private Label lblName;
 	private Text name;
 	private Table tblId;
 	private TableColumn columnId;
@@ -1221,6 +1312,9 @@ public class DBSelectModel extends Dialog {
 	private Group grpMode;
 	private Button btnStandalone;
 	private Button btnShared;
+	private Scale scaleDepth;
+	private Label lblDepth;
+	private Label lblAutoDepth;
 
 	private Text purpose;
 	private Text owner;

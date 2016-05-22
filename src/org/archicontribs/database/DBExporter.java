@@ -6,9 +6,6 @@
 
 package org.archicontribs.database;
 
-
-import static java.util.Arrays.asList;
-
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -45,7 +42,6 @@ public class DBExporter implements IModelExporter {
 	private int nbRelation;
 	private int nbDiagram;
 	private int nbProperty;
-	private int nbBound;
 	private int nbBendpoint;
 	private int nbDiagramObject;
 	private int nbConnection;
@@ -65,7 +61,6 @@ public class DBExporter implements IModelExporter {
 		nbRelation = 0;
 		nbDiagram = 0;
 		nbProperty = 0;
-		nbBound= 0;
 		nbBendpoint = 0;
 		nbDiagramObject = 0;
 		nbConnection = 0;
@@ -153,7 +148,7 @@ public class DBExporter implements IModelExporter {
 
 						// we remove the old components (if any) from the database
 						DBPlugin.debug("Removing old values ...");
-						for(String table: asList("archimatediagrammodel", "archimateelement", "canvasmodel", "canvasmodelblock", "canvasmodelsticky", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "folder", "model",  "point", "property", "relationship")) {
+						for(String table: DBPlugin.allTables ) {
 							DBPlugin.debug("   table " + table);
 							DBPlugin.sql(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 						}
@@ -202,11 +197,10 @@ public class DBExporter implements IModelExporter {
 
 									case "CanvasModel" :
 										DBPlugin.update(db, "INSERT INTO canvasmodel (id, model, version, name, documentation, hinttitle, hintcontent, connectionroutertype, folder)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getDocumentation(), dbObject.getHintTitle(), dbObject.getHintContent(), dbObject.getConnectionRouterType(), dbObject.getFolder());
-										nbExported++;
-										nbCanvas++;
+										++nbCanvas;
 										exportProperties(dbObject);
 
-										for ( int rank=0; rank < dbObject.getChildren().size(); rank++ ) {
+										for ( int rank=0; rank < dbObject.getChildren().size(); ++rank ) {
 											DBObject dbChild = dbObject.getChild(rank);
 											switch ( dbChild.getEClassName() ) {
 											case "CanvasModelBlock" :
@@ -224,11 +218,10 @@ public class DBExporter implements IModelExporter {
 
 									case "ArchimateDiagramModel" :
 										DBPlugin.update(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type, folder)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getDocumentation(), dbObject.getConnectionRouterType(), dbObject.getViewpoint(), dbObject.getClassSimpleName(), dbObject.getFolder());
-										nbExported++;
-										nbDiagram++;
+										++nbDiagram;
 										exportProperties(dbObject);
 
-										for ( int rank=0; rank < dbObject.getChildren().size(); rank++ ) {
+										for ( int rank=0; rank < dbObject.getChildren().size(); ++rank ) {
 											DBObject dbChild = dbObject.getChild(rank);
 											switch ( dbChild.getEClassName() ) {
 											case "DiagramModelArchimateConnection" :
@@ -248,15 +241,13 @@ public class DBExporter implements IModelExporter {
 									default:
 										if ( eObject instanceof IArchimateElement ) {
 											DBPlugin.update(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation, folder)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getClassSimpleName(), dbObject.getDocumentation(), dbObject.getFolder()); 
-											nbExported++;
-											nbElement++;
+											++nbElement;
 											exportProperties(dbObject);
 										}
 										else {
 											if ( eObject instanceof IRelationship ) {
 												DBPlugin.update(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation, folder)", dbObject.getId(), dbObject.getModelId(), dbObject.getVersion(), dbObject.getName(), dbObject.getSourceId(), dbObject.getTargetId(), dbObject.getClassSimpleName(), dbObject.getDocumentation(), dbObject.getFolder()); 
-												nbExported++;
-												nbRelation++;
+												++nbRelation;
 												exportProperties(dbObject);
 											}
 											else {
@@ -276,6 +267,7 @@ public class DBExporter implements IModelExporter {
 						} else {
 							msg = "The model \"" + dbModel.getName() + "\" has been successfully exported to the database.";	
 						}
+						nbExported = nbElement+nbRelation+nbDiagram+nbDiagramObject+nbConnection+nbCanvas+nbCanvasModelBlock+nbCanvasModelSticky+nbProperty+nbBendpoint+nbFolder;
 						msg += "\n\n"+nbExported+" components exported in total :";
 						msg += "\n     - "+nbElement+" elements";
 						msg += "\n     - "+nbRelation+" relations";
@@ -286,7 +278,6 @@ public class DBExporter implements IModelExporter {
 						msg += "\n     - "+nbCanvasModelBlock+" canvas model blocks";
 						msg += "\n     - "+nbCanvasModelSticky+" canvas model sticky";
 						msg += "\n     - "+nbProperty+" properties";
-						msg += "\n     - "+nbBound+" bounds";
 						msg += "\n     - "+nbBendpoint+" bendpoints";
 						msg += "\n     - "+nbFolder+" folders";
 						DBPlugin.popup(ignored.isEmpty() ? Level.Info : Level.Warning, msg);
@@ -311,9 +302,8 @@ public class DBExporter implements IModelExporter {
 		if ( _dbObject.getProperties() != null ) {
 			int id=0;
 			for(IProperty property: _dbObject.getProperties() ) {
-				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", id++, _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), property.getKey(), property.getValue());
-				nbExported++;
-				nbProperty++;
+				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", ++id, _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), property.getKey(), property.getValue());
+				++nbProperty;
 			}
 		}
 	}
@@ -322,10 +312,8 @@ public class DBExporter implements IModelExporter {
 		if ( _dbModel.getProperties() != null ) {
 			int rank=0;
 			for(IProperty property: _dbModel.getProperties() ) {
-				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", rank, _dbModel.getModelId(), _dbModel.getModelId(), _dbModel.getVersion(), property.getKey(), property.getValue());
-				nbExported++;
-				nbProperty++;
-				rank++;
+				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", ++rank, _dbModel.getModelId(), _dbModel.getModelId(), _dbModel.getVersion(), property.getKey(), property.getValue());
+				++nbProperty;
 			}
 		}
 	}
@@ -333,82 +321,72 @@ public class DBExporter implements IModelExporter {
 		//exports IDiagramModelArchimateObject + IDiagramModelObject + IDiagramModelGroup + IDiagramModelNote objects
 		String targetConnections = _archimateObject.getTargetConnectionsString();
 		//we specify all the fields in the INSERT request as the DBObject return null values if not set (but does not trigger an exception)
-		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelement, targetconnections, rank, indent, type, class, bordertype, content, documentation, name)",
-				_archimateObject.getId(), _archimateObject.getModelId(), _archimateObject.getVersion(), _parentId, _archimateObject.getFillColor(), _archimateObject.getFont(), _archimateObject.getFontColor(), _archimateObject.getLineColor(), _archimateObject.getLineWidth(), _archimateObject.getTextAlignment(), _archimateObject.getArchimateElementId(), targetConnections, _rank, _indent, _archimateObject.getType(), _archimateObject.getEClassName(), _archimateObject.getBorderType(), _archimateObject.getContent(), _archimateObject.getDocumentation(), _archimateObject.getName());
-		nbExported++;
-		nbDiagramObject++;
+		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelementid, archimateelementid, archimateelementclass, targetconnections, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
+				_archimateObject.getId(), _archimateObject.getModelId(), _archimateObject.getVersion(), _parentId, _archimateObject.getFillColor(), _archimateObject.getFont(), _archimateObject.getFontColor(), _archimateObject.getLineColor(), _archimateObject.getLineWidth(), _archimateObject.getTextAlignment(),
+				_archimateObject.getArchimateElementId(),
+				_archimateObject.getArchimateElementName(),
+				_archimateObject.getArchimateElementClass(),
+				targetConnections, _rank, _indent, _archimateObject.getType(), _archimateObject.getEClassName(), _archimateObject.getBorderType(), _archimateObject.getContent(), _archimateObject.getDocumentation(), _archimateObject.getName(), _archimateObject.getBounds().getX(), _archimateObject.getBounds().getY(), _archimateObject.getBounds().getWidth(), _archimateObject.getBounds().getHeight());
+		++nbDiagramObject;
 		if ( targetConnections != null ) {
 			int nb = targetConnections.split(",").length;
 			nbExported += nb;
 			nbConnection += nb;
 		}
 		if ( _archimateObject.getSourceConnections() != null ) {
-			for ( int i=0; i < _archimateObject.getSourceConnections().size(); i++) {
+			for ( int i=0; i < _archimateObject.getSourceConnections().size(); ++i) {
 				exportDiagramModelArchimateConnection(_archimateObject.getId(), _archimateObject.getSourceConnection(i), i);
 			}
 		}
 		if ( _archimateObject.getChildren() != null ) {
-			for ( int i=0; i < _archimateObject.getChildren().size(); i++) {
+			for ( int i=0; i < _archimateObject.getChildren().size(); ++i) {
 				exportDiagramModelArchimateObject(_archimateObject.getId(), _archimateObject.getChild(i), i, _indent+1);
 			}
 		}
-		exportBounds(_archimateObject);
 		exportProperties(_archimateObject);
 	}
 	private void exportDiagramModelArchimateConnection(String _parentId, DBObject _connection, int _rank) throws SQLException {
 		//exports IDiagramModelArchimateConnection objects
 		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateconnection (id, model, version, parent, documentation, font, fontcolor, linecolor, linewidth, relationship, source, target, text, textposition, type, rank, class)", _connection.getId(), _connection.getModelId(), _connection.getVersion(), _parentId, _connection.getDocumentation(), _connection.getFont(), _connection.getFontColor(), _connection.getLineColor(), _connection.getLineWidth(), _connection.getRelationshipId(), _connection.getSourceId(), _connection.getTargetId(), _connection.getText(), _connection.getTextPosition(),	_connection.getType(), _rank, _connection.getEClassName());
-		nbExported++;
-		nbConnection++;
+		++nbConnection;
 		exportBendpoints(_connection);
 		exportProperties(_connection);
 	}
 
 	private void exportCanvasModelBlock(String _parentId, DBObject _block, int _rank, int _indent) throws SQLException {
 		//export ICanvasModelBlock objects
-		DBPlugin.update(db, "INSERT INTO canvasmodelblock (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, hintcontent, hinttitle, imagepath, imageposition, linecolor, linewidth, islocked, name, textalignment, textposition, rank, indent)",
+		DBPlugin.update(db, "INSERT INTO canvasmodelblock (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, hintcontent, hinttitle, imagepath, imageposition, linecolor, linewidth, islocked, name, textalignment, textposition, rank, indent, x, y, width, height)",
 				_block.getId(), _block.getModelId(), _block.getVersion(), _parentId, _block.getBorderColor(), _block.getContent(), _block.getFillColor(), _block.getFont(), _block.getFontColor(),
-				_block.getHintContent(), _block.getHintTitle(), _block.getImagePath(), _block.getImagePosition(), _block.getLineColor(), _block.getLineWidth(), _block.isLocked(), _block.getName(), _block.getTextAlignment(), _block.getTextPosition(), _rank, _indent);
-		nbExported++;
-		nbCanvasModelBlock++;
+				_block.getHintContent(), _block.getHintTitle(), _block.getImagePath(), _block.getImagePosition(), _block.getLineColor(), _block.getLineWidth(), _block.isLocked(), _block.getName(), _block.getTextAlignment(), _block.getTextPosition(), _rank, _indent, _block.getBounds().getX(), _block.getBounds().getY(), _block.getBounds().getWidth(), _block.getBounds().getHeight());
+		++nbCanvasModelBlock;
 		if ( _block.getChildren() != null ) {
-			for ( int i=0; i < _block.getChildren().size(); i++) {
+			for ( int i=0; i < _block.getChildren().size(); ++i) {
 				exportDiagramModelArchimateObject(_block.getId(), _block.getChild(i), i, _indent+1);
 			}
 		}
-		exportBounds(_block);
 		exportProperties(_block);
 	}
 	private void exportCanvasModelSticky(String _parentId, DBObject _sticky, int _rank, int _indent) throws SQLException {
 		//export ICanvasModelSticky objects
-		DBPlugin.update(db, "INSERT INTO canvasmodelsticky (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, imagepath, imageposition, linecolor, linewidth, notes, name, source, target, textalignment, textposition, rank, indent)",
+		DBPlugin.update(db, "INSERT INTO canvasmodelsticky (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, imagepath, imageposition, linecolor, linewidth, notes, name, source, target, textalignment, textposition, rank, indent, x, y, width, height)",
 				_sticky.getId(), _sticky.getModelId(), _sticky.getVersion(), _parentId, _sticky.getBorderColor(), _sticky.getContent(), _sticky.getFillColor(), _sticky.getFont(), _sticky.getFontColor(),
-				_sticky.getImagePath(), _sticky.getImagePosition(), _sticky.getLineColor(), _sticky.getLineWidth(), _sticky.getNotes(), _sticky.getName(),  _sticky.getSourceId(), _sticky.getTargetId(), _sticky.getTextAlignment(), _sticky.getTextPosition(), _rank, _indent);
-		nbExported++;
-		nbCanvasModelSticky++;
-		exportBounds(_sticky);
+				_sticky.getImagePath(), _sticky.getImagePosition(), _sticky.getLineColor(), _sticky.getLineWidth(), _sticky.getNotes(), _sticky.getName(),  _sticky.getSourceId(), _sticky.getTargetId(), _sticky.getTextAlignment(), _sticky.getTextPosition(), _rank, _indent, _sticky.getBounds().getX(), _sticky.getBounds().getY(), _sticky.getBounds().getWidth(), _sticky.getBounds().getHeight());
+		++nbCanvasModelSticky;
 		exportProperties(_sticky);
-	}
-
-	private void exportBounds(DBObject _dbObject) throws SQLException {
-		//export IBounds objects
-		DBPlugin.update(db, "INSERT INTO point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), _dbObject.getBounds().getX(), _dbObject.getBounds().getY(), _dbObject.getBounds().getWidth(), _dbObject.getBounds().getHeight(), 0);
-		nbExported++;
-		nbBound++;
 	}
 	private void exportBendpoints(DBObject _dbObject) throws SQLException {
 		//export IDiagramModelBendpoint objects
 		int rank=0;
 		for ( IDiagramModelBendpoint point: _dbObject.getBendpoints() ) {
-			DBPlugin.update(db, "INSERT INTO point (parent, model, version, x, y, w, h, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), point.getStartX(), point.getStartY(), point.getEndX(), point.getEndY(), rank++);
-			nbExported++;
-			nbBendpoint++;
+			DBPlugin.update(db, "INSERT INTO bendpoint (parent, model, version, startx, starty, endx, endy, rank)", _dbObject.getId(), _dbObject.getModelId(), _dbObject.getVersion(), point.getStartX(), point.getStartY(), point.getEndX(), point.getEndY(), ++rank);
+			++nbBendpoint;
 		}
 	}
 	private void exportFolders(DBObject _folder, String _parentId, int rank) throws SQLException {
-		DBPlugin.update(db, "INSERT INTO folder (id, model, version, documentation, parent, name, type, rank)", _folder.getId(), _folder.getModelId(), _folder.getVersion(), _folder.getDocumentation(), _parentId , _folder.getName(), _folder.getFolderType().getValue(), rank++);
-		nbExported++;
-		nbFolder++;
+		DBPlugin.update(db, "INSERT INTO folder (id, model, version, documentation, parent, name, type, rank)",
+				_folder.getId(), _folder.getModelId(), _folder.getVersion(), _folder.getDocumentation(), _parentId , _folder.getName(), _folder.getFolderType(rank).getValue(), rank);
+		++rank;
+		++nbFolder;
 		exportProperties(_folder);
 		
 		for ( IFolder f: _folder.getFolders() ) {
