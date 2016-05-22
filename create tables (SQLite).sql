@@ -63,6 +63,10 @@ CREATE TABLE canvasmodelblock
   name character varying(255),
   textalignment integer,
   textposition integer,
+  x integer,
+  y integer,
+  width integer,
+  height integer,
   
   indent integer,
   rank integer,
@@ -91,6 +95,10 @@ CREATE TABLE canvasmodelsticky
   target character varying(255),
   textalignment integer,
   textposition integer,
+  x integer,
+  y integer,
+  width integer,
+  height integer,
   
   indent integer,
   rank integer,
@@ -128,7 +136,9 @@ CREATE TABLE diagrammodelarchimateobject
   model character varying(50) NOT NULL,
   version character varying(50) NOT NULL,
   
-  archimateelement character varying(255),
+  archimateelementid character varying(255),
+  archimateelementname character varying(255),
+  archimateelementclass character varying(255),
   bordertype integer,
   class character varying(255),
   content character varying(65535),
@@ -143,6 +153,10 @@ CREATE TABLE diagrammodelarchimateobject
   targetconnections character varying(255),
   textalignment integer,
   type integer,
+  x integer,
+  y integer,
+  width integer,
+  height integer,
   
   indent integer,
   rank integer,
@@ -177,16 +191,16 @@ CREATE TABLE model
   
   CONSTRAINT pk_model PRIMARY KEY (model, version));
 
-CREATE TABLE point
+CREATE TABLE bendpoint
 (
   parent character varying(50) NOT NULL,
   model character varying(50) NOT NULL,
   version character varying(50) NOT NULL,
   
-  x integer,
-  y integer,
-  w integer,
-  h integer,
+  startx integer,
+  starty integer,
+  endx integer,
+  endy integer,
   
   rank integer,
   
