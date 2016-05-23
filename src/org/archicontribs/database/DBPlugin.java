@@ -38,7 +38,7 @@ public class DBPlugin {
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
 	
-	public static String[] allTables = { "archimatediagrammodel", "archimateelement", "canvasmodel", "canvasmodelblock", "canvasmodelsticky", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "folder", "model",  "point", "property", "relationship" };
+	public static String[] allTables = { "archimatediagrammodel", "archimateelement", "canvasmodel", "canvasmodelblock", "canvasmodelsticky", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "folder", "model",  "bendpoint", "property", "relationship" };
 
 	public enum Level { Info, Warning, Error };
 	

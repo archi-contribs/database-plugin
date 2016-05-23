@@ -321,7 +321,7 @@ public class DBExporter implements IModelExporter {
 		//exports IDiagramModelArchimateObject + IDiagramModelObject + IDiagramModelGroup + IDiagramModelNote objects
 		String targetConnections = _archimateObject.getTargetConnectionsString();
 		//we specify all the fields in the INSERT request as the DBObject return null values if not set (but does not trigger an exception)
-		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelementid, archimateelementid, archimateelementclass, targetconnections, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
+		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelementid, archimateelementname, archimateelementclass, targetconnections, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
 				_archimateObject.getId(), _archimateObject.getModelId(), _archimateObject.getVersion(), _parentId, _archimateObject.getFillColor(), _archimateObject.getFont(), _archimateObject.getFontColor(), _archimateObject.getLineColor(), _archimateObject.getLineWidth(), _archimateObject.getTextAlignment(),
 				_archimateObject.getArchimateElementId(),
 				_archimateObject.getArchimateElementName(),
