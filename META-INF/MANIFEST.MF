@@ -1,21 +1,17 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Database export / import Archi plugin
+Bundle-Name: Database export / import plugin for Archimate Tool
 Bundle-SymbolicName: org.archicontribs.database;singleton:=true
-Bundle-Version: 0.1
-Bundle-Vendor: Hervé JOUIN
+Bundle-Version: 0.5
+Bundle-Vendor: Hervé Jouin
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Require-Bundle: org.eclipse.ui,
- org.eclipse.core.runtime,
- com.archimatetool.editor,
- org.eclipse.emf.common,
- org.eclipse.emf.ecore,
- com.archimatetool.model,
- org.eclipse.ui.forms,
- org.eclipse.ui.workbench,
- org.eclipse.jface,
- org.eclipse.emf.ecore.xmi
+Require-Bundle: com.archimatetool.editor,
+ com.archimatetool.canvas,
+ org.eclipse.core.runtime
 Bundle-ClassPath: .,
- lib/log4j-1.2.17.jar,
+ lib/mysql-connector-java-5.1.38-bin.jar,
+ lib/ojdbc6.jar,
+ lib/sqlite-jdbc-3.8.11.2.jar,
  lib/postgresql-9.4.1208.jre7.jar
+Import-Package: org.osgi.framework
