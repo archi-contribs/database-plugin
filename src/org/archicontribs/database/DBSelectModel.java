@@ -677,7 +677,7 @@ public class DBSelectModel extends Dialog {
 			} else {
 				// if the model selected is not the shared one, then we export the selected model only 
 				TableItem tableItem = new TableItem(tblId, SWT.NONE);
-				tableItem.setText(0, dbModel.getModelId());
+				tableItem.setText(0, dbModel.getProjectId());
 				tableItem.setText(1, dbModel.getName());
 
 /*				id.setText(dbModel.getModelId());
@@ -689,7 +689,7 @@ public class DBSelectModel extends Dialog {
 				customVersion.setText("");
 				checkMinor.setSelection(true);*/
 
-				tableItem.setData("id", dbModel.getModelId());
+				tableItem.setData("id", dbModel.getProjectId());
 				tableItem.setData("name", dbModel.getName());
 				tableItem.setData("purpose", dbModel.getPurpose()!=null ? dbModel.getPurpose() : "");
 				tableItem.setData("owner", System.getProperty("user.name"));
@@ -728,7 +728,7 @@ public class DBSelectModel extends Dialog {
 			TableItem tableItem = new TableItem(tblId, SWT.NONE);
 			tableItem.setText(0, result.getString("model"));
 			tableItem.setText(1, result.getString("name"));
-			if ( action == Action.Export  && dbModel.getModelId().equals(result.getString("model")) ) {
+			if ( action == Action.Export  && dbModel.getProjectId().equals(result.getString("model")) ) {
 				tblId.setSelection(tableItem);
 				tblId.notifyListeners(SWT.Selection, new Event());
 				checkActual.setEnabled(true);

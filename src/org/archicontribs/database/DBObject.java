@@ -48,7 +48,6 @@ import com.archimatetool.model.IProperty;
 import com.archimatetool.model.IRelationship;
 import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
-import com.archimatetool.model.util.ArchimateModelUtils;
 
 public class DBObject {
 	private DBModel dbModel;
@@ -57,10 +56,6 @@ public class DBObject {
 	public DBObject(DBModel _dbModel, EObject _object) {
 		dbModel = _dbModel;
 		object = _object;
-	}
-	public DBObject(DBModel _dbModel, String _id) {
-		dbModel = _dbModel;
-		object = ArchimateModelUtils.getObjectByID(_dbModel.getModel(),_id);
 	}
 	public EObject getEObject() {
 		return object;
@@ -94,7 +89,7 @@ public class DBObject {
 		try {
 			if ( isVersionned() ) return ((IIdentifier)object).getId().split(DBPlugin.Separator)[1];
 		} catch (Exception e) {}
-		return dbModel.getModelId();
+		return dbModel.getProjectId();
 	}
 	public String getVersion() {
 		try {
@@ -147,10 +142,10 @@ public class DBObject {
 	}
 	public void setSource(String _source) {
 		try {
-			((IRelationship)object).setSource((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_source, getModelId(), getVersion())));
+			((IRelationship)object).setSource((IArchimateElement)dbModel.searchEObjectById(DBPlugin.generateId(_source, getModelId(), getVersion())));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setSource((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_source, getModelId(), getVersion())));
+			((IDiagramModelConnection)object).setSource((IDiagramModelObject)dbModel.searchEObjectById(DBPlugin.generateId(_source, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public String getTargetId() {
@@ -164,10 +159,10 @@ public class DBObject {
 	}
 	public void setTarget(String _target) {
 		try {
-			((IRelationship)object).setTarget((IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_target, getModelId(), getVersion())));
+			((IRelationship)object).setTarget((IArchimateElement)dbModel.searchEObjectById(DBPlugin.generateId(_target, getModelId(), getVersion())));
 		} catch (Exception e) {}
 		try {
-			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_target, getModelId(), getVersion())));
+			((IDiagramModelConnection)object).setTarget((IDiagramModelObject)dbModel.searchEObjectById(DBPlugin.generateId(_target, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public String getRelationshipId() {
@@ -178,7 +173,7 @@ public class DBObject {
 	}
 	public void setRelationship(String _relationship) {
 		try {
-			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship) ArchimateModelUtils.getObjectByID(dbModel.getModel(), DBPlugin.generateId(_relationship, getModelId(), getVersion())));
+			((IDiagramModelArchimateConnection)object).setRelationship((IRelationship)dbModel.searchEObjectById(DBPlugin.generateId(_relationship, getModelId(), getVersion())));
 		} catch (Exception e) {}
 	}
 	public EList<IDiagramModelObject> getChildren() {
@@ -378,8 +373,8 @@ public class DBObject {
 	}
 	public void setArchimateElement(String _id, String _name, String _class) {
 		try {
-			if ( getModelId().equals(DBPlugin.getModelId(_id)) ) { 
-				IArchimateElement child = (IArchimateElement)ArchimateModelUtils.getObjectByID(dbModel.getModel(), _id);
+			if ( getModelId().equals(DBPlugin.getProjectId(_id)) ) { 
+				IArchimateElement child = (IArchimateElement)dbModel.searchEObjectById(_id);
 				if ( child == null ) {
 					//TODO: add proxy instead
 					DBPlugin.popup(Level.Error,"Unknown ArchimateElement " + _id);
@@ -391,8 +386,8 @@ public class DBObject {
 				IArchimateElement child = (IArchimateElement)IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(_class));
 				((EObjectImpl)child).eSetProxyURI(URI.createURI(_id));
 				child.setId(_id);
-				child.setName(DBPlugin.getModelId(_id)+":"+_name);
-				child.setDocumentation("Load model ID '"+DBPlugin.getModelId(_id)+"' to import element.");
+				child.setName(DBPlugin.getProjectId(_id)+":"+_name);
+				child.setDocumentation("Load model ID '"+DBPlugin.getProjectId(_id)+"' to import element.");
 				DBPlugin.popup(Level.Error,"   setting proxy to ArchimateElement "  + child.getName() + " ("+child.getId()+")");
 				((IDiagramModelArchimateObject)object).setArchimateElement(child);
 				//we add it to the "external elements" folder

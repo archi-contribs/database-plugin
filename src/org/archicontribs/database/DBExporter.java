@@ -70,7 +70,7 @@ public class DBExporter implements IModelExporter {
 		nbFolder = 0;
 
 		dbModel = new DBModel(_model);
-		oldId = dbModel.getModelId();
+		oldId = dbModel.getProjectId();
 
 		//TODO : check if there are components outside projects folders as they will not be exported !!!
 
@@ -112,9 +112,9 @@ public class DBExporter implements IModelExporter {
 						// TODO:
 						if ( dbModel.isShared() ) {
 							DBPlugin.debug("Model is shared ... setting model's folder by ID = " + modelSelected.get("id"));
-							if ( dbModel.setFolderById(modelSelected.get("id")) == null ) {
+							if ( dbModel.setProjectFolder(dbModel.searchProjectFolderById(modelSelected.get("id"))) == null ) {
 								DBPlugin.debug("   Not found !!! setting model's folder by name = " + modelSelected.get("name"));
-								if ( dbModel.setFolderByName(modelSelected.get("name")) == null ) {
+								if ( dbModel.setProjectFolder(dbModel.searchProjectFolderByName(modelSelected.get("name"))) == null ) {
 									DBPlugin.popup(Level.Error, "Thats weird ...\n\nI do not know how to export the model \""+modelSelected.get("name")+"\".");
 									try { res.close(); } catch (SQLException ee) {}
 									continue;
@@ -129,7 +129,7 @@ public class DBExporter implements IModelExporter {
 						// TODO:
 						// TODO:
 						// TODO:
-						dbModel.setModelId(modelSelected.get("id"), modelSelected.get("version"));
+						dbModel.setProjectId(modelSelected.get("id"), modelSelected.get("version"));
 						dbModel.setName(modelSelected.get("name"));
 						dbModel.setPurpose(modelSelected.get("purpose"));
 
@@ -312,7 +312,7 @@ public class DBExporter implements IModelExporter {
 		if ( _dbModel.getProperties() != null ) {
 			int rank=0;
 			for(IProperty property: _dbModel.getProperties() ) {
-				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", ++rank, _dbModel.getModelId(), _dbModel.getModelId(), _dbModel.getVersion(), property.getKey(), property.getValue());
+				DBPlugin.update(db, "INSERT INTO property (id, parent, model, version, name, value)", ++rank, _dbModel.getProjectId(), _dbModel.getProjectId(), _dbModel.getVersion(), property.getKey(), property.getValue());
 				++nbProperty;
 			}
 		}
@@ -321,7 +321,7 @@ public class DBExporter implements IModelExporter {
 		//exports IDiagramModelArchimateObject + IDiagramModelObject + IDiagramModelGroup + IDiagramModelNote objects
 		String targetConnections = _archimateObject.getTargetConnectionsString();
 		//we specify all the fields in the INSERT request as the DBObject return null values if not set (but does not trigger an exception)
-		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelementid, archimateelementname, archimateelementclass, targetconnections, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
+		DBPlugin.update(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textAlignment, archimateelementid, archimateelementid, archimateelementclass, targetconnections, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
 				_archimateObject.getId(), _archimateObject.getModelId(), _archimateObject.getVersion(), _parentId, _archimateObject.getFillColor(), _archimateObject.getFont(), _archimateObject.getFontColor(), _archimateObject.getLineColor(), _archimateObject.getLineWidth(), _archimateObject.getTextAlignment(),
 				_archimateObject.getArchimateElementId(),
 				_archimateObject.getArchimateElementName(),

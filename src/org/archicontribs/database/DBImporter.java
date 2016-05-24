@@ -27,9 +27,7 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
-import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperty;
-import com.archimatetool.model.util.ArchimateModelUtils;
 
 //
 //vérifier si des vues ou des relations d'autres modèles référencent des objets disparus
@@ -106,8 +104,8 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		BusyIndicator.showWhile(Display.getDefault(), new Runnable(){
 			public void run(){
 				try {
-					DBModel dbModel = new DBModel(null);
-					
+					DBModel dbModel = null;
+
 					//
 					// Si on référence des objets d'autres modèles (dans une vue ou dans des relations)
 					// alors, proposer à l'utilisateur
@@ -115,33 +113,18 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 					//		soit charger uniquement les objets dépendants dans un dossier spécial (mais attention à la sauvegarde)
 					//		soit ne pas les charger mais ils devront être reconduits lors de la sauvegarde
 					//
-					
+
 					if ( modelSelected.get("mode").equals("Shared") ) {
 						// in shared mode, the database models will be loaded in folders in a generic model
-						for (IArchimateModel m: IEditorModelManager.INSTANCE.getModels() ) {
-							if ( m.getId().equals(DBPlugin.SharedModelId) ) {
-								dbModel.setModel(m);
-								break;
-							}
-						}
-						if ( dbModel.getModel() == null ) {
-							// if the shared model container does not yet exist, then we create it
-							dbModel.setModel(IArchimateFactory.eINSTANCE.createArchimateModel());
-							dbModel.getModel().setDefaults();
-							dbModel.getModel().setId(DBPlugin.SharedModelId);
-							dbModel.setName("Shared container");
-							dbModel.setPurpose("This model is a container for all the models imported in shared mode.");
-							IEditorModelManager.INSTANCE.registerModel(dbModel.getModel());
-						} else {
-							if ( dbModel.getAllModels() != null ) {
-								// we deny to import a model twice as this will create ID conflicts
-								for (IFolder f: dbModel.getAllModels() ) {
-									if ( f.getId().split(DBPlugin.Separator)[0].equals(modelSelected.get("id")) ) {
-										DBPlugin.popup(Level.Error, "You cannot import model \""+modelSelected.get("name")+"\" twice in shared mode.");
-										//TODO : how to delete a model in shared mode ????? is delete button sufficient ? 
-										try { db.close(); } catch (Exception ee) {}
-										return;
-									}
+						dbModel = new DBModel();
+						if ( dbModel.getAllModels() != null ) {
+							// we deny to import a model twice as this will create ID conflicts
+							for (IFolder f: dbModel.getAllModels() ) {
+								if ( f.getId().split(DBPlugin.Separator)[0].equals(modelSelected.get("id")) ) {
+									DBPlugin.popup(Level.Error, "You cannot import model \""+modelSelected.get("name")+"\" twice in shared mode.");
+									//TODO : how to delete a model in shared mode ????? is delete button sufficient ? 
+									try { db.close(); } catch (Exception ee) {}
+									return;
 								}
 							}
 						}
@@ -150,7 +133,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 						// in standalone mode, we import the database model in a dedicated Archi model
 						dbModel = new DBModel(IArchimateFactory.eINSTANCE.createArchimateModel());
 						dbModel.getModel().setDefaults();
-						dbModel.setModelId(modelSelected.get("id"), modelSelected.get("version"));
+						dbModel.setProjectId(modelSelected.get("id"), modelSelected.get("version"));
 						dbModel.setName(modelSelected.get("name"));
 						dbModel.setPurpose(modelSelected.get("purpose"));
 						IEditorModelManager.INSTANCE.registerModel(dbModel.getModel());
@@ -197,26 +180,29 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 
 
 	private void importArchimateElement(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT id, documentation, folder, name, type FROM archimateelement WHERE model = ? AND version = ?", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT id, documentation, folder, name, type FROM archimateelement WHERE model = ? AND version = ?", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			++nbElement;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion()); 
-			DBPlugin.debug("importing ArchimateElement " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion()); 
+			//DBPlugin.debug("importing ArchimateElement " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setName(result.getString("name"));
 			dbObject.setDocumentation(result.getString("documentation"));
 			dbObject.setFolder(result.getString("folder"));
+			
 			importProperties(dbObject);
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 	}
 
 	private void importRelationship(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder FROM relationship WHERE model = ? AND version = ?", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder FROM relationship WHERE model = ? AND version = ?", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			++nbRelation;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
-			DBPlugin.debug("importing Relationship " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
+			//DBPlugin.debug("importing Relationship " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setName(result.getString("name"));
 			dbObject.setDocumentation(result.getString("documentation"));
 			dbObject.setSource(result.getString("source"));
@@ -224,34 +210,38 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setFolder(result.getString("folder"));
 
 			importProperties(dbObject);
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 	}
 
 	private void importArchimateDiagramModel(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT id, connectionroutertype, documentation, folder, name, type, viewpoint FROM archimatediagrammodel WHERE model = ? AND version = ?", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT id, connectionroutertype, documentation, folder, name, type, viewpoint FROM archimatediagrammodel WHERE model = ? AND version = ?", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type"))));
 			++nbDiagram;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
-			DBPlugin.debug("importing ArchimateDiagramModel " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
+			//DBPlugin.debug("importing ArchimateDiagramModel " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setName(result.getString("name"));
 			dbObject.setDocumentation(result.getString("documentation"));
 			dbObject.setFolder(result.getString("folder"));
 			dbObject.setConnectionRouterType(result.getInt("connectionroutertype"));
 			dbObject.setViewpoint(result.getInt("viewpoint"));
-			
+
 			importProperties(dbObject);
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 	}
 	private void importDiagramModelArchimateObject(DBModel _dbModel) throws SQLException {
 		DBObject dbParent = null;
 		String oldParent = null;
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateobject WHERE model = ? AND version = ? ORDER BY indent, rank, parent", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateobject WHERE model = ? AND version = ? ORDER BY indent, rank, parent", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
-			DBPlugin.debug("importing DiagramModelArchimateObject " + result.getString("id") + " to parent " + DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion()));
+			//DBPlugin.debug("importing DiagramModelArchimateObject " + result.getString("id") + " to parent " + DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion()));
 			if ( !result.getString("parent").equals(oldParent) ) {
-				dbParent = new DBObject(_dbModel, DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion()));
+				dbParent = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion()));
 				if ( dbParent.getEObject() == null ) {
 					DBPlugin.popup(Level.Error, "Cannot import object ("+result.getString("id")+") as we do not know its parent ("+result.getString("parent")+")");
 					break;
@@ -261,14 +251,14 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("class"))));
 
 			//setting common properties
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
 			dbObject.setFillColor(result.getString("fillcolor"));
 			dbObject.setFont(result.getString("font"));
 			dbObject.setFontColor(result.getString("fontcolor"));
 			dbObject.setLineColor(result.getString("linecolor"));
 			dbObject.setLineWidth(result.getInt("linewidth"));
 			dbObject.setTextAlignment(result.getInt("textalignment"));
-			
+
 			dbObject.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
 
 			//setting specific properties
@@ -292,7 +282,10 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 				DBPlugin.popup(Level.Error,"Don't know how to import objects of type " + result.getString("class"));					
 			}
 			++nbDiagramObject;
+			
 			dbParent.addChild(dbObject);
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 		result.close();
 	}
@@ -300,26 +293,27 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	private void importSourceConnections(DBModel _dbModel) throws SQLException {
 		DBObject dbParent = null;
 		String oldParent = null;
+		//TODO: create proxies and resolve them once at the end (because 1 second each new DBObject(model, id) as it does a full elements scan !!!
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateconnection WHERE model = ? AND version = ? ORDER BY parent, rank", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateconnection WHERE model = ? AND version = ? ORDER BY parent, rank", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
-				dbParent = new DBObject(_dbModel, DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion()));
+				dbParent = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion()));
 				if ( dbParent.getEObject() == null ) {
 					DBPlugin.popup(Level.Error, "Cannot import connection ("+result.getString("id")+") as we do not know its parent ("+result.getString("parent")+")");
 					break;
 				}
 			}
-			DBObject dbSource = new DBObject(_dbModel, DBPlugin.generateId(result.getString("source"), _dbModel.getModelId(), _dbModel.getVersion()));
+			DBObject dbSource = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("source"), _dbModel.getProjectId(), _dbModel.getVersion()));
 			if ( dbSource.getEObject() == null )
 				DBPlugin.popup(Level.Error,  "Cannot found source "+result.getString("source"));
-			DBObject dbTarget = new DBObject(_dbModel, DBPlugin.generateId(result.getString("target"), _dbModel.getModelId(), _dbModel.getVersion()));
+			DBObject dbTarget = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("target"), _dbModel.getProjectId(), _dbModel.getVersion()));
 			if ( dbTarget.getEObject() == null )
 				DBPlugin.popup(Level.Error,  "Cannot found target "+result.getString("target"));
 			DBObject dbObject = new DBObject(_dbModel, IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("class"))));
 			++nbConnection;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
-			DBPlugin.debug("importing DiagramModelArchimateConnection " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
+			//DBPlugin.debug("importing DiagramModelArchimateConnection " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setDocumentation(result.getString("documentation"));
 			dbObject.setFont(result.getString("font"));
 			dbObject.setFontColor(result.getString("fontcolor"));
@@ -337,19 +331,23 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			importBendpoints(dbObject);
 			importProperties(dbObject);
 			dbParent.getSourceConnections().add((IDiagramModelConnection)dbObject.getEObject());
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 		result.close();
 	}
 
 	private void importTargetConnections(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT id, targetconnections FROM diagrammodelarchimateobject WHERE model = ? AND version = ? AND targetconnections IS NOT NULL", _dbModel.getModelId(), _dbModel.getVersion());
+		IDiagramModelConnection connection;
+		ResultSet result = DBPlugin.select(db, "SELECT id, targetconnections FROM diagrammodelarchimateobject WHERE model = ? AND version = ? AND targetconnections IS NOT NULL", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
-			DBObject dbObject = new DBObject(_dbModel, DBPlugin.generateId(result.getString("id"), _dbModel.getModelId(), _dbModel.getVersion()));
+			DBObject dbObject = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("id"), _dbModel.getProjectId(), _dbModel.getVersion()));
 			for ( String target: result.getString("targetconnections").split(",")) {
-				if ( ArchimateModelUtils.getObjectByID(_dbModel.getModel(), DBPlugin.generateId(target, _dbModel.getModelId(), _dbModel.getVersion())) == null )
-					DBPlugin.popup(Level.Error, "Cannot found targetConnection "+target);
+				connection = (IDiagramModelConnection)_dbModel.searchEObjectById(DBPlugin.generateId(target, _dbModel.getProjectId(), _dbModel.getVersion()));
+				if ( connection == null )
+					DBPlugin.popup(Level.Error, "Cannot found targetConnection "+DBPlugin.generateId(target, _dbModel.getProjectId(), _dbModel.getVersion()));
 				else {
-					dbObject.getTargetConnections().add((IDiagramModelConnection)ArchimateModelUtils.getObjectByID(_dbModel.getModel(), DBPlugin.generateId(target, _dbModel.getModelId(), _dbModel.getVersion())));
+					dbObject.getTargetConnections().add(connection);
 					++nbConnection;
 				}
 			}
@@ -358,12 +356,12 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 
 	private void importCanvasModel(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodel WHERE model = ? AND version = ?", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodel WHERE model = ? AND version = ?", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			DBObject dbObject = new DBObject(_dbModel, ICanvasFactory.eINSTANCE.createCanvasModel());
 			++nbCanvas;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion()); 
-			DBPlugin.debug("importing CanvasModel " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion()); 
+			//DBPlugin.debug("importing CanvasModel " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setName(result.getString("name"));
 			dbObject.setDocumentation(result.getString("documentation"));
 			dbObject.setHintContent(result.getString("hintcontent"));
@@ -373,6 +371,8 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setFolder(result.getString("folder"));
 
 			importProperties(dbObject);
+			
+			_dbModel.registerDBObject(dbObject);
 		}
 	}
 
@@ -381,19 +381,19 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		DBObject dbParent = null;
 		String oldParent = null;
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodelblock WHERE model = ? AND version = ? ORDER BY parent, rank, indent", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodelblock WHERE model = ? AND version = ? ORDER BY parent, rank, indent", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
-				dbParent = new DBObject(_dbModel, DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion()));
+				dbParent = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion()));
 				if ( dbParent.getEObject() == null ) {
-					DBPlugin.popup(Level.Error, "Cannot import CanvasModelBlock ("+DBPlugin.generateId(result.getString("id"), _dbModel.getModelId(), _dbModel.getVersion())+") as we do not know its parent ("+DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion())+")");
+					DBPlugin.popup(Level.Error, "Cannot import CanvasModelBlock ("+DBPlugin.generateId(result.getString("id"), _dbModel.getProjectId(), _dbModel.getVersion())+") as we do not know its parent ("+DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion())+")");
 					break;
 				}
 			}
 			DBObject dbObject = new DBObject(_dbModel, ICanvasFactory.eINSTANCE.createCanvasModelBlock());
 			++nbCanvasModelBlock;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
-			DBPlugin.debug("importing CanvasModelBlock " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
+			//DBPlugin.debug("importing CanvasModelBlock " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setBorderColor(result.getString("bordercolor"));
 			dbObject.setContent(result.getString("content"));
 			dbObject.setFillColor(result.getString("fillcolor"));
@@ -411,7 +411,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setLocked(result.getBoolean("islocked"));
 
 			dbObject.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
-			
+
 			importProperties(dbObject);
 
 			dbParent.addChild(dbObject);
@@ -423,10 +423,10 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		DBObject dbParent = null;
 		String oldParent = null;
 
-		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodelsticky WHERE model = ? AND version = ? ORDER BY parent, rank, indent", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT * FROM canvasmodelsticky WHERE model = ? AND version = ? ORDER BY parent, rank, indent", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			if ( !result.getString("parent").equals(oldParent) ) {
-				dbParent = new DBObject(_dbModel, DBPlugin.generateId(result.getString("parent"), _dbModel.getModelId(), _dbModel.getVersion()));
+				dbParent = _dbModel.searchDBObjectById(DBPlugin.generateId(result.getString("parent"), _dbModel.getProjectId(), _dbModel.getVersion()));
 				if ( dbParent.getEObject() == null ) {
 					DBPlugin.popup(Level.Error, "Cannot import CanvasModelBlock ("+result.getString("id")+") as we do not know its parent ("+result.getString("parent")+")");
 					break;
@@ -434,8 +434,8 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			}
 			DBObject dbObject = new DBObject(_dbModel, ICanvasFactory.eINSTANCE.createCanvasModelSticky());
 			++nbCanvasModelSticky;
-			dbObject.setId(result.getString("id"), _dbModel.getModelId(),_dbModel.getVersion());
-			DBPlugin.debug("importing CanvasModelSticky " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
+			dbObject.setId(result.getString("id"), _dbModel.getProjectId(),_dbModel.getVersion());
+			//DBPlugin.debug("importing CanvasModelSticky " + result.getString("name") + " --> " + ((IIdentifier)dbObject.getEObject()).getId());
 			dbObject.setBorderColor(result.getString("bordercolor"));
 			dbObject.setContent(result.getString("content"));
 			dbObject.setFillColor(result.getString("fillcolor"));
@@ -454,7 +454,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			dbObject.setTarget(result.getString("target"));
 
 			dbObject.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
-			
+
 			importProperties(dbObject);
 
 			dbParent.addChild(dbObject);
@@ -482,7 +482,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		result.close();
 	}
 	private void importProperties(DBModel _dbModel) throws SQLException {
-		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM property WHERE parent = ? AND model = ? AND version = ? ORDER BY id", _dbModel.getModelId(), _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT name, value FROM property WHERE parent = ? AND model = ? AND version = ? ORDER BY id", _dbModel.getProjectId(), _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
 			IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 			++nbProperty;
@@ -493,9 +493,9 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	}
 	private void importFolders(DBModel _dbModel) throws SQLException {
 		DBObject folder;
-		ResultSet result = DBPlugin.select(db, "SELECT id, model, version, documentation, parent, type, name FROM folder WHERE model = ? AND version = ? ORDER BY rank", _dbModel.getModelId(), _dbModel.getVersion());
+		ResultSet result = DBPlugin.select(db, "SELECT id, model, version, documentation, parent, type, name FROM folder WHERE model = ? AND version = ? ORDER BY rank", _dbModel.getProjectId(), _dbModel.getVersion());
 		while(result.next()) {
-			DBPlugin.debug("importing folder "+result.getString("name")+" (type = "+result.getInt("type")+")");
+			//DBPlugin.debug("importing folder "+result.getString("name")+" (type = "+result.getInt("type")+")");
 			if ( result.getInt("type") != 0 ) {		// folders are first level folders, they've already been created.
 				folder = new DBObject(_dbModel, _dbModel.getDefaultFolderForFolderType(FolderType.get(result.getInt("type"))));
 				if ( folder.getEObject() == null ) {

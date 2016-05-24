@@ -16,7 +16,9 @@ import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.widgets.Display;
 
 /**
- * Database Model Exporter
+ * Database Model Importer / Exporter
+ * 
+ * The DBPlugin class implements static methods used everywhere else in the plugin. 
  * 
  * @author Herve Jouin
  *
@@ -31,9 +33,13 @@ import org.eclipse.swt.widgets.Display;
  * v0.6 : 22/05/2016		bug corrections (especially regarding folders)
  * 							few optimizations
  * 							Import and export elements from other models is now possible even if it needs improvements
+ * v0.6b: 23/05/2016		solve a dependancy mistake in JAR
+ * v0.6c: 23/05/2016		solve a bug in the folders loading that prevented the objects to be corretly included in the model
+ * v0.7 : 24/05/2016		adding a hashtable of EObject in the DBModel class to accelerate the finding of an object by its ID  
+ *							begin to add some Javadoc
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.6";
+	public static String pluginVersion = "0.7";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
@@ -42,8 +48,15 @@ public class DBPlugin {
 
 	public enum Level { Info, Warning, Error };
 	
+	/**
+	 * ID of the model used as a container in shared mode.
+	 */
 	public static String SharedModelId = "Shared-0.0";
-	public static String SharedFolderName = "Models";
+	
+	/**
+	 * Name of the folder that contains projets subfolders in shared mode 
+	 */
+	public static String SharedFolderName = "Projects";
 	public static String ExternalFolderName = "External Elements";
 
 	private static boolean showDebug = false;
@@ -150,20 +163,20 @@ public class DBPlugin {
     	if ( _id == null ) return false;
     	return _id.contains(Separator);
     }
-    public static String generateModelId(String _modelId, String _version) {
-    	return _modelId+Separator+_version;
+    public static String generateProjectId(String _projectId, String _version) {
+    	return _projectId+Separator+_version;
     }
-    public static String generateId(String _id, String _modelId, String _version) {
-    	if ( _modelId == null ) return _id;
-    	if ( _id == null ) return UUID.randomUUID().toString().split("-")[0]+Separator+_modelId+Separator+_version;
-    	return _id+Separator+_modelId+Separator+_version;
+    public static String generateId(String _id, String _projectId, String _version) {
+    	if ( _projectId == null ) return _id;
+    	if ( _id == null ) return UUID.randomUUID().toString().split("-")[0]+Separator+_projectId+Separator+_version;
+    	return _id+Separator+_projectId+Separator+_version;
     }
     public static String getId(String _id) {
     	if ( isVersionned(_id) )
     		return _id.split(Separator)[0];
     	return _id;
     }
-    public static String getModelId(String _id) {
+    public static String getProjectId(String _id) {
     	if ( isVersionned(_id) ) {
     		String[] s = _id.split(Separator);
     		return s[s.length-2];
