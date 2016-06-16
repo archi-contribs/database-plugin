@@ -22,3 +22,4 @@ Database export/import plugin that store models in a central repository.
 ## Installation instructions :
 * download the **org.archicontribs.database_0.8.jar** file to the Archi **plugins** folder
 * download the **com.archimatetool.editor.jar** file to the **plugins/com.archimatetool.editor_3.3.1.201510051010** folder
+* start (or restart) Archi and the *import from database* and *export to database* menu entries should be visible ...
