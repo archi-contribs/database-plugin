@@ -5,20 +5,32 @@
  */
 package org.archicontribs.database;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Set;
 
+import org.archicontribs.database.DBPlugin.Level;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.FolderType;
+import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.IMetadata;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.IRelationship;
 
 
 /**
@@ -37,20 +49,88 @@ public class DBModel {
 	 * <li>In shared mode : the container model</li>
 	 */
 	private IArchimateModel model = null;
-	
+
 	/**
 	 * <li>In standalone mode : null</li>
 	 * <li>In shared mode : the project folder (as a subfolder of the folder "Models")</li>
 	 */
 	private IFolder projectFolder = null;
-	
+
 	/**
-	 * Hashtable containing searcheable model components (the container model in shared mode).
-	 * <br>
-	 * This Hashtable allows to easily retrieve an element knowing its ID.  
+	 * Name of the model (standalone mode) or project (shared mode) owner
 	 */
-	private Hashtable<String, EObject> objects = new Hashtable<String, EObject>();
-	
+	String owner = null;
+
+	private int nbElements = 0;
+	private Hashtable<String, EObject> allElements = null;
+	private int nbRelationships = 0;
+	private Hashtable<String, EObject> allRelationships = null;
+	private int nbArchimateDiagramModels = 0;
+	private Hashtable<String, EObject> allArchimateDiagramModels = null;
+	private int nbCanvasModels = 0;
+	private Hashtable<String, EObject> allCanvasModels = null;
+	private int nbCanvasModelBlocks = 0;
+	private Hashtable<String, EObject> allCanvasModelBlocks = null;
+	private int nbCanvasModelConnections = 0;
+	private Hashtable<String, EObject> allCanvasModelConnections = null;
+	private int nbCanvasModelImages = 0;
+	private Hashtable<String, EObject> allCanvasModelImages = null;
+	private int nbCanvasModelStickys = 0;
+	private Hashtable<String, EObject> allCanvasModelStickys = null;
+	private int nbDiagramModelArchimateConnections = 0;
+	private Hashtable<String, EObject> allDiagramModelArchimateConnections = null;
+	private int nbDiagramModelArchimateObjects = 0;
+	private Hashtable<String, EObject> allDiagramModelArchimateObjects = null;
+	private int nbDiagramModelConnections = 0;
+	private Hashtable<String, EObject> allDiagramModelConnections = null;
+	private int nbDiagramModelReferences = 0;
+	private Hashtable<String, EObject> allDiagramModelReferences = null;
+	private int nbDiagramModelGroups = 0;
+	private Hashtable<String, EObject> allDiagramModelGroups = null;
+	private int nbDiagramModelNotes = 0;
+	private Hashtable<String, EObject> allDiagramModelNotes = null;
+	private int nbFolders = 0;
+	private Hashtable<String, EObject> allFolders = null;
+	private int nbSketchModels = 0;
+	private Hashtable<String, EObject> allSketchModels = null;
+	private int nbSketchModelActors = 0;
+	private Hashtable<String, EObject> allSketchModelActors = null;
+	private int nbSketchModelStickys = 0;
+	private Hashtable<String, EObject> allSketchModelStickys = null;
+	private int nbImagePaths = 0;
+	private Set<String> allImagePaths = null;
+	private int nbDiagramModelBendpoints = 0;
+	private int nbMetadatas = 0;
+	private int nbProperties = 0;
+
+	private List<Hashtable<String, EObject>> allContent = Arrays.asList(allElements,
+			allRelationships,
+			allArchimateDiagramModels,
+			allCanvasModels,
+			allCanvasModelBlocks,
+			allCanvasModelConnections,
+			allCanvasModelImages,
+			allCanvasModelStickys,
+			allDiagramModelArchimateConnections,
+			allDiagramModelArchimateObjects,
+			allDiagramModelConnections,
+			allDiagramModelReferences,
+			allDiagramModelGroups,
+			allDiagramModelNotes,
+			allFolders,
+			allSketchModels,
+			allSketchModelActors,
+			allSketchModelStickys);
+
+	/**
+	 * Table containing an Arraylist of children. Contains one entry per parent. 
+	 */
+	private Hashtable<String, ArrayList<DBObject>> family = new Hashtable<String, ArrayList<DBObject>>();
+	/**
+	 * Table containing an Arraylist of sourceConnections. Contains one entry per parent. 
+	 */
+	private Hashtable<String, ArrayList<DBObject>> sourceConnections = new Hashtable<String, ArrayList<DBObject>>();
+
 	public DBModel() {
 		this(null, null);
 	}
@@ -58,18 +138,18 @@ public class DBModel {
 		this(_model, null);
 	}
 	public DBModel(IArchimateModel _model, IFolder _folder) {
-		EObject obj;
+		projectFolder = _folder;
 		
 		if ( _model == null ) {
 			// If no existing model is provided, then we set it to the shared container
 			for (IArchimateModel m: IEditorModelManager.INSTANCE.getModels() ) {
 				if ( m.getId().equals(DBPlugin.SharedModelId) ) {
 					model = m;
-					break;
+					return;
 				}
 			}
 			// if the shared container doesn't exist, we create it 
-			if ( _model == null ) {
+			if ( model == null ) {
 				model = IArchimateFactory.eINSTANCE.createArchimateModel();
 				model.setDefaults();
 				model.setId(DBPlugin.SharedModelId);
@@ -78,21 +158,10 @@ public class DBModel {
 				IEditorModelManager.INSTANCE.registerModel(model);
 			}
 		} else {
-			// if an existing model is provided, we memorize it and hashes its components to ease their retrieval
 			model = _model;
-			
-			// we populate the objects hashtable with existing components
-			for(Iterator<EObject> iter = _model.eAllContents(); iter.hasNext();) {
-				obj = iter.next();
-				if ( obj instanceof IIdentifier )
-					objects.put(((IIdentifier)obj).getId(), obj);
-			}
 		}
-		
-		// In shared mode, the folder may be provided in the constructor, or later on using a setter
-		projectFolder = _folder;
 	}
-	
+
 	/**
 	 * returns the model. In shared mode, the container model is returned.
 	 * 
@@ -101,7 +170,7 @@ public class DBModel {
 	public IArchimateModel getModel() {
 		return model;
 	}
-	
+
 	/**
 	 * returns the folder in shared mode.
 	 * 
@@ -110,7 +179,7 @@ public class DBModel {
 	public IFolder getProjectFolder() {
 		return projectFolder;
 	}
-	
+
 	/**
 	 * Sets the project folder in shared mode.
 	 * 
@@ -120,47 +189,7 @@ public class DBModel {
 	public IFolder setProjectFolder(IFolder _folder) {
 		return projectFolder=_folder;
 	}
-	
-	/**
-	 * Search a subfolder in the "Projects" folder by its model ID.
-	 *  
-	 * @param _id
-	 * @return IFolder
-	 */
-	public IFolder searchProjectFolderById(String _id) {
-		projectFolder = null;
-		for ( IFolder f: model.getFolders() ) {
-			if ( f.getName().equals(DBPlugin.SharedFolderName) ) {
-				for ( IFolder ff: f.getFolders() ) {
-					if ( _id.equals(DBPlugin.getProjectId(ff.getId())) ) {
-						return ff;
-					}
-				}
-			}
-		}
-		return null;
-	}
-	
-	/**
-	 * Search a subfolder in the "Projects" folder by its name.
-	 *  
-	 * @param _name
-	 * @return IFolder
-	 */
-	public IFolder searchProjectFolderByName(String _name) {
-		projectFolder = null;
-		for ( IFolder f: model.getFolders() ) {
-			if ( f.getName().equals(DBPlugin.SharedFolderName) ) {
-				for ( IFolder ff: f.getFolders() ) {
-					if ( _name.equals(ff.getName()) ) {
-						return ff;
-					}
-				}
-			}
-		}
-		return null;
-	}
-	
+
 	/**
 	 * Create the project folders structure : one project subfolder per first-level model folder (Business, Application, ...)
 	 * 
@@ -193,20 +222,26 @@ public class DBModel {
 		}
 		if ( !sharedFolderExists ) {
 			IFolder sharedModelsFolder = addFolder(model.getFolders(), DBPlugin.SharedFolderName);
-			addFolder(sharedModelsFolder.getFolders(), DBPlugin.ExternalFolderName);
+			//addFolder(sharedModelsFolder.getFolders(), DBPlugin.ExternalFolderName);
 			projectFolder = addFolder(sharedModelsFolder.getFolders(), _name, _projectId, _version);
 			projectFolder.setDocumentation(_purpose);
 		}
 		return projectFolder;
 	}
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name) {
-		return addFolder(_parentFolder, _name, null, null);
+		return addFolder(_parentFolder, _name, null, null, -1);
 	}
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name, String _projectId, String _version) {
+		return addFolder(_parentFolder, _name, _projectId, _version, -1);
+	}
+	private IFolder addFolder(EList<IFolder> _parentFolder, String _name, String _projectId, String _version, int _position) {
 		IFolder subFolder = IArchimateFactory.eINSTANCE.createFolder();
 		subFolder.setId(DBPlugin.generateId(null, _projectId, _version));
 		subFolder.setName(_name);
-		_parentFolder.add(subFolder);
+		if ( _position == -1 )
+			_parentFolder.add(subFolder);
+		else
+			_parentFolder.add(_position, subFolder);
 		return subFolder;
 	}
 
@@ -226,27 +261,19 @@ public class DBModel {
 	public String getProjectId() {
 		return DBPlugin.getProjectId(projectFolder!=null ? projectFolder.getId() : model.getId());
 	}
-	
+
 	/**
-	 * Encodes the project ID and the version in the model's ID (standalone mode) or in the project's folder ID (shared mode) 
+	 * Encodes the project ID and the version in all model (standalone mode) or project (shared mode) elements.
 	 * @param _projectId
 	 * @param _version
 	 * @return
 	 */
-	public String setProjectId(String _projectId, String _version) {
+	public void setProjectId(String _projectId, String _version) {
+		// in standalone mode, we change the model ID, which is not necessary in shared mode
 		if ( projectFolder == null )
 			model.setId(DBPlugin.generateProjectId(_projectId, _version));
-		if ( isVersionned() ) {				
-			String oldId = getProjectId();
-			for ( IFolder f: model.getFolders() ) {
-				for ( IFolder ff: f.getFolders() ) {
-					if ( oldId.equals(DBPlugin.getProjectId(ff.getId())) ) {	// we do not check the version as we can only have one version at a time
-						ff.setId(DBPlugin.generateId(ff.getId().split(DBPlugin.Separator)[0], _projectId, _version));
-					}
-				}
-			}
-		}
-		return _projectId;
+		else
+			projectFolder.setId(DBPlugin.generateId(DBPlugin.getId(projectFolder.getId()), _projectId, _version));
 	}
 
 	/**
@@ -267,13 +294,35 @@ public class DBModel {
 	}
 
 	/**
+	 * gets the metadata of the model (standalone mode) or null (shared mode)
+	 * @return
+	 */
+	public EList<IProperty> getMetadata() {
+		// In standalone mode, we return the model's metadata
+		if (projectFolder ==null )
+			return model.getMetadata().getEntries();
+
+		// In shared mode, we return the project's metadata folder properties
+		for ( IFolder f: getProjectFolder().getFolders() ) {
+			if ( f.getName().equals("Metadata") ) {
+				return f.getProperties();
+			}
+		}
+		IFolder metadata = IArchimateFactory.eINSTANCE.createFolder();
+		metadata.setId(DBPlugin.generateId(null, getProjectId(), getVersion()));
+		metadata.setName("Metadata");
+		getProjectFolder().getFolders().add(metadata);
+		return metadata.getProperties();
+	}
+
+	/**
 	 * Gets the name of the model (standalone mode) or the project folder (shared mode)
 	 * @return
 	 */
 	public String getName() {
 		return projectFolder!=null ? projectFolder.getName() : model.getName();
 	}
-	
+
 	/**
 	 * Sets the name of the model (standalone mode) or the project folder (shared mode)
 	 * @param _name
@@ -302,7 +351,7 @@ public class DBModel {
 	public String getPurpose() {
 		return projectFolder!= null ? projectFolder.getDocumentation() : model.getPurpose();
 	}
-	
+
 	/**
 	 * Sets the purpose of the model (standalone mode) or the documentation of the project folder (shared mode)
 	 * @param _purpose
@@ -316,6 +365,21 @@ public class DBModel {
 		else
 			model.setPurpose(_purpose);
 	}
+
+	/**
+	 * gets the owner's name
+	 */
+	public String getOwner() {
+		return owner;
+	}
+
+	/**
+	 * sets the owner's name
+	 */
+	public void setOwner(String _owner) {
+		owner = _owner;
+	}
+
 
 	/**
 	 * Gets the subfolders of the model (standalone mode) or the project folder (shared mode)
@@ -334,16 +398,16 @@ public class DBModel {
 		}
 		return folders;
 	}
-	
+
 	/**
 	 * Gets a list of projects folders (shared mode only).
 	 * @return
 	 */
-	public EList<IFolder> getAllModels() {
+	public EList<IFolder> getProjectsFolders() {
 		for ( IFolder f: model.getFolders() ) {
 			if ( f.getName().equals(DBPlugin.SharedFolderName) ) return f.getFolders();
 		}
-		return null;
+		return null; //TODO : in standalone mode, return a list containing the current model
 	}
 
 	/**
@@ -354,18 +418,30 @@ public class DBModel {
 	 * <li>In shared mode, the project subfolder of "Business", "Application", ...</li>
 	 */
 	public IFolder getDefaultFolderForFolderType(FolderType _folderType ) {
+		IFolder parentFolder = null;
+
 		for ( IFolder f: model.getFolders() ) {
 			if ( f.getType().equals(_folderType) ) {
-				if ( projectFolder == null ) return f;			// in standalone mode, we return the model's folder
-				for ( IFolder ff: f.getFolders() ) {	// in shared mode, we look for the sub-folder that has got the correct ID
+				parentFolder = f;
+				if ( projectFolder == null )
+					return f;									// in standalone mode, we return the model's folder
+				for ( IFolder ff: f.getFolders() ) {			// in shared mode, we look for the sub-folder that has got the correct ID
 					if ( DBPlugin.getProjectId(ff.getId()).equals(DBPlugin.getProjectId(projectFolder.getId())) )
 						return ff;
 				}
 			}
 		}
-		return null;	//shouldn't be the case, but we never know ...
+		// if the folder does not exist, it MUST be created !!!
+		if ( parentFolder == null ) {
+			parentFolder = addFolder(model.getFolders(), _folderType.getName(), null, null, _folderType.getValue());
+		}
+		// in shared mode, we create a subfolder with the name of the project
+		if ( projectFolder != null ) {
+			return addFolder(parentFolder.getFolders(), projectFolder.getName(), DBPlugin.getProjectId(projectFolder.getId()), DBPlugin.getVersion(projectFolder.getId()));
+		}
+		return parentFolder;
 	}
-	
+
 	/**
 	 *  Gets the default folder for a given element
 	 * @param _eObject
@@ -374,15 +450,14 @@ public class DBModel {
 	 * <li>In shared mode, the project subfolder of "Business", "Application", ...</li>
 	 */
 	public IFolder getDefaultFolderForElement(EObject _eObject) {
+		//WARNING: DERIVED folder is not return by getDefaultFolderForElement method
 		if ( projectFolder == null )
 			return model.getDefaultFolderForElement(_eObject);
-		try {
-			for ( IFolder f: model.getDefaultFolderForElement(_eObject).getFolders() ) {
-				if ( DBPlugin.getProjectId(f.getId()).equals(DBPlugin.getProjectId(((IIdentifier)_eObject).getId())) ) {
-					return f;
-				}
+		for ( IFolder f: model.getDefaultFolderForElement(_eObject).getFolders() ) {
+			if ( DBPlugin.getProjectId(f.getId()).equals(DBPlugin.getProjectId(((IIdentifier)_eObject).getId())) ) {
+				return f;
 			}
-		} catch (Exception e) {}
+		}
 		return null;	//shouldn't be the case, but we never know ...
 	}
 
@@ -395,38 +470,433 @@ public class DBModel {
 	public boolean isShared() {
 		return model.getId().equals(DBPlugin.SharedModelId);
 	}
+
+	/**
+	 * Puts the existing EObject of the entire model (standalone mode) or of the project folders (shared mode) in hashtables to count them and allow future retrieval
+	 * @param _element
+	 */
+	public void initializeIndex() {
+		allElements = new Hashtable<String, EObject>();
+		allRelationships = new Hashtable<String, EObject>();
+		allArchimateDiagramModels = new Hashtable<String, EObject>();
+		allCanvasModels = new Hashtable<String, EObject>();
+		allCanvasModelBlocks = new Hashtable<String, EObject>();
+		allCanvasModelConnections = new Hashtable<String, EObject>();
+		allCanvasModelImages = new Hashtable<String, EObject>();
+		allCanvasModelStickys = new Hashtable<String, EObject>();
+		allDiagramModelArchimateConnections = new Hashtable<String, EObject>();
+		allDiagramModelArchimateObjects = new Hashtable<String, EObject>();
+		allDiagramModelConnections = new Hashtable<String, EObject>();
+		allDiagramModelReferences = new Hashtable<String, EObject>();
+		allDiagramModelGroups = new Hashtable<String, EObject>();
+		allDiagramModelNotes = new Hashtable<String, EObject>();
+		allFolders = new Hashtable<String, EObject>();
+		allSketchModels = new Hashtable<String, EObject>();
+		allSketchModelActors = new Hashtable<String, EObject>();
+		allSketchModelStickys = new Hashtable<String, EObject>();
+		allImagePaths=new HashSet<String>();
+		nbDiagramModelBendpoints = 0;
+		nbMetadatas = 0;
+		nbProperties=0;
+		allContent = Arrays.asList(allElements,
+				allRelationships,
+				allArchimateDiagramModels,
+				allCanvasModels,
+				allCanvasModelBlocks,
+				allCanvasModelConnections,
+				allCanvasModelImages,
+				allCanvasModelStickys,
+				allDiagramModelArchimateConnections,
+				allDiagramModelArchimateObjects,
+				allDiagramModelConnections,
+				allDiagramModelReferences,
+				allDiagramModelGroups,
+				allDiagramModelNotes,
+				allFolders,
+				allSketchModels,
+				allSketchModelActors,
+				allSketchModelStickys);
+		
+		// we populate the hashtables with existing components
+		if ( projectFolder == null ) {
+			for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();)
+				indexEObject(iter.next());
+		} else {
+			for ( IFolder f: getFolders() ) {
+				for(Iterator<EObject> iter = f.eAllContents(); iter.hasNext();)
+					indexEObject(iter.next());
+			}
+		}
+		
+		//we must load only new images, not those already loaded 
+		//IArchiveManager archiveMgr = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+		//for ( String path: archiveMgr.getImagePaths() ) {
+		//	allImagePaths.add(path);
+		//}
+		
+		return;
+	}
 	
 	/**
 	 * Puts the EObject in a hashtable to allow future retrieval
 	 * @param _element
 	 */
-	public void registerEObject(EObject _obj) {
-		objects.put(((IIdentifier)_obj).getId(), _obj);
+	public void indexEObject(EObject _obj) {
+		//we change the object projectID and version if necessary (and if the component has got an ID of course)
+		try {
+			if ( !DBPlugin.getProjectId(((IIdentifier)_obj).getId()).equals(getProjectId()) || !DBPlugin.getVersion(((IIdentifier)_obj).getId()).equals(getVersion()) ) {
+				((IIdentifier)_obj).setId(DBPlugin.generateId(DBPlugin.getId(((IIdentifier)_obj).getId()), getProjectId(), getVersion()));
+			}
+		} catch ( ClassCastException e) {}
+
+		switch ( _obj.eClass().getName() ) {
+		case "ArchimateDiagramModel" :			allArchimateDiagramModels.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "Bounds" :							break;
+		case "CanvasModel" :					allCanvasModels.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "CanvasModelBlock" :				allCanvasModelBlocks.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "CanvasModelConnection" :			allCanvasModelConnections.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "CanvasModelImage" :				allCanvasModelImages.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "CanvasModelSticky" :				allCanvasModelStickys.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelArchimateConnection": allDiagramModelArchimateConnections.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelArchimateObject" :	allDiagramModelArchimateObjects.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelBendpoint" :			++nbDiagramModelBendpoints; break ;
+		case "DiagramModelConnection" :			allDiagramModelConnections.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelReference" :			allDiagramModelReferences.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelGroup" :				allDiagramModelGroups.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "DiagramModelNote" :				allDiagramModelNotes.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "Folder" :							allFolders.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "Property" :						++nbProperties; break;
+		case "SketchModel" :					allSketchModels.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "SketchModelActor" :				allSketchModelActors.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "SketchModelSticky" :				allSketchModelStickys.put(((IIdentifier)_obj).getId(), _obj); break;
+		case "Metadata":						nbMetadatas++; --nbProperties; break;
+		default :
+			// here, the class is too detailed (Node, Artefact, BusinessActor, etc ...)
+			// so we use "instanceof" to distinguish elements from relationships
+			if ( _obj instanceof IArchimateElement ) {
+				allElements.put(((IIdentifier)_obj).getId(), _obj);
+			} else if ( _obj instanceof IRelationship ) {
+				allRelationships.put(((IIdentifier)_obj).getId(), _obj);						
+			} else {
+				//we shouldn't be there but just in case
+				DBPlugin.popup(Level.Error, "DBModel : I do not know how to index " + _obj.eClass().getName() + " components !!!");
+			}
+		}
 	}
 	
+	public void indexMetadata() {
+		nbMetadatas++; --nbProperties;
+	}
+	
+	public void indexImagePath(String _path) {
+		if ( _path != null )
+			allImagePaths.add(_path);
+	}
+
 	/**
 	 * register the EObject attribute of the DBObject in a hashtable to allow future retrieval
 	 * @param _element
 	 */
-	public void registerDBObject(DBObject _obj) {
-		//DBPlugin.debug("registering DBObject " + _obj.getId());
-		registerEObject(_obj.getEObject());
+	public void indexDBObject(DBObject _obj) {
+		indexEObject(_obj.getEObject());
 	}
 	
+	public void countExistingEObjects() {
+		nbElements = 0;
+		nbRelationships = 0;
+		nbArchimateDiagramModels = 0;
+		nbCanvasModels = 0;
+		nbCanvasModelBlocks = 0;
+		nbCanvasModelConnections = 0;
+		nbCanvasModelImages = 0;
+		nbCanvasModelStickys = 0;
+		nbDiagramModelArchimateConnections = 0;
+		nbDiagramModelArchimateObjects = 0;
+		nbDiagramModelConnections = 0;
+		nbDiagramModelReferences = 0;
+		nbDiagramModelGroups = 0;
+		nbDiagramModelNotes = 0;
+		nbFolders = 0;
+		nbSketchModels = 0;
+		nbSketchModelActors = 0;
+		nbSketchModelStickys = 0;
+		nbImagePaths = 0;
+		nbDiagramModelBendpoints = 0;
+		nbMetadatas = 0;
+		nbProperties=0;
+
+		if ( projectFolder == null ) {
+			for(Iterator<EObject> iter = model.eAllContents(); iter.hasNext();)
+				countEObject(iter.next());
+		} else {
+			for ( IFolder f: getFolders() ) {
+				// in shared mode, we do not save the count the project folder itself ... but we count its properties
+				if ( (getProjectFolder() == null) || !f.getId().equals(getProjectFolder().getId()) ) {
+					countEObject(f);
+					for(Iterator<EObject> iter = f.eAllContents(); iter.hasNext();)
+						countEObject(iter.next());
+				}
+			}
+		}
+		
+		IArchiveManager archiveMgr = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+		for ( String path: archiveMgr.getImagePaths() ) {
+			countImagePath(path);
+		}
+		
+		// in sharedmode, we count the metadata manually because they are stored in a "Metadata" folder properties and we count the project properties
+		if ( projectFolder != null ) {
+			nbProperties += getProjectFolder().getProperties().size();
+			nbMetadatas += getMetadata().size();
+		}
+	}
+
+	public void countEObject(EObject _obj) {
+		//we change the object projectID and version if necessary (and if the component has got an ID of course)
+		try {
+			if ( !DBPlugin.getProjectId(((IIdentifier)_obj).getId()).equals(getProjectId()) || !DBPlugin.getVersion(((IIdentifier)_obj).getId()).equals(getVersion()) ) {
+				((IIdentifier)_obj).setId(DBPlugin.generateId(DBPlugin.getId(((IIdentifier)_obj).getId()), getProjectId(), getVersion()));
+			}
+		} catch ( ClassCastException e) {}
+
+		switch ( _obj.eClass().getName() ) {
+		case "ArchimateDiagramModel" :			++nbArchimateDiagramModels; break;
+		case "Bounds" :							break;
+		case "CanvasModel" :					++nbCanvasModels; break;
+		case "CanvasModelBlock" :				++nbCanvasModelBlocks; break;
+		case "CanvasModelConnection" :			++nbCanvasModelConnections; break;
+		case "CanvasModelImage" :				++nbCanvasModelImages; break;
+		case "CanvasModelSticky" :				++nbCanvasModelStickys; break;
+		case "DiagramModelArchimateConnection": ++nbDiagramModelArchimateConnections; break;
+		case "DiagramModelArchimateObject" :	++nbDiagramModelArchimateObjects; break;
+		case "DiagramModelBendpoint" :			++nbDiagramModelBendpoints; break ;
+		case "DiagramModelConnection" :			++nbDiagramModelConnections; break;
+		case "DiagramModelReference" :			++nbDiagramModelReferences; break;
+		case "DiagramModelGroup" :				++nbDiagramModelGroups; break;
+		case "DiagramModelNote" :				++nbDiagramModelNotes; break;
+		case "Folder" :							++nbFolders; break;
+		case "Property" :						++nbProperties; break;
+		case "SketchModel" :					++nbSketchModels; break;
+		case "SketchModelActor" :				++nbSketchModelActors; break;
+		case "SketchModelSticky" :				++nbSketchModelStickys; break;
+		case "Metadata":						nbMetadatas+=((IMetadata)_obj).getEntries().size() ; nbProperties-=((IMetadata)_obj).getEntries().size(); break;
+		default :
+			// here, the class is too detailed (Node, Artefact, BusinessActor, etc ...)
+			// so we use "instanceof" to distinguish elements from relationships
+			if ( _obj instanceof IArchimateElement ) {
+				++nbElements;
+			} else if ( _obj instanceof IRelationship ) {
+				++nbRelationships;						
+			} else {
+				//we shouldn't be there but just in case
+				DBPlugin.popup(Level.Error, "DBModel : I do not know how to count " + _obj.eClass().getName() + " components !!!");
+			}
+		}
+	}
+	
+	public void countImagePath(String _path) {
+		++nbImagePaths;
+	}
+
 	/**
-	 * Retrieve the EObject from the its ID
-	 * @return IArchimateElement
+	 * register the EObject attribute of the DBObject in a hashtable to allow future retrieval
+	 * @param _element
+	 */
+	public void countDBObject(DBObject _obj) {
+		countEObject(_obj.getEObject());
+	}
+	
+
+
+	/**
+	 * Retrieve an EObject from the its ID
+	 * @return EObject
 	 */
 	public EObject searchEObjectById(String _id) {
-		return objects.get(_id);
+		EObject obj;
+
+		for (Hashtable<String, EObject> content: allContent) {
+			if ( content != null ) {
+				obj = content.get(_id);
+				if ( obj != null ) return obj;
+			}
+		}
+		return null;
 	}
-	
+
 	/**
-	 * Retrieve the DBObject from the its ID
-	 * @return IArchimateElement
+	 * Retrieve an DBObject from the its ID
+	 * @return DBObject
 	 */
 	public DBObject searchDBObjectById(String _id) {
-		//DBPlugin.debug("Searching for DBObject " + _id);
 		return new DBObject(this, searchEObjectById(_id));
+	}
+
+	/**
+	 * Search a folder by ID.
+	 *  
+	 * @param _id
+	 * @return IFolder
+	 */
+	public IFolder searchFolderById(String _id) {
+		if ( allFolders != null )
+			return (IFolder)allFolders.get(_id);
+		
+		return searchFolderById(model.getFolders(), _id);
+	}
+	
+	private IFolder searchFolderById(List<IFolder> _folders, String _id) {
+		for ( IFolder f: _folders ) {
+			if ( _id.equals(f.getId()) )
+				return f;
+			IFolder ff = searchFolderById(f.getFolders(), _id);
+			if ( ff != null ) return ff;
+		}
+		return null;
+	}
+
+	/**
+	 * Search a folder by name.
+	 *  
+	 * @param _name
+	 * @return IFolder
+	 */
+	public IFolder searchProjectFolderByName(String _name) {
+		for ( IFolder f: model.getFolders() ) {
+			if ( f.getName().equals(DBPlugin.SharedFolderName) ) {
+				//we search in the project folder only
+				for ( IFolder ff: f.getFolders() ) {
+					if ( _name.equals(ff.getName()) ) {
+						return ff;
+					}
+				}
+			}
+		}
+		return null;
+	}
+
+	public int countElements() {
+		return allElements==null ? nbElements : allElements.size();
+	}
+	public int countRelationships() {
+		return allRelationships==null ? nbRelationships : allRelationships.size();
+	}
+	public int countArchimateDiagramModels() {
+		return allArchimateDiagramModels==null ? nbArchimateDiagramModels : allArchimateDiagramModels.size();
+	}
+	public int countCanvasModels() {
+		return allCanvasModels==null ? nbCanvasModels : allCanvasModels.size();
+	}
+	public int countCanvasModelBlocks() {
+		return allCanvasModelBlocks==null ? nbCanvasModelBlocks : allCanvasModelBlocks.size();
+	}
+	public int countCanvasModelConnections() {
+		return allCanvasModelConnections==null ? nbCanvasModelConnections : allCanvasModelConnections.size();
+	}
+	public int countCanvasModelImages() {
+		return allCanvasModelImages==null ? nbCanvasModelImages : allCanvasModelImages.size();
+	}
+	public int countCanvasModelStickys() {
+		return allCanvasModelStickys==null ? nbCanvasModelStickys : allCanvasModelStickys.size();
+	}
+	public int countDiagramModelArchimateConnections() {
+		return allDiagramModelArchimateConnections==null ? nbDiagramModelArchimateConnections : allDiagramModelArchimateConnections.size();
+	}
+	public int countDiagramModelArchimateObjects() {
+		return allDiagramModelArchimateObjects==null ? nbDiagramModelArchimateObjects : allDiagramModelArchimateObjects.size();
+	}
+	public int countDiagramModelConnections() {
+		return allDiagramModelConnections==null ? nbDiagramModelConnections : allDiagramModelConnections.size();
+	}
+	public int countDiagramModelReferences() {
+		return allDiagramModelReferences==null ? nbDiagramModelReferences : allDiagramModelReferences.size();
+	}
+	public int countDiagramModelGroups() {
+		return allDiagramModelGroups==null ? nbDiagramModelGroups : allDiagramModelGroups.size();
+	}
+	public int countDiagramModelNotes() {
+		return allDiagramModelNotes==null ? nbDiagramModelNotes : allDiagramModelNotes.size();
+	}
+	public int countFolders() {
+		return allFolders==null ? nbFolders : allFolders.size();
+	}
+	public int countMetadatas() {
+		return nbMetadatas;
+	}
+	public int countProperties() {
+		return nbProperties;
+	}
+	public int countSketchModels() {
+		return allSketchModels==null ? nbSketchModels : allSketchModels.size();
+	}
+	public int countSketchModelActors() {
+		return allSketchModelActors==null ? nbSketchModelActors : allSketchModelActors.size();
+	}
+	public int countSketchModelStickys() {
+		return allSketchModelStickys==null ? nbSketchModelStickys : allSketchModelStickys.size();
+	}
+	public int countDiagramModelBendpoints() {
+		return nbDiagramModelBendpoints;
+	}
+	public int countImages() {
+		return allImagePaths==null ? nbImagePaths : allImagePaths.size();
+	}
+	public Set<String> getImagePaths() {
+		return allImagePaths;
+	}
+	public int countAllComponents() {
+		return countMetadatas() + countFolders() + countElements() + countRelationships() + countProperties() +
+				countArchimateDiagramModels() + countDiagramModelArchimateObjects() + countDiagramModelArchimateConnections() +  countDiagramModelConnections() +
+				countDiagramModelGroups() + countDiagramModelNotes() +  
+				countCanvasModels() + countCanvasModelBlocks() + countCanvasModelStickys() + countCanvasModelConnections() + countCanvasModelImages() + 
+				countSketchModels() + countSketchModelActors() + countSketchModelStickys() + +
+				countDiagramModelBendpoints() + countDiagramModelReferences() + countImages();
+	}
+	public void declareChild(String _parent, DBObject _child) {
+		if ( _parent != null ) {
+			ArrayList<DBObject> children = family.get(_parent);
+			if ( children == null ) {
+				children = new ArrayList<DBObject>();
+				family.put(_parent, children);
+			}
+			children.add(_child);
+		}
+	}
+	
+	public void resolveChildren() {
+		for ( String parentId: Collections.list(family.keys()) ) {
+			DBObject dbParent = searchDBObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
+			if ( dbParent.getEObject() == null ) {
+				System.out.println("Cannot set children to parent " + parentId + " as we do not know it !!!");
+			} else {
+				for ( DBObject child: family.get(parentId) ) {
+					dbParent.addChild(child);
+				}
+			}
+		}
+	}
+	
+	
+	public void declareSourceConnection(String _parent, DBObject _child) {
+		if ( _parent != null ) {
+			ArrayList<DBObject> children = sourceConnections.get(_parent);
+			if ( children == null ) {
+				children = new ArrayList<DBObject>();
+				sourceConnections.put(_parent, children);
+			}
+			children.add(_child);
+		}
+	}
+	public void resolveSourceConnections() {
+		for ( String parentId: Collections.list(sourceConnections.keys()) ) {
+			DBObject dbParent = searchDBObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
+			if ( dbParent.getEObject() == null ) {
+				System.out.println("Cannot set sourceConnections to parent " + parentId + " as we do not know it !!!");
+			} else {
+				for ( DBObject child: sourceConnections.get(parentId) ) {
+					dbParent.getSourceConnections().add((IDiagramModelConnection)child.getEObject());
+				}
+			}
+		}
 	}
 }

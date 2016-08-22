@@ -6,6 +6,8 @@
 
 package org.archicontribs.database;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -34,44 +36,50 @@ import org.eclipse.swt.widgets.Display;
  * 							few optimizations
  * 							Import and export elements from other models is now possible even if it needs improvements
  * v0.6b: 23/05/2016		solve a dependancy mistake in JAR
- * v0.6c: 23/05/2016		solve a bug in the folders loading that prevented the objects to be corretly included in the model
+ * v0.6c: 23/05/2016		solve a bug in the folders loading that prevented the objects to be correctly included in the model
  * v0.7 : 24/05/2016		adding a hashtable of EObject in the DBModel class to accelerate the finding of an object by its ID  
  *							begin to add some Javadoc
+ * v0.8 : 13/06/2016		All the Archi components are now managed
+ *                          Added a progressbar to follow the import and export processes
+ * 							
  */
 public class DBPlugin {
-	public static String pluginVersion = "0.7";
+	public static String pluginVersion = "0.8";
 	public static String pluginName = "DatabasePlugin";
 	public static String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static String Separator = "-";
-	
-	public static String[] allTables = { "archimatediagrammodel", "archimateelement", "canvasmodel", "canvasmodelblock", "canvasmodelsticky", "diagrammodelarchimateconnection", "diagrammodelarchimateobject", "folder", "model",  "bendpoint", "property", "relationship" };
+
+	public static String[] allTables = { "archimatediagrammodel", "archimateelement", "bendpoint", "canvasmodel", "canvasmodelblock", "canvasmodelimage", "canvasmodelsticky", "connection", "diagrammodelarchimateobject", "diagrammodelreference", "folder", "model", "property", "relationship", "sketchmodel", "sketchmodelactor", "sketchmodelsticky"};
 
 	public enum Level { Info, Warning, Error };
-	
+
 	/**
 	 * ID of the model used as a container in shared mode.
 	 */
 	public static String SharedModelId = "Shared-0.0";
-	
+
 	/**
 	 * Name of the folder that contains projets subfolders in shared mode 
 	 */
 	public static String SharedFolderName = "Projects";
-	public static String ExternalFolderName = "External Elements";
+	//public static String ExternalFolderName = "External Elements";
 
 	private static boolean showDebug = false;
-	
+
 	public static void debug(Object _obj){
 		if ( showDebug ) System.out.println(_obj);
 	}
-	
+
 	public static void popup(Level level, String msg) {
 		popup(level,msg,null);
 	}
 	public static void popup(Level level, String msg, Exception e) {
 		String msg2 = msg;
-		if ( e != null) msg2 += "\n\n" + e.getMessage();
-		debug(msg2);
+		System.out.println(msg);
+		if ( e != null) {
+			msg2 += "\n\n" + e.getMessage();
+			e.printStackTrace(System.err);
+		}
 		switch ( level ) {
 		case Info :
 			MessageDialog.openInformation(Display.getDefault().getActiveShell(), pluginTitle, msg2);
@@ -83,15 +91,13 @@ public class DBPlugin {
 			MessageDialog.openError(Display.getDefault().getActiveShell(), pluginTitle, msg2);
 			break;
 		}
-		if ( e != null ) 
-			e.printStackTrace(System.err);
 	}
 	public static int count(String _string, char _c)
 	{
-	    int count = 0;
-	    for (int i=0; i < _string.length(); i++)
-	        if (_string.charAt(i) == _c) count++;
-	    return count;
+		int count = 0;
+		for (int i=0; i < _string.length(); i++)
+			if (_string.charAt(i) == _c) count++;
+		return count;
 	}
 	public static int max(int _a, int _b) {
 		return _a > _b ? _a : _b;
@@ -116,6 +122,8 @@ public class DBPlugin {
 	}
 	@SafeVarargs
 	public static final <T> void update(Connection db, String request, T...args) throws SQLException {
+		ByteArrayInputStream stream = null;
+
 		for (int rank=0 ; rank < args.length ; rank++) request += rank == 0 ? " VALUES (?" : ",?";
 		request += ")";
 
@@ -130,13 +138,24 @@ public class DBPlugin {
 					pstmt.setInt(rank+1, (int)args[rank]);
 				else if ( args[rank] instanceof Boolean )
 					pstmt.setBoolean(rank+1, (boolean)args[rank]);
-				else 
-					DBPlugin.popup(Level.Error, "heinnn ???");
+				else if ( args[rank] instanceof byte[] ) {
+					stream = new ByteArrayInputStream((byte[])args[rank]);
+					pstmt.setBinaryStream(rank+1, stream, ((byte[])args[rank]).length);
+				}
+				else
+					DBPlugin.popup(Level.Error, "DBPlugin.export : I do not understant what you want to export !!!");
 			}
 		}
 		//debug(pstmt.toString());
 		pstmt.executeUpdate();
 		pstmt.close();
+
+		try {
+			if ( stream != null )
+				stream.close();
+		} catch (IOException e) {
+			DBPlugin.popup(Level.Error, "I/O Exception during image export !", e);
+		}
 	}
 	public static String incMinor(String _version) {
 		if ( _version != null ) {
@@ -152,42 +171,43 @@ public class DBPlugin {
 		}
 		return "1.0";
 	}
-    public static String capitalize(String phrase) {
-        if (phrase.isEmpty()) return phrase;
-        StringBuilder result = new StringBuilder();
-        for ( String s: phrase.split(" ") )
-        	result.append(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
-        return result.toString();
-    }
-    public static boolean isVersionned(String _id ) {
-    	if ( _id == null ) return false;
-    	return _id.contains(Separator);
-    }
-    public static String generateProjectId(String _projectId, String _version) {
-    	return _projectId+Separator+_version;
-    }
-    public static String generateId(String _id, String _projectId, String _version) {
-    	if ( _projectId == null ) return _id;
-    	if ( _id == null ) return UUID.randomUUID().toString().split("-")[0]+Separator+_projectId+Separator+_version;
-    	return _id+Separator+_projectId+Separator+_version;
-    }
-    public static String getId(String _id) {
-    	if ( isVersionned(_id) )
-    		return _id.split(Separator)[0];
-    	return _id;
-    }
-    public static String getProjectId(String _id) {
-    	if ( isVersionned(_id) ) {
-    		String[] s = _id.split(Separator);
-    		return s[s.length-2];
-    	}
-    	return _id;
-    }
-    public static String getVersion(String _id) {
-    	if ( isVersionned(_id) ) {
-    		String[] s = _id.split(Separator);
-    		return s[s.length-1];
-    	}
-    	return "0.0";
-    }
+	public static String capitalize(String phrase) {
+		if (phrase.isEmpty()) return phrase;
+		StringBuilder result = new StringBuilder();
+		for ( String s: phrase.split(" ") )
+			result.append(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
+		return result.toString();
+	}
+	public static boolean isVersionned(String _id ) {
+		if ( _id == null ) return false;
+		return _id.contains(Separator);
+	}
+	public static String generateProjectId(String _projectId, String _version) {
+		return _projectId+Separator+_version;
+	}
+	public static String generateId(String _id, String _projectId, String _version) {
+		if ( _projectId == null ) return _id;
+		if ( _id == null ) 
+			_id = UUID.randomUUID().toString().split("-")[0];
+		return _id+Separator+_projectId+Separator+_version;
+	}
+	public static String getId(String _id) {
+		if ( isVersionned(_id) )
+			return _id.split(Separator)[0];
+		return _id;
+	}
+	public static String getProjectId(String _id) {
+		if ( isVersionned(_id) ) {
+			String[] s = _id.split(Separator);
+			return s[s.length-2];
+		}
+		return _id;
+	}
+	public static String getVersion(String _id) {
+		if ( isVersionned(_id) ) {
+			String[] s = _id.split(Separator);
+			return s[s.length-1];
+		}
+		return "0.0";
+	}
 }
