@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Display;
  *							begin to add some Javadoc
  * v0.8 : 13/06/2016		All the Archi components are now managed
  *                          Added a progressbar to follow the import and export processes
+ * v0.9 : 22/08/2016		Images are now imported and exported correctly
  * 							
  */
 public class DBPlugin {
