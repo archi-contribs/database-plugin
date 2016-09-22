@@ -14,23 +14,33 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Set;
 
+import org.archicontribs.database.DBPlugin.DebugLevel;
 import org.archicontribs.database.DBPlugin.Level;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.canvas.model.ICanvasModel;
+import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.FolderType;
+import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelGroup;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IMetadata;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.IRelationship;
+import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.ISketchModelSticky;
 
 
 /**
@@ -125,11 +135,11 @@ public class DBModel {
 	/**
 	 * Table containing an Arraylist of children. Contains one entry per parent. 
 	 */
-	private Hashtable<String, ArrayList<DBObject>> family = new Hashtable<String, ArrayList<DBObject>>();
+	private Hashtable<String, ArrayList<EObject>> family = new Hashtable<String, ArrayList<EObject>>();
 	/**
 	 * Table containing an Arraylist of sourceConnections. Contains one entry per parent. 
 	 */
-	private Hashtable<String, ArrayList<DBObject>> sourceConnections = new Hashtable<String, ArrayList<DBObject>>();
+	private Hashtable<String, ArrayList<EObject>> sourceConnections = new Hashtable<String, ArrayList<EObject>>();
 
 	public DBModel() {
 		this(null, null);
@@ -138,6 +148,7 @@ public class DBModel {
 		this(_model, null);
 	}
 	public DBModel(IArchimateModel _model, IFolder _folder) {
+		DBPlugin.debug(DebugLevel.MainMethod, "new DBModel("+(_model==null?"null":_model.getName())+","+(_folder==null?"null":_folder.getName())+")");
 		projectFolder = _folder;
 		
 		if ( _model == null ) {
@@ -222,17 +233,19 @@ public class DBModel {
 		}
 		if ( !sharedFolderExists ) {
 			IFolder sharedModelsFolder = addFolder(model.getFolders(), DBPlugin.SharedFolderName);
-			//addFolder(sharedModelsFolder.getFolders(), DBPlugin.ExternalFolderName);
 			projectFolder = addFolder(sharedModelsFolder.getFolders(), _name, _projectId, _version);
 			projectFolder.setDocumentation(_purpose);
 		}
 		return projectFolder;
 	}
+	
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name) {
-		return addFolder(_parentFolder, _name, null, null, -1);
+		IFolder result = addFolder(_parentFolder, _name, null, null, -1);
+		return result;
 	}
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name, String _projectId, String _version) {
-		return addFolder(_parentFolder, _name, _projectId, _version, -1);
+		IFolder result = addFolder(_parentFolder, _name, _projectId, _version, -1);
+		return result;
 	}
 	private IFolder addFolder(EList<IFolder> _parentFolder, String _name, String _projectId, String _version, int _position) {
 		IFolder subFolder = IArchimateFactory.eINSTANCE.createFolder();
@@ -249,8 +262,9 @@ public class DBModel {
 	 * Determines if the model's ID (standalone mode) or project folder's ID (shared mode) contains a version number.
 	 * @return true of false
 	 */
-	public Boolean isVersionned() {
-		return DBPlugin.isVersionned(projectFolder == null ? model.getId() : projectFolder.getId()); 
+	public boolean isVersionned() {
+		boolean result = DBPlugin.isVersionned(projectFolder == null ? model.getId() : projectFolder.getId());
+		return result;
 	}
 
 	/**
@@ -259,7 +273,8 @@ public class DBModel {
 	 * @return
 	 */
 	public String getProjectId() {
-		return DBPlugin.getProjectId(projectFolder!=null ? projectFolder.getId() : model.getId());
+		String result = DBPlugin.getProjectId(projectFolder!=null ? projectFolder.getId() : model.getId());
+		return result;
 	}
 
 	/**
@@ -299,8 +314,12 @@ public class DBModel {
 	 */
 	public EList<IProperty> getMetadata() {
 		// In standalone mode, we return the model's metadata
-		if (projectFolder ==null )
+		if (projectFolder == null ) {
+			if ( model.getMetadata() == null ) {
+				model.setMetadata(IArchimateFactory.eINSTANCE.createMetadata());
+			}
 			return model.getMetadata().getEntries();
+		}
 
 		// In shared mode, we return the project's metadata folder properties
 		for ( IFolder f: getProjectFolder().getFolders() ) {
@@ -593,14 +612,6 @@ public class DBModel {
 			allImagePaths.add(_path);
 	}
 
-	/**
-	 * register the EObject attribute of the DBObject in a hashtable to allow future retrieval
-	 * @param _element
-	 */
-	public void indexDBObject(DBObject _obj) {
-		indexEObject(_obj.getEObject());
-	}
-	
 	public void countExistingEObjects() {
 		nbElements = 0;
 		nbRelationships = 0;
@@ -699,16 +710,6 @@ public class DBModel {
 	}
 
 	/**
-	 * register the EObject attribute of the DBObject in a hashtable to allow future retrieval
-	 * @param _element
-	 */
-	public void countDBObject(DBObject _obj) {
-		countEObject(_obj.getEObject());
-	}
-	
-
-
-	/**
 	 * Retrieve an EObject from the its ID
 	 * @return EObject
 	 */
@@ -725,14 +726,6 @@ public class DBModel {
 	}
 
 	/**
-	 * Retrieve an DBObject from the its ID
-	 * @return DBObject
-	 */
-	public DBObject searchDBObjectById(String _id) {
-		return new DBObject(this, searchEObjectById(_id));
-	}
-
-	/**
 	 * Search a folder by ID.
 	 *  
 	 * @param _id
@@ -745,12 +738,36 @@ public class DBModel {
 		return searchFolderById(model.getFolders(), _id);
 	}
 	
-	private IFolder searchFolderById(List<IFolder> _folders, String _id) {
-		for ( IFolder f: _folders ) {
-			if ( _id.equals(f.getId()) )
-				return f;
-			IFolder ff = searchFolderById(f.getFolders(), _id);
-			if ( ff != null ) return ff;
+	public void setFolder(String parentId, EObject object) throws Exception {
+		if ( !DBPlugin.isVersionned(parentId) )
+			parentId = DBPlugin.generateId(parentId, getProjectId(), getVersion());
+				
+		IFolder parent = searchFolderById(getFolders(), parentId);
+		
+		if ( parent == null )
+			throw new Exception("Cannot find folder (id = " + parentId);
+		
+		parent.getElements().add(object);
+	}
+	
+	public void setSubFolder(String parentId, IFolder folder) throws Exception {
+		if ( !DBPlugin.isVersionned(parentId) )
+			parentId = DBPlugin.generateId(parentId, getProjectId(), getVersion());
+				
+		IFolder parent = searchFolderById(getFolders(), parentId);
+		
+		if ( parent == null )
+			throw new Exception("Cannot find folder (id = " + parentId);
+		
+		parent.getFolders().add(folder);
+	}
+	
+	public IFolder searchFolderById(List<IFolder> _folders, String _id) {
+		for ( IFolder folder: _folders ) {
+			if ( _id.equals(folder.getId()) )
+				return folder;
+			IFolder subFolder = searchFolderById(folder.getFolders(), _id);
+			if ( subFolder != null ) return subFolder;
 		}
 		return null;
 	}
@@ -852,36 +869,60 @@ public class DBModel {
 				countSketchModels() + countSketchModelActors() + countSketchModelStickys() + +
 				countDiagramModelBendpoints() + countDiagramModelReferences() + countImages();
 	}
-	public void declareChild(String _parent, DBObject _child) {
+	
+	public void declareChild(String _parent, EObject _child) {
 		if ( _parent != null ) {
-			ArrayList<DBObject> children = family.get(_parent);
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declarechild(\""+_parent+"\", "+((IIdentifier)_child).getId()+"["+_child.eClass().getName()+"])");
+			ArrayList<EObject> children = family.get(_parent);
 			if ( children == null ) {
-				children = new ArrayList<DBObject>();
+				children = new ArrayList<EObject>();
 				family.put(_parent, children);
 			}
 			children.add(_child);
 		}
 	}
 	
-	public void resolveChildren() {
+	public void resolveChildren() throws Exception {
 		for ( String parentId: Collections.list(family.keys()) ) {
-			DBObject dbParent = searchDBObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
-			if ( dbParent.getEObject() == null ) {
-				System.out.println("Cannot set children to parent " + parentId + " as we do not know it !!!");
-			} else {
-				for ( DBObject child: family.get(parentId) ) {
-					dbParent.addChild(child);
-				}
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "resolveChildren : \""+parentId+"\"");
+			EObject parent = searchEObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
+			if ( parent == null )
+				throw new Exception("Cannot set children to parent " + parentId + " as we do not know it !!!");
+
+			EList<IDiagramModelObject> children;
+
+			switch ( parent.eClass().getName() ) {
+			case "SketchModel" :				children = ((ISketchModel)parent).getChildren(); break;
+			case "ArchimateDiagramModel" :		children = ((IArchimateDiagramModel)parent).getChildren(); break;
+			case "SketchModelSticky" :			children = ((ISketchModelSticky)parent).getChildren(); break;
+			case "CanvasModel" :				children = ((ICanvasModel)parent).getChildren(); break;
+			case "DiagramModelGroup" :			children = ((IDiagramModelGroup)parent).getChildren(); break;
+			case "DiagramModelArchimateObject" :children = ((IDiagramModelArchimateObject)parent).getChildren(); break;
+			case "CanvasModelBlock" :			children = ((ICanvasModelBlock)parent).getChildren(); break;
+			default :
+				throw new Exception("Don't know how to resolve children for " + ((INameable)parent).getName() + " (" + parent.eClass().getName() + ")");
+			}
+			
+			if ( children == null )
+				throw new Exception("resolveChildren() : should resolve children but do not find them for parent " + ((INameable)parent).getName() + " (" + parent.eClass().getName() + ")");
+
+			for ( EObject child: family.get(parentId) ) {
+				if ( child == null )
+					throw new Exception("resolveChildren() : should add child but it is null, parent is " + ((INameable)parent).getName() + " (" + parent.eClass().getName() + ")");
+				DBPlugin.debug(DebugLevel.Variable, "resolveChildren() : adding child "+((IIdentifier)child).getId()+"["+child.eClass().getName()+"] to parent "+((IIdentifier)parent).getId());
+				if ( child.eClass().getName().equals("DiagramModelArchimateObject"))
+					children.add((IDiagramModelArchimateObject)child);
+				else
+					children.add((IDiagramModelObject)child);
 			}
 		}
 	}
 	
-	
-	public void declareSourceConnection(String _parent, DBObject _child) {
+	public void declareSourceConnection(String _parent, EObject _child) {
 		if ( _parent != null ) {
-			ArrayList<DBObject> children = sourceConnections.get(_parent);
+			ArrayList<EObject> children = sourceConnections.get(_parent);
 			if ( children == null ) {
-				children = new ArrayList<DBObject>();
+				children = new ArrayList<EObject>();
 				sourceConnections.put(_parent, children);
 			}
 			children.add(_child);
@@ -889,12 +930,12 @@ public class DBModel {
 	}
 	public void resolveSourceConnections() {
 		for ( String parentId: Collections.list(sourceConnections.keys()) ) {
-			DBObject dbParent = searchDBObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
-			if ( dbParent.getEObject() == null ) {
+			EObject parent = searchEObjectById(DBPlugin.generateId(parentId, getProjectId(), getVersion()));
+			if ( parent == null ) {
 				System.out.println("Cannot set sourceConnections to parent " + parentId + " as we do not know it !!!");
 			} else {
-				for ( DBObject child: sourceConnections.get(parentId) ) {
-					dbParent.getSourceConnections().add((IDiagramModelConnection)child.getEObject());
+				for ( EObject child: sourceConnections.get(parentId) ) {
+					((IDiagramModelObject)parent).getSourceConnections().add((IDiagramModelConnection)child);
 				}
 			}
 		}

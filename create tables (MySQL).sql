@@ -206,6 +206,10 @@ CREATE TABLE diagrammodelreference (
 	parent VARCHAR (255) NOT NULL,
 	targetconnections VARCHAR (255),
 	textalignment INTEGER,
+	x integer,
+    y integer,
+    width integer,
+    height integer,
 	rank INTEGER,
 	indent INTEGER,
 	

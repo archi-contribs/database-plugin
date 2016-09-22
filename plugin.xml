@@ -17,4 +17,18 @@
             label="import model from database">
       </importHandler>
    </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="org.archicontribs.database.DBPreferencePage"
+            id="org.archicontribs.database.DBPreferencePage"
+            name="database plugin">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.archicontribs.database.DBPreferenceInitializer">
+      </initializer>
+   </extension>
 </plugin>
