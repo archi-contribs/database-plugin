@@ -165,7 +165,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	protected void doLoad() {
 		DBPlugin.debug(DebugLevel.MainMethod, "+Entering DBDatabaseEntryTableEditor.doLoad()");
-		DBDatabaseEntry.getAllFromPreferenceStore(databaseEntries);
+		databaseEntries = DBDatabaseEntry.getAllFromPreferenceStore();
+		tableViewer.setInput(databaseEntries);
 		tableViewer.refresh();
 		DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBDatabaseEntryTableEditor.doLoad()");
 	}

@@ -61,7 +61,7 @@ import com.sun.org.apache.xml.internal.security.utils.Base64;
  * v0.8 : 13/06/2016		All the Archi components are now managed
  *                          Added a progressbar to follow the import and export processes
  * v0.9 : 22/08/2016		Images are now imported and exported correctly
- * v0.10: 04/09/2016		add Neo4j driver
+ * v0.10: 26/09/2016		add Neo4j driver
  *                          update all import/export methods to generate SQL and Cypher (CQL) requests
  *                          Use Archi's preferences
  *                          The folder where is stored the preferences file has changed  
@@ -70,15 +70,20 @@ import com.sun.org.apache.xml.internal.security.utils.Base64;
  *                          Add exceptions to reduce the cases when the model is not complete
  *                          Bug resolution : add bounds export/import for DiagramModelReference
  *                          The Filter when selecting a model is (temporarily) deactivated for Neo4J databases
+ * v0.10b: 28/09/2016		Change the separator between the Id, the model Id and the version as the "-" could be found in Archi's IDs
+ * 							Correct a bug where the projects selected were not imported
+ * 							Correct a bug in the delete model procedure
+ * 							Check if a project with same ID or same name already exists before importing it
+ * 							Add a test to verify that we are not connected to a database configured for Archi 4
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 	public static DBPlugin INSTANCE;
 	
-	public static final String pluginVersion = "0.10";
+	public static final String pluginVersion = "0.10b";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
-	public static final String Separator = "-";
+	public static final String Separator = ";";
 	
 	static StringBuilder margin = new StringBuilder();
 	
@@ -108,16 +113,26 @@ public class DBPlugin extends AbstractUIPlugin {
 	public enum DebugLevel { MainMethod, SecondaryMethod, Variable, SQLRequest };
 
 	/**
+	 * Name of the model used as a container in shared mode. 
+	 */
+	public static String SharedModelName = "Shared model";
+	
+	/**
 	 * ID of the model used as a container in shared mode.
 	 */
-	public static String SharedModelId = "Shared-0.0";
-
+	public static String SharedModelId = generateProjectId("Shared", "0.0");
+	
 	/**
 	 * Name of the folder that contains projects subfolders in shared mode 
 	 */
 	public static String SharedFolderName = "Projects";
-	//public static String ExternalFolderName = "External Elements";
 
+	/**
+	 * ID of the folder that contains projects subfolders in shared mode 
+	 */
+	public static String SharedFolderId = generateProjectId("Projects", SharedModelId);
+
+	
 	public DBPlugin() {
         INSTANCE = this;
     }

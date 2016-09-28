@@ -1,5 +1,6 @@
 package org.archicontribs.database;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.archicontribs.database.DBPlugin.DebugLevel;
@@ -159,10 +160,10 @@ public class DBDatabaseEntry {
 		}
 	}
 
-	public static void getAllFromPreferenceStore(List<DBDatabaseEntry> databaseEntries) {
-		assert databaseEntries != null;
+	public static List<DBDatabaseEntry> getAllFromPreferenceStore() {
 		DBPlugin.debug(DebugLevel.SecondaryMethod, "+Entering DBDatabaseEntry.getAllFromPreferenceStore()");
 		
+		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();		
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
 		int lines =	store.getInt(preferenceName);
 		DBPlugin.debug(DebugLevel.Variable, "Loading "+lines+" databases from store");
@@ -177,6 +178,7 @@ public class DBDatabaseEntry {
 			databaseEntries.add(entry);
 		}
 		DBPlugin.debug(DebugLevel.SecondaryMethod, "-Leaving DBDatabaseEntry.getAllFromPreferenceStore()");
+		return databaseEntries;
 	}
 	
 	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) {

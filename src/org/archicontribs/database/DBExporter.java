@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.archicontribs.database.DBPlugin.DebugLevel;
@@ -63,7 +64,7 @@ import com.archimatetool.model.ISketchModelSticky;
 public class DBExporter implements IModelExporter {
 	private Connection db;
 	
-	private HashMap<String, HashMap<String, String>> selectedModels;
+	private List<HashMap<String, String>> selectedModels;
 	private DBModel dbModel;
 	private DBSelectModel dbSelectModel;
 	private DBProgress dbProgress;
@@ -124,9 +125,9 @@ public class DBExporter implements IModelExporter {
 
 		// Preparing the DBProgress popup with one tab per model to export
 		dbProgress = new DBProgress();
-		for ( HashMap<String, String> modelSelected: selectedModels.values() ) {
+		for ( HashMap<String, String> modelSelected: selectedModels) {
 			try {
-				//we create the tab corresponding to the model to export
+				// we create the tab corresponding to the model to export
 				dbTabItem = dbProgress.tabItem(modelSelected.get("name"));
 				
 				// if the model already exists in the db, we ask the user to confirm the replacement
@@ -139,22 +140,21 @@ public class DBExporter implements IModelExporter {
 				ResultSet result = DBPlugin.select(db, request, modelSelected.get("id"), modelSelected.get("version"));
 				if ( result.next() ) {
 					if ( !MessageDialog.openQuestion(Display.getDefault().getActiveShell(), DBPlugin.pluginTitle, "You're about to replace the existing model "+modelSelected.get("name")+" ("+modelSelected.get("id")+") version "+modelSelected.get("version")+" in the database.\n\nAre you sure ?") ) {
-						dbTabItem.setText("Export cancelled by user ...");
+						dbTabItem.setError("Export cancelled by user ...");
 						modelSelected.put("_export_it", "no");
 						try { result.close(); } catch (SQLException ee) {}
 						continue;
-					} else {
-						// we use underscores to be sure it will never be an attribute name set by the DBSelectModel method ...
-						modelSelected.put("_export_it", "yes");
 					}
+					// we use underscores to be sure it will never be an attribute name set by the DBSelectModel method ...
+					modelSelected.put("_export_it", "yes");
 				}
 				result.close();
 				
 				if ( dbModel.isShared() ) {
 					if ( (dbModel.searchFolderById(modelSelected.get("id")) == null) && (dbModel.searchProjectFolderByName(modelSelected.get("name")) == null) ) {
 						DBPlugin.popup(Level.Error, "Thats weird, I cannot find the model's folder for model \""+modelSelected.get("name")+"\".");
-						dbTabItem.setText("Thats weird, I cannot find the model's folder for model \""+modelSelected.get("name")+"\".");
-						selectedModels.remove(modelSelected.get("id"));
+						dbTabItem.setError("Thats weird, I cannot find the model's folder for model \""+modelSelected.get("name")+"\".");
+						modelSelected.put("_export_it", "no");
 					}
 				}
 			} catch (Exception e) {
@@ -165,362 +165,358 @@ public class DBExporter implements IModelExporter {
 			}
 		}
 
-		for ( HashMap<String, String> modelSelected: selectedModels.values() ) {
+		for ( HashMap<String, String> modelSelected: selectedModels ) {
 			try {
 				dbTabItem = dbProgress.tabItem(modelSelected.get("name"));
 				
-				if ( modelSelected.get("export").equals("yes") ) {
-					// if the model is the shared one, then we search for the folder to export
-					if ( dbModel.isShared() ) {
-						if ( dbModel.setProjectFolder(dbModel.searchFolderById(modelSelected.get("id"))) == null )
-							dbModel.setProjectFolder(dbModel.searchProjectFolderByName(modelSelected.get("name")));
+				// if the model is the shared one, then we search for the folder to export
+				if ( dbModel.isShared() ) {
+					if ( dbModel.setProjectFolder(dbModel.searchFolderById(modelSelected.get("id"))) == null )
+						dbModel.setProjectFolder(dbModel.searchProjectFolderByName(modelSelected.get("name")));
+				}
+
+				long startTime = System.currentTimeMillis();
+
+				// we change the Id, version, name and purpose in case they've been changed in the ChooseModel window
+				dbModel.setProjectId(modelSelected.get("id"), modelSelected.get("version"));
+				dbModel.setName(modelSelected.get("name"));
+				dbModel.setPurpose(modelSelected.get("purpose"));
+				dbModel.setOwner(modelSelected.get("owner"));
+
+				// the countExistingEObject method changes the ID and version of all components in the model (standalone mode) or project (shared mode)
+				dbTabItem.setText("Please wait while counting and versionning elements to export ...");
+				dbModel.countExistingEObjects();
+				
+				dbTabItem.setMaximum(dbModel.countAllComponents());
+
+				// we reset the counters values
+				countMetadatas=0;
+				countFolders=0;
+				countElements=0;
+				countRelationships=0;
+				countProperties=0;
+				countArchimateDiagramModels=0;
+				countDiagramModelArchimateConnections=0;
+				countDiagramModelConnections=0;
+				countDiagramModelArchimateObjects=0;
+				countDiagramModelGroups=0;
+				countDiagramModelNotes=0;
+				countCanvasModels=0;
+				countCanvasModelBlocks=0;
+				countCanvasModelStickys=0;
+				countCanvasModelConnections=0;
+				countCanvasModelImages=0;
+				countImages=0;
+				countSketchModels=0;
+				countSketchModelActors=0;
+				countSketchModelStickys=0;
+				countDiagramModelBendpoints=0;
+				countDiagramModelReferences=0;
+				countTotal=0;
+				
+				// we remove the old components (if any) from the database
+				dbTabItem.setText("Please wait while cleaning up database ...");
+				
+				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+					for(String table: DBPlugin.allSQLTables ) {
+						DBPlugin.request(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
 					}
-	
-					long startTime = System.currentTimeMillis();
-	
-					// we change the Id, version, name and purpose in case they've been changed in the ChooseModel window
-					dbModel.setProjectId(modelSelected.get("id"), modelSelected.get("version"));
-					dbModel.setName(modelSelected.get("name"));
-					dbModel.setPurpose(modelSelected.get("purpose"));
-					dbModel.setOwner(modelSelected.get("owner"));
-	
-					// the countExistingEObject method changes the ID and version of all components in the model (standalone mode) or project (shared mode)
-					dbTabItem.setText("Please wait while counting and versionning elements to export ...");
-					dbModel.countExistingEObjects();
-					
-					dbTabItem.setMaximum(dbModel.countAllComponents());
-	
-					// we reset the counters values
-					countMetadatas=0;
-					countFolders=0;
-					countElements=0;
-					countRelationships=0;
-					countProperties=0;
-					countArchimateDiagramModels=0;
-					countDiagramModelArchimateConnections=0;
-					countDiagramModelConnections=0;
-					countDiagramModelArchimateObjects=0;
-					countDiagramModelGroups=0;
-					countDiagramModelNotes=0;
-					countCanvasModels=0;
-					countCanvasModelBlocks=0;
-					countCanvasModelStickys=0;
-					countCanvasModelConnections=0;
-					countCanvasModelImages=0;
-					countImages=0;
-					countSketchModels=0;
-					countSketchModelActors=0;
-					countSketchModelStickys=0;
-					countDiagramModelBendpoints=0;
-					countDiagramModelReferences=0;
-					countTotal=0;
-					
-					// we remove the old components (if any) from the database
-					dbTabItem.setText("Please wait while cleaning up database ...");
-					
-					if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-						for(String table: DBPlugin.allSQLTables ) {
-							DBPlugin.request(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
-						}
-					} else {
-						DBPlugin.request(db, "MATCH (node)-[rm:isInModel]->(model:model {model:?, version:?}) DETACH DELETE node, model",
-								modelSelected.get("id"), modelSelected.get("version"));
-					}
-	
-					dbTabItem.setText("Please wait while exporting model ...");
-					DBPlugin.debug(DebugLevel.Variable, "Exporting model id="+dbModel.getProjectId()+" version="+dbModel.getVersion()+" name="+dbModel.getName());
-					if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-						DBPlugin.insert(db, "INSERT INTO model (model, version, name, purpose, owner, period, note)",
-								dbModel.getProjectId(), dbModel.getVersion(),
-								dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
-					} else {
-						DBPlugin.request(db, "CREATE (new:model {model:?, version:?, name:?, purpose:?, owner:?, period:?, note:?})",
-								dbModel.getProjectId(), dbModel.getVersion(),
-								dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
-					}
-					
-					dbTabItem.setText("Please wait while exporting components ...");
-					
-					// we save the images
-					exportImages(dbModel);
-	
-					// we save the folders
-					for (IFolder folder: dbModel.getFolders() ) {
-						// if we are in shared mode (ie dbModel.getProjectFolder() == null)
-						//      then we do not save the project folder itself ...
-						if ( (dbModel.getProjectFolder() == null) || !folder.getId().equals(dbModel.getProjectFolder().getId()) )
-							exportFolder(folder, null, 0);
-					}
-	
-					// we save the components
-					for (IFolder f: dbModel.getFolders() ) {
-						// in shared mode, we do not save the "project" folder
-						if ( (dbModel.getProjectFolder()) != null && f.getId().equals(dbModel.getProjectFolder().getId()) )
-							continue;
-						Iterator<EObject> iter = f.eAllContents();
-						while ( iter.hasNext() ) {
-							EObject objectToExport = iter.next();
-							if ( (objectToExport instanceof IIdentifier) && (objectToExport instanceof INameable) ) {	// we only export components that have got an ID and a name
-								String id = DBPlugin.getId(((IIdentifier)objectToExport).getId());
-								String projectId = DBPlugin.getProjectId(((IIdentifier)objectToExport).getId());
-								String version = DBPlugin.getVersion(((IIdentifier)objectToExport).getId());
-								String name = ((INameable)objectToExport).getName();
-								
-								switch ( objectToExport.eClass().getName() ) {
-								case "SketchModel" :
-									ISketchModel sketchModel = (ISketchModel)objectToExport;
-									DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
-									if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-										DBPlugin.insert(db, "INSERT INTO sketchmodel (id, model, version, name, documentation, connectionroutertype, background, folder)",
-												id,
-												projectId,
-												version,
-												name,
-												sketchModel.getDocumentation(),
-												sketchModel.getConnectionRouterType(),
-												sketchModel.getBackground(),
-												DBPlugin.getId(((IIdentifier)sketchModel.eContainer()).getId()));
-									} else {
-										DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodel {id:?, name:?, documentation:?, connectionroutertype:?, background:?, folder:?}), (new)-[:isInModel]->(m)",
-												projectId,
-												version,
-												id,
-												name,
-												sketchModel.getDocumentation(),
-												sketchModel.getConnectionRouterType(),
-												sketchModel.getBackground(),
-												DBPlugin.getId(((IIdentifier)sketchModel.eContainer()).getId()));
-									}
-									dbTabItem.setCountSketchModels(++countSketchModels);
-									dbTabItem.setProgressBar(++countTotal);
-									exportObjectProperties(sketchModel, sketchModel.getProperties());
-	
-									for ( int rank=0; rank < sketchModel.getChildren().size(); ++rank ) {
-										EObject child = sketchModel.getChildren().get(rank);
-										switch ( child.eClass().getName() ) {
-										case "SketchModelSticky" : 
-											exportSketchModelSticky(id, (ISketchModelSticky)child, rank, 0);
-											break;
-										case "SketchModelActor" :
-											exportSketchModelActor(id, (ISketchModelActor)child, rank, 0);
-											break;
-										case "DiagramModelGroup" :
-											exportDiagramModelObject(id, (IDiagramModelObject)child, rank, 0);
-											break;
-										default :  //should not be here
-											throw new Exception("Don't know how to save SketchModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
-										}
-									}
-									break;
-	
-								case "CanvasModel" :
-									ICanvasModel canvasModel = (ICanvasModel)objectToExport;
-									DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
-									if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-										DBPlugin.insert(db, "INSERT INTO canvasmodel (id, model, version, name, documentation, hinttitle, hintcontent, connectionroutertype, folder)",
-												id,
-												projectId,
-												version,
-												name,
-												canvasModel.getDocumentation(),
-												canvasModel.getHintTitle(),
-												canvasModel.getHintContent(),
-												canvasModel.getConnectionRouterType(),
-												DBPlugin.getId(((IIdentifier)canvasModel.eContainer()).getId()));
-									} else {
-										DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodel {id:?, name:?, documentation:?, hinttitle:?, hintcontent:?, connectionroutertype:?, folder:?}), (new)-[:isInModel]->(m)",
-												projectId,
-												version,
-												id,
-												name,
-												canvasModel.getDocumentation(),
-												canvasModel.getHintTitle(),
-												canvasModel.getHintContent(),
-												canvasModel.getConnectionRouterType(),
-												DBPlugin.getId(((IIdentifier)canvasModel.eContainer()).getId()));
-									}
-									dbTabItem.setCountCanvasModels(++countCanvasModels);
-									dbTabItem.setProgressBar(++countTotal);
-									exportObjectProperties(canvasModel, canvasModel.getProperties());
-	
-									for ( int rank=0; rank < canvasModel.getChildren().size(); ++rank ) {
-										EObject child = canvasModel.getChildren().get(rank);
-										switch ( child.eClass().getName() ) {
-										case "CanvasModelBlock" :
-											exportCanvasModelBlock(id, (ICanvasModelBlock)child, rank, 0);
-											break;
-										case "CanvasModelSticky" :
-											exportCanvasModelSticky(id, (ICanvasModelSticky)child, rank, 0);
-											break;
-										case "CanvasModelImage" :
-											exportCanvasModelImage(id, (ICanvasModelImage)child, rank, 0);
-											break;
-										case "CanvasModelConnection" :
-											exportConnection(id, (ICanvasModelConnection)child, rank);
-											break;
-										default :  //should not be here
-											throw new Exception("Don't know how to save CanvasModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
-										}
-									}
-									break;
-	
-								case "ArchimateDiagramModel" :
-									IArchimateDiagramModel archimateDiagramModel = (IArchimateDiagramModel)objectToExport;
-									DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
-									if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-										DBPlugin.insert(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type, folder)",
-												id,
-												projectId,
-												version,
-												name,
-												archimateDiagramModel.getDocumentation(),
-												archimateDiagramModel.getConnectionRouterType(),
-												archimateDiagramModel.getViewpoint(),
-												archimateDiagramModel.getClass().getSimpleName(),
-												DBPlugin.getId(((IIdentifier)archimateDiagramModel.eContainer()).getId()));
-									} else {
-										DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimatediagrammodel {id:?, name:?, documentation:?, connectionroutertype:?, viewpoint:?, type:?, folder:?})-[:isInModel]->(m)",
-												projectId,
-												version,
-												id,
-												name,
-												archimateDiagramModel.getDocumentation(),
-												archimateDiagramModel.getConnectionRouterType(),
-												archimateDiagramModel.getViewpoint(),
-												archimateDiagramModel.getClass().getSimpleName(),
-												DBPlugin.getId(((IIdentifier)archimateDiagramModel.eContainer()).getId()));
-									}
-									dbTabItem.setCountArchimateDiagramModels(++countArchimateDiagramModels);
-									dbTabItem.setProgressBar(++countTotal);
-									exportObjectProperties(archimateDiagramModel, archimateDiagramModel.getProperties());
-	
-									for ( int rank=0; rank < archimateDiagramModel.getChildren().size(); ++rank ) {
-										EObject child = archimateDiagramModel.getChildren().get(rank);
-										switch ( child.eClass().getName() ) {
-										case "DiagramModelArchimateConnection" :
-											exportConnection(id, (IDiagramModelArchimateConnection)child, rank);
-											break;
-										case "DiagramModelArchimateObject" :
-											exportDiagramModelObject(id, (IDiagramModelArchimateObject)child, rank, 0);
-											break;
-										case "DiagramModelGroup" :
-											exportDiagramModelObject(id, (IDiagramModelGroup)child, rank, 0);
-											break;
-										case "DiagramModelNote" :
-											exportDiagramModelObject(id, (IDiagramModelNote)child, rank, 0);
-											break;
-										case "DiagramModelReference" :
-											exportDiagramModelReference(id, (IDiagramModelReference)child, rank, 0);
-											break;
-										default : //should never be here
-											throw new Exception("Don't know how to save DiagramModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
-										}
-									}
-									break;
-	
-								default:
-									// here, the class is too detailed (Node, Artefact, BisinessActor, etc ...)
-									// so we use "instanceof" to determine if they are an element or a relationship, which is sufficient to export them
-									if ( objectToExport instanceof IArchimateElement ) {
-										IArchimateElement archimateElement = (IArchimateElement)objectToExport;
-										DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
-										if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-											DBPlugin.insert(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation, folder)",
-													id,
-													projectId,
-													version,
-													name,
-													archimateElement.getClass().getSimpleName(),
-													archimateElement.getDocumentation(),
-													DBPlugin.getId(((IIdentifier)archimateElement.eContainer()).getId())
-													);
-										} else {
-											DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimateelement {id:?, name:?, type:?, documentation:?, folder:?}), (new)-[:isInModel]->(m)",
-													projectId,
-													version,
-													id,
-													name,
-													archimateElement.getClass().getSimpleName(),
-													archimateElement.getDocumentation(),
-													DBPlugin.getId(((IIdentifier)archimateElement.eContainer()).getId())
-													);
-										}
-										dbTabItem.setCountElements(++countElements);
-										dbTabItem.setProgressBar(++countTotal);
-										exportObjectProperties(archimateElement,archimateElement.getProperties());
-									} else if ( objectToExport instanceof IRelationship ) {
-										IRelationship relationship = (IRelationship)objectToExport;
-										DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
-										if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-											DBPlugin.insert(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation, folder)",
-													id,
-													projectId,
-													version,
-													name,
-													DBPlugin.getId(relationship.getSource().getId()),
-													DBPlugin.getId(relationship.getTarget().getId()),
-													relationship.getClass().getSimpleName(),
-													relationship.getDocumentation(),
-													DBPlugin.getId(((IIdentifier)relationship.eContainer()).getId())
-													);
-										} else {
-											DBPlugin.request(db, "MATCH (m:model {model:?, version:?}), (source {id:?})-[:isInModel]->(m), (target {id:?})-[:isInModel]->(m) CREATE (source)-[new:"+relationship.getClass().getSimpleName()+" {id:?, name:?, type:?, documentation:?, folder:?}]->(target)",
-													projectId,
-													version,
-													DBPlugin.getId(relationship.getSource().getId()),
-													DBPlugin.getId(relationship.getTarget().getId()),
-													id,
-													name,
-													relationship.getClass().getSimpleName(),
-													relationship.getDocumentation(),
-													DBPlugin.getId(((IIdentifier)relationship.eContainer()).getId()))
-													;
-										}
-										
-										dbTabItem.setCountRelationships(++countRelationships);
-										dbTabItem.setProgressBar(++countTotal);
-										exportObjectProperties(relationship, relationship.getProperties());
-									}
-									// do nothing : other element types have been managed earlier in the case. 
+				} else {
+					DBPlugin.request(db, "MATCH (node)-[rm:isInModel]->(model:model {model:?, version:?}) DETACH DELETE node, model",
+							modelSelected.get("id"), modelSelected.get("version"));
+				}
+
+				dbTabItem.setText("Please wait while exporting model ...");
+				DBPlugin.debug(DebugLevel.Variable, "Exporting model id="+dbModel.getProjectId()+" version="+dbModel.getVersion()+" name="+dbModel.getName());
+				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+					DBPlugin.insert(db, "INSERT INTO model (model, version, name, purpose, owner, period, note)",
+							dbModel.getProjectId(), dbModel.getVersion(),
+							dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
+				} else {
+					DBPlugin.request(db, "CREATE (new:model {model:?, version:?, name:?, purpose:?, owner:?, period:?, note:?})",
+							dbModel.getProjectId(), dbModel.getVersion(),
+							dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
+				}
+				
+				dbTabItem.setText("Please wait while exporting components ...");
+				
+				// we save the images
+				exportImages(dbModel);
+
+				// we save the folders
+				for (IFolder folder: dbModel.getFolders() ) {
+					// if we are in shared mode (ie dbModel.getProjectFolder() == null)
+					//      then we do not save the project folder itself ...
+					if ( (dbModel.getProjectFolder() == null) || !folder.getId().equals(dbModel.getProjectFolder().getId()) )
+						exportFolder(folder, null, 0);
+				}
+
+				// we save the components
+				for (IFolder f: dbModel.getFolders() ) {
+					// in shared mode, we do not save the "project" folder
+					if ( (dbModel.getProjectFolder()) != null && f.getId().equals(dbModel.getProjectFolder().getId()) )
+						continue;
+					Iterator<EObject> iter = f.eAllContents();
+					while ( iter.hasNext() ) {
+						EObject objectToExport = iter.next();
+						if ( (objectToExport instanceof IIdentifier) && (objectToExport instanceof INameable) ) {	// we only export components that have got an ID and a name
+							String id = DBPlugin.getId(((IIdentifier)objectToExport).getId());
+							String projectId = DBPlugin.getProjectId(((IIdentifier)objectToExport).getId());
+							String version = DBPlugin.getVersion(((IIdentifier)objectToExport).getId());
+							String name = ((INameable)objectToExport).getName();
+							
+							switch ( objectToExport.eClass().getName() ) {
+							case "SketchModel" :
+								ISketchModel sketchModel = (ISketchModel)objectToExport;
+								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
+								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+									DBPlugin.insert(db, "INSERT INTO sketchmodel (id, model, version, name, documentation, connectionroutertype, background, folder)",
+											id,
+											projectId,
+											version,
+											name,
+											sketchModel.getDocumentation(),
+											sketchModel.getConnectionRouterType(),
+											sketchModel.getBackground(),
+											DBPlugin.getId(((IIdentifier)sketchModel.eContainer()).getId()));
+								} else {
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodel {id:?, name:?, documentation:?, connectionroutertype:?, background:?, folder:?}), (new)-[:isInModel]->(m)",
+											projectId,
+											version,
+											id,
+											name,
+											sketchModel.getDocumentation(),
+											sketchModel.getConnectionRouterType(),
+											sketchModel.getBackground(),
+											DBPlugin.getId(((IIdentifier)sketchModel.eContainer()).getId()));
 								}
+								dbTabItem.setCountSketchModels(++countSketchModels);
+								dbTabItem.setProgressBar(++countTotal);
+								exportObjectProperties(sketchModel, sketchModel.getProperties());
+
+								for ( int rank=0; rank < sketchModel.getChildren().size(); ++rank ) {
+									EObject child = sketchModel.getChildren().get(rank);
+									switch ( child.eClass().getName() ) {
+									case "SketchModelSticky" : 
+										exportSketchModelSticky(id, (ISketchModelSticky)child, rank, 0);
+										break;
+									case "SketchModelActor" :
+										exportSketchModelActor(id, (ISketchModelActor)child, rank, 0);
+										break;
+									case "DiagramModelGroup" :
+										exportDiagramModelObject(id, (IDiagramModelObject)child, rank, 0);
+										break;
+									default :  //should not be here
+										throw new Exception("Don't know how to save SketchModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
+									}
+								}
+								break;
+
+							case "CanvasModel" :
+								ICanvasModel canvasModel = (ICanvasModel)objectToExport;
+								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
+								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+									DBPlugin.insert(db, "INSERT INTO canvasmodel (id, model, version, name, documentation, hinttitle, hintcontent, connectionroutertype, folder)",
+											id,
+											projectId,
+											version,
+											name,
+											canvasModel.getDocumentation(),
+											canvasModel.getHintTitle(),
+											canvasModel.getHintContent(),
+											canvasModel.getConnectionRouterType(),
+											DBPlugin.getId(((IIdentifier)canvasModel.eContainer()).getId()));
+								} else {
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodel {id:?, name:?, documentation:?, hinttitle:?, hintcontent:?, connectionroutertype:?, folder:?}), (new)-[:isInModel]->(m)",
+											projectId,
+											version,
+											id,
+											name,
+											canvasModel.getDocumentation(),
+											canvasModel.getHintTitle(),
+											canvasModel.getHintContent(),
+											canvasModel.getConnectionRouterType(),
+											DBPlugin.getId(((IIdentifier)canvasModel.eContainer()).getId()));
+								}
+								dbTabItem.setCountCanvasModels(++countCanvasModels);
+								dbTabItem.setProgressBar(++countTotal);
+								exportObjectProperties(canvasModel, canvasModel.getProperties());
+
+								for ( int rank=0; rank < canvasModel.getChildren().size(); ++rank ) {
+									EObject child = canvasModel.getChildren().get(rank);
+									switch ( child.eClass().getName() ) {
+									case "CanvasModelBlock" :
+										exportCanvasModelBlock(id, (ICanvasModelBlock)child, rank, 0);
+										break;
+									case "CanvasModelSticky" :
+										exportCanvasModelSticky(id, (ICanvasModelSticky)child, rank, 0);
+										break;
+									case "CanvasModelImage" :
+										exportCanvasModelImage(id, (ICanvasModelImage)child, rank, 0);
+										break;
+									case "CanvasModelConnection" :
+										exportConnection(id, (ICanvasModelConnection)child, rank);
+										break;
+									default :  //should not be here
+										throw new Exception("Don't know how to save CanvasModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
+									}
+								}
+								break;
+
+							case "ArchimateDiagramModel" :
+								IArchimateDiagramModel archimateDiagramModel = (IArchimateDiagramModel)objectToExport;
+								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
+								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+									DBPlugin.insert(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type, folder)",
+											id,
+											projectId,
+											version,
+											name,
+											archimateDiagramModel.getDocumentation(),
+											archimateDiagramModel.getConnectionRouterType(),
+											archimateDiagramModel.getViewpoint(),
+											archimateDiagramModel.getClass().getSimpleName(),
+											DBPlugin.getId(((IIdentifier)archimateDiagramModel.eContainer()).getId()));
+								} else {
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimatediagrammodel {id:?, name:?, documentation:?, connectionroutertype:?, viewpoint:?, type:?, folder:?})-[:isInModel]->(m)",
+											projectId,
+											version,
+											id,
+											name,
+											archimateDiagramModel.getDocumentation(),
+											archimateDiagramModel.getConnectionRouterType(),
+											archimateDiagramModel.getViewpoint(),
+											archimateDiagramModel.getClass().getSimpleName(),
+											DBPlugin.getId(((IIdentifier)archimateDiagramModel.eContainer()).getId()));
+								}
+								dbTabItem.setCountArchimateDiagramModels(++countArchimateDiagramModels);
+								dbTabItem.setProgressBar(++countTotal);
+								exportObjectProperties(archimateDiagramModel, archimateDiagramModel.getProperties());
+
+								for ( int rank=0; rank < archimateDiagramModel.getChildren().size(); ++rank ) {
+									EObject child = archimateDiagramModel.getChildren().get(rank);
+									switch ( child.eClass().getName() ) {
+									case "DiagramModelArchimateConnection" :
+										exportConnection(id, (IDiagramModelArchimateConnection)child, rank);
+										break;
+									case "DiagramModelArchimateObject" :
+										exportDiagramModelObject(id, (IDiagramModelArchimateObject)child, rank, 0);
+										break;
+									case "DiagramModelGroup" :
+										exportDiagramModelObject(id, (IDiagramModelGroup)child, rank, 0);
+										break;
+									case "DiagramModelNote" :
+										exportDiagramModelObject(id, (IDiagramModelNote)child, rank, 0);
+										break;
+									case "DiagramModelReference" :
+										exportDiagramModelReference(id, (IDiagramModelReference)child, rank, 0);
+										break;
+									default : //should never be here
+										throw new Exception("Don't know how to save DiagramModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
+									}
+								}
+								break;
+
+							default:
+								// here, the class is too detailed (Node, Artefact, BisinessActor, etc ...)
+								// so we use "instanceof" to determine if they are an element or a relationship, which is sufficient to export them
+								if ( objectToExport instanceof IArchimateElement ) {
+									IArchimateElement archimateElement = (IArchimateElement)objectToExport;
+									DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
+									if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+										DBPlugin.insert(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation, folder)",
+												id,
+												projectId,
+												version,
+												name,
+												archimateElement.getClass().getSimpleName(),
+												archimateElement.getDocumentation(),
+												DBPlugin.getId(((IIdentifier)archimateElement.eContainer()).getId())
+												);
+									} else {
+										DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimateelement {id:?, name:?, type:?, documentation:?, folder:?}), (new)-[:isInModel]->(m)",
+												projectId,
+												version,
+												id,
+												name,
+												archimateElement.getClass().getSimpleName(),
+												archimateElement.getDocumentation(),
+												DBPlugin.getId(((IIdentifier)archimateElement.eContainer()).getId())
+												);
+									}
+									dbTabItem.setCountElements(++countElements);
+									dbTabItem.setProgressBar(++countTotal);
+									exportObjectProperties(archimateElement,archimateElement.getProperties());
+								} else if ( objectToExport instanceof IRelationship ) {
+									IRelationship relationship = (IRelationship)objectToExport;
+									DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
+									if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+										DBPlugin.insert(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation, folder)",
+												id,
+												projectId,
+												version,
+												name,
+												DBPlugin.getId(relationship.getSource().getId()),
+												DBPlugin.getId(relationship.getTarget().getId()),
+												relationship.getClass().getSimpleName(),
+												relationship.getDocumentation(),
+												DBPlugin.getId(((IIdentifier)relationship.eContainer()).getId())
+												);
+									} else {
+										DBPlugin.request(db, "MATCH (m:model {model:?, version:?}), (source {id:?})-[:isInModel]->(m), (target {id:?})-[:isInModel]->(m) CREATE (source)-[new:"+relationship.getClass().getSimpleName()+" {id:?, name:?, type:?, documentation:?, folder:?}]->(target)",
+												projectId,
+												version,
+												DBPlugin.getId(relationship.getSource().getId()),
+												DBPlugin.getId(relationship.getTarget().getId()),
+												id,
+												name,
+												relationship.getClass().getSimpleName(),
+												relationship.getDocumentation(),
+												DBPlugin.getId(((IIdentifier)relationship.eContainer()).getId()))
+												;
+									}
+									
+									dbTabItem.setCountRelationships(++countRelationships);
+									dbTabItem.setProgressBar(++countTotal);
+									exportObjectProperties(relationship, relationship.getProperties());
+								}
+								// do nothing : other element types have been managed earlier in the case. 
 							}
 						}
 					}
-	
-					// last but not least, we update the counters of the model
-					exportModelProperties(dbModel);
-					if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-						DBPlugin.request(db, "UPDATE model set countMetadatas=?, countFolders=?, countElements=?, countRelationships=?, countProperties=?, countArchimateDiagramModels=?, countDiagramModelArchimateObjects=?, countDiagramModelArchimateConnections=?, countDiagramModelGroups=?, countDiagramModelNotes=?, countCanvasModels=?, countCanvasModelBlocks=?, countCanvasModelStickys=?, countCanvasModelConnections=?, countCanvasModelImages=?, countSketchModels=?, countSketchModelActors=?, countSketchModelStickys=?, countDiagramModelConnections=?, countDiagramModelBendpoints=?, countDiagramModelReferences=?, countImages=? WHERE model=? AND version=?",
-								countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages,
-								dbModel.getProjectId(), dbModel.getVersion());
-					} else {
-						DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) SET m.countMetadatas=?, m.countFolders=?, m.countElements=?, m.countRelationships=?, m.countProperties=?, m.countArchimateDiagramModels=?, m.countDiagramModelArchimateObjects=?, m.countDiagramModelArchimateConnections=?, m.countDiagramModelGroups=?, m.countDiagramModelNotes=?, m.countCanvasModels=?, m.countCanvasModelBlocks=?, m.countCanvasModelStickys=?, m.countCanvasModelConnections=?, m.countCanvasModelImages=?, m.countSketchModels=?, m.countSketchModelActors=?, m.countSketchModelStickys=?, m.countDiagramModelConnections=?, m.countDiagramModelBendpoints=?, m.countDiagramModelReferences=?, m.countImages=?",
-								dbModel.getProjectId(), dbModel.getVersion(),
-								countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages);
-					}
-	
-					long endTime = System.currentTimeMillis();
-					String duration = String.format("%d'%02d", TimeUnit.MILLISECONDS.toMinutes(endTime-startTime), TimeUnit.MILLISECONDS.toSeconds(endTime-startTime)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime-startTime)));
-	
-					int totalExported = countMetadatas + countFolders + countElements + countRelationships + countProperties +
-							countArchimateDiagramModels + countDiagramModelArchimateObjects + countDiagramModelArchimateConnections + countDiagramModelGroups + countDiagramModelNotes +  
-							countCanvasModels + countCanvasModelBlocks + countCanvasModelStickys + countCanvasModelConnections + countCanvasModelImages + 
-							countSketchModels + countSketchModelActors + countSketchModelStickys + countDiagramModelConnections +
-							countDiagramModelBendpoints + countDiagramModelReferences + countImages;
-					String msg;
-					if ( totalExported == dbModel.countAllComponents() ) {
-						msg = "The model \"" + dbModel.getName() + "\" has been successfully exported to the database in "+duration+"\n\n";
-						msg += "--> " + totalExported + " components exported <--";
-						dbTabItem.setSuccess(msg);
-					} else {
-						msg = "The model \"" + dbModel.getName() + "\" has been exported to the database in "+duration+", but with errors !\nPlease check below :\n";
-						msg += "--> " + totalExported + " / " + dbModel.countAllComponents() + " components exported <--";
-						dbTabItem.setError(msg);
-					}
-					
-
 				}
-				
+
+				// last but not least, we update the counters of the model
+				exportModelProperties(dbModel);
+				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
+					DBPlugin.request(db, "UPDATE model set countMetadatas=?, countFolders=?, countElements=?, countRelationships=?, countProperties=?, countArchimateDiagramModels=?, countDiagramModelArchimateObjects=?, countDiagramModelArchimateConnections=?, countDiagramModelGroups=?, countDiagramModelNotes=?, countCanvasModels=?, countCanvasModelBlocks=?, countCanvasModelStickys=?, countCanvasModelConnections=?, countCanvasModelImages=?, countSketchModels=?, countSketchModelActors=?, countSketchModelStickys=?, countDiagramModelConnections=?, countDiagramModelBendpoints=?, countDiagramModelReferences=?, countImages=? WHERE model=? AND version=?",
+							countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages,
+							dbModel.getProjectId(), dbModel.getVersion());
+				} else {
+					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) SET m.countMetadatas=?, m.countFolders=?, m.countElements=?, m.countRelationships=?, m.countProperties=?, m.countArchimateDiagramModels=?, m.countDiagramModelArchimateObjects=?, m.countDiagramModelArchimateConnections=?, m.countDiagramModelGroups=?, m.countDiagramModelNotes=?, m.countCanvasModels=?, m.countCanvasModelBlocks=?, m.countCanvasModelStickys=?, m.countCanvasModelConnections=?, m.countCanvasModelImages=?, m.countSketchModels=?, m.countSketchModelActors=?, m.countSketchModelStickys=?, m.countDiagramModelConnections=?, m.countDiagramModelBendpoints=?, m.countDiagramModelReferences=?, m.countImages=?",
+							dbModel.getProjectId(), dbModel.getVersion(),
+							countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages);
+				}
+
+				long endTime = System.currentTimeMillis();
+				String duration = String.format("%d'%02d", TimeUnit.MILLISECONDS.toMinutes(endTime-startTime), TimeUnit.MILLISECONDS.toSeconds(endTime-startTime)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime-startTime)));
+
+				int totalExported = countMetadatas + countFolders + countElements + countRelationships + countProperties +
+						countArchimateDiagramModels + countDiagramModelArchimateObjects + countDiagramModelArchimateConnections + countDiagramModelGroups + countDiagramModelNotes +  
+						countCanvasModels + countCanvasModelBlocks + countCanvasModelStickys + countCanvasModelConnections + countCanvasModelImages + 
+						countSketchModels + countSketchModelActors + countSketchModelStickys + countDiagramModelConnections +
+						countDiagramModelBendpoints + countDiagramModelReferences + countImages;
+				String msg;
+				if ( totalExported == dbModel.countAllComponents() ) {
+					msg = "The model \"" + dbModel.getName() + "\" has been successfully exported to the database in "+duration+"\n\n";
+					msg += "--> " + totalExported + " components exported <--";
+					dbTabItem.setSuccess(msg);
+				} else {
+					msg = "The model \"" + dbModel.getName() + "\" has been exported to the database in "+duration+", but with errors !\nPlease check below :\n";
+					msg += "--> " + totalExported + " / " + dbModel.countAllComponents() + " components exported <--";
+					dbTabItem.setError(msg);
+				}
+
 				try {
 					db.commit();
 					// we remove the 'dirty' flag i.e. we consider the model AS saved

@@ -11,6 +11,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.archicontribs.database.DBPlugin.DebugLevel;
@@ -72,9 +73,8 @@ import com.sun.org.apache.xml.internal.security.utils.Base64;
 public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	private Connection db;
 	
-	HashMap<String, HashMap<String, String>> selectedModels;
+	List<HashMap<String, String>> selectedModels;
 	DBModel dbModel;
-	HashMap<String,String> modelSelected;
 	private DBSelectModel dbSelectModel;
 	private DBProgress dbProgress;
 	private DBProgressTabItem dbTabItem;
@@ -136,18 +136,19 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 
 	@Override
 	public void doImport(IArchimateModel _model) throws IOException {
-		DBPlugin.debug(DebugLevel.MainMethod, "+Entering DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
-		dbSelectModel = new DBSelectModel();
+		DBPlugin.debug(DebugLevel.MainMethod, "+Entering DBImporter.doImport()");
+		
 		try {
+			dbSelectModel = new DBSelectModel();
 			db = dbSelectModel.selectModelToImport();
 		} catch (Exception err) {
-			DBPlugin.popup(Level.Error, "An error occurred !!!", err);
-			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
+			DBPlugin.popup(Level.Error, "Failed to set the list of models to import.", err);
+			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
 			return;
 		}
 		
 		if ( db == null ) {	// if there is no database connection, we cannot export
-			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
+			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
 			return;
 		}
 		
@@ -155,206 +156,349 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		if ( selectedModels == null || selectedModels.size() == 0 ) {
 			// if the user clicked on cancel or did not selected any project to export, we give up
 			try { db.close(); } catch (SQLException ee) { };
-			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
+			DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
 			return;
 		}
 		
-		dbProgress = new DBProgress();
-		try {
-			dbModel = null;
-
-			//TODO
-			// Si on référence des objets d'autres modèles (dans une vue ou dans des relations)
-			// alors, proposer à l'utilisateur
-			//		soit charger les autres projets (en récursifs car ils peuvent dépendre les uns des autres)
-			//		soit charger uniquement les objets dépendants dans un dossier spécial (mais attention à la sauvegarde)
-			//		soit ne pas les charger mais ils devront être reconduits lors de la sauvegarde
-			//
-
-			for ( HashMap<String, String> x: selectedModels.values() ) {
-				modelSelected=x;
+		List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
+		
+		// in Shared mode, we check that the shared model exists. Else, we create it
+		IArchimateModel sharedModel = null;
+		IFolder sharedProjectsFolder = null;
+		if ( selectedModels.get(0).get("mode").equals("Shared") ) {
+			for ( IArchimateModel existingModel: allModels ) {
+				if ( existingModel.getId().equals(DBPlugin.SharedModelId) ) {
+					sharedModel = existingModel;
+					break;
+				}
 			}
+			if ( sharedModel == null ) {
+				try {
+					sharedModel = IArchimateFactory.eINSTANCE.createArchimateModel();
+					sharedModel.setDefaults();
+					sharedModel.setId(DBPlugin.SharedModelId);
+					sharedModel.setName(DBPlugin.SharedModelName);
+					sharedModel.setPurpose("This model is a shared container that allow to group several Archi models into a container model.");
+					IEditorModelManager.INSTANCE.registerModel(sharedModel);
+				} catch (Exception err) {
+					DBPlugin.popup(Level.Error, "Failed to create the shared model container.", err);
+					try { db.close(); } catch (SQLException ee) { };
+					DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
+					return;
+				}
+				
+				try {
+					sharedProjectsFolder = IArchimateFactory.eINSTANCE.createFolder();
+					sharedProjectsFolder.setId(DBPlugin.SharedFolderId);
+					sharedProjectsFolder.setName(DBPlugin.SharedFolderName);
+					sharedProjectsFolder.setDocumentation("This folder contains one sub-folder per project.");
+					sharedModel.getFolders().add(sharedProjectsFolder);
+				} catch (Exception err) {
+					DBPlugin.popup(Level.Error, "Failed to create the project folder in the shared model container.", err);
+					try { db.close(); } catch (SQLException ee) { };
+					DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
+					return;
+				}
+			} else {	// sharedModel == null
+				for ( IFolder subFolder: sharedModel.getFolders() ) {
+					if ( subFolder.getId().equals(DBPlugin.SharedFolderId) ) {
+						sharedProjectsFolder = subFolder;
+						break;
+					}
+				}
+				if ( sharedProjectsFolder == null ) {
+					DBPlugin.popup(Level.Error, "Cannot find the projects folder in the shared model !");
+					try { db.close(); } catch (SQLException ee) { };
+					DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
+					return;
+				}
+			}
+		}
+		
+		// for each model to import, we check that it is not imported yet as we cannot have two models with the same ID !!!
+		dbProgress = new DBProgress();
+		for ( HashMap<String, String> modelSelected: selectedModels ) {
+			// we create the tab corresponding to the model to import
+			dbTabItem = dbProgress.tabItem(modelSelected.get("name"));
+			
+			// by default, we set it to be imported. The value will be changed if one of the verification fails.
+			modelSelected.put("_import_it", "yes");
+
 			if ( modelSelected.get("mode").equals("Shared") ) {
-				// in shared mode, the database models will be loaded in folders in a generic model
-				DBPlugin.debug(DebugLevel.Variable,"Using existing model "+modelSelected.get("name"));
-				dbModel = new DBModel();
-				if ( dbModel.getProjectsFolders() != null ) {
-					// we deny to import a model twice as this will create ID conflicts
-					for (IFolder f: dbModel.getProjectsFolders() ) {
-						if ( f.getId().split(DBPlugin.Separator)[0].equals(modelSelected.get("id")) ) {
-							DBPlugin.popup(Level.Error, "You cannot import model \""+modelSelected.get("name")+"\" twice in shared mode.");
-							try { db.close(); } catch (Exception ee) {}
-							DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
-							return;
+				// in shared mode, we compare the ID of the model to import with the ID of the "projects" subfolders of the shared model 
+				for (IFolder existingProject: sharedProjectsFolder.getFolders() ) {
+					if ( modelSelected.get("id").equals(DBPlugin.getId(existingProject.getId())) ) {
+						DBPlugin.popup(Level.Error, "A project with ID \""+modelSelected.get("id")+"\" already exists. Cannot import it again ...");
+						dbTabItem.setError("A project with ID \""+modelSelected.get("id")+"\" already exists.\n\nCannot import it again.");
+						modelSelected.put("_import_it", "no");
+						continue;
+					}
+					if ( modelSelected.get("name").equals(existingProject.getName()) ) {
+						if ( !DBPlugin.question("A project with name \""+modelSelected.get("name")+"\" already exists.\n\nIt is possible to have two projects with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
+							dbTabItem.setError("A project with name \""+modelSelected.get("name")+"\" already exists.\n\nImport cancelled by user.");
+							modelSelected.put("_import_it", "no");
+							continue;
 						}
 					}
 				}
-				dbModel.addFolder(modelSelected.get("id"), modelSelected.get("version"), modelSelected.get("name"), modelSelected.get("purpose"));
-			} else {
-				// in standalone mode, we import the database model in a dedicated Archi model
-				DBPlugin.debug(DebugLevel.Variable,"Creating new model "+modelSelected.get("name"));
-				dbModel = new DBModel(IArchimateFactory.eINSTANCE.createArchimateModel());
-				dbModel.getModel().setDefaults();
-				dbModel.setProjectId(modelSelected.get("id"), modelSelected.get("version"));
-				dbModel.setName(modelSelected.get("name"));
-				dbModel.setPurpose(modelSelected.get("purpose"));
-				IEditorModelManager.INSTANCE.registerModel(dbModel.getModel());
+				
+				// if we should import the model, then we create the project folder
+				if ( modelSelected.get("_import_it").equals("yes") ) {
+					try {
+						IFolder newFolder = IArchimateFactory.eINSTANCE.createFolder();
+						newFolder.setId(DBPlugin.generateProjectId(modelSelected.get("id"), modelSelected.get("version")));
+						newFolder.setName(modelSelected.get("name"));
+						newFolder.setDocumentation(modelSelected.get("purpose"));
+						sharedProjectsFolder.getFolders().add(newFolder);
+					} catch (Exception err) {
+						DBPlugin.popup(Level.Error, "Failed to create the project folder \""+modelSelected.get("name")+"\"", err);
+						try { db.close(); } catch (SQLException ee) { };
+						DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
+						return;
+					}
+				}
+			} else {	// if ( modelSelected.get("mode").equals("Shared") )
+				// in Standalone mode, we compare the ID of the model to import with the ID of existing models
+				for ( IArchimateModel existingModel: allModels ) {
+					if ( modelSelected.get("id").equals(DBPlugin.getId(existingModel.getId())) ) {
+						DBPlugin.popup(Level.Error, "A model with ID \""+modelSelected.get("id")+"\" already exists. Cannot import it again ...");
+						dbTabItem.setError("A model with ID \""+modelSelected.get("id")+"\" already exists.\n\nCannot import it again.");
+						modelSelected.put("_import_it", "no");
+						continue;
+					}
+					if ( modelSelected.get("name").equals(existingModel.getName()) ) {
+						if ( !DBPlugin.question("A model with name \""+modelSelected.get("name")+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
+							dbTabItem.setError("A project with name \""+modelSelected.get("name")+"\" already exists.\n\nImport cancelled by user.");
+							modelSelected.put("_import_it", "no");
+							continue;
+						}
+					}
+				}
+				
+				// if we should import the model, then we create the model
+				if ( modelSelected.get("_import_it").equals("yes") ) {
+					try {
+						IArchimateModel newModel = IArchimateFactory.eINSTANCE.createArchimateModel();
+						newModel.setDefaults();
+						newModel.setId(DBPlugin.generateProjectId(modelSelected.get("id"), modelSelected.get("version")));
+						newModel.setName(modelSelected.get("name"));
+						newModel.setPurpose(modelSelected.get("purpose"));
+						IEditorModelManager.INSTANCE.registerModel(newModel);
+					} catch (Exception err) {
+						DBPlugin.popup(Level.Error, "Failed to create the model \""+modelSelected.get("name")+"\"", err);
+						try { db.close(); } catch (SQLException ee) { };
+						DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
+						return;
+					}
+				}
 			}
-
-			long startTime = System.currentTimeMillis();
-			
-			//we show up the progressbar
-			dbTabItem = dbProgress.tabItem(modelSelected.get("name"));
-			DBPlugin.debug(DebugLevel.Variable,"Please wait while counting and versionning components ...");
-			dbTabItem.setText("Please wait while counting and versionning components ...");
-
-			dbModel.initializeIndex();
-			
-			countMetadatas = 0;
-			countFolders = 0;
-			countElements = 0;
-			countRelationships = 0;
-			countProperties = 0;
-			countArchimateDiagramModels = 0;
-			countDiagramModelArchimateConnections = 0;
-			countDiagramModelConnections = 0;
-			countDiagramModelReferences = 0;
-			countDiagramModelArchimateObjects = 0;
-			countDiagramModelGroups = 0;
-			countDiagramModelNotes = 0;
-			countCanvasModels = 0;
-			countCanvasModelBlocks = 0;
-			countCanvasModelStickys = 0;
-			countCanvasModelConnections = 0;
-			countCanvasModelImages = 0;
-			countImages = 0;
-			countSketchModels = 0;
-			countSketchModelActors = 0;
-			countSketchModelStickys = 0;
-			countDiagramModelBendpoints = 0;
-			countTotal = 0;
-
-			totalMetadatas=Integer.parseInt(modelSelected.get("countMetadatas"));
-			totalFolders=Integer.parseInt(modelSelected.get("countFolders"));
-			totalElements=Integer.parseInt(modelSelected.get("countElements"));
-			totalRelationships=Integer.parseInt(modelSelected.get("countRelationships"));
-			totalProperties=Integer.parseInt(modelSelected.get("countProperties"));
-			totalArchimateDiagramModels=Integer.parseInt(modelSelected.get("countArchimateDiagramModels"));
-			totalDiagramModelArchimateConnections=Integer.parseInt(modelSelected.get("countDiagramModelArchimateConnections"));
-			totalDiagramModelConnections=Integer.parseInt(modelSelected.get("countDiagramModelConnections"));
-			totalDiagramModelArchimateObjects=Integer.parseInt(modelSelected.get("countDiagramModelArchimateObjects"));
-			totalDiagramModelGroups=Integer.parseInt(modelSelected.get("countDiagramModelGroups"));
-			totalDiagramModelNotes=Integer.parseInt(modelSelected.get("countDiagramModelNotes"));
-			totalCanvasModels=Integer.parseInt(modelSelected.get("countCanvasModels"));
-			totalCanvasModelBlocks=Integer.parseInt(modelSelected.get("countCanvasModelBlocks"));
-			totalCanvasModelStickys=Integer.parseInt(modelSelected.get("countCanvasModelStickys"));
-			totalCanvasModelConnections=Integer.parseInt(modelSelected.get("countCanvasModelConnections"));
-			totalCanvasModelImages=Integer.parseInt(modelSelected.get("countCanvasModelImages"));
-			totalImages=Integer.parseInt(modelSelected.get("countImages"));
-			totalSketchModels=Integer.parseInt(modelSelected.get("countSketchModels"));
-			totalSketchModelActors=Integer.parseInt(modelSelected.get("countSketchModelActors"));
-			totalSketchModelStickys=Integer.parseInt(modelSelected.get("countSketchModelStickys"));
-			totalDiagramModelBendpoints=Integer.parseInt(modelSelected.get("countDiagramModelBendpoints"));
-			totalDiagramModelReferences=Integer.parseInt(modelSelected.get("countDiagramModelReferences"));
-			
-			totalInDatabase = totalMetadatas + totalFolders + totalElements + totalRelationships + totalProperties +
-					totalArchimateDiagramModels + totalDiagramModelArchimateObjects + totalDiagramModelArchimateConnections + totalDiagramModelGroups + totalDiagramModelNotes +  
-					totalCanvasModels + totalCanvasModelBlocks + totalCanvasModelStickys + totalCanvasModelConnections + totalCanvasModelImages + 
-					totalSketchModels + totalSketchModelActors + totalSketchModelStickys + totalDiagramModelConnections +
-					totalDiagramModelBendpoints + totalDiagramModelReferences + totalImages;
-			
-			dbTabItem.setMaximum(totalInDatabase);
-			DBPlugin.debug(DebugLevel.Variable,"Please wait while importing components ...");
-			dbTabItem.setText("Please wait while importing components ...");
-
-			// we import the model objects
-			importModelProperties(dbModel);
-			importFolders(dbModel);
-			importArchimateElement(dbModel);
-			importRelationship(dbModel);
-
-			importArchimateDiagramModel(dbModel);
-
-			importCanvasModel(dbModel);
-			importCanvasModelBlock(dbModel);
-			importCanvasModelSticky(dbModel);
-			importCanvasModelImage(dbModel);
-
-			importSketchModel(dbModel);
-			importSketchModelActor(dbModel);
-			importSketchModelSticky(dbModel);
-
-			importDiagramModelArchimateObject(dbModel);
-
-			importDiagramModelReference(dbModel);
-
-			importConnections(dbModel);
-			importTargetConnections(dbModel);
-			
-			importImages(dbModel);
-
-			DBPlugin.debug(DebugLevel.Variable,"Please wait while resolving dependencies ...");
-			dbTabItem.setText("Please wait while resolving dependencies ...");
-			dbModel.resolveSourceConnections();
-			dbModel.resolveChildren();
-
-			long endTime = System.currentTimeMillis();
-			
-			String duration = String.format("%d'%02d", TimeUnit.MILLISECONDS.toMinutes(endTime-startTime), TimeUnit.MILLISECONDS.toSeconds(endTime-startTime)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime-startTime)));
-			
-			String msg;
-			
-			if ( countTotal == totalInDatabase ) {
-				msg = "The model \"" + dbModel.getName() + "\" has been successfully imported from the database in "+duration+"\n\n";
-				msg += "--> " + countTotal + " components imported <--";
-				dbTabItem.setSuccess(msg);
-			} else {
-				msg = "The model \"" + dbModel.getName() + "\" has been imported from the database in "+duration+", but with errors !\nPlease check below :\n";
-				msg += "--> "+ countTotal + "/" + totalInDatabase + " components imported <--";
-				dbTabItem.setError(msg);
-			}
-			DBPlugin.debug(DebugLevel.Variable,msg);
-			
-		} catch (Exception e) {
-			dbTabItem.setError("An error occured while importing the model from the database.\nThe model imported into Archi might be incomplete, please check below : \n" + e.getClass().getSimpleName() + " : " + e.getMessage());
-			
-			DBPlugin.popup(Level.Error, "An error occured while importing the model from the database.\n\nThe model imported into Archi might be incomplete !!!", e);			
 		}
+
 		
-		dbTabItem.setCountMetadatas(countMetadatas, totalMetadatas);
+		// Now we import the projects
+		// TODO: should we catch the exceptions at the top level, or project by project ?
+		// TODO: if we catch the exceptions model by model, ensure that the other projetcs continue to load even if a popup is raised ...
+		// TODO:          in that case; shall we remove the popups and only use color code in the tab interface ?
+		for ( HashMap<String, String> modelSelected: selectedModels ) {
+			try {
+				//TODO
+				// Si on référence des objets d'autres modèles (dans une vue ou dans des relations)
+				// alors, proposer à l'utilisateur
+				//		soit charger les autres projets (en récursifs car ils peuvent dépendre les uns des autres)
+				//		soit charger uniquement les objets dépendants dans un dossier spécial (mais attention à la sauvegarde)
+				//		soit ne pas les charger mais ils devront être reconduits lors de la sauvegarde
+				//
+				
+				// we stat the chronometer
+				long startTime = System.currentTimeMillis();
+
+				// we show up the progressBar 
+				dbTabItem = dbProgress.tabItem(modelSelected.get("name"));
+				
+				countMetadatas = 0;
+				countFolders = 0;
+				countElements = 0;
+				countRelationships = 0;
+				countProperties = 0;
+				countArchimateDiagramModels = 0;
+				countDiagramModelArchimateConnections = 0;
+				countDiagramModelConnections = 0;
+				countDiagramModelReferences = 0;
+				countDiagramModelArchimateObjects = 0;
+				countDiagramModelGroups = 0;
+				countDiagramModelNotes = 0;
+				countCanvasModels = 0;
+				countCanvasModelBlocks = 0;
+				countCanvasModelStickys = 0;
+				countCanvasModelConnections = 0;
+				countCanvasModelImages = 0;
+				countImages = 0;
+				countSketchModels = 0;
+				countSketchModelActors = 0;
+				countSketchModelStickys = 0;
+				countDiagramModelBendpoints = 0;
+				countTotal = 0;
+	
+				totalMetadatas=Integer.parseInt(modelSelected.get("countMetadatas"));
+				totalFolders=Integer.parseInt(modelSelected.get("countFolders"));
+				totalElements=Integer.parseInt(modelSelected.get("countElements"));
+				totalRelationships=Integer.parseInt(modelSelected.get("countRelationships"));
+				totalProperties=Integer.parseInt(modelSelected.get("countProperties"));
+				totalArchimateDiagramModels=Integer.parseInt(modelSelected.get("countArchimateDiagramModels"));
+				totalDiagramModelArchimateConnections=Integer.parseInt(modelSelected.get("countDiagramModelArchimateConnections"));
+				totalDiagramModelConnections=Integer.parseInt(modelSelected.get("countDiagramModelConnections"));
+				totalDiagramModelArchimateObjects=Integer.parseInt(modelSelected.get("countDiagramModelArchimateObjects"));
+				totalDiagramModelGroups=Integer.parseInt(modelSelected.get("countDiagramModelGroups"));
+				totalDiagramModelNotes=Integer.parseInt(modelSelected.get("countDiagramModelNotes"));
+				totalCanvasModels=Integer.parseInt(modelSelected.get("countCanvasModels"));
+				totalCanvasModelBlocks=Integer.parseInt(modelSelected.get("countCanvasModelBlocks"));
+				totalCanvasModelStickys=Integer.parseInt(modelSelected.get("countCanvasModelStickys"));
+				totalCanvasModelConnections=Integer.parseInt(modelSelected.get("countCanvasModelConnections"));
+				totalCanvasModelImages=Integer.parseInt(modelSelected.get("countCanvasModelImages"));
+				totalImages=Integer.parseInt(modelSelected.get("countImages"));
+				totalSketchModels=Integer.parseInt(modelSelected.get("countSketchModels"));
+				totalSketchModelActors=Integer.parseInt(modelSelected.get("countSketchModelActors"));
+				totalSketchModelStickys=Integer.parseInt(modelSelected.get("countSketchModelStickys"));
+				totalDiagramModelBendpoints=Integer.parseInt(modelSelected.get("countDiagramModelBendpoints"));
+				totalDiagramModelReferences=Integer.parseInt(modelSelected.get("countDiagramModelReferences"));
+				
+				totalInDatabase = totalMetadatas + totalFolders + totalElements + totalRelationships + totalProperties +
+						totalArchimateDiagramModels + totalDiagramModelArchimateObjects + totalDiagramModelArchimateConnections + totalDiagramModelGroups + totalDiagramModelNotes +  
+						totalCanvasModels + totalCanvasModelBlocks + totalCanvasModelStickys + totalCanvasModelConnections + totalCanvasModelImages + 
+						totalSketchModels + totalSketchModelActors + totalSketchModelStickys + totalDiagramModelConnections +
+						totalDiagramModelBendpoints + totalDiagramModelReferences + totalImages;
+				
+				if ( modelSelected.get("_import_it").equals("yes") ) {
+					// we search the container where the onjects will be imported to
+					dbModel = null;
+					if ( modelSelected.get("mode").equals("Shared") ) {
+						// in shared mode, the project will be loaded in folders in a generic model
+						DBPlugin.debug(DebugLevel.Variable,"Importing model \""+modelSelected.get("name")+"\" into shared model.");
+						for (IFolder existingProject: sharedProjectsFolder.getFolders() ) {
+							if ( modelSelected.get("id").equals(DBPlugin.getId(existingProject.getId())) ) {
+								dbModel = new DBModel(sharedModel, existingProject);
+								break;
+							}
+						}
+						if ( dbModel == null ) {
+							DBPlugin.popup(Level.Error, "That's weird !!!\n\nCannot find the project ID \""+modelSelected.get("id")+"\" in the shared model, but I created it few seconds ago.");
+							dbTabItem.setError("That's weird !!!\n\nCannot find the project ID \""+modelSelected.get("id")+"\" in the shared model, but I created it few seconds ago.");
+							continue;
+						}
+					} else {	// if ( modelSelected.get("mode").equals("Shared") ) {
+						// in standalone mode, the models will be imported in standards models
+						for ( IArchimateModel existingModel: allModels ) {
+							if ( modelSelected.get("id").equals(DBPlugin.getId(existingModel.getId())) ) {
+								dbModel = new DBModel(existingModel);
+								break;
+							}
+						}
+						if ( dbModel == null ) {
+							DBPlugin.popup(Level.Error, "That's weird !!!\n\nCannot find the model ID \""+modelSelected.get("id")+"\", but I created it few seconds ago.");
+							dbTabItem.setError("That's weird !!!\n\nCannot find the model ID \""+modelSelected.get("id")+"\", but I created it few seconds ago.");
+							continue;
+						}
+					}
+					
+					DBPlugin.debug(DebugLevel.Variable,"Please wait while counting and versionning components ...");
+					dbTabItem.setText("Please wait while counting and versionning components ...");
 		
-		dbTabItem.setCountFolders(countFolders, totalFolders);
-		dbTabItem.setCountElements(countElements, totalElements);
-		dbTabItem.setCountRelationships(countRelationships, totalRelationships);
-		dbTabItem.setCountProperties(countProperties, totalProperties);
-
-		dbTabItem.setCountArchimateDiagramModels(countArchimateDiagramModels, totalArchimateDiagramModels);
-		dbTabItem.setCountDiagramModelArchimateObjects(countDiagramModelArchimateObjects, totalDiagramModelArchimateObjects);
-		dbTabItem.setCountDiagramModelArchimateConnections(countDiagramModelArchimateConnections, totalDiagramModelArchimateConnections);
-		dbTabItem.setCountDiagramModelConnections(countDiagramModelConnections, totalDiagramModelConnections);
-
-		dbTabItem.setCountDiagramModelGroups(countDiagramModelGroups, totalDiagramModelGroups);
-		dbTabItem.setCountDiagramModelNotes(countDiagramModelNotes, totalDiagramModelNotes);
-
-		dbTabItem.setCountCanvasModels(countCanvasModels, totalCanvasModels);
-		dbTabItem.setCountCanvasModelBlocks(countCanvasModelBlocks, totalCanvasModelBlocks);
-		dbTabItem.setCountCanvasModelStickys(countCanvasModelStickys, totalCanvasModelStickys);
-		dbTabItem.setCountCanvasModelConnections(countCanvasModelConnections, totalCanvasModelConnections);
-		dbTabItem.setCountCanvasModelImages(countCanvasModelImages, totalCanvasModelImages);
-
-		dbTabItem.setCountSketchModels(countSketchModels, totalSketchModels);
-		dbTabItem.setCountSketchModelActors(countSketchModelActors, totalSketchModelActors);
-		dbTabItem.setCountSketchModelStickys(countSketchModelStickys, totalSketchModelStickys);
-
-		dbTabItem.setCountDiagramModelBendpoints(countDiagramModelBendpoints, totalDiagramModelBendpoints);
-		dbTabItem.setCountDiagramModelReferences(countDiagramModelReferences, totalDiagramModelReferences);
-
-		dbTabItem.setCountImages(countImages, totalImages);
+					dbModel.initializeIndex();
+					
+					dbTabItem.setMaximum(totalInDatabase);
+					DBPlugin.debug(DebugLevel.Variable,"Please wait while importing components ...");
+					dbTabItem.setText("Please wait while importing components ...");
 		
-		dbTabItem.finish();
+					// we import the model objects
+					importModelProperties(dbModel);
+					importFolders(dbModel);
+					importArchimateElement(dbModel);
+					importRelationship(dbModel);
+		
+					importArchimateDiagramModel(dbModel);
+		
+					importCanvasModel(dbModel);
+					importCanvasModelBlock(dbModel);
+					importCanvasModelSticky(dbModel);
+					importCanvasModelImage(dbModel);
+		
+					importSketchModel(dbModel);
+					importSketchModelActor(dbModel);
+					importSketchModelSticky(dbModel);
+		
+					importDiagramModelArchimateObject(dbModel);
+		
+					importDiagramModelReference(dbModel);
+		
+					importConnections(dbModel);
+					importTargetConnections(dbModel);
+					
+					importImages(dbModel);
+		
+					DBPlugin.debug(DebugLevel.Variable,"Please wait while resolving dependencies ...");
+					dbTabItem.setText("Please wait while resolving dependencies ...");
+					dbModel.resolveSourceConnections();
+					dbModel.resolveChildren();
+		
+					long endTime = System.currentTimeMillis();
+					
+					String duration = String.format("%d'%02d", TimeUnit.MILLISECONDS.toMinutes(endTime-startTime), TimeUnit.MILLISECONDS.toSeconds(endTime-startTime)-TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(endTime-startTime)));
+					
+					String msg;
+					
+					if ( countTotal == totalInDatabase ) {
+						msg = "The model \"" + dbModel.getName() + "\" has been successfully imported from the database in "+duration+"\n\n";
+						msg += "--> " + countTotal + " components imported <--";
+						dbTabItem.setSuccess(msg);
+					} else {
+						msg = "The model \"" + dbModel.getName() + "\" has been imported from the database in "+duration+", but with errors !\nPlease check below :\n";
+						msg += "--> "+ countTotal + "/" + totalInDatabase + " components imported <--";
+						dbTabItem.setError(msg);
+					}
+					DBPlugin.debug(DebugLevel.Variable,msg);
+				}
+				
+			} catch (Exception e) {
+				dbTabItem.setError("An error occured while importing the model from the database.\nThe model imported into Archi might be incomplete, please check below : \n" + e.getClass().getSimpleName() + " : " + e.getMessage());
+				
+				DBPlugin.popup(Level.Error, "An error occured while importing the model from the database.\n\nThe model imported into Archi might be incomplete !!!", e);			
+			}
+			
+			dbTabItem.setCountMetadatas(countMetadatas, totalMetadatas);
+			
+			dbTabItem.setCountFolders(countFolders, totalFolders);
+			dbTabItem.setCountElements(countElements, totalElements);
+			dbTabItem.setCountRelationships(countRelationships, totalRelationships);
+			dbTabItem.setCountProperties(countProperties, totalProperties);
+	
+			dbTabItem.setCountArchimateDiagramModels(countArchimateDiagramModels, totalArchimateDiagramModels);
+			dbTabItem.setCountDiagramModelArchimateObjects(countDiagramModelArchimateObjects, totalDiagramModelArchimateObjects);
+			dbTabItem.setCountDiagramModelArchimateConnections(countDiagramModelArchimateConnections, totalDiagramModelArchimateConnections);
+			dbTabItem.setCountDiagramModelConnections(countDiagramModelConnections, totalDiagramModelConnections);
+	
+			dbTabItem.setCountDiagramModelGroups(countDiagramModelGroups, totalDiagramModelGroups);
+			dbTabItem.setCountDiagramModelNotes(countDiagramModelNotes, totalDiagramModelNotes);
+	
+			dbTabItem.setCountCanvasModels(countCanvasModels, totalCanvasModels);
+			dbTabItem.setCountCanvasModelBlocks(countCanvasModelBlocks, totalCanvasModelBlocks);
+			dbTabItem.setCountCanvasModelStickys(countCanvasModelStickys, totalCanvasModelStickys);
+			dbTabItem.setCountCanvasModelConnections(countCanvasModelConnections, totalCanvasModelConnections);
+			dbTabItem.setCountCanvasModelImages(countCanvasModelImages, totalCanvasModelImages);
+	
+			dbTabItem.setCountSketchModels(countSketchModels, totalSketchModels);
+			dbTabItem.setCountSketchModelActors(countSketchModelActors, totalSketchModelActors);
+			dbTabItem.setCountSketchModelStickys(countSketchModelStickys, totalSketchModelStickys);
+	
+			dbTabItem.setCountDiagramModelBendpoints(countDiagramModelBendpoints, totalDiagramModelBendpoints);
+			dbTabItem.setCountDiagramModelReferences(countDiagramModelReferences, totalDiagramModelReferences);
+	
+			dbTabItem.setCountImages(countImages, totalImages);
+			
+			dbTabItem.finish();
+		}
 		dbProgress.finish();
 		try { db.close(); } catch (Exception ee) {}
-		DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport("+(_model==null?"null":_model.getName())+")");
+		DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.doImport()");
 	}
 
 
