@@ -1,6 +1,10 @@
 # Archimate Tool Database-Plugin
 Database export/import plugin that store models in a central repository.
 
+## Archi versions compatibility
+* The plugin is available for Archi 3
+* It is also provided for Archi 4 which is under development
+
 ## The current version is able to :
 * Export and import models to a relational database (PostGreSQL, MySQL, Oracle and SQLite drivers are included)
 * Export and import models to a graph database (Neo4j driver is included)
@@ -10,8 +14,7 @@ Database export/import plugin that store models in a central repository.
 * import models either in standalone mode (each in their own Archi model) or in shared mode (all in the same Archi model, each in a separate subfolder)
 
 ## The current limitations are :
-* Text fields (model purpose, components names, documentation, ...) are limited in length
-* Models are independent (it is not yet possible to create relations between models)
+* The use of elements from one model into another or the use of relationships between models is not yet fully supported
 
 ## My roadmap includes the following functionalities :
 * Allow relations between models,
@@ -20,10 +23,5 @@ Database export/import plugin that store models in a central repository.
 * Map  objects to CMDB CIs (as my company uses ServiceNow as CMDB provider, I will rework my ServiceNow plugin),
 * etc ...
    
-## Installation instructions :
-* download the latest **org.archicontribs.database.jar** file to the Archi **plugins** folder
-* download the **com.archimatetool.editor.jar** file to the **plugins/com.archimatetool.editor_3.3.1.201510051010** folder to allow images access
-* start (or restart) Archi and the *import from database* and *export to database* menu entries should be visible ...
-
 ## Wiki
 Please do not hesitate to have a look at the [Wiki](https://github.com/archi-contribs/database-plugin/wiki).
