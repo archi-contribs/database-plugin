@@ -554,18 +554,18 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			if ( _dbModel.getDbVersion().equals("3") ) {
 				additionalFields = "";
 			} else {
-				additionalFields = ", strength, accesstype";
+				additionalFields = ", strength";
 			}
-			result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder"+additionalFields+" FROM relationship WHERE model = ? AND version = ?",
+			result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder, accesstype"+additionalFields+" FROM relationship WHERE model = ? AND version = ?",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
 			String additionalFields;
 			if ( _dbModel.getDbVersion().equals("3") ) {
 				additionalFields = "";
 			} else {
-				additionalFields = ", r.strength as strength, r.accesstype as accesstype";
+				additionalFields = ", r.strength as strength";
 			}
-			result = DBPlugin.select(db, "MATCH (m:model {model:?, version:?}), (s)-[:isInModel]->(m), (t)-[:isInModel]->(m), (s)-[r]->(t) RETURN r.type as type, r.id as id, r.documentation as documentation, r.name as name, s.id as source, t.id as target, r.type, r.folder as folder"+additionalFields, 
+			result = DBPlugin.select(db, "MATCH (m:model {model:?, version:?}), (s)-[:isInModel]->(m), (t)-[:isInModel]->(m), (s)-[r]->(t) RETURN r.type as type, r.id as id, r.documentation as documentation, r.name as name, s.id as source, t.id as target, r.type, r.folder as folder, r.accesstype as accesstype"+additionalFields, 
 					_dbModel.getProjectId(), _dbModel.getVersion(),
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
