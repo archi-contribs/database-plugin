@@ -226,29 +226,52 @@ public class DBExporter implements IModelExporter {
 				
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
 					for(String table: DBPlugin.allSQLTables ) {
-						DBPlugin.request(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?", modelSelected.get("id"), modelSelected.get("version"));
+						DBPlugin.request(db, "DELETE FROM "+table+" WHERE model = ? AND version = ?"
+							,modelSelected.get("id")
+							,modelSelected.get("version")
+							);
 					}
 				} else {
-					DBPlugin.request(db, "MATCH (node)-[rm:isInModel]->(model:model {model:?, version:?}) DETACH DELETE node, model",
-							modelSelected.get("id"), modelSelected.get("version"));
+					DBPlugin.request(db, "MATCH (node)-[rm:isInModel]->(model:model {model:?, version:?}) DETACH DELETE node, model"
+							,modelSelected.get("id")
+							,modelSelected.get("version")
+							);
+					DBPlugin.request(db, "MATCH (prop:property {model:?, version:?}) DETACH DELETE prop"
+							,modelSelected.get("id")
+							,modelSelected.get("version")
+							);
 				}
 
 				dbTabItem.setText("Please wait while exporting model ...");
 				DBPlugin.debug(DebugLevel.Variable, "Exporting model id="+dbModel.getProjectId()+" version="+dbModel.getVersion()+" name="+dbModel.getName());
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.insert(db, "INSERT INTO model (model, version, name, purpose, owner, period, note)",
-							dbModel.getProjectId(), dbModel.getVersion(),
-							dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
+					DBPlugin.insert(db, "INSERT INTO model (model, version, name, purpose, owner, period, note)"
+							,dbModel.getProjectId()
+							,dbModel.getVersion()
+							,dbModel.getName()
+							,dbModel.getPurpose()
+							,dbModel.getOwner()
+							,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
+							,modelSelected.get("note")
+							);
 				} else {
-					DBPlugin.request(db, "CREATE (new:model {model:?, version:?, name:?, purpose:?, owner:?, period:?, note:?})",
-							dbModel.getProjectId(), dbModel.getVersion(),
-							dbModel.getName(), dbModel.getPurpose(), dbModel.getOwner(), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date()), modelSelected.get("note"));
+					DBPlugin.request(db, "CREATE (new:model {model:?, version:?, name:?, purpose:?, owner:?, period:?, note:?})"
+							,dbModel.getProjectId()
+							,dbModel.getVersion()
+							,dbModel.getName()
+							,dbModel.getPurpose()
+							,dbModel.getOwner()
+							,new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(new Date())
+							,modelSelected.get("note")
+							);
 				}
 				
-				dbTabItem.setText("Please wait while exporting components ...");
+				dbTabItem.setText("Please wait while exporting images ...");
 				
 				// we save the images
 				exportImages(dbModel);
+				
+				dbTabItem.setText("Please wait while exporting components ...");
 
 				// we save the folders
 				for (IFolder folder: dbModel.getFolders() ) {
@@ -275,25 +298,27 @@ public class DBExporter implements IModelExporter {
 								ISketchModel sketchModel = (ISketchModel)objectToExport;
 								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
 								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-									DBPlugin.insert(db, "INSERT INTO sketchmodel (id, model, version, name, documentation, connectionroutertype, background, folder)",
-											id,
-											projectId,
-											version,
-											name,
-											sketchModel.getDocumentation(),
-											sketchModel.getConnectionRouterType(),
-											sketchModel.getBackground(),
-											((IIdentifier)sketchModel.eContainer()).getId());
+									DBPlugin.insert(db, "INSERT INTO sketchmodel (id, model, version, name, documentation, connectionroutertype, background, folder)"
+											,id
+											,projectId
+											,version
+											,name
+											,sketchModel.getDocumentation()
+											,sketchModel.getConnectionRouterType()
+											,sketchModel.getBackground()
+											,((IIdentifier)sketchModel.eContainer()).getId()
+											);
 								} else {
-									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodel {id:?, name:?, documentation:?, connectionroutertype:?, background:?, folder:?}), (new)-[:isInModel]->(m)",
-											projectId,
-											version,
-											id,
-											name,
-											sketchModel.getDocumentation(),
-											sketchModel.getConnectionRouterType(),
-											sketchModel.getBackground(),
-											((IIdentifier)sketchModel.eContainer()).getId());
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodel {id:?, name:?, documentation:?, connectionroutertype:?, background:?, folder:?}), (new)-[:isInModel]->(m)"
+											,projectId
+											,version
+											,id
+											,name
+											,sketchModel.getDocumentation()
+											,sketchModel.getConnectionRouterType()
+											,sketchModel.getBackground()
+											,((IIdentifier)sketchModel.eContainer()).getId()
+											);
 								}
 								dbTabItem.setCountSketchModels(++countSketchModels);
 								dbTabItem.setProgressBar(++countTotal);
@@ -321,27 +346,29 @@ public class DBExporter implements IModelExporter {
 								ICanvasModel canvasModel = (ICanvasModel)objectToExport;
 								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
 								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-									DBPlugin.insert(db, "INSERT INTO canvasmodel (id, model, version, name, documentation, hinttitle, hintcontent, connectionroutertype, folder)",
-											id,
-											projectId,
-											version,
-											name,
-											canvasModel.getDocumentation(),
-											canvasModel.getHintTitle(),
-											canvasModel.getHintContent(),
-											canvasModel.getConnectionRouterType(),
-											((IIdentifier)canvasModel.eContainer()).getId());
+									DBPlugin.insert(db, "INSERT INTO canvasmodel (id, model, version, name, documentation, hinttitle, hintcontent, connectionroutertype, folder)"
+											,id
+											,projectId
+											,version
+											,name
+											,canvasModel.getDocumentation()
+											,canvasModel.getHintTitle()
+											,canvasModel.getHintContent()
+											,canvasModel.getConnectionRouterType()
+											,((IIdentifier)canvasModel.eContainer()).getId()
+											);
 								} else {
-									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodel {id:?, name:?, documentation:?, hinttitle:?, hintcontent:?, connectionroutertype:?, folder:?}), (new)-[:isInModel]->(m)",
-											projectId,
-											version,
-											id,
-											name,
-											canvasModel.getDocumentation(),
-											canvasModel.getHintTitle(),
-											canvasModel.getHintContent(),
-											canvasModel.getConnectionRouterType(),
-											((IIdentifier)canvasModel.eContainer()).getId());
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodel {id:?, name:?, documentation:?, hinttitle:?, hintcontent:?, connectionroutertype:?, folder:?}), (new)-[:isInModel]->(m)"
+											,projectId
+											,version
+											,id
+											,name
+											,canvasModel.getDocumentation()
+											,canvasModel.getHintTitle()
+											,canvasModel.getHintContent()
+											,canvasModel.getConnectionRouterType()
+											,((IIdentifier)canvasModel.eContainer()).getId()
+											);
 								}
 								dbTabItem.setCountCanvasModels(++countCanvasModels);
 								dbTabItem.setProgressBar(++countTotal);
@@ -372,27 +399,29 @@ public class DBExporter implements IModelExporter {
 								IArchimateDiagramModel archimateDiagramModel = (IArchimateDiagramModel)objectToExport;
 								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
 								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-									DBPlugin.insert(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type, folder)",
-											id,
-											projectId,
-											version,
-											name,
-											archimateDiagramModel.getDocumentation(),
-											archimateDiagramModel.getConnectionRouterType(),
-											archimateDiagramModel.getViewpoint(),
-											archimateDiagramModel.getClass().getSimpleName(),
-											((IIdentifier)archimateDiagramModel.eContainer()).getId());
+									DBPlugin.insert(db, "INSERT INTO archimatediagrammodel (id, model, version, name, documentation, connectionroutertype, viewpoint, type, folder)"
+											,id
+											,projectId
+											,version
+											,name
+											,archimateDiagramModel.getDocumentation()
+											,archimateDiagramModel.getConnectionRouterType()
+											,archimateDiagramModel.getViewpoint()
+											,archimateDiagramModel.getClass().getSimpleName()
+											,((IIdentifier)archimateDiagramModel.eContainer()).getId()
+											);
 								} else {
-									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimatediagrammodel {id:?, name:?, documentation:?, connectionroutertype:?, viewpoint:?, type:?, folder:?})-[:isInModel]->(m)",
-											projectId,
-											version,
-											id,
-											name,
-											archimateDiagramModel.getDocumentation(),
-											archimateDiagramModel.getConnectionRouterType(),
-											archimateDiagramModel.getViewpoint(),
-											archimateDiagramModel.getClass().getSimpleName(),
-											((IIdentifier)archimateDiagramModel.eContainer()).getId());
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimatediagrammodel {id:?, name:?, documentation:?, connectionroutertype:?, viewpoint:?, type:?, folder:?})-[:isInModel]->(m)"
+											,projectId
+											,version
+											,id
+											,name
+											,archimateDiagramModel.getDocumentation()
+											,archimateDiagramModel.getConnectionRouterType()
+											,archimateDiagramModel.getViewpoint()
+											,archimateDiagramModel.getClass().getSimpleName()
+											,((IIdentifier)archimateDiagramModel.eContainer()).getId()
+											);
 								}
 								dbTabItem.setCountArchimateDiagramModels(++countArchimateDiagramModels);
 								dbTabItem.setProgressBar(++countTotal);
@@ -471,26 +500,26 @@ public class DBExporter implements IModelExporter {
 								IArchimateElement archimateElement = (IArchimateElement)objectToExport;
 								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
 								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-									DBPlugin.insert(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation, folder, interfacetype)",
-											id,
-											projectId,
-											version,
-											name,
-											archimateElement.getClass().getSimpleName(),
-											archimateElement.getDocumentation(),
-											((IIdentifier)archimateElement.eContainer()).getId(),
-											objectToExport instanceof IInterfaceElement ? ((IInterfaceElement)objectToExport).getInterfaceType() : -1
+									DBPlugin.insert(db, "INSERT INTO archimateelement (id, model, version, name, type, documentation, folder, interfacetype)"
+											,id
+											,projectId
+											,version
+											,name
+											,archimateElement.getClass().getSimpleName()
+											,archimateElement.getDocumentation()
+											,((IIdentifier)archimateElement.eContainer()).getId()
+											,objectToExport instanceof IInterfaceElement ? ((IInterfaceElement)objectToExport).getInterfaceType() : -1				// Archi 3 only
 											);
 								} else {
-									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimateelement {id:?, name:?, type:?, documentation:?, folder:?, interfacetype:?}), (new)-[:isInModel]->(m)",
-											projectId,
-											version,
-											id,
-											name,
-											archimateElement.getClass().getSimpleName(),
-											archimateElement.getDocumentation(),
-											((IIdentifier)archimateElement.eContainer()).getId(),
-											objectToExport instanceof IInterfaceElement ? ((IInterfaceElement)objectToExport).getInterfaceType() : -1
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:archimateelement {id:?, name:?, type:?, documentation:?, folder:?, interfacetype:?}), (new)-[:isInModel]->(m)"
+											,projectId
+											,version
+											,id
+											,name
+											,archimateElement.getClass().getSimpleName()
+											,archimateElement.getDocumentation()
+											,((IIdentifier)archimateElement.eContainer()).getId()
+											,objectToExport instanceof IInterfaceElement ? ((IInterfaceElement)objectToExport).getInterfaceType() : -1				// Archi 3 only
 											);
 								}
 								dbTabItem.setCountElements(++countElements);
@@ -512,30 +541,30 @@ public class DBExporter implements IModelExporter {
 								IRelationship relationship = (IRelationship)objectToExport;
 								DBPlugin.debug(DebugLevel.Variable, "Exporting "+objectToExport.eClass().getName()+" id="+id+" name="+name);
 								if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-									DBPlugin.insert(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation, folder, accesstype)",
-											id,
-											projectId,
-											version,
-											name,
-											relationship.getSource().getId(),
-											relationship.getTarget().getId(),
-											relationship.getClass().getSimpleName(),
-											relationship.getDocumentation(),
-											((IIdentifier)relationship.eContainer()).getId(),
-											objectToExport.eClass().getName().equals("AccessRelationship") ? ((IAccessRelationship)objectToExport).getAccessType() : -1
+									DBPlugin.insert(db, "INSERT INTO relationship (id, model, version, name, source, target, type, documentation, folder, accesstype)"
+											,id
+											,projectId
+											,version
+											,name
+											,relationship.getSource().getId()
+											,relationship.getTarget().getId()
+											,relationship.getClass().getSimpleName()
+											,relationship.getDocumentation()
+											,((IIdentifier)relationship.eContainer()).getId()
+											,objectToExport.eClass().getName().equals("AccessRelationship") ? ((IAccessRelationship)objectToExport).getAccessType() : -1
 											);
 								} else {
-									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}), (source {id:?})-[:isInModel]->(m), (target {id:?})-[:isInModel]->(m) CREATE (source)-[new:"+relationship.getClass().getSimpleName()+" {id:?, name:?, type:?, documentation:?, folder:?, accesstype:?}]->(target)",
-											projectId,
-											version,
-											relationship.getSource().getId(),
-											relationship.getTarget().getId(),
-											id,
-											name,
-											relationship.getClass().getSimpleName(),
-											relationship.getDocumentation(),
-											((IIdentifier)relationship.eContainer()).getId(),
-											objectToExport.eClass().getName().equals("AccessRelationship") ? ((IAccessRelationship)objectToExport).getAccessType() : -1
+									DBPlugin.request(db, "MATCH (m:model {model:?, version:?}), (source {id:?})-[:isInModel]->(m) MATCH (target {id:?})-[:isInModel]->(m) CREATE (source)-[new:"+relationship.getClass().getSimpleName()+" {id:?, name:?, type:?, documentation:?, folder:?, accesstype:?}]->(target)"
+											,projectId
+											,version
+											,DBPlugin.getId(relationship.getSource().getId())		// TODO: watchup when they will be in separate models !!!
+											,DBPlugin.getId(relationship.getTarget().getId())
+											,id
+											,name
+											,relationship.getClass().getSimpleName()
+											,relationship.getDocumentation()
+											,((IIdentifier)relationship.eContainer()).getId()
+											,objectToExport.eClass().getName().equals("AccessRelationship") ? ((IAccessRelationship)objectToExport).getAccessType() : -1
 											);
 								}
 								
@@ -570,11 +599,11 @@ public class DBExporter implements IModelExporter {
 				// last but not least, we update the counters of the model
 				exportModelProperties(dbModel);
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.request(db, "UPDATE model set countMetadatas=?, countFolders=?, countElements=?, countRelationships=?, countProperties=?, countArchimateDiagramModels=?, countDiagramModelArchimateObjects=?, countDiagramModelArchimateConnections=?, countDiagramModelGroups=?, countDiagramModelNotes=?, countCanvasModels=?, countCanvasModelBlocks=?, countCanvasModelStickys=?, countCanvasModelConnections=?, countCanvasModelImages=?, countSketchModels=?, countSketchModelActors=?, countSketchModelStickys=?, countDiagramModelConnections=?, countDiagramModelBendpoints=?, countDiagramModelReferences=?, countImages=? WHERE model=? AND version=?",
+					DBPlugin.request(db, "UPDATE model set countmetadatas=?, countfolders=?, countelements=?, countrelationships=?, countproperties=?, countarchimatediagrammodels=?, countdiagrammodelarchimateobjects=?, countdiagrammodelarchimateconnections=?, countdiagrammodelgroups=?, countdiagrammodelnotes=?, countcanvasmodels=?, countcanvasmodelblocks=?, countcanvasmodelstickys=?, countcanvasmodelconnections=?, countcanvasmodelimages=?, countsketchmodels=?, countsketchmodelactors=?, countsketchmodelstickys=?, countdiagrammodelconnections=?, countdiagrammodelbendpoints=?, countdiagrammodelreferences=?, countimages=? WHERE model=? AND version=?",
 							countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages,
 							dbModel.getProjectId(), dbModel.getVersion());
 				} else {
-					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) SET m.countMetadatas=?, m.countFolders=?, m.countElements=?, m.countRelationships=?, m.countProperties=?, m.countArchimateDiagramModels=?, m.countDiagramModelArchimateObjects=?, m.countDiagramModelArchimateConnections=?, m.countDiagramModelGroups=?, m.countDiagramModelNotes=?, m.countCanvasModels=?, m.countCanvasModelBlocks=?, m.countCanvasModelStickys=?, m.countCanvasModelConnections=?, m.countCanvasModelImages=?, m.countSketchModels=?, m.countSketchModelActors=?, m.countSketchModelStickys=?, m.countDiagramModelConnections=?, m.countDiagramModelBendpoints=?, m.countDiagramModelReferences=?, m.countImages=?",
+					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) SET m.countmetadatas=?, m.countfolders=?, m.countelements=?, m.countrelationships=?, m.countproperties=?, m.countarchimatediagrammodels=?, m.countdiagrammodelarchimateobjects=?, m.countdiagrammodelarchimateconnections=?, m.countdiagrammodelgroups=?, m.countdiagrammodelnotes=?, m.countcanvasmodels=?, m.countcanvasmodelblocks=?, m.countcanvasmodelstickys=?, m.countcanvasmodelconnections=?, m.countcanvasmodelimages=?, m.countsketchmodels=?, m.countsketchmodelactors=?, m.countsketchmodelstickys=?, m.countdiagrammodelconnections=?, m.countdiagrammodelbendpoints=?, m.countdiagrammodelreferences=?, m.countimages=?",
 							dbModel.getProjectId(), dbModel.getVersion(),
 							countMetadatas, countFolders, countElements, countRelationships, countProperties, countArchimateDiagramModels, countDiagramModelArchimateObjects, countDiagramModelArchimateConnections, countDiagramModelGroups, countDiagramModelNotes, countCanvasModels, countCanvasModelBlocks, countCanvasModelStickys, countCanvasModelConnections, countCanvasModelImages, countSketchModels, countSketchModelActors, countSketchModelStickys, countDiagramModelConnections, countDiagramModelBendpoints, countDiagramModelReferences, countImages);
 				}
@@ -686,22 +715,22 @@ public class DBExporter implements IModelExporter {
 		
 			for(IProperty property: properties) {
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)",
-							++rank,
-							parentId,
-							projectId,
-							version,
-							property.getKey(),
-							property.getValue()
+					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)"
+							,++rank
+							,parentId
+							,projectId
+							,version
+							,property.getKey()
+							,property.getValue()
 							);
 				} else {
-					DBPlugin.request(db, "MATCH (parent {id:?})-[:isInModel]->(m:model {model:?, version:?}) CREATE (prop:property {id:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)",
-							parentId,
-							projectId,
-							version,
-							++rank,
-							property.getKey(),
-							property.getValue()
+					DBPlugin.request(db, "CREATE (prop:property {id:?, parent:?, model:?, version:?, name:?, value:?})"
+							,++rank
+							,parentId
+							,projectId
+							,version
+							,property.getKey()
+							,property.getValue()
 							);
 				}
 				++countProperties;
@@ -728,14 +757,23 @@ public class DBExporter implements IModelExporter {
 			int rank=0;
 			for(IProperty property: _dbModel.getProperties() ) {
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)",
-							++rank,
-							_dbModel.getProjectId(), _dbModel.getProjectId(), _dbModel.getVersion(),
-							property.getKey(), property.getValue());
+					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)"
+							,++rank
+							,_dbModel.getProjectId()
+							,_dbModel.getProjectId()
+							,_dbModel.getVersion()
+							,property.getKey()
+							,property.getValue()
+							);
 				} else {
-					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (prop:property {id:?, name:?, value:?}), (m)-[:hasProperty]->(prop)",
-							_dbModel.getProjectId(), _dbModel.getVersion(),
-							++rank, property.getKey(), property.getValue());
+					DBPlugin.request(db, "CREATE (prop:property {id:?, parent:?, model:?, version:?, name:?, value:?})"
+							,++rank
+							,_dbModel.getProjectId()
+							,_dbModel.getProjectId()
+							,_dbModel.getVersion()
+							,property.getKey()
+							,property.getValue()
+							);
 				}
 				++countProperties;
 				++countTotal;
@@ -751,14 +789,22 @@ public class DBExporter implements IModelExporter {
 			int rank=-1000;
 			for(IProperty property: _dbModel.getMetadata() ) {
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)",
-							++rank,
-							_dbModel.getProjectId(), _dbModel.getProjectId(), _dbModel.getVersion(),
-							property.getKey(), property.getValue());
+					DBPlugin.insert(db, "INSERT INTO property (id, parent, model, version, name, value)"
+							,++rank
+							,_dbModel.getProjectId()
+							,_dbModel.getProjectId()
+							,_dbModel.getVersion()
+							,property.getKey()
+							,property.getValue()
+							);
 				} else {
-					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (prop:property {id:?, name:?, value:?}), (m)-[:hasProperty]->(prop)",
-							 _dbModel.getProjectId(), _dbModel.getVersion(),
-							 ++rank, property.getKey(), property.getValue());
+					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (prop:property {id:?, name:?, value:?}), (m)-[:hasProperty]->(prop)"
+							 ,_dbModel.getProjectId()
+							 ,_dbModel.getVersion()
+							 ,++rank
+							 ,property.getKey()
+							 ,property.getValue()
+							 );
 				}
 				++countMetadatas;
 				++countTotal;
@@ -826,8 +872,6 @@ public class DBExporter implements IModelExporter {
 			content = null;
 			documentation = diagraModelModelGroup.getDocumentation();
 			type = -1;
-			
-			exportObjectProperties(diagraModelModelGroup, diagraModelModelGroup.getProperties());
 
 			dbTabItem.setCountDiagramModelGroups(++countDiagramModelGroups);
 			dbTabItem.setProgressBar(++countTotal);
@@ -855,64 +899,68 @@ public class DBExporter implements IModelExporter {
 		}
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textalignment, targetconnections, archimateelementid, archimateelementname, archimateelementclass, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)",
-					DBPlugin.getId(diagramModelObject.getId()),
-					DBPlugin.getProjectId(diagramModelObject.getId()),
-					DBPlugin.getVersion(diagramModelObject.getId()),
-					_parentId,
-					diagramModelObject.getFillColor(),
-					diagramModelObject.getFont(),
-					diagramModelObject.getFontColor(),
-					diagramModelObject.getLineColor(),
-					diagramModelObject.getLineWidth(),
-					diagramModelObject.getTextAlignment(),
-					getTargetConnectionsString(diagramModelObject.getTargetConnections()),
-					archimateElementId,
-					archimateElementName,
-					archimateElementClass,
-					_rank,
-					_indent,
-					type,
-					diagramModelObject.eClass().getName(),
-					borderType,
-					content,
-					documentation,
-					diagramModelObject.getName(),
-					diagramModelObject.getBounds().getX(),
-					diagramModelObject.getBounds().getY(),
-					diagramModelObject.getBounds().getWidth(),
-					diagramModelObject.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO diagrammodelarchimateobject (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textalignment, targetconnections, archimateelementid, archimateelementname, archimateelementclass, rank, indent, type, class, bordertype, content, documentation, name, x, y, width, height)"
+					,DBPlugin.getId(diagramModelObject.getId())
+					,DBPlugin.getProjectId(diagramModelObject.getId())
+					,DBPlugin.getVersion(diagramModelObject.getId())
+					,_parentId
+					,diagramModelObject.getFillColor()
+					,diagramModelObject.getFont()
+					,diagramModelObject.getFontColor()
+					,diagramModelObject.getLineColor()
+					,diagramModelObject.getLineWidth()
+					,diagramModelObject.getTextAlignment()
+					,getTargetConnectionsString(diagramModelObject.getTargetConnections())
+					,archimateElementId
+					,archimateElementName
+					,archimateElementClass
+					,_rank
+					,_indent
+					,type
+					,diagramModelObject.eClass().getName()
+					,borderType
+					,content
+					,documentation
+					,diagramModelObject.getName()
+					,diagramModelObject.getBounds().getX()
+					,diagramModelObject.getBounds().getY()
+					,diagramModelObject.getBounds().getWidth()
+					,diagramModelObject.getBounds().getHeight()
 					);
 		} else {
 			//TODO: CQL : replace property "archimateelementid" by "represents" relation to the corresponding archimate element, but before, once must ensure that the archimate element has been exported first
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:diagrammodelarchimateobject {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, textalignment:?, targetconnections:?, archimateelementid:?, archimateelementname:?, archimateelementclass:?, rank:?, indent:?, type:?, class:?, bordertype:?, content:?, documentation:?, name:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(diagramModelObject.getId()),
-					DBPlugin.getVersion(diagramModelObject.getId()),
-					DBPlugin.getId(diagramModelObject.getId()),
-					_parentId,
-					diagramModelObject.getFillColor(),
-					diagramModelObject.getFont(),
-					diagramModelObject.getFontColor(),
-					diagramModelObject.getLineColor(),
-					diagramModelObject.getLineWidth(),
-					diagramModelObject.getTextAlignment(),
-					getTargetConnectionsString(diagramModelObject.getTargetConnections()),
-					archimateElementId,
-					archimateElementName,
-					archimateElementClass,
-					_rank,
-					_indent,
-					type,
-					diagramModelObject.eClass().getName(),
-					borderType,
-					content,
-					documentation,
-					diagramModelObject.getName(),
-					diagramModelObject.getBounds().getX(),
-					diagramModelObject.getBounds().getY(),
-					diagramModelObject.getBounds().getWidth(),
-					diagramModelObject.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:diagrammodelarchimateobject {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, textalignment:?, targetconnections:?, archimateelementid:?, archimateelementname:?, archimateelementclass:?, rank:?, indent:?, type:?, class:?, bordertype:?, content:?, documentation:?, name:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(diagramModelObject.getId())
+					,DBPlugin.getVersion(diagramModelObject.getId())
+					,DBPlugin.getId(diagramModelObject.getId())
+					,_parentId
+					,diagramModelObject.getFillColor()
+					,diagramModelObject.getFont()
+					,diagramModelObject.getFontColor()
+					,diagramModelObject.getLineColor()
+					,diagramModelObject.getLineWidth()
+					,diagramModelObject.getTextAlignment()
+					,getTargetConnectionsString(diagramModelObject.getTargetConnections())
+					,archimateElementId
+					,archimateElementName
+					,archimateElementClass
+					,_rank
+					,_indent
+					,type
+					,diagramModelObject.eClass().getName()
+					,borderType
+					,content
+					,documentation
+					,diagramModelObject.getName()
+					,diagramModelObject.getBounds().getX()
+					,diagramModelObject.getBounds().getY()
+					,diagramModelObject.getBounds().getWidth()
+					,diagramModelObject.getBounds().getHeight()
 					);
+		}
+		
+		if ( diagramModelObject.eClass().getName().equals("DiagramModelGroup") ) {
+			exportObjectProperties((IDiagramModelGroup)diagramModelObject, ((IDiagramModelGroup)diagramModelObject).getProperties());
 		}
 
 		if ( diagramModelObject.getSourceConnections() != null ) {
@@ -971,9 +1019,10 @@ public class DBExporter implements IModelExporter {
 		case "DiagramModelArchimateConnection" :
 			isLocked = false;
 			relationshipId = ((IDiagramModelArchimateConnection)diagramModelConnection).getRelationship().getId();
-
+			
 			dbTabItem.setCountDiagramModelConnections(++countDiagramModelArchimateConnections);
 			dbTabItem.setProgressBar(++countTotal);
+			
 			break;
 		case "DiagramModelConnection" :
 			isLocked = false;
@@ -994,47 +1043,47 @@ public class DBExporter implements IModelExporter {
 		}
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO connection (id, model, version, class, documentation, islocked, font, fontcolor, linecolor, linewidth, parent, relationship, source, target, text, textposition, type, rank)",
-					DBPlugin.getId(diagramModelConnection.getId()),
-					DBPlugin.getProjectId(diagramModelConnection.getId()),
-					DBPlugin.getVersion(diagramModelConnection.getId()),
-					diagramModelConnection.eClass().getName(),
-					diagramModelConnection.getDocumentation(),
-					isLocked,
-					diagramModelConnection.getFont(),
-					diagramModelConnection.getFontColor(),
-					diagramModelConnection.getLineColor(),
-					diagramModelConnection.getLineWidth(),
-					_parentId,
-					relationshipId,
-					diagramModelConnection.getSource().getId(),
-					diagramModelConnection.getTarget().getId(),
-					diagramModelConnection.getText(),
-					diagramModelConnection.getTextPosition(),
-					diagramModelConnection.getType(),
-					_rank
+			DBPlugin.insert(db, "INSERT INTO connection (id, model, version, class, documentation, islocked, font, fontcolor, linecolor, linewidth, parent, relationship, source, target, text, textposition, type, rank)"
+					,DBPlugin.getId(diagramModelConnection.getId())
+					,DBPlugin.getProjectId(diagramModelConnection.getId())
+					,DBPlugin.getVersion(diagramModelConnection.getId())
+					,diagramModelConnection.eClass().getName()
+					,diagramModelConnection.getDocumentation()
+					,isLocked
+					,diagramModelConnection.getFont()
+					,diagramModelConnection.getFontColor()
+					,diagramModelConnection.getLineColor()
+					,diagramModelConnection.getLineWidth()
+					,_parentId
+					,relationshipId
+					,diagramModelConnection.getSource().getId()
+					,diagramModelConnection.getTarget().getId()
+					,diagramModelConnection.getText()
+					,diagramModelConnection.getTextPosition()
+					,diagramModelConnection.getType()
+					,_rank
 					);
 		} else {
 			//TODO: convert this node to a relation
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:connection {id:?, class:?, documentation:?, islocked:?, font:?, fontcolor:?, linecolor:?, linewidth:?, parent=?, relationship:?, source:?, target:?, text:?, textposition:?, type:?, rank:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(diagramModelConnection.getId()),
-					DBPlugin.getVersion(diagramModelConnection.getId()),
-					DBPlugin.getId(diagramModelConnection.getId()),
-					diagramModelConnection.eClass().getName(),
-					diagramModelConnection.getDocumentation(),
-					isLocked,
-					diagramModelConnection.getFont(),
-					diagramModelConnection.getFontColor(),
-					diagramModelConnection.getLineColor(),
-					diagramModelConnection.getLineWidth(),
-					_parentId,
-					relationshipId,
-					diagramModelConnection.getSource().getId(),
-					diagramModelConnection.getTarget().getId(),
-					diagramModelConnection.getText(),
-					diagramModelConnection.getTextPosition(),
-					diagramModelConnection.getType(),
-					_rank
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:connection {id:?, class:?, documentation:?, islocked:?, font:?, fontcolor:?, linecolor:?, linewidth:?, parent:?, relationship:?, source:?, target:?, text:?, textposition:?, type:?, rank:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(diagramModelConnection.getId())
+					,DBPlugin.getVersion(diagramModelConnection.getId())
+					,DBPlugin.getId(diagramModelConnection.getId())
+					,diagramModelConnection.eClass().getName()
+					,diagramModelConnection.getDocumentation()
+					,isLocked
+					,diagramModelConnection.getFont()
+					,diagramModelConnection.getFontColor()
+					,diagramModelConnection.getLineColor()
+					,diagramModelConnection.getLineWidth()
+					,_parentId
+					,relationshipId
+					,diagramModelConnection.getSource().getId()
+					,diagramModelConnection.getTarget().getId()
+					,diagramModelConnection.getText()
+					,diagramModelConnection.getTextPosition()
+					,diagramModelConnection.getType()
+					,_rank
 					);
 		}
 		
@@ -1042,25 +1091,27 @@ public class DBExporter implements IModelExporter {
 			int rank=0;
 			for ( IDiagramModelBendpoint bendpoint: diagramModelConnection.getBendpoints() ) {
 				if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-					DBPlugin.insert(db, "INSERT INTO bendpoint (parent, model, version, startx, starty, endx, endy, rank)",
-							DBPlugin.getId(diagramModelConnection.getId()),
-							DBPlugin.getProjectId(diagramModelConnection.getId()),
-							DBPlugin.getVersion(diagramModelConnection.getId()),
-							bendpoint.getStartX(),
-							bendpoint.getStartY(),
-							bendpoint.getEndX(),
-							bendpoint.getEndY(),
-							++rank);
+					DBPlugin.insert(db, "INSERT INTO bendpoint (parent, model, version, startx, starty, endx, endy, rank)"
+							,DBPlugin.getId(diagramModelConnection.getId())
+							,DBPlugin.getProjectId(diagramModelConnection.getId())
+							,DBPlugin.getVersion(diagramModelConnection.getId())
+							,bendpoint.getStartX()
+							,bendpoint.getStartY()
+							,bendpoint.getEndX()
+							,bendpoint.getEndY()
+							,++rank
+							);
 				} else {
-					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:bendpoint {parent:?, startx:?, starty:?, endx:?, endy:?, rank:?}), (new)-[:isInModel]->(m)",
-							DBPlugin.getProjectId(diagramModelConnection.getId()),
-							DBPlugin.getVersion(diagramModelConnection.getId()),
-							DBPlugin.getId(diagramModelConnection.getId()),
-							bendpoint.getStartX(),
-							bendpoint.getStartY(),
-							bendpoint.getEndX(),
-							bendpoint.getEndY(),
-							++rank);
+					DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:bendpoint {parent:?, startx:?, starty:?, endx:?, endy:?, rank:?}), (new)-[:isInModel]->(m)"
+							,DBPlugin.getProjectId(diagramModelConnection.getId())
+							,DBPlugin.getVersion(diagramModelConnection.getId())
+							,DBPlugin.getId(diagramModelConnection.getId())
+							,bendpoint.getStartX()
+							,bendpoint.getStartY()
+							,bendpoint.getEndX()
+							,bendpoint.getEndY()
+							,++rank
+							);
 				}
 				++countDiagramModelBendpoints;
 				++countTotal;
@@ -1087,44 +1138,46 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_diagramModelReference.eClass().getName()+" id="+_diagramModelReference.getId()+" name="+_diagramModelReference.getName());
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO diagrammodelreference (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textalignment, targetconnections, x, y, width, height, rank, indent)",
-					DBPlugin.getId(_diagramModelReference.getId()),
-					DBPlugin.getProjectId(_diagramModelReference.getId()),
-					DBPlugin.getVersion(_diagramModelReference.getId()),
-					_parentId,
-					_diagramModelReference.getFillColor(),
-					_diagramModelReference.getFont(),
-					_diagramModelReference.getFontColor(),
-					_diagramModelReference.getLineColor(),
-					_diagramModelReference.getLineWidth(),
-					_diagramModelReference.getTextAlignment(),
-					getTargetConnectionsString(_diagramModelReference.getTargetConnections()),
-					_diagramModelReference.getBounds().getX(),
-					_diagramModelReference.getBounds().getY(),
-					_diagramModelReference.getBounds().getWidth(),
-					_diagramModelReference.getBounds().getHeight(),
-					_rank,
-					_indent
+			DBPlugin.insert(db, "INSERT INTO diagrammodelreference (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, textalignment, targetconnections, diagrammodelid, x, y, width, height, rank, indent)"
+					,DBPlugin.getId(_diagramModelReference.getId())
+					,DBPlugin.getProjectId(_diagramModelReference.getId())
+					,DBPlugin.getVersion(_diagramModelReference.getId())
+					,_parentId
+					,_diagramModelReference.getFillColor()
+					,_diagramModelReference.getFont()
+					,_diagramModelReference.getFontColor()
+					,_diagramModelReference.getLineColor()
+					,_diagramModelReference.getLineWidth()
+					,_diagramModelReference.getTextAlignment()
+					,getTargetConnectionsString(_diagramModelReference.getTargetConnections())
+					,_diagramModelReference.getReferencedModel().getId()
+					,_diagramModelReference.getBounds().getX()
+					,_diagramModelReference.getBounds().getY()
+					,_diagramModelReference.getBounds().getWidth()
+					,_diagramModelReference.getBounds().getHeight()
+					,_rank
+					,_indent
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:diagrammodelreference {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, textalignment:?, targetconnections:?, x:?, y:?, width:?, height, rank:?, indent:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(_diagramModelReference.getId()),
-					DBPlugin.getVersion(_diagramModelReference.getId()),
-					DBPlugin.getId(_diagramModelReference.getId()),
-					_parentId,
-					_diagramModelReference.getFillColor(),
-					_diagramModelReference.getFont(),
-					_diagramModelReference.getFontColor(),
-					_diagramModelReference.getLineColor(),
-					_diagramModelReference.getLineWidth(),
-					_diagramModelReference.getTextAlignment(),
-					getTargetConnectionsString(_diagramModelReference.getTargetConnections()),
-					_diagramModelReference.getBounds().getX(),
-					_diagramModelReference.getBounds().getY(),
-					_diagramModelReference.getBounds().getWidth(),
-					_diagramModelReference.getBounds().getHeight(),
-					_rank,
-					_indent
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:diagrammodelreference {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, textalignment:?, targetconnections:?, diagrammodelid:?, x:?, y:?, width:?, height:?, rank:?, indent:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(_diagramModelReference.getId())
+					,DBPlugin.getVersion(_diagramModelReference.getId())
+					,DBPlugin.getId(_diagramModelReference.getId())
+					,_parentId
+					,_diagramModelReference.getFillColor()
+					,_diagramModelReference.getFont()
+					,_diagramModelReference.getFontColor()
+					,_diagramModelReference.getLineColor()
+					,_diagramModelReference.getLineWidth()
+					,_diagramModelReference.getTextAlignment()
+					,getTargetConnectionsString(_diagramModelReference.getTargetConnections())
+					,_diagramModelReference.getReferencedModel().getId()
+					,_diagramModelReference.getBounds().getX()
+					,_diagramModelReference.getBounds().getY()
+					,_diagramModelReference.getBounds().getWidth()
+					,_diagramModelReference.getBounds().getHeight()
+					,_rank
+					,_indent
 					);
 		}
 		
@@ -1153,62 +1206,62 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_canvasModelBlock.eClass().getName()+" id="+_canvasModelBlock.getId()+" name="+_canvasModelBlock.getName());
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO canvasmodelblock (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, hintcontent, hinttitle, imagepath, imageposition, linecolor, linewidth, islocked, name, textalignment, textposition, targetconnections, rank, indent, x, y, width, height)",
-					DBPlugin.getId(_canvasModelBlock.getId()),
-					DBPlugin.getProjectId(_canvasModelBlock.getId()),
-					DBPlugin.getVersion(_canvasModelBlock.getId()),
-					_parentId,
-					_canvasModelBlock.getBorderColor(),
-					_canvasModelBlock.getContent(),
-					_canvasModelBlock.getFillColor(),
-					_canvasModelBlock.getFont(),
-					_canvasModelBlock.getFontColor(),
-					_canvasModelBlock.getHintContent(),
-					_canvasModelBlock.getHintTitle(),
-					_canvasModelBlock.getImagePath(),
-					_canvasModelBlock.getImagePosition(),
-					_canvasModelBlock.getLineColor(),
-					_canvasModelBlock.getLineWidth(),
-					_canvasModelBlock.isLocked(),
-					_canvasModelBlock.getName(),
-					_canvasModelBlock.getTextAlignment(),
-					_canvasModelBlock.getTextPosition(),
-					getTargetConnectionsString(_canvasModelBlock.getTargetConnections()),
-					_rank,
-					_indent,
-					_canvasModelBlock.getBounds().getX(),
-					_canvasModelBlock.getBounds().getY(),
-					_canvasModelBlock.getBounds().getWidth(),
-					_canvasModelBlock.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO canvasmodelblock (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, hintcontent, hinttitle, imagepath, imageposition, linecolor, linewidth, islocked, name, textalignment, textposition, targetconnections, rank, indent, x, y, width, height)"
+					,DBPlugin.getId(_canvasModelBlock.getId())
+					,DBPlugin.getProjectId(_canvasModelBlock.getId())
+					,DBPlugin.getVersion(_canvasModelBlock.getId())
+					,_parentId
+					,_canvasModelBlock.getBorderColor()
+					,_canvasModelBlock.getContent()
+					,_canvasModelBlock.getFillColor()
+					,_canvasModelBlock.getFont()
+					,_canvasModelBlock.getFontColor()
+					,_canvasModelBlock.getHintContent()
+					,_canvasModelBlock.getHintTitle()
+					,_canvasModelBlock.getImagePath()
+					,_canvasModelBlock.getImagePosition()
+					,_canvasModelBlock.getLineColor()
+					,_canvasModelBlock.getLineWidth()
+					,_canvasModelBlock.isLocked()
+					,_canvasModelBlock.getName()
+					,_canvasModelBlock.getTextAlignment()
+					,_canvasModelBlock.getTextPosition()
+					,getTargetConnectionsString(_canvasModelBlock.getTargetConnections())
+					,_rank
+					,_indent
+					,_canvasModelBlock.getBounds().getX()
+					,_canvasModelBlock.getBounds().getY()
+					,_canvasModelBlock.getBounds().getWidth()
+					,_canvasModelBlock.getBounds().getHeight()
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelblock {id:?, parent:?, bordercolor:?, content:?, fillcolor:?, font:?, fontcolor:?, hintcontent:?, hinttitle:?, imagepath:?, imageposition:?, linecolor:?, linewidth:?, islocked:?, name:?, textalignment:?, textposition:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(_canvasModelBlock.getId()),
-					DBPlugin.getVersion(_canvasModelBlock.getId()),
-					DBPlugin.getId(_canvasModelBlock.getId()),
-					_parentId,
-					_canvasModelBlock.getBorderColor(),
-					_canvasModelBlock.getContent(),
-					_canvasModelBlock.getFillColor(),
-					_canvasModelBlock.getFont(),
-					_canvasModelBlock.getFontColor(),
-					_canvasModelBlock.getHintContent(),
-					_canvasModelBlock.getHintTitle(),
-					_canvasModelBlock.getImagePath(),
-					_canvasModelBlock.getImagePosition(),
-					_canvasModelBlock.getLineColor(),
-					_canvasModelBlock.getLineWidth(),
-					_canvasModelBlock.isLocked(),
-					_canvasModelBlock.getName(),
-					_canvasModelBlock.getTextAlignment(),
-					_canvasModelBlock.getTextPosition(),
-					getTargetConnectionsString(_canvasModelBlock.getTargetConnections()),
-					_rank,
-					_indent,
-					_canvasModelBlock.getBounds().getX(),
-					_canvasModelBlock.getBounds().getY(),
-					_canvasModelBlock.getBounds().getWidth(),
-					_canvasModelBlock.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelblock {id:?, parent:?, bordercolor:?, content:?, fillcolor:?, font:?, fontcolor:?, hintcontent:?, hinttitle:?, imagepath:?, imageposition:?, linecolor:?, linewidth:?, islocked:?, name:?, textalignment:?, textposition:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(_canvasModelBlock.getId())
+					,DBPlugin.getVersion(_canvasModelBlock.getId())
+					,DBPlugin.getId(_canvasModelBlock.getId())
+					,_parentId
+					,_canvasModelBlock.getBorderColor()
+					,_canvasModelBlock.getContent()
+					,_canvasModelBlock.getFillColor()
+					,_canvasModelBlock.getFont()
+					,_canvasModelBlock.getFontColor()
+					,_canvasModelBlock.getHintContent()
+					,_canvasModelBlock.getHintTitle()
+					,_canvasModelBlock.getImagePath()
+					,_canvasModelBlock.getImagePosition()
+					,_canvasModelBlock.getLineColor()
+					,_canvasModelBlock.getLineWidth()
+					,_canvasModelBlock.isLocked()
+					,_canvasModelBlock.getName()
+					,_canvasModelBlock.getTextAlignment()
+					,_canvasModelBlock.getTextPosition()
+					,getTargetConnectionsString(_canvasModelBlock.getTargetConnections())
+					,_rank
+					,_indent
+					,_canvasModelBlock.getBounds().getX()
+					,_canvasModelBlock.getBounds().getY()
+					,_canvasModelBlock.getBounds().getWidth()
+					,_canvasModelBlock.getBounds().getHeight()
 					);
 		}
 		
@@ -1260,60 +1313,60 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_canvasModelSticky.eClass().getName()+" id="+_canvasModelSticky.getId()+" name="+_canvasModelSticky.getName());
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO canvasmodelsticky (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, imagepath, imageposition, islocked, linecolor, linewidth, notes, name, textalignment, textposition, targetconnections, rank, indent, x, y, width, height)", 
-					DBPlugin.getId(_canvasModelSticky.getId()),
-					DBPlugin.getProjectId(_canvasModelSticky.getId()),
-					DBPlugin.getVersion(_canvasModelSticky.getId()),
-					_parentId,
-					_canvasModelSticky.getBorderColor(),
-					_canvasModelSticky.getContent(),
-					_canvasModelSticky.getFillColor(),
-					_canvasModelSticky.getFont(),
-					_canvasModelSticky.getFontColor(),
-					_canvasModelSticky.getImagePath(),
-					_canvasModelSticky.getImagePosition(),
-					_canvasModelSticky.isLocked(),
-					_canvasModelSticky.getLineColor(),
-					_canvasModelSticky.getLineWidth(),
-					_canvasModelSticky.getNotes(),
-					_canvasModelSticky.getName(),
-					_canvasModelSticky.getTextAlignment(),
-					_canvasModelSticky.getTextPosition(),
-					getTargetConnectionsString(_canvasModelSticky.getTargetConnections()),
-					_rank,
-					_indent,
-					_canvasModelSticky.getBounds().getX(),
-					_canvasModelSticky.getBounds().getY(),
-					_canvasModelSticky.getBounds().getWidth(),
-					_canvasModelSticky.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO canvasmodelsticky (id, model, version, parent, bordercolor, content, fillcolor, font, fontcolor, imagepath, imageposition, islocked, linecolor, linewidth, notes, name, textalignment, textposition, targetconnections, rank, indent, x, y, width, height)" 
+					,DBPlugin.getId(_canvasModelSticky.getId())
+					,DBPlugin.getProjectId(_canvasModelSticky.getId())
+					,DBPlugin.getVersion(_canvasModelSticky.getId())
+					,_parentId
+					,_canvasModelSticky.getBorderColor()
+					,_canvasModelSticky.getContent()
+					,_canvasModelSticky.getFillColor()
+					,_canvasModelSticky.getFont()
+					,_canvasModelSticky.getFontColor()
+					,_canvasModelSticky.getImagePath()
+					,_canvasModelSticky.getImagePosition()
+					,_canvasModelSticky.isLocked()
+					,_canvasModelSticky.getLineColor()
+					,_canvasModelSticky.getLineWidth()
+					,_canvasModelSticky.getNotes()
+					,_canvasModelSticky.getName()
+					,_canvasModelSticky.getTextAlignment()
+					,_canvasModelSticky.getTextPosition()
+					,getTargetConnectionsString(_canvasModelSticky.getTargetConnections())
+					,_rank
+					,_indent
+					,_canvasModelSticky.getBounds().getX()
+					,_canvasModelSticky.getBounds().getY()
+					,_canvasModelSticky.getBounds().getWidth()
+					,_canvasModelSticky.getBounds().getHeight()
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelsticky {id:?, parent:?, bordercolor:?, content:?, fillcolor:?, font:?, fontcolor:?, imagepath:?, imageposition:?, islocked:?, linecolor:?, linewidth:?, notes:?, name:?, textalignment:?, textposition:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)", 
-					DBPlugin.getProjectId(_canvasModelSticky.getId()),
-					DBPlugin.getVersion(_canvasModelSticky.getId()),
-					DBPlugin.getId(_canvasModelSticky.getId()),
-					_parentId,
-					_canvasModelSticky.getBorderColor(),
-					_canvasModelSticky.getContent(),
-					_canvasModelSticky.getFillColor(),
-					_canvasModelSticky.getFont(),
-					_canvasModelSticky.getFontColor(),
-					_canvasModelSticky.getImagePath(),
-					_canvasModelSticky.getImagePosition(),
-					_canvasModelSticky.isLocked(),
-					_canvasModelSticky.getLineColor(),
-					_canvasModelSticky.getLineWidth(),
-					_canvasModelSticky.getNotes(),
-					_canvasModelSticky.getName(),
-					_canvasModelSticky.getTextAlignment(),
-					_canvasModelSticky.getTextPosition(),
-					getTargetConnectionsString(_canvasModelSticky.getTargetConnections()),
-					_rank,
-					_indent,
-					_canvasModelSticky.getBounds().getX(),
-					_canvasModelSticky.getBounds().getY(),
-					_canvasModelSticky.getBounds().getWidth(),
-					_canvasModelSticky.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelsticky {id:?, parent:?, bordercolor:?, content:?, fillcolor:?, font:?, fontcolor:?, imagepath:?, imageposition:?, islocked:?, linecolor:?, linewidth:?, notes:?, name:?, textalignment:?, textposition:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)" 
+					,DBPlugin.getProjectId(_canvasModelSticky.getId())
+					,DBPlugin.getVersion(_canvasModelSticky.getId())
+					,DBPlugin.getId(_canvasModelSticky.getId())
+					,_parentId
+					,_canvasModelSticky.getBorderColor()
+					,_canvasModelSticky.getContent()
+					,_canvasModelSticky.getFillColor()
+					,_canvasModelSticky.getFont()
+					,_canvasModelSticky.getFontColor()
+					,_canvasModelSticky.getImagePath()
+					,_canvasModelSticky.getImagePosition()
+					,_canvasModelSticky.isLocked()
+					,_canvasModelSticky.getLineColor()
+					,_canvasModelSticky.getLineWidth()
+					,_canvasModelSticky.getNotes()
+					,_canvasModelSticky.getName()
+					,_canvasModelSticky.getTextAlignment()
+					,_canvasModelSticky.getTextPosition()
+					,getTargetConnectionsString(_canvasModelSticky.getTargetConnections())
+					,_rank
+					,_indent
+					,_canvasModelSticky.getBounds().getX()
+					,_canvasModelSticky.getBounds().getY()
+					,_canvasModelSticky.getBounds().getWidth()
+					,_canvasModelSticky.getBounds().getHeight()
 					);
 		}
 		
@@ -1343,52 +1396,52 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_iCanvasModelImage.eClass().getName()+" id="+_iCanvasModelImage.getId()+" name="+_iCanvasModelImage.getName());
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO canvasmodelimage (id, model, version, parent, bordercolor, islocked, fillcolor, font, fontcolor, imagepath, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)", 
-					DBPlugin.getId(_iCanvasModelImage.getId()),
-					DBPlugin.getProjectId(_iCanvasModelImage.getId()),
-					DBPlugin.getVersion(_iCanvasModelImage.getId()),
-					_parentId,
-					_iCanvasModelImage.getBorderColor(),
-					_iCanvasModelImage.isLocked(),
-					_iCanvasModelImage.getFillColor(),
-					_iCanvasModelImage.getFont(),
-					_iCanvasModelImage.getFontColor(),
-					_iCanvasModelImage.getImagePath(),
-					_iCanvasModelImage.getLineColor(),
-					_iCanvasModelImage.getLineWidth(),
-					_iCanvasModelImage.getName(),
-					_iCanvasModelImage.getTextAlignment(),
-					getTargetConnectionsString(_iCanvasModelImage.getTargetConnections()),
-					_rank,
-					_indent,
-					_iCanvasModelImage.getBounds().getX(),
-					_iCanvasModelImage.getBounds().getY(),
-					_iCanvasModelImage.getBounds().getWidth(),
-					_iCanvasModelImage.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO canvasmodelimage (id, model, version, parent, bordercolor, islocked, fillcolor, font, fontcolor, imagepath, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)" 
+					,DBPlugin.getId(_iCanvasModelImage.getId())
+					,DBPlugin.getProjectId(_iCanvasModelImage.getId())
+					,DBPlugin.getVersion(_iCanvasModelImage.getId())
+					,_parentId
+					,_iCanvasModelImage.getBorderColor()
+					,_iCanvasModelImage.isLocked()
+					,_iCanvasModelImage.getFillColor()
+					,_iCanvasModelImage.getFont()
+					,_iCanvasModelImage.getFontColor()
+					,_iCanvasModelImage.getImagePath()
+					,_iCanvasModelImage.getLineColor()
+					,_iCanvasModelImage.getLineWidth()
+					,_iCanvasModelImage.getName()
+					,_iCanvasModelImage.getTextAlignment()
+					,getTargetConnectionsString(_iCanvasModelImage.getTargetConnections())
+					,_rank
+					,_indent
+					,_iCanvasModelImage.getBounds().getX()
+					,_iCanvasModelImage.getBounds().getY()
+					,_iCanvasModelImage.getBounds().getWidth()
+					,_iCanvasModelImage.getBounds().getHeight()
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelimage {id:?, parent:?, bordercolor:?, islocked:?, fillcolor:?, font:?, fontcolor:?, imagepath:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)", 
-					DBPlugin.getProjectId(_iCanvasModelImage.getId()),
-					DBPlugin.getVersion(_iCanvasModelImage.getId()),
-					DBPlugin.getId(_iCanvasModelImage.getId()),
-					_parentId,
-					_iCanvasModelImage.getBorderColor(),
-					_iCanvasModelImage.isLocked(),
-					_iCanvasModelImage.getFillColor(),
-					_iCanvasModelImage.getFont(),
-					_iCanvasModelImage.getFontColor(),
-					_iCanvasModelImage.getImagePath(),
-					_iCanvasModelImage.getLineColor(),
-					_iCanvasModelImage.getLineWidth(),
-					_iCanvasModelImage.getName(),
-					_iCanvasModelImage.getTextAlignment(),
-					getTargetConnectionsString(_iCanvasModelImage.getTargetConnections()),
-					_rank,
-					_indent,
-					_iCanvasModelImage.getBounds().getX(),
-					_iCanvasModelImage.getBounds().getY(),
-					_iCanvasModelImage.getBounds().getWidth(),
-					_iCanvasModelImage.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:canvasmodelimage {id:?, parent:?, bordercolor:?, islocked:?, fillcolor:?, font:?, fontcolor:?, imagepath:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)" 
+					,DBPlugin.getProjectId(_iCanvasModelImage.getId())
+					,DBPlugin.getVersion(_iCanvasModelImage.getId())
+					,DBPlugin.getId(_iCanvasModelImage.getId())
+					,_parentId
+					,_iCanvasModelImage.getBorderColor()
+					,_iCanvasModelImage.isLocked()
+					,_iCanvasModelImage.getFillColor()
+					,_iCanvasModelImage.getFont()
+					,_iCanvasModelImage.getFontColor()
+					,_iCanvasModelImage.getImagePath()
+					,_iCanvasModelImage.getLineColor()
+					,_iCanvasModelImage.getLineWidth()
+					,_iCanvasModelImage.getName()
+					,_iCanvasModelImage.getTextAlignment()
+					,getTargetConnectionsString(_iCanvasModelImage.getTargetConnections())
+					,_rank
+					,_indent
+					,_iCanvasModelImage.getBounds().getX()
+					,_iCanvasModelImage.getBounds().getY()
+					,_iCanvasModelImage.getBounds().getWidth()
+					,_iCanvasModelImage.getBounds().getHeight()
 					);
 		}
 		
@@ -1417,48 +1470,48 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_sketchModelSticky.eClass().getName()+" id="+_sketchModelSticky.getId()+" name="+_sketchModelSticky.getName());
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO sketchmodelsticky (id, model, version, parent, content, fillcolor, font, fontcolor, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)",
-					DBPlugin.getId(_sketchModelSticky.getId()),
-					DBPlugin.getProjectId(_sketchModelSticky.getId()),
-					DBPlugin.getVersion(_sketchModelSticky.getId()),
-					_parentId,
-					_sketchModelSticky.getContent(),
-					_sketchModelSticky.getFillColor(),
-					_sketchModelSticky.getFont(),
-					_sketchModelSticky.getFontColor(),
-					_sketchModelSticky.getLineColor(),
-					_sketchModelSticky.getLineWidth(),
-					_sketchModelSticky.getName(),
-					_sketchModelSticky.getTextAlignment(),
-					getTargetConnectionsString(_sketchModelSticky.getTargetConnections()),
-					_rank,
-					_indent,
-					_sketchModelSticky.getBounds().getX(),
-					_sketchModelSticky.getBounds().getY(),
-					_sketchModelSticky.getBounds().getWidth(),
-					_sketchModelSticky.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO sketchmodelsticky (id, model, version, parent, content, fillcolor, font, fontcolor, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)"
+					,DBPlugin.getId(_sketchModelSticky.getId())
+					,DBPlugin.getProjectId(_sketchModelSticky.getId())
+					,DBPlugin.getVersion(_sketchModelSticky.getId())
+					,_parentId
+					,_sketchModelSticky.getContent()
+					,_sketchModelSticky.getFillColor()
+					,_sketchModelSticky.getFont()
+					,_sketchModelSticky.getFontColor()
+					,_sketchModelSticky.getLineColor()
+					,_sketchModelSticky.getLineWidth()
+					,_sketchModelSticky.getName()
+					,_sketchModelSticky.getTextAlignment()
+					,getTargetConnectionsString(_sketchModelSticky.getTargetConnections())
+					,_rank
+					,_indent
+					,_sketchModelSticky.getBounds().getX()
+					,_sketchModelSticky.getBounds().getY()
+					,_sketchModelSticky.getBounds().getWidth()
+					,_sketchModelSticky.getBounds().getHeight()
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodelsticky {id:?, parent:?, content:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(_sketchModelSticky.getId()),
-					DBPlugin.getVersion(_sketchModelSticky.getId()),
-					DBPlugin.getId(_sketchModelSticky.getId()),
-					_parentId,
-					_sketchModelSticky.getContent(),
-					_sketchModelSticky.getFillColor(),
-					_sketchModelSticky.getFont(),
-					_sketchModelSticky.getFontColor(),
-					_sketchModelSticky.getLineColor(),
-					_sketchModelSticky.getLineWidth(),
-					_sketchModelSticky.getName(),
-					_sketchModelSticky.getTextAlignment(),
-					getTargetConnectionsString(_sketchModelSticky.getTargetConnections()),
-					_rank,
-					_indent,
-					_sketchModelSticky.getBounds().getX(),
-					_sketchModelSticky.getBounds().getY(),
-					_sketchModelSticky.getBounds().getWidth(),
-					_sketchModelSticky.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodelsticky {id:?, parent:?, content:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(_sketchModelSticky.getId())
+					,DBPlugin.getVersion(_sketchModelSticky.getId())
+					,DBPlugin.getId(_sketchModelSticky.getId())
+					,_parentId
+					,_sketchModelSticky.getContent()
+					,_sketchModelSticky.getFillColor()
+					,_sketchModelSticky.getFont()
+					,_sketchModelSticky.getFontColor()
+					,_sketchModelSticky.getLineColor()
+					,_sketchModelSticky.getLineWidth()
+					,_sketchModelSticky.getName()
+					,_sketchModelSticky.getTextAlignment()
+					,getTargetConnectionsString(_sketchModelSticky.getTargetConnections())
+					,_rank
+					,_indent
+					,_sketchModelSticky.getBounds().getX()
+					,_sketchModelSticky.getBounds().getY()
+					,_sketchModelSticky.getBounds().getWidth()
+					,_sketchModelSticky.getBounds().getHeight()
 					);
 		}
 		
@@ -1510,46 +1563,46 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+_sketchModelActor.eClass().getName()+" id="+_sketchModelActor.getId()+" name="+_sketchModelActor.getName());
 				
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO sketchmodelactor (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)",
-					DBPlugin.getId(_sketchModelActor.getId()),
-					DBPlugin.getProjectId(_sketchModelActor.getId()),
-					DBPlugin.getVersion(_sketchModelActor.getId()),
-					_parentId,
-					_sketchModelActor.getFillColor(),
-					_sketchModelActor.getFont(),
-					_sketchModelActor.getFontColor(),
-					_sketchModelActor.getLineColor(),
-					_sketchModelActor.getLineWidth(),
-					_sketchModelActor.getName(),
-					_sketchModelActor.getTextAlignment(),
-					getTargetConnectionsString(_sketchModelActor.getTargetConnections()),
-					_rank,
-					_indent,
-					_sketchModelActor.getBounds().getX(),
-					_sketchModelActor.getBounds().getY(),
-					_sketchModelActor.getBounds().getWidth(),
-					_sketchModelActor.getBounds().getHeight()
+			DBPlugin.insert(db, "INSERT INTO sketchmodelactor (id, model, version, parent, fillcolor, font, fontcolor, linecolor, linewidth, name, textalignment, targetconnections, rank, indent, x, y, width, height)"
+					,DBPlugin.getId(_sketchModelActor.getId())
+					,DBPlugin.getProjectId(_sketchModelActor.getId())
+					,DBPlugin.getVersion(_sketchModelActor.getId())
+					,_parentId
+					,_sketchModelActor.getFillColor()
+					,_sketchModelActor.getFont()
+					,_sketchModelActor.getFontColor()
+					,_sketchModelActor.getLineColor()
+					,_sketchModelActor.getLineWidth()
+					,_sketchModelActor.getName()
+					,_sketchModelActor.getTextAlignment()
+					,getTargetConnectionsString(_sketchModelActor.getTargetConnections())
+					,_rank
+					,_indent
+					,_sketchModelActor.getBounds().getX()
+					,_sketchModelActor.getBounds().getY()
+					,_sketchModelActor.getBounds().getWidth()
+					,_sketchModelActor.getBounds().getHeight()
 					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodelactor {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(_sketchModelActor.getId()),
-					DBPlugin.getVersion(_sketchModelActor.getId()),
-					DBPlugin.getId(_sketchModelActor.getId()),
-					_parentId,
-					_sketchModelActor.getFillColor(),
-					_sketchModelActor.getFont(),
-					_sketchModelActor.getFontColor(),
-					_sketchModelActor.getLineColor(),
-					_sketchModelActor.getLineWidth(),
-					_sketchModelActor.getName(),
-					_sketchModelActor.getTextAlignment(),
-					getTargetConnectionsString(_sketchModelActor.getTargetConnections()),
-					_rank,
-					_indent,
-					_sketchModelActor.getBounds().getX(),
-					_sketchModelActor.getBounds().getY(),
-					_sketchModelActor.getBounds().getWidth(),
-					_sketchModelActor.getBounds().getHeight()
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:sketchmodelactor {id:?, parent:?, fillcolor:?, font:?, fontcolor:?, linecolor:?, linewidth:?, name:?, textalignment:?, targetconnections:?, rank:?, indent:?, x:?, y:?, width:?, height:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(_sketchModelActor.getId())
+					,DBPlugin.getVersion(_sketchModelActor.getId())
+					,DBPlugin.getId(_sketchModelActor.getId())
+					,_parentId
+					,_sketchModelActor.getFillColor()
+					,_sketchModelActor.getFont()
+					,_sketchModelActor.getFontColor()
+					,_sketchModelActor.getLineColor()
+					,_sketchModelActor.getLineWidth()
+					,_sketchModelActor.getName()
+					,_sketchModelActor.getTextAlignment()
+					,getTargetConnectionsString(_sketchModelActor.getTargetConnections())
+					,_rank
+					,_indent
+					,_sketchModelActor.getBounds().getX()
+					,_sketchModelActor.getBounds().getY()
+					,_sketchModelActor.getBounds().getWidth()
+					,_sketchModelActor.getBounds().getHeight()
 					);
 		}
 	
@@ -1579,7 +1632,7 @@ public class DBExporter implements IModelExporter {
 		String folderName = null;
 		int folderType = -1;
 		try {
-			if ( (rank == 0) && (folder.getType().getValue() == 0) ) {
+			if ( (rank == 0) && (folder.getType().getValue() != 0) ) {
 				folderName = ((IFolder)folder.eContainer()).getName();
 				folderType = ((IFolder)folder.eContainer()).getType().getValue();
 			}
@@ -1592,25 +1645,27 @@ public class DBExporter implements IModelExporter {
 		DBPlugin.debug(DebugLevel.Variable, "Exporting "+folder.eClass().getName()+" id="+folder.getId()+" name="+folder.getName()+" type="+folderType);
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			DBPlugin.insert(db, "INSERT INTO folder (id, model, version, documentation, parent, name, type, rank)",
-					DBPlugin.getId(folder.getId()),
-					DBPlugin.getProjectId(folder.getId()),
-					DBPlugin.getVersion(folder.getId()),
-					folder.getDocumentation(),
-					parentId,
-					folderName,
-					folderType,
-					rank);
+			DBPlugin.insert(db, "INSERT INTO folder (id, model, version, documentation, parent, name, type, rank)"
+					,DBPlugin.getId(folder.getId())
+					,DBPlugin.getProjectId(folder.getId())
+					,DBPlugin.getVersion(folder.getId())
+					,folder.getDocumentation()
+					,parentId
+					,folderName
+					,folderType
+					,rank
+					);
 		} else {
-			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:folder {id:?, documentation:?, parent:?, name:?, type:?, rank:?}), (new)-[:isInModel]->(m)",
-					DBPlugin.getProjectId(folder.getId()),
-					DBPlugin.getVersion(folder.getId()),
-					DBPlugin.getId(folder.getId()),
-					folder.getDocumentation(),
-					parentId,
-					folderName,
-					folderType,
-					rank);
+			DBPlugin.request(db, "MATCH (m:model {model:?, version:?}) CREATE (new:folder {id:?, documentation:?, parent:?, name:?, type:?, rank:?}), (new)-[:isInModel]->(m)"
+					,DBPlugin.getProjectId(folder.getId())
+					,DBPlugin.getVersion(folder.getId())
+					,DBPlugin.getId(folder.getId())
+					,folder.getDocumentation()
+					,parentId
+					,folderName
+					,folderType
+					,rank
+					);
 		}
 		
 		

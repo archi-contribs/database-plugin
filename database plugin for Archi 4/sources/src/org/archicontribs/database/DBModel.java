@@ -22,19 +22,20 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.canvas.model.ICanvasModelBlock;
-import com.archimatetool.canvas.model.ICanvasModelImage;
-import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.FolderType;
+import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelGroup;
 import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IMetadata;
@@ -43,7 +44,6 @@ import com.archimatetool.model.IProperty;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.ISketchModel;
-import com.archimatetool.model.ISketchModelActor;
 import com.archimatetool.model.ISketchModelSticky;
 
 
@@ -149,23 +149,27 @@ public class DBModel {
 	/**
 	 * Table containing an Arraylist of sources. Contains one entry per parent. 
 	 */
-	private Hashtable<EObject, String> declaredSources = new Hashtable<EObject, String>();
+	private Hashtable<EObject, ArrayList<String>> declaredSources = new Hashtable<EObject, ArrayList<String>>();
 	/**
 	 * Table containing an Arraylist of targets. Contains one entry per parent. 
 	 */
-	private Hashtable<EObject, String> declaredTargets = new Hashtable<EObject, String>();
+	private Hashtable<EObject, ArrayList<String>> declaredTargets = new Hashtable<EObject, ArrayList<String>>();
 	/**
 	 * Table containing an Arraylist of sourceConnections. Contains one entry per parent. 
 	 */
-	private Hashtable<IDiagramModelConnection, String> declaredSourceConnections = new Hashtable<IDiagramModelConnection, String>();
+	private Hashtable<IDiagramModelConnection, ArrayList<String>> declaredSourceConnections = new Hashtable<IDiagramModelConnection, ArrayList<String>>();
 	/**
 	 * Table containing an Arraylist of targetConnections. Contains one entry per parent. 
 	 */
-	private Hashtable<EObject, String> declaredTargetConnections = new Hashtable<EObject, String>();
+	private Hashtable<IConnectable, ArrayList<String>> declaredTargetConnections = new Hashtable<IConnectable, ArrayList<String>>();
 	/**
 	 * Table containing an Arraylist of archimateElements. Contains one entry per parent. 
 	 */
-	private Hashtable<IDiagramModelArchimateObject, String> declaredArchimateElements = new Hashtable<IDiagramModelArchimateObject, String>();
+	private Hashtable<IDiagramModelArchimateObject, ArrayList<String>> declaredArchimateElements = new Hashtable<IDiagramModelArchimateObject, ArrayList<String>>();
+	/**
+	 * Table containing an Arraylist of diagramModelReference. Contains one entry per parent. 
+	 */
+	private Hashtable<IDiagramModelReference, String> declaredDiagramModels = new Hashtable<IDiagramModelReference, String>();
 	
 	
 	
@@ -386,14 +390,19 @@ public class DBModel {
 	 * @return
 	 */
 	public EList<IFolder> getFolders() {
+		// in standalone mode, we return the model folders
 		if ( projectFolder == null )
 			return model.getFolders();
 
+		// in shared mode, we construct the list of folders that are specific to the model
 		EList<IFolder> folders = new BasicEList<IFolder>();
 		for ( IFolder f: model.getFolders() ) {
-			for ( IFolder ff: f.getFolders() ) {
-				if ( (DBPlugin.isVersionned(ff.getId()) && DBPlugin.getProjectId(ff.getId()).equals(DBPlugin.getProjectId(projectFolder.getId()))) || ff.getName().equals(projectFolder.getName()) )
-					folders.add(ff);
+			// we do not get subfolders of "projects" folder 
+			if ( f.getType().getValue() != 0 ) {
+				for ( IFolder ff: f.getFolders() ) {
+					if ((DBPlugin.isVersionned(ff.getId()) && DBPlugin.getProjectId(ff.getId()).equals(DBPlugin.getProjectId(projectFolder.getId()))) || ff.getName().equals(projectFolder.getName()) )
+						folders.add(ff);
+				}
 			}
 		}
 		return folders;
@@ -412,12 +421,12 @@ public class DBModel {
 	
 	/**
 	 * Gets the default folder for a given folder type.
-	 * @param _type
+	 * @param _type, _name
 	 * @return
 	 * <li>In standalone mode, the standard "Business", "Application", ... folder</li>
 	 * <li>In shared mode, the project subfolder of "Business", "Application", ...</li>
 	 */
-	public IFolder getDefaultFolderForFolderType(int _type) {
+	public IFolder getDefaultFolderForFolderType(int _type, String _name) {
 		IFolder parentFolder = null;
 		FolderType folderType = FolderType.get(_type);
 
@@ -434,8 +443,10 @@ public class DBModel {
 		}
 		// if the folder does not exist, it MUST be created !!!
 		if ( parentFolder == null ) {
-			DBPlugin.debug(DebugLevel.Variable, "Adding folder \""+projectFolder.getName()+"\" to model "+model.getName());
-			parentFolder = addFolder(model.getFolders(), folderType.getName(), null, null, _type);
+			if ( (_name == null) || _name.equals("") )
+				_name = folderType.getName();
+			DBPlugin.debug(DebugLevel.Variable, "Adding folder \""+_name+"\" to model "+model.getName());
+			parentFolder = addFolder(model.getFolders(), _name, null, null, _type);
 		}
 		// in shared mode, we create a subfolder with the name of the project
 		if ( projectFolder != null ) {
@@ -680,18 +691,15 @@ public class DBModel {
 	 * @throws Exception
 	 */
 	public EObject searchEObjectById(String _id) throws Exception {
-		EObject obj;
-
 		if ( !DBPlugin.isVersionned(_id) )
 			_id = DBPlugin.generateId(_id, getProjectId(), getVersion());
 		
 		for (Hashtable<String, EObject> content: allContent) {
-			if ( content != null ) {
-				obj = content.get(_id);
-				if ( obj != null ) return obj;
+			if ( content != null && content.get(_id) != null) {
+				return content.get(_id);
 			}
 		}
-		throw new Exception("searchEObjectById: can't find object id \""+_id+"\"");
+		return null;
 	}
 
 	/**
@@ -844,7 +852,7 @@ public class DBModel {
 	}
 	
 	public void declareChild(String _parent, EObject _child) {
-		if ( _parent != null ) {
+		if ( (_parent != null) && (_child != null) ) {
 			DBPlugin.debug(DebugLevel.SecondaryMethod, "declarechild(\""+_parent+"\", "+((IIdentifier)_child).getId()+"["+_child.eClass().getName()+"])");
 			ArrayList<EObject> children = declaredChildren.get(_parent);
 			if ( children == null ) {
@@ -852,6 +860,73 @@ public class DBModel {
 				declaredChildren.put(_parent, children);
 			}
 			children.add(_child);
+		}
+	}
+	
+	public void declareSource(EObject _parent, String _source) {
+		if ( (_parent != null) && (_source != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareSource(\""+((IIdentifier)_parent).getId()+"\", \""+_source+"\")");
+			ArrayList<String> sources = declaredSources.get(_parent);
+			if ( sources == null ) {
+				sources = new ArrayList<String>();
+				declaredSources.put(_parent, sources);
+			}
+			sources.add(_source);
+		}
+	}
+	
+	public void declareTarget(EObject _parent, String _target) {
+		if ( (_parent != null) && (_target != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareTarget(\""+((IIdentifier)_parent).getId()+"\", \""+_target+"\")");
+			ArrayList<String> targets = declaredTargets.get(_parent);
+			if ( targets == null ) {
+				targets = new ArrayList<String>();
+				declaredTargets.put(_parent, targets);
+			}
+			targets.add(_target);
+		}
+	}
+	
+	public void declareSourceConnection(IDiagramModelConnection _parent, String _source) {
+		if ( (_parent != null) && (_source != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareSourceConnection(\""+((IIdentifier)_parent).getId()+"\", \""+_source+"\")");
+			ArrayList<String> sources = declaredSourceConnections.get(_parent);
+			if ( sources == null ) {
+				sources = new ArrayList<String>();
+				declaredSourceConnections.put(_parent, sources);
+			}
+			sources.add(_source);
+		}
+	}
+	
+	public void declareTargetConnection(IConnectable _parent, String _target) {
+		if ( (_parent != null) && (_target != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareTargetConnections(\""+((IIdentifier)_parent).getId()+"\", \""+_target+"\")");
+			ArrayList<String> targets = declaredTargetConnections.get(_parent);
+			if ( targets == null ) {
+				targets = new ArrayList<String>();
+				declaredTargetConnections.put(_parent, targets);
+			}
+			targets.add(_target);
+		}
+	}
+	
+	public void declareArchimateElement(IDiagramModelArchimateObject _parent, String _element) {
+		if ( (_parent != null) && (_element != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareArchimateElement(\""+((IIdentifier)_parent).getId()+"\", \""+_element+"\")");
+			ArrayList<String> elements = declaredArchimateElements.get(_parent);
+			if ( elements == null ) {
+				elements = new ArrayList<String>();
+				declaredArchimateElements.put(_parent, elements);
+			}
+			elements.add(_element);
+		}
+	}
+	
+	public void declareDiagramModel(IDiagramModelReference _parent, String _diagram) {
+		if ( (_parent != null) && (_diagram != null)) {
+			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareDiagramModel(\""+((IIdentifier)_parent).getId()+"\", \""+_diagram+"\")");
+			declaredDiagramModels.put(_parent, _diagram);
 		}
 	}
 	
@@ -894,129 +969,96 @@ public class DBModel {
 		DBPlugin.debug(DebugLevel.SecondaryMethod, "-Leaving DBModel.resolveChildren()");
 	}
 	
-	public void declareSource(String _source, EObject _object) {
-		if ( (_object != null) && (_source != null)) {
-			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareSource(\""+_source+"\", \""+((IIdentifier)_object).getId()+"\")");
-			if ( _object instanceof IDiagramModelConnection ) {
-				declaredSources.put((IDiagramModelConnection)_object, _source);
-			} else {
-				declaredSources.put((IArchimateRelationship)_object, _source);
-			}
-		}
-	}
-
-	public void declareTarget(String _target, EObject _object) {
-		if ( (_object != null) && (_target != null)) {
-			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareTarget(\""+_target+"\", \""+((IIdentifier)_object).getId()+"\")");
-			if ( _object instanceof IDiagramModelConnection ) {
-				declaredTargets.put((IDiagramModelConnection)_object, _target);
-			} else {
-				declaredTargets.put((IArchimateRelationship)_object, _target);
-			}
-		}
-	}
-	
-	public void declareSourceConnection(String _parent, IDiagramModelConnection _connection) {
-		if ( (_connection != null) && (_parent != null)) {
-			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareSourceConnection(\""+_parent+"\", \""+_connection.getId()+"\")");
-			declaredSourceConnections.put(_connection, _parent);
-		}
-	}
-	
-	public void declareTargetConnection(String _parent, EObject _object) {
-		if ( (_object != null) && (_parent != null)) {
-			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareTargetConnection(\""+_parent+"\", \""+((IIdentifier)_object).getId()+"\")");
-			declaredTargetConnections.put(_object, _parent);
-		}
-	}
-	
-	public void declareArchimateElement(String _element, IDiagramModelArchimateObject _parent) {
-		if ( (_element != null) && (_parent != null)) {
-			DBPlugin.debug(DebugLevel.SecondaryMethod, "declareArchimateElement(\""+_element+"\", \""+_parent.getId()+"\")");
-			declaredArchimateElements.put(_parent, _element);
-		}
-	}
-	
 	public void resolveConnections() throws Exception {
 		DBPlugin.debug(DebugLevel.SecondaryMethod, "+Entering DBModel.resolveConnections()");
 
+		// resolve sources
 		for ( EObject _parent: declaredSources.keySet() ) {
 			DBPlugin.debug(DebugLevel.Variable, "Resolving source for \""+((IIdentifier)_parent).getId()+"\"");
-			String sourceId = declaredSources.get(_parent);
-			EObject source = searchEObjectById(sourceId);
-			if ( source == null ) {
-				throw new Exception("Cannot set source \""+sourceId+"\" to parent \"" + ((IIdentifier)_parent).getId() + "\" as we do not know it !!!");
+			for(String sourceId: declaredSources.get(_parent)) {
+				EObject source = searchEObjectById(sourceId);
+				if ( source == null ) {
+					throw new Exception("Cannot set source \""+sourceId+"\" to parent \"" + ((IIdentifier)_parent).getId() + "\" as we do not know it !!!");
+				}
+				DBPlugin.debug(DebugLevel.Variable, "   adding source \"" + sourceId + "\"");
+				if ( _parent instanceof IDiagramModelConnection ) {
+					((IDiagramModelConnection)_parent).setSource((IConnectable)source);
+				} else if ( _parent instanceof IArchimateRelationship ) {
+					((IArchimateRelationship)_parent).setSource((IArchimateConcept)source);
+				} else {
+					throw new Exception ("Cannot set source to parent \""+((IIdentifier)_parent).getId()+"\" as we do know its class.");
+				}
 			}
-			DBPlugin.debug(DebugLevel.Variable, "   adding source \"" + sourceId + "\"");
-			if ( _parent instanceof IDiagramModelConnection ) {
-				((IDiagramModelConnection)_parent).setSource((IDiagramModelObject)source);
-			} else {
-				((IArchimateRelationship)_parent).setSource((IArchimateElement)source);
-			}
-			//_connection.setSource((IConnectable)source);
 		}
 		
-		
+		// resolve targets
 		for ( EObject _parent: declaredTargets.keySet() ) {
 			DBPlugin.debug(DebugLevel.Variable, "Resolving target for \""+((IIdentifier)_parent).getId()+"\"");
-			String targetId = declaredTargets.get(_parent);
-			EObject target = searchEObjectById(targetId);
-			if ( target == null ) {
-				throw new Exception("Cannot set target \""+targetId+"\" to parent \"" + ((IIdentifier)_parent).getId() + "\" as we do not know it !!!");
+			for (String targetId: declaredTargets.get(_parent)) {
+				EObject target = searchEObjectById(targetId);
+				if ( target == null ) {
+					throw new Exception("Cannot set target \""+targetId+"\" to parent \"" + ((IIdentifier)_parent).getId() + "\" as we do not know it !!!");
+				}
+				DBPlugin.debug(DebugLevel.Variable, "   adding target  \"" + targetId + "\"");
+				if ( _parent instanceof IDiagramModelConnection ) {
+					((IDiagramModelConnection)_parent).setTarget((IConnectable)target);
+				} else if ( _parent instanceof IArchimateRelationship ) {
+					((IArchimateRelationship)_parent).setTarget((IArchimateConcept)target);
+				} else {
+					throw new Exception ("Cannot set target to parent \""+((IIdentifier)_parent).getId()+"\" as we do know its class.");
+				}
 			}
-			DBPlugin.debug(DebugLevel.Variable, "   adding target  \"" + targetId + "\"");
-			if ( _parent instanceof IDiagramModelConnection ) {
-				((IDiagramModelConnection)_parent).setTarget((IDiagramModelObject)target);
-			} else {
-				((IArchimateRelationship)_parent).setTarget((IArchimateElement)target);
-			}
-			//_connection.setTarget((IConnectable)target);
 		}
 		
+		// resolve sourceConnections
 		for ( IDiagramModelConnection _connection: declaredSourceConnections.keySet() ) {
 			DBPlugin.debug(DebugLevel.Variable, "Resolving sourceConnections for \""+_connection.getId()+"\"");
-			String parentId = declaredSourceConnections.get(_connection);
-			EObject parent = searchEObjectById(parentId);
-			if ( parent == null ) {
-				throw new Exception("Cannot set sourceConnections \""+_connection.getId()+"\" to parent \"" + parentId + "\" as we do not know it !!!");
-			}
-			DBPlugin.debug(DebugLevel.Variable, "   adding sourceConnection to \"" + parentId + "\"");
-			if ( parent instanceof IDiagramModelArchimateObject ) {
-				((IDiagramModelArchimateObject)parent).getSourceConnections().add(_connection);
-			} else {
-				((IConnectable)parent).getSourceConnections().add(_connection);
+			for (String parentId: declaredSourceConnections.get(_connection)) {
+				IConnectable parent = (IConnectable)searchEObjectById(parentId);
+				if ( parent == null ) {
+					throw new Exception("Cannot set sourceConnections \""+_connection.getId()+"\" to parent \"" + parentId + "\" as we do not know it !!!");
+				}
+				DBPlugin.debug(DebugLevel.Variable, "   adding sourceConnection \"" + parentId + "\"");
+				parent.getSourceConnections().add(_connection);
 			}
 		}
 		
-		for ( EObject _parent: declaredTargetConnections.keySet() ) {
-			DBPlugin.debug(DebugLevel.Variable, "Resolving targetConnections for \""+((IIdentifier)_parent).getId()+"\"");
-			String targetId = declaredTargetConnections.get(_parent);
-			IDiagramModelConnection target = (IDiagramModelConnection)searchEObjectById(targetId);
-			if ( target == null ) {
-				throw new Exception("Cannot set targetConnections \""+targetId+"\" to parent \"" + ((IIdentifier)_parent).getId() + "\" as we do not know it !!!");
+		// resolve targetConnections
+		for ( IConnectable _parent: declaredTargetConnections.keySet() ) {
+			DBPlugin.debug(DebugLevel.Variable, "Resolving targetConnections for \""+_parent.getId()+"\"");
+			for (String targetId: declaredTargetConnections.get(_parent)) {
+				IDiagramModelConnection target = (IDiagramModelConnection)searchEObjectById(targetId);
+				if ( target == null ) {
+					throw new Exception("Cannot set targetConnections \""+targetId+"\" to parent \"" + _parent.getId() + "\" as we do not know it !!!");
+				}
+				DBPlugin.debug(DebugLevel.Variable, "   adding targetConnection \"" + targetId + "\"");
+				_parent.getTargetConnections().add(target);
 			}
-			DBPlugin.debug(DebugLevel.Variable, "   adding targetConnection \"" + targetId + "\"");
-			if ( _parent instanceof IDiagramModelObject ) {
-				((IDiagramModelObject)_parent).getTargetConnections().add(target);
-			} else if ( _parent instanceof ICanvasModelImage ) {
-				((ICanvasModelImage)_parent).getTargetConnections().add(target);
-			} else if ( _parent instanceof ICanvasModelSticky ) {
-				((ICanvasModelSticky)_parent).getTargetConnections().add(target);
-			} else if ( _parent instanceof ISketchModelActor ) {
-				((ISketchModelActor)_parent).getTargetConnections().add(target);
-			} else
-				throw new Exception ("Cannot set targetconnection to parent \""+((IIdentifier)_parent).getId()+"\" as we do know its class.");
 		}
 		
+		// resolve archimateElements
 		for ( IDiagramModelArchimateObject _parent: declaredArchimateElements.keySet() ) {
 			DBPlugin.debug(DebugLevel.Variable, "Resolving ArchimateElement for \""+_parent.getId()+"\"");
-			String elementId = declaredArchimateElements.get(_parent);
-			EObject element = searchEObjectById(elementId);
-			if ( element == null ) {
-				throw new Exception("Cannot set target \""+elementId+"\" to parent \"" + _parent.getId() + "\" as we do not know it !!!");
+			for (String elementId: declaredArchimateElements.get(_parent)) {
+				EObject element = searchEObjectById(elementId);
+				if ( element == null ) {
+					throw new Exception("Cannot set archimateElement \""+elementId+"\" to parent \"" + _parent.getId() + "\" as we do not know it !!!");
+				}
+				DBPlugin.debug(DebugLevel.Variable, "   adding connection \"" + elementId + "\"");
+				_parent.setArchimateElement((IArchimateElement)element);
 			}
-			DBPlugin.debug(DebugLevel.Variable, "   adding connection \"" + elementId + "\"");
-			_parent.setArchimateElement((IArchimateElement)element);
+		}
+		
+		// resolve diagramModels
+		for ( IDiagramModelReference _parent: declaredDiagramModels.keySet() ) {
+			DBPlugin.debug(DebugLevel.Variable, "Resolving DiagramModel for \""+_parent.getId()+"\"");
+			String diagramModelId = declaredDiagramModels.get(_parent);
+			IDiagramModel diagramModel = (IDiagramModel)searchEObjectById(diagramModelId);
+			if ( diagramModel == null ) {
+				throw new Exception("Cannot set diagramModel \""+diagramModelId+"\" to parent \"" + _parent.getId() + "\" as we do not know it !!!");
+			}
+			DBPlugin.debug(DebugLevel.Variable, "   adding DiagramModel \"" + diagramModelId + "\"");
+			_parent.setReferencedModel(diagramModel);
 		}
 		
 		DBPlugin.debug(DebugLevel.SecondaryMethod, "-Leaving DBModel.resolveConnections()");

@@ -515,7 +515,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 					_dbModel.getVersion()
 					);
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:archimateelement)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.documentation as documentation, e.folder as folder, e.name as name, e.type as type",
+			result = DBPlugin.select(db, "MATCH (e:archimateelement)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.documentation as documentation, e.folder as folder, e.name as name, e.type as type, e.interfacetype as interfacetype",
 					_dbModel.getProjectId(),
 					_dbModel.getVersion());
 		}
@@ -531,7 +531,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			archimateElement.setName(result.getString("name"));
 			archimateElement.setDocumentation(result.getString("documentation"));
 					
-			if ( archimateElement instanceof IInterfaceElement ) {
+			if ( archimateElement instanceof IInterfaceElement ) {						// Archi 3
 				((IInterfaceElement)archimateElement).setInterfaceType(result.getInt("interfacetype"));
 			}
 			
@@ -553,16 +553,22 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		ResultSet result;
 		
 		if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-			result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder, accesstype FROM relationship WHERE model = ? AND version = ?",
-					_dbModel.getProjectId(), _dbModel.getVersion());
+			result = DBPlugin.select(db, "SELECT id, documentation, name, source, target, type, folder, accesstype FROM relationship WHERE model = ? AND version = ?"
+					,_dbModel.getProjectId()
+					,_dbModel.getVersion()
+					);
 		} else {
-			result = DBPlugin.select(db, "MATCH (m:model {model:?, version:?}), (s)-[:isInModel]->(m), (t)-[:isInModel]->(m), (s)-[r]->(t) RETURN r.type as type, r.id as id, r.documentation as documentation, r.name as name, s.id as source, t.id as target, r.type, r.folder as folder", 
-					_dbModel.getProjectId(), _dbModel.getVersion(),
-					_dbModel.getProjectId(), _dbModel.getVersion());
+			result = DBPlugin.select(db, "MATCH (m:model {model:?, version:?}), (s)-[:isInModel]->(m), (t)-[:isInModel]->(m), (s)-[r]->(t) RETURN r.type as type, r.id as id, r.documentation as documentation, r.name as name, s.id as source, t.id as target, r.type, r.folder as folder, r.accesstype as accesstype"
+					,_dbModel.getProjectId()
+					,_dbModel.getVersion()
+					,_dbModel.getProjectId()
+					,_dbModel.getVersion()
+					);
 		}
 		
 		while(result.next()) {
 			DBPlugin.debug(DebugLevel.Variable, "Importing "+result.getString("type")+" id="+result.getString("id")+" source="+result.getString("source")+" target="+result.getString("target"));
+			
 			IRelationship relationship = (IRelationship)IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("type")));
 			dbTabItem.setCountRelationships(++countRelationships);
 			dbTabItem.setProgressBar(++countTotal);
@@ -571,12 +577,12 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			relationship.setName(result.getString("name"));
 			relationship.setDocumentation(result.getString("documentation"));
 			
-			if ( relationship instanceof  IAccessRelationship ) {
+			if ( relationship instanceof IAccessRelationship ) {
 				((IAccessRelationship)relationship).setAccessType(result.getInt("accesstype"));
 			}
 			
-			_dbModel.declareSource(result.getString("source"), relationship);
-			_dbModel.declareTarget(result.getString("target"), relationship);
+			_dbModel.declareSource(relationship, result.getString("source"));
+			_dbModel.declareTarget(relationship, result.getString("target"));
 			
 			_dbModel.setFolder(result.getString("folder"), relationship);
 
@@ -631,7 +637,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM diagrammodelarchimateobject WHERE model = ? AND version = ? ORDER BY indent, rank, parent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:diagrammodelarchimateobject)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.class as class, e.archimateelementid as archimateelementid, e.archimateelementname as archimateelementname, e.archimateelementclass as archimateelementclass, e.name as name, e.documentation as documentation, e.bordertype as bordertype, e.content as content, e.type as type, e.parent as parent ORDER BY e.indent, e.rank, e.parent",
+			result = DBPlugin.select(db, "MATCH (e:diagrammodelarchimateobject)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.targetconnections as targetconnections, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.class as class, e.archimateelementid as archimateelementid, e.archimateelementname as archimateelementname, e.archimateelementclass as archimateelementclass, e.name as name, e.documentation as documentation, e.bordertype as bordertype, e.content as content, e.type as type, e.parent as parent ORDER BY e.indent, e.rank, e.parent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -650,7 +656,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, diagramModelObject);
+					_dbModel.declareTargetConnection(diagramModelObject, target);
 				}
 			}
 
@@ -662,7 +668,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 				diagramModelArchimateObject.setType(result.getInt("type"));
 				
 				_dbModel.indexEObject(diagramModelArchimateObject);
-				_dbModel.declareArchimateElement(result.getString("archimateelementid"), diagramModelArchimateObject);
+				_dbModel.declareArchimateElement(diagramModelArchimateObject, result.getString("archimateelementid"));
 				_dbModel.declareChild(result.getString("parent"), diagramModelArchimateObject);
 				
 				dbTabItem.setCountDiagramModelArchimateObjects(++countDiagramModelArchimateObjects);
@@ -712,7 +718,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 					_dbModel.getProjectId(),
 					_dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:connection)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.relationship as relationship, e.class as class, e.documentation as documentation, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.source as source, e.target as target, e.text as text, e.textposition as textposition, e.type as type, e.parent as parent ORDER BY e.source, e.rank",
+			result = DBPlugin.select(db, "MATCH (e:connection)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.relationship as relationship, e.class as class, e.documentation as documentation, e.islocked as islocked, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.source as source, e.target as target, e.text as text, e.textposition as textposition, e.type as type, e.parent as parent ORDER BY e.source, e.rank",
 					_dbModel.getProjectId(),
 					_dbModel.getVersion());
 		}
@@ -720,10 +726,12 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		while(result.next()) {
 			DBPlugin.debug(DebugLevel.Variable, "Importing "+result.getString("class")+" id="+result.getString("id")+" source="+result.getString("source")+" target="+result.getString("target"));
 			IDiagramModelConnection diagramModelConnection;
+			
 			if ( result.getString("class").equals("CanvasModelConnection") )
 				diagramModelConnection = ICanvasFactory.eINSTANCE.createCanvasModelConnection();
 			else
 				diagramModelConnection = (IDiagramModelConnection)IArchimateFactory.eINSTANCE.create((EClass)IArchimatePackage.eINSTANCE.getEClassifier(result.getString("class")));
+			
 			diagramModelConnection.setId(DBPlugin.generateId(result.getString("id"), _dbModel.getProjectId(), _dbModel.getVersion()));
 			diagramModelConnection.setDocumentation(result.getString("documentation"));
 			diagramModelConnection.setFont(result.getString("font"));
@@ -734,9 +742,44 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			diagramModelConnection.setTextPosition(result.getInt("textposition"));
 			diagramModelConnection.setType(result.getInt("type"));
 			
-			_dbModel.declareSourceConnection(result.getString("parent"), diagramModelConnection);
-			_dbModel.declareSource(result.getString("source"), diagramModelConnection);
-			_dbModel.declareTarget(result.getString("target"), diagramModelConnection);
+			switch (result.getString("class")) {
+			case "DiagramModelConnection" :
+				_dbModel.indexEObject(diagramModelConnection);
+				
+				dbTabItem.setCountDiagramModelConnections(++countDiagramModelConnections);
+				dbTabItem.setProgressBar(++countTotal);
+				break;
+			case "DiagramModelArchimateConnection" :
+				IDiagramModelArchimateConnection diagramModelArchimateConnection = (IDiagramModelArchimateConnection)diagramModelConnection;
+
+				IRelationship relation = (IRelationship)dbModel.searchEObjectById(result.getString("relationship"));
+				if ( relation == null )
+					throw new Exception("importConnections() : cannot find relationship "+result.getString("relationship"));
+				diagramModelArchimateConnection.setRelationship(relation);
+				
+				_dbModel.indexEObject(diagramModelArchimateConnection);
+				
+				dbTabItem.setCountDiagramModelArchimateConnections(++countDiagramModelArchimateConnections);
+				dbTabItem.setProgressBar(++countTotal);
+				break;
+			case "CanvasModelConnection" :
+				ICanvasModelConnection canvasModelConnection = (ICanvasModelConnection)diagramModelConnection;
+				
+				canvasModelConnection.setLocked(result.getBoolean("islocked"));
+				
+				_dbModel.indexEObject(canvasModelConnection);
+				
+				dbTabItem.setCountCanvasModelConnections(++countCanvasModelConnections);
+				dbTabItem.setProgressBar(++countTotal);
+				break;
+			default :									
+				throw new Exception("importConnection() : do not know how to import " + result.getString("class"));
+			}
+			
+			
+			_dbModel.declareSourceConnection(diagramModelConnection, result.getString("parent"));
+			_dbModel.declareSource(diagramModelConnection, result.getString("source"));
+			_dbModel.declareTarget(diagramModelConnection, result.getString("target"));
 			
 			importObjectProperties(dbModel, diagramModelConnection);
 			
@@ -772,40 +815,6 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			dbTabItem.setCountDiagramModelBendpoints(countDiagramModelBendpoints);
 			dbTabItem.setProgressBar(countTotal);
-			
-			switch (result.getString("class")) {
-			case "DiagramModelConnection" :
-				_dbModel.indexEObject(diagramModelConnection);
-				
-				dbTabItem.setCountDiagramModelConnections(++countDiagramModelConnections);
-				dbTabItem.setProgressBar(++countTotal);
-				break;
-			case "DiagramModelArchimateConnection" :
-				IDiagramModelArchimateConnection diagramModelArchimateConnection = (IDiagramModelArchimateConnection)diagramModelConnection;
-
-				IRelationship relation = (IRelationship)dbModel.searchEObjectById(result.getString("relationship"));
-				if ( relation == null )
-					throw new Exception("importConnections() : cannot find relationship "+result.getString("relationship"));
-				diagramModelArchimateConnection.setRelationship(relation);
-				
-				_dbModel.indexEObject(diagramModelArchimateConnection);
-				
-				dbTabItem.setCountDiagramModelArchimateConnections(++countDiagramModelArchimateConnections);
-				dbTabItem.setProgressBar(++countTotal);
-				break;
-			case "CanvasModelConnection" :
-				ICanvasModelConnection canvasModelConnection = (ICanvasModelConnection)diagramModelConnection;
-				
-				canvasModelConnection.setLocked(result.getBoolean("islocked"));
-				
-				_dbModel.indexEObject(canvasModelConnection);
-				
-				dbTabItem.setCountCanvasModelConnections(++countCanvasModelConnections);
-				dbTabItem.setProgressBar(++countTotal);
-				break;
-			default :									
-				throw new Exception("importConnection() : do not know how to import " + result.getString("class"));
-			}
 		}
 		result.close();
 		DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBImporter.importConnections()");
@@ -858,7 +867,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM canvasmodelblock WHERE model = ? AND version = ? ORDER BY parent, rank, indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:canvasmodelblock)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.hintcontent as hintcontent, e.hinttitle as hinttitle, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.textalignment as textalignment, e.textposition as textposition, e.islocked as islocked, e.imageposition as imageposition, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
+			result = DBPlugin.select(db, "MATCH (e:canvasmodelblock)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.hintcontent as hintcontent, e.hinttitle as hinttitle, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.targetconnections as targetconnections, e.textalignment as textalignment, e.textposition as textposition, e.islocked as islocked, e.imageposition as imageposition, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -892,7 +901,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, canvasModelBlock);
+					_dbModel.declareTargetConnection(canvasModelBlock, target);
 				}
 			}
 
@@ -915,7 +924,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM canvasmodelsticky WHERE model = ? AND version = ? ORDER BY parent, rank, indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:canvasmodelsticky)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.notes as notes, e.textalignment as textalignment, e.textposition as textposition, e.imageposition as imageposition, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
+			result = DBPlugin.select(db, "MATCH (e:canvasmodelsticky)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.islocked as islocked, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.notes as notes, e.targetconnections as targetconnections, e.textalignment as textalignment, e.textposition as textposition, e.imageposition as imageposition, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -948,7 +957,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, canvasModelSticky);
+					_dbModel.declareTargetConnection(canvasModelSticky, target);
 				}
 			}
 
@@ -971,7 +980,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM canvasmodelimage WHERE model = ? AND version = ? ORDER BY parent, rank, indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:canvasmodelimage)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.islocked as islocked, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.textalignment as textalignment, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
+			result = DBPlugin.select(db, "MATCH (e:canvasmodelimage)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.bordercolor as bordercolor, e.islocked as islocked, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.targetconnections as targetconnections, e.textalignment as textalignment, e.imagepath as imagepath, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -1000,7 +1009,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, canvasModelImage);
+					_dbModel.declareTargetConnection(canvasModelImage, target);
 				}
 			}
 
@@ -1023,7 +1032,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM diagrammodelreference WHERE model = ? AND version = ? ORDER BY parent, rank, indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:diagrammodelreference)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
+			result = DBPlugin.select(db, "MATCH (e:diagrammodelreference)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.targetconnections as targetconnections, e.textalignment as textalignment, e.diagrammodelid as diagrammodelid, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent ORDER BY e.parent, e.rank, e.indent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -1042,9 +1051,11 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			diagramModelReference.setTextAlignment(result.getInt("textalignment"));
 			diagramModelReference.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
 			
+			_dbModel.declareDiagramModel(diagramModelReference, result.getString("diagrammodelid"));
+			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, diagramModelReference);
+					_dbModel.declareTargetConnection(diagramModelReference, target);
 				}
 			}
 
@@ -1101,7 +1112,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM sketchmodelactor WHERE model = ? AND version = ?",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:sketchmodelactor)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent",
+			result = DBPlugin.select(db, "MATCH (e:sketchmodelactor)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.targetconnections as targetconnections, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -1123,7 +1134,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			
 			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
 				for ( String target: result.getString("targetconnections").split(",") ) {
-					_dbModel.declareTargetConnection(target, sketchModelActor);
+					_dbModel.declareTargetConnection(sketchModelActor, target);
 				}
 			}
 
@@ -1146,7 +1157,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT * FROM sketchmodelsticky WHERE model = ? AND version = ?",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		} else {
-			result = DBPlugin.select(db, "MATCH (e:sketchmodelsticky)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent",
+			result = DBPlugin.select(db, "MATCH (e:sketchmodelsticky)-[:isInModel]->(m:model {model:?, version:?}) RETURN e.id as id, e.content as content, e.fillcolor as fillcolor, e.font as font, e.fontcolor as fontcolor, e.linecolor as linecolor, e.linewidth as linewidth, e.name as name, e.targetconnections as targetconnections, e.textalignment as textalignment, e.x as x, e.y as y, e.width as width, e.height as height, e.parent as parent",
 					_dbModel.getProjectId(), _dbModel.getVersion());
 		}
 		
@@ -1167,6 +1178,12 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			sketchModelSticky.setTextAlignment(result.getInt("textalignment"));
 			sketchModelSticky.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
 
+			if ( (result.getString("targetconnections") != null) && (result.getString("targetconnections").length() > 0) ) {
+				for ( String target: result.getString("targetconnections").split(",") ) {
+					_dbModel.declareTargetConnection(sketchModelSticky, target);
+				}
+			}
+			
 			_dbModel.indexEObject(sketchModelSticky);
 
 			importObjectProperties(dbModel, sketchModelSticky);
@@ -1192,7 +1209,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 					DBPlugin.getVersion(((IIdentifier)parent).getId())
 					);
 		} else {
-			result = DBPlugin.select(db, "MATCH (e {id:?})-[:isInModel]->(m:model {model:?, version:?}), (e)-[:hasProperty]->(p:property) RETURN p.name as name, p.value as value ORDER BY p.id",
+			result = DBPlugin.select(db, "MATCH (p:property {parent:?, model:?, version:?}) RETURN p.name as name, p.value as value ORDER BY p.id",
 					DBPlugin.getId(((IIdentifier)parent).getId()),
 					DBPlugin.getProjectId(((IIdentifier)parent).getId()),
 					DBPlugin.getVersion(((IIdentifier)parent).getId())
@@ -1225,11 +1242,14 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			result = DBPlugin.select(db, "SELECT id, name, value FROM property WHERE parent = ? AND model = ? AND version = ? ORDER BY id",
 					_dbModel.getProjectId(),
 					_dbModel.getProjectId(),
-					_dbModel.getVersion());
+					_dbModel.getVersion()
+					);
 		} else {
-			result = DBPlugin.select(db, "MATCH (m:model {model:?, version:?})-[:hasProperty]->(p:property) RETURN p.id as id, p.name as name, p.value as value ORDER BY p.id",
+			result = DBPlugin.select(db, "MATCH (p:property {parent:?, model:?, version:?}) RETURN p.id as id, p.name as name, p.value as value ORDER BY p.id",
 					_dbModel.getProjectId(),
-					_dbModel.getVersion());
+					_dbModel.getProjectId(),
+					_dbModel.getVersion()
+					);
 		}
 		
 		while(result.next()) {
@@ -1277,7 +1297,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		IFolder folder;
 		while(result.next()) {
 			if ( result.getInt("type") != 0 ) {				// top level folders have been created at the same time than the model 
-				folder = _dbModel.getDefaultFolderForFolderType(result.getInt("type"));
+				folder = _dbModel.getDefaultFolderForFolderType(result.getInt("type"), result.getString("name"));
 				// FolderType.get changed between Archi 3 and Archi 4
 				//		type	v3				v4
 				//		0		user			user
@@ -1285,11 +1305,11 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 				//		2		application		business
 				//		3		technology		application
 				//		4		connectors		technology
-				//		5		relations		relations	+ other !!!
-				//		6		diagrams		diagrams
-				//		7		derived			motivation
-				//		8		motivation		implementation
-				//		9		implementation
+				//		5		relations		relations
+				//		6		diagrams		other
+				//		7		derived			diagrams
+				//		8		motivation		motivation
+				//		9		implementation	implementation
 				if ( folder == null )
 					throw new Exception("I do not find default folder for name "+result.getString("name")+" ("+FolderType.get(result.getInt("type")).name()+")");
 				//folder.setName(result.getString("name"));
@@ -1339,14 +1359,16 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			if (result.next() ) {
 				IArchiveManager archiveMgr = (IArchiveManager)_dbModel.getModel().getAdapter(IArchiveManager.class);
 				try {
-					DBPlugin.debug(DebugLevel.Variable, "Importing "+path+" with "+result.getBytes("image").length/1024+" Ko of data");
-					
 					String imagePath;
+					byte[] imageContent;
 					if ( dbSelectModel.getDbLanguage().equals("SQL") ) {
-						imagePath = archiveMgr.addByteContentEntry(path, result.getBytes("image"));
+						imageContent = result.getBytes("image");
 					} else {
-						imagePath = archiveMgr.addByteContentEntry(path, Base64.decode(result.getString("image")));
+						imageContent = Base64.decode(result.getString("image"));
 					}
+					DBPlugin.debug(DebugLevel.Variable, "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
+					imagePath = archiveMgr.addByteContentEntry(path, imageContent);
+					
 					if ( imagePath.equals(path) ) {
 						DBPlugin.debug(DebugLevel.Variable, "... image imported");
 					} else {

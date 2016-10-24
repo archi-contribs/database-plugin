@@ -8,12 +8,6 @@ import org.eclipse.jface.preference.IPreferenceStore;
  * Class used to initialize default preference values.
  */
 public class DBPreferenceInitializer extends AbstractPreferenceInitializer {
-
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.eclipse.core.runtime.preferences.AbstractPreferenceInitializer#initializeDefaultPreferences()
-	 */
 	public void initializeDefaultPreferences() {
 		DBPlugin.debug(DebugLevel.MainMethod, "DBPreferenceInitializer.initializeDefaultPreferences()");
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
