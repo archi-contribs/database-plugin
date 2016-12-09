@@ -13,7 +13,6 @@ Alternatively, you may upgrade Archi to version *_3.3.2_** that does not need to
 1. Create a database that will be used to store your models
 At the moment, the following brands are supported :
 * MySQL
-* Oracle
 * PostGreSQL
 * SQLite
 * Neo4j
