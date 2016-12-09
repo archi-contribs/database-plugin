@@ -353,6 +353,9 @@ public class DBExporter implements IModelExporter {
 									case "DiagramModelGroup" :
 										exportDiagramModelObject(fullId, (IDiagramModelObject)child, rank, 0);
 										break;
+									case "DiagramModelReference" :
+										exportDiagramModelReference(fullId, (IDiagramModelReference)child, rank, 0);
+										break;
 									default :  //should not be here
 										throw new Exception("Don't know how to save SketchModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");
 									}
@@ -405,6 +408,9 @@ public class DBExporter implements IModelExporter {
 										break;
 									case "CanvasModelConnection" :
 										exportConnection(fullId, (ICanvasModelConnection)child, rank);
+										break;
+									case "DiagramModelReference" :
+										exportDiagramModelReference(fullId, (IDiagramModelReference)child, rank, 0);
 										break;
 									default :  //should not be here
 										throw new Exception("Don't know how to save CanvasModel child : " + ((INameable)child).getName() + " (" + child.eClass().getName() + ")");

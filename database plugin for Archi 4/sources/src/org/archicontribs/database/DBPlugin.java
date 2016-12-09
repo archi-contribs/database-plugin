@@ -94,6 +94,7 @@ import java.util.Base64;
  *							Increase ID length to 32 chars
  * v1.0 : 10/12/2016		Cancel the export when some elements are located outside their project's subfolder
  * 							Remove the Oracle support that is too buggy
+ * v1.0.1: 09/01/2017		Solve bug preventing to export a canvas embedded into another canvas
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";

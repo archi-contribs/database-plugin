@@ -211,6 +211,7 @@ CREATE TABLE diagrammodelreference (
    `fontcolor` VARCHAR(7),
    `linecolor` VARCHAR(7),
    `linewidth` INTEGER,
+   `diagrammodelid` VARCHAR(100),
    `parent` VARCHAR(100) NOT NULL,
    `textalignment` INTEGER,
    `targetconnections` TEXT,
