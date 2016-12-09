@@ -7,7 +7,6 @@ Download the **_org.archicontribs.database_v0.11(archi4).jar_** file into Archi'
 1. Create a database that will be used to store your models
 At the moment, the following brands are supported :
 * MySQL
-* Oracle
 * PostGreSQL
 * SQLite
 * Neo4j
