@@ -12,6 +12,12 @@ import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * This class creates a tabItem's tab with the counters used in the import and export mothods.
+ * A progress bar allows to follow the counters evolution
+ * 
+ * @author Herve Jouin
+ */
 public class DBProgressTabItem {
 	private TabItem tabItem;
 	private Text text;

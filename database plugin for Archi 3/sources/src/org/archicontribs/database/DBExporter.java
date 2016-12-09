@@ -98,6 +98,23 @@ public class DBExporter implements IModelExporter {
 		
 		dbModel = new DBModel(_model);
 		
+		// first, we check if we are in shared mode.
+		//    if this is the case, we must cancel the export if some components ar enot located in their project sub-folder.
+		if ( dbModel.isShared() ) {
+			for (IFolder folder: dbModel.getFolders() ) {
+				if ( !folder.getElements().isEmpty() ) {
+					DBPlugin.popup(Level.Error, "Some elements are located in the root of folder \""+folder.getName()+"\".\n\nPlease move then in their projets sub-folder before exporting the model.");
+					DBPlugin.debug(DebugLevel.MainMethod, "-Leaving DBExporter.export("+_model.getName()+")");
+					return;
+				}
+			}
+		}
+		
+		
+		
+		
+		
+		
 		dbSelectModel = new DBSelectModel();
 		try {
 			db = dbSelectModel.selectModelToExport(dbModel);
@@ -637,7 +654,8 @@ public class DBExporter implements IModelExporter {
 			} catch (Exception e) {
 				try {
 					db.rollback();
-				} catch (Exception ee) {
+					db.setAutoCommit(true);
+				} catch (Exception ignore) {
 					// do nothing as if the transaction has not been committed, it will be rolled back by the database anyway
 				}
 				DBPlugin.popup(Level.Error, "An error occured while exporting your model to the database.\n\nThe transaction has been rolled back and the database is left unmodified.", e);

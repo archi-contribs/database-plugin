@@ -91,12 +91,15 @@ import java.util.Base64;
  * v0.12.2: 21/11/2016		fix folder count error when exporting project in shared mode
  * 							correct bug causing release note being not saved in the database
  * v0.13.0:	23/11/2016		add MS SQL Server support
+ *							Increase ID length to 32 chars
+ * v1.0 : 10/12/2016		Cancel the export when some elements are located outside their project's subfolder
+ * 							Remove the Oracle support that is too buggy
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 	public static DBPlugin INSTANCE;
 	
-	public static final String pluginVersion = "0.13.0";
+	public static final String pluginVersion = "1.0";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static final String Separator = ";";
@@ -106,12 +109,12 @@ public class DBPlugin extends AbstractUIPlugin {
 	/**
 	 * List of the implemented drivers
 	 */
-	public static final String[] driverList = {"Neo4j", "MS SQL", "MySQL", "Oracle", "PostGreSQL", "SQLite"};
+	public static final String[] driverList = {"Neo4j", "MS SQL", "MySQL", /*"Oracle",*/ "PostGreSQL", "SQLite"};
 	
 	/**
 	 * List of the the default TCP ports
 	 */
-	public static final String[] defaultPorts = {"7687", "1433", "3306", "1521", "5432", ""};
+	public static final String[] defaultPorts = {"7687", "1433", "3306", /*"1521",*/ "5432", ""};
 
 	/**
 	 * Name of all the table names in a SQL database
@@ -709,7 +712,7 @@ public class DBPlugin extends AbstractUIPlugin {
 			case "ms sql"     : Class.forName("com.microsoft.sqlserver.jdbc.SQLServerDriver");  DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:sqlserver://" + server + ":" + port + ";databaseName=" + database);	db = DriverManager.getConnection("jdbc:sqlserver://" + server + ":" + port + ";databaseName=" + database, username, password);				break;
 			case "mysql"      : Class.forName("com.mysql.jdbc.Driver");          				DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:mysql://" + server + ":" + port + "/" + database+"?useSSL=false");	db = DriverManager.getConnection("jdbc:mysql://" + server + ":" + port + "/" + database+"?useSSL=false", username, password); 	break;
 			case "neo4j"      : Class.forName("org.neo4j.jdbc.Driver");           				DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:neo4j:bolt://" + server + ":" + port);								db = DriverManager.getConnection("jdbc:neo4j:bolt://" + server + ":" + port, username, password); 								break;
-			case "oracle"     : Class.forName("oracle.jdbc.driver.OracleDriver"); 				DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:oracle:thin:@" + server + ":" + port+ ":" + database);				db = DriverManager.getConnection("jdbc:oracle:thin:@" + server + ":" + port+ ":" + database, username, password); 				break;
+			//case "oracle"     : Class.forName("oracle.jdbc.driver.OracleDriver"); 				DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:oracle:thin:@" + server + ":" + port+ ":" + database);				db = DriverManager.getConnection("jdbc:oracle:thin:@" + server + ":" + port+ ":" + database, username, password); 				break;
 			case "sqlite"     : Class.forName("org.sqlite.JDBC");                 				DBPlugin.debug(DebugLevel.Variable, "JDBC connection string = jdbc:sqlite:"+server);													db = DriverManager.getConnection("jdbc:sqlite:"+server);
 			}
 		} catch (SQLException err) {

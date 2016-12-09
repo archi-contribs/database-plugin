@@ -52,6 +52,8 @@ import org.eclipse.swt.widgets.Widget;
  * table. The table also allows in-place editing of values.
  *
  * inspired by Sandip V. Chitale work (https://code.google.com/archive/p/pathtools/)
+ * 
+ * @author Herve jouin
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private TableViewer tableViewer;

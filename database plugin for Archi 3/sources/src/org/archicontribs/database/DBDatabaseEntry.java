@@ -6,6 +6,11 @@ import java.util.List;
 import org.archicontribs.database.DBPlugin.DebugLevel;
 import org.eclipse.jface.preference.IPreferenceStore;
 
+/**
+ * This class holds the information required to connect to a database
+ * 
+ * @author Herve Jouin
+ */
 public class DBDatabaseEntry {
 	public static String preferenceName = "databases";
 	public static String[] properties = {"name", "driver", "server", "port", "database", "username", "password"}; 

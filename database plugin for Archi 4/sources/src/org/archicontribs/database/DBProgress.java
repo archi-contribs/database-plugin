@@ -15,6 +15,11 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TabFolder;
 
+/**
+ * This class shows up a popup to follow up the import and export process. This window includes a tabitem that hosts DBProgressTabItem
+ * 
+ * @author Herve Jouin
+ */
 public class DBProgress extends Dialog {
 	private Shell dialog;
 	private Button button;

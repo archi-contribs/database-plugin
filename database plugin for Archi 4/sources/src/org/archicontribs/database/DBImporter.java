@@ -56,22 +56,10 @@ import com.archimatetool.model.ISketchModelSticky;
 import com.archimatetool.model.impl.ArchimateFactory;
 import java.util.Base64;
 
-//
-//vérifier si des vues ou des relations d'autres modèles référencent des objets disparus
-//pour ça, utiliser la transaction :
-//  1 - créer transaction
-//  2 - sauvegarder le modèle
-//  3 - demander à l'utilisateur
-//				soit on modifie les autres projets pour que les vues et les relations pointent vers la nouvelle version des objets
-//				soit on ne les modifie pas
-//				soit on utilise une propriété pour le spécifier, objet par objet
-//  4 - si des modèles sont modifiés par cette opération, alors il faut auto-générer une nouvelle version
-//
-
 /**
  * Import from Database
  * 
- * @author Hervé JOUIN
+ * @author Herve Jouin
  */
 public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	private Connection db;
@@ -304,11 +292,11 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		for ( HashMap<String, String> modelSelected: selectedModels ) {
 			try {
 				//TODO
-				// Si on référence des objets d'autres modèles (dans une vue ou dans des relations)
-				// alors, proposer à l'utilisateur
-				//		soit charger les autres projets (en récursifs car ils peuvent dépendre les uns des autres)
-				//		soit charger uniquement les objets dépendants dans un dossier spécial (mais attention à la sauvegarde)
-				//		soit ne pas les charger mais ils devront être reconduits lors de la sauvegarde
+				// Si on rï¿½fï¿½rence des objets d'autres modï¿½les (dans une vue ou dans des relations)
+				// alors, proposer ï¿½ l'utilisateur
+				//		soit charger les autres projets (en rï¿½cursifs car ils peuvent dï¿½pendre les uns des autres)
+				//		soit charger uniquement les objets dï¿½pendants dans un dossier spï¿½cial (mais attention ï¿½ la sauvegarde)
+				//		soit ne pas les charger mais ils devront ï¿½tre reconduits lors de la sauvegarde
 				//
 				
 				// we stat the chronometer

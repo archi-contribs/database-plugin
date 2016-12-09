@@ -51,9 +51,9 @@ import com.archimatetool.model.ISketchModelSticky;
 /**
  * The DBModel class is a proxy to the IArchimateModel class in standalone mode, and to the IFolder class in shared mode.
  * <br>
- * It allows to transparentely access methods of the right object  
+ * It allows to transparently access methods of the right object  
  * 
- * @author Hervé
+ * @author Herve Jouin
  *
  */
 public class DBModel {

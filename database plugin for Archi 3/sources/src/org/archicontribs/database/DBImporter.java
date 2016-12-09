@@ -55,22 +55,10 @@ import com.archimatetool.model.ISketchModelActor;
 import com.archimatetool.model.ISketchModelSticky;
 import com.sun.org.apache.xml.internal.security.utils.Base64;
 
-//
-//vérifier si des vues ou des relations d'autres modèles référencent des objets disparus
-//pour ça, utiliser la transaction :
-//  1 - créer transaction
-//  2 - sauvegarder le modèle
-//  3 - demander à l'utilisateur
-//				soit on modifie les autres projets pour que les vues et les relations pointent vers la nouvelle version des objets
-//				soit on ne les modifie pas
-//				soit on utilise une propriété pour le spécifier, objet par objet
-//  4 - si des modèles sont modifiés par cette opération, alors il faut auto-générer une nouvelle version
-//
-
 /**
  * Import from Database
  * 
- * @author Hervé JOUIN
+ * @author Herve Jouin
  */
 public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	private Connection db;

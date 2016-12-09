@@ -18,6 +18,7 @@ import java.awt.Toolkit;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,7 +67,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 /**
  * This class shows up a windows that allow the user to select the models to import or export
  * 
- * @author Hervé JOUIN
+ * @author Herve Jouin
  */
 public class DBSelectModel extends Dialog {
 	private enum Action { Unknown, Import, Export };
@@ -1356,6 +1357,10 @@ public class DBSelectModel extends Dialog {
 					return;
 				}
 			} catch (Exception e) {
+				try {
+					dbConnection.rollback();
+					dbConnection.setAutoCommit(true);
+				} catch (SQLException ignore) { }
 				DBPlugin.popup(Level.Error, "Deleting data : SQL Exception !!!", e);
 				DBPlugin.debug(DebugLevel.SecondaryMethod, "-Leaving DBSelectModel.deleteButtonCallback.widgetSelected()");
 				return;
