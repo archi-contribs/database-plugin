@@ -8,7 +8,7 @@ INSERT INTO archidatabaseplugin values('4.0');
 
 CREATE TABLE archimatediagrammodel (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `connectionroutertype` INTEGER,
    `documentation` TEXT,
@@ -22,7 +22,7 @@ CREATE TABLE archimatediagrammodel (
 
 CREATE TABLE archimateelement (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `documentation` TEXT,
    `folder` VARCHAR(50),
@@ -35,7 +35,7 @@ CREATE TABLE archimateelement (
 
 CREATE TABLE bendpoint (
    `parent` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `startx` INTEGER,
    `starty` INTEGER,
@@ -48,7 +48,7 @@ CREATE TABLE bendpoint (
 
 CREATE TABLE canvasmodel (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `documentation` TEXT,
    `folder` VARCHAR(50),
@@ -62,7 +62,7 @@ CREATE TABLE canvasmodel (
 
 CREATE TABLE canvasmodelblock (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `parent` VARCHAR(100),
    `bordercolor` VARCHAR(7),
@@ -93,7 +93,7 @@ CREATE TABLE canvasmodelblock (
 
 CREATE TABLE canvasmodelimage (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `parent` VARCHAR(100),
    `bordercolor` VARCHAR(7),
@@ -119,7 +119,7 @@ CREATE TABLE canvasmodelimage (
 
 CREATE TABLE canvasmodelsticky (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `parent` VARCHAR(100),
    `bordercolor` VARCHAR(7),
@@ -149,7 +149,7 @@ CREATE TABLE canvasmodelsticky (
 
 CREATE TABLE connection (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `class` VARCHAR(50),
    `documentation` TEXT,
@@ -174,7 +174,7 @@ CREATE TABLE connection (
 
 CREATE TABLE diagrammodelarchimateobject (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `archimateelementid` VARCHAR(100),
    `archimateelementname` TEXT,
@@ -206,7 +206,7 @@ CREATE TABLE diagrammodelarchimateobject (
 
 CREATE TABLE diagrammodelreference (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `fillcolor` VARCHAR(7),
    `font` VARCHAR(150),
@@ -229,7 +229,7 @@ CREATE TABLE diagrammodelreference (
 
 CREATE TABLE folder (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `documentation` TEXT,
    `parent` VARCHAR(50),
@@ -242,14 +242,14 @@ CREATE TABLE folder (
 
 CREATE TABLE images (
    `path` VARCHAR(50),
-   `md5` VARCHAR(32),
+   `md5` VARCHAR(50),
    `image` MEDIUMBLOB,
 	
 	CONSTRAINT pk_images PRIMARY KEY (path)
 );
 
 CREATE TABLE model (
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `name` VARCHAR(255) NOT NULL,
    `note` TEXT,
@@ -285,7 +285,7 @@ CREATE TABLE model (
 CREATE TABLE property (
    `id` VARCHAR(50) NOT NULL,
    `parent` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `name` TEXT NOT NULL,
    `value` TEXT,
@@ -295,7 +295,7 @@ CREATE TABLE property (
 
 CREATE TABLE relationship (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `documentation` TEXT,
    `name` TEXT NOT NULL,
@@ -311,7 +311,7 @@ CREATE TABLE relationship (
 
 CREATE TABLE sketchmodel (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `name` TEXT,
    `documentation` TEXT,
@@ -324,7 +324,7 @@ CREATE TABLE sketchmodel (
 
 CREATE TABLE sketchmodelactor (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `parent` VARCHAR(100),
    `fillcolor` VARCHAR(7),
@@ -347,7 +347,7 @@ CREATE TABLE sketchmodelactor (
 
 CREATE TABLE sketchmodelsticky (
    `id` VARCHAR(50) NOT NULL,
-   `model` VARCHAR(32) NOT NULL,
+   `model` VARCHAR(50) NOT NULL,
    `version` VARCHAR(11) NOT NULL,
    `parent` VARCHAR(100),
    `content` TEXT,
