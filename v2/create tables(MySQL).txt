@@ -59,7 +59,7 @@ CREATE TABLE folders_in_model (
   PRIMARY KEY (fin_id));
 CREATE TABLE images (
   path     varchar(50) NOT NULL, 
-  image    blob NOT NULL, 
+  image    longblob NOT NULL, 
   checksum varchar(50) NOT NULL, 
   PRIMARY KEY (path));
 CREATE TABLE models (
@@ -141,7 +141,7 @@ CREATE TABLE views_connections (
   line_color       varchar(7), 
   line_width       int(10), 
   font             varchar(150), 
-  font_color       int(10), 
+  font_color       varchar(7), 
   relationship_id  varchar(50), 
   source_object_id varchar(50), 
   target_object_id varchar(50), 
