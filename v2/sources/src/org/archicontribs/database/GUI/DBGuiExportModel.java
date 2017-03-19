@@ -9,12 +9,12 @@ import java.util.Iterator;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.IDBMetadata;
-import org.archicontribs.database.DBMetadata.CONFLICT_CHOICE;
-import org.archicontribs.database.model.ArchimateModel;
-import org.archicontribs.database.preferences.DBPreferencePage;
+import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
+import org.archicontribs.database.model.impl.ArchimateModel;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -78,20 +78,24 @@ public class DBGuiExportModel extends DBGui {
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 	
 	private ArchimateModel exportedModel = null;
-	private DBPreferencePage preferencePage = new DBPreferencePage();
 	private Exception jobException = null;
 	
 	private Group grpComponents;
 	private Group grpModel;
 	
+	//TODO : add a preference to immediately export the model on the first database with a standard release note or no release note at all
+	//TODO : add an option to deactivate the check before the export if all the components have got a currentVersion
+	//TODO : do not separate the export of components and graphical objects as now folders and views are shared
+	
+	
 	/**
 	 * Creates the GUI to export components and model
 	 */
 	public DBGuiExportModel(ArchimateModel model, String title) {
-			// We call the DBFormGUI constructor that will create the underlaying form and expose the compoRight, compoRightUp and compoRightBottom composites
+			// We call the DBGui constructor that will create the underlaying form and expose the compoRight, compoRightUp and compoRightBottom composites
 		super(title);
 		
-			// We count the exported model's components in a separate thread
+			// We count the exported model's components and calculate their checksum in a separate thread
 		Job job = new Job("countEObjects") {
 			@Override
 			protected IStatus run(IProgressMonitor monitor) {
@@ -148,7 +152,7 @@ public class DBGuiExportModel extends DBGui {
 		setActiveAction(ACTION.One);
 		
 			// we show the option in the bottom
-		setOption("Export type :", "Whole model", "The whole model will be exported, including the views and graphical components.", "Elements and relationships only", "Only the elements and relationships will be exported. This may be useful in case of a graph database for instance.", preferencePage.getDefaultExportType() == DBPreferencePage.EXPORT_TYPE.EXPORT_MODEL);
+		setOption("Export type :", "Whole model", "The whole model will be exported, including the views and graphical components.", "Elements and relationships only", "Only the elements and relationships will be exported. This may be useful in case of a graph database for instance.", true);
 		
 			// We activate the btnDoAction button : if the user select the "Export" button --> call the exportComponents() method
 		setBtnAction("Export", new SelectionListener() {
@@ -498,10 +502,10 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	/**
-	 * Calls the database.checkComponentsToExport() method to compare exported model's components checksum with the one stored in the database and fill in their count in the corresponding labels.<br>
-	 * If no exception is raised, then the "Export" button is enabled.
+	 * This method is called each time a database is selected and a connection has been established to it.<br>
 	 * <br>
-	 * This method is called each time a database is selected and a connection has been established to it.
+	 * It calls the database.checkComponentsToExport() method to compare exported model's components checksum with the one stored in the database and fill in their count in the corresponding labels.<br>
+	 * If no exception is raised, then the "Export" button is enabled.
 	 */
 	@Override
 	protected void connectedToDatabase() {	
@@ -589,7 +593,7 @@ public class DBGuiExportModel extends DBGui {
 		int exportSize;
 		if ( getOptionValue() ) {
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllRelationships().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewsObjects().size()+" views objects, "+exportedModel.getAllViewsConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
-			exportSize = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewsObjects().size()+exportedModel.getAllViewsConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
+			exportSize = exportedModel.getAllFolders().size()+exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewsObjects().size()+exportedModel.getAllViewsConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting components only : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships.");
 			exportSize = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size();
@@ -637,7 +641,6 @@ public class DBGuiExportModel extends DBGui {
 				try {
 						// if we need to save the model
 					if ( getOptionValue() ) {
-						int rank = 0;
 							// we retrieve the latest version of the model in the database and increase the version number.
 							// we use COALESCE to guarantee that a value is returned, even if the model id does not exist in the database
 						//TODO : mode to DBdatabase class
@@ -646,12 +649,12 @@ public class DBGuiExportModel extends DBGui {
 						exportedModel.setExportedVersion(result.getInt("version") + 1);
 						result.close();
 	
-						if ( logger.isDebugEnabled() ) logger.debug("Exporting model");
+						if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
 						database.exportModel(exportedModel, releaseNote);
 						
 						if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 						for (IFolder folder: exportedModel.getFolders())
-							rank = exportFolder(folder, rank);
+							exportFolder(folder);
 					}
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
@@ -666,6 +669,7 @@ public class DBGuiExportModel extends DBGui {
 						doExportComponent(relationshipsIterator.next().getValue());
 					}
 				} catch (Exception err) {
+					DBPlugin.setAsyncException(err);
 					try  {
 						database.rollback();
 						popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
@@ -982,8 +986,6 @@ public class DBGuiExportModel extends DBGui {
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting the views");
 			rank = 0;
 			for ( IDiagramModel view: exportedModel.getAllViews().values() ) {
-
-				// TODO : ajouter checksum + timestamp
 				// TODO : manage conflicts
 
 				database.insert("INSERT INTO views_in_model (view_id, view_version, parent_folder_id, model_id, model_version, rank)"
@@ -1027,6 +1029,7 @@ public class DBGuiExportModel extends DBGui {
 				
 				increaseProgressBar();
 			}
+			sync();
 			
 				/////////////////////////////
 				// We export the views objects
@@ -1056,7 +1059,7 @@ public class DBGuiExportModel extends DBGui {
 						,(eObject instanceof IHintProvider) ? ((IHintProvider)eObject).getHintContent() : null
 						,(eObject instanceof IHintProvider) ? ((IHintProvider)eObject).getHintTitle() : null
 								//TODO : add helpHintcontent and helpHintTitle
-						,(eObject instanceof ILockable) ? ((ILockable)eObject).isLocked() : null
+						,(eObject instanceof ILockable) ? (((ILockable)eObject).isLocked()?1:0) : null
 						,(eObject instanceof IDiagramModelImageProvider) ? ((IDiagramModelImageProvider)eObject).getImagePath() : null
 						,(eObject instanceof IIconic) ? ((IIconic)eObject).getImagePosition() : null
 						,(eObject instanceof ILineObject) ? ((ILineObject)eObject).getLineColor() : null
@@ -1093,6 +1096,7 @@ public class DBGuiExportModel extends DBGui {
 					((IDBMetadata)eObject).getDBMetadata().setCurrentVersion(((IDBMetadata)eObject).getDBMetadata().getExportedVersion());
 					increaseProgressBar();
 				}
+				sync();
 					
 					/////////////////////////////
 					// We export the views connections
@@ -1114,7 +1118,7 @@ public class DBGuiExportModel extends DBGui {
 							,eObject.getClass().getSimpleName()
 							,(eObject instanceof INameable     && !(eObject instanceof IDiagramModelArchimateConnection)) ? ((INameable)eObject).getName() : null					// if there is a relationship behind, the name is the relationship name, so no need to store it.
 							,(eObject instanceof IDocumentable && !(eObject instanceof IDiagramModelArchimateConnection)) ? ((IDocumentable)eObject).getDocumentation() : null		// if there is a relationship behind, the documentation is the relationship name, so no need to store it.
-							,(eObject instanceof ILockable) ? ((ILockable)eObject).isLocked() : null	
+							,(eObject instanceof ILockable) ? (((ILockable)eObject).isLocked()?1:0) : null	
 							,(eObject instanceof ILineObject) ? ((ILineObject)eObject).getLineColor() : null
 							,(eObject instanceof ILineObject) ? ((ILineObject)eObject).getLineWidth() : null		
 							,(eObject instanceof IFontAttribute) ? ((IFontAttribute)eObject).getFont() : null
@@ -1158,6 +1162,7 @@ public class DBGuiExportModel extends DBGui {
 					((IDBMetadata)eObject).getDBMetadata().setCurrentVersion(((IDBMetadata)eObject).getDBMetadata().getExportedVersion());
 					increaseProgressBar();
 				}
+				sync();
 				
 					/////////////////////////////
 					// We export the images
@@ -1166,7 +1171,7 @@ public class DBGuiExportModel extends DBGui {
 				IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: archiveMgr.getImagePaths() ) {
 					byte[] image = archiveMgr.getBytesFromEntry(path);
-					String checksum = DBPlugin.calculateChecksum(image);
+					String checksum = DBChecksum.calculateChecksum(image);
 
 					ResultSet result = database.select("SELECT checksum FROM images WHERE path = ?", path);
 
@@ -1189,6 +1194,8 @@ public class DBGuiExportModel extends DBGui {
 					result.close();
 					increaseProgressBar();
 				}
+				
+				sync();
 
 			} catch (Exception err) {
 				try  {
@@ -1214,17 +1221,15 @@ public class DBGuiExportModel extends DBGui {
 		}
 	}
 	
-	protected int exportFolder(IFolder folder, int rank) throws Exception {
-		int newRank = rank;
-		database.exportFolder(folder, newRank++);
+	protected void exportFolder(IFolder folder) throws Exception {
+		if ( logger.isTraceEnabled() ) logger.trace("Exporting folder "+folder.getName());
+		database.exportFolder(folder);
 		
 		increaseProgressBar();
 		
 		for (IFolder subFolder: folder.getFolders()) {
-			newRank = exportFolder(subFolder, newRank);
+			exportFolder(subFolder);
 		}
-		
-		return newRank;
 	}
 	
 	protected void doShowResult() {
@@ -1233,7 +1238,6 @@ public class DBGuiExportModel extends DBGui {
 		setActiveAction(ACTION.Four);
 		btnClose.setText("close");
 		
-		popup(Level.INFO, "The model has been successfully exported.");
 		close();
 		
 		//TODO: créer page de status

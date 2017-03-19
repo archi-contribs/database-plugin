@@ -5,7 +5,7 @@ import java.sql.ResultSet;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.IDBMetadata;
+import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;

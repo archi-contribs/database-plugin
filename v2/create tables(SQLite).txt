@@ -35,7 +35,8 @@ CREATE TABLE elements_in_model (
   element_version  integer(10) NOT NULL, 
   parent_folder_id varchar(50) NOT NULL, 
   model_id         varchar(50) NOT NULL, 
-  model_version    integer(10) NOT NULL);
+  model_version    integer(10) NOT NULL, 
+  rank             integer(10) NOT NULL);
 CREATE TABLE folders (
   id            varchar(50) NOT NULL, 
   version       integer(10) NOT NULL, 
@@ -108,7 +109,8 @@ CREATE TABLE relationships_in_model (
   relationship_version integer(10) NOT NULL, 
   parent_folder_id     varchar(50) NOT NULL, 
   model_id             varchar(50) NOT NULL, 
-  model_version        integer(10) NOT NULL);
+  model_version        integer(10) NOT NULL, 
+  rank                 integer(10) NOT NULL);
 CREATE TABLE views (
   id                     varchar(50) NOT NULL, 
   version                integer(10) NOT NULL, 
@@ -116,7 +118,7 @@ CREATE TABLE views (
   name                   varchar(1024) NOT NULL, 
   documentation          clob NOT NULL, 
   hint_content           clob, 
-  hint_title             integer(10), 
+  hint_title             varchar(1024), 
   created_by             varchar(30) NOT NULL, 
   created_on             timestamp NOT NULL, 
   background             integer(10), 
@@ -134,11 +136,11 @@ CREATE TABLE views_connections (
   class            varchar(50) NOT NULL, 
   name             varchar(1024), 
   documentation    clob, 
-  is_locked        boolean, 
+  is_locked        tinyint(1), 
   line_color       varchar(7), 
   line_width       integer(10), 
   font             varchar(150), 
-  font_color       integer(10), 
+  font_color       varchar(7), 
   relationship_id  varchar(50), 
   source_object_id varchar(50), 
   target_object_id varchar(50), 
@@ -171,7 +173,7 @@ CREATE TABLE views_objects (
   documentation  clob, 
   hint_content   clob, 
   hint_title     varchar(1024), 
-  is_locked      boolean, 
+  is_locked      tinyint(1), 
   image_path     varchar(50), 
   image_position integer(10), 
   line_color     varchar(7), 

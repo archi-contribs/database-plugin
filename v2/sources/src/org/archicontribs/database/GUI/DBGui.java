@@ -49,6 +49,7 @@ public class DBGui {
 	
 	public static final Color LIGHT_GREEN_COLOR = new Color(null, 204, 255, 229);
 	public static final Color LIGHT_RED_COLOR = new Color(null, 255, 230, 230);
+	public static final Color RED_COLOR = new Color(null, 240, 0, 0);
 	public static final Color WHITE_COLOR = new Color(null, 220,220,220);
 	public static final Color GREY_COLOR = new Color(null, 100, 100, 100);
 	public static final Color BLACK_COLOR = new Color(null, 0, 0, 0);
@@ -57,6 +58,7 @@ public class DBGui {
 	public static final Color COMPO_BACKGROUND_COLOR = new Color(null, 250, 250, 250);	// light grey
 	public static final Color GROUP_BACKGROUND_COLOR = new Color(null, 235, 235, 235);	// light grey (a bit darker than compo background)
 	public static final Color TABLE_BACKGROUND_COLOR = GROUP_BACKGROUND_COLOR;
+	public static final Color HIGHLIGHTED_COLOR = Display.getCurrent().getSystemColor(SWT.COLOR_GRAY);
 	
 	public static final Color STRATEGY_COLOR = new Color(null, 255, 222, 170);
 	public static final Color BUSINESS_COLOR = new Color(null, 255, 255, 181);
@@ -82,6 +84,10 @@ public class DBGui {
 	public static final Image WARNING_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/10x10/warning.png"));
 	public static final Image OK_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/10x10/ok.png"));
 	public static final Image RIGHT_ARROW_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/10x10/right_arrow.png"));
+	
+	public static final Image LOCK_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/10x10/lock.png"));
+	public static final Image UNLOCK_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/10x10/unlock.png"));
+	
 	public static final Image HELP_ICON = new Image(null, DBGui.class.getResourceAsStream("/img/28x28/help.png"));
 	
 	public static final Image GREY_BACKGROUND = new Image(null, DBGui.class.getResourceAsStream("/img/grey.png"));
@@ -471,12 +477,14 @@ public class DBGui {
 	 */
 	protected void databaseSelected() {
 		popup("Please wait while connecting to the database ...");
-		//TODO : add a progressbar in the popup !!!
+		
+		databaseSelectedCleanup();
 		
 		btnDoAction.setEnabled(false);
 		
 			// we get the databaseEntry corresponding to the selected combo entry
 		database = databaseEntries.get(comboDatabases.getSelectionIndex());
+		setOption(database.getExportWholeModel());
 		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + database.getName()+" ("+database.getDriver()+", "+database.getServer()+", "+database.getPort()+", "+database.getDatabase()+", "+database.getUsername()+", "+database.getPassword()+")");
 		
 			// then we connect to the database.
@@ -503,6 +511,10 @@ public class DBGui {
 		
 		connectedToDatabase();
 		closePopup();
+	}
+	
+	protected void databaseSelectedCleanup() {
+		//to be overriden
 	}
 	
 	protected void connectedToDatabase() {
@@ -558,16 +570,21 @@ public class DBGui {
 		}
 	}
 	
-	protected void setOption(String label, String option1, String toolTip1, String option2, String toolTip2, boolean firstSelected ) {
-		lblOption.setText(label);
-				
-		radioOption1.setText(option1);
+	protected void setOption(boolean firstSelected) {
 		radioOption1.setSelection(firstSelected == true);
-		radioOption1.setToolTipText(toolTip1);
-		
-		radioOption2.setText(option2);
 		radioOption2.setSelection(firstSelected == false);
-		radioOption2.setToolTipText(toolTip2);
+	}
+	
+	protected void setOption(String label, String option1, String toolTip1, String option2, String toolTip2, boolean firstSelected ) {
+		if ( label != null ) lblOption.setText(label);
+				
+		if ( option1 != null ) radioOption1.setText(option1);
+		if ( toolTip1 != null ) radioOption1.setToolTipText(toolTip1);
+		radioOption1.setSelection(firstSelected == true);
+		
+		if ( option2 != null ) radioOption2.setText(option2);
+		if ( toolTip2 != null ) radioOption2.setToolTipText(toolTip2);
+		radioOption2.setSelection(firstSelected == false);
 		
 		compoBottom.layout();
 		
@@ -798,7 +815,7 @@ public class DBGui {
 	}
 	
 	/**
-	 * Resets the selection of the progressBar to zero
+	 * Resets the progressBar to zero in the SWT thread (thread safe method)
 	 */
 	protected void resetProgressBar() {
 		display.asyncExec(new Runnable() { @Override public void run() { progressBar.setSelection(0); } });
@@ -808,7 +825,12 @@ public class DBGui {
 	 * Increases the progressBar selection in the SWT thread (thread safe method)
 	 */
 	protected void increaseProgressBar() {
-		display.asyncExec(new Runnable() { @Override public void run() { progressBar.setSelection(progressBar.getSelection()+1); } });
+		display.asyncExec(new Runnable() {
+			@Override public void run() {
+				progressBar.setSelection(progressBar.getSelection()+1);
+				if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(progressBar.getSelection()+1)+"/"+progressBar.getMaximum());
+			}
+		});
 	}
 	
 	/**
@@ -817,13 +839,50 @@ public class DBGui {
 	protected void close() {
 		display.syncExec(new Runnable() {
 			@Override public void run() {
-				if ( btnClose.getText().equals("Cancel") )
+				if ( DBPlugin.areEqual(btnClose.getText(), "Cancel") )
 					if ( logger.isDebugEnabled() ) logger.debug("Operation cancelled by user.");
+				//TODO: create class property "cancelled" that will be checked by other threads to stop their processing
+				//TODO: add loop to manage all remaining graphical events because of async execs created by other threads
 				try { database.close(); } catch (Exception ignore) {}
 				database = null;
 				dialog.close();
 				dialog = null;
 			}
 		});
+	}
+	
+	/**
+	 * Waits for all the asynchronous commands sent to SWT have finished
+	 */
+	public void sync() throws InterruptedException {
+		if ( logger.isTraceEnabled() ) logger.trace("Synchronizing threads ...");
+		if ( Display.getCurrent() != null ) {
+			// if we are in the SWT thread, we dispatch all the events until there is no more
+			while ( Display.getCurrent().readAndDispatch() );
+		} else {
+			// if we are in an async thread, we lock an object and ask SWT to unlock it.
+			
+			int timeout = 10000;	// timeout = 10 seconds
+	        long before = 0L;
+	
+	        if ( logger.isTraceEnabled() ) before = System.nanoTime();
+	        
+			final Object waitObj = new Object();
+			display.asyncExec(new Runnable() {
+				public void run () {
+					synchronized (waitObj) { waitObj.notify(); }
+				}
+			});
+	
+			synchronized (waitObj) { waitObj.wait(timeout); }
+	        
+	        if ( logger.isTraceEnabled() ) {
+	        	long duration = (before - System.nanoTime())/1000000;		// we divide by 1000000 to convert nanoseconds to miliseconds
+	        	if ( duration >= timeout)
+	            	logger.trace("Timeout reached while waiting for thread synchronization ("+duration+") ...");
+	            else
+	            	logger.trace("Threads synchronized ...");
+	        }
+		}
 	}
 }

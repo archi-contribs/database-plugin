@@ -296,13 +296,13 @@ public class DBLogger {
 	 * Returns true if the logger is configured to print trace messages
 	 */
 	public boolean isTraceEnabled() {
-		return logger.isTraceEnabled();
+		return initialised && logger.isTraceEnabled();
 	}
 	
 	/**
 	 * Returns true if the logger is configured to print debug messages
 	 */
 	public boolean isDebugEnabled() {
-		return logger.isDebugEnabled();
+		return initialised && logger.isDebugEnabled();
 	}
 }

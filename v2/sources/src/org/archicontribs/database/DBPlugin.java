@@ -7,9 +7,6 @@
 package org.archicontribs.database;
 
 import java.io.File;
-import java.math.BigInteger;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
 import java.text.Collator;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -39,7 +36,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * v0.1 : 			25/03/2016		plug-in creation
  * v1.0.0 :			10/12/2016		First production release
  * v2.0.0.beta1 :	26/02/2017		Added log4j support
- * 									Versionning at the element level
+ * 									Version all the elements and relationships
  * 									Reduce the quantity of data exported by exporting only updated components (use of checksums)
  * 									Detect database conflicts and add a conflict resolution mechanism
  * 									Reduce number of database tables
@@ -50,6 +47,18 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 									Complete rework of the graphical interface
  * 									Add the ability to import components from other models
  * 									Add inline help
+ * v2.0.0.beta2 :	19/03/2017		Importing an element now imports its relationships as well
+ * 									Add import folder functionality
+ * 									Add import view functionality
+ * 									Change RCP methods to insert entries in menus in order to be more friendly with other plugins
+ * 									Solve a bug with MySQL databases for which aliases in SQL joins are mandatory
+ * 									Solve a bug in progressBar which did not represent 100%
+ * 									Launch the import process on double-click in the model list table
+ * 									The ID is now shown in right menu only in debug mode
+ *									Few java optimizations
+ *									Improve exceptions catching between threads
+ *									Replace boolean database columns by integer columns for better compatibility
+ * 
  * 									// todo : dynamically load jdbc drivers
  * 									// todo : add datamodel management to preferences window
  * 									// todo : add an option to check if there is no missing relationship in the model comparing to the database (may be do this during import as well)
@@ -60,7 +69,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 	
-	public static final String pluginVersion = "2.0.0.beta1";
+	public static final String pluginVersion = "2.0.0.beta2";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static final String Separator = ";";
@@ -143,28 +152,6 @@ public class DBPlugin extends AbstractUIPlugin {
 		for ( String s: _phrase.split(" ") )
 			result.append(s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase());
 		return result.toString();
-	}
-	
-	/**
-	 * Calculate a MD5 from a byte array
-	 * 
-	 * @param _input
-	 * @return the calculated MD5
-	 * @throws NoSuchAlgorithmException
-	 */
-	public static String calculateChecksum(byte[] _input) {
-	    if ( _input == null )
-	    	return null;
-	    
-		try {
-	    	MessageDigest md;
-			md = MessageDigest.getInstance("MD5");
-	    	md.update(_input);
-	    	BigInteger hash = new BigInteger(1, md.digest());
-	    	return hash.toString(16);
-		} catch (NoSuchAlgorithmException e) {
-			return Integer.toString(_input.hashCode());
-		}
 	}
 	
 	public static void replaceFirst(StringBuilder str, String searched, String replaced) {
@@ -313,4 +300,49 @@ public class DBPlugin extends AbstractUIPlugin {
 			}
 		}
 	};
+	
+	/**
+	 * Check if two strings are equals
+	 */
+	public static boolean areEqual(String str1, String str2) {
+		if ( str1 == null )
+			return str2 == null;
+		
+		if ( str2 == null )
+			return false;			// as str1 cannot be null at this stage
+		
+		return str1.equals(str2);
+	}
+	
+	/**
+	 * Check if two strings are equals (ignore case)
+	 */
+	public static boolean areEqualIgnoreCase(String str1, String str2) {
+		if ( str1 == null )
+			return str2 == null;
+		
+		if ( str2 == null )
+			return false;			// as str1 cannot be null at this stage
+		
+		return str1.equalsIgnoreCase(str2);
+	}
+	
+	/**
+	 * Exception raised during an asynchronous thread
+	 */
+	private static Exception asyncException = null;
+	
+	/**
+	 * Gets the latest exception raised during an asynchronous thread
+	 */
+	public static Exception getAsyncException() {
+		return asyncException;
+	}
+	
+	/**
+	 * Set an exception during an asynchronous thread
+	 */
+	public static void setAsyncException(Exception e) {
+		asyncException = e;
+	}
 }

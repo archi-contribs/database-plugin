@@ -36,6 +36,7 @@ CREATE TABLE elements_in_model (
   parent_folder_id varchar(50) NOT NULL, 
   model_id         varchar(50) NOT NULL, 
   model_version    int4 NOT NULL, 
+  rank             int4 NOT NULL, 
   PRIMARY KEY (cin_id));
 CREATE TABLE folders (
   id            varchar(50) NOT NULL, 
@@ -111,6 +112,7 @@ CREATE TABLE relationships_in_model (
   parent_folder_id     varchar(50) NOT NULL, 
   model_id             varchar(50) NOT NULL, 
   model_version        int4 NOT NULL, 
+  rank                 int4 NOT NULL, 
   PRIMARY KEY (cin_id));
 CREATE TABLE views (
   id                     varchar(50) NOT NULL, 
@@ -119,7 +121,7 @@ CREATE TABLE views (
   name                   varchar(1024) NOT NULL, 
   documentation          text NOT NULL, 
   hint_content           text, 
-  hint_title             int4, 
+  hint_title             varchar(1024), 
   created_by             varchar(30) NOT NULL, 
   created_on             timestamp NOT NULL, 
   background             int4, 
@@ -137,11 +139,11 @@ CREATE TABLE views_connections (
   class            varchar(50) NOT NULL, 
   name             varchar(1024), 
   documentation    text, 
-  is_locked        bool, 
+  is_locked        int2, 
   line_color       varchar(7), 
   line_width       int4, 
   font             varchar(150), 
-  font_color       int4, 
+  font_color       varchar(7), 
   relationship_id  varchar(50), 
   source_object_id varchar(50), 
   target_object_id varchar(50), 
@@ -151,6 +153,7 @@ CREATE TABLE views_connections (
   PRIMARY KEY (id, 
   version, 
   container_id));
+COMMENT ON TABLE views_connections IS 'views_connections parents can be either a view, a canvas or a sketch but any container as well.';
 CREATE TABLE views_in_model (
   vin_id           SERIAL NOT NULL, 
   view_id          varchar(50) NOT NULL, 
@@ -175,7 +178,7 @@ CREATE TABLE views_objects (
   documentation  text, 
   hint_content   text, 
   hint_title     varchar(1024), 
-  is_locked      bool, 
+  is_locked      int2, 
   image_path     varchar(50), 
   image_position int4, 
   line_color     varchar(7), 
@@ -197,3 +200,5 @@ CREATE TABLE views_objects (
   PRIMARY KEY (id, 
   version, 
   container_id));
+COMMENT ON TABLE views_objects IS 'views_objects parents can be either a view, a canvas or a sketch but any container as well.';
+COMMENT ON COLUMN views_objects.rank IS 'the import order is important to respect the superposition';

@@ -2,7 +2,6 @@ package org.archicontribs.database.preferences;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -31,7 +30,6 @@ import org.eclipse.ui.IWorkbench;
  * @author Herve Jouin
  */
 public class DBPreferencePage extends FieldEditorPreferencePage	implements IWorkbenchPreferencePage {
-	private static String[][] EXPORT_TYPES = {{"Whole model", "model"}, {"Components Only", "components"}};
 	private static String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
 	private static String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
 	public enum EXPORT_TYPE {EXPORT_MODEL, EXPORT_COMPONENTS};
@@ -41,7 +39,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Composite loggerComposite;
 	
 	private DBDatabaseEntryTableEditor table;
-	private RadioGroupFieldEditor defaultExportTypeRadioGroupFieldEditor;
 	
 	private RadioGroupFieldEditor loggerModeRadioGroupEditor;
 	private FileFieldEditor filenameFileFieldEditor;
@@ -68,58 +65,61 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	 */
 	protected void createFieldEditors() {
 		if ( logger.isDebugEnabled() ) logger.debug("Creating field editors on preference page");
-		GridData gd;
 		
         PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
         
 		tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		
-		// ********************************* */
-		// * Behaviour tab  **************** */
-		// ********************************* */
+		// ******************************** */
+		// * Database tab  **************** */
+		// ******************************** */
+		Composite databaseComposite = new Composite(tabFolder, SWT.NULL);
+        RowLayout rowLayout = new RowLayout();
+        rowLayout.type = SWT.VERTICAL;
+        rowLayout.pack = true;
+        rowLayout.marginTop = 5;
+        rowLayout.marginBottom = 5;
+        rowLayout.justify = false;
+        rowLayout.fill = false;
+        databaseComposite.setLayoutData(rowLayout);
 		
-		Composite behaviourComposite = new Composite(tabFolder, SWT.NULL);
-		behaviourComposite.setLayout(new GridLayout());
-        
         TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
         behaviourTabItem.setText("Behaviour");
-        behaviourTabItem.setControl(behaviourComposite);
-		
-		Group tableGroup = new Group(behaviourComposite, SWT.NONE);
-		tableGroup.setFont(getFieldEditorParent().getFont());
-		tableGroup.setText("Databases : ");
-		tableGroup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-		table = new DBDatabaseEntryTableEditor("databases", "", tableGroup);
-		addField(table);
+        behaviourTabItem.setControl(databaseComposite);
         
-        defaultExportTypeRadioGroupFieldEditor = new RadioGroupFieldEditor("defaultExportType", "Default export type : ", 1, EXPORT_TYPES, behaviourComposite, true);
-        defaultExportTypeRadioGroupFieldEditor.setIndent(40);
-    	addField(defaultExportTypeRadioGroupFieldEditor);
-    	
-    	//we add an empty line
-    	new Label(behaviourComposite, SWT.NONE);
+		table = new DBDatabaseEntryTableEditor("databases", "", databaseComposite);
+		addField(table);
 
 		// ********************************* */
 		// * Logging tab  ****************** */
 		// ********************************* */
-        
         loggerComposite = new Composite(tabFolder, SWT.NULL);
-        RowLayout rowLayout = new RowLayout();
+        rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
-        loggerComposite.setLayout(rowLayout);
+        rowLayout.pack = true;
+        rowLayout.marginTop = 5;
+        rowLayout.marginBottom = 5;
+        rowLayout.justify = false;
+        rowLayout.fill = false;
+        loggerComposite.setLayoutData(rowLayout);
+        
+        Label note = new Label(loggerComposite, SWT.NONE);
+        note = new Label(loggerComposite, SWT.NONE);
+        note.setText(" Please be aware that enabling debug or, even more, trace level has got important impact on performances!\n Activate only if required.");
+        note.setForeground(DBGui.RED_COLOR);
         
         TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
         loggerTabItem.setText("Logger");
         loggerTabItem.setControl(loggerComposite);
         
-    	
     	loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, loggerComposite, true);
     	addField(loggerModeRadioGroupEditor);
     	
     	simpleModeGroup = new Group(loggerComposite, SWT.NONE);
-    	simpleModeGroup.setLayout(new GridLayout(3, false));
-        gd = new GridData(GridData.FILL_HORIZONTAL);
-        gd.widthHint = 500;
+    	simpleModeGroup.setLayout(new GridLayout());
+    	GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+        //gd.widthHint = 300;
         simpleModeGroup.setLayoutData(gd);
         
         
@@ -134,14 +134,14 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	expertModeGroup = new Group(loggerComposite, SWT.NONE);
     	expertModeGroup.setLayout(new GridLayout());
     	gd = new GridData(GridData.FILL_BOTH);
-    	gd.widthHint = 650;
+    	//gd.widthHint = 350;
     	expertModeGroup.setLayoutData(gd);
         
         expertTextFieldEditor = new DBTextFieldEditor("loggerExpert", "", expertModeGroup);
         expertTextFieldEditor.getTextControl().setLayoutData(gd);
         expertTextFieldEditor.getTextControl().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
         addField(expertTextFieldEditor);
-        
+
         showLogger();
 	}
 	
@@ -199,17 +199,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
     	table.store();
     	
-    	// the showProgress is a private property, so we use reflection to access it
-		try {
-			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
-			field.setAccessible(true);
-			if ( logger.isTraceEnabled() ) logger.trace("defaultExportType = "+(String)field.get(defaultExportTypeRadioGroupFieldEditor));
-			field.setAccessible(false);
-		} catch (Exception err) {
-			logger.error("Failed to retrieve the \"defaultExportType\" value from the preference page", err);
-		}
-    	defaultExportTypeRadioGroupFieldEditor.store();
-    	
     	// the loggerMode is a private property, so we use reflection to access it
 		try {
 			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
@@ -259,7 +248,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
      * @return the default export type preference. Values can be EXPORT_COMPONENTS or EXPORT_MODEL.
      */
 	public EXPORT_TYPE getDefaultExportType() {
-		if ( (DBPlugin.INSTANCE.getPreferenceStore().getString("defaultExportType") == null) || DBPlugin.INSTANCE.getPreferenceStore().getString("defaultExportType").equals("components") )
+		if ( DBPlugin.areEqual(DBPlugin.INSTANCE.getPreferenceStore().getString("defaultExportType"), "components") )
 			return  EXPORT_TYPE.EXPORT_COMPONENTS;
 		else
 			return EXPORT_TYPE.EXPORT_MODEL;
@@ -268,5 +257,4 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	@Override
 	public void init(IWorkbench workbench) {
 	}
-
 }

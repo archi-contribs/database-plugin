@@ -4,9 +4,10 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBArchimateFactory;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateFactory;
+import org.archicontribs.database.model.DBCanvasFactory;
+import org.archicontribs.database.model.impl.ArchimateModel;
 import org.archicontribs.database.preferences.DBPreferencePage;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -36,6 +37,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+import com.archimatetool.model.FolderType;
+
 public class DBGuiImportComponent extends DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGuiImportComponent.class);
 	
@@ -47,27 +50,28 @@ public class DBGuiImportComponent extends DBGui {
 	
 	private Composite compoElements;
 	private Button radioOptionElement;
-	private Button radioOptionComposite;
+	private Button radioOptionContainers;
 	private Button radioOptionFolder;
 	private Button radioOptionView;
 	private Text filterName;
-	private Button filterExist;
+	private Button ignoreCase;
+	private Button filterExist;					// TODO : add listeners to manage this option
 		
-	private Composite compoComposites;
+	private Composite compoContainers;
 	
 	private Composite compoFolders;
 	private Button strategyFolders;
 	private Button applicationFolders;
 	private Button businessFolders;
 	private Button technologyFolders;
-	private Button relationsFolders;
-	private Button othersFolders;
-	private Button diagramsFolders;
+	private Button otherFolders;
 	private Button motivationFolders;
 	private Button implementationFolders;
 	
 	private Composite compoViews;
-	
+	private Button archimateViews;
+	private Button canvasViews;
+	private Button sketchViews;
 	
 	private Table tblComponents;
 	
@@ -128,6 +132,7 @@ public class DBGuiImportComponent extends DBGui {
 	ComponentLabel constaintLabel;
 	ComponentLabel smeaningLabel;
 	ComponentLabel valueLabel;
+	ComponentLabel productLabel;
 	
 	ComponentLabel[] allElementLabels;
 	
@@ -260,28 +265,43 @@ public class DBGuiImportComponent extends DBGui {
 		fd.left = new FormAttachment(0, 20);
 		radioOptionElement.setLayoutData(fd);
 		
-		radioOptionComposite = new Button(grpFilter, SWT.RADIO);
-		radioOptionComposite.setBackground(GROUP_BACKGROUND_COLOR);
-		radioOptionComposite.setText("Composites");
-		radioOptionComposite.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { getComposites();	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
+		radioOptionContainers = new Button(grpFilter, SWT.RADIO);
+		radioOptionContainers.setBackground(GROUP_BACKGROUND_COLOR);
+		radioOptionContainers.setText("Containers");
+		radioOptionContainers.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
+			getComposites();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
 		fd = new FormData();
 		fd.top = new FormAttachment(radioOptionElement, 5);
 		fd.left = new FormAttachment(0, 20);
-		radioOptionComposite.setLayoutData(fd);
+		radioOptionContainers.setLayoutData(fd);
 		
 		radioOptionFolder = new Button(grpFilter, SWT.RADIO);
 		radioOptionFolder.setBackground(GROUP_BACKGROUND_COLOR);
 		radioOptionFolder.setText("Folders");
-		radioOptionFolder.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { getFolders();	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
+		radioOptionFolder.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
+			getFolders();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
 		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionComposite, 5);
+		fd.top = new FormAttachment(radioOptionContainers, 5);
 		fd.left = new FormAttachment(0, 20);
 		radioOptionFolder.setLayoutData(fd);
 		
 		radioOptionView = new Button(grpFilter, SWT.RADIO);
 		radioOptionView.setBackground(GROUP_BACKGROUND_COLOR);
 		radioOptionView.setText("Views");
-		radioOptionView.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { getViews(); } @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
+		radioOptionView.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
+			getViews();
+		} catch (Exception e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} } @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
 		fd = new FormData();
 		fd.top = new FormAttachment(radioOptionFolder, 5);
 		fd.left = new FormAttachment(0, 20);
@@ -298,8 +318,8 @@ public class DBGuiImportComponent extends DBGui {
 		
 		filterName = new Text(grpFilter, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(chooseName, 5);
-		fd.left = new FormAttachment(0, 10);
+		fd.top = new FormAttachment(chooseName, 0, SWT.CENTER);
+		fd.left = new FormAttachment(chooseName, 5);
 		fd.right = new FormAttachment(0, 125);
 		filterName.setLayoutData(fd);
 		filterName.addModifyListener(new ModifyListener() {
@@ -308,14 +328,41 @@ public class DBGuiImportComponent extends DBGui {
 					if ( database.isConnected() ) {
 						if ( compoElements.isVisible() )
 							getElements();
-						/*
-						if ( CompoComposites.isVisible() )
-							getComposites();
-						if ( compoFolders.isVisible() )
+						//else if ( compoContainers.isVisible() )
+						//	getContainers();
+						else if ( compoFolders.isVisible() )
 							getFolders();
-						if ( compoViews.isVisible() )
+						else if ( compoViews.isVisible() )
 							getViews();
-						*/
+					}
+				} catch (Exception e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} 
+			}
+		});
+		
+		ignoreCase = new Button(grpFilter, SWT.CHECK);
+		ignoreCase.setBackground(GROUP_BACKGROUND_COLOR);
+		ignoreCase.setText("Ignore case");
+		ignoreCase.setSelection(true);
+		fd = new FormData();
+		fd.top = new FormAttachment(chooseName, 5);
+		fd.left = new FormAttachment(0, 10);
+		ignoreCase.setLayoutData(fd);
+		ignoreCase.addListener(SWT.MouseUp, new Listener() {
+	    	@Override
+	    	public void handleEvent(Event event) {
+				try {
+					if ( database.isConnected() ) {
+						if ( compoElements.isVisible() )
+							getElements();
+						//else if ( compoContainers.isVisible() )
+						//	getContainers();
+						else if ( compoFolders.isVisible() )
+							getFolders();
+						else if ( compoViews.isVisible() )
+							getViews();
 					}
 				} catch (Exception e1) {
 					// TODO Auto-generated catch block
@@ -325,7 +372,7 @@ public class DBGuiImportComponent extends DBGui {
 		});
 		
 		createCompoElements();		compoElements.setVisible(true);
-		createCompoComposites();	compoComposites.setVisible(false);
+		createCompoComposites();	compoContainers.setVisible(false);
 		createCompoFolders();		compoFolders.setVisible(false);
 		createCompoViews();			compoViews.setVisible(false);
 	}
@@ -377,6 +424,7 @@ public class DBGuiImportComponent extends DBGui {
 		
 		// Business layer
 			// Passive
+		productLabel = new ComponentLabel(businessPassiveCompo, "Product");
 			// Behavior
 		businessProcessLabel = new ComponentLabel(businessBehaviorCompo, "Business Process");
 		businessFunctionLabel = new ComponentLabel(businessBehaviorCompo, "Business Function");
@@ -452,21 +500,20 @@ public class DBGuiImportComponent extends DBGui {
 		smeaningLabel = new ComponentLabel(motivationCompo, "Meaning");
 		valueLabel = new ComponentLabel(motivationCompo, "Value");
 		
-		allElementLabels = new ComponentLabel[]{ resourceLabel, capabilityLabel, courseOfActionLabel, applicationComponentLabel, applicationCollaborationLabel, applicationInterfaceLabel, applicationFunctionLabel, applicationInteractionLabel, applicationEventLabel, applicationServiceLabel, dataObjectLabel, applicationProcessLabel, businessActorLabel, businessRoleLabel, businessCollaborationLabel, businessInterfaceLabel, businessProcessLabel, businessFunctionLabel, businessInteractionLabel, businessEventLabel, businessServiceLabel, businessObjectLabel, contractLabel, representationLabel, nodeLabel, deviceLabel, systemSoftwareLabel, technologyCollaborationLabel, technologyInterfaceLabel, pathLabel, communicationNetworkLabel, technologyFunctionLabel, technologyProcessLabel, technologyInteractionLabel, technologyEventLabel, technologyServiceLabel, artifactLabel, equipmentLabel, facilityLabel, distributionNetworkLabel, materialLabel, workpackageLabel, deliverableLabel, implementationEventLabel, plateauLabel, gapLabel, stakeholderLabel, driverLabel, assessmentLabel, goalLabel, outcomeLabel, principleLabel, requirementLabel, constaintLabel, smeaningLabel, valueLabel};
+		allElementLabels = new ComponentLabel[]{ resourceLabel, capabilityLabel, courseOfActionLabel, applicationComponentLabel, applicationCollaborationLabel, applicationInterfaceLabel, applicationFunctionLabel, applicationInteractionLabel, applicationEventLabel, applicationServiceLabel, dataObjectLabel, applicationProcessLabel, businessActorLabel, businessRoleLabel, businessCollaborationLabel, businessInterfaceLabel, businessProcessLabel, businessFunctionLabel, businessInteractionLabel, businessEventLabel, businessServiceLabel, businessObjectLabel, contractLabel, representationLabel, nodeLabel, deviceLabel, systemSoftwareLabel, technologyCollaborationLabel, technologyInterfaceLabel, pathLabel, communicationNetworkLabel, technologyFunctionLabel, technologyProcessLabel, technologyInteractionLabel, technologyEventLabel, technologyServiceLabel, artifactLabel, equipmentLabel, facilityLabel, distributionNetworkLabel, materialLabel, workpackageLabel, deliverableLabel, implementationEventLabel, plateauLabel, gapLabel, stakeholderLabel, driverLabel, assessmentLabel, goalLabel, outcomeLabel, principleLabel, requirementLabel, constaintLabel, smeaningLabel, valueLabel, productLabel};
 		
-		// Composites !!!
+		// Containers !!!
 		//
 		//createTableItem(tblClasses, "Grouping");
 		//createTableItem(tblClasses, "Location");
-		//createTableItem(tblClasses, "Product");
 
 		Label passiveLabel = new Label(compoElements, SWT.TRANSPARENT);
 		Canvas passiveCanvas = new Canvas(compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
-		fd.left = new FormAttachment(0, 80);
-		fd.right = new FormAttachment(0, 120);
+		fd.left = new FormAttachment(0, 60);
+		fd.right = new FormAttachment(0, 100);
 		passiveCanvas.setLayoutData(fd);
 		fd = new FormData();
 		fd.top = new FormAttachment(passiveCanvas, 1, SWT.TOP);
@@ -480,8 +527,8 @@ public class DBGuiImportComponent extends DBGui {
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
-		fd.left = new FormAttachment(0, 125);
-		fd.right = new FormAttachment(57, -5);
+		fd.left = new FormAttachment(0, 105);
+		fd.right = new FormAttachment(57);
 		behaviorCanvas.setLayoutData(fd);
 		fd = new FormData();
 		fd.top = new FormAttachment(behaviorCanvas, 1, SWT.TOP);
@@ -827,15 +874,23 @@ public class DBGuiImportComponent extends DBGui {
 	}
 	
 	private void createCompoComposites() {
-		compoComposites = new Composite(grpFilter, SWT.NONE);
-		compoComposites.setBackground(GROUP_BACKGROUND_COLOR);
+		compoContainers = new Composite(grpFilter, SWT.NONE);
+		compoContainers.setBackground(GROUP_BACKGROUND_COLOR);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -10);
-		compoComposites.setLayoutData(fd);
-		compoComposites.setLayout(new FormLayout());
+		compoContainers.setLayoutData(fd);
+		compoContainers.setLayout(new FormLayout());
+		
+		Label sorryLabel = new Label(compoContainers, SWT.NONE);
+		sorryLabel.setBackground(GROUP_BACKGROUND_COLOR);
+		sorryLabel.setText("Not yet implemented, sorry ...");
+		fd = new FormData();
+		fd.top = new FormAttachment(35);
+		fd.left = new FormAttachment(0, 30);
+		sorryLabel.setLayoutData(fd);
 	}
 	
 	
@@ -852,83 +907,74 @@ public class DBGuiImportComponent extends DBGui {
 		
 		Label folderTypeLabel = new Label(compoFolders, SWT.NONE);
 		folderTypeLabel.setBackground(GROUP_BACKGROUND_COLOR);
-		folderTypeLabel.setText("Folder type :");
+		folderTypeLabel.setText("Select folders type to display :");
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 20);
+		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 30);
 		folderTypeLabel.setLayoutData(fd);
 		
 		strategyFolders = new Button(compoFolders, SWT.CHECK);
 		strategyFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		strategyFolders.setText("Strategy folders");
+		strategyFolders.setText("Strategy");
 		fd = new FormData();
-		fd.top = new FormAttachment(folderTypeLabel, 10);
+		fd.top = new FormAttachment(folderTypeLabel, 5);
 		fd.left = new FormAttachment(folderTypeLabel, 20, SWT.LEFT);
 		strategyFolders.setLayoutData(fd);
+		strategyFolders.addListener(SWT.MouseUp, getFoldersListener);
 		
 		businessFolders = new Button(compoFolders, SWT.CHECK);
 		businessFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		businessFolders.setText("Business folders");
+		businessFolders.setText("Business");
 		fd = new FormData();
-		fd.top = new FormAttachment(strategyFolders, 10);
+		fd.top = new FormAttachment(strategyFolders, 5);
 		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
 		businessFolders.setLayoutData(fd);
+		businessFolders.addListener(SWT.MouseUp, getFoldersListener);
 		
 		applicationFolders = new Button(compoFolders, SWT.CHECK);
 		applicationFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		applicationFolders.setText("Application folders");
+		applicationFolders.setText("Application");
 		fd = new FormData();
-		fd.top = new FormAttachment(businessFolders, 10);
+		fd.top = new FormAttachment(businessFolders, 5);
 		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
 		applicationFolders.setLayoutData(fd);
+		applicationFolders.addListener(SWT.MouseUp, getFoldersListener);
 		
 		technologyFolders = new Button(compoFolders, SWT.CHECK);
 		technologyFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		technologyFolders.setText("Strategy folders");
+		technologyFolders.setText("Technology && Physical");
 		fd = new FormData();
-		fd.top = new FormAttachment(applicationFolders, 10);
+		fd.top = new FormAttachment(applicationFolders, 5);
 		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
 		technologyFolders.setLayoutData(fd);
-		
-		relationsFolders = new Button(compoFolders, SWT.CHECK);
-		relationsFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		relationsFolders.setText("Relations folders");
-		fd = new FormData();
-		fd.top = new FormAttachment(technologyFolders, 10);
-		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
-		relationsFolders.setLayoutData(fd);
-		
-		othersFolders = new Button(compoFolders, SWT.CHECK);
-		othersFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		othersFolders.setText("Other folders");
-		fd = new FormData();
-		fd.top = new FormAttachment(relationsFolders, 10);
-		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
-		othersFolders.setLayoutData(fd);
-		
-		diagramsFolders = new Button(compoFolders, SWT.CHECK);
-		diagramsFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		diagramsFolders.setText("Views folders");
-		fd = new FormData();
-		fd.top = new FormAttachment(othersFolders, 10);
-		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
-		diagramsFolders.setLayoutData(fd);
+		technologyFolders.addListener(SWT.MouseUp, getFoldersListener);
 		
 		motivationFolders = new Button(compoFolders, SWT.CHECK);
 		motivationFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		motivationFolders.setText("Motivation folders");
+		motivationFolders.setText("Motivation");
 		fd = new FormData();
-		fd.top = new FormAttachment(diagramsFolders, 10);
+		fd.top = new FormAttachment(technologyFolders, 5);
 		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
 		motivationFolders.setLayoutData(fd);
+		motivationFolders.addListener(SWT.MouseUp, getFoldersListener);
 		
 		implementationFolders = new Button(compoFolders, SWT.CHECK);
 		implementationFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		implementationFolders.setText("Implementation folders");
+		implementationFolders.setText("Implementation & Migration");
 		fd = new FormData();
-		fd.top = new FormAttachment(diagramsFolders, 10);
+		fd.top = new FormAttachment(motivationFolders, 5);
 		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
 		implementationFolders.setLayoutData(fd);
+		implementationFolders.addListener(SWT.MouseUp, getFoldersListener);
+		
+		otherFolders = new Button(compoFolders, SWT.CHECK);
+		otherFolders.setBackground(GROUP_BACKGROUND_COLOR);
+		otherFolders.setText("Other");
+		fd = new FormData();
+		fd.top = new FormAttachment(implementationFolders, 5);
+		fd.left = new FormAttachment(strategyFolders, 0, SWT.LEFT);
+		otherFolders.setLayoutData(fd);
+		otherFolders.addListener(SWT.MouseUp, getFoldersListener);
 	}
 	
 	
@@ -942,6 +988,41 @@ public class DBGuiImportComponent extends DBGui {
 		fd.bottom = new FormAttachment(100, -10);
 		compoViews.setLayoutData(fd);
 		compoViews.setLayout(new FormLayout());
+		
+		Label viewTypeLabel = new Label(compoViews, SWT.NONE);
+		viewTypeLabel.setBackground(GROUP_BACKGROUND_COLOR);
+		viewTypeLabel.setText("Select views type to display :");
+		fd = new FormData();
+		fd.top = new FormAttachment(0);
+		fd.left = new FormAttachment(0, 30);
+		viewTypeLabel.setLayoutData(fd);
+		
+		archimateViews = new Button(compoViews, SWT.CHECK);
+		archimateViews.setBackground(GROUP_BACKGROUND_COLOR);
+		archimateViews.setText("Archimate views");
+		fd = new FormData();
+		fd.top = new FormAttachment(viewTypeLabel, 5);
+		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
+		archimateViews.setLayoutData(fd);
+		archimateViews.addListener(SWT.MouseUp, getViewsListener); 
+		
+		canvasViews = new Button(compoViews, SWT.CHECK);
+		canvasViews.setBackground(GROUP_BACKGROUND_COLOR);
+		canvasViews.setText("Canvas");
+		fd = new FormData();
+		fd.top = new FormAttachment(archimateViews, 5);
+		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
+		canvasViews.setLayoutData(fd);
+		canvasViews.addListener(SWT.MouseUp, getViewsListener); 
+		
+		sketchViews = new Button(compoViews, SWT.CHECK);
+		sketchViews.setBackground(GROUP_BACKGROUND_COLOR);
+		sketchViews.setText("Sketch views");
+		fd = new FormData();
+		fd.top = new FormAttachment(canvasViews, 5);
+		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
+		sketchViews.setLayoutData(fd);
+		sketchViews.addListener(SWT.MouseUp, getViewsListener); 
 	}
 	
 	private void createGrpComponents() {
@@ -970,6 +1051,12 @@ public class DBGuiImportComponent extends DBGui {
 				btnDoAction.setEnabled(true);		// as soon a component is selected, the we can import it
 			}
 		});
+		tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
+			public void handleEvent(Event e) {
+				if ( btnDoAction.getEnabled() )
+					btnDoAction.notifyListeners(SWT.Selection, new Event());
+			}
+		});
 		
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
@@ -986,9 +1073,9 @@ public class DBGuiImportComponent extends DBGui {
 	
 	private void getElements() throws Exception {
 		compoElements.setVisible(true);
-		//compoComposites.setVisivle(false);
-		//compofolders.setVisible(false);
-		//compoViews.setVisible(false);
+		compoContainers.setVisible(false);
+		compoFolders.setVisible(false);
+		compoViews.setVisible(false);
 		
 		tblComponents.removeAll();
 		
@@ -1004,10 +1091,14 @@ public class DBGuiImportComponent extends DBGui {
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 			
-			if ( filterName.getText().length() ==0 )
+			if ( filterName.getText().length() == 0 )
 				result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+")", classList);
-			else
-				result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND name like ?", classList, "%"+filterName.getText()+"%");
+			else {
+				if ( ignoreCase.getSelection() )
+					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?", classList, "%"+filterName.getText().toUpperCase()+"%");
+				else
+					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND name like ?", classList, "%"+filterName.getText()+"%");
+			}
 			
 			while (result.next()) {
 				createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
@@ -1018,9 +1109,9 @@ public class DBGuiImportComponent extends DBGui {
 		btnDoAction.setEnabled(false);
 	}
 	
-	private void getComposites() {
+	private void getComposites() throws Exception {
 		compoElements.setVisible(false);
-		compoComposites.setVisible(true);
+		compoContainers.setVisible(true);
 		compoFolders.setVisible(false);
 		compoViews.setVisible(false);
 		
@@ -1028,24 +1119,99 @@ public class DBGuiImportComponent extends DBGui {
 		btnDoAction.setEnabled(false);
 	}
 	
-	
-	private void getFolders() {
+	private void getFolders() throws Exception {
 		compoElements.setVisible(false);
-		compoComposites.setVisible(false);
+		compoContainers.setVisible(false);
 		compoFolders.setVisible(true);
 		compoViews.setVisible(false);
 		
 		tblComponents.removeAll();
+		
+		StringBuilder inList = new StringBuilder();
+		ArrayList<String> typeList = new ArrayList<String>();
+		if ( strategyFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.STRATEGY_VALUE));
+		}
+		if ( businessFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.BUSINESS_VALUE));
+		}
+		if ( applicationFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.APPLICATION_VALUE));
+		}
+		if ( technologyFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.TECHNOLOGY_VALUE));
+		}
+		if ( motivationFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.MOTIVATION_VALUE));
+		}
+		if ( implementationFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.IMPLEMENTATION_MIGRATION_VALUE));
+		}
+		if ( otherFolders.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			typeList.add(String.valueOf(FolderType.OTHER_VALUE));
+		}
+		
+		if ( inList.length() != 0 ) {
+			ResultSet result;
+			
+			if ( filterName.getText().length() == 0 )
+				result = database.select("SELECT id, name FROM folders WHERE type IN ("+inList.toString()+")", typeList);
+			else
+				result = database.select("SELECT id, name FROM folders WHERE type IN ("+inList.toString()+") AND name like ?", typeList, "%"+filterName.getText()+"%");
+			
+			while (result.next()) {
+				createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"));
+			}
+			result.close();
+		}
+		
 		btnDoAction.setEnabled(false);
 	}
 	
-	private void getViews() {
+	private void getViews() throws Exception {
 		compoElements.setVisible(false);
-		compoComposites.setVisible(false);
+		compoContainers.setVisible(false);
 		compoFolders.setVisible(false);
 		compoViews.setVisible(true);
 		
 		tblComponents.removeAll();
+		
+		StringBuilder inList = new StringBuilder();
+		ArrayList<String> classList = new ArrayList<String>();
+		if ( archimateViews.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			classList.add("ArchimateDiagramModel");
+		}
+		if ( canvasViews.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			classList.add("CanvasModel");
+		}
+		if ( sketchViews.getSelection() ) {
+			inList.append(inList.length()==0 ? "?" : ", ?");
+			classList.add("SketchModel");
+		}
+		
+		if ( inList.length() != 0 ) {
+			ResultSet result;
+			
+			if ( filterName.getText().length() == 0 )
+				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+")", classList);
+			else
+				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+") AND name like ?", classList, "%"+filterName.getText()+"%");
+			
+			while (result.next()) {
+				createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
+			}
+			result.close();
+		}
+		
 		btnDoAction.setEnabled(false);
 	}
 	
@@ -1055,7 +1221,10 @@ public class DBGuiImportComponent extends DBGui {
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText("   "+text);
-		item.setImage(DBArchimateFactory.getImage(className));
+		if ( className.toUpperCase().startsWith("CANVAS") )
+			item.setImage(DBCanvasFactory.getImage(className));
+		else
+			item.setImage(DBArchimateFactory.getImage(className));
 	}
 
 	
@@ -1067,22 +1236,29 @@ public class DBGuiImportComponent extends DBGui {
 		
 		String id = (String)tblComponents.getSelection()[0].getData("id");
 		
-		database.importElementFromId(importedModel, id, !getOptionValue());
+		if ( compoElements.getVisible() )
+			database.importElementFromId(importedModel, id, !getOptionValue());			// TODO : allow to import several components at the same time
+		else if ( compoContainers.getVisible() )
+			database.importContainerFromId(importedModel, id, !getOptionValue());
+		else if ( compoFolders.getVisible() )
+			database.importFolderFromId(importedModel, id, !getOptionValue());
+		else if ( compoViews.getVisible() )
+			database.importViewFromId(importedModel, id, !getOptionValue());
 		
+		btnClose.setText("Close");		// to remove "cancel by user" trace message
 		close();
 	}
 	
-	private class ComponentLabel {
-		private Label label;
-		private boolean isSelected = false;
+	private class ComponentLabel extends Label {
+		public boolean isSelected = false;
 		
 		ComponentLabel(Composite parent, String toolTip) {
-			label = new Label(parent, SWT.NONE);
-			label.setSize(100,  100);
-			label.setToolTipText(toolTip);
-			label.setImage(DBArchimateFactory.getImage(getElementClassname()));
-			label.addPaintListener(redraw);
-			label.addListener(SWT.MouseUp, mouseUp); 
+			super(parent, SWT.NONE);
+			setSize(100,  100);
+			setToolTipText(toolTip);
+			setImage(DBArchimateFactory.getImage(getElementClassname()));
+			addPaintListener(redraw);
+			addListener(SWT.MouseUp, getElementsListener); 
 		}
 		
 		private PaintListener redraw = new PaintListener() {
@@ -1090,29 +1266,58 @@ public class DBGuiImportComponent extends DBGui {
             public void paintControl(PaintEvent e)
             {
                  if ( isSelected )
-                	 label.setBackground(GREY_COLOR);
+                	 setBackground(GREY_COLOR);
                 	 //e.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
                  else
-                	 label.setBackground(null);
+                	 setBackground(null);
             }
         };
         
-        private Listener mouseUp = new Listener() {
-        	@Override
-        	public void handleEvent(Event event) {
-        		isSelected = !isSelected;
-        		label.redraw();
-        		try {
-					getElements();
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-        	}
-        };
-        
         public String getElementClassname() {
-        	return label.getToolTipText().replaceAll(" ",  "");
+        	return getToolTipText().replaceAll(" ",  "");
+        }
+        
+        @Override
+        protected void checkSubclass() {
         }
 	}
+	
+    private Listener getElementsListener = new Listener() {
+    	@Override
+    	public void handleEvent(Event event) {
+    		ComponentLabel label = (ComponentLabel)event.widget;
+    		label.isSelected = !label.isSelected;
+    		label.redraw();
+    		try {
+				getElements();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    };
+    
+    private Listener getFoldersListener = new Listener() {
+    	@Override
+    	public void handleEvent(Event event) {
+    		try {
+				getFolders();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    };
+	
+    private Listener getViewsListener = new Listener() {
+    	@Override
+    	public void handleEvent(Event event) {
+    		try {
+				getViews();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+    	}
+    };
 }

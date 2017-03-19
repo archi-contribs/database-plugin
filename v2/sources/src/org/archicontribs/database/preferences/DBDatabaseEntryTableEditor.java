@@ -1,89 +1,82 @@
 package org.archicontribs.database.preferences;
 
+import java.io.File;
 import java.util.ArrayList;
-import java.util.EventObject;
 import java.util.List;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabase;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
-import org.eclipse.jface.dialogs.IDialogConstants;
 import org.eclipse.jface.preference.FieldEditor;
-import org.eclipse.jface.viewers.CellEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditor;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationEvent;
-import org.eclipse.jface.viewers.ColumnViewerEditorActivationStrategy;
-import org.eclipse.jface.viewers.ComboBoxCellEditor;
-import org.eclipse.jface.viewers.FocusCellOwnerDrawHighlighter;
-import org.eclipse.jface.viewers.ICellModifier;
-import org.eclipse.jface.viewers.ILabelProviderListener;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredContentProvider;
-import org.eclipse.jface.viewers.ITableLabelProvider;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.jface.viewers.TableViewerEditor;
-import org.eclipse.jface.viewers.TableViewerFocusCellManager;
-import org.eclipse.jface.viewers.TextCellEditor;
-import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.DisposeEvent;
-import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.Widget;
+import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 
 /**
- * A field editor that manages a table of input values. The editor
- * displays a table containing the rows of values, buttons for adding,
- * duplicating and removing rows and buttons to adjust the order of rows in the
- * table. The table also allows in-place editing of values.
- *
- * inspired by Sandip V. Chitale work (https://code.google.com/archive/p/pathtools/)
+ * A field editor that manages the list of databases configurations
  * 
  * @author Herve jouin
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
-	private TableViewer tableViewer;
-	private List<DBDatabase> databaseEntries = new ArrayList<DBDatabase>();
-	
 	private static DBLogger logger = new DBLogger(DBDatabaseEntryTableEditor.class);
 	
-	private static final Color HIGHLIGHTED_COLOR = Display.getCurrent().getSystemColor(SWT.COLOR_GRAY);
+	private Group grpDatabases;
 	
-	private Table table;
-	private Composite buttonBox;
-	private Button newButton;
-	private Button duplicateButton;
-	private Button removeButton;
-	private Button upButton;
-	private Button downButton;
-	private Button checkButton;
+	private Table tblDatabases;
+	private Label lblName;
+	private Text txtName;
+	private Label lblDriver;
+	private Combo comboDriver;
+	private Label lblFile;
+	private Button btnBrowse;
+	private Text txtFile;
+	private Label lblExportType;
+	private Button btnWholeType;
+	private Button btnComponentsType;
+	private Label lblServer;
+	private Text txtServer;
+	private Label lblPort;
+	private Text txtPort;
+	private Label lblDatabase;
+	private Text txtDatabase;
+	//private Label lblSchema;
+	//private Text txtSchema;
+	private Label lblUsername;
+	private Text txtUsername;
+	private Label lblPassword;
+	private Button btnShowPassword;
+	private Text txtPassword;
+	
+	private Button btnUp;
+	private Button btnNew;
+	private Button btnRemove;
+	private Button btnEdit;
+	private Button btnDown;
+	
+	private Button btnCheck;
+	private Button btnDiscard;
+	private Button btnSave;
 
 	/**
 	 * Creates a table field editor.
-	 *
-	 * @param name			: the name of the preference this field editor works on
-	 * @param labelText 	: the label text of the field editor
-	 * @param columnNames	: the names of columns
-	 * @param columnWidths	: the widths of columns
-	 * @param parent		: the parent of the field editor's control
-	 *
 	 */
 	public DBDatabaseEntryTableEditor(String name, String labelText, Composite parent) {
 		init(name, labelText);
@@ -98,59 +91,342 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	protected void doFillIntoGrid(Composite parent, int numColumns) {
 		if ( logger.isDebugEnabled() ) logger.debug("doFillIntoGrid()");
-
-		tableViewer = new TableViewer(parent, SWT.BORDER | SWT.SINGLE | SWT.V_SCROLL | SWT.H_SCROLL | SWT.FULL_SELECTION);
-		tableViewer.setUseHashlookup(true);
-		tableViewer.setContentProvider(new DBTableContentProvider());
-		tableViewer.setLabelProvider(new DBTableLabelProvider());
-		tableViewer.setInput(databaseEntries);
-		tableViewer.addSelectionChangedListener(new ISelectionChangedListener() {
-	        @Override
-	        public void selectionChanged(SelectionChangedEvent event) {
-	        	tableSelectionChanged();
-	        }
-	        });
 		
-		TableViewerFocusCellManager focusCellManager = new TableViewerFocusCellManager(tableViewer, new FocusCellOwnerDrawHighlighter(tableViewer));
-
-		ColumnViewerEditorActivationStrategy activationSupport = new ColumnViewerEditorActivationStrategy(tableViewer) {
-		    protected boolean isEditorActivationEvent(ColumnViewerEditorActivationEvent event) {
-		        // Enable editor only with mouse double click (left button)
-		        if (event.eventType == ColumnViewerEditorActivationEvent.MOUSE_DOUBLE_CLICK_SELECTION) {
-		            EventObject source = event.sourceEvent;
-		            if (source instanceof MouseEvent && ((MouseEvent)source).button == 1)
-		                return true;
-		        }
-		        return false;
-		    }
-		};
-
-		TableViewerEditor.create(tableViewer, focusCellManager, activationSupport, ColumnViewerEditor.DEFAULT);
-		
-		table = tableViewer.getTable();
-		table.setLayoutData(new GridData(GridData.FILL_BOTH));
-		table.setFont(parent.getFont());
-		table.setLinesVisible(true);
-		table.setHeaderVisible(true);
-		
-		CellEditor[] editors = new CellEditor[DBDatabase.properties.length];
-		for (int i = 0 ; i < DBDatabase.properties.length ; ++i) {
-			TableColumn col = new TableColumn(table, SWT.NONE);
-			col.setText(DBPlugin.capitalize(DBDatabase.properties[i]));
-			col.setWidth(75);
-			if ( DBDatabase.properties[i].toLowerCase().equals("driver") )
-				editors[i] = new ComboBoxCellEditor(table, DBDatabase.driverList, SWT.READ_ONLY);
-			else
-				editors[i] = new TextCellEditor(table, DBDatabase.properties[i].toLowerCase().equals("password")?SWT.PASSWORD:SWT.NONE);
-		}
-		tableViewer.setColumnProperties(DBDatabase.properties);
-		tableViewer.setCellModifier(new DBCellModifier(tableViewer));
-		tableViewer.setCellEditors(editors);
-		
-		buttonBox = getButtonBoxControl(parent);
+			// we create a composite with layout as FormLayout
+		grpDatabases = new Group(parent, SWT.NONE);
+		grpDatabases.setFont(parent.getFont());
 		GridData gd = new GridData();
-		gd.verticalAlignment = GridData.BEGINNING;
-		buttonBox.setLayoutData(gd);
+		gd.heightHint = 260;
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		grpDatabases.setLayoutData(gd);
+		grpDatabases.setLayout(new FormLayout());
+		
+		btnUp = new Button(grpDatabases, SWT.NONE);
+		btnUp.setText("^");
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(100, -70);
+		fd.right = new FormAttachment(100, -40);
+		btnUp.setLayoutData(fd);
+		btnUp.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { swapDatabaseEntries(-1); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnUp.setEnabled(false);
+		
+		btnDown = new Button(grpDatabases, SWT.NONE);
+		btnDown.setText("v");
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(100, -35);
+		fd.right = new FormAttachment(100, -5);
+		btnDown.setLayoutData(fd);
+		btnDown.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { swapDatabaseEntries(1); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnDown.setEnabled(false);
+		
+		btnNew = new Button(grpDatabases, SWT.NONE);
+		btnNew.setText("New");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnUp, 5);
+		fd.left = new FormAttachment(100, -70);
+		fd.right = new FormAttachment(100, -5);
+		btnNew.setLayoutData(fd);
+		btnNew.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { newCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		
+		btnEdit = new Button(grpDatabases, SWT.NONE);
+		btnEdit.setText("Edit");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnNew, 5);
+		fd.left = new FormAttachment(btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnNew, 0, SWT.RIGHT);
+		btnEdit.setLayoutData(fd);
+		btnEdit.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { editCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnEdit.setEnabled(false);
+		
+		btnRemove = new Button(grpDatabases, SWT.NONE);
+		btnRemove.setText("Remove");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnEdit, 5);
+		fd.left = new FormAttachment(btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnNew, 0, SWT.RIGHT);
+		btnRemove.setLayoutData(fd);
+		btnRemove.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { removeCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnRemove.setEnabled(false);
+		
+		tblDatabases = new Table(grpDatabases, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.SINGLE);
+		tblDatabases.setLinesVisible(true);
+		fd = new FormData();
+		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
+		fd.left = new FormAttachment(0, 10);
+		fd.right = new FormAttachment(btnNew, -10, SWT.LEFT);
+		fd.bottom = new FormAttachment(btnRemove, 0, SWT.BOTTOM);
+		tblDatabases.setLayoutData(fd);
+		tblDatabases.addListener(SWT.Resize, new Listener() {
+			@Override
+	        public void handleEvent(Event event) {
+				tblDatabases.getColumns()[0].setWidth(tblDatabases.getClientArea().width);
+			}
+		});
+		tblDatabases.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				tableSelectionChanged();
+			}
+		});
+		new TableColumn(tblDatabases, SWT.NONE);
+		
+		lblName = new Label(grpDatabases, SWT.NONE);
+		lblName.setText("Name :");
+		fd = new FormData();
+		fd.top = new FormAttachment(tblDatabases, 10);
+		fd.left = new FormAttachment(tblDatabases, 30, SWT.LEFT);
+		lblName.setLayoutData(fd);
+		lblName.setVisible(false);
+		
+		txtName = new Text(grpDatabases, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblName, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblName, 30);
+		fd.right = new FormAttachment(tblDatabases, -30, SWT.RIGHT);
+		txtName.setLayoutData(fd);
+		txtName.setVisible(false);
+		
+		lblDriver = new Label(grpDatabases, SWT.NONE);
+		lblDriver.setText("Driver :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblName, 10);
+		fd.left = new FormAttachment(lblName, 0 , SWT.LEFT);
+		lblDriver.setLayoutData(fd);
+		lblDriver.setVisible(false);
+		
+		comboDriver = new Combo(grpDatabases, SWT.READ_ONLY);
+		comboDriver.setItems(DBDatabase.driverList);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDriver, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		comboDriver.setLayoutData(fd);
+		comboDriver.setVisible(false);
+		comboDriver.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				comboSelectionChanged();		// when the database driver is changed, we call comboSelectionChanged()
+				e.doit = true;
+			}
+		});
+		
+		lblFile = new Label(grpDatabases, SWT.NONE);
+		lblFile.setText("File :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDriver, 10);
+		fd.left = new FormAttachment(lblDriver, 0 , SWT.LEFT);
+		lblFile.setLayoutData(fd);
+		lblFile.setVisible(false);
+		
+		btnBrowse = new Button(grpDatabases, SWT.NONE);
+		btnBrowse.setText("Browse");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblFile, 0, SWT.CENTER);
+		fd.right = new FormAttachment(tblDatabases, -30, SWT.RIGHT);
+		btnBrowse.setLayoutData(fd);
+		btnBrowse.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { browseCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnBrowse.setVisible(false);
+		
+		txtFile = new Text(grpDatabases, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblFile, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnBrowse, -10);
+		txtFile.setLayoutData(fd);
+		txtFile.setVisible(false);
+		
+		lblServer = new Label(grpDatabases, SWT.NONE);
+		lblServer.setText("Server :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDriver, 10);
+		fd.left = new FormAttachment(lblDriver, 0 , SWT.LEFT);
+		lblServer.setLayoutData(fd);
+		lblServer.setVisible(false);
+		
+		txtServer = new Text(grpDatabases, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblServer, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		fd.right = new FormAttachment(45, -20);
+		txtServer.setLayoutData(fd);
+		txtServer.setVisible(false);
+		
+		lblPort = new Label(grpDatabases, SWT.NONE);
+		lblPort.setText("Port :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblServer, 10, SWT.CENTER);
+		fd.left = new FormAttachment(txtServer, 40);
+		lblPort.setLayoutData(fd);
+		lblPort.setVisible(false);
+		
+		txtPort = new Text(grpDatabases, SWT.BORDER);
+		txtPort.setTextLimit(5);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblPort, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblPort, 40);
+		fd.width = 30;
+		txtPort.setLayoutData(fd);
+		txtPort.setVisible(false);
+		
+		lblDatabase = new Label(grpDatabases, SWT.NONE);
+		lblDatabase.setText("Database :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblServer, 10);
+		fd.left = new FormAttachment(lblServer, 0 , SWT.LEFT);
+		lblDatabase.setLayoutData(fd);
+		lblDatabase.setVisible(false);
+		
+		txtDatabase = new Text(grpDatabases, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDatabase, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
+		txtDatabase.setLayoutData(fd);
+		txtDatabase.setVisible(false);
+		
+		//lblSchema = new Label(parentComposite, SWT.NONE);
+		//lblSchema.setText("Schema :");
+		//fd = new FormData();
+		//fd.top = new FormAttachment(lblDatabase, 10, SWT.CENTER);
+		//fd.left = new FormAttachment(txtDatabase, 40);
+		//lblSchema.setLayoutData(fd);
+		//lblSchema.setVisible(false);
+		
+		//txtSchema = new Text(parentComposite, SWT.BORDER);
+		//fd = new FormData();
+		//fd.top = new FormAttachment(lblSchema, 0, SWT.CENTER);
+		//fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
+		//fd.right = new FormAttachment(50, -20);
+		//txtSchema.setLayoutData(fd);
+		//txtSchema.setVisible(false);
+		
+		lblUsername = new Label(grpDatabases, SWT.NONE);
+		lblUsername.setText("Username :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDatabase, 10);
+		fd.left = new FormAttachment(lblDatabase, 0 , SWT.LEFT);
+		lblUsername.setLayoutData(fd);
+		lblUsername.setVisible(false);
+		
+		txtUsername = new Text(grpDatabases, SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblUsername, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		fd.right = new FormAttachment(45, -20);
+		txtUsername.setLayoutData(fd);
+		txtUsername.setVisible(false);
+		
+		lblPassword = new Label(grpDatabases, SWT.NONE);
+		lblPassword.setText("Password :");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblUsername, 10, SWT.CENTER);
+		fd.left = new FormAttachment(txtUsername, 40);
+		lblPassword.setLayoutData(fd);
+		lblPassword.setVisible(false);
+		
+		txtPassword = new Text(grpDatabases, SWT.PASSWORD | SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
+		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
+		txtPassword.setLayoutData(fd);
+		txtPassword.setVisible(false);
+		
+		btnShowPassword = new Button(grpDatabases, SWT.TOGGLE);
+		btnShowPassword.setImage(DBGui.LOCK_ICON);
+		btnShowPassword.setSelection(true);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblPassword, 0);
+		btnShowPassword.setLayoutData(fd);
+		btnShowPassword.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { showOrHidePasswordCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnShowPassword.setVisible(false);
+
+		lblExportType = new Label(grpDatabases, SWT.NONE);
+		lblExportType.setText("Export type : ");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblUsername, 10);
+		fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+		lblExportType.setLayoutData(fd);
+		lblExportType.setVisible(false);
+		
+		btnWholeType = new Button(grpDatabases, SWT.RADIO);
+		btnWholeType.setText("Whole model");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportType, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
+		btnWholeType.setLayoutData(fd);
+		btnWholeType.setVisible(false);
+		
+		btnComponentsType = new Button(grpDatabases, SWT.RADIO);
+		btnComponentsType.setText("Components only");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportType, 0, SWT.CENTER);
+		fd.left = new FormAttachment(45, 20);
+		btnComponentsType.setLayoutData(fd);
+		btnComponentsType.setVisible(false);
+		
+		btnSave = new Button(grpDatabases, SWT.NONE);
+		btnSave.setText("Save");
+		fd = new FormData();
+		fd.left = new FormAttachment(btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnNew, 0, SWT.RIGHT);
+		fd.bottom = new FormAttachment(100, -7);
+		btnSave.setLayoutData(fd);
+		btnSave.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { saveCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnSave.setVisible(false);
+		
+		btnDiscard = new Button(grpDatabases, SWT.NONE);
+		btnDiscard.setText("Discard");
+		fd = new FormData();
+		fd.left = new FormAttachment(btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnNew, 0, SWT.RIGHT);
+		fd.bottom = new FormAttachment(btnSave, -5, SWT.TOP);
+		btnDiscard.setLayoutData(fd);
+		btnDiscard.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { discardCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnDiscard.setVisible(false);
+		
+		btnCheck = new Button(grpDatabases, SWT.NONE);
+		btnCheck.setText("Check");
+		fd = new FormData();
+		fd.left = new FormAttachment(btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnNew, 0, SWT.RIGHT);
+		fd.bottom = new FormAttachment(btnDiscard, -5, SWT.TOP);
+		btnCheck.setLayoutData(fd);
+		btnCheck.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { checkCallback(); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		btnCheck.setVisible(false);
+		
+		grpDatabases.layout();
 	}
 	
 	/*
@@ -170,9 +446,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	protected void doLoad() {
 		if ( logger.isTraceEnabled() ) logger.trace("doLoad()");
-		databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore();
-		tableViewer.setInput(databaseEntries);
-		tableViewer.refresh();
+		
+		tblDatabases.removeAll();
+		for ( DBDatabase databaseEntry : DBDatabase.getAllDatabasesFromPreferenceStore() ) {
+			TableItem tableItem = new TableItem(tblDatabases, SWT.NONE);
+			tableItem.setText(databaseEntry.getName());
+			tableItem.setData(databaseEntry);
+		}
 	}
 
 	/*
@@ -180,165 +460,381 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	protected void doStore() {
 		if ( logger.isTraceEnabled() ) logger.trace("doStore()");
+		
+		List<DBDatabase> databaseEntries = new ArrayList<DBDatabase>();
+		
+		for ( TableItem tableItem : tblDatabases.getItems() )
+			databaseEntries.add((DBDatabase)tableItem.getData());
+		
 		DBDatabase.setAllIntoPreferenceStore(databaseEntries);
-	}
-
-	/**
-	 * Returns this field editor's button box containing the Add, Remove, Up,
-	 * and Down button.
-	 *
-	 * @param parent
-	 *            the parent control
-	 * @return the button box
-	 */
-	public Composite getButtonBoxControl(Composite parent) {
-		if ( logger.isTraceEnabled() ) logger.trace("getButtonBoxControl()");
-		if (buttonBox == null) {
-			buttonBox = new Composite(parent, SWT.NULL);
-			GridLayout layout = new GridLayout();
-			layout.marginWidth = 0;
-			buttonBox.setLayout(layout);
-			newButton = createPushButton(buttonBox, "New");
-			duplicateButton = createPushButton(buttonBox, "Duplicate");
-			removeButton = createPushButton(buttonBox, "Remove");
-			upButton = createPushButton(buttonBox, "Up");
-			downButton = createPushButton(buttonBox, "Down");
-			checkButton = createPushButton(buttonBox, "Check");
-			buttonBox.addDisposeListener(new DisposeListener() {
-				public void widgetDisposed(DisposeEvent event) {
-					newButton = null;
-					duplicateButton = null;
-					removeButton = null;
-					upButton = null;
-					downButton = null;
-					checkButton = null;
-					buttonBox = null;
-				}
-			});
-
-		} else {
-			checkParent(buttonBox, parent);
-		}
-
-		tableSelectionChanged();
-		return buttonBox;
-	}
-
-	/**
-	 * Returns this field editor's table control.
-	 *
-	 * @param parent
-	 *            the parent control
-	 * @return the table control
-	 */
-	public Table getTableControl(Composite parent) {
-		if ( table != null )
-			checkParent(table, parent);
-		return table;
 	}
 
 	/*
 	 * (non-Javadoc) Method declared on FieldEditor.
 	 */
 	public int getNumberOfControls() {
-		return 2;
+		return 1;
+	}
+	
+	/**
+	 * Invoked when the selection in the driver combo has changed.
+	 */
+	protected void tableSelectionChanged() {
+		TableItem[] selection = tblDatabases.getSelection();
+		
+		if ( selection == null || selection.length == 0 ) {
+			btnUp.setEnabled(false);
+			btnDown.setEnabled(false);
+			btnEdit.setEnabled(false);
+			btnRemove.setEnabled(false);
+		} else {
+			btnUp.setEnabled(tblDatabases.getSelectionIndex() != 0);
+			btnUp.setEnabled(tblDatabases.getSelectionIndex() != tblDatabases.getItemCount()-1);
+			btnEdit.setEnabled(true);
+			btnRemove.setEnabled(true);
+		}
+		
+		discardCallback();
 	}
 
 	/**
-	 * Invoked when the selection in the list has changed.
+	 * Invoked when the selection in the driver combo has changed.
 	 */
-	protected void tableSelectionChanged() {
-		if ( logger.isTraceEnabled() ) logger.trace("tableSelectionChanged()");
-		int index = table.getSelectionIndex();
-		int size = table.getItemCount();
-
-		duplicateButton.setEnabled(index >= 0);
-		removeButton.setEnabled(index >= 0);
-		upButton.setEnabled(size > 1 && index > 0);
-		downButton.setEnabled(size > 1 && index >= 0 && index < size - 1);
-		checkButton.setEnabled(index >= 0);
+	protected void comboSelectionChanged() {
+		if ( logger.isTraceEnabled() ) logger.trace("comboSelectionChanged()");
+		boolean isFile = false;
 		
-		for (int i=0; i<size; ++i) {
-			table.getItem(i).setBackground(i==index?HIGHLIGHTED_COLOR:table.getBackground());
+		if ( comboDriver.getText().equalsIgnoreCase("sqlite") ) {
+			isFile = true;
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(lblFile, 10);
+			fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+			lblExportType.setLayoutData(fd);
+		} else {
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(lblUsername, 10);
+			fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+			lblExportType.setLayoutData(fd);
 		}
+		
+		lblFile.setVisible(isFile);
+		txtFile.setVisible(isFile);		
+		btnBrowse.setVisible(isFile);
+		lblExportType.setVisible(true);
+		btnWholeType.setVisible(true);
+		btnComponentsType.setVisible(true);
+		lblServer.setVisible(!isFile);
+		txtServer.setVisible(!isFile);
+		lblPort.setVisible(!isFile);
+		txtPort.setVisible(!isFile);
+		lblDatabase.setVisible(!isFile);
+		txtDatabase.setVisible(!isFile);
+		//lblSchema.setVisible(!isFile);
+		//txtSchema.setVisible(!isFile);
+		lblUsername.setVisible(!isFile);
+		txtUsername.setVisible(!isFile);
+		lblPassword.setVisible(!isFile);
+		txtPassword.setVisible(!isFile);
+		btnShowPassword.setVisible(!isFile);
+		
+		grpDatabases.layout();
 	}
-
+	
 	/*
 	 * (non-Javadoc) Method declared on FieldEditor.
 	 */
 	public void setFocus() {
-		if ( table != null )
-			table.setFocus();
+		if ( tblDatabases != null )
+			tblDatabases.setFocus();
 	}
 	
 	/**
-	 * Notifies that the Add button has been pressed.
+	 * Called when the "new" button has been pressed
 	 */
 	private void newCallback() {
 		if ( logger.isTraceEnabled() ) logger.trace("newCallback()");
-		int index = table.getItemCount()-1;
-		for (int i=0; i < table.getItemCount(); ++i) {
-			if ( table.getItem(i).getBackground().equals(HIGHLIGHTED_COLOR) ) {
-				index = i;
-				break;
+
+			// we unselect all the lines of the tblDatabases table
+		tblDatabases.deselectAll();
+		tblDatabases.notifyListeners(SWT.Selection, new Event());
+		
+			// we show up the edition widgets
+		editCallback();
+	}
+	
+	/**
+	 * Called when the "edit" button has been pressed and by the newCallback() method
+	 */
+	private void editCallback() {
+		if ( logger.isTraceEnabled() ) logger.trace("editCallback()");
+
+		DBDatabase dbDatabase = null;
+		boolean isFile = false;
+		boolean isServer = false;
+		
+		if ( tblDatabases.getSelectionIndex() >= 0 ) {
+			dbDatabase = (DBDatabase)tblDatabases.getItem(tblDatabases.getSelectionIndex()).getData();
+		}
+		
+			// we showUp the widgets that allow the user to fill in the database information
+			// and set them with the DBDatabase information linked to the selected TableItem (if any) 
+		if ( !comboDriver.getText().isEmpty() ) {
+			if ( comboDriver.getText().equalsIgnoreCase("sqlite") ) {
+				isFile = true;
+				FormData fd = new FormData();
+				fd.top = new FormAttachment(lblFile, 10);
+				fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+				lblExportType.setLayoutData(fd);
+			} else {
+				isServer = true;
+				FormData fd = new FormData();
+				fd.top = new FormAttachment(lblUsername, 10);
+				fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+				lblExportType.setLayoutData(fd);
 			}
 		}
-		databaseEntries.add(index+1, new DBDatabase("new"));
-		tableViewer.refresh();
-		table.setSelection(index+1);
-		tableSelectionChanged();
+				
+		lblName.setVisible(true);
+		txtName.setVisible(true);							txtName.setEnabled(true);			txtName.setText(dbDatabase != null ? dbDatabase.getName(): "");
+		
+		lblDriver.setVisible(true);
+		comboDriver.setVisible(true);						comboDriver.setEnabled(true);		comboDriver.setText(dbDatabase != null ? dbDatabase.getDriver() : "");
+		
+		lblFile.setVisible(isFile);
+		txtFile.setVisible(isFile);							txtFile.setEnabled(true);			txtFile.setText(isFile && dbDatabase != null ? dbDatabase.getServer() : "");
+		
+		btnBrowse.setVisible(false);
+		
+		lblServer.setVisible(isServer);
+		txtServer.setVisible(isServer);						txtServer.setEnabled(true);			txtServer.setText(isServer && dbDatabase != null ? dbDatabase.getServer() : "");
+		
+		lblPort.setVisible(isServer);
+		txtPort.setVisible(isServer);						txtPort.setEnabled(true);			txtPort.setText(isServer ? (dbDatabase != null ? dbDatabase.getPort() : DBDatabase.getDefaultPort(comboDriver.getText())) : "");
+		
+		lblDatabase.setVisible(isServer);
+		txtDatabase.setVisible(isServer);					txtDatabase.setEnabled(true);		txtDatabase.setText(isServer && dbDatabase != null ? dbDatabase.getDatabase() : "");
+		
+		lblUsername.setVisible(isServer);
+		txtUsername.setVisible(isServer);					txtUsername.setEnabled(true);		txtUsername.setText(isServer && dbDatabase != null ? dbDatabase.getUsername() : "");
+		
+		lblPassword.setVisible(isServer);
+		if ( !btnShowPassword.getSelection() )
+			showOrHidePasswordCallback();
+		btnShowPassword.setVisible(isServer);
+		txtPassword.setVisible(isServer);					txtPassword.setEnabled(true);		txtPassword.setText(isServer && dbDatabase != null ? dbDatabase.getPassword() : "");
+		
+		lblExportType.setVisible(isFile||isServer);
+		btnWholeType.setVisible(isFile||isServer);			btnWholeType.setEnabled(true);		btnWholeType.setSelection(dbDatabase.getExportWholeModel());
+		btnComponentsType.setVisible(isFile||isServer);		btnComponentsType.setEnabled(true);	btnComponentsType.setSelection(!dbDatabase.getExportWholeModel());
+		
+		btnSave.setVisible(true);
+		btnDiscard.setVisible(true);
+		btnCheck.setVisible(true);
+		
+		btnNew.setEnabled(false);
+		btnEdit.setEnabled(false);
+		btnRemove.setEnabled(false);
+		btnUp.setEnabled(false);
+		btnDown.setEnabled(false);
+		tblDatabases.setEnabled(false);
+		
+		grpDatabases.layout();
 	}
 	
 	/**
-	 * Notifies that the Duplicate button has been pressed.
+	 * Called when the "save" button has been pressed
 	 */
-	private void duplicateCallback() {
-		if ( logger.isTraceEnabled() ) logger.trace("duplicateCallback()");
-		int index = table.getSelectionIndex();
-		databaseEntries.add(index+1, new DBDatabase(databaseEntries.get(index)));
-		tableViewer.refresh();
-		tableSelectionChanged();
+	private void saveCallback() {
+		if ( logger.isTraceEnabled() ) logger.trace("saveCallback()");
+		
+		if ( txtName.getText().isEmpty() )
+			return;
+
+		DBDatabase dbDatabase = null;
+		TableItem tableItem;
+		
+		if ( tblDatabases.getSelectionIndex() >= 0 ) {
+			dbDatabase = (DBDatabase)tblDatabases.getItem(tblDatabases.getSelectionIndex()).getData();
+			tableItem = tblDatabases.getSelection()[0];
+		} else {
+			dbDatabase = new DBDatabase();
+			tableItem = new TableItem(tblDatabases, SWT.NONE);
+		}
+		
+		tableItem.setText(txtName.getText());
+		
+		dbDatabase.setName(txtName.getText());
+		dbDatabase.setDriver(comboDriver.getText());
+		dbDatabase.setServer(comboDriver.getText().equalsIgnoreCase("sqlite") ? txtFile.getText() : txtServer.getText());
+		dbDatabase.setPort(txtPort.getText());
+		dbDatabase.setDatabase(txtDatabase.getText());
+		dbDatabase.setUsername(txtUsername.getText());
+		dbDatabase.setPassword(txtPassword.getText());
+		dbDatabase.setExportWholeModel(btnWholeType.getSelection());
+		
+		discardCallback();
+
+		tableItem.setData(dbDatabase);
+		tblDatabases.setSelection(tableItem);
+		tblDatabases.notifyListeners(SWT.Selection, new Event());
 	}
 	
 	/**
-	 * Notifies that the check button has been pressed.
+	 * Called when the "discard" button has been pressed
+	 */
+	private void discardCallback() {
+		if ( tblDatabases.getSelectionIndex() >= 0 ) {
+				// 
+			DBDatabase dbDatabase = (DBDatabase)tblDatabases.getItem(tblDatabases.getSelectionIndex()).getData();
+			boolean isFile = false;
+			boolean isServer = false;
+			
+			if ( !dbDatabase.getDriver().isEmpty() ) {
+				if ( dbDatabase.getDriver().equalsIgnoreCase("sqlite") ) {
+					isFile = true;
+					FormData fd = new FormData();
+					fd.top = new FormAttachment(lblFile, 10);
+					fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+					lblExportType.setLayoutData(fd);
+				} else {
+					isServer = true;
+					FormData fd = new FormData();
+					fd.top = new FormAttachment(lblUsername, 10);
+					fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+					lblExportType.setLayoutData(fd);
+				}
+			}
+			
+			lblName.setVisible(true);
+			txtName.setVisible(true);							txtName.setEnabled(false);				txtName.setText(dbDatabase.getName());
+			
+			lblDriver.setVisible(true);
+			comboDriver.setVisible(true);						comboDriver.setEnabled(false);			comboDriver.setText(dbDatabase.getDriver());
+			
+			lblFile.setVisible(isFile);
+			txtFile.setVisible(isFile);							txtFile.setEnabled(false);				txtFile.setText(isFile ? dbDatabase.getServer() : "");
+			
+			btnBrowse.setVisible(false);
+			
+			lblServer.setVisible(isServer);
+			txtServer.setVisible(isServer);						txtServer.setEnabled(false);			txtServer.setText(isServer ? dbDatabase.getServer() : "");
+			
+			lblPort.setVisible(isServer);
+			txtPort.setVisible(isServer);						txtPort.setEnabled(false);				txtPort.setText(isServer ? dbDatabase.getPort() : "");
+			
+			lblDatabase.setVisible(isServer);
+			txtDatabase.setVisible(isServer);					txtDatabase.setEnabled(false);			txtDatabase.setText(isServer ? dbDatabase.getDatabase() : "");
+			
+			lblUsername.setVisible(isServer);
+			txtUsername.setVisible(isServer);					txtUsername.setEnabled(false);			txtUsername.setText(isServer ? dbDatabase.getUsername() : "");
+			
+			lblPassword.setVisible(isServer);
+			if ( !btnShowPassword.getSelection() )
+				showOrHidePasswordCallback();
+			btnShowPassword.setVisible(isServer);
+			txtPassword.setVisible(isServer);					txtPassword.setEnabled(false);			txtPassword.setText(isServer ? dbDatabase.getPassword() : "");
+			
+			lblExportType.setVisible(isFile||isServer);
+			btnWholeType.setVisible(isFile||isServer);			btnWholeType.setEnabled(false);			btnWholeType.setSelection(dbDatabase.getExportWholeModel());
+			btnComponentsType.setVisible(isFile||isServer);		btnComponentsType.setEnabled(false);	btnComponentsType.setSelection(!dbDatabase.getExportWholeModel());
+			
+			btnEdit.setEnabled(true);
+			btnRemove.setEnabled(true);
+			
+			btnUp.setEnabled(tblDatabases.getSelectionIndex() > 0);
+			btnDown.setEnabled(tblDatabases.getSelectionIndex() < tblDatabases.getItemCount()-1);
+		} else {
+			lblName.setVisible(false);
+			txtName.setVisible(false);
+			lblDriver.setVisible(false);
+			comboDriver.setVisible(false);
+			lblFile.setVisible(false);
+			txtFile.setVisible(false);
+			btnBrowse.setVisible(false);
+			lblServer.setVisible(false);
+			txtServer.setVisible(false);
+			lblPort.setVisible(false);
+			txtPort.setVisible(false);
+			lblDatabase.setVisible(false);
+			txtDatabase.setVisible(false);
+			lblUsername.setVisible(false);
+			txtUsername.setVisible(false);
+			lblPassword.setVisible(false);
+			txtPassword.setVisible(false);
+			
+			btnEdit.setEnabled(false);
+			btnRemove.setEnabled(false);
+			
+			btnUp.setEnabled(false);
+			btnDown.setEnabled(false);
+		}
+		
+		btnNew.setEnabled(true);
+		
+		btnSave.setVisible(false);
+		btnDiscard.setVisible(false);
+		btnCheck.setVisible(false);
+		
+		tblDatabases.setEnabled(true);
+		
+		grpDatabases.layout();
+	}
+	
+	/**
+	 * Called when the "check" button has been pressed
 	 */
 	private void checkCallback() {
 		if ( logger.isTraceEnabled() ) logger.trace("checkCallback()");
-		setPresentsDefaultValue(false);
-		int index = table.getSelectionIndex();
-
-		if (index >= 0) {
-			DBDatabase entry = databaseEntries.get(index);
-			try {
-				// we check if we can connect to the database
-	            checkButton.getShell().setCursor(new Cursor(Display.getCurrent(), SWT.CURSOR_WAIT));
-	            DBDatabase database = new DBDatabase("test", entry.getDriver(), entry.getServer(), entry.getPort(), entry.getDatabase(), entry.getUsername(), entry.getPassword());
-	            database.check();
-	            DBGui.popup(Level.INFO, "Congratulations !\n\nconnection to the database succeeded.");
-			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "Cannot connect to the database.\n\n"+err.getMessage());
-			}
-			checkButton.getShell().setCursor(new Cursor(Display.getCurrent(), SWT.CURSOR_ARROW));
+		DBDatabase dbDatabase = new DBDatabase();
+		
+		dbDatabase.setName(txtName.getText());
+		dbDatabase.setDriver(comboDriver.getText());
+		dbDatabase.setServer(comboDriver.getText().equalsIgnoreCase("sqlite") ? txtFile.getText() : txtServer.getText());
+		dbDatabase.setPort(txtPort.getText());
+		dbDatabase.setDatabase(txtDatabase.getText());
+		dbDatabase.setUsername(txtUsername.getText());
+		dbDatabase.setPassword(txtPassword.getText());
+		
+		try {
+			dbDatabase.check();
+		} catch (Exception err) {
+			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			//TODO : if the database is not initialized, propose to create tables
+			return;
 		}
+		DBGui.popup(Level.INFO, "Connection successful to the database.");
 	}
 
 	/**
-	 * Notifies that the Remove button has been pressed.
+	 * Called when the "remove" button has been pressed
 	 */
 	private void removeCallback() {
 		if ( logger.isTraceEnabled() ) logger.trace("removeCallback()");
-		setPresentsDefaultValue(false);
-		int index = table.getSelectionIndex();
-		databaseEntries.remove(index);
-		tableViewer.refresh();
+		// setPresentsDefaultValue(false);
+		int index = tblDatabases.getSelectionIndex();
 		
-		if ( index < table.getItemCount() )
-			table.setSelection(index);
+		tblDatabases.remove(index);
+				
+		if ( index < tblDatabases.getItemCount() )
+			tblDatabases.setSelection(index);
 		else if ( index > 0 )
-			table.setSelection(index-1);
-			
-		tableSelectionChanged();
+			tblDatabases.setSelection(index-1);
+	}
+	
+	/**
+	 * Called when the "browse" button has been pressed
+	 */
+	private void browseCallback() {
+		FileDialog dlg = new FileDialog(Display.getDefault().getActiveShell(), SWT.SINGLE);
+		dlg.setFileName(txtFile.getText());
+		dlg.setFilterExtensions(new String[]{"*.sqlite", "*.sqlite2", "*.sqlite3", "*.db", "*.*"});
+	    if (dlg.open() != null) {
+			StringBuffer buf = new StringBuffer(dlg.getFilterPath());
+			if (buf.charAt(buf.length() - 1) != File.separatorChar)
+				buf.append(File.separatorChar);
+			buf.append(dlg.getFileName());
+			txtFile.setText(buf.toString());
+	    }
 	}
 
 	/**
@@ -348,199 +844,53 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 *            <code>true</code> if the item should move up, and
 	 *            <code>false</code> if it should move down
 	 */
-	private void swap(int direction) {
-		if ( logger.isTraceEnabled() ) logger.trace("swap()");
-		setPresentsDefaultValue(false);
+	private void swapDatabaseEntries(int direction) {
+		if ( logger.isTraceEnabled() ) logger.trace("swap("+direction+")");
 		
-		int source = table.getSelectionIndex();
-		DBDatabase sourceEntry = databaseEntries.get(source);
-		
-		int target = table.getSelectionIndex()+direction;
-		DBDatabase targetEntry = databaseEntries.get(target);
+		int source = tblDatabases.getSelectionIndex();
+		int target = tblDatabases.getSelectionIndex()+direction;
 		
 		if ( logger.isTraceEnabled() ) logger.trace("swapping entrie "+source+" and "+target+".");
+		TableItem sourceItem = tblDatabases.getItem(source);
+		String sourceText = sourceItem.getText();
+		DBDatabase sourceData = (DBDatabase)sourceItem.getData();
 		
-		databaseEntries.set(source, targetEntry);
-		databaseEntries.set(target, sourceEntry);
-
-		tableViewer.refresh();
-		tableSelectionChanged();
-	}
-
-	/*
-	 * @see FieldEditor.setEnabled(boolean,Composite).
-	 */
-	public void setEnabled(boolean enabled, Composite parent) {
-		if ( logger.isTraceEnabled() ) logger.trace("setEnabled()");
-		super.setEnabled(enabled, parent);
-		table.setEnabled(enabled);
-		newButton.setEnabled(enabled);
-		duplicateButton.setEnabled(enabled);
-		removeButton.setEnabled(enabled);
-		upButton.setEnabled(enabled);
-		downButton.setEnabled(enabled);
-	}
-
-	
-	/**
-	 * Helper method to create a push button.
-	 *
-	 * @param parent	: the parent control
-	 * @param key		: the resource name used to supply the button's label text
-	 * @return Button
-	 */
-	private Button createPushButton(Composite parent, String key) {
-		Button button = new Button(parent, SWT.PUSH);
-		button.setText(key);
-		button.setFont(parent.getFont());
-		GridData data = new GridData(GridData.FILL_HORIZONTAL);
-		data.widthHint = Math.max(convertHorizontalDLUsToPixels(button, IDialogConstants.BUTTON_WIDTH), button.computeSize(SWT.DEFAULT, SWT.DEFAULT, true).x);
-		button.setLayoutData(data);
-		button.addSelectionListener(selectionListener);
-		return button;
-	}
-	
-	public TableViewer getTableViewer() {
-		return tableViewer;
+		TableItem targetItem = tblDatabases.getItem(target);
+		String targetText = targetItem.getText();
+		DBDatabase targetData = (DBDatabase)targetItem.getData();
+		
+		sourceItem.setText(targetText);
+		sourceItem.setData(targetData);
+		targetItem.setText(sourceText);
+		targetItem.setData(sourceData);
+		
+		tblDatabases.setSelection(target);
+		tblDatabases.notifyListeners(SWT.Selection, new Event());
 	}
 	
 	/**
-	 * selection listener called when a pushed button is pressed
+	 * Called when the "showPassword" button has been pressed
 	 */
-	private SelectionListener selectionListener = new SelectionAdapter() {
-		public void widgetSelected(SelectionEvent event) {
-			if ( logger.isTraceEnabled() ) logger.trace("widgetSelected()");
-			Widget widget = event.widget;
-			if (widget == newButton) {
-				newCallback();
-			} else if (widget == duplicateButton) {
-				duplicateCallback();
-			} else if (widget == removeButton) {
-				removeCallback();
-			} else if (widget == upButton) {
-				swap(-1);
-			} else if (widget == downButton) {
-				swap(1);
-			} else if (widget == checkButton) {
-				checkCallback();
-			} else if (widget == table) {
-				tableSelectionChanged();
-			}
-		}
-	};
-	
-	class DBTableLabelProvider implements ITableLabelProvider {
-		@Override
-		public void addListener(ILabelProviderListener listener) {
-			// do nothing
-		}
-
-		@Override
-		public void dispose() {
-			// do nothing
-		}
-
-		@Override
-		public boolean isLabelProperty(Object element, String property) {
-			return false;
-		}
-
-		@Override
-		public void removeListener(ILabelProviderListener listener) {
-			// do nothing
-		}
-
-		@Override
-		public Image getColumnImage(Object element, int columnIndex) {
-			return null;
-		}
-
-		@Override
-		public String getColumnText(Object element, int columnIndex) {
-			String txt;
-			if ( DBDatabase.properties[columnIndex].equals("password") && ((DBDatabase) element).getProperty(DBDatabase.properties[columnIndex])!=null ) {
-				txt = ((DBDatabase) element).getProperty(DBDatabase.properties[columnIndex]).replaceAll(".", "*");
-			} else {
-				txt = ((DBDatabase) element).getProperty(DBDatabase.properties[columnIndex]);
-			}
-			return txt;
-		}		
-	};
-	
-	class DBTableContentProvider implements IStructuredContentProvider {
-		@SuppressWarnings("unchecked")
-		public Object[] getElements(Object inputElement) {
-			return ((List<DBDatabase>) inputElement).toArray();
-		}
-
-		public void dispose() {
-		}
-
-		public void inputChanged(Viewer viewer, Object oldInput, Object newInput) {
-		}
-	}
-	
-	class DBCellModifier implements ICellModifier {
-		private TableViewer tableViewer;
+	public void showOrHidePasswordCallback() {
+		String pass = txtPassword.getText();
+		txtPassword.dispose();
 		
-		/**
-		 * Constructor 
-		 * @param TableViewerExample an instance of a TableViewerExample 
-		 */
-		public DBCellModifier(TableViewer tableViewer) {
-			super();
-			if ( logger.isTraceEnabled() ) logger.trace("DBCellModifier()");
-			this.tableViewer = tableViewer;
+		if ( btnShowPassword.getSelection() ) {
+			txtPassword = new Text(grpDatabases,  SWT.PASSWORD | SWT.BORDER);
+			btnShowPassword.setImage(DBGui.LOCK_ICON);
+		} else {
+			txtPassword = new Text(grpDatabases, SWT.BORDER);
+			btnShowPassword.setImage(DBGui.UNLOCK_ICON);
 		}
-
-		/**
-		 * @see org.eclipse.jface.viewers.ICellModifier#canModify(java.lang.Object, java.lang.String)
-		 */
-		public boolean canModify(Object element, String property) {
-			return true;
-		}
-
-		/**
-		 * @see org.eclipse.jface.viewers.ICellModifier#getValue(java.lang.Object, java.lang.String)
-		 */
-		public Object getValue(Object element, String property) {
-			DBDatabase entry = (DBDatabase) element;
-			Object result = new Integer(0);
-
-			if ( property.toLowerCase().equals("driver") ) {
-				// must return the index of the element in the combo
-				for (int i = 0; i < DBDatabase.driverList.length ; ++i) {
-					if ( DBDatabase.driverList[i].equals(entry.getDriver()) ) {
-						result = new Integer(i);
-						break;
-					}
-				}
-			} else {
-				result =  entry.getProperty(property);
-			}
-
-			if ( logger.isTraceEnabled() ) logger.trace("DBCellModifier.getValue("+property+") -> "+result);
-			return result;
-		}
-
-		/**
-		 * @see org.eclipse.jface.viewers.ICellModifier#modify(java.lang.Object, java.lang.String, java.lang.Object)
-		 */
-		public void modify(Object element, String property, Object value) {	
-			if ( logger.isTraceEnabled() ) logger.trace("DBCellModifier.modify("+property+","+value+")");
-			
-			if (element instanceof Item) element = ((Item) element).getData();
-			
-			DBDatabase entry = (DBDatabase) element;
-			
-			if ( property.toLowerCase().equals("driver") ) {
-				entry.setDriver(DBDatabase.driverList[((Integer)value).intValue()]);
-				entry.setPort(DBDatabase.defaultPorts[((Integer)value).intValue()]);
-			} else {
-				entry.setProperty(property, ((String) value).trim());
-			}
-
-			tableViewer.refresh();
-		}
+		
+		txtPassword.setText(pass);
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
+		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
+		txtPassword.setLayoutData(fd);
+		txtPassword.setVisible(true);
+		
+		grpDatabases.layout();
 	}
 }
