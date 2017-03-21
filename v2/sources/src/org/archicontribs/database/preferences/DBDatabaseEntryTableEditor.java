@@ -95,11 +95,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			// we create a composite with layout as FormLayout
 		grpDatabases = new Group(parent, SWT.NONE);
 		grpDatabases.setFont(parent.getFont());
-		GridData gd = new GridData();
-		gd.heightHint = 260;
-		gd.horizontalAlignment = GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		grpDatabases.setLayoutData(gd);
 		grpDatabases.setLayout(new FormLayout());
 		
 		btnUp = new Button(grpDatabases, SWT.NONE);
@@ -273,7 +268,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPort.setText("Port :");
 		fd = new FormData();
 		fd.top = new FormAttachment(lblServer, 10, SWT.CENTER);
-		fd.left = new FormAttachment(txtServer, 40);
+		fd.left = new FormAttachment(txtServer, 30);
 		lblPort.setLayoutData(fd);
 		lblPort.setVisible(false);
 		
@@ -281,7 +276,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		txtPort.setTextLimit(5);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblPort, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblPort, 40);
+		fd.left = new FormAttachment(lblPort, 30);
 		fd.width = 30;
 		txtPort.setLayoutData(fd);
 		txtPort.setVisible(false);
@@ -338,30 +333,32 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPassword.setText("Password :");
 		fd = new FormData();
 		fd.top = new FormAttachment(lblUsername, 10, SWT.CENTER);
-		fd.left = new FormAttachment(txtUsername, 40);
+		fd.left = new FormAttachment(lblPort, 0, SWT.LEFT);
 		lblPassword.setLayoutData(fd);
 		lblPassword.setVisible(false);
-		
-		txtPassword = new Text(grpDatabases, SWT.PASSWORD | SWT.BORDER);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
-		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
-		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
-		txtPassword.setLayoutData(fd);
-		txtPassword.setVisible(false);
 		
 		btnShowPassword = new Button(grpDatabases, SWT.TOGGLE);
 		btnShowPassword.setImage(DBGui.LOCK_ICON);
 		btnShowPassword.setSelection(true);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblPassword, 0);
+		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
 		btnShowPassword.setLayoutData(fd);
 		btnShowPassword.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) { showOrHidePasswordCallback(); }
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		btnShowPassword.setVisible(false);
+		
+		txtPassword = new Text(grpDatabases, SWT.PASSWORD | SWT.BORDER);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
+		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
+		fd.right = new FormAttachment(btnShowPassword,0, SWT.LEFT);
+		txtPassword.setLayoutData(fd);
+		txtPassword.setVisible(false);
+		
+
 
 		lblExportType = new Label(grpDatabases, SWT.NONE);
 		lblExportType.setText("Export type : ");
@@ -383,7 +380,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnComponentsType.setText("Components only");
 		fd = new FormData();
 		fd.top = new FormAttachment(lblExportType, 0, SWT.CENTER);
-		fd.left = new FormAttachment(45, 20);
+		fd.left = new FormAttachment(btnWholeType, 20);
 		btnComponentsType.setLayoutData(fd);
 		btnComponentsType.setVisible(false);
 		
@@ -427,6 +424,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnCheck.setVisible(false);
 		
 		grpDatabases.layout();
+		
+		GridData gd = new GridData();
+		gd.heightHint = lblExportType.getLocation().y + 10;
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		grpDatabases.setLayoutData(gd);
 	}
 	
 	/*
@@ -620,7 +623,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPassword.setVisible(isServer);
 		if ( !btnShowPassword.getSelection() )
 			showOrHidePasswordCallback();
-		btnShowPassword.setVisible(isServer);
+		btnShowPassword.setVisible(isServer);				btnShowPassword.setEnabled(true);
 		txtPassword.setVisible(isServer);					txtPassword.setEnabled(true);		txtPassword.setText(isServer && dbDatabase != null ? dbDatabase.getPassword() : "");
 		
 		lblExportType.setVisible(isFile||isServer);
@@ -731,7 +734,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			lblPassword.setVisible(isServer);
 			if ( !btnShowPassword.getSelection() )
 				showOrHidePasswordCallback();
-			btnShowPassword.setVisible(isServer);
+			btnShowPassword.setVisible(isServer);				btnShowPassword.setEnabled(false);
 			txtPassword.setVisible(isServer);					txtPassword.setEnabled(false);			txtPassword.setText(isServer ? dbDatabase.getPassword() : "");
 			
 			lblExportType.setVisible(isFile||isServer);

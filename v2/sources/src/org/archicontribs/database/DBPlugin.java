@@ -69,7 +69,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 	
-	public static final String pluginVersion = "2.0.0.beta2";
+	public static final String pluginVersion = "2.0.0.beta3";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 	public static final String Separator = ";";

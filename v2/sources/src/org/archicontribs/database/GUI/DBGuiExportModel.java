@@ -68,7 +68,6 @@ import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
-import com.archimatetool.model.IProperty;
 import com.archimatetool.model.ISketchModel;
 import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
@@ -987,6 +986,7 @@ public class DBGuiExportModel extends DBGui {
 			rank = 0;
 			for ( IDiagramModel view: exportedModel.getAllViews().values() ) {
 				// TODO : manage conflicts
+				((IDBMetadata)view).getDBMetadata().setExportedVersion(exportedModel.getExportedVersion());		// until conflicts are managed
 
 				database.insert("INSERT INTO views_in_model (view_id, view_version, parent_folder_id, model_id, model_version, rank)"
 						,view.getId()
@@ -1013,16 +1013,7 @@ public class DBGuiExportModel extends DBGui {
 						,((IDBMetadata)view).getDBMetadata().getCurrentChecksum()
 						);
 				
-				for ( int pos = 0 ; pos < view.getProperties().size(); ++pos) {
-					IProperty prop = view.getProperties().get(pos);
-					database.insert("INSERT INTO properties (parent_id, parent_version, rank, name, value)"
-							,view.getId()
-							,((IDBMetadata)view).getDBMetadata().getExportedVersion()
-							,pos
-							,prop.getKey()
-							,prop.getValue()
-							);
-				}
+				database.exportProperties(view);
 				
 				// the view is exported
 				((IDBMetadata)view).getDBMetadata().setCurrentVersion(((IDBMetadata)view).getDBMetadata().getExportedVersion());
@@ -1041,10 +1032,11 @@ public class DBGuiExportModel extends DBGui {
 				while ( !((viewContainer instanceof IArchimateDiagramModel) || (viewContainer instanceof ICanvasModel) || (viewContainer instanceof ISketchModel)) ) {
 					viewContainer = viewContainer.eContainer();
 				}
+				((IDBMetadata)eObject).getDBMetadata().setExportedVersion(((IDBMetadata)viewContainer).getDBMetadata().getExportedVersion());		// the object version is the version of its view container
 				
 				database.insert("INSERT INTO views_objects (id, version, container_id, view_id, view_version, class, element_id, diagram_ref_id, type, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, x, y, width, height, rank, checksum)"
 						,((IIdentifier)eObject).getId()
-						,((IDBMetadata)eObject.eContainer()).getDBMetadata().getExportedVersion()
+						,((IDBMetadata)eObject).getDBMetadata().getExportedVersion()
 						,((IIdentifier)eObject.eContainer()).getId()
 						,((IIdentifier)viewContainer).getId()
 						,((IDBMetadata)viewContainer).getDBMetadata().getExportedVersion()
@@ -1079,18 +1071,8 @@ public class DBGuiExportModel extends DBGui {
 						,((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum()
 						);
 					
-					if ( eObject instanceof IProperties && !(eObject instanceof IDiagramModelArchimateComponent) ) {
-						for ( int pos = 0 ; pos < ((IProperties)eObject).getProperties().size(); ++pos) {
-							IProperty prop = ((IProperties)eObject).getProperties().get(pos);
-							database.insert("INSERT INTO properties (parent_id, parent_version, rank, name, value)"
-									,((IIdentifier)eObject).getId()
-									,((IDBMetadata)eObject.eContainer()).getDBMetadata().getExportedVersion()
-									,pos
-									,prop.getKey()
-									,prop.getValue()
-									);
-						}
-					}
+					if ( eObject instanceof IProperties && !(eObject instanceof IDiagramModelArchimateComponent))
+						database.exportProperties((IProperties)eObject);
 					
 					// The viewObject is exported
 					((IDBMetadata)eObject).getDBMetadata().setCurrentVersion(((IDBMetadata)eObject).getDBMetadata().getExportedVersion());
@@ -1108,6 +1090,8 @@ public class DBGuiExportModel extends DBGui {
 					while ( !((viewContainer instanceof IArchimateDiagramModel) || (viewContainer instanceof ICanvasModel) || (viewContainer instanceof ISketchModel)) ) {
 						viewContainer = viewContainer.eContainer();
 					}
+					
+					((IDBMetadata)eObject).getDBMetadata().setExportedVersion(((IDBMetadata)viewContainer).getDBMetadata().getExportedVersion());		// the connection version is the version of its view container
 					
 					database.insert("INSERT INTO views_connections (id, version, container_id, view_id, view_version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id,source_object_id, target_object_id, type, rank, checksum)"
 							,((IIdentifier)eObject).getId()
@@ -1131,18 +1115,8 @@ public class DBGuiExportModel extends DBGui {
 							,((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum()
 							);
 					
-					if ( eObject instanceof IProperties) {
-						for ( int pos = 0 ; pos < ((IProperties)eObject).getProperties().size(); ++pos) {
-							IProperty prop = ((IProperties)eObject).getProperties().get(pos);
-							database.insert("INSERT INTO properties (parent_id, parent_version, rank, name, value)"
-									,((IIdentifier)eObject).getId()
-									,((IDBMetadata)eObject.eContainer()).getDBMetadata().getExportedVersion()
-									,pos
-									,prop.getKey()
-									,prop.getValue()
-									);
-						}
-					}
+					if ( eObject instanceof IProperties )
+						database.exportProperties((IProperties)eObject);
 					
 					if ( eObject instanceof IDiagramModelConnection ) {
 						for ( int pos = 0 ; pos < ((IDiagramModelConnection)eObject).getBendpoints().size(); ++pos) {
