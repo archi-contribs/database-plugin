@@ -58,6 +58,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *									Few java optimizations
  *									Improve exceptions catching between threads
  *									Replace boolean database columns by integer columns for better compatibility
+ * v2.0.0.beta3 :	21/03/2017		Correct preference page where some options are outside the window on some displays
+ * 									Solve SQL duplicate key error message on model export
+ * v2.0.0.beta4 :	27/03/2017		Correct import folders properties
+ * 									Add version numbers of imported objects in debug mode
+ * 									Solve MySQL compatibility issue on elements import SQL request
+ * 									Update checksum method for folders and views to detect content updates
+ * 									Correct SQL request that count connections to import
  * 
  * 									// todo : dynamically load jdbc drivers
  * 									// todo : add datamodel management to preferences window
@@ -337,6 +344,14 @@ public class DBPlugin extends AbstractUIPlugin {
 	 */
 	public static Exception getAsyncException() {
 		return asyncException;
+	}
+	
+	/**
+	 * Checks if an exception has been raised during an asynchronous thread, and throw it in the current thread if any
+	 * @throws Exception 
+	 */
+	public static void checkAsyncException() throws Exception {
+		if ( asyncException != null ) throw asyncException;
 	}
 	
 	/**

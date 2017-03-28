@@ -83,7 +83,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Creates a DBCanvasModel instead of a CanvasModel 
 	 */
     public ICanvasModel createCanvasModel() {
-        return new org.archicontribs.database.model.impl.canvas.CanvasModel();
+        return new org.archicontribs.database.model.impl.CanvasModel();
     }
 
 	/**
@@ -91,7 +91,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Creates a DBCanvasModelSticky instead of a CanvasModelSticky 
 	 */
     public ICanvasModelSticky createCanvasModelSticky() {
-        return new org.archicontribs.database.model.impl.canvas.CanvasModelSticky();
+        return new org.archicontribs.database.model.impl.CanvasModelSticky();
     }
 
 	/**
@@ -99,7 +99,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Creates a DBCanvasModelBlock instead of a CanvasModelBlock 
 	 */
     public ICanvasModelBlock createCanvasModelBlock() {
-        return new org.archicontribs.database.model.impl.canvas.CanvasModelBlock();
+        return new org.archicontribs.database.model.impl.CanvasModelBlock();
     }
 
 	/**
@@ -107,7 +107,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Creates a DBCanvasModelImage instead of a CanvasModelImage 
 	 */
     public ICanvasModelImage createCanvasModelImage() {
-        return new org.archicontribs.database.model.impl.canvas.CanvasModelImage();
+        return new org.archicontribs.database.model.impl.CanvasModelImage();
     }
 
 	/**
@@ -115,6 +115,6 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Creates a DBCanvasModelConnection instead of a CanvasModelConnection 
 	 */
     public ICanvasModelConnection createCanvasModelConnection() {
-        return new org.archicontribs.database.model.impl.canvas.CanvasModelConnection();
+        return new org.archicontribs.database.model.impl.CanvasModelConnection();
     }
 }

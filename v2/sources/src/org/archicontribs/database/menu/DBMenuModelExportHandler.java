@@ -2,7 +2,7 @@ package org.archicontribs.database.menu;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGuiExportModel;
-import org.archicontribs.database.model.impl.ArchimateModel;
+import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

@@ -3,7 +3,7 @@ package org.archicontribs.database.menu;
 import java.util.Iterator;
 
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.model.impl.ArchimateModel;
+import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;

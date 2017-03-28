@@ -330,7 +330,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Creates a DBArchimateModel instead of a ArchimateModel 
 	 */
     public IArchimateModel createArchimateModel() {
-        return new org.archicontribs.database.model.impl.ArchimateModel();
+        return new org.archicontribs.database.model.ArchimateModel();
     }
     
 	/**

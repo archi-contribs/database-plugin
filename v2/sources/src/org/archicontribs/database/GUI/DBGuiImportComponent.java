@@ -5,9 +5,9 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
-import org.archicontribs.database.model.impl.ArchimateModel;
 import org.archicontribs.database.preferences.DBPreferencePage;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;

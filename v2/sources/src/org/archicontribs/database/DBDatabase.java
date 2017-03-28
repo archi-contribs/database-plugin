@@ -22,10 +22,10 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
-import org.archicontribs.database.model.impl.ArchimateModel;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.util.EcoreUtil;
@@ -101,6 +101,7 @@ public class DBDatabase {
 	private String username;
 	private String password;
 	private boolean exportWholeModel;
+	private boolean importLatest;
 
 	/**
 	 * Connection to the database
@@ -122,6 +123,7 @@ public class DBDatabase {
 		this.username = "";
 		this.password = "";
 		this.exportWholeModel = true;
+		this.importLatest = true;
 		this.connection = null;
 	}
 
@@ -135,10 +137,11 @@ public class DBDatabase {
 		this.username = "";
 		this.password = "";
 		this.exportWholeModel = true;
+		this.importLatest = true;
 		this.connection = null;
 	}
 
-	public DBDatabase(String name, String driver, String server, String port, String database, String schema, String username, String password, boolean exportWholeModel) {
+	public DBDatabase(String name, String driver, String server, String port, String database, String schema, String username, String password, boolean exportWholeModel, boolean importLatest) {
 		this.name = name;
 		this.driver = driver;
 		this.server = server;
@@ -148,6 +151,7 @@ public class DBDatabase {
 		this.username = username;
 		this.password = password;
 		this.exportWholeModel = exportWholeModel;
+		this.importLatest = importLatest;
 		this.connection = null;
 	}
 
@@ -161,6 +165,7 @@ public class DBDatabase {
 		this.username = entry.username;
 		this.password = entry.password;
 		this.exportWholeModel = entry.exportWholeModel;
+		this.importLatest = entry.importLatest;
 		this.connection = null;
 	}
 
@@ -244,6 +249,14 @@ public class DBDatabase {
 
 	public void setExportWholeModel(boolean exportWholeModel) {
 		this.exportWholeModel = exportWholeModel;
+	}
+	
+	public boolean getImportLatest() {
+		return importLatest;
+	}
+	
+	public void setImportLatest(boolean importLatest) {
+		this.importLatest = importLatest;
 	}
 	
 
@@ -1371,6 +1384,27 @@ public class DBDatabase {
 
 	private LinkedList<HashMap<String, Object>> _fifo = new LinkedList<HashMap<String, Object>>();
 	private HashSet<String> allImagePaths;
+	
+	private int countElementsToImport = 0;
+	private int countElementsImported = 0;
+	
+	private int countRelationshipsToImport = 0;
+	private int countRelationshipsImported = 0;
+	
+	private int countFoldersToImport = 0;
+	private int countFoldersImported = 0;
+	
+	private int countViewsToImport = 0;
+	private int countViewsImported = 0;
+	
+	private int countViewsObjectsToImport = 0;
+	private int countViewsObjectsImported = 0;
+	
+	private int countViewsConnectionsToImport = 0;
+	private int countViewsConnectionsImported = 0;
+	
+	private int countImagesToImport = 0;
+	private int countImagesImported = 0;
 
 
 	/**
@@ -1406,24 +1440,28 @@ public class DBDatabase {
 
 		importProperties(model);
 		
-		result = select("SELECT COUNT(*) AS countElements FROM (SELECT DISTINCT element_id FROM elements_in_model INNER JOIN elements ON elements_in_model.element_id = elements.id WHERE model_id = ? AND model_version = ? UNION SELECT DISTINCT element_id FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_objects ON views.id = views_objects.view_id AND views.version = views_objects.version WHERE model_id = ? AND model_version = ? and element_id IS NOT NULL) elements"
+		//result = select("SELECT COUNT(*) AS countElements FROM (SELECT DISTINCT element_id FROM elements_in_model INNER JOIN elements ON elements_in_model.element_id = elements.id WHERE model_id = ? AND model_version = ? UNION SELECT DISTINCT element_id FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_objects ON views.id = views_objects.view_id AND views.version = views_objects.version WHERE model_id = ? AND model_version = ? and element_id IS NOT NULL) elements"
+		result = select("SELECT COUNT(*) AS countElements FROM (SELECT DISTINCT element_id FROM elements_in_model INNER JOIN elements ON elements_in_model.element_id = elements.id WHERE model_id = ? AND model_version = ?) elements"
 				,model.getId()
 				,model.getCurrentVersion()
-				,model.getId()
-				,model.getCurrentVersion()
+				//,model.getId()
+				//,model.getCurrentVersion()
 				);
 		result.next();
-		int countElements = result.getInt("countElements");
+		countElementsToImport = result.getInt("countElements");
+		countElementsImported = 0;
 		result.close();
 		
-		result = select("SELECT COUNT(*) AS countRelationships FROM (SELECT DISTINCT relationship_id FROM relationships_in_model INNER JOIN relationships ON relationships_in_model.relationship_id = relationships.id WHERE model_id = ? AND model_version = ? UNION SELECT DISTINCT relationship_id FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_connections ON views.id = views_connections.view_id AND views.version = views_connections.version WHERE model_id = ? AND model_version = ? and relationship_id IS NOT NULL) relationships"
+		//result = select("SELECT COUNT(*) AS countRelationships FROM (SELECT DISTINCT relationship_id FROM relationships_in_model INNER JOIN relationships ON relationships_in_model.relationship_id = relationships.id WHERE model_id = ? AND model_version = ? UNION SELECT DISTINCT relationship_id FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_connections ON views.id = views_connections.view_id AND views.version = views_connections.version WHERE model_id = ? AND model_version = ? and relationship_id IS NOT NULL) relationships"
+		result = select("SELECT COUNT(*) AS countRelationships FROM (SELECT DISTINCT relationship_id FROM relationships_in_model INNER JOIN relationships ON relationships_in_model.relationship_id = relationships.id WHERE model_id = ? AND model_version = ?) relationships"
 				,model.getId()
 				,model.getCurrentVersion()
-				,model.getId()
-				,model.getCurrentVersion()
+				//,model.getId()
+				//,model.getCurrentVersion()
 				);
 		result.next();
-		int countRelationships = result.getInt("countRelationships");
+		countRelationshipsToImport = result.getInt("countRelationships");
+		countRelationshipsImported = 0;
 		result.close();
 		
 		result = select("SELECT COUNT(*) AS countFolders FROM folders_in_model WHERE model_id = ? AND model_version = ?"
@@ -1431,7 +1469,8 @@ public class DBDatabase {
 				,model.getCurrentVersion()
 				);
 		result.next();
-		int countFolders = result.getInt("countFolders");
+		countFoldersToImport = result.getInt("countFolders");
+		countFoldersImported = 0;
 		result.close();
 		
 		result = select("SELECT COUNT(*) AS countViews FROM views_in_model WHERE model_id = ? AND model_version = ?"
@@ -1439,23 +1478,26 @@ public class DBDatabase {
 				,model.getCurrentVersion()
 				);
 		result.next();
-		int countViews = result.getInt("countViews");
+		countViewsToImport = result.getInt("countViews");
+		countViewsImported = 0;
 		result.close();
 		
-		result = select("SELECT COUNT(*) AS countViewsObjects FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_objects ON views.id = views_objects.view_id AND views.version = views_objects.version WHERE model_id = ? AND model_version = ?"
+		result = select("SELECT COUNT(*) AS countViewsObjects FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id AND views_in_model.view_version = views.version INNER JOIN views_objects ON views.id = views_objects.view_id AND views.version = views_objects.version WHERE model_id = ? AND model_version = ?"
 				,model.getId()
 				,model.getCurrentVersion()
 				);
 		result.next();
-		int countViewsObjects = result.getInt("countViewsObjects");
+		countViewsObjectsToImport = result.getInt("countViewsObjects");
+		countViewsObjectsImported = 0;
 		result.close();
 		
-		result = select("SELECT COUNT(*) AS countViewsConnections FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_connections ON views.id = views_connections.view_id AND views.version = views_connections.version WHERE model_id = ? AND model_version = ?"
+		result = select("SELECT COUNT(*) AS countViewsConnections FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id AND views_in_model.view_version = views.version INNER JOIN views_connections ON views.id = views_connections.view_id AND views.version = views_connections.version WHERE model_id = ? AND model_version = ?"
 				,model.getId()
 				,model.getCurrentVersion()
 				);
 		result.next();
-		int countViewsConnections = result.getInt("countViewsConnections");
+		countViewsConnectionsToImport = result.getInt("countViewsConnections");
+		countViewsConnectionsImported = 0;
 		result.close();
 		
 		result = select("SELECT COUNT(DISTINCT image_path) AS countImages FROM views_in_model INNER JOIN views ON views_in_model.view_id = views.id INNER JOIN views_objects ON views.id = views_objects.view_id AND views.version = views_objects.version INNER JOIN images ON views_objects.image_path = images.path WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
@@ -1463,15 +1505,16 @@ public class DBDatabase {
 				,model.getCurrentVersion()
 				);
 		result.next();
-		int countImages = result.getInt("countImages");
+		countImagesToImport = result.getInt("countImages");
+		countImagesImported = 0;
 		result.close();
 		
-		if ( logger.isDebugEnabled() ) logger.debug("Importing "+countElements+" elements, "+countRelationships+" relationships, "+countFolders+" folders, "+countViews+" views, "+countViewsObjects+" views objects, "+countViewsConnections+" views connections, and "+countImages+" images.");
+		if ( logger.isDebugEnabled() ) logger.debug("Importing "+countElementsToImport+" elements, "+countRelationshipsToImport+" relationships, "+countFoldersToImport+" folders, "+countViewsToImport+" views, "+countViewsObjectsToImport+" views objects, "+countViewsConnectionsToImport+" views connections, and "+countImagesToImport+" images.");
 
 		// initializing the HashMaps that will be used to reference imported objects
 		allImagePaths = new HashSet<String>();
 
-		return countElements + countRelationships + countFolders + countViews + countViewsObjects + countViewsConnections + countImages;
+		return countElementsToImport + countRelationshipsToImport + countFoldersToImport + countViewsToImport + countViewsObjectsToImport + countViewsConnectionsToImport + countImagesToImport;
 	}
 
 	/**
@@ -1495,6 +1538,7 @@ public class DBDatabase {
 				if ( currentResultSet.getInt("type") != 0 )
 					folder.setType(FolderType.get(currentResultSet.getInt("type")));
 				folder.setId(currentResultSet.getString("folder_id"));
+				((IDBMetadata)folder).getDBMetadata().setCurrentVersion(model.getCurrentVersion());
 
 				_fifo.add(resultSetCopy(currentResultSet));
 				Display.getDefault().asyncExec(new Runnable() {
@@ -1507,24 +1551,21 @@ public class DBDatabase {
 							folder.setDocumentation((String)map.get("documentation"));
 							
 							String parentId = (String)map.get("parent_folder_id");
-							if ( parentId == null ) {
+							if ( parentId == null )
 								model.getFolders().add(folder);
-								logger.trace("Adding folder ("+folder.getId()+") to model's root folder");
-							} else {
-								IFolder parent = model.getAllFolders().get(parentId);
-								parent.getFolders().add(folder);
-								logger.trace("Adding folder "+folder.getName()+"("+folder.getId()+") as subfolder of "+parent.getName()+" ("+parent.getId()+")");
-							}
+							else
+								model.getAllFolders().get(parentId).getFolders().add(folder);
 						} catch (Exception e) {
 							DBPlugin.setAsyncException(e);
 						}
 					}
 				});
 				importProperties(folder);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("name")+"("+currentResultSet.getString("folder_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion()+" of folder "+currentResultSet.getString("name")+"("+currentResultSet.getString("folder_id")+")");
 
 					// we reference this folder for future use (storing sub-folders or components into it ...)
 				model.countObject(folder, false);
+				++countFoldersImported;
 				return true;
 			}
 			currentResultSet.close();
@@ -1532,16 +1573,25 @@ public class DBDatabase {
 		}
 		return false;
 	}
+	
+	/**
+	 * check if the number of imported folders is equals to what is expected
+	 */
+	public void checkImportedFoldersCount() throws Exception {
+		if ( countFoldersImported != countFoldersToImport )
+			throw new Exception(countFoldersImported+" folders imported instead of the "+countFoldersToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countFoldersImported+" folders imported.");
+	}
 
 	/**
 	 * Prepare the import of the elements from the database
 	 */
 	public void prepareImportElements(ArchimateModel model) throws Exception {
-		currentResultSet = select("SELECT element_id, max(version) as version, parent_folder_id, class, name, type, documentation FROM elements_in_model INNER JOIN elements ON elements_in_model.element_id = elements.id WHERE model_id = ? AND model_version = ? GROUP BY element_id ORDER BY rank"
+		currentResultSet = select("SELECT element_id, version, parent_folder_id, class, name, type, documentation FROM elements_in_model INNER JOIN elements ON elements_in_model.element_id = elements.id WHERE model_id = ? AND model_version = ? AND elements.version=(SELECT MAX(version) FROM elements WHERE elements.id = elements_in_model.element_id) ORDER BY rank"
 				,model.getId()
 				,model.getCurrentVersion()
 				);
-		//TODO : referencer tous les elements qui ont été modifiés depuis le dernier export : ie tous ceux dont la version != elements_in_model.element_version
 	}
 	
 	/**
@@ -1565,7 +1615,9 @@ public class DBDatabase {
 							element.setDocumentation((String)map.get("documentation"));
 							if ( element instanceof IJunction	&& map.get("type")!=null )	((IJunction)element).setType((String)map.get("type"));
 	
-							model.getAllFolders().get(map.get("parent_folder_id")).getElements().add(element);
+							IFolder folder = model.getAllFolders().get(map.get("parent_folder_id"));
+							folder.getElements().add(element);
+							
 						} catch (Exception e) {
 							DBPlugin.setAsyncException(e);
 						}
@@ -1573,16 +1625,27 @@ public class DBDatabase {
 				});
 				importProperties(element);
 
-				// we reference the element for future use (establishing relationships, creating views objects, ...)
-				model.countObject(element, false);
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("element_id")+")");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("element_id")+")");
+					// we reference the element for future use (establishing relationships, creating views objects, ...)
+				model.countObject(element, false);
+				++countElementsImported;
 				return true;
 			}
 			currentResultSet.close();
 			currentResultSet = null;
 		}
 		return false;
+	}
+	
+	/**
+	 * check if the number of imported elements is equals to what is expected
+	 */
+	public void checkImportedElementsCount() throws Exception {
+		if ( countElementsImported != countElementsToImport )
+			throw new Exception(countElementsImported+" elements imported instead of the "+countElementsToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countElementsImported+" elements imported.");
 	}
 
 	/**
@@ -1625,20 +1688,29 @@ public class DBDatabase {
 					}
 				});
 				importProperties(relationship);
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("relationship_id")+")");
 
-				// we reference the relationship for future use (establishing relationships, creating views connections, ...)
+					// we reference the relationship for future use (establishing relationships, creating views connections, ...)
 				model.countObject(relationship, false);
 				model.registerSourceAndTarget(relationship, currentResultSet.getString("source_id"), currentResultSet.getString("target_id"));
-				
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("relationship_id")+")");
+				++countRelationshipsImported;
 				return true;
 			}
 			currentResultSet.close();
 			currentResultSet = null;
-			
-			//model.reconnectRelationships();
 		}
 		return false;
+	}
+	
+	/**
+	 * check if the number of imported relationships is equals to what is expected
+	 */
+	public void checkImportedRelationshipsCount() throws Exception {
+		if ( countRelationshipsImported != countRelationshipsToImport )
+			throw new Exception(countRelationshipsImported+" relationships imported instead of the "+countRelationshipsToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countRelationshipsImported+" relationships imported.");
 	}
 
 	/**
@@ -1688,16 +1760,28 @@ public class DBDatabase {
 					}
 				});
 				importProperties(view);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("name")+"("+currentResultSet.getString("id")+")");
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("name")+"("+currentResultSet.getString("id")+")");
 
-				// we reference the view for future use
+					// we reference the view for future use
 				model.countObject(view, false);
+				++countViewsImported;
 				return true;
 			}
 			currentResultSet.close();
 			currentResultSet = null;
 		}
 		return false;
+	}
+	
+	/**
+	 * check if the number of imported views is equals to what is expected
+	 */
+	public void checkImportedViewsCount() throws Exception {
+		if ( countViewsImported != countViewsToImport )
+			throw new Exception(countViewsImported+" views imported instead of the "+countViewsToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countViewsImported+" views imported.");
 	}
 
 	/**
@@ -1774,10 +1858,11 @@ public class DBDatabase {
 					importProperties((IProperties)eObject);
 				}
 				
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 					// we reference the view for future use
 				model.countObject(eObject, false);
+				++countViewsObjectsImported;
 
 					// if the object contains an image, we store its path to import it later
 				if ( currentResultSet.getString("image_path") != null )
@@ -1789,6 +1874,16 @@ public class DBDatabase {
 			currentResultSet = null;
 		}
 		return false;
+	}
+	
+	/**
+	 * check if the number of imported objects is equals to what is expected
+	 */
+	public void checkImportedObjectsCount() throws Exception {
+		if ( countViewsObjectsImported != countViewsObjectsToImport )
+			throw new Exception(countViewsObjectsImported+" objects imported instead of the "+countViewsObjectsToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countViewsObjectsImported+" objects imported.");
 	}
 	
 	/**
@@ -1871,13 +1966,14 @@ public class DBDatabase {
 
 					// we reference the view for future use
 				model.countObject(eObject, false);
+				++countViewsConnectionsImported;
 				
 					// If the connection has got properties but does not have a linked relationship, then it may have distinct properties
 				if ( eObject instanceof IProperties && currentResultSet.getString("relationship_id")==null ) {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 				return true;
 			}
@@ -1885,6 +1981,16 @@ public class DBDatabase {
 			currentResultSet = null;
 		}
 		return false;
+	}
+	
+	/**
+	 * check if the number of imported connections is equals to what is expected
+	 */
+	public void checkImportedConnectionsCount() throws Exception {
+		if ( countViewsConnectionsImported != countViewsConnectionsToImport )
+			throw new Exception(countViewsConnectionsImported+" connections imported instead of the "+countViewsConnectionsToImport+" that were expected.");
+		
+		if ( logger.isDebugEnabled() ) logger.debug(countViewsConnectionsImported+" connections imported.");
 	}
 	
 	/**
@@ -1923,6 +2029,7 @@ public class DBDatabase {
 				throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
 			}
 			if ( logger.isDebugEnabled() ) logger.debug("   imported "+path);
+			++countImagesImported;
 			currentResultSet.close();
 			currentResultSet = null;
 		} else {

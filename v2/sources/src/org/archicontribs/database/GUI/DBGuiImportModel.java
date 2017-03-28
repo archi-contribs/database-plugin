@@ -5,7 +5,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.model.impl.ArchimateModel;
+import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -336,39 +336,37 @@ public class DBGuiImportModel extends DBGui {
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
 					int importSize = database.importModel(model);
 					setProgressBar(0, importSize);
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
 					database.prepareImportFolders(model);
 					while ( database.importFolders(model) ) {
 						increaseProgressBar();
-						if ( DBPlugin.getAsyncException() != null )
-							throw DBPlugin.getAsyncException();
+						DBPlugin.checkAsyncException();
 					}
 					sync();
 					if ( DBPlugin.getAsyncException() != null )
 						throw DBPlugin.getAsyncException();
+					database.checkImportedFoldersCount();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
 					database.prepareImportElements(model);
 					while ( database.importElements(model) ) {
 						increaseProgressBar();
-						if ( DBPlugin.getAsyncException() != null )
-							throw DBPlugin.getAsyncException();
+						DBPlugin.checkAsyncException();
 					}
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
 					database.prepareImportRelationships(model);
 					while ( database.importRelationships(model) ) {
 						increaseProgressBar();
-						if ( DBPlugin.getAsyncException() != null )
-							throw DBPlugin.getAsyncException();
+						DBPlugin.checkAsyncException();
 					}
 					
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
+					database.checkImportedElementsCount();
+					database.checkImportedRelationshipsCount();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
 					display.asyncExec(new Runnable() {
@@ -381,48 +379,42 @@ public class DBGuiImportModel extends DBGui {
 							}
 						}
 		    		});
-					
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
 					database.prepareImportViews(model);
 					while ( database.importViews(model) ) {
 						increaseProgressBar();
-						if ( DBPlugin.getAsyncException() != null )
-							throw DBPlugin.getAsyncException();
+						DBPlugin.checkAsyncException();
 					}
-					
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
+					database.checkImportedViewsCount();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
 					for (String viewId: model.getAllViews().keySet()) {
 						database.prepareImportViewsObjects(model, viewId);
 						while ( database.importViewsObjects(model, viewId) ) {
 							increaseProgressBar();
-							if ( DBPlugin.getAsyncException() != null )
-								throw DBPlugin.getAsyncException();
+							DBPlugin.checkAsyncException();
 						}
 					}
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
+					database.checkImportedObjectsCount();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
 					for (String viewId: model.getAllViews().keySet()) {
 						database.prepareImportViewsConnections(model, viewId);
 						while ( database.importViewsConnections(model) ) {
 							increaseProgressBar();
-							if ( DBPlugin.getAsyncException() != null )
-								throw DBPlugin.getAsyncException();
+							DBPlugin.checkAsyncException();
 						}
 					}
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
+					database.checkImportedConnectionsCount();
 					
 					if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
 					display.asyncExec(new Runnable() {
@@ -440,12 +432,10 @@ public class DBGuiImportModel extends DBGui {
 					for (String path: database.getAllImagePaths()) {
 						database.importImage(model, path);
 						increaseProgressBar();
-						if ( DBPlugin.getAsyncException() != null )
-							throw DBPlugin.getAsyncException();
+						DBPlugin.checkAsyncException();
 					}
 					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
+					DBPlugin.checkAsyncException();
 					
 				} catch (Exception err) {
 					jobException = err;

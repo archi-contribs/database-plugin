@@ -63,16 +63,6 @@ public class DBMetadata  {
 	private Timestamp databaseCreatedOn = null;
 	
 	/**
-	 * Indicates if the component needs to be exported to the database.
-	 */
-	//private boolean shouldExport = false;
-	
-	/**
-	 * Indicates if the component needs to be imported from the database.
-	 */
-	//private boolean shouldImport = false;
-	
-	/**
 	 * Component that contains the DBMetadata<br>
 	 * This property is set during the component initialization and is used to calculate the component checksum
 	 */

@@ -8,7 +8,7 @@ package org.archicontribs.database;
 
 import java.io.IOException;
 import org.archicontribs.database.GUI.DBGuiExportModel;
-import org.archicontribs.database.model.impl.ArchimateModel;
+import org.archicontribs.database.model.ArchimateModel;
 
 import com.archimatetool.editor.model.IModelExporter;
 import com.archimatetool.model.IArchimateModel;
