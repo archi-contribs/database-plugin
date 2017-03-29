@@ -627,8 +627,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		txtPassword.setVisible(isServer);					txtPassword.setEnabled(true);		txtPassword.setText(isServer && dbDatabase != null ? dbDatabase.getPassword() : "");
 		
 		lblExportType.setVisible(isFile||isServer);
-		btnWholeType.setVisible(isFile||isServer);			btnWholeType.setEnabled(true);		btnWholeType.setSelection(dbDatabase.getExportWholeModel());
-		btnComponentsType.setVisible(isFile||isServer);		btnComponentsType.setEnabled(true);	btnComponentsType.setSelection(!dbDatabase.getExportWholeModel());
+		btnWholeType.setVisible(isFile||isServer);			btnWholeType.setEnabled(true);		btnWholeType.setSelection(dbDatabase != null ? dbDatabase.getExportWholeModel() : true);
+		btnComponentsType.setVisible(isFile||isServer);		btnComponentsType.setEnabled(true);	btnComponentsType.setSelection(dbDatabase != null ? !dbDatabase.getExportWholeModel() : false);
 		
 		btnSave.setVisible(true);
 		btnDiscard.setVisible(true);
