@@ -1,10 +1,31 @@
-### v2.0.0.beta5 :	11/04/2017
-* Add auto update functionality
-* Solve bug in export model properties
-* Rewrite the conflict detection when exporting to make it more accurate
-* Fill in the status page on exports and imports
-* Solve bug where connections could be exported twice
-* Folders and views have now got their own version number 
+### v2.0.0 :	28/04/2017
+* Export Model :
+  * Solve bug where properties were not exported correctly
+  * Solve bug where connections could be exported twice
+  * Rewrite the conflict detection when exporting to make it more accurate
+  * Create the status page on the export model window
+  * Add a popup when nothing needs to be exported
+* Import Model :
+  * Create the status page on the export model window
+*  Import individual component :
+  * Add the ability to hide existing components in the import component module
+  *  Add the ability to hide default views in the import component module
+* Get component history :
+  *  Solve bug where the component was not found in the database
+* Preferences :
+  *  Add a preference entry to automatically close import and export windows on success
+  *  Add a preference entry to automatically start to export the model to the default database
+  *  Add a preference entry to automatically download and install the plugin updates
+  *  Add a preference entry to import individual components in shared or copy mode by default
+* Miscellaneous :
+  * Solve bug in the logger where some multi-lines messages were not printed correctly
+  * From now on, folders and views have got their own version number
+  * Increase performance by reusing compiled SQL requests
+  * Check database version before using it
+  * Automatically create database tables if they do not exist
+  * Stop replacing the folders type
+  * Replaced database table "archi_plugin" by new table "database_version"
+  * Opens the model in the tree after import
 
 ### v2.0.0.beta4 :	29/03/2017
 * Correct import folders properties
