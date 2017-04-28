@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.preferences;
 
 import java.io.IOException;
@@ -10,14 +16,23 @@ import org.eclipse.jface.preference.*;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.PropertyChangeEvent;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.eclipse.ui.IWorkbenchPreferencePage;
@@ -32,9 +47,8 @@ import org.eclipse.ui.IWorkbench;
 public class DBPreferencePage extends FieldEditorPreferencePage	implements IWorkbenchPreferencePage {
 	private static String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
 	private static String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
-	public enum EXPORT_TYPE {EXPORT_MODEL, EXPORT_COMPONENTS};
 	
-	private static String HELP_ID = "com.archimatetool.help.DBPreferencePage";
+	private static String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
 	
 	private Composite loggerComposite;
 	
@@ -46,10 +60,16 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private DBTextFieldEditor expertTextFieldEditor;
 	private Group simpleModeGroup;
 	private Group expertModeGroup;
+	private Button btnCheckForUpdateAtStartupButton;
+	private Button btnExportWithDefaultValues;
+	private Button btnCloseIfSuccessful;
+	private Button btnImportShared;
 	
 	private DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
 	private TabFolder tabFolder;
+	
+	private boolean mouseOverHelpButton = false;
 	
 	public DBPreferencePage() {
 		super(FieldEditorPreferencePage.GRID);
@@ -65,16 +85,15 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	 */
 	protected void createFieldEditors() {
 		if ( logger.isDebugEnabled() ) logger.debug("Creating field editors on preference page");
-		
-        PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
         
 		tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
 		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
 		
 		// ******************************** */
-		// * Database tab  **************** */
+		// * Behaviour tab **************** */
 		// ******************************** */
-		Composite databaseComposite = new Composite(tabFolder, SWT.NULL);
+		Composite behaviourComposite = new Composite(tabFolder, SWT.NULL);
         RowLayout rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -82,17 +101,169 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         rowLayout.marginBottom = 5;
         rowLayout.justify = false;
         rowLayout.fill = false;
-        databaseComposite.setLayoutData(rowLayout);
-		
-        TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
-        behaviourTabItem.setText("Behaviour");
-        behaviourTabItem.setControl(databaseComposite);
+        behaviourComposite.setLayoutData(rowLayout);
+        behaviourComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-		table = new DBDatabaseEntryTableEditor("databases", "", databaseComposite);
+		TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
+        behaviourTabItem.setText("Behaviour");
+        behaviourTabItem.setControl(behaviourComposite);
+        
+		Group grpVersion = new Group(behaviourComposite, SWT.NONE);
+		grpVersion.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		grpVersion.setLayout(new FormLayout());
+		grpVersion.setText("Version : ");
+		
+		Label versionLbl = new Label(grpVersion, SWT.NONE);
+		versionLbl.setText("Actual version :");
+		versionLbl.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(0, 10);
+		versionLbl.setLayoutData(fd);
+		
+		Label versionValue = new Label(grpVersion, SWT.NONE);
+		versionValue.setText(DBPlugin.pluginVersion);
+		versionValue.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		versionValue.setFont(DBGui.BOLD_FONT);
+		fd = new FormData();
+		fd.top = new FormAttachment(versionLbl, 0, SWT.TOP);
+		fd.left = new FormAttachment(versionLbl, 5);
+		versionValue.setLayoutData(fd);
+		
+		Button checkUpdateButton = new Button(grpVersion, SWT.NONE);
+		checkUpdateButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		checkUpdateButton.setText("Check for update");
+		fd = new FormData();
+		fd.top = new FormAttachment(versionValue, 0, SWT.CENTER);
+		fd.left = new FormAttachment(versionValue, 100);
+		checkUpdateButton.setLayoutData(fd);
+		checkUpdateButton.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) { DBPlugin.checkForUpdate(true); }
+			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		
+		btnCheckForUpdateAtStartupButton = new Button(grpVersion, SWT.CHECK);
+		btnCheckForUpdateAtStartupButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnCheckForUpdateAtStartupButton.setText("Automatically check for update at startup");
+		fd = new FormData();
+		fd.top = new FormAttachment(versionLbl, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnCheckForUpdateAtStartupButton.setLayoutData(fd);
+		btnCheckForUpdateAtStartupButton.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("checkForUpdateAtStartup"));
+		
+		GridData gd = new GridData();
+		//gd.heightHint = 45;
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		grpVersion.setLayoutData(gd);
+        
+		table = new DBDatabaseEntryTableEditor("databases", "", behaviourComposite);
 		addField(table);
+		
+		Group grpMiscellaneous = new Group(behaviourComposite, SWT.NONE);
+		grpMiscellaneous.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		grpMiscellaneous.setText("Miscellaneous :");
+		grpMiscellaneous.setLayout(new FormLayout());
+		
+		gd = new GridData();
+		//gd.heightHint = 80;
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		grpMiscellaneous.setLayoutData(gd);
 
+
+		btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
+		btnExportWithDefaultValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnExportWithDefaultValues.setText("Automatically start to export to default database");
+		btnExportWithDefaultValues.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("exportWithDefaultValues"));
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnExportWithDefaultValues.setLayoutData(fd);		
+		
+		btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
+		btnCloseIfSuccessful.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
+		btnCloseIfSuccessful.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful"));
+		fd = new FormData();
+		fd.top = new FormAttachment(btnExportWithDefaultValues, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnCloseIfSuccessful.setLayoutData(fd);
+		
+		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
+		lblDefaultImportType.setText("Default componenent import type :");
+		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
+		fd.left = new FormAttachment(0, 10);
+		lblDefaultImportType.setLayoutData(fd);
+		
+		btnImportShared = new Button(grpMiscellaneous, SWT.RADIO);
+		btnImportShared.setText("Shared");
+		btnImportShared.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblDefaultImportType, 10);
+		btnImportShared.setLayoutData(fd);
+		
+		Button btnImportCopy = new Button(grpMiscellaneous, SWT.RADIO);
+		btnImportCopy.setText("Copy");
+		btnImportCopy.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
+		fd.left = new FormAttachment(btnImportShared, 10);
+		btnImportCopy.setLayoutData(fd);
+		
+		btnImportShared.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
+		btnImportCopy.setSelection(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
+		
+		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
+        grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        grpHelp.setLayout(new FormLayout());
+        grpHelp.setText("Online help : ");
+        
+        gd = new GridData();
+        //gd.heightHint = 40;
+        gd.horizontalAlignment = GridData.FILL;
+        gd.grabExcessHorizontalSpace = true;
+        grpHelp.setLayoutData(gd);
+        
+        Label btnHelp = new Label(grpHelp, SWT.NONE);
+        btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = true; btnHelp.redraw(); } });
+        btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = false; btnHelp.redraw(); } });
+        btnHelp.addPaintListener(new PaintListener() {
+            @Override
+            public void paintControl(PaintEvent e)
+            {
+                 if ( mouseOverHelpButton ) e.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
+                 e.gc.drawImage(DBGui.HELP_ICON, 2, 2);
+            }
+        });
+        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
+        fd = new FormData(30,30);
+        fd.top = new FormAttachment(0, 11);
+        fd.left = new FormAttachment(0, 10);
+        btnHelp.setLayoutData(fd);
+        
+        Label helpLbl1 = new Label(grpHelp, SWT.NONE);
+        helpLbl1.setText("Please be informed that a help button like this one is available on every plugin window.");
+        helpLbl1.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 10);
+        fd.left = new FormAttachment(btnHelp, 10);
+        helpLbl1.setLayoutData(fd);
+        
+        Label helpLbl2 = new Label(grpHelp, SWT.NONE);
+        helpLbl2.setText("The online help is also available at any time using the menu Help / Help content.");
+        helpLbl2.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(helpLbl1, 5);
+        fd.left = new FormAttachment(btnHelp, 10);
+        helpLbl2.setLayoutData(fd);
+		
+		
 		// ********************************* */
-		// * Logging tab  ****************** */
+		// * Logger tab  ******************* */
 		// ********************************* */
         loggerComposite = new Composite(tabFolder, SWT.NULL);
         rowLayout = new RowLayout();
@@ -103,10 +274,12 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         rowLayout.justify = false;
         rowLayout.fill = false;
         loggerComposite.setLayoutData(rowLayout);
+        loggerComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
         Label note = new Label(loggerComposite, SWT.NONE);
         note = new Label(loggerComposite, SWT.NONE);
         note.setText(" Please be aware that enabling debug or, even more, trace level has got important impact on performances!\n Activate only if required.");
+        note.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         note.setForeground(DBGui.RED_COLOR);
         
         TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
@@ -114,13 +287,14 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         loggerTabItem.setControl(loggerComposite);
         
     	loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, loggerComposite, true);
-    	addField(loggerModeRadioGroupEditor);
+      	addField(loggerModeRadioGroupEditor);
     	
     	simpleModeGroup = new Group(loggerComposite, SWT.NONE);
     	simpleModeGroup.setLayout(new GridLayout());
-    	GridData gd = new GridData(GridData.FILL_HORIZONTAL);
+    	gd = new GridData(GridData.FILL_HORIZONTAL);
         //gd.widthHint = 300;
         simpleModeGroup.setLayoutData(gd);
+        simpleModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
         
         loggerLevelRadioGroupEditor = new RadioGroupFieldEditor("loggerLevel", "", 6, LOGGER_LEVELS, simpleModeGroup, false);
@@ -136,11 +310,19 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	gd = new GridData(GridData.FILL_BOTH);
     	//gd.widthHint = 350;
     	expertModeGroup.setLayoutData(gd);
+    	expertModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
         expertTextFieldEditor = new DBTextFieldEditor("loggerExpert", "", expertModeGroup);
         expertTextFieldEditor.getTextControl().setLayoutData(gd);
         expertTextFieldEditor.getTextControl().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
         addField(expertTextFieldEditor);
+        
+        
+        // We activate the Eclipse Help framework
+       PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
+       PlatformUI.getWorkbench().getHelpSystem().setHelp(behaviourComposite, HELP_ID);
+       PlatformUI.getWorkbench().getHelpSystem().setHelp(loggerComposite, HELP_ID);
+       
 
         showLogger();
 	}
@@ -197,6 +379,15 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     @Override
     public boolean performOk() {
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
+    	
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
+    	
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
+    	
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
+    	
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("importShared", btnImportShared.getSelection());
+    	
     	table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
@@ -243,16 +434,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
     	return true;
     }
-
-    /**
-     * @return the default export type preference. Values can be EXPORT_COMPONENTS or EXPORT_MODEL.
-     */
-	public EXPORT_TYPE getDefaultExportType() {
-		if ( DBPlugin.areEqual(DBPlugin.INSTANCE.getPreferenceStore().getString("defaultExportType"), "components") )
-			return  EXPORT_TYPE.EXPORT_COMPONENTS;
-		else
-			return EXPORT_TYPE.EXPORT_MODEL;
-	}
 
 	@Override
 	public void init(IWorkbench workbench) {

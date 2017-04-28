@@ -1,10 +1,16 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -22,13 +28,18 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
 import com.archimatetool.model.IArchimateConcept;
+import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateRelationship;
 
 public class DBGuiComponentHistory extends DBGui {
 	private static final DBLogger logger = new DBLogger(DBGuiComponentHistory.class);
 	
 	private IArchimateConcept selectedComponent = null;
 
+	private Label lblVersions;
+	
 	private Button btnImportDatabaseVersion;
+	private Button btnExportModelVersion;
 	
 	private Table tblContent;
 	private Table tblVersions;
@@ -69,7 +80,7 @@ public class DBGuiComponentHistory extends DBGui {
 		grpComponents.setLayoutData(fd);
 		grpComponents.setLayout(new FormLayout());
 		
-		Label lblVersions = new Label(grpComponents, SWT.NONE);
+		lblVersions = new Label(grpComponents, SWT.NONE);
 		lblVersions.setBackground(GROUP_BACKGROUND_COLOR);
 		lblVersions.setText("Versions :");		
 		fd = new FormData();
@@ -81,7 +92,13 @@ public class DBGuiComponentHistory extends DBGui {
 		tblVersions = new Table(grpComponents, SWT.BORDER | SWT.FULL_SELECTION);
 		tblVersions.setHeaderVisible(true);
 		tblVersions.setLinesVisible(true);
-		tblVersions.addListener(SWT.Selection, new Listener() { public void handleEvent(Event e) { database.fillInCompareTable(tblContent, selectedComponent, tblVersions.getSelection()[0].getText(0)); }});
+		tblVersions.addListener(SWT.Selection, new Listener() {
+		    public void handleEvent(Event e) {
+		        // we force the checksum calcultation
+		        ((IDBMetadata)selectedComponent).getDBMetadata().setCurrentChecksum(DBChecksum.calculateChecksum(selectedComponent));
+		        fillInCompareTable(tblContent, selectedComponent, tblVersions.getSelection()[0].getText(0));
+		    }
+		});
 		fd = new FormData();
 		fd.top = new FormAttachment(lblVersions, 10);
 		fd.left = new FormAttachment(20, 0);
@@ -144,12 +161,27 @@ public class DBGuiComponentHistory extends DBGui {
 		fd.top = new FormAttachment(tblContent, 10);
 		fd.right = new FormAttachment(100, -10);
 		btnImportDatabaseVersion.setLayoutData(fd);
+		
+		btnExportModelVersion = new Button(grpComponents, SWT.NONE);
+		btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
+		btnExportModelVersion.setText("Export to the database");
+		btnExportModelVersion.setEnabled(false);
+		btnExportModelVersion.addSelectionListener(new SelectionListener() {
+		    public void widgetSelected(SelectionEvent e) { /*exportToDatabase();*/ }      //TODO
+		    public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		fd = new FormData();
+		fd.top = new FormAttachment(tblContent, 10);
+		fd.right = new FormAttachment(btnImportDatabaseVersion, -10);
+		btnExportModelVersion.setLayoutData(fd);
 	}
+	
 	/**
 	 * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
 	 */
-	protected void connectedToDatabase() {	
-		dialog.setCursor(DBPlugin.CURSOR_ARROW);
+	@Override
+	protected void connectedToDatabase(boolean forceCheck) {	
+		dialog.setCursor(CURSOR_ARROW);
 			// if everything goes well, then we search for all the versions of the component
 		if ( logger.isDebugEnabled() ) logger.debug("Searching for all versions of the component");
 		try {
@@ -157,7 +189,17 @@ public class DBGuiComponentHistory extends DBGui {
 			tblContent.removeAll();
 			btnImportDatabaseVersion.setEnabled(false);
 			
-			ResultSet result = database.select("SELECT version, created_by, created_on FROM elements where id = ? ORDER BY version DESC", selectedComponent.getId());
+			String tableName = null;
+			if ( selectedComponent instanceof IArchimateElement ) 
+			    tableName = "elements";
+			else if ( selectedComponent instanceof IArchimateRelationship ) 
+                tableName = "relationships";
+			else {
+			    popup(Level.FATAL, "Cannot get history for components of class "+selectedComponent.getClass().getSimpleName());
+			    return ;
+			}
+			    
+			ResultSet result = database.select("SELECT version, created_by, created_on FROM "+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
 				
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(tblVersions, SWT.NULL);
@@ -166,7 +208,14 @@ public class DBGuiComponentHistory extends DBGui {
 			    tableItem.setText(2, result.getTimestamp("created_on").toString());
 			}
 		} catch (Exception err) {
-			popup(Level.FATAL, "Failed to search in the database for all version of the component.", err);
+		    tblVersions.removeAll();
+			popup(Level.FATAL, "Failed to search component versions in the database.", err);
+		}
+		
+		if ( tblVersions.getItemCount() > 1 ) {
+		    lblVersions.setText(tblVersions.getItemCount()+" versions have been found in the database :");
+		} else {
+		    lblVersions.setText(tblVersions.getItemCount()+" version has been found in the database :");
 		}
 		
 		if ( tblVersions.getItemCount() != 0 ) {

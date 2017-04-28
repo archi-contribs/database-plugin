@@ -1,7 +1,20 @@
-CREATE TABLE archi_plugin (
-  database_id    varchar(50) NOT NULL, 
-  plugin_version varchar(10) NOT NULL, 
-  archi_version  varchar(10) NOT NULL);
+DROP TABLEarchi_plugin;
+DROP TABLE bendpoints;
+DROP TABLE database_version;
+DROP TABLE elements;
+DROP TABLE elements_in_model;
+DROP TABLE folders;
+DROP TABLE folders_in_model;
+DROP TABLE images;
+DROP TABLE models;
+DROP TABLE properties;
+DROP TABLE relationships;
+DROP TABLE relationships_in_model;
+DROP TABLE views;
+DROP TABLE views_connections;
+DROP TABLE views_in_model;
+DROP TABLE views_objects;
+
 CREATE TABLE bendpoints (
   parent_id      varchar(50) NOT NULL, 
   parent_version int NOT NULL, 
@@ -13,6 +26,9 @@ CREATE TABLE bendpoints (
   PRIMARY KEY (parent_id, 
   parent_version, 
   rank));
+CREATE TABLE database_version (
+  archi_plugin varchar(50) NOT NULL, 
+  version      int NOT NULL);
 CREATE TABLE elements (
   id            varchar(50) NOT NULL, 
   version       int NOT NULL, 
@@ -42,6 +58,7 @@ CREATE TABLE folders (
   id            varchar(50) NOT NULL, 
   version       int NOT NULL, 
   type          int NOT NULL, 
+  root_type     int NOT NULL, 
   name          varchar(1024) NOT NULL, 
   documentation text NOT NULL, 
   created_by    varchar(30) NULL, 
@@ -212,3 +229,5 @@ EXEC sp_addextendedproperty
   @LEVEL0TYPE = N'Schema', @LEVEL0NAME = N'dbo', 
   @LEVEL1TYPE = N'Table', @LEVEL1NAME = N'views_objects', 
   @LEVEL2TYPE = N'Column', @LEVEL2NAME = N'rank';
+
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);

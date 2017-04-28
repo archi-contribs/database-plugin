@@ -10,9 +10,6 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import org.archicontribs.database.GUI.DBGuiImportModel;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Shell;
-
 import com.archimatetool.editor.model.IModelImporter;
 import com.archimatetool.editor.model.ISelectedModelImporter;
 import com.archimatetool.model.IArchimateModel;
@@ -34,12 +31,10 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	 */
 	@Override
 	public void doImport(IArchimateModel notUsed) throws IOException {
-		Shell shell = Display.getCurrent().getActiveShell();
-		
 		if ( logger.isDebugEnabled() ) logger.debug("Importing model.");
 	
-		shell.setCursor(DBPlugin.CURSOR_WAIT);
-		new DBGuiImportModel("Import model");
-		shell.setCursor(DBPlugin.CURSOR_ARROW);
+		DBGuiImportModel importDialog = new DBGuiImportModel("Import model");
+		importDialog.run();
+		importDialog = null;
 	}
 }

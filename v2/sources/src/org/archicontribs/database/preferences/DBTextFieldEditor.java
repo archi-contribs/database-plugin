@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.preferences;
 
 
@@ -473,7 +479,7 @@ public class DBTextFieldEditor extends FieldEditor {
 			if (value == null)
 				value = ""; //$NON-NLS-1$
 			oldValue = textField.getText();
-			if (!oldValue.equals(value)) {
+			if (!DBPlugin.areEqual(oldValue, value)) {
 				textField.setText(value);
 				valueChanged();
 			}
@@ -536,7 +542,7 @@ public class DBTextFieldEditor extends FieldEditor {
 			fireStateChanged(IS_VALID, oldState, isValid);
 
 		String newValue = textField.getText();
-		if (!newValue.equals(oldValue)) {
+		if (!DBPlugin.areEqual(newValue, oldValue)) {
 			fireValueChanged(VALUE, oldValue, newValue);
 			oldValue = newValue;
 		}

@@ -1,22 +1,34 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.GUI;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.gef.commands.CommandStack;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -29,455 +41,834 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.services.ViewManager;
+import com.archimatetool.editor.views.tree.ITreeModelView;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModel;
 
 public class DBGuiImportModel extends DBGui {
-	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
-	
-	private Exception jobException = null;
-	
-	private Table tblModels;
-	private Table tblModelVersions;
-	private Text txtFilterModels;
-	private Text txtName;
-	private Text txtPurpose;
-	private Text txtReleaseNote;
-	
-	private Group grpModels;
-	private Group grpModelVersions;
+    protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
 
-	/**
-	 * Creates the GUI to import a model
-	 */
-	public DBGuiImportModel(String title) {
-		super(title);
-		
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
-		
-		createAction(ACTION.One, "1 - Choose model");
-		createAction(ACTION.Two, "2 - Import model");
-		createAction(ACTION.Three, "3 - Status");
-		setActiveAction(ACTION.One);
-		
-			// We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
-		setBtnAction("Import", new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				String modelName = tblModels.getSelection()[0].getText();
-				String modelId = (String)tblModels.getSelection()[0].getData("id");
-				boolean checkName = true;
-				
-				// we check that the model is not already in memory
-				List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
-				for ( IArchimateModel existingModel: allModels ) {
-					if ( modelId.equals(existingModel.getId()) ) {
-						popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
-						return;
-					}
-					if ( checkName && modelName.equals(existingModel.getName()) ) {
-						if ( !question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
-							return;
-						}
-						checkName = false;	// if a third model has got the same name, we do not ask again.
-					}
-				}
-				
-				setActiveAction(STATUS.Ok);
-				btnDoAction.setEnabled(false);
-				doImport();
-			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		
-			// We rename the "close" button to "cancel"
-		btnClose.setText("Cancel");
-		
-			// We activate the Eclipse Help framework
-		setHelpHref("importModel.html");
-		
-		createGrpModel();
-		
-			// We connect to the database and call the databaseSelected() method
-		getDatabases();
-	}
-	
-	protected void databaseSelectedCleanup() {
-		if ( logger.isTraceEnabled() ) logger.trace("Removing all lignes in model table");
-		if ( tblModels != null ) {
-			tblModels.removeAll();
-		}
-		if ( tblModelVersions != null ) {
-			tblModelVersions.removeAll();
-		}
-	}
-	
-	/**
-	 * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
-	 */
-	@Override
-	protected void connectedToDatabase() {	
-		compoRightBottom.setVisible(true);
-		compoRightBottom.layout();
-		try {
-			database.getModels(txtFilterModels.getText(), tblModels);
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
-		}
-	}
-	
-	protected void createGrpModel() {
-		grpModels = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
-		grpModels.setBackground(GROUP_BACKGROUND_COLOR);
-		grpModels.setFont(GROUP_TITLE_FONT);
-		grpModels.setText("Models : ");
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(50, -5);
-		fd.bottom = new FormAttachment(100);
-		grpModels.setLayoutData(fd);
-		grpModels.setLayout(new FormLayout());
-		
-		Label lblListModels = new Label(grpModels, SWT.NONE);
-		lblListModels.setBackground(GROUP_BACKGROUND_COLOR);
-		lblListModels.setText("Filter :");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
-		fd.left = new FormAttachment(0, 10);
-		lblListModels.setLayoutData(fd);
-		
-		txtFilterModels = new Text(grpModels, SWT.BORDER);
-		txtFilterModels.setToolTipText("You may use '%' as wildcard.");
-		txtFilterModels.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
-				try {
-					if ( database.isConnected() )
-						database.getModels("%"+txtFilterModels.getText()+"%", tblModels);
-				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
-				} 
-			}
-		});
-		fd = new FormData();
-		fd.top = new FormAttachment(lblListModels, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblListModels, 5);
-		fd.right = new FormAttachment(100, -10);
-		txtFilterModels.setLayoutData(fd);
-		
-		
-						
-		tblModels = new Table(grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
-		tblModels.setLinesVisible(true);
-		tblModels.setBackground(GROUP_BACKGROUND_COLOR);
-		tblModels.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				try {
-					if ( (tblModels.getSelection() != null) && (tblModels.getSelection().length > 0) && (tblModels.getSelection()[0] != null) )
-						database.getModelVersions((String) tblModels.getSelection()[0].getData("id"), tblModelVersions);
-					else
-						tblModelVersions.removeAll();
-				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "Failed to get models from the database", err);
-				} 
-			}
-		});
-		tblModels.addListener(SWT.MouseDoubleClick, new Listener() {
-			public void handleEvent(Event e) {
-				if ( btnDoAction.getEnabled() )
-					btnDoAction.notifyListeners(SWT.Selection, new Event());
-			}
-		});
-		fd = new FormData();
-		fd.top = new FormAttachment(lblListModels, 10);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		tblModels.setLayoutData(fd);
-		
-		TableColumn colModelName = new TableColumn(tblModels, SWT.NONE);
-		colModelName.setText("Model name");
-		colModelName.setWidth(265);
-		
-		grpModelVersions = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
-		grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
-		grpModelVersions.setFont(GROUP_TITLE_FONT);
-		grpModelVersions.setText("Versions of selected model : ");
-		fd = new FormData();
-		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(50, 5);
-		fd.right = new FormAttachment(100);
-		fd.bottom = new FormAttachment(100);
-		grpModelVersions.setLayoutData(fd);
-		grpModelVersions.setLayout(new FormLayout());
-		
-		tblModelVersions = new Table(grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
-		tblModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
-		tblModelVersions.setLinesVisible(true);
-		tblModelVersions.setHeaderVisible(true);
-		tblModelVersions.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				if ( (tblModelVersions.getSelection() != null) && (tblModelVersions.getSelection().length > 0) && (tblModelVersions.getSelection()[0] != null) ) {
-					txtReleaseNote.setText((String) tblModelVersions.getSelection()[0].getData("note"));
-					txtPurpose.setText((String) tblModelVersions.getSelection()[0].getData("purpose"));
-					txtName.setText((String) tblModelVersions.getSelection()[0].getData("name"));
-					btnDoAction.setEnabled(true);
-				} else {
-					btnDoAction.setEnabled(false);
-				}
-			}
-		});
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(50);
-		tblModelVersions.setLayoutData(fd);
-		
-		TableColumn colVersion = new TableColumn(tblModelVersions, SWT.NONE);
-		colVersion.setText("#");
-		colVersion.setWidth(20);
-		
-		TableColumn colCreatedOn = new TableColumn(tblModelVersions, SWT.NONE);
-		colCreatedOn.setText("Created on");
-		colCreatedOn.setWidth(120);
-		
-		TableColumn colCreatedBy = new TableColumn(tblModelVersions, SWT.NONE);
-		colCreatedBy.setText("Created by");
-		colCreatedBy.setWidth(125);
-		
-		Label lblName = new Label(grpModelVersions, SWT.NONE);
-		lblName.setBackground(GROUP_BACKGROUND_COLOR);
-		lblName.setText("Model name :");
-		fd = new FormData();
-		fd.top = new FormAttachment(tblModelVersions, 10);
-		fd.left = new FormAttachment(0, 10);
-		lblName.setLayoutData(fd);
-		
-		txtName = new Text(grpModelVersions, SWT.BORDER);
-		txtName.setBackground(GROUP_BACKGROUND_COLOR);
-		txtName.setEnabled(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblName);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(100, -10);
-		txtName.setLayoutData(fd);
-		
-		Label lblPurpose = new Label(grpModelVersions, SWT.NONE);
-		lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
-		lblPurpose.setText("Purpose :");
-		fd = new FormData();
-		fd.top = new FormAttachment(txtName, 10);
-		fd.left = new FormAttachment(0, 10);
-		lblPurpose.setLayoutData(fd);
-		
-		txtPurpose = new Text(grpModelVersions, SWT.BORDER);
-		txtPurpose.setBackground(GROUP_BACKGROUND_COLOR);
-		txtPurpose.setEnabled(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblPurpose);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(80, -5);
-		txtPurpose.setLayoutData(fd);
-		
-		Label lblReleaseNote = new Label(grpModelVersions, SWT.NONE);
-		lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
-		lblReleaseNote.setText("Release note :");
-		fd = new FormData();
-		fd.top = new FormAttachment(txtPurpose, 10);
-		fd.left = new FormAttachment(0, 10);
-		lblReleaseNote.setLayoutData(fd);
-		
-		txtReleaseNote = new Text(grpModelVersions, SWT.BORDER);
-		txtReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
-		txtReleaseNote.setEnabled(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblReleaseNote);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		txtReleaseNote.setLayoutData(fd);
-	}
-	
-	/**
-	 * Called when the user clicks on the "import" button 
-	 */
-	protected void doImport() {
-		String modelName = tblModels.getSelection()[0].getText();
-		String modelId = (String)tblModels.getSelection()[0].getData("id");
-		
-		hideGrpDatabase();
-		createProgressBar();
-		
-		lblProgressBar.setText("Importing model \""+modelName+"\"");
-		
-		Job job;
-		
-		grpModels.setVisible(false);
-		grpModelVersions.setVisible(false);
-		setActiveAction(ACTION.Two);
-		
-			// we create the model (but do not create standard folder as they will be imported from the database)
-		ArchimateModel model = (ArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
-		model.setId(modelId);
-		model.setName(modelName);
-		model.setPurpose((String)tblModels.getSelection()[0].getData("purpose"));
-		model.setCurrentVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
+    private Exception jobException = null;
+    private ArchimateModel modelToImport;
 
-			// TODO : add an option to keep the model or delete it in case an error is raised during the import
-			// we add the new model in the manager
-		IEditorModelManager.INSTANCE.registerModel(model);
-		
-			// we import the model from the database in a separate thread
-		job = new Job("importModel") {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				try {
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-					int importSize = database.importModel(model);
-					setProgressBar(0, importSize);
-					DBPlugin.checkAsyncException();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
-					database.prepareImportFolders(model);
-					while ( database.importFolders(model) ) {
-						increaseProgressBar();
-						DBPlugin.checkAsyncException();
-					}
-					sync();
-					if ( DBPlugin.getAsyncException() != null )
-						throw DBPlugin.getAsyncException();
-					database.checkImportedFoldersCount();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
-					database.prepareImportElements(model);
-					while ( database.importElements(model) ) {
-						increaseProgressBar();
-						DBPlugin.checkAsyncException();
-					}
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
-					database.prepareImportRelationships(model);
-					while ( database.importRelationships(model) ) {
-						increaseProgressBar();
-						DBPlugin.checkAsyncException();
-					}
-					
-					sync();
-					DBPlugin.checkAsyncException();
-					database.checkImportedElementsCount();
-					database.checkImportedRelationshipsCount();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
-					display.asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							try {
-								model.resolveRelationshipsSourcesAndTargets();
-							} catch (Exception e) {
-								DBPlugin.setAsyncException(e);
-							}
-						}
-		    		});
-					sync();
-					DBPlugin.checkAsyncException();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
-					database.prepareImportViews(model);
-					while ( database.importViews(model) ) {
-						increaseProgressBar();
-						DBPlugin.checkAsyncException();
-					}
-					sync();
-					DBPlugin.checkAsyncException();
-					database.checkImportedViewsCount();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
-					for (String viewId: model.getAllViews().keySet()) {
-						database.prepareImportViewsObjects(model, viewId);
-						while ( database.importViewsObjects(model, viewId) ) {
-							increaseProgressBar();
-							DBPlugin.checkAsyncException();
-						}
-					}
-					sync();
-					DBPlugin.checkAsyncException();
-					database.checkImportedObjectsCount();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
-					for (String viewId: model.getAllViews().keySet()) {
-						database.prepareImportViewsConnections(model, viewId);
-						while ( database.importViewsConnections(model) ) {
-							increaseProgressBar();
-							DBPlugin.checkAsyncException();
-						}
-					}
-					sync();
-					DBPlugin.checkAsyncException();
-					database.checkImportedConnectionsCount();
-					
-					if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
-					display.asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							try {
-								model.resolveConnectionsSourcesAndTargets();
-							} catch (Exception e) {
-								DBPlugin.setAsyncException(e);
-							}
-						}
-		    		});
-					
-					if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
-					for (String path: database.getAllImagePaths()) {
-						database.importImage(model, path);
-						increaseProgressBar();
-						DBPlugin.checkAsyncException();
-					}
-					sync();
-					DBPlugin.checkAsyncException();
-					
-				} catch (Exception err) {
-					jobException = err;
-					return Status.CANCEL_STATUS;
-				}
-				
-					// Open the Model in the Editor
-		        IEditorModelManager.INSTANCE.openModel(model);
-		        
-				return Status.OK_STATUS;
-			}
-		};
-		
-		job.addJobChangeListener(new JobChangeAdapter() {
-	    	public void done(IJobChangeEvent event) {
-	    		//TODO : fill in the status page !!!
-	    		if (event.getResult().isOK()) {
-					display.asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							setActiveAction(STATUS.Ok);
-							setActiveAction(ACTION.Three);
-			    			btnClose.setText("close");
-						}
-		    		});
-	    			popup(Level.INFO, "The model has been successfully imported.");
-	    			close();
-	        	} else {
-					display.asyncExec(new Runnable() {
-						@Override
-						public void run() {
-							setActiveAction(STATUS.Error);
-							setActiveAction(ACTION.Three);
-			    			btnClose.setText("close");
-						}
-		    		});
-	    			popup(Level.FATAL, "Error while importing model.", jobException);
-	        	}
-	    	}
-	    });
-		
-			// We schedule the import
-		job.schedule();
-	}
+    private Table tblModels;
+    private Table tblModelVersions;
+    private Text txtFilterModels;
+
+    private Group grpModels;
+    private Group grpModelVersions;
+    private Group grpComponents;
+    
+    private Label lblModelName;
+    private Text txtModelName;
+    private Label lblPurpose;
+    private Text txtPurpose;
+    private Label lblReleaseNote;
+    private Text txtReleaseNote;
+
+    private Text txtTotalElements;
+    private Text txtTotalRelationships;
+    private Text txtTotalFolders;
+    private Text txtTotalViews;
+    private Text txtTotalViewObjects;
+    private Text txtTotalViewConnections;
+    private Text txtTotalImages;
+
+    private Text txtImportedElements;
+    private Text txtImportedRelationships;
+    private Text txtImportedFolders;
+    private Text txtImportedViews;
+    private Text txtImportedViewObjects;
+    private Text txtImportedViewConnections;
+    private Text txtImportedImages;
+
+    private Color statusColor = GREEN_COLOR;
+
+    /**
+     * Creates the GUI to import a model
+     */
+    public DBGuiImportModel(String title) {
+        super(title);
+
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
+
+        createAction(ACTION.One, "1 - Choose model");
+        createAction(ACTION.Two, "2 - Import model");
+        createAction(ACTION.Three, "3 - Status");
+        setActiveAction(ACTION.One);
+
+        // We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
+        setBtnAction("Import", new SelectionListener() {
+            public void widgetSelected(SelectionEvent e) {
+                String modelName = tblModels.getSelection()[0].getText();
+                String modelId = (String)tblModels.getSelection()[0].getData("id");
+                boolean checkName = true;
+
+                // we check that the model is not already in memory
+                List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
+                for ( IArchimateModel existingModel: allModels ) {
+                    if ( DBPlugin.areEqual(modelId, existingModel.getId()) ) {
+                        popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
+                        return;
+                    }
+                    if ( checkName && DBPlugin.areEqual(modelName, existingModel.getName()) ) {
+                        if ( !question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
+                            return;
+                        }
+                        checkName = false;	// if a third model has got the same name, we do not ask again.
+                    }
+                }
+
+                setActiveAction(STATUS.Ok);
+                btnDoAction.setEnabled(false);
+                doImport();
+            }
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+        });
+
+        // We rename the "close" button to "cancel"
+        btnClose.setText("Cancel");
+
+        // We activate the Eclipse Help framework
+        setHelpHref("importModel.html");
+
+        createGrpModel();
+        createGrpComponents();
+
+        // We connect to the database and call the databaseSelected() method
+        getDatabases();
+    }
+
+    protected void databaseSelectedCleanup() {
+        if ( logger.isTraceEnabled() ) logger.trace("Removing all lignes in model table");
+        if ( tblModels != null ) {
+            tblModels.removeAll();
+        }
+        if ( tblModelVersions != null ) {
+            tblModelVersions.removeAll();
+        }
+    }
+
+    /**
+     * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
+     */
+    @Override
+    protected void connectedToDatabase(boolean ignore) {	
+        compoRightBottom.setVisible(true);
+        compoRightBottom.layout();
+        try {
+            database.getModels(txtFilterModels.getText(), tblModels);
+        } catch (Exception err) {
+            DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+        }
+    }
+
+    protected void createGrpModel() {
+        grpModels = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpModels.setBackground(GROUP_BACKGROUND_COLOR);
+        grpModels.setFont(GROUP_TITLE_FONT);
+        grpModels.setText("Models : ");
+        FormData fd = new FormData();
+        fd.top = new FormAttachment(0);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(50, -5);
+        fd.bottom = new FormAttachment(100);
+        grpModels.setLayoutData(fd);
+        grpModels.setLayout(new FormLayout());
+
+        Label lblListModels = new Label(grpModels, SWT.NONE);
+        lblListModels.setBackground(GROUP_BACKGROUND_COLOR);
+        lblListModels.setText("Filter :");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 10);
+        fd.left = new FormAttachment(0, 10);
+        lblListModels.setLayoutData(fd);
+
+        txtFilterModels = new Text(grpModels, SWT.BORDER);
+        txtFilterModels.setToolTipText("You may use '%' as wildcard.");
+        txtFilterModels.addModifyListener(new ModifyListener() {
+            public void modifyText(ModifyEvent e) {
+                try {
+                    if ( database.isConnected() )
+                        database.getModels("%"+txtFilterModels.getText()+"%", tblModels);
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+                } 
+            }
+        });
+        fd = new FormData();
+        fd.top = new FormAttachment(lblListModels, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblListModels, 5);
+        fd.right = new FormAttachment(100, -10);
+        txtFilterModels.setLayoutData(fd);
+
+
+
+        tblModels = new Table(grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
+        tblModels.setLinesVisible(true);
+        tblModels.setBackground(GROUP_BACKGROUND_COLOR);
+        tblModels.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+                try {
+                    if ( (tblModels.getSelection() != null) && (tblModels.getSelection().length > 0) && (tblModels.getSelection()[0] != null) )
+                        database.getModelVersions((String) tblModels.getSelection()[0].getData("id"), tblModelVersions);
+                    else
+                        tblModelVersions.removeAll();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "Failed to get models from the database", err);
+                } 
+            }
+        });
+        tblModels.addListener(SWT.MouseDoubleClick, new Listener() {
+            public void handleEvent(Event e) {
+                if ( btnDoAction.getEnabled() )
+                    btnDoAction.notifyListeners(SWT.Selection, new Event());
+            }
+        });
+        fd = new FormData();
+        fd.top = new FormAttachment(lblListModels, 10);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(100, -10);
+        tblModels.setLayoutData(fd);
+
+        TableColumn colModelName = new TableColumn(tblModels, SWT.NONE);
+        colModelName.setText("Model name");
+        colModelName.setWidth(265);
+
+        grpModelVersions = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
+        grpModelVersions.setFont(GROUP_TITLE_FONT);
+        grpModelVersions.setText("Versions of selected model : ");
+        fd = new FormData();
+        fd.top = new FormAttachment(0);
+        fd.left = new FormAttachment(50, 5);
+        fd.right = new FormAttachment(100);
+        fd.bottom = new FormAttachment(100);
+        grpModelVersions.setLayoutData(fd);
+        grpModelVersions.setLayout(new FormLayout());
+
+        tblModelVersions = new Table(grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
+        tblModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
+        tblModelVersions.setLinesVisible(true);
+        tblModelVersions.setHeaderVisible(true);
+        tblModelVersions.addListener(SWT.Selection, new Listener() {
+            public void handleEvent(Event e) {
+                if ( (tblModelVersions.getSelection() != null) && (tblModelVersions.getSelection().length > 0) && (tblModelVersions.getSelection()[0] != null) ) {
+                    txtReleaseNote.setText((String) tblModelVersions.getSelection()[0].getData("note"));
+                    txtPurpose.setText((String) tblModelVersions.getSelection()[0].getData("purpose"));
+                    txtModelName.setText((String) tblModelVersions.getSelection()[0].getData("name"));
+                    btnDoAction.setEnabled(true);
+                } else {
+                    btnDoAction.setEnabled(false);
+                }
+            }
+        });
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 10);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(50);
+        tblModelVersions.setLayoutData(fd);
+
+        TableColumn colVersion = new TableColumn(tblModelVersions, SWT.NONE);
+        colVersion.setText("#");
+        colVersion.setWidth(20);
+
+        TableColumn colCreatedOn = new TableColumn(tblModelVersions, SWT.NONE);
+        colCreatedOn.setText("Created on");
+        colCreatedOn.setWidth(120);
+
+        TableColumn colCreatedBy = new TableColumn(tblModelVersions, SWT.NONE);
+        colCreatedBy.setText("Created by");
+        colCreatedBy.setWidth(125);
+
+        lblModelName = new Label(grpModelVersions, SWT.NONE);
+        lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModelName.setText("Model name :");
+        fd = new FormData();
+        fd.top = new FormAttachment(tblModelVersions, 10);
+        fd.left = new FormAttachment(0, 10);
+        lblModelName.setLayoutData(fd);
+
+        txtModelName = new Text(grpModelVersions, SWT.BORDER);
+        txtModelName.setBackground(GROUP_BACKGROUND_COLOR);
+        txtModelName.setEnabled(false);
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModelName);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(100, -10);
+        txtModelName.setLayoutData(fd);
+
+        lblPurpose = new Label(grpModelVersions, SWT.NONE);
+        lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
+        lblPurpose.setText("Purpose :");
+        fd = new FormData();
+        fd.top = new FormAttachment(txtModelName, 10);
+        fd.left = new FormAttachment(0, 10);
+        lblPurpose.setLayoutData(fd);
+
+        txtPurpose = new Text(grpModelVersions, SWT.BORDER);
+        txtPurpose.setBackground(GROUP_BACKGROUND_COLOR);
+        txtPurpose.setEnabled(false);
+        fd = new FormData();
+        fd.top = new FormAttachment(lblPurpose);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(80, -5);
+        txtPurpose.setLayoutData(fd);
+
+        lblReleaseNote = new Label(grpModelVersions, SWT.NONE);
+        lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
+        lblReleaseNote.setText("Release note :");
+        fd = new FormData();
+        fd.top = new FormAttachment(txtPurpose, 10);
+        fd.left = new FormAttachment(0, 10);
+        lblReleaseNote.setLayoutData(fd);
+
+        txtReleaseNote = new Text(grpModelVersions, SWT.BORDER);
+        txtReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
+        txtReleaseNote.setEnabled(false);
+        fd = new FormData();
+        fd.top = new FormAttachment(lblReleaseNote);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(100, -10);
+        txtReleaseNote.setLayoutData(fd);
+    }
+
+    /**
+     * Creates a group displaying details about the imported model's components
+     */
+    private void createGrpComponents() {
+        grpComponents = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpComponents.setVisible(false);
+        grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
+        grpComponents.setFont(GROUP_TITLE_FONT);
+        grpComponents.setText("Your model's components : ");
+        FormData fd = new FormData();
+        fd.top = new FormAttachment(100, -220);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(100);
+        fd.bottom = new FormAttachment(100);
+        grpComponents.setLayoutData(fd);
+        grpComponents.setLayout(new FormLayout());
+
+        Label lblElements = new Label(grpComponents, SWT.NONE);
+        lblElements.setBackground(GROUP_BACKGROUND_COLOR);
+        lblElements.setText("Elements :");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 25);
+        fd.left = new FormAttachment(0, 30);
+        lblElements.setLayoutData(fd);
+
+        Label lblRelationships = new Label(grpComponents, SWT.NONE);
+        lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
+        lblRelationships.setText("Relationships :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblElements, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblRelationships.setLayoutData(fd);
+
+        Label lblFolders = new Label(grpComponents, SWT.NONE);
+        lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
+        lblFolders.setText("Folders :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblRelationships, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblFolders.setLayoutData(fd);
+
+        Label lblViews = new Label(grpComponents, SWT.NONE);
+        lblViews.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViews.setText("Views :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblFolders, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViews.setLayoutData(fd);
+
+        Label lblViewObjects = new Label(grpComponents, SWT.NONE);
+        lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViewObjects.setText("Objects :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViews, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViewObjects.setLayoutData(fd);
+
+        Label lblViewConnections = new Label(grpComponents, SWT.NONE);
+        lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViewConnections.setText("Connections :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViewObjects, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViewConnections.setLayoutData(fd);
+
+        Label lblImages = new Label(grpComponents, SWT.NONE);
+        lblImages.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImages.setText("Images :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViewConnections, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblImages.setLayoutData(fd);
+
+        /* * * * * */
+
+        Label lblTotal = new Label(grpComponents, SWT.CENTER);
+        lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
+        lblTotal.setText("Total");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(20, 10);
+        fd.right = new FormAttachment(40, -10);
+        lblTotal.setLayoutData(fd);
+
+        Label lblImported = new Label(grpComponents, SWT.CENTER);
+        lblImported.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImported.setText("Imported");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(40, 10);
+        fd.right = new FormAttachment(60, -10);
+        lblImported.setLayoutData(fd);
+
+        /* * * * * */
+
+        txtTotalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalElements.setLayoutData(fd);
+
+        txtImportedElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedElements.setLayoutData(fd);
+
+        txtTotalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalRelationships.setLayoutData(fd);
+
+        txtImportedRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedRelationships.setLayoutData(fd);
+
+        txtTotalFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalFolders.setLayoutData(fd);
+
+        txtImportedFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedFolders.setLayoutData(fd);
+
+        txtTotalViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViews.setLayoutData(fd);
+
+        txtImportedViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViews.setLayoutData(fd);
+
+        txtTotalViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViewObjects.setLayoutData(fd);
+
+        txtImportedViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViewObjects.setLayoutData(fd);
+
+        txtTotalViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViewConnections.setLayoutData(fd);
+
+        txtImportedViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViewConnections.setLayoutData(fd);
+
+        txtTotalImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalImages.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalImages.setLayoutData(fd);
+
+        txtImportedImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedImages.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedImages.setLayoutData(fd);
+    }
+
+    /**
+     * Called when the user clicks on the "import" button 
+     */
+    protected void doImport() {
+        String modelName = tblModels.getSelection()[0].getText();
+        String modelId = (String)tblModels.getSelection()[0].getData("id");
+
+        hideGrpDatabase();
+        createProgressBar("Importing model \""+modelName+"\"", 0, 100);
+
+
+        grpModels.setVisible(false);
+        grpComponents.setVisible(true);
+        
+        // we reorganize the grpModelVersion widget
+        FormData fd = new FormData();
+        fd.top = new FormAttachment(0);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(100);
+        fd.bottom = new FormAttachment(grpComponents, -10);
+        grpModelVersions.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 10);
+        fd.left = new FormAttachment(0, 10);
+        fd.right = new FormAttachment(40, -10);
+        fd.bottom = new FormAttachment(100, -10);
+        tblModelVersions.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 10);
+        fd.left = new FormAttachment(40, 0);
+        lblModelName.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModelName, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblModelName, 80, SWT.LEFT);
+        fd.right = new FormAttachment(100, -10);
+        txtModelName.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(txtModelName, 5);
+        fd.left = new FormAttachment(txtModelName, 0, SWT.LEFT);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(55, -5);
+        txtPurpose.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(txtPurpose, 10);
+        fd.left = new FormAttachment(lblPurpose, 0, SWT.LEFT);
+        lblReleaseNote.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(txtPurpose, 5);
+        fd.left = new FormAttachment(txtModelName, 0, SWT.LEFT);
+        fd.right = new FormAttachment(100, -10);
+        fd.bottom = new FormAttachment(100, -10);
+        txtReleaseNote.setLayoutData(fd);
+        
+        compoRightBottom.layout();
+        
+        setActiveAction(ACTION.Two);
+
+
+        // we create the model (but do not create standard folder as they will be imported from the database)
+        modelToImport = (ArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
+        modelToImport.setId(modelId);
+        modelToImport.setName(modelName);
+        modelToImport.setPurpose((String)tblModels.getSelection()[0].getData("purpose"));
+        modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
+
+        // we add the new model in the manager
+        IEditorModelManager.INSTANCE.registerModel(modelToImport);
+
+        // we import the model from the database in a separate thread
+        Job job = new Job("importModel") {
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                try {
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
+                    int importSize = database.importModel(modelToImport);
+                    setProgressBarMinAndMax(0, importSize);
+                    DBPlugin.checkAsyncException();
+
+                    display.syncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            txtTotalElements.setText(String.valueOf(database.countElementsToImport()));
+                            txtTotalRelationships.setText(String.valueOf(database.countRelationshipsToImport()));
+                            txtTotalFolders.setText(String.valueOf(database.countFoldersToImport()));
+                            txtTotalViews.setText(String.valueOf(database.countViewsToImport()));
+                            txtTotalViewObjects.setText(String.valueOf(database.countViewObjectsToImport()));
+                            txtTotalViewConnections.setText(String.valueOf(database.countViewConnectionsToImport()));
+                            txtTotalImages.setText(String.valueOf(database.countImagesToImport()));
+
+                            txtImportedElements.setText(String.valueOf(database.countElementsImported()));
+                            txtImportedRelationships.setText(String.valueOf(database.countRelationshipsImported()));
+                            txtImportedFolders.setText(String.valueOf(database.countFoldersImported()));
+                            txtImportedViews.setText(String.valueOf(database.countViewsImported()));
+                            txtImportedViewObjects.setText(String.valueOf(database.countViewObjectsImported()));
+                            txtImportedViewConnections.setText(String.valueOf(database.countViewConnectionsImported()));
+                            txtImportedImages.setText(String.valueOf(database.countImagesImported()));
+                        }
+                    });
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
+                    database.prepareImportFolders(modelToImport);
+                    while ( database.importFolders(modelToImport) ) {
+                        display.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtImportedFolders.setText(String.valueOf(database.countFoldersImported()));
+                            }
+                        });
+                        increaseProgressBar();
+                        DBPlugin.checkAsyncException();
+                    }
+                    sync();
+                    DBPlugin.checkAsyncException();
+                    database.checkImportedFoldersCount();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
+                    database.prepareImportElements(modelToImport);
+                    while ( database.importElements(modelToImport) ) {
+                        display.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtImportedElements.setText(String.valueOf(database.countElementsImported()));
+                            }
+                        });
+                        increaseProgressBar();
+                        DBPlugin.checkAsyncException();
+                    }
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
+                    database.prepareImportRelationships(modelToImport);
+                    while ( database.importRelationships(modelToImport) ) {
+                        display.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtImportedRelationships.setText(String.valueOf(database.countRelationshipsImported()));
+                            }
+                        });
+                        increaseProgressBar();
+                        DBPlugin.checkAsyncException();
+                    }
+                    sync();
+                    database.checkImportedElementsCount();
+                    database.checkImportedRelationshipsCount();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
+                    display.syncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                modelToImport.resolveRelationshipsSourcesAndTargets();
+                            } catch (Exception e) {
+                                DBPlugin.setAsyncException(e);
+                            }
+                        }
+                    });
+                    DBPlugin.checkAsyncException();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
+                    database.prepareImportViews(modelToImport);
+                    while ( database.importViews(modelToImport) ) {
+                        display.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtImportedViews.setText(String.valueOf(database.countViewsImported()));
+                            }
+                        });
+                        increaseProgressBar();
+                        DBPlugin.checkAsyncException();
+                    }
+                    sync();
+                    database.checkImportedViewsCount();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
+                    for (IDiagramModel view: modelToImport.getAllViews().values()) {
+                        database.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                        while ( database.importViewsObjects(modelToImport, view) ) {
+                            display.syncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    txtImportedViewObjects.setText(String.valueOf(database.countViewObjectsImported()));
+                                }
+                            });
+                            increaseProgressBar();
+                            DBPlugin.checkAsyncException();
+                        }
+                    }
+                    sync();
+                    database.checkImportedObjectsCount();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
+                    for (IDiagramModel view: modelToImport.getAllViews().values()) {
+                        database.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                        while ( database.importViewsConnections(modelToImport) ) {
+                            display.syncExec(new Runnable() {
+                                @Override
+                                public void run() {
+                                    txtImportedViewConnections.setText(String.valueOf(database.countViewConnectionsImported()));
+                                }
+                            });
+                            increaseProgressBar();
+                            DBPlugin.checkAsyncException();
+                        }
+                    }
+                    sync();
+                    DBPlugin.checkAsyncException();
+                    database.checkImportedConnectionsCount();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
+                    display.asyncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            try {
+                                modelToImport.resolveConnectionsSourcesAndTargets();
+                            } catch (Exception e) {
+                                DBPlugin.setAsyncException(e);
+                            }
+                        }
+                    });
+                    DBPlugin.checkAsyncException();
+                    sync();
+
+                    if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
+                    for (String path: database.getAllImagePaths()) {
+                        database.importImage(modelToImport, path);
+                        display.syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                txtImportedImages.setText(String.valueOf(database.countImagesImported()));
+                            }
+                        });
+                        increaseProgressBar();
+                    }
+                    sync();
+
+                } catch (Exception err) {
+                    popup(Level.ERROR, "Failed to import model from database.", err);
+                    jobException = err;
+                    statusColor=RED_COLOR;
+                    return Status.CANCEL_STATUS;
+                }
+                statusColor=GREEN_COLOR;
+                return Status.OK_STATUS;
+            }
+        };
+
+        job.addJobChangeListener(new JobChangeAdapter() {
+            public void done(IJobChangeEvent event) {
+
+                if (event.getResult().isOK())
+                    display.syncExec(new Runnable() { @Override public void run() { statusColor = GREEN_COLOR; setActiveAction(STATUS.Ok); doShowResult(); } });
+                else
+                    display.syncExec(new Runnable() { @Override public void run() { statusColor = RED_COLOR ; setActiveAction(STATUS.Error); doShowResult(); } });
+            }
+        });
+
+        // We schedule the import
+        job.schedule();
+    }
+
+    protected void doShowResult() {
+        logger.debug("Showing result.");
+        if ( grpProgressBar != null ) grpProgressBar.setVisible(false);
+
+        setActiveAction(ACTION.Three);
+        btnClose.setText("close");
+
+        txtImportedElements.setForeground( (database.countElementsImported() == database.countElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedRelationships.setForeground( (database.countRelationshipsImported() == database.countRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedFolders.setForeground( (database.countFoldersImported() == database.countFoldersToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedViews.setForeground( (database.countViewsImported() == database.countViewsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedViewObjects.setForeground( (database.countViewObjectsImported() == database.countViewObjectsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedViewConnections.setForeground( (database.countViewConnectionsImported() == database.countViewConnectionsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        txtImportedImages.setForeground( (database.countImagesImported() == database.countImagesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+
+        if ( statusColor == GREEN_COLOR ) {
+            // We open the Model in the Editor
+            IEditorModelManager.INSTANCE.openModel(modelToImport);
+
+            // We select the model in the tree
+            ITreeModelView view = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
+            if(view != null) {
+                List<Object> elements = new ArrayList<Object>();
+                elements.add(modelToImport.getDefaultFolderForObject(modelToImport.getAllViews().entrySet().iterator().next().getValue()));
+                view.getViewer().setSelection(new StructuredSelection(elements), true);
+                elements = new ArrayList<Object>();
+                elements.add(modelToImport);
+                view.getViewer().setSelection(new StructuredSelection(elements), true);
+            }
+            
+            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+                close();
+                return;
+            }
+            
+            setMessage("Import successful", statusColor);
+        } else {
+            if ( jobException == null )
+                setMessage("No error has been detected but the number of components exported is not correct.\n\nPlease check thoroughly your database !", statusColor);
+            else {
+                if ( jobException != null && jobException.getMessage() != null )
+                    setMessage("Error while importing model.\n"+jobException.getMessage(), RED_COLOR);
+                else 
+                    setMessage("Error while importing model.", RED_COLOR);
+            }
+
+            // TODO : add preference keep incomplete model (or ask question)
+            try {
+                // we remove the 'dirty' flag (i.e. we consider the model as saved) because we do not want the closeModel() method ask to save it
+                CommandStack stack = (CommandStack)modelToImport.getAdapter(CommandStack.class);
+                stack.markSaveLocation();
+    
+                IEditorModelManager.INSTANCE.closeModel(modelToImport);
+            } catch (IOException e) {
+                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
+            }
+        }
+    }
 }

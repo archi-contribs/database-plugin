@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
@@ -14,6 +20,7 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import com.archimatetool.editor.diagram.editparts.ArchimateDiagramPart;
 import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
 import com.archimatetool.model.IArchimateConcept;
+import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IFolder;
 
 public class DBMenuComponentImportHandler extends AbstractHandler {
@@ -30,8 +37,10 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 			model = (ArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
 			model = (ArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
-		} else if ( selection instanceof ArchimateDiagramPart ) {						// if the user clicked on a view in the tree
-			model = (ArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
+		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
+			model = (ArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
+	    } else if ( selection instanceof ArchimateDiagramPart ) {                     // if the user clicked on a view background
+	        model = (ArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
 		} else {
 			DBGui.popup(Level.ERROR, "Do not know which component you selected : "+selection.getClass().getSimpleName());
 			return null;

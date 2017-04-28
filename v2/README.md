@@ -8,7 +8,9 @@ Database export/import plugin that store models in a central repository.
 * Export and import models to a relational database (PostGreSQL, MySQL, Oracle and SQLite drivers are included)
 * Version the models (keep an history on the model versions and allow to retrieve a former version)
 * Version models components (keep an history on the components versions and allow to retrieve a former version)
-* Share components between models
+* Share elements, relationships and views between models
+* Update itself when a new release is available on GitHub
+* Automatically create the database tables it needs
 
 ## Installation instructions :
 * download the **org.archicontribs.database_v2.0.0.alpha1.jar** file to the Archi **plugins** folder
@@ -27,9 +29,6 @@ Database export/import plugin that store models in a central repository.
 * Complete rework of the graphical interface
 * Add the ability to import components from other models
 * Add inline help
-
-## Beware :
-This version as an alpha release. It is not meant to be used in production.
 
 ## Wiki
 Please do not hesitate to have a look at the [Wiki](https://github.com/archi-contribs/database-plugin/wiki).

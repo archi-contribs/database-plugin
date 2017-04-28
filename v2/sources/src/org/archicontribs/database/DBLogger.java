@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database;
 
 import java.io.IOException;
@@ -87,7 +93,7 @@ public class DBLogger {
 				logger.log(className, level, "- "+message.replace("\r",""), t);
 			} else {
 				logger.log(className, level, "┌ "+lines[0].replace("\r",""), null);
-				for ( int i=1 ; i < lines.length-2 ; ++i) {
+				for ( int i=1 ; i < lines.length-1 ; ++i) {
 					logger.log(className, level, "│ "+lines[i].replace("\r",""), null);
 				}
 				logger.log(className, level, "└ "+lines[lines.length-1].replace("\r",""), t);

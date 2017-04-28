@@ -1,0 +1,79 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Model export</title>
+</head>
+
+<body>
+<h1>Database plugin</h1>
+<h2>Database structure</h2>
+<h3>Tables</h3>
+<h4>database_version</h4>
+This table allows the plugin to quickly check that the database has got the requested tables without checking all of them one by one.
+It contains one line per plugin that has got tables in this database (this will allow several plugins to share the same database in the future):
+   <ul>
+   <li>archi_plugin : the name of the database plugin
+   <li>version : the version of the database model
+   </ul>
+Each time the plugin connects to a database, it checks the existence and the content of this table.
+   <ul>
+   <li>if the table does not exist, then it considers that all the other tables are missing and propose to create them,
+   <li>if the table does exist but the plugin name is not listed, then the plugin refuses to work with the database,
+   <li>if the plugin name is listed but the version is an old version, then the plugin updates the database to the newer version,
+   <li>if the version is unknown, then the plugin refuses to work with the database.
+   </ul>
+
+<h4>models</h4>
+This table contains the models metadata that are stored in the database. There is one line per model and per version.
+
+<h4>folders</h4>
+This table contains the folders that are stored in the database. There is one line per folder and per version.
+
+<h4>elements</h4>
+This table contains the elements that are stored in the database. There is one line per element and per version.
+
+<h4>relationships</h4>
+This table contains the relationships that are stored in the database. There is one line per relationship and per version.
+
+<h4>views</h4>
+This table contains the views (diagrams, canvas and sketchs) that are stored in the database. There is one line per view and per version.
+
+<h4>views_objects</h4>
+This table contains the graphical objects (representation of elements, notes, ...) that are stored in the database. There is one line per graphical object and per version.<br>
+View objects can therefore be linked to their corresponding elements (column element_id) or to an image (column image_path).<br>
+A view object cannot exist outside a container which can be a view or another view object (column container_id).<br>
+They are sorted (column rank) to guarantee they are imported in the same order as they are exported (to maintain which one is above which one).
+
+<h4>views_connections</h4>
+This table contains the graphical connections (representation of relationships) that are stored in the database. There is one line per graphical connection and per version.<br>
+View connections can therefore be linked to their corresponding relationship (column relationship_id), to their source and target that can be either elements or relationships (columns source_object_id and target_object_id) and of course to bendpoints.<br>
+A view connections cannot exist outside a container which can be a view or a view object (column container_id).<br>
+They are sorted (column rank) to guarantee they are imported in the same order as they are exported (to maintain which one is above which one).  
+
+<h4>folders_in_model</h4>
+This is a relation table that permits to know which folders is included in which model. At this stage, a folder can be included in a unique model.
+
+<h4>elements_in_model</h4>
+This is a relation table that permits to know which elements is included in which model. An element can be included in several models.
+
+<h4>relationships_in_model</h4>
+This is a relation table that permits to know which relationships is included in which model. A relationship can be included in several models.
+
+<h4>views_in_model</h4>
+This is a relation table that permits to know which views is included in which model. A view can be included in several models.
+
+<h4>images</h4>
+This table contains the images stored in the database. There is one line per image. 
+
+<h4>bendpoints</h4>
+This table contains the bendpoints stored in the database. 
+
+<h4>properties</h4>
+This table maintains the properties of the models and their components. 
+
+<h3>Global schema</h3>
+<img src="../img/databaseStructure.jpg">
+</body>
+</html>

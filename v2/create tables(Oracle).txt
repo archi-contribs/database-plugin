@@ -1,11 +1,60 @@
+DROP SEQUENCE seq_elements_in_model;
+DROP SEQUENCE seq_folders_in_model;
+DROP SEQUENCE seq_relationships_in_model;
+DROP SEQUENCE seq_views_in_model;
+
+DROP TABLE archi_plugin CASCADE CONSTRAINTS;
+DROP TABLE bendpoints CASCADE CONSTRAINTS;
+DROP TABLE database_version CASCADE CONSTRAINTS;
+DROP TABLE elements CASCADE CONSTRAINTS;
+DROP TABLE elements_in_model CASCADE CONSTRAINTS;
+DROP TABLE folders CASCADE CONSTRAINTS;
+DROP TABLE folders_in_model CASCADE CONSTRAINTS;
+DROP TABLE images CASCADE CONSTRAINTS;
+DROP TABLE models CASCADE CONSTRAINTS;
+DROP TABLE properties CASCADE CONSTRAINTS;
+DROP TABLE relationships CASCADE CONSTRAINTS;
+DROP TABLE relationships_in_model CASCADE CONSTRAINTS;
+DROP TABLE views CASCADE CONSTRAINTS;
+DROP TABLE views_connections CASCADE CONSTRAINTS;
+DROP TABLE views_in_model CASCADE CONSTRAINTS;
+DROP TABLE views_objects CASCADE CONSTRAINTS;
+
+
 CREATE SEQUENCE seq_elements_in_model;
 CREATE SEQUENCE seq_folders_in_model;
 CREATE SEQUENCE seq_relationships_in_model;
 CREATE SEQUENCE seq_views_in_model;
-CREATE TABLE archi_plugin (
-  database_id    varchar2(50) NOT NULL, 
-  plugin_version varchar2(10) NOT NULL, 
-  archi_version  varchar2(10) NOT NULL);
+
+CREATE OR REPLACE TRIGGER trigger_elements_in_model
+  BEFORE INSERT ON elements_in_model
+  FOR EACH ROW
+  BEGIN
+    SELECT seq_elements_in_model.NEXTVAL INTO :NEW.eim_id FROM DUAL;
+  END;
+  
+CREATE OR REPLACE TRIGGER trigger_folders_in_model
+  BEFORE INSERT ON folders_in_model
+  FOR EACH ROW
+  BEGIN
+    SELECT seq_folders_in_model.NEXTVAL INTO :NEW.fim_id FROM DUAL;
+  END;
+
+CREATE OR REPLACE TRIGGER trigger_relationships_in_model
+  BEFORE INSERT ON relationships_in_model
+  FOR EACH ROW
+  BEGIN
+    SELECT seq_relationships_in_model.NEXTVAL INTO :NEW.rim_id FROM DUAL;
+  END;
+
+CREATE OR REPLACE TRIGGER trigger_views_in_model
+  BEFORE INSERT ON views_in_model
+  FOR EACH ROW
+  BEGIN
+    SELECT seq_views_in_model.NEXTVAL INTO :NEW.vim_id FROM DUAL;
+  END;
+
+  
 CREATE TABLE bendpoints (
   parent_id      varchar2(50) NOT NULL, 
   parent_version number(10) NOT NULL, 
@@ -17,6 +66,9 @@ CREATE TABLE bendpoints (
   PRIMARY KEY (parent_id, 
   parent_version, 
   rank));
+CREATE TABLE database_version (
+  archi_plugin varchar2(50) NOT NULL, 
+  version      number(10) NOT NULL);
 CREATE TABLE elements (
   id            varchar2(50) NOT NULL, 
   version       number(10) NOT NULL, 
@@ -46,6 +98,7 @@ CREATE TABLE folders (
   id            varchar2(50) NOT NULL, 
   version       number(10) NOT NULL, 
   type          number(10) NOT NULL, 
+  root_type     number(10) NOT NULL, 
   name          varchar2(1024) NOT NULL, 
   documentation clob NOT NULL, 
   created_by    varchar2(30), 
@@ -74,7 +127,7 @@ CREATE TABLE models (
   note         clob, 
   purpose      clob, 
   created_by   varchar2(30) NOT NULL, 
-  created_on   timestamp NOT NULL, 
+  created_on   date NOT NULL, 
   checkedin_by varchar2(30), 
   checkedin_on timestamp, 
   deleted_by   varchar2(30), 
@@ -206,3 +259,5 @@ CREATE TABLE views_objects (
   container_id));
 COMMENT ON TABLE views_objects IS 'views_objects parents can be either a view, a canvas or a sketch but any container as well.';
 COMMENT ON COLUMN views_objects.rank IS 'the import order is important to respect the superposition';
+
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);

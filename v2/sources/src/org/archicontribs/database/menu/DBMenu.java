@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.menu;
 
 import java.util.Iterator;
@@ -37,7 +43,9 @@ import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ISketchModel;
 
 
-
+/**
+ * This class is used when the user right-click on a graphical object
+ */
 public class DBMenu extends ExtensionContributionFactory {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
 
@@ -66,11 +74,9 @@ public class DBMenu extends ExtensionContributionFactory {
 	    				additions.addContributionItem(new Separator(), null);
 	    				if ( logger.isDebugEnabled() ) additions.addContributionItem(showId(((ArchimateDiagramPart)obj).getModel()), null);
 	    				//additions.addContributionItem(importComponent(((ArchimateDiagramPart)obj).getModel().getArchimateModel(), ((ArchimateDiagramPart)obj).getModel().getId()), null);
-	    				//TODO: find a way to create a component from an element
 	    				break;
 	    			case "CanvasDiagramPart" :
 	    				// cannot import (yet) a component into a canvas, except an image ...
-	    				//TODO : add the import of an image
 	    				break;
 	    			case "SketchDiagramPart" :
 	    				// cannot import (yet) a component into a sketch
@@ -89,13 +95,17 @@ public class DBMenu extends ExtensionContributionFactory {
 		    			break;
 		    		case "CanvasBlockEditPart" :
 		    			additions.addContributionItem(new Separator(), null);
-		    			if ( logger.isDebugEnabled() ) additions.addContributionItem(showId(((CanvasBlockEditPart)obj).getModel()), null);
-	    				additions.addContributionItem(showPath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
+		    			if ( logger.isDebugEnabled() ) {
+		    			    additions.addContributionItem(showId(((CanvasBlockEditPart)obj).getModel()), null);
+		    			    additions.addContributionItem(showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
+		    			}	    				
 		    			break;
 		    		case "CanvasStickyEditPart" :
 		    			additions.addContributionItem(new Separator(), null);
-		    			if ( logger.isDebugEnabled() ) additions.addContributionItem(showId(((CanvasStickyEditPart)obj).getModel()), null);
-	    				additions.addContributionItem(showPath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
+		    			if ( logger.isDebugEnabled() ) { 
+		    			    additions.addContributionItem(showId(((CanvasStickyEditPart)obj).getModel()), null);
+	    				    additions.addContributionItem(showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
+		    			}
 		    			break;
 		    		case "DiagramConnectionEditPart" :
 		    			additions.addContributionItem(new Separator(), null);
@@ -104,8 +114,10 @@ public class DBMenu extends ExtensionContributionFactory {
 		    			break;
 		    		case "DiagramImageEditPart" :
 		    			additions.addContributionItem(new Separator(), null);
-		    			if ( logger.isDebugEnabled() ) additions.addContributionItem(showId(((DiagramImageEditPart)obj).getModel()), null);
-	    				additions.addContributionItem(showPath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
+		    			if ( logger.isDebugEnabled() ) {
+		    			    additions.addContributionItem(showId(((DiagramImageEditPart)obj).getModel()), null);
+		    			    additions.addContributionItem(showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
+		    			}
 		    			break;
 		    		case "GroupEditPart" :
 		    			break;
@@ -121,20 +133,20 @@ public class DBMenu extends ExtensionContributionFactory {
 		    			//When the user right clicks in the model tree
 		    		case "ArchimateDiagramModel" :
 		    			additions.addContributionItem(new Separator(), null);
-	    				additions.addContributionItem(importComponent(((IArchimateDiagramModel)obj).getArchimateModel(), ((IArchimateDiagramModel)obj).getId()), null);
+	    				additions.addContributionItem(importComponent(((IArchimateDiagramModel)obj).getArchimateModel()), null);
 		    			break;
 		    		case "CanvasModel" :
 		    			additions.addContributionItem(new Separator(), null);
-	    				additions.addContributionItem(importComponent(((ICanvasModel)obj).getArchimateModel(), null), null);
+	    				additions.addContributionItem(importComponent(((ICanvasModel)obj).getArchimateModel()), null);
 		    			break;
 		    		case "SketchModel" :
 		    			additions.addContributionItem(new Separator(), null);
-	    				additions.addContributionItem(importComponent(((ISketchModel)obj).getArchimateModel(), null), null);
+	    				additions.addContributionItem(importComponent(((ISketchModel)obj).getArchimateModel()), null);
 		    			break;
 		    		case "Folder" :
 		    			additions.addContributionItem(new Separator(), null);
 		    			if ( logger.isDebugEnabled() ) additions.addContributionItem(showId((IFolder)obj), null);
-	    				additions.addContributionItem(importComponent(((IFolder)obj).getArchimateModel(), null), null);
+	    				additions.addContributionItem(importComponent(((IFolder)obj).getArchimateModel()), null);
 		    			break;
 		    		default :
 		    			if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
@@ -242,16 +254,12 @@ public class DBMenu extends ExtensionContributionFactory {
 		return new CommandContributionItem(p);
 	}
 	
-	CommandContributionItem importComponent(IArchimateModel model, String viewId) {
+	CommandContributionItem importComponent(IArchimateModel model) {
 		ImageDescriptor menuIcon;
 		String label;
 		
 		menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-		if ( viewId == null ) {
-			label = "Import element";
-		} else {
-			label = "Import component into view";
-		}
+		label = "Import individual component";
 
 		if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
 		CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -272,7 +280,6 @@ public class DBMenu extends ExtensionContributionFactory {
 	}
 	
 	CommandContributionItem showId(IIdentifier component) {
-		//TODO : add a preference to show or hide this ID
 		ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
 		String label = "ID : "+component.getId();
 
@@ -294,30 +301,28 @@ public class DBMenu extends ExtensionContributionFactory {
 		return new CommandContributionItem(p);
 	}
 	
-	CommandContributionItem showPath(String path) {
-		//TODO : add a preference to show or hide this path
-		if ( path != null ) {
-			ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-			String label = "Path : "+path;
-	
-			if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
-			CommandContributionItemParameter p = new CommandContributionItemParameter(
-					PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
-					"org.archicontribs.database.DBMenu",						// id
-					"org.archicontribs.database.void",				          	// commandId
-					null,														// parameters
-					menuIcon,													// icon
-					null,														// disabledIcon
-					null,														// hoverIcon
-					label,														// label
-					null,														// mnemonic
-					null,														// tooltip 
-					CommandContributionItem.STYLE_PUSH,							// style
-					null,														// helpContextId
-					true);
-			return new CommandContributionItem(p);
-		}
-		return null;
+	CommandContributionItem showImagePath(String path) {
+		ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
+		if ( path == null ) path = "null";
+		
+		String label = "Image : "+path;
+
+		if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+		CommandContributionItemParameter p = new CommandContributionItemParameter(
+				PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
+				"org.archicontribs.database.DBMenu",						// id
+				"org.archicontribs.database.showIdCommand", 	          	// commandId
+				null,														// parameters
+				menuIcon,													// icon
+				null,														// disabledIcon
+				null,														// hoverIcon
+				label,														// label
+				null,														// mnemonic
+				null,														// tooltip 
+				CommandContributionItem.STYLE_PUSH,							// style
+				null,														// helpContextId
+				true);
+		return new CommandContributionItem(p);
 	}
 	
 	CommandContributionItem mergeModels() {

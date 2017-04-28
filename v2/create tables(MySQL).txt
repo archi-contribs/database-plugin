@@ -1,7 +1,22 @@
-CREATE TABLE archi_plugin (
-  database_id    varchar(50) NOT NULL, 
-  plugin_version varchar(10) NOT NULL, 
-  archi_version  varchar(10) NOT NULL);
+DROP TABLE IF EXISTS archi_plugin;
+DROP TABLE IF EXISTS bendpoints;
+DROP TABLE IF EXISTS database_version;
+DROP TABLE IF EXISTS elements;
+DROP TABLE IF EXISTS elements_in_model;
+DROP TABLE IF EXISTS folders;
+DROP TABLE IF EXISTS folders_in_model;
+DROP TABLE IF EXISTS images;
+DROP TABLE IF EXISTS models;
+DROP TABLE IF EXISTS properties;
+DROP TABLE IF EXISTS relationships;
+DROP TABLE IF EXISTS relationships_in_model;
+DROP TABLE IF EXISTS views;
+DROP TABLE IF EXISTS views_connections;
+DROP TABLE IF EXISTS views_in_model;
+DROP TABLE IF EXISTS views_objects;
+
+
+
 CREATE TABLE bendpoints (
   parent_id      varchar(50) NOT NULL, 
   parent_version int(10) NOT NULL, 
@@ -13,6 +28,9 @@ CREATE TABLE bendpoints (
   PRIMARY KEY (parent_id, 
   parent_version, 
   rank));
+CREATE TABLE database_version (
+  archi_plugin varchar(50) NOT NULL, 
+  version      int(10) NOT NULL);
 CREATE TABLE elements (
   id            varchar(50) NOT NULL, 
   version       int(10) NOT NULL, 
@@ -42,6 +60,7 @@ CREATE TABLE folders (
   id            varchar(50) NOT NULL, 
   version       int(10) NOT NULL, 
   type          int(10) NOT NULL, 
+  root_type     int(10) NOT NULL, 
   name          varchar(1024) NOT NULL, 
   documentation mediumtext NOT NULL, 
   created_by    varchar(30), 
@@ -70,7 +89,7 @@ CREATE TABLE models (
   note         mediumtext, 
   purpose      mediumtext, 
   created_by   varchar(30) NOT NULL, 
-  created_on   timestamp NOT NULL, 
+  created_on   datetime NOT NULL, 
   checkedin_by varchar(30), 
   checkedin_on timestamp NULL, 
   deleted_by   varchar(30), 
@@ -199,3 +218,5 @@ CREATE TABLE views_objects (
   PRIMARY KEY (id, 
   version, 
   container_id)) comment='views_objects parents can be either a view, a canvas or a sketch but any container as well.';
+
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);

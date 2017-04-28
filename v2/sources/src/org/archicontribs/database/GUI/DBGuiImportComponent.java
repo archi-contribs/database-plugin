@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
@@ -5,10 +11,10 @@ import java.util.ArrayList;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
-import org.archicontribs.database.preferences.DBPreferencePage;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -37,36 +43,32 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
-import com.archimatetool.model.FolderType;
-
 public class DBGuiImportComponent extends DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGuiImportComponent.class);
 	
 	protected ArchimateModel importedModel;
-	private DBPreferencePage preferencePage = new DBPreferencePage();
 	
 	private Group grpFilter;
 	private Group grpComponent;
 	
 	private Composite compoElements;
 	private Button radioOptionElement;
-	private Button radioOptionContainers;
-	private Button radioOptionFolder;
 	private Button radioOptionView;
 	private Text filterName;
 	private Button ignoreCase;
-	private Button filterExist;					// TODO : add listeners to manage this option
+	private Button hideOption;             // to hide empty names for elements and relationships, top level folders and default views
+	private Button hideAlreadyInModel;
 		
-	private Composite compoContainers;
+	//private Composite compoContainers;
 	
-	private Composite compoFolders;
-	private Button strategyFolders;
-	private Button applicationFolders;
-	private Button businessFolders;
-	private Button technologyFolders;
-	private Button otherFolders;
-	private Button motivationFolders;
-	private Button implementationFolders;
+	//private Composite compoFolders;
+	//private Button strategyFolders;
+	//private Button applicationFolders;
+	//private Button businessFolders;
+	//private Button technologyFolders;
+	//private Button otherFolders;
+	//private Button motivationFolders;
+	//private Button implementationFolders;
 	
 	private Composite compoViews;
 	private Button archimateViews;
@@ -193,21 +195,20 @@ public class DBGuiImportComponent extends DBGui {
 		setActiveAction(ACTION.One);
 		
 			// we show the option in the bottom
-		setOption("Import type :", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", preferencePage.getDefaultExportType() == DBPreferencePage.EXPORT_TYPE.EXPORT_MODEL);
+		setOption("Import type :", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
 		
 			// We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
 		setBtnAction("Import", new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
+			public void widgetSelected(SelectionEvent event) {
 				setActiveAction(STATUS.Ok);
 				btnDoAction.setEnabled(false);
 				try {
 					doImport();
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception err) {
+					DBGui.popup(Level.ERROR, "An exception has been raised during import.", err);
 				}
 			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		
 			// We rename the "close" button to "cancel"
@@ -221,7 +222,7 @@ public class DBGuiImportComponent extends DBGui {
 	 * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
 	 */
 	@Override
-	protected void connectedToDatabase() {	
+	protected void connectedToDatabase(boolean ignore) {	
 		createGrpFilter();
 		createGrpComponents();
 		compoRightBottom.setVisible(true);
@@ -254,63 +255,42 @@ public class DBGuiImportComponent extends DBGui {
 		radioOptionElement.setBackground(GROUP_BACKGROUND_COLOR);
 		radioOptionElement.setText("Elements");
 		radioOptionElement.setSelection(true);
-		radioOptionElement.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
-			getElements();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} } @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
+		radioOptionElement.addSelectionListener(new SelectionListener() {
+		    @Override public void widgetSelected(SelectionEvent event) {
+		        try {
+		            getElements();
+		        } catch (Exception err) {
+		            DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+		        }
+		    } @Override public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+		});
 		fd = new FormData();
 		fd.top = new FormAttachment(chooseCategory, 5);
 		fd.left = new FormAttachment(0, 20);
 		radioOptionElement.setLayoutData(fd);
 		
-		radioOptionContainers = new Button(grpFilter, SWT.RADIO);
-		radioOptionContainers.setBackground(GROUP_BACKGROUND_COLOR);
-		radioOptionContainers.setText("Containers");
-		radioOptionContainers.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
-			getComposites();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
-		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionElement, 5);
-		fd.left = new FormAttachment(0, 20);
-		radioOptionContainers.setLayoutData(fd);
-		
-		radioOptionFolder = new Button(grpFilter, SWT.RADIO);
-		radioOptionFolder.setBackground(GROUP_BACKGROUND_COLOR);
-		radioOptionFolder.setText("Folders");
-		radioOptionFolder.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
-			getFolders();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}	} @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
-		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionContainers, 5);
-		fd.left = new FormAttachment(0, 20);
-		radioOptionFolder.setLayoutData(fd);
-		
 		radioOptionView = new Button(grpFilter, SWT.RADIO);
 		radioOptionView.setBackground(GROUP_BACKGROUND_COLOR);
 		radioOptionView.setText("Views");
-		radioOptionView.addSelectionListener(new SelectionListener() { @Override public void widgetSelected(SelectionEvent e) { try {
-			getViews();
-		} catch (Exception e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} } @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); } });
+		radioOptionView.addSelectionListener(new SelectionListener() {
+		    @Override public void widgetSelected(SelectionEvent event) {
+		        try {
+		            getViews();
+		        } catch (Exception err) {
+		            DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+		        }
+		    }
+		    @Override public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+		});
 		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionFolder, 5);
+		fd.top = new FormAttachment(radioOptionElement, 5);
 		fd.left = new FormAttachment(0, 20);
 		radioOptionView.setLayoutData(fd);
 		
 		Label chooseName = new Label(grpFilter, SWT.NONE);
 		chooseName.setBackground(GROUP_BACKGROUND_COLOR);
 		chooseName.setFont(BOLD_FONT);
-		chooseName.setText("Name :");
+		chooseName.setText("Name filter :");
 		fd = new FormData();
 		fd.top = new FormAttachment(radioOptionView, 10);
 		fd.left = new FormAttachment(0, 10);
@@ -318,26 +298,25 @@ public class DBGuiImportComponent extends DBGui {
 		
 		filterName = new Text(grpFilter, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(chooseName, 0, SWT.CENTER);
-		fd.left = new FormAttachment(chooseName, 5);
+		fd.top = new FormAttachment(chooseName, 5);
+		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(0, 125);
 		filterName.setLayoutData(fd);
 		filterName.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent e) {
+			public void modifyText(ModifyEvent event) {
 				try {
 					if ( database.isConnected() ) {
 						if ( compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
 						//	getContainers();
-						else if ( compoFolders.isVisible() )
-							getFolders();
+						//else if ( compoFolders.isVisible() )
+						//	getFolders();
 						else if ( compoViews.isVisible() )
 							getViews();
 					}
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception err) {
+				    DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
 				} 
 			}
 		});
@@ -347,7 +326,7 @@ public class DBGuiImportComponent extends DBGui {
 		ignoreCase.setText("Ignore case");
 		ignoreCase.setSelection(true);
 		fd = new FormData();
-		fd.top = new FormAttachment(chooseName, 5);
+		fd.top = new FormAttachment(filterName, 5);
 		fd.left = new FormAttachment(0, 10);
 		ignoreCase.setLayoutData(fd);
 		ignoreCase.addListener(SWT.MouseUp, new Listener() {
@@ -359,21 +338,20 @@ public class DBGuiImportComponent extends DBGui {
 							getElements();
 						//else if ( compoContainers.isVisible() )
 						//	getContainers();
-						else if ( compoFolders.isVisible() )
-							getFolders();
+						//else if ( compoFolders.isVisible() )
+						//	getFolders();
 						else if ( compoViews.isVisible() )
 							getViews();
 					}
-				} catch (Exception e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+				} catch (Exception err) {
+				    DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
 				} 
 			}
 		});
 		
 		createCompoElements();		compoElements.setVisible(true);
-		createCompoComposites();	compoContainers.setVisible(false);
-		createCompoFolders();		compoFolders.setVisible(false);
+		//createCompoComposites();	compoContainers.setVisible(false);
+		//createCompoFolders();		compoFolders.setVisible(false);
 		createCompoViews();			compoViews.setVisible(false);
 	}
 	
@@ -568,13 +546,13 @@ public class DBGuiImportComponent extends DBGui {
 		motivationLabel.setBackground(MOTIVATION_COLOR);
 		
 		PaintListener redraw = new PaintListener() {
-            public void paintControl(PaintEvent e) {
-            	e.gc.setAlpha(100);
-            	if ( e.widget == motivationCanvas ) 
-            		e.gc.setBackground(MOTIVATION_COLOR);
+            public void paintControl(PaintEvent event) {
+            	event.gc.setAlpha(100);
+            	if ( event.widget == motivationCanvas ) 
+            		event.gc.setBackground(MOTIVATION_COLOR);
             	else
-            		e.gc.setBackground(PASSIVE_COLOR);
-            	e.gc.fillRectangle(e.x, e.y, e.width, e.height);
+            		event.gc.setBackground(PASSIVE_COLOR);
+            	event.gc.fillRectangle(event.x, event.y, event.width, event.height);
             }
         };
 		
@@ -873,6 +851,7 @@ public class DBGuiImportComponent extends DBGui {
 		motivationCompo.setLayout(rd);
 	}
 	
+	/*
 	private void createCompoComposites() {
 		compoContainers = new Composite(grpFilter, SWT.NONE);
 		compoContainers.setBackground(GROUP_BACKGROUND_COLOR);
@@ -892,8 +871,9 @@ public class DBGuiImportComponent extends DBGui {
 		fd.left = new FormAttachment(0, 30);
 		sorryLabel.setLayoutData(fd);
 	}
+	*/
 	
-	
+	/*
 	private void createCompoFolders() {
 		compoFolders = new Composite(grpFilter, SWT.NONE);
 		compoFolders.setBackground(GROUP_BACKGROUND_COLOR);
@@ -976,7 +956,7 @@ public class DBGuiImportComponent extends DBGui {
 		otherFolders.setLayoutData(fd);
 		otherFolders.addListener(SWT.MouseUp, getFoldersListener);
 	}
-	
+	*/
 	
 	private void createCompoViews() {
 		compoViews = new Composite(grpFilter, SWT.NONE);
@@ -1038,45 +1018,83 @@ public class DBGuiImportComponent extends DBGui {
 		grpComponent.setLayoutData(fd);
 		grpComponent.setLayout(new FormLayout());
 		
-		filterExist = new Button(grpComponent, SWT.CHECK);
-		filterExist.setBackground(GROUP_BACKGROUND_COLOR);
-		filterExist.setText("Hide components already in model");
-		filterExist.setSelection(true);
+		SelectionListener redrawTblComponents = new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                try {
+	                    if ( database.isConnected() ) {
+	                        if ( compoElements.isVisible() )
+	                            getElements();
+	                        //else if ( compoContainers.isVisible() )
+	                        //  getContainers();
+	                        //else if ( compoFolders.isVisible() )
+	                        //    getFolders();
+	                        else if ( compoViews.isVisible() )
+	                            getViews();
+	                    }
+	                } catch (Exception err) {
+	                    DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+	                } 
+	            }
+
+                @Override
+                public void widgetDefaultSelected(SelectionEvent event) {
+                    widgetSelected(event);                    
+                }
+	        };
+	        
+        hideAlreadyInModel = new Button(grpComponent, SWT.CHECK);
+        hideAlreadyInModel.setBackground(GROUP_BACKGROUND_COLOR);
+        hideAlreadyInModel.setText("Hide components already in model");
+        hideAlreadyInModel.setSelection(true);
+        hideAlreadyInModel.addSelectionListener(redrawTblComponents);
+        
+        hideOption = new Button(grpComponent, SWT.CHECK);
+        hideOption.setBackground(GROUP_BACKGROUND_COLOR);
+        hideOption.setText("Hide components with empty names");
+        hideOption.setSelection(true);
+        hideOption.addSelectionListener(redrawTblComponents);
 
 		tblComponents = new Table(grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
 		tblComponents.setLinesVisible(true);
 		tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		tblComponents.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				btnDoAction.setEnabled(true);		// as soon a component is selected, the we can import it
+			public void handleEvent(Event event) {
+				btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
 			}
 		});
 		tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
-			public void handleEvent(Event e) {
+			public void handleEvent(Event event) {
 				if ( btnDoAction.getEnabled() )
 					btnDoAction.notifyListeners(SWT.Selection, new Event());
 			}
 		});
 		
+        fd = new FormData();
+        fd.bottom = new FormAttachment(100, -5);
+        fd.left = new FormAttachment(50, 5);
+        hideOption.setLayoutData(fd);
+		
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
-		fd.left = new FormAttachment(tblComponents, 0, SWT.CENTER);
-		filterExist.setLayoutData(fd);
+		fd.right = new FormAttachment(50, -5);
+		hideAlreadyInModel.setLayoutData(fd);
 		
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
 		fd.left = new FormAttachment(30);
 		fd.right = new FormAttachment(70);
-		fd.bottom = new FormAttachment(filterExist, -5);
+		fd.bottom = new FormAttachment(hideAlreadyInModel, -5);
 		tblComponents.setLayoutData(fd);
 	}
 	
 	private void getElements() throws Exception {
 		compoElements.setVisible(true);
-		compoContainers.setVisible(false);
-		compoFolders.setVisible(false);
+		//compoContainers.setVisible(false);
+		//compoFolders.setVisible(false);
 		compoViews.setVisible(false);
 		
+		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
 		tblComponents.removeAll();
 		
 		StringBuilder inList = new StringBuilder();
@@ -1088,20 +1106,26 @@ public class DBGuiImportComponent extends DBGui {
 			}
 		}
 		
+	    hideOption.setText("Hide components with empty names");
+	    String addOn = "";
+	    if ( hideOption.getSelection() )
+	        addOn = " AND name <> ''";
+		
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 			
 			if ( filterName.getText().length() == 0 )
-				result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+")", classList);
+				result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else {
 				if ( ignoreCase.getSelection() )
-					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?", classList, "%"+filterName.getText().toUpperCase()+"%");
+					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
 				else
-					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND name like ?", classList, "%"+filterName.getText()+"%");
+					result = database.select("SELECT id, class, name FROM elements WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 			}
 			
 			while (result.next()) {
-				createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
+			    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllElements().get(result.getString("id"))==null))
+			        createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
 			}
 			result.close();
 		}
@@ -1109,22 +1133,14 @@ public class DBGuiImportComponent extends DBGui {
 		btnDoAction.setEnabled(false);
 	}
 	
-	private void getComposites() throws Exception {
-		compoElements.setVisible(false);
-		compoContainers.setVisible(true);
-		compoFolders.setVisible(false);
-		compoViews.setVisible(false);
-		
-		tblComponents.removeAll();
-		btnDoAction.setEnabled(false);
-	}
-	
+	/*
 	private void getFolders() throws Exception {
 		compoElements.setVisible(false);
 		compoContainers.setVisible(false);
 		compoFolders.setVisible(true);
 		compoViews.setVisible(false);
 		
+		logger.if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
 		tblComponents.removeAll();
 		
 		StringBuilder inList = new StringBuilder();
@@ -1158,29 +1174,37 @@ public class DBGuiImportComponent extends DBGui {
 			typeList.add(String.valueOf(FolderType.OTHER_VALUE));
 		}
 		
+		hideOption.setText("Hide top level folders");
+		String addOn = "";
+		if ( hideOption.getSelection() )
+		    addOn = " AND type = 0";
+		
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 			
 			if ( filterName.getText().length() == 0 )
-				result = database.select("SELECT id, name FROM folders WHERE type IN ("+inList.toString()+")", typeList);
+				result = database.select("SELECT id, name FROM folders WHERE root_type IN ("+inList.toString()+")"+addOn, typeList);
 			else
-				result = database.select("SELECT id, name FROM folders WHERE type IN ("+inList.toString()+") AND name like ?", typeList, "%"+filterName.getText()+"%");
+				result = database.select("SELECT id, name FROM folders WHERE root_type IN ("+inList.toString()+") AND name like ?"+addOn, typeList, "%"+filterName.getText()+"%");
 			
 			while (result.next()) {
-				createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"));
+			    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllFolders().get(result.getString("id"))==null))
+			        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"));
 			}
 			result.close();
 		}
 		
 		btnDoAction.setEnabled(false);
 	}
+	*/
 	
 	private void getViews() throws Exception {
 		compoElements.setVisible(false);
-		compoContainers.setVisible(false);
-		compoFolders.setVisible(false);
+		//compoContainers.setVisible(false);
+		//compoFolders.setVisible(false);
 		compoViews.setVisible(true);
 		
+		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
 		tblComponents.removeAll();
 		
 		StringBuilder inList = new StringBuilder();
@@ -1198,16 +1222,22 @@ public class DBGuiImportComponent extends DBGui {
 			classList.add("SketchModel");
 		}
 		
+		hideOption.setText("Hide default views");
+		String addOn = "";
+		if ( hideOption.getSelection() )
+		    addOn = " AND name <> 'Default View'";
+		
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 			
 			if ( filterName.getText().length() == 0 )
-				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+")", classList);
+				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else
-				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+") AND name like ?", classList, "%"+filterName.getText()+"%");
+				result = database.select("SELECT id, class, name FROM views WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 			
 			while (result.next()) {
-				createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
+                if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllViews().get(result.getString("id"))==null))
+                    createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
 			}
 			result.close();
 		}
@@ -1218,6 +1248,7 @@ public class DBGuiImportComponent extends DBGui {
 	
 	
 	private void createTableItem(Table table, String id, String className, String text) {
+	    if ( logger.isTraceEnabled() ) logger.trace("adding "+text+"("+className+") to tblComponents");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText("   "+text);
@@ -1229,6 +1260,7 @@ public class DBGuiImportComponent extends DBGui {
 
 	
 	private void doImport() throws Exception {
+	    if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
 			logger.trace("Importing component "+tblComponents.getSelection()[0].getText());
 		else
@@ -1237,11 +1269,11 @@ public class DBGuiImportComponent extends DBGui {
 		String id = (String)tblComponents.getSelection()[0].getData("id");
 		
 		if ( compoElements.getVisible() )
-			database.importElementFromId(importedModel, id, !getOptionValue());			// TODO : allow to import several components at the same time
-		else if ( compoContainers.getVisible() )
-			database.importContainerFromId(importedModel, id, !getOptionValue());
-		else if ( compoFolders.getVisible() )
-			database.importFolderFromId(importedModel, id, !getOptionValue());
+			database.importElementFromId(importedModel, id, !getOptionValue(), true);
+		//else if ( compoContainers.getVisible() )
+		//	database.importContainerFromId(importedModel, id, !getOptionValue());
+		//else if ( compoFolders.getVisible() )
+		//	database.importFolder(importedModel, id, !getOptionValue());
 		else if ( compoViews.getVisible() )
 			database.importViewFromId(importedModel, id, !getOptionValue());
 		
@@ -1263,11 +1295,11 @@ public class DBGuiImportComponent extends DBGui {
 		
 		private PaintListener redraw = new PaintListener() {
             @Override
-            public void paintControl(PaintEvent e)
+            public void paintControl(PaintEvent event)
             {
                  if ( isSelected )
                 	 setBackground(GREY_COLOR);
-                	 //e.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
+                	 //event.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
                  else
                 	 setBackground(null);
             }
@@ -1290,33 +1322,32 @@ public class DBGuiImportComponent extends DBGui {
     		label.redraw();
     		try {
 				getElements();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception err) {
+			    DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
 			}
     	}
     };
     
+    /*
     private Listener getFoldersListener = new Listener() {
     	@Override
     	public void handleEvent(Event event) {
     		try {
 				getFolders();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception err) {
+				DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
 			}
     	}
     };
+    */
 	
     private Listener getViewsListener = new Listener() {
     	@Override
     	public void handleEvent(Event event) {
     		try {
 				getViews();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+			} catch (Exception err) {
+			    DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
 			}
     	}
     };

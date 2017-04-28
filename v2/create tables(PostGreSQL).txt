@@ -1,7 +1,20 @@
-CREATE TABLE archi_plugin (
-  database_id    varchar(50) NOT NULL, 
-  plugin_version varchar(10) NOT NULL, 
-  archi_version  varchar(10) NOT NULL);
+DROP TABLE IF EXISTS archi_plugin CASCADE;
+DROP TABLE IF EXISTS bendpoints CASCADE;
+DROP TABLE IF EXISTS database_version CASCADE;
+DROP TABLE IF EXISTS elements CASCADE;
+DROP TABLE IF EXISTS elements_in_model CASCADE;
+DROP TABLE IF EXISTS folders CASCADE;
+DROP TABLE IF EXISTS folders_in_model CASCADE;
+DROP TABLE IF EXISTS images CASCADE;
+DROP TABLE IF EXISTS models CASCADE;
+DROP TABLE IF EXISTS properties CASCADE;
+DROP TABLE IF EXISTS relationships CASCADE;
+DROP TABLE IF EXISTS relationships_in_model CASCADE;
+DROP TABLE IF EXISTS views CASCADE;
+DROP TABLE IF EXISTS views_connections CASCADE;
+DROP TABLE IF EXISTS views_in_model CASCADE;
+DROP TABLE IF EXISTS views_objects CASCADE;
+
 CREATE TABLE bendpoints (
   parent_id      varchar(50) NOT NULL, 
   parent_version int4 NOT NULL, 
@@ -13,6 +26,9 @@ CREATE TABLE bendpoints (
   PRIMARY KEY (parent_id, 
   parent_version, 
   rank));
+CREATE TABLE database_version (
+  archi_plugin varchar(50) NOT NULL, 
+  version      int4 NOT NULL);
 CREATE TABLE elements (
   id            varchar(50) NOT NULL, 
   version       int4 NOT NULL, 
@@ -42,6 +58,7 @@ CREATE TABLE folders (
   id            varchar(50) NOT NULL, 
   version       int4 NOT NULL, 
   type          int4 NOT NULL, 
+  root_type     int4 NOT NULL, 
   name          varchar(1024) NOT NULL, 
   documentation text NOT NULL, 
   created_by    varchar(30), 
@@ -70,7 +87,7 @@ CREATE TABLE models (
   note         text, 
   purpose      text, 
   created_by   varchar(30) NOT NULL, 
-  created_on   timestamp NOT NULL, 
+  created_on   timestamp(7) NOT NULL, 
   checkedin_by varchar(30), 
   checkedin_on timestamp, 
   deleted_by   varchar(30), 
@@ -202,3 +219,6 @@ CREATE TABLE views_objects (
   container_id));
 COMMENT ON TABLE views_objects IS 'views_objects parents can be either a view, a canvas or a sketch but any container as well.';
 COMMENT ON COLUMN views_objects.rank IS 'the import order is important to respect the superposition';
+
+
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);

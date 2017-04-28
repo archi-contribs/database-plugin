@@ -1,6 +1,13 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database.model;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
@@ -8,13 +15,14 @@ import java.util.Map.Entry;
 import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.swt.widgets.Display;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IFolder;
@@ -45,11 +53,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	private Map<String, IArchimateElement> allElements = null;
 	private Map<String, IArchimateRelationship> allRelationships = null;
 	private Map<String, IDiagramModel> allViews = null;
-	private Map<String, EObject> allViewsObjects = null;
-	private Map<String, IConnectable> allViewsConnections = null;
+	private Map<String, IDiagramModelComponent> allViewsObjects = null;
+	private Map<String, IDiagramModelConnection> allViewsConnections = null;
 	private Map<String, IFolder> allFolders = null;
-	private Map<IArchimateRelationship, Entry<String, String>> allRelations = null;
-	private Map<IDiagramModelConnection, Entry<String, String>> allConnections = null;
+	private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = null;
+	private Map<IDiagramModelConnection, Entry<String, String>> allConnectionsSourceAndTarget = null;
 	
 	/**
 	 * @return the current version of the model 
@@ -90,13 +98,24 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		allElements = new LinkedHashMap<String, IArchimateElement>();
 		allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
 		allViews = new LinkedHashMap<String, IDiagramModel>();
-		allViewsObjects = new LinkedHashMap<String, EObject>();
-		allViewsConnections = new LinkedHashMap<String, IConnectable>();
+		allViewsObjects = new LinkedHashMap<String, IDiagramModelComponent>();
+		allViewsConnections = new LinkedHashMap<String, IDiagramModelConnection>();
 		allFolders = new LinkedHashMap<String, IFolder>();
 		
-		allRelations = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
-		allConnections = new LinkedHashMap<IDiagramModelConnection, Entry<String, String>>();
+		allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
+		allConnectionsSourceAndTarget = new LinkedHashMap<IDiagramModelConnection, Entry<String, String>>();
 	}
+	
+	/**
+     * Resets the counters of Sources and Targets to be resolved in the model<br>
+     * Used when importing unitary relationship or connection
+     */
+    public void resetsourceAndTargetCounters() {
+        if ( logger.isTraceEnabled() ) logger.trace("Reseting source and target counters.");
+        
+        allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
+        allConnectionsSourceAndTarget = new LinkedHashMap<IDiagramModelConnection, Entry<String, String>>();
+    }
 	
 	/**
 	 * Counts the number of objects in the model.<br>
@@ -114,20 +133,22 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			//    - but graphical objects order is important to know which one is over (or under) which others
 		
 		for (IFolder folder: getFolders() ) {
-			countObject(folder, true);
+		    ((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
+			countObject(folder, true, null);
 		}
 	}
 	
 	/**
 	 * Adds a specific object in the corresponding counter<br>
 	 * At the same time, we calculate the current checksums
-	 * If if is a folder, we set its type that it is the same as its root parent
+	 * If it is a folder, we set its type that it is the same as its root parent
 	 * @return : the concatenation of the checksums of all the eObject components
 	 */
-	public String countObject(EObject eObject, boolean mustCalculateChecksum) throws Exception {
+	public String countObject(EObject eObject, boolean mustCalculateChecksum, IDiagramModel parentDiagram) throws Exception {
 		StringBuilder checksumBuilder = null;
 
 		if ( mustCalculateChecksum ) {
+			//TODO: find a way to avoid to calculate the checksu twice for connections (are they are counted twice : as sources and targets) 
 			checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
 		}
 		
@@ -136,7 +157,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			case "CanvasModel" :
 			case "SketchModel" :					allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
 													for ( EObject child: ((IDiagramModel)eObject).getChildren() ) {
-														String subChecksum = countObject(child, mustCalculateChecksum);
+														String subChecksum = countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
 													}
 												    break;
@@ -149,20 +170,21 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			case "DiagramModelNote" :
 			case "DiagramModelReference" :
 			case "CanvasModelSticky" :
-			case "SketchModelSticky" :				allViewsObjects.put(((IIdentifier)eObject).getId(), eObject);
+			case "SketchModelSticky" :				allViewsObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
+			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
 													if ( eObject instanceof IDiagramModelContainer ) {
 														for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
-															String subChecksum = countObject(child, mustCalculateChecksum);
+															String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
 															if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
 														}
 													}
 													if ( eObject instanceof IConnectable) {
 														for ( EObject source: ((IConnectable)eObject).getSourceConnections() ) {
-															String subChecksum = countObject(source, mustCalculateChecksum);
-															if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
+															String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
+															if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum); 
 														}
 														for ( EObject target: ((IConnectable)eObject).getTargetConnections() ) {
-															String subChecksum = countObject(target, mustCalculateChecksum);
+															String subChecksum = countObject(target, mustCalculateChecksum, parentDiagram);
 															if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
 														}
 													}
@@ -170,26 +192,18 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	
 			case "CanvasModelConnection" :
 			case "DiagramModelArchimateConnection":
-			case "DiagramModelConnection" :			allViewsConnections.put(((IIdentifier)eObject).getId(), (IConnectable)eObject);
+			case "DiagramModelConnection" :			allViewsConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
+			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
 													break;
 													
 			case "Folder" :							allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 													for ( IFolder child: ((IFolder)eObject).getFolders() ) {
-															//TODO : stop changing folder type
-															//TODO: add table column parent_type instead
-														if ( child.getType().getValue() == 0 ) {
-															Display.getDefault().asyncExec(new Runnable() {
-																@Override
-																public void run() {
-																	child.setType(((IFolder)eObject).getType());
-																}
-												    		});
-														}
-														String subChecksum = countObject(child, mustCalculateChecksum);
+														((IDBMetadata)child).getDBMetadata().setRootFolderType( ( ((IFolder)child).getType().getValue() != 0 ) ? ((IFolder)child).getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
+														String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
 													}
 													for ( EObject child: ((IFolder)eObject).getElements() ) {
-														String subChecksum = countObject(child, mustCalculateChecksum);
+														String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
 													}
 													break;
@@ -231,11 +245,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		return allViews;
 	}
 	
-	public Map<String, EObject> getAllViewsObjects() {
+	public Map<String, IDiagramModelComponent> getAllViewObjects() {
 		return allViewsObjects;
 	}
 	
-	public Map<String, IConnectable> getAllViewsConnections() {
+	public Map<String, IDiagramModelConnection> getAllViewConnections() {
 		return allViewsConnections;
 	}
 	
@@ -243,52 +257,61 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		return allFolders;
 	}
 	
+	public List<String> getAllImagePaths() {
+		return ((IArchiveManager)getAdapter(IArchiveManager.class)).getImagePaths();
+	}
+	
+	public byte[] getImage(String path) {
+		return ((IArchiveManager)getAdapter(IArchiveManager.class)).getBytesFromEntry(path);
+	}
+	
 	public void registerSourceAndTarget(IArchimateRelationship relationship, String sourceId, String targetId) throws Exception {
 		assert (sourceId != null && targetId != null);
 		
-		allRelations.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
+		allRelationsSourceAndTarget.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
 	}
 	
 	public void registerSourceAndTarget(IDiagramModelConnection connection, String sourceId, String targetId) throws Exception {
 		assert (sourceId != null && targetId != null);
 			
-		allConnections.put(connection, new SimpleEntry<String, String>(sourceId, targetId));
+		allConnectionsSourceAndTarget.put(connection, new SimpleEntry<String, String>(sourceId, targetId));
 	}
 	
 	public void resolveRelationshipsSourcesAndTargets() {
-		IArchimateConcept archimateConcept;
+	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for relationships");
 		for ( String id: getAllRelationships().keySet() ) {
 			IArchimateRelationship relationship = getAllRelationships().get(id);
-			Entry<String, String> rel = allRelations.get(relationship);
+			Entry<String, String> rel = allRelationsSourceAndTarget.get(relationship);
 
-			archimateConcept = getAllElements().get(rel.getKey());
-			if ( archimateConcept == null) archimateConcept = getAllRelationships().get(rel.getKey());
-			relationship.setSource(archimateConcept);
+			IArchimateConcept source = getAllElements().get(rel.getKey());
+			if ( source == null) source = getAllRelationships().get(rel.getKey());
 
-			archimateConcept = getAllElements().get(rel.getValue());
-			if ( archimateConcept == null) archimateConcept = getAllRelationships().get(rel.getValue());
-			relationship.setTarget(archimateConcept);
+			IArchimateConcept target = getAllElements().get(rel.getValue());
+			if ( target == null) target = getAllRelationships().get(rel.getValue());
+			
+			if ( logger.isTraceEnabled() ) logger.trace("   resolving relationship for "+relationship.getId()+"   (source="+source.getId()+"    target= "+target.getId()+")");
+	        relationship.setSource(source);
+			relationship.setTarget(target);
 		}
 	}
 	
 	public void resolveConnectionsSourcesAndTargets() {
-		for ( IDiagramModelConnection connection: allConnections.keySet() ) {
-			Entry<String, String> conn = allConnections.get(connection);
+	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
+		for ( IDiagramModelConnection connection: allConnectionsSourceAndTarget.keySet() ) {
+			Entry<String, String> conn = allConnectionsSourceAndTarget.get(connection);
 
-			IConnectable source = (IConnectable)getAllViewsObjects().get(conn.getKey());
-			if ( source == null ) source = (IConnectable)getAllViewsConnections().get(conn.getKey());
+			IConnectable source = (IConnectable)getAllViewObjects().get(conn.getKey());
+			if ( source == null ) source = (IConnectable)getAllViewConnections().get(conn.getKey());
 	
-			IConnectable target = (IConnectable)getAllViewsObjects().get(conn.getValue());
-			if ( target == null ) target = (IConnectable)getAllViewsConnections().get(conn.getValue());
+			IConnectable target = (IConnectable)getAllViewObjects().get(conn.getValue());
+			if ( target == null ) target = (IConnectable)getAllViewConnections().get(conn.getValue());
 
-			logger.trace("   resolving connection for "+connection.getId()+"   (source="+source.getId()+"    target= "+target.getId()+")");
+			if ( logger.isTraceEnabled() ) logger.trace("   resolving connection for "+connection.getId()+"   (source="+source.getId()+"    target= "+target.getId()+")");
 			connection.setSource(source);
 			source.getSourceConnections().add(connection);
 			
 			connection.setTarget(target);
 			target.getTargetConnections().add(connection);
-			
-			//TODO : in case of error, the exception is not well trapped because of the multi threading !!!
 		}
 	}
 }

@@ -95,4 +95,11 @@
             primary="true">
       </toc>
    </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="help_contexts.xml"
+            plugin="org.archicontribs.database.preferences">
+      </contexts>
+   </extension>
 </plugin>

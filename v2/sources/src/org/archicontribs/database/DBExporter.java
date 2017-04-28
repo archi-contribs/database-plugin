@@ -7,9 +7,9 @@
 package org.archicontribs.database;
 
 import java.io.IOException;
+
 import org.archicontribs.database.GUI.DBGuiExportModel;
 import org.archicontribs.database.model.ArchimateModel;
-
 import com.archimatetool.editor.model.IModelExporter;
 import com.archimatetool.model.IArchimateModel;
 
@@ -28,6 +28,8 @@ public class DBExporter implements IModelExporter {
 	public void export(IArchimateModel archimateModel) throws IOException {
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+archimateModel.getName());
 
-		new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+		DBGuiExportModel exportDialog = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+		exportDialog.run();
+		exportDialog = null;
 	}
 }
