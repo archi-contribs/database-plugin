@@ -93,12 +93,12 @@ public class DBDatabase {
 	private static final DBLogger logger = new DBLogger(DBDatabase.class);
 
 	public static final String preferenceName = "databases";
-	public static final String[] driverList = {/*"Neo4j",*/ "MsSQL", "MySQL", "Oracle", "PostGreSQL", "SQLite"};
-	public static final String[] defaultPorts = {/*"7687",*/ "1433", "3306", "1521", "5432", ""};
+	public static final String[] driverList = {"Neo4j", "MsSQL", "MySQL", "Oracle", "PostGreSQL", "SQLite"};
+	public static final String[] defaultPorts = {"7687", "1433", "3306", "1521", "5432", ""};
 
 	private static enum COMPARE {NEW, IDENTICAL, UPDATED};
 	
-	public static final int databaseVersion = 200;
+	public static final int databaseVersion = 201;
 
 	private String name;
 	private String driver;
@@ -109,6 +109,8 @@ public class DBDatabase {
 	private String username;
 	private String password;
 	private boolean exportWholeModel;
+	private boolean exportViewImages;
+	private boolean neo4jNativeMode;
 
 	/**
 	 * Connection to the database
@@ -121,32 +123,14 @@ public class DBDatabase {
 	private ResultSet currentResultSet = null;
 
 	public DBDatabase() {
-		this.name = "";
-		this.driver = "";
-		this.server = "";
-		this.port = "";
-		this.database = "";
-		//this.schema = "";
-		this.username = "";
-		this.password = "";
-		this.exportWholeModel = true;
-		this.connection = null;
+		this("", "", "", "", "", "", "", "", true, false, true);
 	}
 
 	public DBDatabase(String name) {
-		this.name = name;
-		this.driver = "";
-		this.server = "";
-		this.port = "";
-		this.database = "";
-		//this.schema = "";
-		this.username = "";
-		this.password = "";
-		this.exportWholeModel = true;
-		this.connection = null;
+		this(name, "", "", "", "", "", "", "", true, false, true);
 	}
 
-	public DBDatabase(String name, String driver, String server, String port, String database, String schema, String username, String password, boolean exportWholeModel, boolean importLatest) {
+	public DBDatabase(String name, String driver, String server, String port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode) {
 		this.name = name;
 		this.driver = driver;
 		this.server = server;
@@ -155,7 +139,14 @@ public class DBDatabase {
 		//this.schema = schema;
 		this.username = username;
 		this.password = password;
-		this.exportWholeModel = exportWholeModel;
+		if ( DBPlugin.areEqual(driver.toLowerCase(), "neo4j") ) {
+			this.exportWholeModel = false;
+			this.exportViewImages = false;
+		} else {
+			this.exportWholeModel = exportWholeModel;
+			this.exportViewImages = exportViewImages;
+		}
+		this.neo4jNativeMode = neo4jNativeMode;
 		this.connection = null;
 	}
 
@@ -169,6 +160,8 @@ public class DBDatabase {
 		this.username = entry.username;
 		this.password = entry.password;
 		this.exportWholeModel = entry.exportWholeModel;
+		this.exportViewImages = entry.exportViewImages;
+		this.neo4jNativeMode = entry.neo4jNativeMode;
 		this.connection = null;
 	}
 
@@ -253,7 +246,23 @@ public class DBDatabase {
 	public void setExportWholeModel(boolean exportWholeModel) {
 		this.exportWholeModel = exportWholeModel;
 	}
-
+	
+	public boolean getExportViewsImages()  {
+		return exportViewImages;
+	}
+	
+	public void setExportViewImages(boolean exportViewImages) {
+		this.exportViewImages = exportViewImages;
+	}
+	
+	public boolean getNeo4jNativeMode()  {
+		return neo4jNativeMode;
+	}
+	
+	public void setNeo4jNativeMode(boolean neo4jNativeMode) {
+		this.neo4jNativeMode = neo4jNativeMode;
+	}
+	
 	public String getLanguage() {
 		if ( DBPlugin.areEqual(driver, "neo4j") )
 			return "CQL";
@@ -261,7 +270,7 @@ public class DBDatabase {
 			return "SQL";
 	}
 
-	public static List<DBDatabase> getAllDatabasesFromPreferenceStore() {
+	public static List<DBDatabase> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
 		if ( logger.isDebugEnabled() ) logger.debug("Getting databases preferences from preference store");
 		List<DBDatabase> databaseEntries = new ArrayList<DBDatabase>();		
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
@@ -269,18 +278,22 @@ public class DBDatabase {
 
 		databaseEntries.clear();
 		for (int line = 0; line <lines; line++) {
-			DBDatabase database = new DBDatabase();
+			if ( includeNeo4j || !DBPlugin.areEqual(store.getString(preferenceName+"_driver_"+String.valueOf(line)).toLowerCase(), "neo4j") ) {
+				DBDatabase database = new DBDatabase();
 			
-			database.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
-			database.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
-			database.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
-			database.setPort(store.getString(preferenceName+"_port_"+String.valueOf(line)));
-			database.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
-			database.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
-			database.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
-			database.setExportWholeModel(store.getBoolean(preferenceName+"_export-whole-model_"+String.valueOf(line)));
-			
-			databaseEntries.add(database);
+				database.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
+				database.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
+				database.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
+				database.setPort(store.getString(preferenceName+"_port_"+String.valueOf(line)));
+				database.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
+				database.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
+				database.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
+				database.setExportWholeModel(store.getBoolean(preferenceName+"_export-whole-model_"+String.valueOf(line)));
+				database.setExportViewImages(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
+				database.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
+				
+				databaseEntries.add(database);
+			}
 		}
 		return databaseEntries;
 	}
@@ -302,11 +315,13 @@ public class DBDatabase {
 			store.setValue(preferenceName+"_username_"+String.valueOf(line), database.getUsername());
 			store.setValue(preferenceName+"_password_"+String.valueOf(line), database.getPassword());
 			store.setValue(preferenceName+"_export-whole-model_"+String.valueOf(line), database.getExportWholeModel());
+			store.setValue(preferenceName+"_export-views-images_"+String.valueOf(line), database.getExportViewsImages());
+			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), database.getNeo4jNativeMode());
 		}
 	}
 
 	public static DBDatabase getDBDatabase(String databaseName) {
-		List<DBDatabase> databaseEntries = getAllDatabasesFromPreferenceStore();
+		List<DBDatabase> databaseEntries = getAllDatabasesFromPreferenceStore(true);
 
 		for (DBDatabase databaseEntry : databaseEntries) {
 			if ( DBPlugin.areEqual(databaseEntry.getName(), databaseName) ) {
@@ -346,6 +361,8 @@ public class DBDatabase {
 		case "mssql"      :
 			clazz = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
 			connectionString = "jdbc:sqlserver://" + server + ":" + port + ";databaseName=" + database;
+			if ( DBPlugin.isEmpty(username) && DBPlugin.isEmpty(password) )
+				connectionString += ";integratedSecurity=true";
 			break;
 		case "mysql"      :
 			clazz = "com.mysql.jdbc.Driver";
@@ -370,14 +387,20 @@ public class DBDatabase {
 		Class.forName(clazz);
 		if ( logger.isDebugEnabled() ) logger.debug("JDBC connection string = "+connectionString);
 		try {
-			connection = DriverManager.getConnection(connectionString, username, password);
-		} catch (SQLException e) {
+			if ( DBPlugin.areEqual(driver.toLowerCase(), "mssql") && DBPlugin.isEmpty(username) && DBPlugin.isEmpty(password) ) {
+				if ( logger.isDebugEnabled() ) logger.debug("Connecting with Windows integrated security");
+				connection = DriverManager.getConnection(connectionString);
+			} else {
+				if ( logger.isDebugEnabled() ) logger.debug("Connecting with username = "+username);
+				connection = DriverManager.getConnection(connectionString, username, password);
+			}
+		} catch (Exception e) {
 			// if the JDBC driver fails to connect to the database using the specified driver, the it tries with all the other drivers
 			// and the exception is raised by the latest driver (log4j in our case)
 			// so we need to trap this exception and change the error message
 			// For JDBC people, this is not a bug but a functionality :( 
 			if ( DBPlugin.areEqual(e.getMessage(), "JDBC URL is not correct.\nA valid URL format is: 'jdbc:neo4j:http://<host>:<port>'") )
-				throw new SQLException("Cannot connect to the database.");
+				throw new SQLException("Please check the database configuration in the preferences.");
 			else
 				throw e;
 		}
@@ -409,91 +432,19 @@ public class DBDatabase {
 		boolean wasConnected = isConnected();
 		ResultSet result = null;
 		
-		DBGui.popup("Plesae wait while checking the database ...");
+		DBGui.popup("Please wait while checking the database ...");
 		
 	    try {
 	        if ( !wasConnected )
 	            openConnection();
 		
     		// if we're here, then we're connected to the database (else, an exception has been raised)
-    		if ( logger.isDebugEnabled() ) logger.debug("Checking database");
+    		if ( logger.isDebugEnabled() ) logger.debug("Checking database ("+driver+")");
     		
-    		// checking if the database_version table exists
-            if ( logger.isTraceEnabled() ) logger.trace("Checking \"database_version\" table");
-            
-    		try {
-    			result = select("SELECT version FROM database_version WHERE archi_plugin = ?", DBPlugin.pluginName);
-    			
-    			if ( result.next() ) {				
-    				if ( databaseVersion != result.getInt("version") ) {
-    				    throw new Exception("The database has not get the right model version (is "+result.getInt("version")+" but should be "+databaseVersion);
-    					// in the future, we'll be able to update the datamodel
-    				}
-    			} else {
-    			    result.close();
-    			    throw new SQLException(DBPlugin.pluginName+" not found in database_version table");
-    			}
-    			result.close();
-    			
-    			DBGui.closePopup();
-    			
-    		     if ( verbose )
-    		         DBGui.popup(Level.INFO, "Database successfully checked.");
-    		     else
-    		         logger.info("Database successfully checked.");
-    		     
-    		} catch (SQLException err) {
-    		    DBGui.closePopup();
-    			// if the table does not exist
-    			if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") ) {
-    				throw new Exception("Necessary tables not found.");
-    			}
-    			
-    			createTables();
-    		}
-	    } catch (Exception e) {
-	        throw e;
-	    } finally {
-			if ( !wasConnected ) {
-			    connection.close();
-			    connection = null;
-			}
-		
-			DBGui.closePopup();
-	    }
-	}
-	
-	/**
-	 * Creates the necessary tables in the database
-	 */
-	private void createTables() throws Exception {
-		DBGui.popup("Please wait while creating necessary database tables ...");
-		
-		boolean wasConnected = isConnected();
-		
-		if ( !wasConnected )
-			openConnection();
-		
-		setAutoCommit(false);
-		
-		String OBJECTID = "varchar(50)";
-		String OBJ_NAME =  "varchar(1024)";
-		String USERNAME = "varchar(30)";
-		String STRENGTH = "varchar(20)";
-		String COLOR = "varchar(7)";
-		String TYPE = "varchar(3)";
-		String TEXT = "text";
-		String FONT = "varchar(150)";
-		String INTEGER = "integer(10)";
-		String AUTO_INCREMENT = INTEGER+" NOT NULL AUTOINCREMENT";
-		String PRIMARY_KEY = "PRIMARY KEY";
-		String BOOLEAN = "tinyint(1)";
-		String DATETIME = "datetime";
-		String IMAGE = "blob";
-		
-		try {
-		    if ( logger.isTraceEnabled() ) logger.trace("database driver is "+driver);
 			switch ( driver.toLowerCase() ) {
+				case "neo4j" :
+					DBGui.closePopup();		// no tables to check on neo4j databases
+					return;
 				case "sqlite" :
 					AUTO_INCREMENT = "INTEGER PRIMARY KEY";
 					DATETIME = "timestamp";
@@ -522,17 +473,100 @@ public class DBDatabase {
 					AUTO_INCREMENT = "SERIAL NOT NULL" ;
 					break;
 			}
-			
-			try {
-				ResultSet result = select("SELECT count(*) FROM archi_plugin");
-				result.next();
-				result.close();
-				throw new Exception("You are using an old datamodel.\n\nThe future datamodel updates will be managed automatically but at this stage, you need to adapt the datamodel manually.");
-			} catch (SQLException ign) {
-				// do not do nothing
-				// as the fact that the table does not exist is what we are expecting
+    		
+    		// checking if the database_version table exists
+            if ( logger.isTraceEnabled() ) logger.trace("Checking \"database_version\" table");
+            
+    		try {
+    			result = select("SELECT version FROM database_version WHERE archi_plugin = ?", DBPlugin.pluginName);
+    		} catch (SQLException err) {
+    		    DBGui.closePopup();
+    			// if the table does not exist
+    			if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") ) {
+    				throw new Exception("Necessary tables not found.");
+    			}
+    			
+    			createTables();
+    			return;
+    		}
+    		
+			if ( result.next() ) {
+				switch ( result.getInt("version")) {
+					case databaseVersion : break;		// good, nothing to do
+					case 200 : 
+				}
+				if ( databaseVersion != result.getInt("version") ) {
+					boolean canConvert;
+					switch ( result.getInt("version")) {
+						case 200 : canConvert = true; break;
+						default : canConvert = false;
+					}
+					
+					if ( !canConvert )
+						throw new Exception("The database has got an unknown model version (is "+result.getInt("version")+" but should be "+databaseVersion+")");
+
+					if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
+						upgradeDatabase(result.getInt("version"));
+					} else
+						throw new Exception("The database needs to be upgraded.");
+				}
+			} else {
+			    result.close();
+			    throw new SQLException(DBPlugin.pluginName+" not found in database_version table");
+			    //TODO : call create tables and update createTables method to ignore error on database_version table (in case it already exists and is empty)
 			}
+			result.close();
 			
+			DBGui.closePopup();
+			
+		     if ( verbose )
+		         DBGui.popup(Level.INFO, "Database successfully checked.");
+		     else
+		         logger.info("Database successfully checked.");
+    		     
+
+	    } catch (Exception e) {
+	        throw e;
+	    } finally {
+			if ( !wasConnected && connection!=null) {
+			    connection.close();
+			    connection = null;
+			}
+		
+			DBGui.closePopup();
+	    }
+	}
+	
+	private String OBJECTID = "varchar(50)";
+	private String OBJ_NAME =  "varchar(1024)";
+	private String USERNAME = "varchar(30)";
+	private String STRENGTH = "varchar(20)";
+	private String COLOR = "varchar(7)";
+	private String TYPE = "varchar(3)";
+	private String TEXT = "text";
+	private String FONT = "varchar(150)";
+	private String INTEGER = "integer(10)";
+	private String AUTO_INCREMENT = INTEGER+" NOT NULL AUTOINCREMENT";
+	private String PRIMARY_KEY = "PRIMARY KEY";
+	private String BOOLEAN = "tinyint(1)";
+	private String DATETIME = "datetime";
+	private String IMAGE = "blob";
+
+	
+	/**
+	 * Creates the necessary tables in the database
+	 */
+	private void createTables() throws Exception {
+		DBGui.popup("Please wait while creating necessary database tables ...");
+		
+		boolean wasConnected = isConnected();
+		
+		if ( !wasConnected )
+			openConnection();
+		
+		setAutoCommit(false);
+		
+		try {
 			if ( logger.isDebugEnabled() ) logger.debug("creating table database_version");
 			request("CREATE TABLE database_version ("
 					+ "archi_plugin   "+ OBJECTID +" NOT NULL, "
@@ -729,6 +763,7 @@ public class DBDatabase {
 					+ "background             "+ INTEGER  +", "
 					+ "connection_router_type "+ INTEGER  +" NOT NULL, "
 					+ "viewpoint              "+ OBJECTID +", "
+					+ "screenshot             "+ IMAGE    +", "
 					+ "checksum               "+ OBJECTID +" NOT NULL, "
 					+ PRIMARY_KEY+" (id, version)"
 					+ ")");
@@ -837,6 +872,25 @@ public class DBDatabase {
 		}
 		
 	}
+	
+	
+	/**
+	 * Upgrades the database
+	 * @throws Exception 
+	 */
+	private void upgradeDatabase(int fromVersion) throws Exception {
+		// convert from 200 to 201
+		if ( fromVersion == 200 ) {
+			// we need to add a blob column into the views table
+			String COLUMN = DBPlugin.areEqual(driver.toLowerCase(), "sqlite") ? "COLUMN" : "";
+			
+			setAutoCommit(false);
+			request("ALTER TABLE views ADD "+COLUMN+" screenshot "+IMAGE);
+			request("UPDATE database_version SET version = 201 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+			commit();
+			setAutoCommit(true);
+		}
+	}
 
 	/**
 	 * Add the parameters to the PreparedStatement and return a string with the complete request
@@ -883,11 +937,11 @@ public class DBDatabase {
 				}
 			} else if ( parameters[parameterRank] instanceof byte[] ) {
 				try  {
-					if ( logger.isTraceEnabled() ) debugRequest.append("[image as stream]");
 					pstmt.setBinaryStream(++requestRank, new ByteArrayInputStream((byte[])parameters[parameterRank]), ((byte[])parameters[parameterRank]).length);
+					if ( logger.isTraceEnabled() ) debugRequest.append("[image as stream ("+((byte[])parameters[parameterRank]).length+" bytes)]");
 				} catch (Exception err) {
-					if ( logger.isTraceEnabled() ) debugRequest.append("[image as base64 string]");
 					pstmt.setString(++requestRank, Base64.getEncoder().encodeToString((byte[])parameters[parameterRank]));
+					if ( logger.isTraceEnabled() ) debugRequest.append("[image as base64 string ("+((byte[])parameters[parameterRank]).length+" bytes)]");
 				}
 
 			} else {
@@ -1262,31 +1316,38 @@ public class DBDatabase {
 		String databaseChecksum = null;
 		String databaseCreatedBy = null;
 		Timestamp databaseCreatedOn = null;
-
-		// tables containing an underscore in their name (views_objects and views_connections) do not have created_by and created_on columns
-		boolean hasCreatedByColumn = !tableName.contains("_");
-
-		// we check the checksum in the database
-		ResultSet result = select("SELECT version, checksum"+(hasCreatedByColumn ? ", created_by, created_on" : "")+" FROM "+tableName+" WHERE id = ? ORDER BY version DESC", ((IIdentifier)eObject).getId());
-
+		boolean hasCreatedByColumn = !DBPlugin.areEqual(driver.toLowerCase(), "neo4j") && !tableName.contains("_");		// tables containing an underscore in their name (views_objects and views_connections) do not have created_by and created_on columns
+		
+		ResultSet result;
+		
+		if ( DBPlugin.areEqual(driver.toLowerCase(), "neo4j") ) {
+			if ( neo4jNativeMode )
+				result = select("MATCH [t:"+tableName+" {id:?}] RETURN t.version, t.checksum ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
+			else
+				result = select("MATCH (t:"+tableName+" {id:?}) RETURN t.version, t.checksum ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
+		} else {
+			// we check the checksum in the database
+			result = select("SELECT t.version, t.checksum"+(hasCreatedByColumn ? ", t.created_by, t.created_on" : "")+" FROM "+tableName+" t WHERE t.id = ? ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
+		}
 		while ( result.next() ) {
 			// The first result gives the latest version 
 			if ( databaseVersion == 0 ) {
-				databaseVersion = result.getInt("version");
-				databaseChecksum = result.getString("checksum");
+				databaseVersion = result.getInt("t.version");
+				databaseChecksum = result.getString("t.checksum");
 				if ( hasCreatedByColumn ) {
-					databaseCreatedBy = result.getString("created_by");
-					databaseCreatedOn = result.getTimestamp("created_on");
+					databaseCreatedBy = result.getString("t.created_by");
+					databaseCreatedOn = result.getTimestamp("t.created_on");
 				}
 			}
 			// We check every version in the database to retrieve the version of the current object
 			// DO NOT SET IT BECAUSE IT VOIDS THE CONFLICT DETECTION
-			if ( DBPlugin.areEqual(((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum(), result.getString("checksum")) ) {
-				currentVersion = result.getInt("version");
+			if ( DBPlugin.areEqual(((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum(), result.getString("t.checksum")) ) {
+				currentVersion = result.getInt("t.version");
 				break;
 			}
+
+			result.close();
 		}
-		result.close();
 		
 		if ( currentVersion == 0 )
 		    currentVersion = databaseVersion;
@@ -1392,17 +1453,30 @@ public class DBDatabase {
 	 * Export an element to the database
 	 */
 	private void exportElement(IArchimateConcept element) throws Exception {
-		insert("INSERT INTO elements (id, version, class, name, type, documentation, created_by, created_on, checksum)"
-				,element.getId()
-				,((IDBMetadata)element).getDBMetadata().getExportedVersion()
-				,element.getClass().getSimpleName()
-				,element.getName()
-				,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
-				,element.getDocumentation()
-				,System.getProperty("user.name")
-				,getLastTransactionTimestamp()
-				,((IDBMetadata)element).getDBMetadata().getCurrentChecksum()
-				);
+		if ( DBPlugin.areEqual(driver.toLowerCase(), "neo4j") ) {
+			// USE MERGE instead to replace existing nodes
+			request("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
+					,element.getId()
+					,((IDBMetadata)element).getDBMetadata().getExportedVersion()
+					,element.getClass().getSimpleName()
+					,element.getName()
+					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
+					,element.getDocumentation()
+					,((IDBMetadata)element).getDBMetadata().getCurrentChecksum()
+					);
+		} else {
+			insert("INSERT INTO elements (id, version, class, name, type, documentation, created_by, created_on, checksum)"
+					,element.getId()
+					,((IDBMetadata)element).getDBMetadata().getExportedVersion()
+					,element.getClass().getSimpleName()
+					,element.getName()
+					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
+					,element.getDocumentation()
+					,System.getProperty("user.name")
+					,getLastTransactionTimestamp()
+					,((IDBMetadata)element).getDBMetadata().getCurrentChecksum()
+					);
+		}
 
 		exportProperties(element);
 		
@@ -1442,20 +1516,57 @@ public class DBDatabase {
 	 * Export a relationship to the database
 	 */
 	private void exportRelationship(IArchimateConcept relationship) throws Exception {
-		insert("INSERT INTO relationships (id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum)"
+		if ( DBPlugin.areEqual(driver.toLowerCase(), "neo4j") ) {
+			// USE MERGE instead to replace existing nodes
+			if ( neo4jNativeMode ) {
+				if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
+					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE [relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}], (source)-[relationship]->(target)"
+						,((IArchimateRelationship)relationship).getSource().getId()
+						,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getExportedVersion()
+						,((IArchimateRelationship)relationship).getTarget().getId()
+						,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getExportedVersion()
+						,relationship.getId()
+						,((IDBMetadata)relationship).getDBMetadata().getExportedVersion()
+						,relationship.getClass().getSimpleName()
+						,relationship.getName()
+						,relationship.getDocumentation()
+						,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
+						,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
+						,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
+						);
+				}
+			} else {
+				request("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
+						,((IArchimateRelationship)relationship).getSource().getId()
+						,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getExportedVersion()
+						,((IArchimateRelationship)relationship).getTarget().getId()
+						,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getExportedVersion()
+						,relationship.getId()
+						,((IDBMetadata)relationship).getDBMetadata().getExportedVersion()
+						,relationship.getClass().getSimpleName()
+						,relationship.getName()
+						,relationship.getDocumentation()
+						,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
+						,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
+						,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
+						);
+			}
+		} else {
+			insert("INSERT INTO relationships (id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum)"
 				,relationship.getId()
 				,((IDBMetadata)relationship).getDBMetadata().getExportedVersion()
 				,relationship.getClass().getSimpleName()
 				,relationship.getName()
 				,relationship.getDocumentation()
-				,((relationship instanceof IArchimateRelationship) ? ((IArchimateRelationship)relationship).getSource().getId() : null)
-				,((relationship instanceof IArchimateRelationship) ? ((IArchimateRelationship)relationship).getTarget().getId() : null)
+				,((IArchimateRelationship)relationship).getSource().getId()
+				,((IArchimateRelationship)relationship).getTarget().getId()
 				,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 				,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
 				,System.getProperty("user.name")
 				,getLastTransactionTimestamp()
 				,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
 				);
+		}
 
 		exportProperties(relationship);
 		
@@ -1547,7 +1658,13 @@ public class DBDatabase {
 	 * Export a view into the database.
 	 */
 	private void exportView(IDiagramModel view) throws Exception {
-		insert("INSERT INTO views (id, version, class, created_by, created_on, name, connection_router_type, documentation, hint_content, hint_title, viewpoint, background, checksum)"
+		byte[] viewImage = null;
+		
+		if ( exportViewImages ) {
+			viewImage = DBGui.createImage(view, 1, 10);
+		}
+		
+		insert("INSERT INTO views (id, version, class, created_by, created_on, name, connection_router_type, documentation, hint_content, hint_title, viewpoint, background, screenshot, checksum)"
 				,view.getId()
 				,((IDBMetadata)view).getDBMetadata().getExportedVersion()
 				,view.getClass().getSimpleName()
@@ -1560,8 +1677,13 @@ public class DBDatabase {
 				,(view instanceof IHintProvider) ? ((IHintProvider)view).getHintTitle() : null
 				,(view instanceof IArchimateDiagramModel) ? ((IArchimateDiagramModel)view).getViewpoint() : null
 				,(view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null
+				,viewImage
 				,((IDBMetadata)view).getDBMetadata().getCurrentChecksum()
 				);
+		
+		if ( exportViewImages ) {
+			DBGui.disposeImage();
+		}
 		
 		exportProperties(view);
 		
@@ -1740,7 +1862,17 @@ public class DBDatabase {
 		
 		for ( int propRank = 0 ; propRank < parent.getProperties().size(); ++propRank) {
 			IProperty prop = parent.getProperties().get(propRank);
-			insert("INSERT INTO properties (parent_id, parent_version, rank, name, value)"
+			if ( DBPlugin.areEqual(driver.toLowerCase(), "neo4j") ) {
+				request("MATCH (parent {id:?, version:?}) CREATE (prop:property {rank:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
+						,((IIdentifier)parent).getId()
+						,exportedVersion
+						,propRank
+						,prop.getKey()
+						,prop.getValue()
+						);
+			}
+			else
+				insert("INSERT INTO properties (parent_id, parent_version, rank, name, value)"
 					,((IIdentifier)parent).getId()
 					,exportedVersion
 					,propRank
@@ -2830,7 +2962,7 @@ public class DBDatabase {
 		//TODO : add try catch block !!!
 		
 			// We import the element
-		ResultSet result = select("SELECT max(version) as version, class, name, documentation, type FROM elements WHERE id = ?", elementId);
+		ResultSet result = select("SELECT max(version) as version, class, name, documentation, type, created_on FROM elements WHERE id = ?", elementId);
 		if ( !result.next() ) {
             result.close();
             throw new Exception("Element with id="+elementId+" has not been found in the database.");

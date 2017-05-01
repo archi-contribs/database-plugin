@@ -51,6 +51,8 @@ public class DBGuiComponentHistory extends DBGui {
 		super("Component history");
 		selectedComponent = component;
 		
+		includeNeo4j = false;
+		
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName());		
 		
 		setCompoRight();

@@ -63,6 +63,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnCheckForUpdateAtStartupButton;
 	private Button btnExportWithDefaultValues;
 	private Button btnCloseIfSuccessful;
+	private Button btnDeleteIfImportError;
 	private Button btnImportShared;
 	
 	private DBLogger logger = new DBLogger(DBPreferencePage.class);
@@ -190,11 +191,20 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		btnCloseIfSuccessful.setLayoutData(fd);
 		
-		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
-		lblDefaultImportType.setText("Default componenent import type :");
-		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
+		btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnDeleteIfImportError.setText("Delete model in case of import error");
+		btnDeleteIfImportError.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError"));
 		fd = new FormData();
 		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnDeleteIfImportError.setLayoutData(fd);
+		
+		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
+		lblDefaultImportType.setText("Default component import type :");
+		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(btnDeleteIfImportError, 5);
 		fd.left = new FormAttachment(0, 10);
 		lblDefaultImportType.setLayoutData(fd);
 		
@@ -381,13 +391,10 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
     	
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
-    	
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
-    	
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
-    	
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("importShared", btnImportShared.getSelection());
-    	
     	table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it

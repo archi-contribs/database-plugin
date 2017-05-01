@@ -7,6 +7,9 @@
 package org.archicontribs.database.GUI;
 
 import java.awt.Toolkit;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -27,6 +30,8 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -53,6 +58,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import com.archimatetool.canvas.model.ICanvasModel;
+import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
@@ -74,6 +80,8 @@ public class DBGui {
 	
 	protected static Display display = Display.getDefault();
 	protected Shell dialog;
+	
+	protected boolean includeNeo4j = true;
 	
 	private String HELP_HREF = null;
 	private boolean mouseOverHelpButton = false;
@@ -459,19 +467,15 @@ public class DBGui {
 	 * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
 	 */
 	protected void getDatabases() {
-		databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore();
+		databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore(includeNeo4j);
 		if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
 		} else {
-			for (DBDatabase databaseEntry: databaseEntries) {
-				display.asyncExec (new Runnable () {
-					public void run () {
+			display.syncExec (new Runnable () {
+				public void run () {
+					for (DBDatabase databaseEntry: databaseEntries) {
 						comboDatabases.add(databaseEntry.getName());
 					}
-				});
-			}
-			display.asyncExec (new Runnable () {
-				public void run () {
 					comboDatabases.select(0);
 					comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
 				}
@@ -492,7 +496,7 @@ public class DBGui {
 			
 			comboDatabases.removeAll();
 			
-			databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore();
+			databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore(includeNeo4j);
 			if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
 				comboDatabases.select(0);
 				popup(Level.ERROR, "You won't be able to export until a database is configured in the preferences.");
@@ -628,6 +632,19 @@ public class DBGui {
 		compoBottom.layout();
 		
 		showOption();
+		disableOption();
+	}
+	
+	protected void enableOption() {
+		lblOption.setEnabled(true);
+		radioOption1.setEnabled(true);
+		radioOption2.setEnabled(true);
+	}
+	
+	protected void disableOption() {
+		lblOption.setEnabled(false);
+		radioOption1.setEnabled(false);
+		radioOption2.setEnabled(false);
 	}
 	
 	protected void hideOption() {
@@ -636,17 +653,10 @@ public class DBGui {
 		radioOption1.setVisible(false);
 	}
 	
-	protected void disableOption() {
-		radioOption1.setEnabled(false);
-		radioOption2.setEnabled(false);
-	}
-	
 	protected void showOption() {
 		lblOption.setVisible(true);
 		radioOption1.setVisible(true);
-		radioOption1.setEnabled(true);
 		radioOption2.setVisible(true);
-		radioOption2.setEnabled(true);
 	}
 	
 	/**
@@ -914,7 +924,7 @@ public class DBGui {
 				}
 				try { database.close(); } catch (Exception ignore) {ignore.printStackTrace();}
 				database = null;
-				dialog.close();
+				dialog.dispose();
 				dialog = null;
 			}
 		});
@@ -1075,12 +1085,18 @@ public class DBGui {
     }
     
     protected void setMessage(String message, Color foreground) {
-        Label label = new Label(compoRightTop, SWT.VERTICAL | SWT.CENTER);
+    	Label label = new Label(compoRightTop, SWT.VERTICAL | SWT.CENTER);
         label.setFont(GROUP_TITLE_FONT);
         label.setBackground(foreground);
         message = message.replace("\n\n", "\n");
+        
+        if ( foreground == GREEN_COLOR )
+        	logger.info(message);
+        else
+        	logger.error(message);
+        
         if ( message.split("\n").length == 1 )
-            message = "\n" + message;               // we try to vertically center it, more orless ...
+            message = "\n" + message;               // we try to vertically center it, more or less ...
         label.setText(message);
 
         FormData fd = new FormData();
@@ -1091,5 +1107,34 @@ public class DBGui {
         label.setLayoutData(fd);
         
         compoRightTop.layout();
+    }
+    
+    
+    private static byte[] viewImage = null;
+    public static byte[] createImage(IDiagramModel view, double scale, int margin) {
+    	if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Creating image from view");
+    	display.syncExec (new Runnable () {
+			public void run () {
+				ByteArrayOutputStream out = new ByteArrayOutputStream();
+				DataOutputStream writeOut = new DataOutputStream(out);
+				ImageLoader saver = new ImageLoader();
+				Image image = DiagramUtils.createImage(view, scale, margin);
+				saver.data = new ImageData[] { image.getImageData() };
+				saver.save(writeOut, SWT.IMAGE_PNG);
+				image.dispose();
+				try {
+					writeOut.close();
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				viewImage = out.toByteArray();
+			}
+		});
+    	return viewImage;
+    }
+    
+    public static void disposeImage() {
+    	viewImage = null;
     }
 }

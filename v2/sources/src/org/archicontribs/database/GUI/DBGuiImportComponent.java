@@ -146,6 +146,8 @@ public class DBGuiImportComponent extends DBGui {
 	public DBGuiImportComponent(ArchimateModel model, String title) {
 		super(title);
 		
+		includeNeo4j = false;
+		
 			// We count the imported model's components in a separate thread
 		Job job = new Job("countEObjects") {
 			@Override
@@ -1262,9 +1264,9 @@ public class DBGuiImportComponent extends DBGui {
 	private void doImport() throws Exception {
 	    if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
-			logger.trace("Importing component "+tblComponents.getSelection()[0].getText());
+			logger.info("Importing component "+tblComponents.getSelection()[0].getText());
 		else
-			logger.trace("Importing a copy of component "+tblComponents.getSelection()[0].getText());
+			logger.info("Importing a copy of component "+tblComponents.getSelection()[0].getText());
 		
 		String id = (String)tblComponents.getSelection()[0].getData("id");
 		

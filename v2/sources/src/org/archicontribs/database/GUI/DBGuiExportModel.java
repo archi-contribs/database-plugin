@@ -79,6 +79,8 @@ public class DBGuiExportModel extends DBGui {
 	public DBGuiExportModel(ArchimateModel model, String title) {
 		// We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
 		super(title);
+		
+		includeNeo4j = true;
 
 		// We count the exported model's components and calculate their checksum in a separate thread
 		Job job = new Job("countEObjects") {
@@ -135,7 +137,7 @@ public class DBGuiExportModel extends DBGui {
 		setActiveAction(ACTION.One);
 
 		// we show the option in the bottom
-		setOption("Export type :", "Whole model", "The whole model will be exported, including the views and graphical components.", "Elements and relationships only", "Only the elements and relationships will be exported. This may be useful in case of a graph database for instance.", true);
+		setOption("Export type :", "Whole model", "The whole model will be exported, including the views and graphical components.", "Elements and relationships only", "Only the elements and relationships will be exported.", true);
 
 		// We activate the btnDoAction button : if the user select the "Export" button --> call the exportComponents() method
 		setBtnAction("Export", new SelectionListener() {
@@ -666,9 +668,13 @@ public class DBGuiExportModel extends DBGui {
 		txtUpdatedImages.setText("");
 		txtNewImages.setText("");
 
-		if ( forceCheckDatabase ) {
+		if ( forceCheckDatabase )
 		    setOption(database.getExportWholeModel());
-		}
+		
+		if ( DBPlugin.areEqual(database.getDriver().toLowerCase(), "neo4j") )
+			disableOption();
+		else
+			enableOption();
 
 		if ( getOptionValue() ) {
 			forceCheckDatabase = forceCheckDatabase || (database.countNewViews()+database.countUpdatedViews()+database.countSyncedViews() != exportedModel.getAllViews().size());
@@ -687,7 +693,8 @@ public class DBGuiExportModel extends DBGui {
 					tblModelVersions.setData("purpose", txtPurpose.getText());
 				}
 
-				database.getModelVersions(exportedModel.getId(), tblModelVersions);
+				if ( !DBPlugin.areEqual(database.getDriver().toLowerCase(), "neo4j") )
+					database.getModelVersions(exportedModel.getId(), tblModelVersions);
 				database.checkComponentsToExport(exportedModel, getOptionValue());
 
 				closePopup();
@@ -862,10 +869,10 @@ public class DBGuiExportModel extends DBGui {
 	protected void export() {
 		int progressBarWidth;
 		if ( getOptionValue() ) {
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllRelationships().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
+			logger.info("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllRelationships().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
 			progressBarWidth = exportedModel.getAllFolders().size()+exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewObjects().size()+exportedModel.getAllViewConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting components only : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships.");
+			logger.info("Exporting components : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships.");
 			progressBarWidth = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size();
 		}
 
@@ -1020,6 +1027,7 @@ public class DBGuiExportModel extends DBGui {
 								}
 							}
 							result.close();
+							result = null;
 						}
 					}
 
@@ -1028,7 +1036,7 @@ public class DBGuiExportModel extends DBGui {
 					statusColor = RED_COLOR;
 					try  {
 						database.rollback();
-						statusMessage = "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state.\n\nYou may solve the issue and export again your components.";
+						statusMessage = "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.";
 						popup(Level.FATAL, statusMessage, err);
 					} catch (SQLException e) {
 						statusMessage = "An error occured while exporting the components.\n\nThe transaction rollbacking failed and the database is left in an inconsistent state.\n\nPlease check carrefully your database !";
@@ -1418,15 +1426,18 @@ public class DBGuiExportModel extends DBGui {
 			txtSyncedImages.setForeground( DBPlugin.areEqual(txtSyncedImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		}
 		
-		if ( (statusColor == GREEN_COLOR) && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
-			if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-			close();
-			return;
+		if ( statusColor != GREEN_COLOR ) {
+			if ( statusMessage == successfullStatusMessage )
+				statusMessage = "No error has been detected but the number of components exported is not correct.\n\nPlease check thoroughly your database !";
+		} else {
+			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+				setMessage("Export successful", statusColor);
+				if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+				close();
+				return;
+			}
 		}
 		
-		if ( (statusMessage == successfullStatusMessage) && (statusColor != GREEN_COLOR) )
-			statusMessage = "No error has been detected but the number of components exported is not correct.\n\nPlease check thoroughly your database !";
-
 		setMessage(statusMessage, statusColor);
 	}
 

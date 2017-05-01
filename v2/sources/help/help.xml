@@ -3,12 +3,16 @@
 
 <toc label="Database plugin" topic="help/html/index.html">
 	<topic label="Plugin objectives" href="help/html/pluginObjectives.html"/>
-	<topic label="Model import" href="help/html/importModel.html"/>
- <topic href="help/html/importComponent.html" label="Single component import">
- </topic> 
-	<topic href="help/html/exportModel.html" label="Model export">
+ <topic href="help/html/configurePlugin.html" label="Configuring the plugin">
  </topic>
- <topic href="help/html/preferencePage.html" label="Preference page">
+ <topic href="help/html/databaseStructure.html" label="Database structure">
+ </topic> 
+	<topic href="help/html/exportModel.html" label="Exporting a model">
+ </topic>
+	<topic label="Importing a model" href="help/html/importModel.html"/>
+ <topic href="help/html/importComponent.html" label="Importing a single component">
+ </topic>
+ <topic href="help/html/componentsHistory.html" label="Getting a component&apos;s history">
  </topic>
  <topic href="help/html/releaseNotes.html" label="Release notes">
  </topic> 

@@ -144,6 +144,7 @@ CREATE TABLE views (
   background             int4, 
   connection_router_type int4 NOT NULL, 
   viewpoint              varchar(30), 
+  screenshot             bytea, 
   checksum               varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version));
@@ -170,7 +171,6 @@ CREATE TABLE views_connections (
   PRIMARY KEY (id, 
   version, 
   container_id));
-COMMENT ON TABLE views_connections IS 'views_connections parents can be either a view, a canvas or a sketch but any container as well.';
 CREATE TABLE views_in_model (
   vin_id           SERIAL NOT NULL, 
   view_id          varchar(50) NOT NULL, 
@@ -217,8 +217,5 @@ CREATE TABLE views_objects (
   PRIMARY KEY (id, 
   version, 
   container_id));
-COMMENT ON TABLE views_objects IS 'views_objects parents can be either a view, a canvas or a sketch but any container as well.';
-COMMENT ON COLUMN views_objects.rank IS 'the import order is important to respect the superposition';
 
-
-INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 201);

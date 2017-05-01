@@ -144,6 +144,7 @@ CREATE TABLE views (
   background             int NULL, 
   connection_router_type int NOT NULL, 
   viewpoint              varchar(30) NULL, 
+  screenshot             image, 
   checksum               varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version));
@@ -230,4 +231,4 @@ EXEC sp_addextendedproperty
   @LEVEL1TYPE = N'Table', @LEVEL1NAME = N'views_objects', 
   @LEVEL2TYPE = N'Column', @LEVEL2NAME = N'rank';
 
-INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 201);

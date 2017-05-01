@@ -91,7 +91,7 @@ public class DBGuiImportModel extends DBGui {
      */
     public DBGuiImportModel(String title) {
         super(title);
-
+        
         if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
 
         createAction(ACTION.One, "1 - Choose model");
@@ -138,6 +138,7 @@ public class DBGuiImportModel extends DBGui {
         createGrpComponents();
 
         // We connect to the database and call the databaseSelected() method
+        includeNeo4j = false;
         getDatabases();
     }
 
@@ -553,6 +554,8 @@ public class DBGuiImportModel extends DBGui {
     protected void doImport() {
         String modelName = tblModels.getSelection()[0].getText();
         String modelId = (String)tblModels.getSelection()[0].getData("id");
+        
+        logger.info("Importing model \""+modelName+"\"");
 
         hideGrpDatabase();
         createProgressBar("Importing model \""+modelName+"\"", 0, 100);
@@ -828,6 +831,7 @@ public class DBGuiImportModel extends DBGui {
         txtImportedImages.setForeground( (database.countImagesImported() == database.countImagesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
         if ( statusColor == GREEN_COLOR ) {
+        	setMessage("Import successful", statusColor);
             // We open the Model in the Editor
             IEditorModelManager.INSTANCE.openModel(modelToImport);
 
@@ -847,8 +851,6 @@ public class DBGuiImportModel extends DBGui {
                 close();
                 return;
             }
-            
-            setMessage("Import successful", statusColor);
         } else {
             if ( jobException == null )
                 setMessage("No error has been detected but the number of components exported is not correct.\n\nPlease check thoroughly your database !", statusColor);
@@ -859,15 +861,16 @@ public class DBGuiImportModel extends DBGui {
                     setMessage("Error while importing model.", RED_COLOR);
             }
 
-            // TODO : add preference keep incomplete model (or ask question)
-            try {
-                // we remove the 'dirty' flag (i.e. we consider the model as saved) because we do not want the closeModel() method ask to save it
-                CommandStack stack = (CommandStack)modelToImport.getAdapter(CommandStack.class);
-                stack.markSaveLocation();
-    
-                IEditorModelManager.INSTANCE.closeModel(modelToImport);
-            } catch (IOException e) {
-                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
+            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError") ) {
+	            try {
+	                // we remove the 'dirty' flag (i.e. we consider the model as saved) because we do not want the closeModel() method ask to save it
+	                CommandStack stack = (CommandStack)modelToImport.getAdapter(CommandStack.class);
+	                stack.markSaveLocation();
+	    
+	                IEditorModelManager.INSTANCE.closeModel(modelToImport);
+	            } catch (IOException e) {
+	                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
+	            }
             }
         }
     }

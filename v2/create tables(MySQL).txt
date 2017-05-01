@@ -146,6 +146,7 @@ CREATE TABLE views (
   background             int(10), 
   connection_router_type int(10) NOT NULL, 
   viewpoint              varchar(30), 
+  screenshot             longblob, 
   checksum               varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version));
@@ -171,7 +172,7 @@ CREATE TABLE views_connections (
   checksum         varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version, 
-  container_id)) comment='views_connections parents can be either a view, a canvas or a sketch but any container as well.';
+  container_id));
 CREATE TABLE views_in_model (
   vin_id           int(10) NOT NULL AUTO_INCREMENT, 
   view_id          varchar(50) NOT NULL, 
@@ -213,10 +214,10 @@ CREATE TABLE views_objects (
   y              int(10), 
   width          int(10), 
   height         int(10), 
-  rank           int(10) NOT NULL comment 'the import order is important to respect the superposition', 
+  rank           int(10) NOT NULL, 
   checksum       varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version, 
-  container_id)) comment='views_objects parents can be either a view, a canvas or a sketch but any container as well.';
+  container_id));
 
-INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 201);

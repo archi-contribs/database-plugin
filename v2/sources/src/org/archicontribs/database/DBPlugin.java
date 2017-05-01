@@ -89,7 +89,7 @@ import org.json.simple.parser.JSONParser;
  * 									Detect folders and views changes using checksum
  * 									Solve bug where save button does not show up in preferences page
  * 
- * v2.0.0 :         30/04/2017		Export Model :
+ * v2.0.0 :         28/04/2017		Export Model :
  *                                     Solve bug where properties were not exported correctly
  *                                     Solve bug where connections could be exported twice
  *                                     Rewrite the conflict detection when exporting to make it more accurate
@@ -116,6 +116,12 @@ import org.json.simple.parser.JSONParser;
  *                                     Stop replacing the folders type
  *                                     Replaced database table "archi_plugin" by new table "database_version"
  *                                     Opens the model in the tree after import
+ *                                     
+ * v2.0.1 : 01/05/2017              Add the ability to export images of views in the database
+ * 									Add a preference to keep the imported model even in case of error
+ * 									Reduce memory leak
+ * 									Added back Neo4J support (elements and relationships export only)
+ * 									Solve NullPointerException while checking database
  *                                  
  *                                  // TODO : continue to check for exceptions where required
  *                                  // TODO : allow to import elements recursively
@@ -145,7 +151,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.0";
+	public static final String pluginVersion = "2.0.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
@@ -177,6 +183,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("exportWithDefaultValues", false);
 		preferenceStore.setDefault("checkForUpdateAtStartup", false);
 		preferenceStore.setDefault("closeIfSuccessful",       false);
+		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
@@ -250,7 +257,7 @@ public class DBPlugin extends AbstractUIPlugin {
 
 	/**
 	 * Check if two strings are equals<br>
-	 * Replaces String.equals() to avoid nullPointerException
+	 * Replaces string.equals() to avoid nullPointerException
 	 */
 	public static boolean areEqual(String str1, String str2) {
 		if ( str1 == null )
@@ -260,6 +267,14 @@ public class DBPlugin extends AbstractUIPlugin {
 			return false;			// as str1 cannot be null at this stage
 
 		return str1.equals(str2);
+	}
+	
+	/**
+	 * Check if a string  is null or empty<b>
+	 * Replaces string.isEmpty() to avoid nullPointerException
+	 */
+	public static boolean isEmpty(String str) {
+		return (str==null) || str.isEmpty();
 	}
 
 	/**

@@ -141,6 +141,7 @@ CREATE TABLE views (
   background             integer(10), 
   connection_router_type integer(10) NOT NULL, 
   viewpoint              varchar(30), 
+  screenshot             blob, 
   checksum               varchar(50) NOT NULL, 
   PRIMARY KEY (id, 
   version));
@@ -213,4 +214,4 @@ CREATE TABLE views_objects (
   version, 
   container_id));
 
-INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 200);
+INSERT INTO database_version (archi_plugin, version) VALUES('DatabasePlugin', 201);
