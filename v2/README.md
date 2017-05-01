@@ -2,19 +2,21 @@
 Database export/import plugin that store models in a central repository.
 
 ## Archi versions compatibility
-* The v2 of the plugin as compatible with Archi 4 only.
+* The v2 of the plugin is compatible with Archi 4 only.
 
 ## The current version is able to :
 * Export and import models to a relational database (PostGreSQL, MySQL, Oracle and SQLite drivers are included)
+* Export elements and relationships to a graph database (Neo4J driver is included)
 * Version the models (keep an history on the model versions and allow to retrieve a former version)
 * Version models components (keep an history on the components versions and allow to retrieve a former version)
 * Share elements, relationships and views between models
 * Update itself when a new release is available on GitHub
-* Automatically create the database tables it needs
+* Automatically create and update the database tables when needed
 
 ## Installation instructions :
-* download the **org.archicontribs.database_v2.0.0.alpha1.jar** file to the Archi **plugins** folder
-* start (or restart) Archi and the *import from database* and *export to database* menu entries should be visible ...
+* download the **org.archicontribs.database_v2.0.1.alpha1.jar** file to the Archi **plugins** folder
+* download the **sqljdbc_auth.dll** file to the Archi **JRE\bin** folder if you plan to use MSQ SQL integrated security mode (i.e. Windows authentication)
+* start (or restart) Archi and the *import from database*, *export to database* menu entries and the *Database plugin* preferences page should be visible ...
 
 ## Differences from v1 :
 * Added log4j support
