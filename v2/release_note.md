@@ -1,6 +1,7 @@
 ### v2.0.1 :	01/05/2017
 * Add the ability to export images of views in the database
 * Add a preference to keep the imported model even in case of error
+* Add SQL Server integrated security authentication mode
 * Reduce memory leak
 * Added back Neo4J support (elements and relationships export only)
 * Solve NullPointerException while checking database
