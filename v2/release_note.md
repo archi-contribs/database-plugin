@@ -1,3 +1,10 @@
+### v2.0.1 :	01/05/2017
+* Add the ability to export images of views in the database
+* Add a preference to keep the imported model even in case of error
+* Reduce memory leak
+* Added back Neo4J support (elements and relationships export only)
+* Solve NullPointerException while checking database
+
 ### v2.0.0 :	28/04/2017
 * Export Model :
   * Solve bug where properties were not exported correctly
