@@ -1,3 +1,8 @@
+### v2.0.2 :	02/05/2017
+* Solve errors during table creation in PostGreSQL database
+* Solve "Operation not allowed after ResultSet closed" error message on model export
+* Add a menu entry to replace old fashion IDs to Archi 4 IDs (to ensure uniqueness of all components)
+
 ### v2.0.1 :	01/05/2017
 * Add the ability to export images of views in the database
 * Add a preference to keep the imported model even in case of error
