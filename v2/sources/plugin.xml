@@ -64,6 +64,11 @@
             id="org.archicontribs.database.showIdCommand"
             name="showIdCommand">
       </command>
+            <command
+            defaultHandler="org.archicontribs.database.menu.DBMenuConvertIdsHandler"
+            id="org.archicontribs.database.convertIdsCommand"
+            name="convertIdsCommand">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">
