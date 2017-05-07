@@ -8,7 +8,6 @@ package org.archicontribs.database.model;
 
 import java.sql.Timestamp;
 
-import org.archicontribs.database.DBPlugin;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModel;
@@ -160,6 +159,10 @@ public class DBMetadata  {
 		return databaseStatus;
 	}
 	
+	public boolean needsToBeExported() {
+		return databaseStatus != DATABASE_STATUS.isSynced;
+	}
+	
 	public String getCurrentChecksum() {
 		return currentChecksum;
 	}
@@ -190,14 +193,6 @@ public class DBMetadata  {
 	
 	public void setRootFolderType(int type) {
 		rootFolderType = type;
-	}
-	
-	public boolean isUpdated() {
-	    if ( component != null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
-	        return (parentDiagram == null) ? true : ((IDBMetadata)parentDiagram).getDBMetadata().isUpdated();
-	    }
-
-		return !DBPlugin.areEqual(getCurrentChecksum(), databaseChecksum);	// this method is more accurate than using the databaseStatus
 	}
 	
 	private String fullName = null;

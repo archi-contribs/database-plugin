@@ -119,24 +119,52 @@ import org.json.simple.parser.JSONParser;
  *                                     
  * v2.0.1 : 01/05/2017              Add the ability to export images of views in the database
  * 									Add a preference to keep the imported model even in case of error
+									Add SQL Server integrated security authentication mode
  * 									Reduce memory leak
  * 									Added back Neo4J support (elements and relationships export only)
  * 									Solve NullPointerException while checking database
+ * 
+ * v2.0.2 : 02/05/2017              Solve errors during table creation in PostGreSQL database
+ *                                  Solve "Operation not allowed after ResultSet closed" error message on model export
+ *                                  Add a menu entry to replace old fashion IDs to Archi 4 IDs (to ensure uniqueness of all components)
+ *                                  
+ * v2.0.3 : 07/05/2017              Export model :
+ *                                  	Make conflict management more reliable on PostGreSQL databases
+ *                                 		Added a preference to remove the dirty flag on the model after a successful export
+ *                                 		Solve bug where count of exported components could be erroneous
+ *									Import individual component :
+ *										Added missing "location" in individual component import window
+ *                                  	Add the ability to import several individual components at the same time
+ *                                  	The component list in the individual component import window are now sorted alphabetically
+ *										Solve bug where the same component could be imported several times
+ *                                  Miscellanous :
+ * 										Allow to specify a database schema in the database configuration
+ * 										It is now possible to check a database connection without the need to edit their details
+ *                                	    Reduce memory consumption
+ *                                      Remove the NOT NULL constraints on some columns because Oracle does not do any difference between an empty string and a null value
+ *                                      Renamed mssql driver to ms-sql to be visually more distinctive from mysql
+ *									Known bugs :
+ *										In import individual component, required images are not imported
+ *										In import individual component, views object referencing views are not imported correctly
+ *                                  
+ *
  *                                  
  *                                  // TODO : continue to check for exceptions where required
  *                                  // TODO : allow to import elements recursively
  *                                  // TODO : allow to import and export component from the history window
  *                                  // TODO : update component get history to search for history of folders and views
- *                                   
- *                                  // TODO : add a preference to choose what to do in case of error during import : delete or not
- *                                  // TODO : add a preference to regenerate Archi 4 IDs when the ID length is not correct in order to guarantee uniqueness
- *                                  // TODO : add a preference so reset the dirty flag on successful export
+ *                                  // TODO : when right menu on folder : if view folder, default to view import, else default to import element
+ *                                  //                                    more ... pre-select the element group (business, application, technology, ...)
+ *                                  // TODO : choose a way to select all the element group in one click 
  *                                  
  *                                  // TODO : allow to import image from database (is it possible to superclass the window that opens image from file ?)
  *                                  
  *                                  // TODO : add a menu action : check for missing relationships (loop on all elements and check if some relationships are missing)
  *                                  // TODO : add a progressbar on import of individual components
  *                                  // TODO : add the children components in the resolve conflict table
+ *                                  
+ *                                  // TODO : add a procedure that will allow to provide the user details about the model
+ *                                  //          how many nodes, how many devices, now many location, ... 
  *                                  
  * 									// TODO : dynamically load jdbc drivers
  * 									// TODO : add more jdbc drivers (odbc, mongodb, etc ...)
@@ -151,7 +179,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.1";
+	public static final String pluginVersion = "2.0.3";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
@@ -185,6 +213,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("closeIfSuccessful",       false);
 		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);
+		preferenceStore.setDefault("removeDirtyFlag",         false);
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
@@ -396,7 +425,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				String newPluginFilename = null;
 				String tmpFilename = null;
 				try {
-					// treemap is sorted in descending order, so first entry should have the "bigger" key value, so the latest version
+					// treemap is sorted in descending order, so first entry should have the "bigger" key value, i.e. the latest version
 					Entry<String, String> entry = versions.entrySet().iterator().next();
 
 					if ( pluginVersion.compareTo((String)entry.getKey()) >= 0 ) {

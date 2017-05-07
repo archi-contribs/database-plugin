@@ -54,31 +54,6 @@ public class DBMenuShowIdHandler extends AbstractHandler {
 			int w = 12;
 		}
 		
-		ArchimateModel model = (ArchimateModel) ((IArchimateModelObject)selectedObject).getArchimateModel();
-		
-		for ( IDiagramModel view: model.getAllViews().values() ) {
-			Image image = DiagramUtils.createImage(view, 1, 10);
-
-			ImageLoader saver = new ImageLoader();
-			saver.data = new ImageData[] { image.getImageData() };
-			FileOutputStream fos;
-			try {
-				fos = new FileOutputStream("d:\\"+view.getName()+".png");
-
-				saver.save(fos, SWT.IMAGE_PNG);
-				fos.flush();
-				fos.close();
-				image.dispose();
-				
-				System.out.println("Image of view \""+view.getName()+"\" created");
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		
-		
 		return null;
 	}
 }

@@ -10,6 +10,7 @@ import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -17,7 +18,8 @@ import java.util.HashMap;
 import java.util.List;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBDatabase;
+import org.archicontribs.database.DBDatabaseConnection;
+import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.IDBMetadata;
@@ -75,8 +77,9 @@ import com.archimatetool.model.ISketchModel;
 public class DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGui.class);
 	
-	protected List<DBDatabase> databaseEntries;
-	protected DBDatabase database;
+	protected List<DBDatabaseEntry> databaseEntries;
+	protected DBDatabaseEntry selectedDatabase;
+	protected DBDatabaseConnection connection;
 	
 	protected static Display display = Display.getDefault();
 	protected Shell dialog;
@@ -137,8 +140,6 @@ public class DBGui {
 	
 	public static final Image HELP_ICON = new Image(display, DBGui.class.getResourceAsStream("/img/28x28/help.png"));
 	
-	public static final Image GREY_BACKGROUND = new Image(display, DBGui.class.getResourceAsStream("/img/grey.png"));
-	
 	private Composite compoLeft;
 	protected Composite compoRight;
 	protected Composite compoRightTop;
@@ -188,6 +189,15 @@ public class DBGui {
 		dialog.setSize(800,600);
 		dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialog.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialog.getSize().y) / 4);
 		dialog.setLayout(new FormLayout());
+		
+	    dialog.addListener(SWT.Close, new Listener()
+	    {
+	        public void handleEvent(Event event)
+	        {
+	            close();
+	            event.doit = true;         // TODO : manage stopping the import or export in the middle
+	        }
+	    });
 		
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////// compoLeft ////////////////////////////////////////////////////////////////////////
@@ -357,8 +367,8 @@ public class DBGui {
 		btnSetPreferences = new Button(grpDatabase, SWT.NONE);
 		btnSetPreferences.setText("Set preferences ...");
 		btnSetPreferences.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { setPreferences(); }
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			public void widgetSelected(SelectionEvent event) { try { setPreferences(); } catch (Exception e) { popup(Level.ERROR, "Failed to set preferences", e); } }
+			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
 		fd.top = new FormAttachment(lblRegisteredDatabases, 0, SWT.CENTER);
@@ -368,8 +378,8 @@ public class DBGui {
 		comboDatabases = new Combo(grpDatabase, SWT.NONE | SWT.READ_ONLY);
 		comboDatabases.setBackground(GROUP_BACKGROUND_COLOR);
 		comboDatabases.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { databaseSelected(); }
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			public void widgetSelected(SelectionEvent event) { databaseSelected(); }
+			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
 		fd.top = new FormAttachment(lblRegisteredDatabases, 0, SWT.CENTER);
@@ -399,10 +409,10 @@ public class DBGui {
 		btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = false; btnHelp.redraw(); } });
 		btnHelp.addPaintListener(new PaintListener() {
             @Override
-            public void paintControl(PaintEvent e)
+            public void paintControl(PaintEvent event)
             {
-                 if ( mouseOverHelpButton ) e.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
-                 e.gc.drawImage(HELP_ICON, 2, 2);
+                 if ( mouseOverHelpButton ) event.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
+                 event.gc.drawImage(HELP_ICON, 2, 2);
             }
         });
 		btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/"+HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+HELP_HREF); } } });
@@ -415,10 +425,10 @@ public class DBGui {
 		btnClose = new Button(compoBottom, SWT.NONE);
 		btnClose.setText("Close");
 		btnClose.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
+			public void widgetSelected(SelectionEvent event) {
 				close();
 			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData(100,25);
 		fd.top = new FormAttachment(0, 8);
@@ -440,7 +450,7 @@ public class DBGui {
 		fd.top = new FormAttachment(btnDoAction, 0, SWT.CENTER);
 		fd.right = new FormAttachment(btnDoAction, -20);
 		radioOption2.setLayoutData(fd);
-		radioOption2.addListener(SWT.Selection, new Listener() { public void handleEvent(Event e) { if ( database.isConnected() && radioOption1.getSelection() ) connectedToDatabase(false); } });
+		radioOption2.addListener(SWT.Selection, new Listener() { public void handleEvent(Event event) { if ( connection.isConnected() && radioOption1.getSelection() ) connectedToDatabase(false); } });
 		
 		radioOption1 = new Button(compoBottom, SWT.RADIO);
 		radioOption1.setBackground(COMPO_BACKGROUND_COLOR);
@@ -449,7 +459,7 @@ public class DBGui {
 		fd.top = new FormAttachment(btnDoAction, 0, SWT.CENTER);
 		fd.right = new FormAttachment(radioOption2, -10);
 		radioOption1.setLayoutData(fd);
-		radioOption1.addListener(SWT.Selection, new Listener() { public void handleEvent(Event e) { if ( database.isConnected() && radioOption2.getSelection() ) connectedToDatabase(false); } });
+		radioOption1.addListener(SWT.Selection, new Listener() { public void handleEvent(Event event) { if ( connection.isConnected() && radioOption2.getSelection() ) connectedToDatabase(false); } });
 		
 		lblOption = new Label(compoBottom, SWT.NONE);
 		lblOption.setBackground(COMPO_BACKGROUND_COLOR);
@@ -465,15 +475,16 @@ public class DBGui {
 	
 	/**
 	 * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
+	 * @throws Exception 
 	 */
-	protected void getDatabases() {
-		databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore(includeNeo4j);
+	protected void getDatabases() throws Exception {
+		databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(includeNeo4j);
 		if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
 		} else {
 			display.syncExec (new Runnable () {
 				public void run () {
-					for (DBDatabase databaseEntry: databaseEntries) {
+					for (DBDatabaseEntry databaseEntry: databaseEntries) {
 						comboDatabases.add(databaseEntry.getName());
 					}
 					comboDatabases.select(0);
@@ -486,8 +497,9 @@ public class DBGui {
 	/**
 	 * Called when the user clicks on the "set preferences" button<br>
 	 * This method opens up the database plugin preference page that the user can configure database details.
+	 * @throws Exception 
 	 */
-	protected void setPreferences() {
+	protected void setPreferences() throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("Openning preference page ...");
 		PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "org.archicontribs.database.DBPreferencePage", null, null);
 		dialog.setBlockOnOpen(true);
@@ -496,12 +508,12 @@ public class DBGui {
 			
 			comboDatabases.removeAll();
 			
-			databaseEntries = DBDatabase.getAllDatabasesFromPreferenceStore(includeNeo4j);
+			databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(includeNeo4j);
 			if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
 				comboDatabases.select(0);
 				popup(Level.ERROR, "You won't be able to export until a database is configured in the preferences.");
 			} else {
-				for (DBDatabase databaseEntry: databaseEntries) {
+				for (DBDatabaseEntry databaseEntry: databaseEntries) {
 					comboDatabases.add(databaseEntry.getName());
 				}
 				comboDatabases.select(0);
@@ -522,17 +534,19 @@ public class DBGui {
 	protected void databaseSelected() {
 		popup("Please wait while connecting to the database ...");
 		
+        DBPlugin.setAsyncException(null);   // we purge the previous async exceptions
+        
 		databaseSelectedCleanup();
 		
 		btnDoAction.setEnabled(false);
 		
 			// we get the databaseEntry corresponding to the selected combo entry
-		database = databaseEntries.get(comboDatabases.getSelectionIndex());
-		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + database.getName()+" ("+database.getDriver()+", "+database.getServer()+", "+database.getPort()+", "+database.getDatabase()+", "+database.getUsername()+", "+database.getPassword()+")");
+		selectedDatabase = databaseEntries.get(comboDatabases.getSelectionIndex());
+		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + selectedDatabase.getName()+" ("+selectedDatabase.getDriver()+", "+selectedDatabase.getServer()+", "+selectedDatabase.getPort()+", "+selectedDatabase.getDatabase()+", "+selectedDatabase.getUsername()+", "+selectedDatabase.getPassword()+")");
 		
 			// then we connect to the database.
 		try {
-			database.openConnection();
+			connection = new DBDatabaseConnection(selectedDatabase);
 			//if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
 			if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
 		} catch (Exception err) {
@@ -544,7 +558,7 @@ public class DBGui {
 		
 			// then, we check if the database has got the right pre-requisites
 		try {
-			database.check(false);
+			connection.checkDatabase();
 		} catch (Exception err) {
 			closePopup();
 			notConnectedToDatabase();
@@ -678,6 +692,7 @@ public class DBGui {
 	private static Shell dialogShell = null;
 	private static Label dialogLabel = null;
 	public static Shell popup(String msg) {
+	    logger.info(msg);
 		if ( dialogShell == null ) {
 			display.syncExec(new Runnable() {
 				@Override
@@ -831,7 +846,7 @@ public class DBGui {
     	progressBar.setMinimum(0);
     	progressBar.setMaximum(100);
     	
-    	shell.pack();
+    	shell.layout();
     	shell.open();
     	
     	return progressBar;
@@ -890,6 +905,7 @@ public class DBGui {
 	 * Sets the min and max values of the progressBar and reset its selection to zero
 	 */
 	protected void setProgressBarMinAndMax(int min, int max) {
+	    if ( logger.isTraceEnabled() ) logger.trace("Setting progressbar from "+min+" to "+max);
 		display.asyncExec(new Runnable() { @Override public void run() { progressBar.setMinimum(min); progressBar.setMaximum(max); } });
 		resetProgressBar();
 	}
@@ -916,19 +932,18 @@ public class DBGui {
 	/**
 	 * Method used to close graphical objects if needed
 	 */
-	protected void close() {
-		display.syncExec(new Runnable() {
-			@Override public void run() {
-				if ( DBPlugin.areEqual(btnClose.getText(), "Cancel") ) {
-					if ( logger.isDebugEnabled() ) logger.debug("Operation cancelled by user.");
-				}
-				try { database.close(); } catch (Exception ignore) {ignore.printStackTrace();}
-				database = null;
-				dialog.dispose();
-				dialog = null;
-			}
-		});
+	public void close() {
+		dialog.dispose();
+		dialog = null;
+
 		isClosed = true;
+		
+		if ( connection != null ) {
+		    try {
+		        connection.close();
+		    } catch (SQLException e) { logger.error("Failed to close database connection", e); }
+		    connection = null;
+		}
 	}
 	
 	/**
@@ -983,7 +998,7 @@ public class DBGui {
 		// we get the database version of the component
 	    HashMap<String, Object> hashResult;
 		try {
-			hashResult = database.getObject(component, 0);
+			hashResult = connection.getObject(component, 0);
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)component).getDBMetadata().getDebugName()+" from the database.", err);
 			//TODO: shall we exit to the status page with status=error ???

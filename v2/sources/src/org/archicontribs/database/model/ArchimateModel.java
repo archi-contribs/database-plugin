@@ -279,9 +279,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	
 	public void resolveRelationshipsSourcesAndTargets() {
 	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for relationships");
-		for ( String id: getAllRelationships().keySet() ) {
-			IArchimateRelationship relationship = getAllRelationships().get(id);
-			Entry<String, String> rel = allRelationsSourceAndTarget.get(relationship);
+		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: allRelationsSourceAndTarget.entrySet() ) {
+			IArchimateRelationship relationship = entry.getKey();
+			Entry<String, String> rel = entry.getValue();
 
 			IArchimateConcept source = getAllElements().get(rel.getKey());
 			if ( source == null) source = getAllRelationships().get(rel.getKey());
@@ -293,12 +293,15 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	        relationship.setSource(source);
 			relationship.setTarget(target);
 		}
+		
+		allRelationsSourceAndTarget.clear();
 	}
 	
 	public void resolveConnectionsSourcesAndTargets() {
 	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
-		for ( IDiagramModelConnection connection: allConnectionsSourceAndTarget.keySet() ) {
-			Entry<String, String> conn = allConnectionsSourceAndTarget.get(connection);
+		for ( Map.Entry<IDiagramModelConnection, Entry<String, String>> entry: allConnectionsSourceAndTarget.entrySet() ) {
+			IDiagramModelConnection connection = entry.getKey();
+			Entry<String, String> conn = entry.getValue();
 
 			IConnectable source = (IConnectable)getAllViewObjects().get(conn.getKey());
 			if ( source == null ) source = (IConnectable)getAllViewConnections().get(conn.getKey());
@@ -313,5 +316,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			connection.setTarget(target);
 			target.getTargetConnections().add(connection);
 		}
+		
+		allConnectionsSourceAndTarget.clear();
 	}
 }

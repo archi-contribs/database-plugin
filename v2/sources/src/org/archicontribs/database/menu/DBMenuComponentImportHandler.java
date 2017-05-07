@@ -30,17 +30,22 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
 		ArchimateModel model;
+		IArchimateDiagramModel view = null;
+		IFolder folder = null;
 		
 		if ( selection instanceof IFolder ) {											// if the user clicked on a folder in the tree
 			model = (ArchimateModel) ((IFolder)selection).getArchimateModel();
+			folder = (IFolder)selection;
 		} else if ( selection instanceof IArchimateConcept ) {							// if the user clicked on an element or a relationship in the tree
 			model = (ArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
 			model = (ArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
 		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
 			model = (ArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
+			view = ((IArchimateDiagramModel)selection);
 	    } else if ( selection instanceof ArchimateDiagramPart ) {                     // if the user clicked on a view background
 	        model = (ArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
+			view = ((ArchimateDiagramPart)selection).getModel();
 		} else {
 			DBGui.popup(Level.ERROR, "Do not know which component you selected : "+selection.getClass().getSimpleName());
 			return null;
@@ -48,7 +53,14 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Importing component in model "+model.getName());
 		
-		new DBGuiImportComponent(model, "Import a component");
+		DBGuiImportComponent importDialog = null;
+        try {
+            importDialog = new DBGuiImportComponent(model, view, folder, "Import a component");
+            importDialog.run();
+        } catch (Exception e) {
+            DBGui.popup(Level.ERROR,"Cannot import model", e);
+        }
+        importDialog = null;
 		return null;
 	}
 }

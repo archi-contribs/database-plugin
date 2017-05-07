@@ -9,6 +9,8 @@ package org.archicontribs.database;
 import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
+import org.apache.log4j.Level;
+import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiImportModel;
 import com.archimatetool.editor.model.IModelImporter;
 import com.archimatetool.editor.model.ISelectedModelImporter;
@@ -33,8 +35,13 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	public void doImport(IArchimateModel notUsed) throws IOException {
 		if ( logger.isDebugEnabled() ) logger.debug("Importing model.");
 	
-		DBGuiImportModel importDialog = new DBGuiImportModel("Import model");
-		importDialog.run();
+		DBGuiImportModel importDialog = null;
+		try {
+		    importDialog = new DBGuiImportModel("Import model");
+		    importDialog.run();
+		} catch (Exception e) {
+		    DBGui.popup(Level.ERROR,"Cannot import model", e);
+		}
 		importDialog = null;
 	}
 }

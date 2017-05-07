@@ -6,7 +6,9 @@
 
 package org.archicontribs.database.menu;
 
+import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiExportModel;
 import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
@@ -25,7 +27,15 @@ public class DBMenuModelExportHandler extends AbstractHandler {
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
 
-		new DBGuiExportModel(model, "Export model");
+        DBGuiExportModel exportDialog = null;
+        try {
+            exportDialog = new DBGuiExportModel(model, "Export model");
+            exportDialog.run();
+        } catch (Exception e) {
+            DBGui.popup(Level.ERROR,"Cannot export model", e);
+        }
+        exportDialog = null;
+        
 		return null;
 	}
 }

@@ -8,6 +8,8 @@ package org.archicontribs.database;
 
 import java.io.IOException;
 
+import org.apache.log4j.Level;
+import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiExportModel;
 import org.archicontribs.database.model.ArchimateModel;
 import com.archimatetool.editor.model.IModelExporter;
@@ -19,17 +21,22 @@ import com.archimatetool.model.IArchimateModel;
  * @author Herve Jouin
  */
 public class DBExporter implements IModelExporter {
-	private static final DBLogger logger = new DBLogger(DBExporter.class);
-	
-	/**
-	 * Exports the model into the database.
-	 */
-	@Override
-	public void export(IArchimateModel archimateModel) throws IOException {
-		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+archimateModel.getName());
+    private static final DBLogger logger = new DBLogger(DBExporter.class);
 
-		DBGuiExportModel exportDialog = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
-		exportDialog.run();
-		exportDialog = null;
-	}
+    /**
+     * Exports the model into the database.
+     */
+    @Override
+    public void export(IArchimateModel archimateModel) throws IOException {
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+archimateModel.getName());
+
+        DBGuiExportModel exportDialog = null;
+        try {
+            exportDialog = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+            exportDialog.run();
+        } catch (Exception e) {
+            DBGui.popup(Level.ERROR,"Cannot export model", e);
+        }
+        exportDialog = null;
+    }
 }

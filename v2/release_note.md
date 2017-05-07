@@ -1,3 +1,20 @@
+### v2.0.3 : 07/05/2017
+* Export model :
+  * Make conflict management more reliable on PostGreSQL databases
+  * Added a preference to remove the dirty flag on the model after a successful export
+  * Solve bug where count of exported components could be erroneous
+* Import individual component :
+  *	Added missing "location" in individual component import window
+  * Add the ability to import several individual components at the same time
+  * The component list in the individual component import window are now sorted alphabetically
+  *	Solve bug where the same component could be imported several times
+* Miscellanous :
+  * Allow to specify a database schema in the database configuration
+  * It is now possible to check a database connection without the need to edit their details
+  * Reduce memory consumption
+  * Remove the NOT NULL constraints on some columns because Oracle does not do any difference between an empty string and a null value
+  * Renamed mssql driver to ms-sql to be visually more distinctive from mysql
+
 ### v2.0.2 :	02/05/2017
 * Solve errors during table creation in PostGreSQL database
 * Solve "Operation not allowed after ResultSet closed" error message on model export

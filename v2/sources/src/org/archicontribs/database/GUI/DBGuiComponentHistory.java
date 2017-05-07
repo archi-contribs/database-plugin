@@ -46,8 +46,9 @@ public class DBGuiComponentHistory extends DBGui {
 	
 	/**
 	 * Creates the GUI to export components and model
+	 * @throws Exception 
 	 */
-	public DBGuiComponentHistory(IArchimateConcept component) {
+	public DBGuiComponentHistory(IArchimateConcept component) throws Exception {
 		super("Component history");
 		selectedComponent = component;
 		
@@ -201,7 +202,7 @@ public class DBGuiComponentHistory extends DBGui {
 			    return ;
 			}
 			    
-			ResultSet result = database.select("SELECT version, created_by, created_on FROM "+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
+			ResultSet result = connection.select("SELECT version, created_by, created_on FROM "+selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
 				
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(tblVersions, SWT.NULL);
@@ -224,5 +225,11 @@ public class DBGuiComponentHistory extends DBGui {
 			tblVersions.select(0);
 			tblVersions.notifyListeners(SWT.Selection, new Event());
 		}
+	}
+	
+	protected void notConnectedToDatabase() {
+	    lblVersions.setText("");
+	    tblContent.removeAll();
+	    tblVersions.removeAll();
 	}
 }

@@ -6,16 +6,15 @@
 
 package org.archicontribs.database.GUI;
 
-import java.sql.ResultSet;
-
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
@@ -29,6 +28,7 @@ import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -48,7 +48,6 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.model.IArchiveManager;
-import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
@@ -63,65 +62,30 @@ public class DBGuiExportModel extends DBGui {
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 
 	private ArchimateModel exportedModel = null;
-	private Exception jobException = null;
 
 	private Group grpComponents;
 	private Group grpModelVersions;
 
-	private final String successfullStatusMessage = "Export successful.";
-	private String statusMessage = successfullStatusMessage;
 	private Color statusColor = GREEN_COLOR;
 
 
 	/**
 	 * Creates the GUI to export components and model
 	 */
-	public DBGuiExportModel(ArchimateModel model, String title) {
+	public DBGuiExportModel(ArchimateModel model, String title) throws Exception {
 		// We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
 		super(title);
+		// We reference the exported model 
+        exportedModel = model;
 		
 		includeNeo4j = true;
 
-		// We count the exported model's components and calculate their checksum in a separate thread
-		Job job = new Job("countEObjects") {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				try {
-					popup("Please wait while counting model's components");
-					model.countAllObjects();
-				} catch (Exception err) {
-					jobException = err;
-					return Status.CANCEL_STATUS;
-				}
-				return Status.OK_STATUS;
-			}
-		};
-
-		// When the components count is finished, we fill in the corresponding labels
-		//    ... and connect to the first database listed in the preferences by calling the DBFormGUI.getDatabases() method
-		//    ... In return, this method calls  the ConnectedToDatabase() or NotConnectedToDatabase() methods
-		job.addJobChangeListener(new JobChangeAdapter() {
-			public void done(IJobChangeEvent event) {
-				closePopup();			
-				if (event.getResult().isOK()) {
-					getDatabases();
-				} else {
-					popup(Level.FATAL, "Error while counting model's components.", jobException);
-					display.syncExec(new Runnable() {
-						@Override
-						public void run() {
-							dialog.close();
-						}
-					});
-				}
-			}
-		});
-		// We schedule the count job
-		job.schedule();
-
-		// We reference the exported model 
-		exportedModel = model;
-
+		popup("Please wait while counting model's components");
+		exportedModel.countAllObjects();
+		
+		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
+		
 		// Create the graphical objects specific to the export
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI to export model \""+model.getName()+"\"");
 		createGrpComponents();
@@ -152,6 +116,8 @@ public class DBGuiExportModel extends DBGui {
 
 		// We activate the Eclipse Help framework
 		setHelpHref("exportModel.html");
+		
+	    getDatabases();
 	}
 
 	/**
@@ -669,17 +635,17 @@ public class DBGuiExportModel extends DBGui {
 		txtNewImages.setText("");
 
 		if ( forceCheckDatabase )
-		    setOption(database.getExportWholeModel());
+		    setOption(selectedDatabase.getExportWholeModel());
 		
-		if ( DBPlugin.areEqual(database.getDriver().toLowerCase(), "neo4j") )
+		if ( DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			disableOption();
 		else
 			enableOption();
 
 		if ( getOptionValue() ) {
-			forceCheckDatabase = forceCheckDatabase || (database.countNewViews()+database.countUpdatedViews()+database.countSyncedViews() != exportedModel.getAllViews().size());
+			forceCheckDatabase = forceCheckDatabase || (connection.countNewViews()+connection.countUpdatedViews()+connection.countSyncedViews() != exportedModel.getAllViews().size());
 		} else {
-			forceCheckDatabase = forceCheckDatabase || (database.countNewElements()+database.countUpdatedElements()+database.countSyncedElements() != exportedModel.getAllElements().size());
+			forceCheckDatabase = forceCheckDatabase || (connection.countNewElements()+connection.countUpdatedElements()+connection.countSyncedElements() != exportedModel.getAllElements().size());
 		}
 
 		if ( forceCheckDatabase ) {
@@ -693,9 +659,9 @@ public class DBGuiExportModel extends DBGui {
 					tblModelVersions.setData("purpose", txtPurpose.getText());
 				}
 
-				if ( !DBPlugin.areEqual(database.getDriver().toLowerCase(), "neo4j") )
-					database.getModelVersions(exportedModel.getId(), tblModelVersions);
-				database.checkComponentsToExport(exportedModel, getOptionValue());
+				if ( !DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
+				    connection.getModelVersions(exportedModel.getId(), tblModelVersions);
+				connection.checkComponentsToExport(exportedModel, getOptionValue());
 
 				closePopup();
 			} catch (Exception err) {
@@ -708,17 +674,17 @@ public class DBGuiExportModel extends DBGui {
 
 		statusColor = GREEN_COLOR;
 
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model, from those "+database.countSyncedElements()+" in sync with the database and "+database.countUpdatedElements()+" are updated and "+database.countNewElements()+" are new.");			
-		txtNewElements.setText(String.valueOf(database.countNewElements()));
-		txtUpdatedElements.setText(String.valueOf(database.countUpdatedElements()));
-		txtSyncedElements.setText(String.valueOf(database.countSyncedElements()));
-		txtSyncedElements.setForeground( (database.countSyncedElements() == exportedModel.getAllElements().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.countSyncedElements()+" synced, "+connection.countUpdatedElements()+" updated, "+connection.countNewElements()+"new.");			
+		txtNewElements.setText(String.valueOf(connection.countNewElements()));
+		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
+		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
+		txtSyncedElements.setForeground( (connection.countSyncedElements() == exportedModel.getAllElements().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model, from those "+database.countSyncedRelationships()+" in sync with the database and "+database.countUpdatedRelationships()+" are updated and "+database.countNewRelationships()+" are new.");
-		txtNewRelationships.setText(String.valueOf(database.countNewRelationships()));
-		txtUpdatedRelationships.setText(String.valueOf(database.countUpdatedRelationships()));
-		txtSyncedRelationships.setText(String.valueOf(database.countSyncedRelationships()));
-		txtSyncedRelationships.setForeground( (database.countSyncedRelationships() == exportedModel.getAllRelationships().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model: "+connection.countSyncedRelationships()+" synced, "+connection.countUpdatedRelationships()+" updated, "+connection.countNewRelationships()+" new.");
+		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
+		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
+		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
+		txtSyncedRelationships.setForeground( (connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 		txtTotalFolders.setVisible(getOptionValue());
 		txtNewFolders.setVisible(getOptionValue());
@@ -746,33 +712,35 @@ public class DBGuiExportModel extends DBGui {
 		txtNewImages.setVisible(getOptionValue());
 
 		if ( getOptionValue() ) {
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" folders in the model, from those "+database.countSyncedFolders()+" in sync with the database and "+database.countUpdatedFolders()+" are updated and "+database.countNewFolders()+" are new.");			
-			txtNewFolders.setText(String.valueOf(database.countNewFolders()));
-			txtUpdatedFolders.setText(String.valueOf(database.countUpdatedFolders()));
-			txtSyncedFolders.setText(String.valueOf(database.countSyncedFolders()));
-			txtSyncedFolders.setForeground( (database.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" folders in the model: "+connection.countSyncedFolders()+" synced, "+connection.countUpdatedFolders()+" updated, "+connection.countNewFolders()+" new.");			
+			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
+			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
+			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
+			txtSyncedFolders.setForeground( (connection.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" views in the model, from those "+database.countSyncedViews()+" in sync with the database and "+database.countUpdatedViews()+" are updated and "+database.countNewViews()+" are new.");			
-			txtNewViews.setText(String.valueOf(database.countNewViews()));
-			txtUpdatedViews.setText(String.valueOf(database.countUpdatedViews()));
-			txtSyncedViews.setText(String.valueOf(database.countSyncedViews()));
-			txtSyncedViews.setForeground( (database.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" views in the model: "+connection.countSyncedViews()+" synced, "+connection.countUpdatedViews()+" updated, "+connection.countNewViews()+" new.");			
+			txtNewViews.setText(String.valueOf(connection.countNewViews()));
+			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
+			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
+			txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
+			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
+			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
+			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
+			txtSyncedViewObjects.setForeground( (connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-			txtNewViewObjects.setText(String.valueOf(database.countNewViewObjects()));
-			txtUpdatedViewObjects.setText(String.valueOf(database.countUpdatedViewObjects()));
-			txtSyncedViewObjects.setText(String.valueOf(database.countSyncedViewObjects()));
-			txtSyncedViewObjects.setForeground( (database.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" view connections in the model: "+connection.countSyncedViewConnections()+" synced, "+connection.countUpdatedViewConnections()+" updated, "+connection.countNewViewConnections()+" new.");
+			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
+			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
+			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
+			txtSyncedViewConnections.setForeground( (connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-			txtNewViewConnections.setText(String.valueOf(database.countNewViewConnections()));
-			txtUpdatedViewConnections.setText(String.valueOf(database.countUpdatedViewConnections()));
-			txtSyncedViewConnections.setText(String.valueOf(database.countSyncedViewConnections()));
-			txtSyncedViewConnections.setForeground( (database.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" ViewsImages in the model, from those "+database.countSyncedImages()+" in sync with the database and "+database.countUpdatedImages()+" are updated and "+database.countNewImages()+" are new.");
-			txtNewImages.setText(String.valueOf(database.countNewImages()));
-			txtUpdatedImages.setText(String.valueOf(database.countUpdatedImages()));
-			txtSyncedImages.setText(String.valueOf(database.countSyncedImages()));
-			txtSyncedImages.setForeground( (database.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" ViewsImages in the model: "+connection.countSyncedImages()+" synced, "+connection.countUpdatedImages()+" updated, "+connection.countNewImages()+" new.");
+			txtNewImages.setText(String.valueOf(connection.countNewImages()));
+			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
+			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
+			txtSyncedImages.setForeground( (connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
 			tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
@@ -869,7 +837,7 @@ public class DBGuiExportModel extends DBGui {
 	protected void export() {
 		int progressBarWidth;
 		if ( getOptionValue() ) {
-			logger.info("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllRelationships().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
+			logger.info("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllFolders().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
 			progressBarWidth = exportedModel.getAllFolders().size()+exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewObjects().size()+exportedModel.getAllViewConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
 			logger.info("Exporting components : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships.");
@@ -915,7 +883,7 @@ public class DBGuiExportModel extends DBGui {
 
 		// then, we start a new database transaction
 		try {
-			database.setAutoCommit(false);
+		    connection.setAutoCommit(false);
 		} catch (SQLException err ) {
 			popup(Level.FATAL, "Failed to create a transaction in the database.", err);
 			setActiveAction(STATUS.Error);
@@ -933,7 +901,7 @@ public class DBGuiExportModel extends DBGui {
 					// if we need to save the model
 					if ( getOptionValue() ) {
 						// we retrieve the latest version of the model in the database and increase the version number.
-						exportedModel.setExportedVersion(database.getLatestModelVersion(exportedModel) + 1);
+					    exportedModel.setExportedVersion(connection.getLatestModelVersion(exportedModel) + 1);
 
 						// just in case
 						display.syncExec(new Runnable() {
@@ -947,7 +915,7 @@ public class DBGuiExportModel extends DBGui {
 
 								if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
 								try {
-									database.exportModel(exportedModel, txtReleaseNote.getText());
+								    connection.exportModel(exportedModel, txtReleaseNote.getText());
 								} catch (Exception e) {
 									DBPlugin.setAsyncException(e);
 								}
@@ -976,47 +944,40 @@ public class DBGuiExportModel extends DBGui {
 					}
 
 					if ( getOptionValue() ) {
+						
+						// we export first all the views in one gon in order to check as quicly as possible if there are some conflicts
+						List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
+						
 						if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
 						Iterator<Entry<String, IDiagramModel>> viewsIterator = exportedModel.getAllViews().entrySet().iterator();
 						while ( viewsIterator.hasNext() ) {
-							IDiagramModel view = viewsIterator.next().getValue();
-							connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();		// we need to memorize them as connections can be get as sources AND as targets 
+							IDiagramModel view = viewsIterator.next().getValue(); 
 							if ( doExportEObject(view, txtSyncedViews, txtNewViews, txtUpdatedViews) ) {
-								for ( IDiagramModelObject viewObject: view.getChildren() ) {
-									doExportViewObject(viewObject);
-								}
+								exportedViews.add(view);
+							}
+						}
+						
+						for ( IDiagramModel view: exportedViews ) {
+							connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();		// we need to memorize exported connections as they can be get as sources AND as targets 
+							for ( IDiagramModelObject viewObject: view.getChildren() ) {
+								doExportViewObject(viewObject);
 							}
 						}
 
-						if ( logger.isDebugEnabled() ) logger.debug("Exporting the images");
-						IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
+						if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
+				    	IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
 						for ( String path: exportedModel.getAllImagePaths() ) {
-							byte[] image = archiveMgr.getBytesFromEntry(path);
-							String checksum = DBChecksum.calculateChecksum(image);
-
-							ResultSet result = database.select("SELECT checksum FROM images WHERE path = ?", path);
-
-							// if the image is not yet in the db, we insert it
-							if ( !result.next() ) {
-								database.insert("INSERT INTO images (path, image, checksum)"
-										,path
-										,image
-										,checksum								
-										);
-								display.syncExec(new Runnable() {
-									@Override
-									public void run() {
-										txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
-										txtNewImages.setText(String.valueOf(Integer.valueOf(txtNewImages.getText())-1));
-									}
-								});
-							} else {		// if the image checksum is different from the one in the database, then we replace the image in the database
-								if ( !DBPlugin.areEqual(checksum, result.getString("checksum")) ) {
-									database.request("UPDATE images SET image = ?, checksum = ? WHERE path = ?"
-											,image
-											,checksum
-											,path
-											);
+							switch ( connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
+								case isNew :
+									display.syncExec(new Runnable() {
+										@Override
+										public void run() {
+											txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
+											txtNewImages.setText(String.valueOf(Integer.valueOf(txtNewImages.getText())-1));
+										}
+									});
+									break;
+								case isUpdated :
 									display.syncExec(new Runnable() {
 										@Override
 										public void run() {
@@ -1024,25 +985,24 @@ public class DBGuiExportModel extends DBGui {
 											txtUpdatedImages.setText(String.valueOf(Integer.valueOf(txtUpdatedImages.getText())-1));
 										}
 									});
-								}
+									break;
+								case isSynced :
+									// do nothing
+									break;
 							}
-							result.close();
-							result = null;
 						}
 					}
 
 				} catch (Exception err) {
 					DBPlugin.setAsyncException(err);
+                    DBPlugin.setAsyncException(err);
 					statusColor = RED_COLOR;
 					try  {
-						database.rollback();
-						statusMessage = "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.";
-						popup(Level.FATAL, statusMessage, err);
-					} catch (SQLException e) {
-						statusMessage = "An error occured while exporting the components.\n\nThe transaction rollbacking failed and the database is left in an inconsistent state.\n\nPlease check carrefully your database !";
-						popup(Level.FATAL, statusMessage, e);
+					    connection.rollback();
+						popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
+					} catch (SQLException err2) {
+						popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction rollbacking failed and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
 					}
-					jobException = err;
 					return Status.CANCEL_STATUS;
 				}
 				return Status.OK_STATUS;
@@ -1085,8 +1045,8 @@ public class DBGuiExportModel extends DBGui {
 							if ( logger.isDebugEnabled() ) logger.debug("Found "+tblListConflicts.getItemCount()+" components conflicting with database");
 							if ( tblListConflicts.getItemCount() == 0 ) {
 								try  {
-									database.commit();
-									database.setAutoCommit(true);
+								    connection.commit();
+								    connection.setAutoCommit(true);
 									setActiveAction(STATUS.Ok);
 								} catch (Exception err) {
 									popup(Level.FATAL, "Failed to commit the transaction. Please check carrefully your database !", err);
@@ -1098,7 +1058,7 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
 								resetProgressBar();
 								try  {
-									database.rollback();
+								    connection.rollback();
 								} catch (Exception err) {
 									popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefullsy your database !", err);
 									setActiveAction(STATUS.Error);
@@ -1112,9 +1072,8 @@ public class DBGuiExportModel extends DBGui {
 									grpModelVersions.setVisible(false);
 									grpConflict.setVisible(true);
 								} catch (Exception e) {
-									statusMessage = "Failed to compare component with its database version.";
 									statusColor = RED_COLOR;
-									popup(Level.ERROR, statusMessage, e);
+									popup(Level.ERROR, "Failed to compare component with its database version.", e);
 									DBPlugin.setAsyncException(e);
 									display.syncExec(new Runnable() {
 										@Override
@@ -1156,32 +1115,35 @@ public class DBGuiExportModel extends DBGui {
 
 		boolean status = true;
 		try {
-			if ( database.exportEObject(eObjectToExport, getOptionValue()) && txtSynced != null ) {
+			if ( connection.exportEObject(eObjectToExport, getOptionValue()) && txtSynced != null ) {
 				display.syncExec(new Runnable() {
 					@Override
 					public void run() {
 						txtSynced.setText(String.valueOf(Integer.valueOf(txtSynced.getText())+1));
 						if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isNew ) {
 							if ( txtNew != null ) txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1));
-						} else {
+						} else if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdated ) {
 							if ( txtUpdated != null ) txtUpdated.setText(String.valueOf(Integer.valueOf(txtUpdated.getText())-1));
 						}
 					}
 				});
 			}
 		} catch (SQLException err) {
-			if ( logger.isTraceEnabled() ) logger.trace("catched exception (errorCode = "+ err.getErrorCode()+"   SQL state = "+err.getSQLState()+")", err);
 			status = false;
 			// if the SQL exception is not linked to a primary key violation, then we escalate the exception
 			// unfortunately, this is constructor dependent
 			// worst, it may change from one driver version to another version
-			switch ( database.getDriver().toLowerCase() ) {
+			switch ( selectedDatabase.getDriver().toLowerCase() ) {
 			    case "sqlite" :
 			        if ( !err.getMessage().startsWith("[SQLITE_CONSTRAINT_PRIMARYKEY]") )
 			            throw err;
+			        break;
+			    case "postgresql" :
+			        if ( !err.getMessage().startsWith("ERROR: duplicate key value violates unique constraint") )
+                        throw err;
+			        break;
 			    default :
-			        if (err.getSQLState()!=null && !err.getSQLState().startsWith("23") )			// generic error
-			            throw err;
+			        throw err;					// TODO : we need to determine the right value for all the databases
 			}
 			
 			// if we're here, it means that a conflict has been detected
@@ -1212,7 +1174,10 @@ public class DBGuiExportModel extends DBGui {
 				case importFromDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
 					// For the moment, we can import concepts only during an export !!!
-					database.importComponent((IArchimateConcept)eObjectToExport, 0);
+			        if ( eObjectToExport instanceof IArchimateElement )
+			            connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+			        else
+			            connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
 					break;
 			}
 		}
@@ -1415,6 +1380,13 @@ public class DBGuiExportModel extends DBGui {
 
 		setActiveAction(ACTION.Three);
 		btnClose.setText("close");
+		
+		if ( logger.isTraceEnabled() ) {
+		    logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
+		    logger.trace("synced : "+txtSyncedElements.getText()+" elements, "+txtSyncedRelationships.getText()+" relationships, "+txtSyncedFolders.getText()+" folders, "+txtSyncedViews.getText()+" views, "+txtSyncedViewObjects.getText()+" view objects, "+txtSyncedViewConnections.getText()+" view connections.");
+		    logger.trace("updated : "+txtUpdatedElements.getText()+" elements, "+txtUpdatedRelationships.getText()+" relationships, "+txtUpdatedFolders.getText()+" folders, "+txtUpdatedViews.getText()+" views, "+txtUpdatedViewObjects.getText()+" view objects, "+txtUpdatedViewConnections.getText()+" view connections.");
+		    logger.trace("new : "+txtNewElements.getText()+" elements, "+txtNewRelationships.getText()+" relationships, "+txtNewFolders.getText()+" folders, "+txtNewViews.getText()+" views, "+txtNewViewObjects.getText()+" view objects, "+txtNewViewConnections.getText()+" view connections.");
+		}
 
 		txtSyncedElements.setForeground( DBPlugin.areEqual(txtSyncedElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		txtSyncedRelationships.setForeground( DBPlugin.areEqual(txtSyncedRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
@@ -1426,19 +1398,25 @@ public class DBGuiExportModel extends DBGui {
 			txtSyncedImages.setForeground( DBPlugin.areEqual(txtSyncedImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		}
 		
-		if ( statusColor != GREEN_COLOR ) {
-			if ( statusMessage == successfullStatusMessage )
-				statusMessage = "No error has been detected but the number of components exported is not correct.\n\nPlease check thoroughly your database !";
+		if ( statusColor == GREEN_COLOR ) {
+          setMessage("Export successful", statusColor);
+          if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+                close();
+                return;
+          }
+          if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
+              if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
+              CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
+              stack.markSaveLocation();
+          }
 		} else {
-			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
-				setMessage("Export successful", statusColor);
-				if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-				close();
-				return;
-			}
+            if ( DBPlugin.getAsyncException() == null )
+                setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", statusColor);
+            else {
+                setMessage("Error while exporting model.\n"+ DBPlugin.getAsyncException().getMessage(), RED_COLOR);
+            }
 		}
-		
-		setMessage(statusMessage, statusColor);
 	}
 
 	private Button btnDoNotExport;

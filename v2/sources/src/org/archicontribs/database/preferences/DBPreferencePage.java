@@ -63,6 +63,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnCheckForUpdateAtStartupButton;
 	private Button btnExportWithDefaultValues;
 	private Button btnCloseIfSuccessful;
+	private Button btnRemoveDirtyFlag;
 	private Button btnDeleteIfImportError;
 	private Button btnImportShared;
 	
@@ -191,12 +192,21 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		btnCloseIfSuccessful.setLayoutData(fd);
 		
+		btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
+		btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
+		btnRemoveDirtyFlag.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag"));
+		fd = new FormData();
+		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnRemoveDirtyFlag.setLayoutData(fd);
+		
 		btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
 		btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnDeleteIfImportError.setText("Delete model in case of import error");
 		btnDeleteIfImportError.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError"));
 		fd = new FormData();
-		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
+		fd.top = new FormAttachment(btnRemoveDirtyFlag, 5);
 		fd.left = new FormAttachment(0, 10);
 		btnDeleteIfImportError.setLayoutData(fd);
 		
@@ -393,6 +403,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("removeDirtyFlag", btnRemoveDirtyFlag.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("importShared", btnImportShared.getSelection());
     	table.store();
