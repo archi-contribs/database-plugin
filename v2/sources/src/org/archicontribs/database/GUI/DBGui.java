@@ -576,11 +576,13 @@ public class DBGui {
 	
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 		// to be overriden
+		enableOption();
 		btnDoAction.setEnabled(true);
 	}
 	
 	protected void notConnectedToDatabase() {
 		// to be overriden
+		disableOption();
 	}
 	
 	protected void setHelpHref(String href) {

@@ -24,16 +24,30 @@ import com.archimatetool.model.INameable;
  */
 public class DBMetadata  {
 	/**
-	 * What to do with the component in case of conflict.<br>
-	 * Beware, the preferences have precedence over this local variable
+	 * Choices available when a conflict is detected in the database<br>
+	 * <li><b>askUser</b> ask the user what he wishes to do</li>
+	 * <li><b>doNotExport</b> do not export to the database</li>
+	 * <li><b>exportToDatabase</b> export to the database</li>
+	 * <li><b>importFromDatabase</b> replace the component with the version in the database</li>
 	 */
 	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase};
+	/**
+	 * Stores the action that need to be done in case of a database conflict
+	 * @see CONFLICT_CHOICE
+	 */
 	private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
 	
 	/**
-	 * Keeps the information about the status of the component in the database
+	 * Status of the component regarding the database:
+     * <li><b>isSynced</b> the component is sync'ed with the database (version identical as the one in the database</li>
+     * <li><b>isUpdated</b> the component exists in the database but the version in memory has got updated values</li>
+     * <li><b>isNew</b> the component does not exist in the database</li>
 	 */
 	public enum DATABASE_STATUS {isSynced, isUpdated, isNew};
+	/**
+     * Status of the component regarding the database
+     * @see DATABASE_STATUS
+     */
 	private DATABASE_STATUS databaseStatus = DATABASE_STATUS.isNew;
 	
 	/**
@@ -44,13 +58,15 @@ public class DBMetadata  {
 	
 	/**
 	 * Exported version of the component.<br>
-	 * This property is set during the export process and copied to the current version if the transaction is committed to the database .
+	 * This property is set during the export process and copied to the current version if the transaction is committed to the database.<br>
+	 * When there is no conflict during export, exportedVersion = currentVersion +1, but is higher in case a conflict is detected
 	 */
 	private int exportedVersion = 0;
 	
 	/**
-	 * Version of the component in the database.<br>
-	 * This property is retrieved from the database each time a connection is made to a database.
+	 * Latest version of the component in the database.<br>
+	 * This property is set during the export process when checking existing components and is used during the conflict resolution mechanism<br>
+	 * When there is no conflict during export, exportedVersion = currentVersion +1, but is higher in case a conflict is detected
 	 */
 	private int databaseVersion = 0;
 	
@@ -120,7 +136,11 @@ public class DBMetadata  {
 	}
 	
 	public int getDatabaseVersion() {
-		return databaseVersion;
+	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
+	        return ((IDBMetadata)parentDiagram).getDBMetadata().getDatabaseVersion();
+	    }
+    
+	    return databaseVersion;
 	}
 	
 	public void setDatabaseVersion(int version) {

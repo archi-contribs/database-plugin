@@ -1,6 +1,7 @@
 package org.archicontribs.database;
 
 import java.io.ByteArrayInputStream;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -32,6 +33,7 @@ import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
 import org.archicontribs.database.model.impl.Folder;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -93,7 +95,7 @@ public class DBDatabaseConnection {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 201;
+    public static final int databaseVersion = 202;
 
     /**
      * This class variable stores the last commit transaction
@@ -211,7 +213,10 @@ public class DBDatabaseConnection {
             // so we need to trap this exception and change the error message
             // For JDBC people, this is not a bug but a functionality :( 
             if ( DBPlugin.areEqual(e.getMessage(), "JDBC URL is not correct.\nA valid URL format is: 'jdbc:neo4j:http://<host>:<port>'") )
-                throw new SQLException("Please verify the database configuration in the preferences.");
+                if ( databaseEntry.getDriver().equals("ms-sql") && DBPlugin.isEmpty(databaseEntry.getUsername()) && DBPlugin.isEmpty(databaseEntry.getPassword()) )	// integrated authentication
+                	throw new SQLException("Please verify the database configuration in the preferences.\n\nPlease also check that you installed the \"sqljdbc_auth.dll\" file in the JRE bin folder to enable the SQL Server integrated security mode.");
+                else
+                	throw new SQLException("Please verify the database configuration in the preferences.");
             else
                 throw e;
         }
@@ -346,14 +351,8 @@ public class DBDatabaseConnection {
                     case 200 : 
                 }
                 if ( databaseVersion != result.getInt("version") ) {
-                    boolean canConvert;
-                    switch ( result.getInt("version")) {
-                        case 200 : canConvert = true; break;
-                        default : canConvert = false;
-                    }
-
-                    if ( !canConvert )
-                        throw new SQLException("The database has got an unknown model version (is "+result.getInt("version")+" but should be "+databaseVersion+")");
+                    if ( (result.getInt("version")<200) || (result.getInt("version")>databaseVersion) )
+                        throw new SQLException("The database has got an unknown model version (is "+result.getInt("version")+" but should be between 200 and "+databaseVersion+")");
 
                     if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
                         upgradeDatabase(result.getInt("version"));
@@ -400,51 +399,51 @@ public class DBDatabaseConnection {
         try {
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"database_version");
             request("CREATE TABLE "+schema+"database_version ("
-                    + "archi_plugin   "+ OBJECTID +" NOT NULL, "
-                    + "version  "+ INTEGER  +" NOT NULL"
+                    + "archi_plugin "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL"
                     + ")");
 
             insert(schema+"database_version", databaseVersionColumns, DBPlugin.pluginName, databaseVersion);
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"bendpoints");
             request("CREATE TABLE "+schema+"bendpoints ("
-                    + "parent_id      "+ OBJECTID +" NOT NULL, "
-                    + "parent_version "+ INTEGER  +" NOT NULL, "
-                    + "rank           "+ INTEGER  +" NOT NULL, "
-                    + "start_x        "+ INTEGER  +" NOT NULL, "
-                    + "start_y        "+ INTEGER  +" NOT NULL, "
-                    + "end_x          "+ INTEGER  +" NOT NULL, "
-                    + "end_y          "+ INTEGER  +" NOT NULL, "
+                    + "parent_id "+OBJECTID +" NOT NULL, "
+                    + "parent_version "+ INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER +" NOT NULL, "
+                    + "start_x "+INTEGER +" NOT NULL, "
+                    + "start_y "+INTEGER +" NOT NULL, "
+                    + "end_x "+INTEGER +" NOT NULL, "
+                    + "end_y "+INTEGER +" NOT NULL, "
                     + PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"elements");
             request("CREATE TABLE "+schema+"elements ("
-                    + "id            "+ OBJECTID +" NOT NULL, "
-                    + "version       "+ INTEGER  +" NOT NULL, "
-                    + "class         "+ OBJECTID +" NOT NULL, "
-                    + "name          "+ OBJ_NAME +", "
-                    + "documentation "+ TEXT     +", "
-                    + "type          "+ TYPE     +", "
-                    + "created_by    "+ USERNAME +" NOT NULL, "
-                    + "created_on    "+ DATETIME +" NOT NULL, "
-                    + "checkedin_by  "+ USERNAME +", "
-                    + "checkedin_on  "+ DATETIME +", "
-                    + "deleted_by    "+ USERNAME +", "
-                    + "deleted_on    "+ DATETIME +", "
-                    + "checksum      "+ OBJECTID +" NOT NULL,"
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "class "+OBJECTID +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "
+                    + "documentation "+ TEXT +", "
+                    + "type "+TYPE +", "
+                    + "created_by "+USERNAME +" NOT NULL, "
+                    + "created_on "+DATETIME +" NOT NULL, "
+                    + "checkedin_by "+USERNAME +", "
+                    + "checkedin_on "+DATETIME +", "
+                    + "deleted_by "+USERNAME +", "
+                    + "deleted_on "+DATETIME +", "
+                    + "checksum "+OBJECTID +" NOT NULL,"
                     + PRIMARY_KEY+" (id, version)"
-                    +")");					
+                    + ")");					
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"elements_in_model");
             request("CREATE TABLE "+schema+"elements_in_model ("
-                    + "eim_id           "+ AUTO_INCREMENT +", "
-                    + "element_id       "+ OBJECTID +" NOT NULL, "
-                    + "element_version  "+ INTEGER  +" NOT NULL, "
+                    + "eim_id "+AUTO_INCREMENT +", "
+                    + "element_id "+OBJECTID +" NOT NULL, "
+                    + "element_version "+INTEGER +" NOT NULL, "
                     + "parent_folder_id "+ OBJECTID +" NOT NULL, "
-                    + "model_id         "+ OBJECTID +" NOT NULL, "
-                    + "model_version    "+ INTEGER  +" NOT NULL, "
-                    + "rank             "+ INTEGER  +" NOT NULL"
+                    + "model_id "+OBJECTID +" NOT NULL, "
+                    + "model_version "+INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER +" NOT NULL"
                     + (AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+PRIMARY_KEY+" (eim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(databaseEntry.getDriver(), "oracle") ) {
@@ -463,27 +462,27 @@ public class DBDatabaseConnection {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"folders");
             request("CREATE TABLE "+schema+"folders ("
-                    + "id            "+ OBJECTID +" NOT NULL, "
-                    + "version       "+ INTEGER  +" NOT NULL, "
-                    + "type          "+ INTEGER  +" NOT NULL, "
-                    + "root_type     "+ INTEGER  +" NOT NULL, "
-                    + "name          "+ OBJ_NAME +", "
-                    + "documentation "+ TEXT     +", "
-                    + "created_by    "+ USERNAME +", "
-                    + "created_on    "+ DATETIME +", "
-                    + "checksum      "+ OBJECTID +" NOT NULL, "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "type "+INTEGER +" NOT NULL, "
+                    + "root_type "+INTEGER +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "
+                    + "documentation "+ TEXT +", "
+                    + "created_by "+USERNAME +", "
+                    + "created_on "+DATETIME +", "
+                    + "checksum "+OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"folders_in_model");
             request("CREATE TABLE "+schema+"folders_in_model ("
-                    + "fim_id           "+ AUTO_INCREMENT+", "
-                    + "folder_id        "+ OBJECTID +" NOT NULL, "
-                    + "folder_version   "+ INTEGER  +" NOT NULL, "
+                    + "fim_id "+AUTO_INCREMENT+", "
+                    + "folder_id "+OBJECTID +" NOT NULL, "
+                    + "folder_version "+INTEGER +" NOT NULL, "
                     + "parent_folder_id "+ OBJECTID +", "
-                    + "model_id         "+ OBJECTID +" NOT NULL, "
-                    + "model_version    "+ INTEGER  +" NOT NULL, "
-                    + "rank             "+ INTEGER  +" NOT NULL"
+                    + "model_id "+OBJECTID +" NOT NULL, "
+                    + "model_version "+INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER +" NOT NULL"
                     + (AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+PRIMARY_KEY+" (fim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(databaseEntry.getDriver(), "oracle") ) {
@@ -502,68 +501,68 @@ public class DBDatabaseConnection {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"images");
             request("CREATE TABLE "+schema+"images ("
-                    + "path     "+ OBJECTID +" NOT NULL, "
-                    + "image    "+ IMAGE    +" NOT NULL, "
+                    + "path "+OBJECTID +" NOT NULL, "
+                    + "image "+IMAGE +" NOT NULL, "
                     + "checksum "+ OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (path)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"models");
             request("CREATE TABLE "+schema+"models ("
-                    + "id           "+ OBJECTID +" NOT NULL, "
-                    + "version      "+ INTEGER  +" NOT NULL, "
-                    + "name         "+ OBJ_NAME +" NOT NULL, "
-                    + "note         "+ TEXT     +", "
-                    + "purpose      "+ TEXT     +", "
-                    + "created_by   "+ USERNAME +" NOT NULL, "
-                    + "created_on   "+ DATETIME +" NOT NULL, "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "name "+OBJ_NAME +" NOT NULL, "
+                    + "note "+TEXT +", "
+                    + "purpose "+TEXT +", "
+                    + "created_by "+USERNAME +" NOT NULL, "
+                    + "created_on "+DATETIME +" NOT NULL, "
                     + "checkedin_by "+ USERNAME +", "
                     + "checkedin_on "+ DATETIME +", "
-                    + "deleted_by   "+ USERNAME +", "
-                    + "deleted_on   "+ DATETIME +", "
+                    + "deleted_by "+USERNAME +", "
+                    + "deleted_on "+DATETIME +", "
                     + PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"properties");
             request("CREATE TABLE "+schema+"properties ("
-                    + "parent_id      "+ OBJECTID +" NOT NULL, "
-                    + "parent_version "+ INTEGER  +" NOT NULL, "
-                    + "rank           "+ INTEGER  +" NOT NULL, "
-                    + "name           "+ OBJ_NAME +", "
-                    + "value          "+ TEXT     +", "
+                    + "parent_id "+OBJECTID +" NOT NULL, "
+                    + "parent_version "+ INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "
+                    + "value "+TEXT +", "
                     + PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"relationships");
             request("CREATE TABLE "+schema+"relationships ("
-                    + "id            "+ OBJECTID +" NOT NULL, "
-                    + "version       "+ INTEGER  +" NOT NULL, "
-                    + "class         "+ OBJECTID +" NOT NULL, "
-                    + "name          "+ OBJ_NAME +", "
-                    + "documentation "+ TEXT     +", "
-                    + "source_id     "+ OBJECTID +", "
-                    + "target_id     "+ OBJECTID +", "
-                    + "strength      "+ STRENGTH +", "
-                    + "access_type   "+ INTEGER  +", "
-                    + "created_by    "+ USERNAME +" NOT NULL, "
-                    + "created_on    "+ DATETIME +" NOT NULL, "
-                    + "checkedin_by  "+ USERNAME +", "
-                    + "checkedin_on  "+ DATETIME +", "
-                    + "deleted_by    "+ USERNAME +", "
-                    + "deleted_on    "+ DATETIME +", "
-                    + "checksum      "+ OBJECTID +" NOT NULL, "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "class "+OBJECTID +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "
+                    + "documentation "+ TEXT +", "
+                    + "source_id "+OBJECTID +", "
+                    + "target_id "+OBJECTID +", "
+                    + "strength "+STRENGTH +", "
+                    + "access_type "+INTEGER +", "
+                    + "created_by "+USERNAME +" NOT NULL, "
+                    + "created_on "+DATETIME +" NOT NULL, "
+                    + "checkedin_by "+USERNAME +", "
+                    + "checkedin_on "+DATETIME +", "
+                    + "deleted_by "+USERNAME +", "
+                    + "deleted_on "+DATETIME +", "
+                    + "checksum "+OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"relationships_in_model");
             request("CREATE TABLE "+schema+"relationships_in_model ("
-                    + "rim_id               "+ AUTO_INCREMENT+", "
-                    + "relationship_id      "+ OBJECTID +" NOT NULL, "
-                    + "relationship_version "+ INTEGER  +" NOT NULL, "
-                    + "parent_folder_id     "+ OBJECTID +" NOT NULL, "
-                    + "model_id             "+ OBJECTID +" NOT NULL, "
-                    + "model_version        "+ INTEGER  +" NOT NULL, "
-                    + "rank                 "+ INTEGER  +" NOT NULL "
+                    + "rim_id "+AUTO_INCREMENT+", "
+                    + "relationship_id "+OBJECTID +" NOT NULL, "
+                    + "relationship_version "+ INTEGER +" NOT NULL, "
+                    + "parent_folder_id "+OBJECTID +" NOT NULL, "
+                    + "model_id "+OBJECTID +" NOT NULL, "
+                    + "model_version "+INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER +" NOT NULL "
                     + (AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+PRIMARY_KEY+" (rim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(databaseEntry.getDriver(), "oracle") ) {
@@ -582,56 +581,59 @@ public class DBDatabaseConnection {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"views");
             request("CREATE TABLE "+schema+"views ("
-                    + "id                     "+ OBJECTID +" NOT NULL, "
-                    + "version                "+ INTEGER  +" NOT NULL, "
-                    + "class                  "+ OBJECTID +" NOT NULL, "
-                    + "name                   "+ OBJ_NAME +", "
-                    + "documentation          "+ TEXT     +" , "
-                    + "hint_content           "+ TEXT     +", "
-                    + "hint_title             "+ OBJ_NAME +", "
-                    + "created_by             "+ USERNAME +" NOT NULL, "
-                    + "created_on             "+ DATETIME +" NOT NULL, "
-                    + "background             "+ INTEGER  +", "
-                    + "connection_router_type "+ INTEGER  +" NOT NULL, "
-                    + "viewpoint              "+ OBJECTID +", "
-                    + "screenshot             "+ IMAGE    +", "
-                    + "checksum               "+ OBJECTID +" NOT NULL, "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "class "+OBJECTID +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "
+                    + "documentation "+TEXT +" , "
+                    + "hint_content "+TEXT +", "
+                    + "hint_title "+OBJ_NAME +", "
+                    + "created_by "+USERNAME +" NOT NULL, "
+                    + "created_on "+DATETIME +" NOT NULL, "
+                    + "background "+INTEGER +", "
+                    + "connection_router_type "+ INTEGER +" NOT NULL, "
+                    + "viewpoint "+OBJECTID +", "
+                    + "screenshot "+IMAGE +", "
+                    + "checksum "+OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"views_connections");
             request("CREATE TABLE "+schema+"views_connections ("
-                    + "id               "+ OBJECTID +" NOT NULL, "
-                    + "version          "+ INTEGER  +" NOT NULL, "
-                    + "container_id     "+ OBJECTID +" NOT NULL, "
-                    + "view_id          "+ OBJECTID +" NOT NULL, "
-                    + "view_version     "+ INTEGER  +" NOT NULL, "
-                    + "class            "+ OBJECTID +" NOT NULL, "
-                    + "name             "+ OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
-                    + "documentation    "+ TEXT     +", "
-                    + "is_locked        "+ BOOLEAN  +", "
-                    + "line_color       "+ COLOR    +", "
-                    + "line_width       "+ INTEGER  +", "
-                    + "font             "+ FONT     +", "
-                    + "font_color       "+ COLOR    +", "
-                    + "relationship_id  "+ OBJECTID +", "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "container_id "+OBJECTID +" NOT NULL, "
+                    + "view_id "+OBJECTID +" NOT NULL, "
+                    + "view_version "+INTEGER +" NOT NULL, "
+                    + "class "+OBJECTID +" NOT NULL, "
+                    + "name "+OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
+                    + "documentation "+TEXT +", "
+                    + "is_locked "+BOOLEAN +", "
+                    + "line_color "+COLOR +", "
+                    + "line_width "+INTEGER +", "
+                    + "font "+FONT +", "
+                    + "font_color "+COLOR +", "
+                    + "relationship_id "+OBJECTID +", "
+                    + "source_connections "+ TEXT + ", "
+                    + "target_connections "+ TEXT + ", "
                     + "source_object_id "+ OBJECTID +", "
                     + "target_object_id "+ OBJECTID +", "
-                    + "type             "+ INTEGER  +", "
-                    + "rank             "+ INTEGER  +" NOT NULL, "
-                    + "checksum         "+ OBJECTID +" NOT NULL, "
+                    + "text_position "+INTEGER +", "
+                    + "type "+INTEGER +", "
+                    + "rank "+INTEGER +" NOT NULL, "
+                    + "checksum "+OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (id, version, container_id)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"views_in_model");
             request("CREATE TABLE "+schema+"views_in_model ("
-                    + "vim_id           "+ AUTO_INCREMENT+", "
-                    + "view_id          "+ OBJECTID +" NOT NULL, "
-                    + "view_version     "+ INTEGER  +" NOT NULL, "
+                    + "vim_id "+AUTO_INCREMENT+", "
+                    + "view_id "+OBJECTID +" NOT NULL, "
+                    + "view_version "+INTEGER +" NOT NULL, "
                     + "parent_folder_id "+ OBJECTID +" NOT NULL, "
-                    + "model_id         "+ OBJECTID +" NOT NULL, "
-                    + "model_version    "+ INTEGER  +" NOT NULL, "
-                    + "rank             "+ INTEGER
+                    + "model_id "+OBJECTID +" NOT NULL, "
+                    + "model_version "+INTEGER +" NOT NULL, "
+                    + "rank "+INTEGER
                     + (AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+PRIMARY_KEY+" (vim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(databaseEntry.getDriver(), "oracle") ) {
@@ -650,39 +652,41 @@ public class DBDatabaseConnection {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+schema+"views_objects");
             request("CREATE TABLE "+schema+"views_objects ("
-                    + "id             "+ OBJECTID +" NOT NULL, "
-                    + "version        "+ INTEGER  +" NOT NULL, "
-                    + "container_id   "+ OBJECTID +" NOT NULL, "
-                    + "view_id        "+ OBJECTID +" NOT NULL, "
-                    + "view_version   "+ INTEGER  +" NOT NULL, "
-                    + "class          "+ OBJECTID +" NOT NULL, "
-                    + "element_id     "+ OBJECTID +", "
+                    + "id "+OBJECTID +" NOT NULL, "
+                    + "version "+INTEGER +" NOT NULL, "
+                    + "container_id "+OBJECTID +" NOT NULL, "
+                    + "view_id "+OBJECTID +" NOT NULL, "
+                    + "view_version "+INTEGER +" NOT NULL, "
+                    + "class "+OBJECTID +" NOT NULL, "
+                    + "element_id "+OBJECTID +", "
                     + "diagram_ref_id "+ OBJECTID +", "
-                    + "border_color   "+ COLOR    +", "
-                    + "border_type    "+ INTEGER  +", "
-                    + "content        "+ TEXT     +", "
-                    + "documentation  "+ TEXT     +", "
-                    + "hint_content   "+ TEXT     +", "
-                    + "hint_title     "+ OBJ_NAME +", "
-                    + "is_locked      "+ BOOLEAN  +", "
-                    + "image_path     "+ OBJECTID +", "
-                    + "image_position "+ INTEGER  +", "
-                    + "line_color     "+ COLOR    +", "
-                    + "line_width     "+ INTEGER  +", "
-                    + "fill_color     "+ COLOR    +", "
-                    + "font           "+ FONT     +", "
-                    + "font_color     "+ COLOR    +", "
-                    + "name           "+ OBJ_NAME +", "
-                    + "notes          "+ TEXT     +", "
-                    + "text_alignment "+ INTEGER  +", "
-                    + "text_position  "+ INTEGER  +", "
-                    + "type           "+ INTEGER  +", "
-                    + "x              "+ INTEGER  +", "
-                    + "y              "+ INTEGER  +", "
-                    + "width          "+ INTEGER  +", "
-                    + "height         "+ INTEGER  +", "
-                    + "rank           "+ INTEGER  +" NOT NULL, "
-                    + "checksum       "+ OBJECTID +" NOT NULL, "
+                    + "border_color "+COLOR +", "
+                    + "border_type "+INTEGER +", "
+                    + "content "+TEXT +", "
+                    + "documentation "+TEXT +", "
+                    + "hint_content "+TEXT +", "
+                    + "hint_title "+OBJ_NAME +", "
+                    + "is_locked "+BOOLEAN +", "
+                    + "image_path "+ OBJECTID +", "
+                    + "image_position "+ INTEGER +", "
+                    + "line_color "+ COLOR +", "
+                    + "line_width "+ INTEGER +", "
+                    + "fill_color "+ COLOR +", "
+                    + "font "+ FONT +", "
+                    + "font_color "+ COLOR +", "
+                    + "name "+ OBJ_NAME +", "
+                    + "notes "+ TEXT +", "
+                    + "source_connections "+ TEXT + ", "
+                    + "target_connections "+ TEXT + ", "
+                    + "text_alignment "+ INTEGER +", "
+                    + "text_position "+ INTEGER +", "
+                    + "type "+ INTEGER +", "
+                    + "x "+ INTEGER +", "
+                    + "y "+ INTEGER +", "
+                    + "width "+ INTEGER +", "
+                    + "height "+ INTEGER +", "
+                    + "rank "+ INTEGER +" NOT NULL, "
+                    + "checksum "+ OBJECTID +" NOT NULL, "
                     + PRIMARY_KEY+" (id, version, container_id)"
                     + ")");
 
@@ -709,16 +713,35 @@ public class DBDatabaseConnection {
      * Upgrades the database
      */
     private void upgradeDatabase(int fromVersion) throws SQLException {
-        // convert from 200 to 201
+        String COLUMN = DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
+        
+        // convert from version 200 to 201 :
+        //      - add a blob column into the views table
         if ( fromVersion == 200 ) {
-            // we need to add a blob column into the views table
-            String COLUMN = DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
-
             setAutoCommit(false);
             request("ALTER TABLE "+schema+"views ADD "+COLUMN+" screenshot "+IMAGE);
             request("UPDATE "+schema+"database_version SET version = 201 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
             commit();
             setAutoCommit(true);
+            
+            fromVersion = 201;
+        }
+        
+        // convert from version 201 to 202 :
+        //      - add a text_position column in the views_connections table
+        //      - add source_connections and target_connections to views_objects and views_connections tables
+        if ( fromVersion == 201 ) {
+            setAutoCommit(false);
+            request("ALTER TABLE "+schema+"views_connections ADD "+COLUMN+" text_position "+INTEGER);
+            request("ALTER TABLE "+schema+"views_objects ADD "+COLUMN+" source_connections "+TEXT);
+            request("ALTER TABLE "+schema+"views_objects ADD "+COLUMN+" target_connections "+TEXT);
+            request("ALTER TABLE "+schema+"views_connections ADD "+COLUMN+" source_connections "+TEXT);
+            request("ALTER TABLE "+schema+"views_connections ADD "+COLUMN+" target_connections "+TEXT);
+            request("UPDATE "+schema+"database_version SET version = 202 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+            commit();
+            setAutoCommit(true);
+            
+            fromVersion = 202;
         }
     }
 
@@ -970,7 +993,6 @@ public class DBDatabaseConnection {
 
         HashMap<String, Object> hashResult = resultSetToHashMap(result);      //TODO : if ArchimateModel : add the children in the HashMap
 
-        if ( version == 0 ) hashResult.put("version", version = result.getInt("version"));
         if ( component instanceof IFolder ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
         result.close();
         result=null;
@@ -1005,6 +1027,7 @@ public class DBDatabaseConnection {
         for (int column = 1; column <= rs.getMetaData().getColumnCount(); column++) {
             if ( rs.getObject(column) != null ) {
                 // we only listed the types that may be found by the database proxy and not the exhaustive types list
+            	String columnName = rs.getMetaData().getColumnName(column).toLowerCase();			// we need to convert to lowercase because of Oracle
                 switch ( rs.getMetaData().getColumnType(column) ) {
                     case Types.INTEGER :
                     case Types.NUMERIC :
@@ -1012,14 +1035,12 @@ public class DBDatabaseConnection {
                     case Types.TINYINT :
                     case Types.BIGINT :
                     case Types.BOOLEAN :
-                    case Types.BIT :        map.put(rs.getMetaData().getColumnName(column), rs.getInt(column));  break;
+                    case Types.BIT :        map.put(columnName, rs.getInt(column));  break;
 
                     case Types.TIMESTAMP :
-                    case Types.TIME :       map.put(rs.getMetaData().getColumnName(column), rs.getTimestamp(column)); break;
+                    case Types.TIME :       map.put(columnName, rs.getTimestamp(column)); break;
 
-                    case Types.VARCHAR :    map.put(rs.getMetaData().getColumnName(column), rs.getString(column)); break;
-
-                    default :               map.put(rs.getMetaData().getColumnName(column), rs.getObject(column)); break;
+                    default :               map.put(columnName, rs.getString(column));
                 }
             }
         }
@@ -1540,7 +1561,7 @@ public class DBDatabaseConnection {
      * Prepare the import of the views objects of a specific view from the database
      */
     public void prepareImportViewsObjects(String viewId, int version) throws Exception {
-        currentResultSet = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ? ORDER BY rank"
+        currentResultSet = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ? ORDER BY rank"
                 ,viewId
                 ,version
                 );
@@ -1610,6 +1631,11 @@ public class DBDatabaseConnection {
                         }
                     }
                 });
+                
+                if ( eObject instanceof IConnectable ) {
+                    model.registerSourceConnection((IDiagramModelObject)eObject, currentResultSet.getString("source_connections"));
+                    model.registerTargetConnection((IDiagramModelObject)eObject, currentResultSet.getString("target_connections"));
+                }
 
                 // If the object has got properties but does not have a linked element, then it may have distinct properties
                 if ( eObject instanceof IProperties && currentResultSet.getString("element_id")==null ) {
@@ -1648,7 +1674,7 @@ public class DBDatabaseConnection {
      * Prepare the import of the views connections of a specific view from the database
      */
     public void prepareImportViewsConnections(String viewId, int version) throws Exception {
-        currentResultSet = select("SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, type FROM "+schema+"views_connections WHERE view_id = ? AND view_version = ? ORDER BY rank"
+        currentResultSet = select("SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type FROM "+schema+"views_connections WHERE view_id = ? AND view_version = ? ORDER BY rank"
                 ,viewId
                 ,version
                 );
@@ -1685,14 +1711,15 @@ public class DBDatabaseConnection {
                         try {
                             HashMap<String, Object> map = removeFirst(_fifo);
 
+                            if ( eObject instanceof INameable                           && map.get("name")!=null )              ((INameable)eObject).setName((String)map.get("name"));
                             if ( eObject instanceof ILockable                           && map.get("is_locked")!=null )         ((ILockable)eObject).setLocked((Integer)map.get("is_locked")==0?false:true);
                             if ( eObject instanceof IDocumentable                       && map.get("documentation")!=null )     ((IDocumentable)eObject).setDocumentation((String)map.get("documentation"));
                             if ( eObject instanceof ILineObject                         && map.get("line_color")!=null )        ((ILineObject)eObject).setLineColor((String)map.get("line_color"));
                             if ( eObject instanceof ILineObject                         && map.get("line_width")!=null )        ((ILineObject)eObject).setLineWidth((Integer)map.get("line_width"));
                             if ( eObject instanceof IFontAttribute                      && map.get("font")!=null )              ((IFontAttribute)eObject).setFont((String)map.get("font"));
                             if ( eObject instanceof IFontAttribute                      && map.get("font_color")!=null )        ((IFontAttribute)eObject).setFontColor((String)map.get("font_color"));
-                            if ( eObject instanceof IDiagramModelConnection             && map.get("name")!=null )              ((IDiagramModelConnection)eObject).setName((String)map.get("name"));
                             if ( eObject instanceof IDiagramModelConnection             && map.get("type")!=null )              ((IDiagramModelConnection)eObject).setType((Integer)map.get("type"));
+                            if ( eObject instanceof IDiagramModelConnection             && map.get("text_position")!=null )     ((IDiagramModelConnection)eObject).setTextPosition((Integer)map.get("text_position"));
                             if ( eObject instanceof IDiagramModelArchimateConnection    && map.get("type")!=null )              ((IDiagramModelArchimateConnection)eObject).setType((Integer)map.get("type"));
                             if ( eObject instanceof IDiagramModelArchimateConnection    && map.get("relationship_id")!=null )   ((IDiagramModelArchimateConnection)eObject).setArchimateConcept(model.getAllRelationships().get(map.get("relationship_id")));
                         } catch (Exception e) {
@@ -1700,8 +1727,12 @@ public class DBDatabaseConnection {
                         }
                     }
                 });
-
-                model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
+                
+                if ( eObject instanceof IConnectable ) {
+                    model.registerSourceConnection((IDiagramModelConnection)eObject, currentResultSet.getString("source_connections"));
+                    model.registerTargetConnection((IDiagramModelConnection)eObject, currentResultSet.getString("target_connections"));
+                }
+                //model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
 
                 if ( eObject instanceof IDiagramModelConnection ) {
                     ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank"
@@ -2516,8 +2547,10 @@ public class DBDatabaseConnection {
         result.close();
         result=null;
 
-        if ( currentVersion == 0 )
+        if ( currentVersion == 0 ) {
+            
             currentVersion = databaseVersion;
+        }
 
         // Then, we store the values in the DBMetadata
         ((IDBMetadata)eObject).getDBMetadata().setCurrentVersion(currentVersion);
@@ -2920,7 +2953,7 @@ public class DBDatabaseConnection {
      * The rank allows to order the views during the import process.
      */
     private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-        final String[] ViewsObjectsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "rank", "checksum"};
+        final String[] ViewsObjectsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "rank", "checksum"};
         
         EObject viewContainer = viewObject.eContainer();
         while ( !(viewContainer instanceof IDiagramModel) ) {
@@ -2954,6 +2987,8 @@ public class DBDatabaseConnection {
                 ,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFontColor() : null)
                 ,((viewObject instanceof INameable && !(viewObject instanceof IDiagramModelArchimateComponent) && !(viewObject instanceof IDiagramModelReference)) ? ((INameable)viewObject).getName() : null)      // They have got there own name. The others use the name of the corresponding ArchimateConcept
                 ,((viewObject instanceof ICanvasModelSticky) ? ((ICanvasModelSticky)viewObject).getNotes() : null)
+                ,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getSourceConnections()) : null)
+                ,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getTargetConnections()) : null)
                 ,((viewObject instanceof ITextAlignment) ? ((ITextAlignment)viewObject).getTextAlignment() : null)
                 ,((viewObject instanceof ITextPosition) ? ((ITextPosition)viewObject).getTextPosition() : null)
                 ,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getX() : null)
@@ -2989,7 +3024,7 @@ public class DBDatabaseConnection {
      * The rank allows to order the views during the import process.
      */
     private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-        final String[] ViewsConnectionsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "type", "rank", "checksum"};
+        final String[] ViewsConnectionsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "rank", "checksum"};
         final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
         
@@ -3013,8 +3048,11 @@ public class DBDatabaseConnection {
                 ,((viewConnection instanceof IFontAttribute) ? ((IFontAttribute)viewConnection).getFont() : null)
                 ,((viewConnection instanceof IFontAttribute) ? ((IFontAttribute)viewConnection).getFontColor() : null)
                 ,((viewConnection instanceof IDiagramModelArchimateConnection) ? ((IDiagramModelArchimateConnection)viewConnection).getArchimateConcept().getId() : null)
+                ,((viewConnection instanceof IConnectable) ? encode(((IConnectable)viewConnection).getSourceConnections()) : null)
+                ,((viewConnection instanceof IConnectable) ? encode(((IConnectable)viewConnection).getTargetConnections()) : null)
                 ,((viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getSource().getId() : null)
                 ,((viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getTarget().getId() : null)
+                ,((viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getTextPosition() : null)
                 ,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : (viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getType() : null)
                 ,++viewConnectionRank
                 ,((IDBMetadata)viewConnection).getDBMetadata().getCurrentChecksum()
@@ -3082,7 +3120,7 @@ public class DBDatabaseConnection {
         }
     }
     
-    public DATABASE_STATUS exportImage(String path, byte[] image) throws SQLException {
+    public DATABASE_STATUS exportImage(String path, byte[] image) throws SQLException, NoSuchAlgorithmException {
     	String checksum = DBChecksum.calculateChecksum(image);
     	DATABASE_STATUS status;
     	ResultSet result = null;
@@ -3118,5 +3156,25 @@ public class DBDatabaseConnection {
     	}
     	
     	return status;
+    }
+    
+    private String encode (EList<IDiagramModelConnection> connections) {
+        StringBuilder result = new StringBuilder();
+        for ( IDiagramModelConnection connection: connections ) {
+            if ( result.length() > 0 )
+                result.append(",");
+            result.append(connection.getId());
+        }
+        return result.toString();
+    }
+    
+    public static String getTargetConnectionsString(EList<IDiagramModelConnection> connections) {
+        StringBuilder target = new StringBuilder();
+        for ( IDiagramModelConnection connection: connections ) {
+            if ( target.length() > 0 )
+                target.append(",");
+            target.append(connection.getId());
+        }
+        return target.toString();
     }
 }

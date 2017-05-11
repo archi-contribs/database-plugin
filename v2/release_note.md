@@ -1,3 +1,44 @@
+### v2.0.4 : 11/05/2017
+* Export model:
+  * Solve bug where export conflicts were not detected correctly on MySQL databases
+* Import individual component:
+  * The import type (shared or copy) can now be changed directly on the import window
+* Preference page:
+  * Correct traversal order of fields on preference page
+  * The default database port is automatically filled-in when port field is empty or equals 0
+  * The default for new databases is to not export view images
+  * When saving preferences while editing database properties, the plugin now asks if the updates need to be saved or discarded
+* Miscellaneous:
+  * Rewrite of the checksum calculation procedure to ensure it is always the same length
+  *	Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model
+  *	This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables
+                                  
+* Known bugs
+  * Import individual component:
+    * images are not imported
+    * view references are not imported correctly
+    * importing elements "in a view" create all the corresponding objects in the top left corner of the view
+    * clicking on the "cancel" button during the export or the import of a model is not well managed
+
+* TODO list
+  * Import individual component:
+    * allow to import elements recursively
+    * allow to select all the classes of one group in a single click
+    * when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
+  * Export model:
+    * show up all the component properties in the conflict resolution table
+  * Get component history:
+    * allow to export individual component, or update it from the database, directly from the history window
+    * allow to get the database history
+  * Miscellaneous:
+    * add a preference to show or hide the debug information on the right click menu rather than depend on the logging level
+    * add an option to check for relationships that are in the database but would not be in the in memory model
+    * add a progressbar on the "please wait while checking components to export" window
+    * find a way to manage images from the database the same way it is done on disk
+    * create a new windows that will show up detailed statistics about the model
+    * add more jdbc drivers (mongodb, odbc, etc ...)
+
+
 ### v2.0.3 : 07/05/2017
 * Export model :
   * Make conflict management more reliable on PostGreSQL databases

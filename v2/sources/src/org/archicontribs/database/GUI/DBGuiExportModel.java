@@ -82,6 +82,7 @@ public class DBGuiExportModel extends DBGui {
 
 		popup("Please wait while counting model's components");
 		exportedModel.countAllObjects();
+		closePopup();
 		
 		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
@@ -724,7 +725,7 @@ public class DBGuiExportModel extends DBGui {
 			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
 			txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
 			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
 			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
 			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
@@ -1112,7 +1113,8 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	private boolean doExportEObject(EObject eObjectToExport, Text txtSynced, Text txtNew, Text txtUpdated) throws Exception {
 		assert(eObjectToExport instanceof IDBMetadata);
-
+		assert(connection != null);
+		
 		boolean status = true;
 		try {
 			if ( connection.exportEObject(eObjectToExport, getOptionValue()) && txtSynced != null ) {
@@ -1135,15 +1137,29 @@ public class DBGuiExportModel extends DBGui {
 			// worst, it may change from one driver version to another version
 			switch ( selectedDatabase.getDriver().toLowerCase() ) {
 			    case "sqlite" :
-			        if ( !err.getMessage().startsWith("[SQLITE_CONSTRAINT_PRIMARYKEY]") )
+			        if ( err.getErrorCode() != 19 )
 			            throw err;
 			        break;
 			    case "postgresql" :
-			        if ( !err.getMessage().startsWith("ERROR: duplicate key value violates unique constraint") )
+			        if ( !DBPlugin.areEqual(err.getSQLState(), "23505") )
                         throw err;
 			        break;
+			    case "mysql" :
+			    	if ( err.getErrorCode() != 1062 )
+			    		throw err;
+			    	break;
+			    case "oracle" :
+			    	if ( err.getErrorCode() != 1 )
+			    		throw err;
+			    	break;
+			    case "ms-sql" :
+			    	if ( err.getErrorCode() != 2627 )
+			    		throw err;
+			    	break;
+			    case "neo4j" :		// we do not use primary keys on neo4j databases
 			    default :
-			        throw err;					// TODO : we need to determine the right value for all the databases
+			        throw err;
+			        // TODO : we need to determine the right value for all the databases
 			}
 			
 			// if we're here, it means that a conflict has been detected
@@ -1168,6 +1184,7 @@ public class DBGuiExportModel extends DBGui {
 				case exportToDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
 					((IDBMetadata)eObjectToExport).getDBMetadata().setExportedVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
+					((IDBMetadata)eObjectToExport).getDBMetadata().setDatabaseVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.askUser);	// just in case there is a new conflict
 					doExportEObject(eObjectToExport, txtSynced, txtNew, txtUpdated);
 					break;

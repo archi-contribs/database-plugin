@@ -9,7 +9,6 @@ package org.archicontribs.database.GUI;
 import java.sql.ResultSet;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.swt.SWT;
@@ -27,6 +26,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 
+import org.archicontribs.database.model.ArchimateModel;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
@@ -53,6 +53,10 @@ public class DBGuiComponentHistory extends DBGui {
 		selectedComponent = component;
 		
 		includeNeo4j = false;
+		
+		popup("Please wait while counting model's components");
+		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
+		closePopup();
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName());		
 		
@@ -97,8 +101,6 @@ public class DBGuiComponentHistory extends DBGui {
 		tblVersions.setLinesVisible(true);
 		tblVersions.addListener(SWT.Selection, new Listener() {
 		    public void handleEvent(Event e) {
-		        // we force the checksum calcultation
-		        ((IDBMetadata)selectedComponent).getDBMetadata().setCurrentChecksum(DBChecksum.calculateChecksum(selectedComponent));
 		        fillInCompareTable(tblContent, selectedComponent, tblVersions.getSelection()[0].getText(0));
 		    }
 		});

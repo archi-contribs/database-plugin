@@ -89,25 +89,25 @@ import org.json.simple.parser.JSONParser;
  * 									Detect folders and views changes using checksum
  * 									Solve bug where save button does not show up in preferences page
  * 
- * v2.0.0 :         28/04/2017		Export Model :
+ * v2.0.0 :         28/04/2017		Export Model:
  *                                     Solve bug where properties were not exported correctly
  *                                     Solve bug where connections could be exported twice
  *                                     Rewrite the conflict detection when exporting to make it more accurate
  *                                     Create the status page on the export model window
  *                                     Add a popup when nothing needs to be exported
- *                                  Import Model :
+ *                                  Import Model:
  *                                     Create the status page on the export model window
  *                                  Import individual component :
  *                                     Add the ability to hide existing components in the import component module
  *                                     Add the ability to hide default views in the import component module
  *                                  Get component history :
  *                                     Solve bug where the component was not found in the database
- *                                  Preferences :
+ *                                  Preferences:
  *                                     Add a preference entry to automatically close import and export windows on success
  *                                     Add a preference entry to automatically start to export the model to the default database
  *                                     Add a preference entry to automatically download and install the plugin updates
  *                                     Add a preference entry to import individual components in shared or copy mode by default
- *                                  Miscellaneous :
+ *                                  Miscellaneous:
  *                                     Solve bug in the logger where some multi-lines messages were not printed correctly
  *                                     From now on, folders and views have got their own version number
  *                                     Increase performance by reusing compiled SQL requests
@@ -128,58 +128,73 @@ import org.json.simple.parser.JSONParser;
  *                                  Solve "Operation not allowed after ResultSet closed" error message on model export
  *                                  Add a menu entry to replace old fashion IDs to Archi 4 IDs (to ensure uniqueness of all components)
  *                                  
- * v2.0.3 : 07/05/2017              Export model :
+ * v2.0.3 : 07/05/2017              Export model:
  *                                  	Make conflict management more reliable on PostGreSQL databases
  *                                 		Added a preference to remove the dirty flag on the model after a successful export
  *                                 		Solve bug where count of exported components could be erroneous
- *									Import individual component :
+ *									Import individual component:
  *										Added missing "location" in individual component import window
  *                                  	Add the ability to import several individual components at the same time
  *                                  	The component list in the individual component import window are now sorted alphabetically
  *										Solve bug where the same component could be imported several times
- *                                  Miscellanous :
+ *                                  Miscellaneous:
  * 										Allow to specify a database schema in the database configuration
  * 										It is now possible to check a database connection without the need to edit their details
  *                                	    Reduce memory consumption
  *                                      Remove the NOT NULL constraints on some columns because Oracle does not do any difference between an empty string and a null value
  *                                      Renamed mssql driver to ms-sql to be visually more distinctive from mysql
- *									Known bugs :
- *										In import individual component, required images are not imported
- *										In import individual component, views object referencing views are not imported correctly
+ * 
+ * v2.0.4 : 11/05/2017				Export model:
+ * 										Solve bug where export conflicts were not detected correctly on MySQL databases
+ *                                  Import individual component:
+ *                                  	The import type (shared or copy) can now be changed directly on the import window
+ *									Preference page:
+ *									    Correct traversal order of fields on preference page
+ *									    The default database port is automatically filled-in when port field is empty or equals 0
+ *									    The default for new databases is to not export view images
+ *									    When saving preferences while editing database properties, the plugin now asks if the updates need to be saved or discarded
+ *                                  Miscellaneous:
+ *                                  	Rewrite of the checksum calculation procedure to ensure it is always the same length
+ *                                  	Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model
+ *                                  	This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables
  *                                  
+ *                                  Known bugs:
+ *                                  -----------
+ *										Import individual component:
+ *											images are not imported
+ *											view references are not imported correctly
+ *											importing elements "in a view" create all the corresponding objects in the top left corner of the view
+ *											clicking on the "cancel" button during the export or the import of a model is not well managed
  *
- *                                  
- *                                  // TODO : continue to check for exceptions where required
- *                                  // TODO : allow to import elements recursively
- *                                  // TODO : allow to import and export component from the history window
- *                                  // TODO : update component get history to search for history of folders and views
- *                                  // TODO : when right menu on folder : if view folder, default to view import, else default to import element
- *                                  //                                    more ... pre-select the element group (business, application, technology, ...)
- *                                  // TODO : choose a way to select all the element group in one click 
- *                                  
- *                                  // TODO : allow to import image from database (is it possible to superclass the window that opens image from file ?)
- *                                  
- *                                  // TODO : add a menu action : check for missing relationships (loop on all elements and check if some relationships are missing)
- *                                  // TODO : add a progressbar on import of individual components
- *                                  // TODO : add the children components in the resolve conflict table
- *                                  
- *                                  // TODO : add a procedure that will allow to provide the user details about the model
- *                                  //          how many nodes, how many devices, now many location, ... 
- *                                  
- * 									// TODO : dynamically load jdbc drivers
- * 									// TODO : add more jdbc drivers (odbc, mongodb, etc ...)
- * 									// TODO : add an option to save an image of views in the database.
- * 									// TODO : do not calculate checksums on images anymore (the path is a checksum)
- *                                  // TODO : check if it is really useful to export the diagram_ref_id of views objects
- *                                  
- *                                  // BUG : get history is empty !!!
- *                                  // BUG : sometimes, the import of individual components gets an empty tblComponents table !!!
- *                                  // BUG : clicking on the "CANCEL" button during import or export is not managed well
+ *									TODO list:
+ *									----------
+ *										Import individual component:
+ *											allow to import elements recursively
+ *											allow to select all the classes of one group in a single click
+ *											when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
+ *										Export model:
+ *											show up all the component properties in the conflict resolution table
+ *										Get component history:
+ *											allow to export individual component, or update it from the database, directly from the history window
+ *											allow to get the database history
+ *										Miscellaneous:
+ *											add a preference to show or hide the debug information on the right click menu rather than depend on the logging level
+ *											add an option to check for relationships that are in the database but would not be in the in memory model
+ *											add a progressbar on the "please wait while checking components to export" window
+ *											find a way to manage images from the database the same way it is done on disk
+ *											create a new windows that will show up detailed statistics about the model
+ *											add more jdbc drivers (mongodb, odbc, etc ...)
+ *
+ * 									technical TODOs :
+ *                                  	// TODO : continue to check for exceptions where required
+ *                                  	// TODO : update component get history to search for history of folders and views
+ * 										// TODO : do not calculate checksums on images anymore (the path is a checksum)
+ *                                  	// TODO : check if it is really useful to export the diagram_ref_id of views objects
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.3";
+	public static final String pluginVersion = "2.0.4";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

@@ -398,6 +398,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	
     @Override
     public boolean performOk() {
+    	table.close();
+    	
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
     	
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());

@@ -16,6 +16,7 @@ import org.archicontribs.database.DBDatabase;
 import org.archicontribs.database.DBDatabaseConnection;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.swt.SWT;
@@ -29,6 +30,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.FileDialog;
@@ -230,7 +232,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(lblName, 0, SWT.CENTER);
 		fd.left = new FormAttachment(lblName, 30);
-		fd.right = new FormAttachment(tblDatabases, -30, SWT.RIGHT);
+		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
 		txtName.setLayoutData(fd);
 		txtName.setVisible(false);
 
@@ -245,6 +247,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		comboDriver = new Combo(grpDatabases, SWT.READ_ONLY);
 		comboDriver.setItems(DBDatabase.DRIVER_NAMES);
+		comboDriver.setText(DBDatabase.DRIVER_NAMES[0]);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblDriver, 0, SWT.CENTER);
 		fd.left = new FormAttachment(txtName, 0, SWT.LEFT);
@@ -395,15 +398,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		btnShowPassword.setVisible(false);
-
+		
 		fd = new FormData();
 		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
 		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
-		fd.right = new FormAttachment(btnShowPassword,0, SWT.LEFT);
+		fd.right = new FormAttachment(btnShowPassword);
 		txtPassword.setLayoutData(fd);
 		txtPassword.setVisible(false);
-
-
 
 		lblExportType = new Label(grpDatabases, SWT.NONE);
 		lblExportType.setText("Default export type :");
@@ -536,7 +537,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnDiscard.setVisible(false);
 
 
-
+		grpDatabases.setTabList(new Control[] {txtName, comboDriver, txtFile, btnBrowse, txtServer, txtPort, txtDatabase, txtSchema, txtUsername, txtPassword, btnShowPassword, compoExportType, compoExportViewImages, btnDiscard, btnSave});
 
 		grpDatabases.layout();
 
@@ -631,7 +632,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			txtServer.setToolTipText(null);
 		}
 
-		if ( txtPort.getText().isEmpty() ) {
+		if ( txtPort.getText().isEmpty() || DBPlugin.areEqual(txtPort.getText(), "0")) {
 			txtPort.setText(String.valueOf(DBDatabase.get(comboDriver.getText()).getDefaultPort()));
 		}
 
@@ -695,7 +696,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		// we unselect all the lines of the tblDatabases table
 		tblDatabases.deselectAll();
-
+		
 		// we show up the edition widgets
 		setDatabaseDetails(true);
 	}
@@ -774,8 +775,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		txtPassword.setEnabled(editMode);				txtPassword.setText(databaseEntry != null ? databaseEntry.getPassword() : "");
 		btnWholeType.setEnabled(editMode);				btnWholeType.setSelection(databaseEntry != null ? databaseEntry.getExportWholeModel() : true);
 		btnComponentsType.setEnabled(editMode);			btnComponentsType.setSelection(databaseEntry != null ? !databaseEntry.getExportWholeModel() : false);
-		btnExportViewImages.setEnabled(editMode);		btnExportViewImages.setSelection(databaseEntry != null ? databaseEntry.getExportViewsImages() : true);
-		btnDoNotExportViewImages.setEnabled(editMode);	btnDoNotExportViewImages.setSelection(databaseEntry != null ? !databaseEntry.getExportViewsImages() : false);
+		btnExportViewImages.setEnabled(editMode);		btnExportViewImages.setSelection(databaseEntry != null ? databaseEntry.getExportViewsImages() : false);
+		btnDoNotExportViewImages.setEnabled(editMode);	btnDoNotExportViewImages.setSelection(databaseEntry != null ? !databaseEntry.getExportViewsImages() : true);
 		btnNeo4jNativeMode.setEnabled(editMode);		btnNeo4jNativeMode.setSelection(databaseEntry != null ? databaseEntry.getNeo4jNativeMode() : true);
 		btnNeo4jExtendedMode.setEnabled(editMode);		btnNeo4jExtendedMode.setSelection(databaseEntry != null ? !databaseEntry.getNeo4jNativeMode() : false);
 
@@ -940,28 +941,21 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	}
 
 	/**
-	 * Called when the "showPassword" button has been pressed
+	 * Called when the "showPassword" button is pressed
 	 */
 	public void showOrHidePasswordCallback() {
-		String pass = txtPassword.getText();
-		txtPassword.dispose();
-
-		if ( btnShowPassword.getSelection() ) {
-			txtPassword = new Text(grpDatabases,  SWT.PASSWORD | SWT.BORDER);
-			btnShowPassword.setImage(DBGui.LOCK_ICON);
-		} else {
-			txtPassword = new Text(grpDatabases, SWT.BORDER);
-			btnShowPassword.setImage(DBGui.UNLOCK_ICON);
+		txtPassword.setEchoChar(btnShowPassword.getSelection() ? 0x25cf : '\0' );
+		btnShowPassword.setImage(btnShowPassword.getSelection() ? DBGui.LOCK_ICON : DBGui.UNLOCK_ICON);
+	}
+	
+	/**
+	 * If we are in edit mode, then ask the user is if wants to save or discard
+	 */
+	public void close() {
+		if ( txtName.isVisible() && txtName.isEnabled() ) {
+			if ( DBGui.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 ) {
+				saveCallback();
+			}			
 		}
-
-		txtPassword.setText(pass);
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(lblPassword, 0, SWT.CENTER);
-		fd.left = new FormAttachment(txtPort, 0, SWT.LEFT);
-		fd.right = new FormAttachment(tblDatabases, -20, SWT.RIGHT);
-		txtPassword.setLayoutData(fd);
-		txtPassword.setVisible(true);
-
-		grpDatabases.layout();
 	}
 }

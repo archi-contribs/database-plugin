@@ -25,6 +25,7 @@ import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ModelVersion;
@@ -50,14 +51,19 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	private int currentVersion = 0;
 	private int exportedVersion = 0;
 	
-	private Map<String, IArchimateElement> allElements = null;
-	private Map<String, IArchimateRelationship> allRelationships = null;
-	private Map<String, IDiagramModel> allViews = null;
-	private Map<String, IDiagramModelComponent> allViewsObjects = null;
-	private Map<String, IDiagramModelConnection> allViewsConnections = null;
-	private Map<String, IFolder> allFolders = null;
-	private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = null;
-	private Map<IDiagramModelConnection, Entry<String, String>> allConnectionsSourceAndTarget = null;
+    // we use LinkedHashMap as order is important
+	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
+	private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
+	private Map<String, IDiagramModel> allViews = new LinkedHashMap<String, IDiagramModel>();
+	private Map<String, IDiagramModelComponent> allViewsObjects = new LinkedHashMap<String, IDiagramModelComponent>();
+	private Map<String, IDiagramModelConnection> allViewsConnections = new LinkedHashMap<String, IDiagramModelConnection>();
+	private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
+	private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
+	private Map<IDiagramModelObject, String> allSourceObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
+	private Map<IDiagramModelObject, String> allTargetObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
+	private Map<IDiagramModelConnection, String> allSourceConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
+	private Map<IDiagramModelConnection, String> allTargetConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
+	
 	
 	/**
 	 * @return the current version of the model 
@@ -94,16 +100,19 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	public void resetCounters() {
 		if ( logger.isTraceEnabled() ) logger.trace("Reseting model's counters.");
 		
-			// we use LinkedHashMap as order is important
-		allElements = new LinkedHashMap<String, IArchimateElement>();
-		allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
-		allViews = new LinkedHashMap<String, IDiagramModel>();
-		allViewsObjects = new LinkedHashMap<String, IDiagramModelComponent>();
-		allViewsConnections = new LinkedHashMap<String, IDiagramModelConnection>();
-		allFolders = new LinkedHashMap<String, IFolder>();
+
+		allElements.clear();
+		allRelationships.clear();
+		allViews.clear();
+		allViewsObjects.clear();
+		allViewsConnections.clear();
+		allFolders.clear();
 		
-		allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
-		allConnectionsSourceAndTarget = new LinkedHashMap<IDiagramModelConnection, Entry<String, String>>();
+		allRelationsSourceAndTarget.clear();
+		allSourceObjectsConnections.clear();
+		allTargetObjectsConnections.clear();
+	    allSourceConnectionsConnections.clear();
+	    allTargetConnectionsConnections.clear();
 	}
 	
 	/**
@@ -113,8 +122,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
     public void resetsourceAndTargetCounters() {
         if ( logger.isTraceEnabled() ) logger.trace("Reseting source and target counters.");
         
-        allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
-        allConnectionsSourceAndTarget = new LinkedHashMap<IDiagramModelConnection, Entry<String, String>>();
+        allRelationsSourceAndTarget.clear();
+        allSourceObjectsConnections.clear();
+        allTargetObjectsConnections.clear();
+        allSourceConnectionsConnections.clear();
+        allTargetConnectionsConnections.clear();
     }
 	
 	/**
@@ -146,11 +158,17 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	 */
 	public String countObject(EObject eObject, boolean mustCalculateChecksum, IDiagramModel parentDiagram) throws Exception {
 		StringBuilder checksumBuilder = null;
+		int len = 0;
 
 		if ( mustCalculateChecksum ) {
-			//TODO: find a way to avoid to calculate the checksu twice for connections (are they are counted twice : as sources and targets) 
+			//TODO: find a way to avoid to calculate the checksum twice for connections (are they are counted twice : as sources and targets) 
 			checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
+			len = checksumBuilder.length();
 		}
+		
+		//if ( ((IIdentifier)eObject).getId().equals("03366f6e-e1ab-46dd-b91a-4ac4a8453377") ) {
+		//	System.out.println("got you in parent "+parentDiagram.getId());
+		//}
 		
 		switch ( eObject.eClass().getName() ) {
 			case "ArchimateDiagramModel" :
@@ -199,12 +217,12 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			case "Folder" :							allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 													for ( IFolder child: ((IFolder)eObject).getFolders() ) {
 														((IDBMetadata)child).getDBMetadata().setRootFolderType( ( ((IFolder)child).getType().getValue() != 0 ) ? ((IFolder)child).getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
-														String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
-														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
+														countObject(child, mustCalculateChecksum, parentDiagram);
+														if ( mustCalculateChecksum ) checksumBuilder.append(child.getId());
 													}
 													for ( EObject child: ((IFolder)eObject).getElements() ) {
-														String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
-														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
+														countObject(child, mustCalculateChecksum, parentDiagram);
+														if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 													}
 													break;
 			case "Property" :
@@ -224,12 +242,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		}
 		
 		if ( mustCalculateChecksum ) {
-			String checksum = (checksumBuilder.length() > 32) ? DBChecksum.calculateChecksum(checksumBuilder.toString()) : checksumBuilder.toString();
+			String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
 			((IDBMetadata)eObject).getDBMetadata().setCurrentChecksum(checksum);
+			return checksum;
 		}
 		
-		if ( eObject instanceof IIdentifier )
-			return ((IIdentifier)eObject).getId();
 		return null;
 	}
 	
@@ -271,12 +288,6 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		allRelationsSourceAndTarget.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
 	}
 	
-	public void registerSourceAndTarget(IDiagramModelConnection connection, String sourceId, String targetId) throws Exception {
-		assert (sourceId != null && targetId != null);
-			
-		allConnectionsSourceAndTarget.put(connection, new SimpleEntry<String, String>(sourceId, targetId));
-	}
-	
 	public void resolveRelationshipsSourcesAndTargets() {
 	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for relationships");
 		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: allRelationsSourceAndTarget.entrySet() ) {
@@ -297,26 +308,80 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		allRelationsSourceAndTarget.clear();
 	}
 	
-	public void resolveConnectionsSourcesAndTargets() {
-	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
-		for ( Map.Entry<IDiagramModelConnection, Entry<String, String>> entry: allConnectionsSourceAndTarget.entrySet() ) {
-			IDiagramModelConnection connection = entry.getKey();
-			Entry<String, String> conn = entry.getValue();
-
-			IConnectable source = (IConnectable)getAllViewObjects().get(conn.getKey());
-			if ( source == null ) source = (IConnectable)getAllViewConnections().get(conn.getKey());
+    public void registerSourceConnection(IDiagramModelObject object, String sourceId) throws Exception {
+        if ( sourceId != null && sourceId.length()!=0 ) if ( sourceId != null && sourceId.length()!=0 ) allSourceObjectsConnections.put(object, sourceId);
+    }
+    
+    public void registerTargetConnection(IDiagramModelObject object, String targetId) throws Exception {
+        if ( targetId != null && targetId.length()!=0 ) allTargetObjectsConnections.put(object, targetId);
+    }
+    
+    public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
+        if ( sourceId != null && sourceId.length()!=0 ) allSourceConnectionsConnections.put(connection, sourceId);
+    }
+    
+    public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
+        if ( targetId != null && targetId.length()!=0 ) allTargetConnectionsConnections.put(connection, targetId);
+    }
 	
-			IConnectable target = (IConnectable)getAllViewObjects().get(conn.getValue());
-			if ( target == null ) target = (IConnectable)getAllViewConnections().get(conn.getValue());
+    public void resolveConnectionsSourcesAndTargets() throws Exception {
+        if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
 
-			if ( logger.isTraceEnabled() ) logger.trace("   resolving connection for "+connection.getId()+"   (source="+source.getId()+"    target= "+target.getId()+")");
-			connection.setSource(source);
-			source.getSourceConnections().add(connection);
-			
-			connection.setTarget(target);
-			target.getTargetConnections().add(connection);
-		}
-		
-		allConnectionsSourceAndTarget.clear();
+        for ( Map.Entry<IDiagramModelObject, String> entry: allSourceObjectsConnections.entrySet() ) {
+            IDiagramModelObject object = entry.getKey();
+            
+            if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            for ( String id: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
+                IDiagramModelConnection connection = getAllViewConnections().get(id);
+                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
+                connection.setSource(object);
+                object.getSourceConnections().add(connection);
+            }
+        }
+        
+        for ( Map.Entry<IDiagramModelConnection, String> entry: allSourceConnectionsConnections.entrySet() ) {
+            IDiagramModelConnection object = entry.getKey();
+            
+            if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            for ( String id: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
+                IDiagramModelConnection connection = getAllViewConnections().get(id);
+                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
+                connection.setSource(object);
+                object.getSourceConnections().add(connection);
+            }
+        }
+        
+        for ( Map.Entry<IDiagramModelObject, String> entry: allTargetObjectsConnections.entrySet() ) {
+            IDiagramModelObject object = entry.getKey();
+            
+            if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            for ( String id: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
+                IDiagramModelConnection connection = getAllViewConnections().get(id);
+                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
+                connection.setTarget(object);
+                object.getTargetConnections().add(connection);
+            }
+        }
+        
+        for ( Map.Entry<IDiagramModelConnection, String> entry: allTargetConnectionsConnections.entrySet() ) {
+            IDiagramModelConnection object = entry.getKey();
+            
+            if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            for ( String id: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
+                IDiagramModelConnection connection = getAllViewConnections().get(id);
+                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
+                connection.setTarget(object);
+                object.getTargetConnections().add(connection);
+            }
+        }
+
+        allSourceObjectsConnections.clear();
+        allTargetObjectsConnections.clear();
+        allSourceObjectsConnections.clear();
+        allTargetObjectsConnections.clear();
 	}
 }

@@ -10,6 +10,7 @@ import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
@@ -17,10 +18,12 @@ import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.ui.handlers.HandlerUtil;
 
+import com.archimatetool.editor.diagram.editparts.AbstractConnectedEditPart;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 
@@ -44,15 +47,27 @@ public class DBMenuShowIdHandler extends AbstractHandler {
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selectedObject = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
 		
-		if ( selectedObject instanceof IIdentifier ) {
-			String id = ((IIdentifier)selectedObject).getId();
-			int w = 12;
+		if ( selectedObject instanceof AbstractConnectedEditPart ) {
+			EObject eObject = ((AbstractConnectedEditPart)selectedObject).getModel();
+			
+			if ( eObject instanceof IIdentifier ) {
+				String id = ((IIdentifier)eObject).getId();
+				if ( id.equals("020858ed-2da4-474c-b045-1c6237fddaac") )
+					System.out.println("got you");
+			}
+			
+			if ( eObject instanceof IDiagramModelContainer ) {
+				String id = ((IIdentifier)eObject).getId();
+			}
+			
+			if ( eObject instanceof IFolder ) {
+				FolderType type = ((IFolder)eObject).getType();
+				int w = 12;
+			}
 		}
 		
-		if ( selectedObject instanceof IFolder ) {
-			FolderType type = ((IFolder)selectedObject).getType();
-			int w = 12;
-		}
+		
+
 		
 		return null;
 	}

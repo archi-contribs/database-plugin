@@ -171,7 +171,7 @@ public class DBGuiImportComponent extends DBGui {
 
 		// we show the option in the bottom
 		setOption("Import type :", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
-
+		
 		// We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
 		setBtnAction("Import", new SelectionListener() {
 			public void widgetSelected(SelectionEvent event) {
@@ -195,7 +195,8 @@ public class DBGuiImportComponent extends DBGui {
 	 * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
 	 */
 	@Override
-	protected void connectedToDatabase(boolean ignore) {	
+	protected void connectedToDatabase(boolean ignore) {
+		enableOption();
 		createGrpFilter();
 		createGrpComponents();
 		compoRightBottom.setVisible(true);
@@ -1116,20 +1117,27 @@ public class DBGuiImportComponent extends DBGui {
 
 		hideOption.setText("Hide components with empty names");
 		String addOn = "";
-		if ( hideOption.getSelection() )
-			addOn = " AND name <> ''";
+		if ( hideOption.getSelection() ) {
+			if ( selectedDatabase.getDriver().equals("oracle") ) {
+				addOn = " AND LENGTH(name) <> 0";
+			} else {
+				addOn = " AND name <> ''";
+			}
+		}
+			
+		addOn += " AND version = (SELECT MAX(version) FROM "+selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 
 			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else {
 				if ( ignoreCase.getSelection() )
-					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
+					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
 				else
-					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 			}
 
 			while (result.next()) {
