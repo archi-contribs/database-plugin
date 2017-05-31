@@ -29,6 +29,8 @@ import java.util.TreeMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.net.ssl.HttpsURLConnection;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -158,6 +160,22 @@ import org.json.simple.parser.JSONParser;
  *                                  	Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model
  *                                  	This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables
  *                                  
+ * v2.0.5 : 17/05/2017				Export model:
+ * 										Change order of folders export (exporting all the root folders first)
+ * 									Import model:
+ * 										Solve bug in counting components to import prior the import itself which can cause false error messages even when the import is successful
+ * 										Solve bug in folder import where the parent folder was not created yet before its content
+ * 
+ * v2.0.6 : 30/05/2017				Import model:
+ * 										Solve bug when importing a model which has got a shared view which has been updated by another model
+ * 										The import SQL request have been rewritten because of Oracle specificity
+ * 										A double click on a model's version now launches the import
+ *									Import individual components:
+ *										Solve bug where all the views versions were added in the table, resulting in several entries with the same name
+ * 									Database model:
+ * 										Added column "element_version" to table "views_objects"
+ * 										Added column "relationship_version" to table "views_connections"
+ * 										
  *                                  Known bugs:
  *                                  -----------
  *										Import individual component:
@@ -168,6 +186,8 @@ import org.json.simple.parser.JSONParser;
  *
  *									TODO list:
  *									----------
+ *										Import model:
+ *											Add an indication when a component has been updated after the last export, through another model 
  *										Import individual component:
  *											allow to import elements recursively
  *											allow to select all the classes of one group in a single click
@@ -194,7 +214,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.4";
+	public static final String pluginVersion = "2.0.6";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
@@ -358,8 +378,9 @@ public class DBPlugin extends AbstractUIPlugin {
 					DBGui.popup("Please wait while checking for new database plugin ...");
 				else
 					logger.debug("Checking for a new plugin version on GitHub");
-
-				// we connect to GitHub and get the latest plugin file version
+				
+				// We connect to GitHub and get the latest plugin file version
+				// Do not forget the "-Djdk.http.auth.tunneling.disabledSchemes=" in the ini file if you connect through a proxy
 				String PLUGIN_API_URL = "https://api.github.com/repos/archi-contribs/database-plugin/contents/v2";
 				String RELEASENOTE_URL = "https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md";
 
@@ -370,27 +391,41 @@ public class DBPlugin extends AbstractUIPlugin {
 					Authenticator.setDefault(new Authenticator() {
 						@Override
 						protected PasswordAuthentication getPasswordAuthentication() {
+						    logger.debug("requestor type = "+getRequestorType());
 							if (getRequestorType() == RequestorType.PROXY) {
 								String prot = getRequestingProtocol().toLowerCase();
 								String host = System.getProperty(prot + ".proxyHost", "");
 								String port = System.getProperty(prot + ".proxyPort", "80");
 								String user = System.getProperty(prot + ".proxyUser", "");
-								String password = System.getProperty(prot + ".proxyPassword", "");
+								String pass = System.getProperty(prot + ".proxyPassword", "");
+								
+								if ( logger.isDebugEnabled() ) {
+								    logger.debug("proxy request from "+getRequestingHost()+":"+getRequestingPort());
+								    logger.debug("proxy configuration:");
+								    logger.debug("   prot : "+prot);
+								    logger.debug("   host : "+host);
+								    logger.debug("   port : "+port);
+								    logger.debug("   user : "+user);
+								    logger.debug("   pass : xxxxx");
+								}
 
-								if (getRequestingHost().equalsIgnoreCase(host)) {
-									if (Integer.parseInt(port) == getRequestingPort()) {
-										// Seems to be OK.
-										logger.debug("Setting PasswordAuthenticator");
-										return new PasswordAuthentication(user, password.toCharArray());
-									}
+								// we check if the request comes from the proxy, else we do not send the password (for security reason)
+								// TODO: check IP address in addition of the FQDN
+								if ( getRequestingHost().equalsIgnoreCase(host) && (Integer.parseInt(port) == getRequestingPort()) ) {
+									// Seems to be OK.
+									logger.debug("Setting PasswordAuthenticator");
+									return new PasswordAuthentication(user, pass.toCharArray());
+								} else {
+								    logger.debug("Not setting PasswordAuthenticator as the request does not come from the proxy (host + port)");
 								}
 							}
 							return null;
 						}  
 					});
-
-					if ( logger.isDebugEnabled() ) logger.debug("connecting to "+PLUGIN_API_URL);
-					URLConnection conn = new URL(PLUGIN_API_URL).openConnection();
+					
+					
+                    if ( logger.isDebugEnabled() ) logger.debug("connecting to "+PLUGIN_API_URL);
+                    HttpsURLConnection conn = (HttpsURLConnection)new URL(PLUGIN_API_URL).openConnection();
 
 					if ( logger.isDebugEnabled() ) logger.debug("getting file list");
 					JSONArray result = (JSONArray)parser.parse(new InputStreamReader(conn.getInputStream()));

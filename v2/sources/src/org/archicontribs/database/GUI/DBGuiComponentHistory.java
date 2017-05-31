@@ -10,6 +10,7 @@ import java.sql.ResultSet;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
@@ -56,9 +57,10 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		popup("Please wait while counting model's components");
 		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
+		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllElements().size()+" elements and "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllRelationships().size()+" relationships.");
 		closePopup();
 		
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName());		
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion+").");		
 		
 		setCompoRight();
 		compoRightBottom.setVisible(true);

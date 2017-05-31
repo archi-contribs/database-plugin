@@ -82,13 +82,11 @@ public class DBGuiExportModel extends DBGui {
 
 		popup("Please wait while counting model's components");
 		exportedModel.countAllObjects();
+		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
 		closePopup();
 		
-		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+model.getName()+"\" (plugin version "+DBPlugin.pluginVersion+").");
 		
-		// Create the graphical objects specific to the export
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI to export model \""+model.getName()+"\"");
 		createGrpComponents();
 		createGrpModel();
 		compoRightBottom.setVisible(true);
@@ -679,13 +677,13 @@ public class DBGuiExportModel extends DBGui {
 		txtNewElements.setText(String.valueOf(connection.countNewElements()));
 		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
 		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
-		txtSyncedElements.setForeground( (connection.countSyncedElements() == exportedModel.getAllElements().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		//txtSyncedElements.setForeground( (connection.countSyncedElements() == exportedModel.getAllElements().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model: "+connection.countSyncedRelationships()+" synced, "+connection.countUpdatedRelationships()+" updated, "+connection.countNewRelationships()+" new.");
 		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
 		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
 		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
-		txtSyncedRelationships.setForeground( (connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		//txtSyncedRelationships.setForeground( (connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 		txtTotalFolders.setVisible(getOptionValue());
 		txtNewFolders.setVisible(getOptionValue());
@@ -717,37 +715,46 @@ public class DBGuiExportModel extends DBGui {
 			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
 			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
 			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
-			txtSyncedFolders.setForeground( (connection.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			//txtSyncedFolders.setForeground( (connection.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" views in the model: "+connection.countSyncedViews()+" synced, "+connection.countUpdatedViews()+" updated, "+connection.countNewViews()+" new.");			
 			txtNewViews.setText(String.valueOf(connection.countNewViews()));
 			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
 			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
-			txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			//txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
 			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
 			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
 			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
-			txtSyncedViewObjects.setForeground( (connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			//txtSyncedViewObjects.setForeground( (connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" view connections in the model: "+connection.countSyncedViewConnections()+" synced, "+connection.countUpdatedViewConnections()+" updated, "+connection.countNewViewConnections()+" new.");
 			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
 			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
 			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
-			txtSyncedViewConnections.setForeground( (connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			//txtSyncedViewConnections.setForeground( (connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" ViewsImages in the model: "+connection.countSyncedImages()+" synced, "+connection.countUpdatedImages()+" updated, "+connection.countNewImages()+" new.");
 			txtNewImages.setText(String.valueOf(connection.countNewImages()));
 			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
 			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
-			txtSyncedImages.setForeground( (connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			//txtSyncedImages.setForeground( (connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-			TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
-			tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
-			tableItem.setText(0, (tblModelVersions.getItemCount()>1 ? String.valueOf(Integer.valueOf(tblModelVersions.getItem(1).getText(0))+1) : "1"));
+			//TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
+			// we replace the line "Now" by "Not created yet"
+			TableItem tableItem;
+			if ( tblModelVersions.getItemCount() == 0 ) {
+				tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
+				tableItem.setText(0, "1");
+			} else {
+				tableItem = tblModelVersions.getItem(0);
+				tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
+				tableItem.setText(0, (tblModelVersions.getItemCount()>1 ? String.valueOf(Integer.valueOf(tblModelVersions.getItem(1).getText(0))+1) : "1"));
+			}
 			tableItem.setText(1, "(not created yet)");
 			tableItem.setText(2, System.getProperty("user.name"));
+			tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
 			tableItem.setData("new", true);
 			tableItem.setData("name", (tblModelVersions.getData("name")!=null ? tblModelVersions.getData("name") : exportedModel.getName()));
 			tableItem.setData("note", (tblModelVersions.getData("note")!=null ? tblModelVersions.getData("note") : ""));
@@ -772,7 +779,14 @@ public class DBGuiExportModel extends DBGui {
 			tblModelVersions.notifyListeners(SWT.Selection, new Event());
 		}
 
-		if ( statusColor == GREEN_COLOR ) {
+		//if ( statusColor == GREEN_COLOR ) {
+		if ( 	(connection.countSyncedElements() == exportedModel.getAllElements().size()) &&
+				(connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) &&
+				(connection.countSyncedFolders() == exportedModel.getAllFolders().size()) &&
+				(connection.countSyncedViews() == exportedModel.getAllViews().size()) &&
+				(connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) &&
+				(connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) &&
+				(connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ) {
 			popup(Level.INFO, "The model is already sync'ed to the database and doesn't need to be exported.");
 			btnDoAction.setEnabled(false);
 			return;

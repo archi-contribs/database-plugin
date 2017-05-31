@@ -152,10 +152,12 @@ public class DBGuiImportComponent extends DBGui {
 
 		includeNeo4j = false;
 
+		popup("Please wait while counting model's components");
 		model.countAllObjects();
-
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component.");
+		closePopup();		
+		
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion+").");
 
 		// model in which the component should be imported
 		importedModel = model;
@@ -1248,15 +1250,17 @@ public class DBGuiImportComponent extends DBGui {
 		String addOn = "";
 		if ( hideOption.getSelection() )
 			addOn = " AND name <> 'Default View'";
+		
+		addOn += " AND version = (SELECT MAX(version) FROM "+selectedDatabase.getSchemaPrefix()+"views WHERE id = v.id)";
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 
 			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 
 			while (result.next()) {
 				if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllViews().get(result.getString("id"))==null))

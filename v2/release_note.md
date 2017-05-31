@@ -1,3 +1,48 @@
+### v2.0.6 : 30/05/2017
+* Import model:
+  * Solve bug when importing a model which has got a shared view with elements or relationships added by other models
+  * The import SQL request have been rewritten because of Oracle specificity
+  * A double click on a model's version now launches the import
+* Import individual components:
+  * Solve bug where all the views versions were added in the table, resulting in several entries with the same name
+* Database model:
+  * Added column "element_version" to table "views_objects"
+  * Added column "relationship_version" to table "views_connections"
+                                  
+### Known bugs
+* Import individual component:
+  * images are not imported
+  * view references are not imported correctly
+  * importing elements "in a view" create all the corresponding objects in the top left corner of the view
+  * clicking on the "cancel" button during the export or the import of a model is not well managed
+
+### TODO list
+* Import individual component:
+  * allow to import elements recursively
+  * allow to select all the classes of one group in a single click
+  * when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
+* Export model:
+  * show up all the component properties in the conflict resolution table
+* Get component history:
+  * allow to export individual component, or update it from the database, directly from the history window
+  * allow to get the database history
+* Miscellaneous:
+  * add a preference to show or hide the debug information on the right click menu rather than depend on the logging level
+  * add an option to check for relationships that are in the database but would not be in the in memory model
+  * add a progressbar on the "please wait while checking components to export" window
+  * find a way to manage images from the database the same way it is done on disk
+  * create a new windows that will show up detailed statistics about the model
+  * add more jdbc drivers (mongodb, odbc, etc ...)
+
+----------
+
+### v2.0.5 : 17/05/2017
+* Export model:
+  * Change order of folders export (exporting all the root folders first)
+* Import model:
+  * Solve bug in counting components to import prior the import itself which can cause false error messages even when the import is successful
+  * Solve bug in folder import where the parent folder was not created yet before its content
+
 ### v2.0.4 : 11/05/2017
 * Export model:
   * Solve bug where export conflicts were not detected correctly on MySQL databases
@@ -12,32 +57,6 @@
   * Rewrite of the checksum calculation procedure to ensure it is always the same length
   *	Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model
   *	This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables
-                                  
-* Known bugs
-  * Import individual component:
-    * images are not imported
-    * view references are not imported correctly
-    * importing elements "in a view" create all the corresponding objects in the top left corner of the view
-    * clicking on the "cancel" button during the export or the import of a model is not well managed
-
-* TODO list
-  * Import individual component:
-    * allow to import elements recursively
-    * allow to select all the classes of one group in a single click
-    * when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
-  * Export model:
-    * show up all the component properties in the conflict resolution table
-  * Get component history:
-    * allow to export individual component, or update it from the database, directly from the history window
-    * allow to get the database history
-  * Miscellaneous:
-    * add a preference to show or hide the debug information on the right click menu rather than depend on the logging level
-    * add an option to check for relationships that are in the database but would not be in the in memory model
-    * add a progressbar on the "please wait while checking components to export" window
-    * find a way to manage images from the database the same way it is done on disk
-    * create a new windows that will show up detailed statistics about the model
-    * add more jdbc drivers (mongodb, odbc, etc ...)
-
 
 ### v2.0.3 : 07/05/2017
 * Export model :

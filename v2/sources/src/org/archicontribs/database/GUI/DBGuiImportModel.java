@@ -91,7 +91,7 @@ public class DBGuiImportModel extends DBGui {
     public DBGuiImportModel(String title) throws Exception {
         super(title);
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model.");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.pluginVersion+").");
 
         createAction(ACTION.One, "1 - Choose model");
         createAction(ACTION.Two, "2 - Import model");
@@ -266,6 +266,12 @@ public class DBGuiImportModel extends DBGui {
                 }
             }
         });
+        tblModelVersions.addListener(SWT.MouseDoubleClick, new Listener() {
+            public void handleEvent(Event e) {
+                if ( btnDoAction.getEnabled() )
+                    btnDoAction.notifyListeners(SWT.Selection, new Event());
+            }
+        });
         fd = new FormData();
         fd.top = new FormAttachment(0, 10);
         fd.left = new FormAttachment(0, 10);
@@ -278,11 +284,11 @@ public class DBGuiImportModel extends DBGui {
         colVersion.setWidth(20);
 
         TableColumn colCreatedOn = new TableColumn(tblModelVersions, SWT.NONE);
-        colCreatedOn.setText("Created on");
+        colCreatedOn.setText("Date");
         colCreatedOn.setWidth(120);
 
         TableColumn colCreatedBy = new TableColumn(tblModelVersions, SWT.NONE);
-        colCreatedBy.setText("Created by");
+        colCreatedBy.setText("Author");
         colCreatedBy.setWidth(125);
 
         lblModelName = new Label(grpModelVersions, SWT.NONE);
@@ -611,14 +617,22 @@ public class DBGuiImportModel extends DBGui {
         compoRightBottom.layout();
         
         setActiveAction(ACTION.Two);
-
-
+        
         // we create the model (but do not create standard folder as they will be imported from the database)
         modelToImport = (ArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
         modelToImport.setId(modelId);
         modelToImport.setName(modelName);
         modelToImport.setPurpose((String)tblModels.getSelection()[0].getData("purpose"));
-        modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
+        
+        // we get the selected model version to import
+        // if the value is empty, this means that the user selected the "Now" line, so wh must load the latest version of the views
+        if ( !tblModelVersions.getSelection()[0].getText(0).isEmpty() ) {
+        	modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
+        	modelToImport.setImportLatestVersion(false);
+        } else {
+        	modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getItem(1).getText(0)));
+        	modelToImport.setImportLatestVersion(true);
+        }
 
         // we add the new model in the manager
         IEditorModelManager.INSTANCE.registerModel(modelToImport);
@@ -629,7 +643,9 @@ public class DBGuiImportModel extends DBGui {
             protected IStatus run(IProgressMonitor monitor) {
                 try {
                     if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-                    int importSize = connection.importModel(modelToImport);
+                    popup("Please wait while getting the model metadata ...");
+                    int importSize = connection.importModelMetadata(modelToImport);
+                    closePopup();
                     setProgressBarMinAndMax(0, importSize);
                     DBPlugin.checkAsyncException();
 
@@ -668,7 +684,7 @@ public class DBGuiImportModel extends DBGui {
                     }
                     sync();
                     DBPlugin.checkAsyncException();
-                    connection.checkImportedFoldersCount();
+                    //connection.checkImportedFoldersCount();
 
                     if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
                     connection.prepareImportElements(modelToImport);
@@ -696,8 +712,8 @@ public class DBGuiImportModel extends DBGui {
                         DBPlugin.checkAsyncException();
                     }
                     sync();
-                    connection.checkImportedElementsCount();
-                    connection.checkImportedRelationshipsCount();
+                    //connection.checkImportedElementsCount();
+                    //connection.checkImportedRelationshipsCount();
 
                     if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
                     display.syncExec(new Runnable() {
@@ -725,7 +741,7 @@ public class DBGuiImportModel extends DBGui {
                         DBPlugin.checkAsyncException();
                     }
                     sync();
-                    connection.checkImportedViewsCount();
+                    //connection.checkImportedViewsCount();
 
                     if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
                     for (IDiagramModel view: modelToImport.getAllViews().values()) {
@@ -741,8 +757,14 @@ public class DBGuiImportModel extends DBGui {
                             DBPlugin.checkAsyncException();
                         }
                     }
+                    display.syncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
+                        }
+                    });
                     sync();
-                    connection.checkImportedObjectsCount();
+                    //connection.checkImportedObjectsCount();
 
                     if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
                     for (IDiagramModel view: modelToImport.getAllViews().values()) {
@@ -758,9 +780,15 @@ public class DBGuiImportModel extends DBGui {
                             DBPlugin.checkAsyncException();
                         }
                     }
+                    display.syncExec(new Runnable() {
+                        @Override
+                        public void run() {
+                            txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
+                        }
+                    });
                     sync();
                     DBPlugin.checkAsyncException();
-                    connection.checkImportedConnectionsCount();
+                    //connection.checkImportedConnectionsCount();
 
                     if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
                     display.asyncExec(new Runnable() {
@@ -790,6 +818,7 @@ public class DBGuiImportModel extends DBGui {
                     sync();
 
                 } catch (Exception err) {
+                	closePopup();
                     popup(Level.ERROR, "Failed to import model from database.", err);
                     DBPlugin.setAsyncException(err);
                     statusColor=RED_COLOR;

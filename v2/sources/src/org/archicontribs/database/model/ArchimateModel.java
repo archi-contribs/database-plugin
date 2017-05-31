@@ -50,6 +50,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	
 	private int currentVersion = 0;
 	private int exportedVersion = 0;
+	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
@@ -64,6 +65,13 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	private Map<IDiagramModelConnection, String> allSourceConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
 	private Map<IDiagramModelConnection, String> allTargetConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
 	
+	public void setImportLatestVersion(boolean latest) {
+		importLatestVersion = latest;
+	}
+	
+	public boolean getImportLatestVersion() {
+		return importLatestVersion;
+	}
 	
 	/**
 	 * @return the current version of the model 
@@ -141,11 +149,17 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			// In addition, we calculate the current checksum on elements and relationships
 		
 			// we do not use eAllContents() but traverse manually all the components because we want to keep the order
-			//    - elements and relationships order is not important
+			//    - elements and relationships order is not really important
 			//    - but graphical objects order is important to know which one is over (or under) which others
+		
+			// we also ensure that the root folders are exported first
 		
 		for (IFolder folder: getFolders() ) {
 		    ((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
+		    allFolders.put(folder.getId(), folder);
+		}
+		
+		for (IFolder folder: getFolders() ) {
 			countObject(folder, true, null);
 		}
 	}
