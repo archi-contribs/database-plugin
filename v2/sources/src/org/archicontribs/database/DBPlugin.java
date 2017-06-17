@@ -175,6 +175,8 @@ import org.json.simple.parser.JSONParser;
  * 									Database model:
  * 										Added column "element_version" to table "views_objects"
  * 										Added column "relationship_version" to table "views_connections"
+ * 
+ * v2.0.7 : 18/06/2017				Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected
  * 										
  *                                  Known bugs:
  *                                  -----------
