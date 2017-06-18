@@ -88,7 +88,7 @@ public class DBChecksum {
 				checksum.append(((IInfluenceRelationship)eObject).getStrength());
 			}
 			if ( eObject instanceof IAccessRelationship ) {
-	             if ( debugChecksum ) logger.trace("   rel acc. type : "+((IAccessRelationship)eObject).getAccessType());
+	            if ( debugChecksum ) logger.trace("   rel acc. type : "+((IAccessRelationship)eObject).getAccessType());
 				checksum.append(((IAccessRelationship)eObject).getAccessType());
 			}
 		}
