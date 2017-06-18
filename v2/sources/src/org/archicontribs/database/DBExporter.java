@@ -28,7 +28,7 @@ public class DBExporter implements IModelExporter {
      */
     @Override
     public void export(IArchimateModel archimateModel) throws IOException {
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+archimateModel.getName());
+        logger.info("Exporting model "+archimateModel.getName());
 
         DBGuiExportModel exportDialog = null;
         try {

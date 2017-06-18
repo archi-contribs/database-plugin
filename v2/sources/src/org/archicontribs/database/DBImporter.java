@@ -33,7 +33,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	 */
 	@Override
 	public void doImport(IArchimateModel notUsed) throws IOException {
-		if ( logger.isDebugEnabled() ) logger.debug("Importing model.");
+		logger.info("Importing model.");
 	
 		DBGuiImportModel importDialog = null;
 		try {
