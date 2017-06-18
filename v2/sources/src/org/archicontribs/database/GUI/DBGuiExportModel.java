@@ -929,7 +929,7 @@ public class DBGuiExportModel extends DBGui {
 	
 			if ( getOptionValue() ) {
 				
-				// we export first all the views in one gon in order to check as quicly as possible if there are some conflicts
+				// we export first all the views in one go in order to check as quickly as possible if there are some conflicts
 				List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
@@ -1230,7 +1230,18 @@ public class DBGuiExportModel extends DBGui {
 		btnImportDatabaseVersion.setText("Import");
 		btnImportDatabaseVersion.setEnabled(false);
 		btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase); }
+			public void widgetSelected(SelectionEvent e) { 
+				if ( checkRememberChoice.getSelection() ) {
+					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+					// at the end, only those with errors will stay
+					tblListConflicts.setSelection(0);
+					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+				} else {
+					// we only apply the choice to the selected component
+					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+				}
+			}
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		fd = new FormData(80,25);
@@ -1243,7 +1254,18 @@ public class DBGuiExportModel extends DBGui {
 		btnExportMyVersion.setText("Export");
 		btnExportMyVersion.setEnabled(false);
 		btnExportMyVersion.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase); }
+			public void widgetSelected(SelectionEvent e) { 
+				if ( checkRememberChoice.getSelection() ) {
+					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+					// at the end, only those with errors will stay
+					tblListConflicts.setSelection(0);
+					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+				} else {
+					// we only apply the choice to the selected component
+					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+				}
+			}
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		fd = new FormData(80,25);
@@ -1255,7 +1277,18 @@ public class DBGuiExportModel extends DBGui {
 		btnDoNotExport.setText("Do not export");
 		btnDoNotExport.setEnabled(false);
 		btnDoNotExport.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport); }
+			public void widgetSelected(SelectionEvent e) { 
+				if ( checkRememberChoice.getSelection() ) {
+					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+					// at the end, only those with errors will stay
+					tblListConflicts.setSelection(0);
+					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+				} else {
+					// we only apply the choice to the selected component
+					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+				}
+			}
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		fd = new FormData(80,25);
@@ -1263,7 +1296,7 @@ public class DBGuiExportModel extends DBGui {
 		fd.bottom = new FormAttachment(100, -10);
 		btnDoNotExport.setLayoutData(fd);
 
-		Button checkRememberChoice = new Button(grpConflict, SWT.CHECK);
+		checkRememberChoice = new Button(grpConflict, SWT.CHECK);
 		checkRememberChoice.setText("Remember my choice");
 		fd = new FormData();
 		fd.right = new FormAttachment(btnDoNotExport, -20);
@@ -1272,27 +1305,32 @@ public class DBGuiExportModel extends DBGui {
 
 		grpConflict.layout();
 	}
-
+	
 	/**
 	 * called when the user click on the btnExportMyVersion button<br>
 	 * Sets the exportChoice on the component's DBmetadata and removes the component from the tblListconflicts table<br>
 	 * If no conflict remain, then it relaunch the doExportComponents method 
 	 */
-	protected void tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE choice) {
+	protected void tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE requiredChoice) {
+		CONFLICT_CHOICE effectiveChoice = requiredChoice;
 		EObject component = exportedModel.getAllElements().get(tblListConflicts.getSelection()[0].getText());
 		if ( component == null ) component = exportedModel.getAllRelationships().get(tblListConflicts.getSelection()[0].getText());
 		if ( component == null ) {
 			component = exportedModel.getAllFolders().get(tblListConflicts.getSelection()[0].getText());
 			if ( component == null ) component = exportedModel.getAllViews().get(tblListConflicts.getSelection()[0].getText());
+			if ( component == null ) {
+				popup(Level.ERROR, "Can't get conflicting component \""+tblListConflicts.getSelection()[0].getText()+"\"");
+				return;
+			}
 
-			if ( choice == CONFLICT_CHOICE.importFromDatabase ) {
+			if ( effectiveChoice == CONFLICT_CHOICE.importFromDatabase ) {
 				logger.debug("Importing from database is not allowed for "+component.getClass().getSimpleName());
-				choice = CONFLICT_CHOICE.askUser;
+				effectiveChoice = CONFLICT_CHOICE.askUser;
 			}
 		}
 
-		((IDBMetadata)component).getDBMetadata().setConflictChoice(choice);
-		switch (choice) {
+		((IDBMetadata)component).getDBMetadata().setConflictChoice(effectiveChoice);
+		switch (effectiveChoice) {
 			case doNotExport:        if ( logger.isDebugEnabled() ) logger.debug("Tagging component to do not export");                      break;
 			case exportToDatabase:   if ( logger.isDebugEnabled() ) logger.debug("Tagging component to export current version to database"); break;
 			case importFromDatabase: if ( logger.isDebugEnabled() ) logger.debug("Tagging component to import database version");            break;
@@ -1373,6 +1411,8 @@ public class DBGuiExportModel extends DBGui {
 	private Button btnDoNotExport;
 	private Button btnExportMyVersion;
 	private Button btnImportDatabaseVersion;
+	
+	private Button checkRememberChoice;
 
 	private Group grpConflict;
 
