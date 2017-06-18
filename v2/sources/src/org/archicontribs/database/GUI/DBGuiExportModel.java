@@ -1362,7 +1362,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 			} else {
 				// if some counters are different from the expected values
-				setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", statusColor);
+				setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", RED_COLOR);
 			}
 			
 		} else {

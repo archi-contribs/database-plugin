@@ -767,6 +767,7 @@ public class DBGuiImportModel extends DBGui {
 	            }
         	} else {
         		// if some counters are different from the expected values
+        		statusColor = RED_COLOR;
         		setMessage("No error has been raised during the import process,\nbut the count of imported components is not correct !", RED_COLOR);
         	}
         } else {
