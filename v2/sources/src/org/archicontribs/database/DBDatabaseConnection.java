@@ -1431,7 +1431,7 @@ public class DBDatabaseConnection {
 				((IDBMetadata)folder).getDBMetadata().setCurrentVersion(currentResultSet.getInt("folder_version"));
 				((IDBMetadata)folder).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				folder.setName(currentResultSet.getString("name"));
+				folder.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				folder.setDocumentation(currentResultSet.getString("documentation"));
 
 				String parentId = currentResultSet.getString("parent_folder_id");
@@ -1499,7 +1499,7 @@ public class DBDatabaseConnection {
 				((IDBMetadata)element).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				element.setName(currentResultSet.getString("name"));
+				element.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				element.setDocumentation(currentResultSet.getString("documentation"));
 				if ( element instanceof IJunction   && currentResultSet.getObject("type")!=null )  ((IJunction)element).setType(currentResultSet.getString("type"));
 
@@ -1558,7 +1558,7 @@ public class DBDatabaseConnection {
 				((IDBMetadata)relationship).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				relationship.setName(currentResultSet.getString("name"));
+				relationship.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				relationship.setDocumentation(currentResultSet.getString("documentation"));
 
 				if ( relationship instanceof IInfluenceRelationship && currentResultSet.getObject("strength")!=null )      ((IInfluenceRelationship)relationship).setStrength(currentResultSet.getString("strength"));
@@ -1614,7 +1614,7 @@ public class DBDatabaseConnection {
 				((IDBMetadata)view).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				view.setName(currentResultSet.getString("name"));
+				view.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				view.setDocumentation(currentResultSet.getString("documentation"));
 				view.setConnectionRouterType(currentResultSet.getInt("connection_router_type"));
 				if ( view instanceof IArchimateDiagramModel && currentResultSet.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(currentResultSet.getString("viewpoint"));
@@ -2028,7 +2028,7 @@ public class DBDatabaseConnection {
 			element.setId(model.getIDAdapter().getNewID());
 			newElement = true;
 
-			element.setName(result.getString("name")+" (copy)");
+			element.setName((currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"))+" (copy)");
 			((IDBMetadata)element).getDBMetadata().setCurrentVersion(0);
 			((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
@@ -2044,7 +2044,7 @@ public class DBDatabaseConnection {
 				newElement = false;
 			}
 
-			if ( !DBPlugin.areEqual(element.getName(), result.getString("name")) ) element.setName(result.getString("name"));
+			if ( !DBPlugin.areEqual(element.getName(), result.getString("name")) ) element.setName(result.getString("name")==null ? "" : result.getString("name"));
 			((IDBMetadata)element).getDBMetadata().setCurrentVersion(result.getInt("version"));
 			((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(result.getTimestamp("created_on"));
 		}
@@ -2180,7 +2180,7 @@ public class DBDatabaseConnection {
 			((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(result.getTimestamp("created_on"));
 		}
 
-		if ( !DBPlugin.areEqual(relationship.getName(), result.getString("name")) ) relationship.setName(result.getString("name"));
+		if ( !DBPlugin.areEqual(relationship.getName(), result.getString("name")) ) relationship.setName(result.getString("name")==null ? "" : result.getString("name"));
 		if ( !DBPlugin.areEqual(relationship.getDocumentation(), result.getString("documentation")) )relationship.setDocumentation(result.getString("documentation"));
 
 		if ( relationship instanceof IInfluenceRelationship && result.getObject("strength")!=null    && !DBPlugin.areEqual(((IInfluenceRelationship)relationship).getStrength(), result.getString("strength")) )  ((IInfluenceRelationship)relationship).setStrength(result.getString("strength"));
@@ -2271,7 +2271,7 @@ public class DBDatabaseConnection {
 
 		((IDBMetadata)view).getDBMetadata().setCurrentVersion(result.getInt("version"));
 
-		view.setName(currentResultSet.getString("name"));
+		view.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 		view.setDocumentation(currentResultSet.getString("documentation"));
 		view.setConnectionRouterType(currentResultSet.getInt("connection_router_type"));
 		if ( view instanceof IArchimateDiagramModel && currentResultSet.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(currentResultSet.getString("viewpoint"));
