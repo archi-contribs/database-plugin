@@ -2617,6 +2617,9 @@ public class DBDatabaseConnection {
 	 */
 	public void exportModel(ArchimateModel model, String releaseNote) throws Exception {
 		final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on"};
+		
+		if ( (model.getName() == null) || (model.getName().equals("")) )
+			throw new RuntimeException("Model name cannot be empty.");
 
 		insert(schema+"models", modelsColumns
 				,model.getId()
