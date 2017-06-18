@@ -15,7 +15,6 @@ import java.util.Map.Entry;
 import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.eclipse.emf.ecore.EObject;
-
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
@@ -229,14 +228,21 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 													break;
 													
 			case "Folder" :							allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
-													for ( IFolder child: ((IFolder)eObject).getFolders() ) {
-														((IDBMetadata)child).getDBMetadata().setRootFolderType( ( ((IFolder)child).getType().getValue() != 0 ) ? ((IFolder)child).getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
-														countObject(child, mustCalculateChecksum, parentDiagram);
-														if ( mustCalculateChecksum ) checksumBuilder.append(child.getId());
+			
+													// WARNING : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
+													// so we do not use sub folders or elements in the checksum calculation anymore
+													// at the moment, this is not important as we do not allow to share folders between models
+													// but a solution needs to be found !!!
+			
+													for ( IFolder subFolder: ((IFolder)eObject).getFolders() ) {
+														((IDBMetadata)subFolder).getDBMetadata().setRootFolderType( ( ((IFolder)subFolder).getType().getValue() != 0 ) ? ((IFolder)subFolder).getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
+														countObject(subFolder, mustCalculateChecksum, parentDiagram);
+														//SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
 													}
+													
 													for ( EObject child: ((IFolder)eObject).getElements() ) {
 														countObject(child, mustCalculateChecksum, parentDiagram);
-														if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
+														//SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 													}
 													break;
 			case "Property" :
