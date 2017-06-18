@@ -63,6 +63,8 @@ public class DBChecksum {
 		    logger.trace("Calculating checksum of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
 		
 		if ( eObject instanceof INameable ) {
+			// we refuse null names, so if we got one, we replace it with an empty string
+			if ( ((INameable)eObject).getName() == null ) ((INameable)eObject).setName("");
 		    if ( debugChecksum ) logger.trace("   name          : "+((INameable)eObject).getName());
 		    checksum.append(((INameable)eObject).getName());
 		}
