@@ -8,6 +8,7 @@ package org.archicontribs.database.model;
 
 import java.sql.Timestamp;
 
+import org.archicontribs.database.DBLogger;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModel;
@@ -23,6 +24,8 @@ import com.archimatetool.model.INameable;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBMetadata  {
+	private static final DBLogger logger = new DBLogger(ArchimateModel.class);
+	
 	/**
 	 * Choices available when a conflict is detected in the database<br>
 	 * <li><b>askUser</b> ask the user what he wishes to do</li>
@@ -188,6 +191,7 @@ public class DBMetadata  {
 	}
 	
 	public void setCurrentChecksum(String checksum) {
+		if ( logger.isTraceEnabled() ) logger.trace("setting checksum for "+getDebugName()+" : "+checksum);
 		currentChecksum = checksum;
 	}
 	
