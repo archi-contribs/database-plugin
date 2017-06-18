@@ -19,10 +19,8 @@ import java.util.Calendar;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
@@ -36,7 +34,6 @@ import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
@@ -1137,24 +1134,6 @@ public class DBDatabaseConnection {
 		}
 	}
 
-	private LinkedList<HashMap<String, Object>> _fifo = new LinkedList<HashMap<String, Object>>();
-	private HashMap<String, Object> removeFirst(LinkedList<HashMap<String, Object>> fifo) {
-		HashMap<String, Object> map = null;
-
-		try {
-			map = fifo.removeFirst();
-		} catch ( NoSuchElementException e ) {      // if the element has not been added yet
-			try {
-				Thread.sleep(100);                  // we wait 100 milliseconds
-			} catch (InterruptedException e1) {
-				logger.debug("Exception when waiting for fifo", e1);
-			}                     
-			map = fifo.removeFirst();               // and we retry
-		}
-		return map;
-	}
-
-
 
 
 	private HashSet<String> allImagePaths;
@@ -1224,19 +1203,8 @@ public class DBDatabaseConnection {
 
 		result.next();
 
-		_fifo.add(resultSetToHashMap(result));
-		Display.getDefault().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					HashMap<String, Object> map = removeFirst(_fifo);
+		model.setPurpose((String)result.getString("purpose"));
 
-					model.setPurpose((String)map.get("purpose"));
-				} catch (Exception e) {
-					DBPlugin.setAsyncException(e);
-				}
-			}
-		});
 		result.close();
 		result=null;
 
@@ -1463,37 +1431,26 @@ public class DBDatabaseConnection {
 				((IDBMetadata)folder).getDBMetadata().setCurrentVersion(currentResultSet.getInt("folder_version"));
 				((IDBMetadata)folder).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
+				folder.setName(currentResultSet.getString("name"));
+				folder.setDocumentation(currentResultSet.getString("documentation"));
 
-							folder.setName((String)map.get("name"));
-							folder.setDocumentation((String)map.get("documentation"));
+				String parentId = currentResultSet.getString("parent_folder_id");
 
-							String parentId = (String)map.get("parent_folder_id");
+				if ( parentId != null && !parentId.isEmpty() ) {
+					folder.setType(FolderType.get(0));                              		// non root folders have got the "USER" type
+					
+					IFolder parent = model.getAllFolders().get(parentId);
+					if ( parent == null )
+						parent=model.getFolder(FolderType.get(currentResultSet.getInt("root_type")));
+					if ( parent == null ) 
+						throw new Exception("Don't know where to create folder "+currentResultSet.getString("name")+" of type "+currentResultSet.getInt("type")+" and root_type "+currentResultSet.getInt("root_type")+" (unknown folder ID "+currentResultSet.getString("parent_folder_id")+")");
 
-							if ( parentId != null && !parentId.isEmpty() ) {
-								folder.setType(FolderType.get(0));                              // non root folders have got the "USER" type
-								
-								IFolder parent = model.getAllFolders().get(parentId);
-								if ( parent == null )
-									parent=model.getFolder(FolderType.get((int)map.get("root_type")));
-								if ( parent == null ) 
-									throw new Exception("Don't know where to create folder "+(String)map.get("name")+" of type "+(Integer)map.get("type")+" and root_type "+(Integer)map.get("root_type")+" (unknown folder ID "+(String)map.get("parent_folder_id")+")");
+					parent.getFolders().add(folder);
+				} else {
+					folder.setType(FolderType.get(currentResultSet.getInt("type")));        // root folders have got their own type
+					model.getFolders().add(folder);
+				}
 
-								parent.getFolders().add(folder);
-							} else {
-								folder.setType(FolderType.get((Integer)map.get("type")));        // root folders have got their own type
-								model.getFolders().add(folder);
-							}
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
 				importProperties(folder);
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion()+" of folder "+currentResultSet.getString("name")+"("+currentResultSet.getString("folder_id")+")");
 
@@ -1508,18 +1465,6 @@ public class DBDatabaseConnection {
 		return false;
 	}
 
-	/**
-	 * check if the number of imported folders is equals to what is expected
-	 */
-	/*
-	public void checkImportedFoldersCount() throws Exception {
-		if ( countFoldersImported != countFoldersToImport )
-			throw new Exception(countFoldersImported+" folders imported instead of the "+countFoldersToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countFoldersImported+" folders imported.");
-	}
-	*/
-	
 	/**
 	 * Prepare the import of the elements from the database
 	 */
@@ -1554,30 +1499,18 @@ public class DBDatabaseConnection {
 				((IDBMetadata)element).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
+				element.setName(currentResultSet.getString("name"));
+				element.setDocumentation(currentResultSet.getString("documentation"));
+				if ( element instanceof IJunction   && currentResultSet.getObject("type")!=null )  ((IJunction)element).setType(currentResultSet.getString("type"));
 
-							element.setName((String)map.get("name"));
-							element.setDocumentation((String)map.get("documentation"));
-							if ( element instanceof IJunction   && map.get("type")!=null )  ((IJunction)element).setType((String)map.get("type"));
+				IFolder folder;
+				if ( currentResultSet.getString("parent_folder_id") == null ) {
+					folder = model.getDefaultFolderForObject(element);
+				} else {
+					folder = model.getAllFolders().get(currentResultSet.getString("parent_folder_id"));
+				}
+				folder.getElements().add(element);
 
-							IFolder folder;
-							if ( map.get("parent_folder_id") == null ) {
-								folder = model.getDefaultFolderForObject(element);
-							} else {
-								folder = model.getAllFolders().get(map.get("parent_folder_id"));
-							}
-							folder.getElements().add(element);
-
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
 				importProperties(element);
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("element_id")+")");
@@ -1592,18 +1525,6 @@ public class DBDatabaseConnection {
 		}
 		return false;
 	}
-
-	/**
-	 * check if the number of imported elements is equals to what is expected
-	 */
-	/*
-	public void checkImportedElementsCount() throws Exception {
-		if ( countElementsImported != countElementsToImport )
-			throw new Exception(countElementsImported+" elements imported instead of the "+countElementsToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countElementsImported+" elements imported.");
-	}
-	*/
 
 	/**
 	 * Prepare the import of the relationships from the database
@@ -1637,31 +1558,20 @@ public class DBDatabaseConnection {
 				((IDBMetadata)relationship).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
+				relationship.setName(currentResultSet.getString("name"));
+				relationship.setDocumentation(currentResultSet.getString("documentation"));
 
-							relationship.setName((String)map.get("name"));
-							relationship.setDocumentation((String)map.get("documentation"));
+				if ( relationship instanceof IInfluenceRelationship && currentResultSet.getObject("strength")!=null )      ((IInfluenceRelationship)relationship).setStrength(currentResultSet.getString("strength"));
+				if ( relationship instanceof IAccessRelationship    && currentResultSet.getObject("access_type")!=null )   ((IAccessRelationship)relationship).setAccessType(currentResultSet.getInt("access_type"));
 
-							if ( relationship instanceof IInfluenceRelationship && map.get("strength")!=null )      ((IInfluenceRelationship)relationship).setStrength((String)map.get("strength"));
-							if ( relationship instanceof IAccessRelationship    && map.get("access_type")!=null )   ((IAccessRelationship)relationship).setAccessType((Integer)map.get("access_type"));
+				IFolder folder;
+				if ( currentResultSet.getString("parent_folder_id") == null ) {
+					folder = model.getDefaultFolderForObject(relationship);
+				} else {
+					folder = model.getAllFolders().get(currentResultSet.getString("parent_folder_id"));
+				}
+				folder.getElements().add(relationship);
 
-							IFolder folder;
-							if ( map.get("parent_folder_id") == null ) {
-								folder = model.getDefaultFolderForObject(relationship);
-							} else {
-								folder = model.getAllFolders().get(map.get("parent_folder_id"));
-							}
-							folder.getElements().add(relationship);
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
 				importProperties(relationship);
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("relationship_id")+")");
@@ -1677,18 +1587,6 @@ public class DBDatabaseConnection {
 		}
 		return false;
 	}
-
-	/**
-	 * check if the number of imported relationships is equals to what is expected
-	 */
-	/*
-	public void checkImportedRelationshipsCount() throws Exception {
-		if ( countRelationshipsImported != countRelationshipsToImport )
-			throw new Exception(countRelationshipsImported+" relationships imported instead of the "+countRelationshipsToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countRelationshipsImported+" relationships imported.");
-	}
-	*/
 
 	/**
 	 * Prepare the import of the views from the database
@@ -1716,27 +1614,16 @@ public class DBDatabaseConnection {
 				((IDBMetadata)view).getDBMetadata().setCurrentVersion(currentResultSet.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
+				view.setName(currentResultSet.getString("name"));
+				view.setDocumentation(currentResultSet.getString("documentation"));
+				view.setConnectionRouterType(currentResultSet.getInt("connection_router_type"));
+				if ( view instanceof IArchimateDiagramModel && currentResultSet.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(currentResultSet.getString("viewpoint"));
+				if ( view instanceof ISketchModel           && currentResultSet.getObject("background")!=null )    ((ISketchModel)view).setBackground(currentResultSet.getInt("background"));
+				if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_content")!=null )  ((IHintProvider)view).setHintContent(currentResultSet.getString("hint_content"));
+				if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_title")!=null )    ((IHintProvider)view).setHintTitle(currentResultSet.getString("hint_title"));
 
-							view.setName((String)map.get("name"));
-							view.setDocumentation((String)map.get("documentation"));
-							view.setConnectionRouterType((Integer)map.get("connection_router_type"));
-							if ( view instanceof IArchimateDiagramModel && map.get("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint((String)map.get("viewpoint"));
-							if ( view instanceof ISketchModel           && map.get("background")!=null )    ((ISketchModel)view).setBackground((Integer)map.get("background"));
-							if ( view instanceof IHintProvider          && map.get("hint_content")!=null )  ((IHintProvider)view).setHintContent((String)map.get("hint_content"));
-							if ( view instanceof IHintProvider          && map.get("hint_title")!=null )    ((IHintProvider)view).setHintTitle((String)map.get("hint_title"));
+				model.getAllFolders().get(currentResultSet.getString("parent_folder_id")).getElements().add(view);
 
-							model.getAllFolders().get(map.get("parent_folder_id")).getElements().add(view);
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
 				importProperties(view);
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion()+" of "+currentResultSet.getString("name")+"("+currentResultSet.getString("id")+")");
@@ -1751,18 +1638,6 @@ public class DBDatabaseConnection {
 		}
 		return false;
 	}
-
-	/**
-	 * check if the number of imported views is equals to what is expected
-	 */
-	/*
-	public void checkImportedViewsCount() throws Exception {
-		if ( countViewsImported != countViewsToImport )
-			throw new Exception(countViewsImported+" views imported instead of the "+countViewsToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countViewsImported+" views imported.");
-	}
-	*/
 
 	/**
 	 * Prepare the import of the views objects of a specific view from the database
@@ -1795,60 +1670,39 @@ public class DBDatabaseConnection {
 					IArchimateElement element = model.getAllElements().get(currentResultSet.getString("element_id"));
 					if ( element == null ) {
 						if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
-						Display.getDefault().syncExec(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									importElementFromId(model, null, currentResultSet.getString("element_id"), false);
-								} catch (Exception e) {
-									DBPlugin.setAsyncException(e);
-								}
-							}
-						});
-						DBPlugin.checkAsyncException();
+						importElementFromId(model, null, currentResultSet.getString("element_id"), false);
 					}
 				}
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
-							if ( eObject instanceof IDiagramModelArchimateComponent && map.get("element_id")!=null )                            ((IDiagramModelArchimateComponent)eObject).setArchimateConcept(model.getAllElements().get(map.get("element_id")));
-							if ( eObject instanceof IDiagramModelReference          && map.get("diagram_ref_id")!=null )                        ((IDiagramModelReference)eObject).setReferencedModel(model.getAllViews().get(map.get("diagram_ref_id")));
-							if ( eObject instanceof IDiagramModelArchimateObject    && map.get("type")!=null )                                  ((IDiagramModelArchimateObject)eObject).setType((Integer)map.get("type"));
-							if ( eObject instanceof IBorderObject                   && map.get("border_color")!=null )                          ((IBorderObject)eObject).setBorderColor((String)map.get("border_color"));
-							if ( eObject instanceof IDiagramModelNote               && map.get("border_type")!=null )                           ((IDiagramModelNote)eObject).setBorderType((Integer)map.get("border_type"));
-							if ( eObject instanceof ITextContent                    && map.get("content")!=null )                               ((ITextContent)eObject).setContent((String)map.get("content"));
-							if ( eObject instanceof IDocumentable                   && map.get("documentation")!=null )                         ((IDocumentable)eObject).setDocumentation((String)map.get("documentation"));
-							if ( eObject instanceof INameable                       && map.get("name")!=null && map.get("element_id")==null )   ((INameable)eObject).setName((String)map.get("name"));
-							if ( eObject instanceof IHintProvider                   && map.get("hint_content")!=null )                          ((IHintProvider)eObject).setHintContent((String)map.get("hint_content"));
-							if ( eObject instanceof IHintProvider                   && map.get("hint_title")!=null )                            ((IHintProvider)eObject).setHintTitle((String)map.get("hint_title"));
-							if ( eObject instanceof ILockable                       && map.get("is_locked")!=null )                             {int locked; if ( map.get("is_locked") instanceof String ) locked = Integer.valueOf((String)map.get("is_locked")); else locked=(Integer)map.get("is_locked"); ((ILockable)eObject).setLocked(locked==0?false:true);}
-							if ( eObject instanceof IDiagramModelImageProvider      && map.get("image_path")!=null )                            ((IDiagramModelImageProvider)eObject).setImagePath((String)map.get("image_path"));
-							if ( eObject instanceof IIconic                         && map.get("image_position")!=null )                        ((IIconic)eObject).setImagePosition((Integer)map.get("image_position"));
-							if ( eObject instanceof ILineObject                     && map.get("line_color")!=null )                            ((ILineObject)eObject).setLineColor((String)map.get("line_color"));
-							if ( eObject instanceof ILineObject                     && map.get("line_width")!=null )                            ((ILineObject)eObject).setLineWidth((Integer)map.get("line_width"));
-							if ( eObject instanceof IDiagramModelObject             && map.get("fill_color")!=null )                            ((IDiagramModelObject)eObject).setFillColor((String)map.get("fill_color"));
-							if ( eObject instanceof IFontAttribute                  && map.get("font")!=null )                                  ((IFontAttribute)eObject).setFont((String)map.get("font"));
-							if ( eObject instanceof IFontAttribute                  && map.get("font_color")!=null )                            ((IFontAttribute)eObject).setFontColor((String)map.get("font_color"));
-							if ( eObject instanceof ICanvasModelSticky              && map.get("notes")!=null )                                 ((ICanvasModelSticky)eObject).setNotes((String)map.get("notes"));
-							if ( eObject instanceof ITextAlignment                  && map.get("text_alignment")!=null )                        ((ITextAlignment)eObject).setTextAlignment((Integer)map.get("text_alignment"));
-							if ( eObject instanceof ITextPosition                   && map.get("text_position")!=null )                         ((ITextPosition)eObject).setTextPosition((Integer)map.get("text_position"));
-							if ( eObject instanceof IDiagramModelObject )                                                                       ((IDiagramModelObject)eObject).setBounds((Integer)map.get("x"), (Integer)map.get("y"), (Integer)map.get("width"), (Integer)map.get("height"));
+				if ( eObject instanceof IDiagramModelArchimateComponent && currentResultSet.getObject("element_id")!=null )                            ((IDiagramModelArchimateComponent)eObject).setArchimateConcept(model.getAllElements().get(currentResultSet.getString("element_id")));
+				if ( eObject instanceof IDiagramModelReference          && currentResultSet.getObject("diagram_ref_id")!=null )                        ((IDiagramModelReference)eObject).setReferencedModel(model.getAllViews().get(currentResultSet.getString("diagram_ref_id")));
+				if ( eObject instanceof IDiagramModelArchimateObject    && currentResultSet.getObject("type")!=null )                                  ((IDiagramModelArchimateObject)eObject).setType(currentResultSet.getInt("type"));
+				if ( eObject instanceof IBorderObject                   && currentResultSet.getObject("border_color")!=null )                          ((IBorderObject)eObject).setBorderColor(currentResultSet.getString("border_color"));
+				if ( eObject instanceof IDiagramModelNote               && currentResultSet.getObject("border_type")!=null )                           ((IDiagramModelNote)eObject).setBorderType(currentResultSet.getInt("border_type"));
+				if ( eObject instanceof ITextContent                    && currentResultSet.getObject("content")!=null )                               ((ITextContent)eObject).setContent(currentResultSet.getString("content"));
+				if ( eObject instanceof IDocumentable                   && currentResultSet.getObject("documentation")!=null )                         ((IDocumentable)eObject).setDocumentation(currentResultSet.getString("documentation"));
+				if ( eObject instanceof INameable                       && currentResultSet.getObject("name")!=null && currentResultSet.getObject("element_id")==null )   ((INameable)eObject).setName(currentResultSet.getString("name"));
+				if ( eObject instanceof IHintProvider                   && currentResultSet.getObject("hint_content")!=null )                          ((IHintProvider)eObject).setHintContent(currentResultSet.getString("hint_content"));
+				if ( eObject instanceof IHintProvider                   && currentResultSet.getObject("hint_title")!=null )                            ((IHintProvider)eObject).setHintTitle(currentResultSet.getString("hint_title"));
+				if ( eObject instanceof ILockable                       && currentResultSet.getObject("is_locked")!=null )                             {int locked; if ( currentResultSet.getObject("is_locked") instanceof String ) locked = Integer.valueOf(currentResultSet.getString("is_locked")); else locked=currentResultSet.getInt("is_locked"); ((ILockable)eObject).setLocked(locked==0?false:true);}
+				if ( eObject instanceof IDiagramModelImageProvider      && currentResultSet.getObject("image_path")!=null )                            ((IDiagramModelImageProvider)eObject).setImagePath(currentResultSet.getString("image_path"));
+				if ( eObject instanceof IIconic                         && currentResultSet.getObject("image_position")!=null )                        ((IIconic)eObject).setImagePosition(currentResultSet.getInt("image_position"));
+				if ( eObject instanceof ILineObject                     && currentResultSet.getObject("line_color")!=null )                            ((ILineObject)eObject).setLineColor(currentResultSet.getString("line_color"));
+				if ( eObject instanceof ILineObject                     && currentResultSet.getObject("line_width")!=null )                            ((ILineObject)eObject).setLineWidth(currentResultSet.getInt("line_width"));
+				if ( eObject instanceof IDiagramModelObject             && currentResultSet.getObject("fill_color")!=null )                            ((IDiagramModelObject)eObject).setFillColor(currentResultSet.getString("fill_color"));
+				if ( eObject instanceof IFontAttribute                  && currentResultSet.getObject("font")!=null )                                  ((IFontAttribute)eObject).setFont(currentResultSet.getString("font"));
+				if ( eObject instanceof IFontAttribute                  && currentResultSet.getObject("font_color")!=null )                            ((IFontAttribute)eObject).setFontColor(currentResultSet.getString("font_color"));
+				if ( eObject instanceof ICanvasModelSticky              && currentResultSet.getObject("notes")!=null )                                 ((ICanvasModelSticky)eObject).setNotes(currentResultSet.getString("notes"));
+				if ( eObject instanceof ITextAlignment                  && currentResultSet.getObject("text_alignment")!=null )                        ((ITextAlignment)eObject).setTextAlignment(currentResultSet.getInt("text_alignment"));
+				if ( eObject instanceof ITextPosition                   && currentResultSet.getObject("text_position")!=null )                         ((ITextPosition)eObject).setTextPosition(currentResultSet.getInt("text_position"));
+				if ( eObject instanceof IDiagramModelObject )                                                                       ((IDiagramModelObject)eObject).setBounds(currentResultSet.getInt("x"), currentResultSet.getInt("y"), currentResultSet.getInt("width"), currentResultSet.getInt("height"));
 
-							// The container is either the view, or a container in the view
-							if ( DBPlugin.areEqual((String)map.get("container_id"), view.getId()) )
-								view.getChildren().add((IDiagramModelObject)eObject);
-							else
-								((IDiagramModelContainer)model.getAllViewObjects().get(map.get("container_id"))).getChildren().add((IDiagramModelObject)eObject);;
+				// The container is either the view, or a container in the view
+				if ( DBPlugin.areEqual(currentResultSet.getString("container_id"), view.getId()) )
+					view.getChildren().add((IDiagramModelObject)eObject);
+				else
+					((IDiagramModelContainer)model.getAllViewObjects().get(currentResultSet.getString("container_id"))).getChildren().add((IDiagramModelObject)eObject);;
 
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
 
 				if ( eObject instanceof IConnectable ) {
 					model.registerSourceConnection((IDiagramModelObject)eObject, currentResultSet.getString("source_connections"));
@@ -1877,18 +1731,6 @@ public class DBDatabaseConnection {
 		}
 		return false;
 	}
-
-	/**
-	 * check if the number of imported objects is equals to what is expected
-	 */
-	/*
-	public void checkImportedObjectsCount() throws Exception {
-		if ( countViewObjectsImported != countViewObjectsToImport )
-			throw new Exception(countViewObjectsImported+" objects imported instead of the "+countViewObjectsToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countViewObjectsImported+" objects imported.");
-	}
-	*/
 
 	/**
 	 * Prepare the import of the views connections of a specific view from the database
@@ -1924,29 +1766,17 @@ public class DBDatabaseConnection {
 					}
 				}
 
-				_fifo.add(resultSetToHashMap(currentResultSet));
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							HashMap<String, Object> map = removeFirst(_fifo);
-
-							if ( eObject instanceof INameable                           && map.get("name")!=null )              ((INameable)eObject).setName((String)map.get("name"));
-							if ( eObject instanceof ILockable                           && map.get("is_locked")!=null )         {int locked; if ( map.get("is_locked") instanceof String ) locked = Integer.valueOf((String)map.get("is_locked")); else locked=(Integer)map.get("is_locked"); ((ILockable)eObject).setLocked(locked==0?false:true);}
-							if ( eObject instanceof IDocumentable                       && map.get("documentation")!=null )     ((IDocumentable)eObject).setDocumentation((String)map.get("documentation"));
-							if ( eObject instanceof ILineObject                         && map.get("line_color")!=null )        ((ILineObject)eObject).setLineColor((String)map.get("line_color"));
-							if ( eObject instanceof ILineObject                         && map.get("line_width")!=null )        ((ILineObject)eObject).setLineWidth((Integer)map.get("line_width"));
-							if ( eObject instanceof IFontAttribute                      && map.get("font")!=null )              ((IFontAttribute)eObject).setFont((String)map.get("font"));
-							if ( eObject instanceof IFontAttribute                      && map.get("font_color")!=null )        ((IFontAttribute)eObject).setFontColor((String)map.get("font_color"));
-							if ( eObject instanceof IDiagramModelConnection             && map.get("type")!=null )              ((IDiagramModelConnection)eObject).setType((Integer)map.get("type"));
-							if ( eObject instanceof IDiagramModelConnection             && map.get("text_position")!=null )     ((IDiagramModelConnection)eObject).setTextPosition((Integer)map.get("text_position"));
-							if ( eObject instanceof IDiagramModelArchimateConnection    && map.get("type")!=null )              ((IDiagramModelArchimateConnection)eObject).setType((Integer)map.get("type"));
-							if ( eObject instanceof IDiagramModelArchimateConnection    && map.get("relationship_id")!=null )   ((IDiagramModelArchimateConnection)eObject).setArchimateConcept(model.getAllRelationships().get(map.get("relationship_id")));
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
+				if ( eObject instanceof INameable                           && currentResultSet.getObject("name")!=null )              ((INameable)eObject).setName(currentResultSet.getString("name"));
+				if ( eObject instanceof ILockable                           && currentResultSet.getObject("is_locked")!=null )         {int locked; if ( currentResultSet.getObject("is_locked") instanceof String ) locked = Integer.valueOf(currentResultSet.getString("is_locked")); else locked=currentResultSet.getInt("is_locked"); ((ILockable)eObject).setLocked(locked==0?false:true);}
+				if ( eObject instanceof IDocumentable                       && currentResultSet.getObject("documentation")!=null )     ((IDocumentable)eObject).setDocumentation(currentResultSet.getString("documentation"));
+				if ( eObject instanceof ILineObject                         && currentResultSet.getObject("line_color")!=null )        ((ILineObject)eObject).setLineColor(currentResultSet.getString("line_color"));
+				if ( eObject instanceof ILineObject                         && currentResultSet.getObject("line_width")!=null )        ((ILineObject)eObject).setLineWidth(currentResultSet.getInt("line_width"));
+				if ( eObject instanceof IFontAttribute                      && currentResultSet.getObject("font")!=null )              ((IFontAttribute)eObject).setFont(currentResultSet.getString("font"));
+				if ( eObject instanceof IFontAttribute                      && currentResultSet.getObject("font_color")!=null )        ((IFontAttribute)eObject).setFontColor(currentResultSet.getString("font_color"));
+				if ( eObject instanceof IDiagramModelConnection             && currentResultSet.getObject("type")!=null )              ((IDiagramModelConnection)eObject).setType(currentResultSet.getInt("type"));
+				if ( eObject instanceof IDiagramModelConnection             && currentResultSet.getObject("text_position")!=null )     ((IDiagramModelConnection)eObject).setTextPosition(currentResultSet.getInt("text_position"));
+				if ( eObject instanceof IDiagramModelArchimateConnection    && currentResultSet.getObject("type")!=null )              ((IDiagramModelArchimateConnection)eObject).setType(currentResultSet.getInt("type"));
+				if ( eObject instanceof IDiagramModelArchimateConnection    && currentResultSet.getObject("relationship_id")!=null )   ((IDiagramModelArchimateConnection)eObject).setArchimateConcept(model.getAllRelationships().get(currentResultSet.getString("relationship_id")));
 
 				if ( eObject instanceof IConnectable ) {
 					model.registerSourceConnection((IDiagramModelConnection)eObject, currentResultSet.getString("source_connections"));
@@ -1965,16 +1795,7 @@ public class DBDatabaseConnection {
 						bendpoint.setStartY(resultBendpoints.getInt("start_y"));
 						bendpoint.setEndX(resultBendpoints.getInt("end_x"));
 						bendpoint.setEndY(resultBendpoints.getInt("end_y"));
-						Display.getDefault().syncExec(new Runnable() {
-							@Override
-							public void run() {
-								try {
-									((IDiagramModelConnection)eObject).getBendpoints().add(bendpoint);
-								} catch (Exception e) {
-									DBPlugin.setAsyncException(e);
-								}
-							}
-						});
+						((IDiagramModelConnection)eObject).getBendpoints().add(bendpoint);
 					}
 					resultBendpoints.close();
 				}
@@ -1997,18 +1818,6 @@ public class DBDatabaseConnection {
 		}
 		return false;
 	}
-
-	/**
-	 * check if the number of imported connections is equals to what is expected
-	 */
-	/*
-	public void checkImportedConnectionsCount() throws Exception {
-		if ( countViewConnectionsImported != countViewConnectionsToImport )
-			throw new Exception(countViewConnectionsImported+" connections imported instead of the "+countViewConnectionsToImport+" that were expected.");
-
-		if ( logger.isDebugEnabled() ) logger.debug(countViewConnectionsImported+" connections imported.");
-	}
-	*/
 
 	/**
 	 * Prepare the import of the images from the database
@@ -2103,16 +1912,7 @@ public class DBDatabaseConnection {
 				prop.setValue(result.getString("value"));
 
 			if ( shouldAdd ) {
-				Display.getDefault().syncExec(new Runnable() {
-					@Override
-					public void run() {
-						try {
-							parent.getProperties().add(prop);
-						} catch (Exception e) {
-							DBPlugin.setAsyncException(e);
-						}
-					}
-				});
+				parent.getProperties().add(prop);
 			}
 
 			++i;
@@ -2471,30 +2271,19 @@ public class DBDatabaseConnection {
 
 		((IDBMetadata)view).getDBMetadata().setCurrentVersion(result.getInt("version"));
 
-		_fifo.add(resultSetToHashMap(result));
-		Display.getDefault().syncExec(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					HashMap<String, Object> map = removeFirst(_fifo);
+		view.setName(currentResultSet.getString("name"));
+		view.setDocumentation(currentResultSet.getString("documentation"));
+		view.setConnectionRouterType(currentResultSet.getInt("connection_router_type"));
+		if ( view instanceof IArchimateDiagramModel && currentResultSet.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(currentResultSet.getString("viewpoint"));
+		if ( view instanceof ISketchModel           && currentResultSet.getObject("background")!=null )    ((ISketchModel)view).setBackground(currentResultSet.getInt("background"));
+		if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_content")!=null )  ((IHintProvider)view).setHintContent(currentResultSet.getString("hint_content"));
+		if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_title")!=null )    ((IHintProvider)view).setHintTitle(currentResultSet.getString("hint_title"));
+	
+		if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
+			parentFolder.getElements().add(view);
+		else
+			model.getDefaultFolderForObject(view).getElements().add(view);
 
-					view.setName((String)map.get("name"));
-					view.setDocumentation((String)map.get("documentation"));
-					view.setConnectionRouterType((Integer)map.get("connection_router_type"));
-					if ( view instanceof IArchimateDiagramModel && map.get("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint((String)map.get("viewpoint"));
-					if ( view instanceof ISketchModel           && map.get("background")!=null )    ((ISketchModel)view).setBackground((Integer)map.get("background"));
-					if ( view instanceof IHintProvider          && map.get("hint_content")!=null )  ((IHintProvider)view).setHintContent((String)map.get("hint_content"));
-					if ( view instanceof IHintProvider          && map.get("hint_title")!=null )    ((IHintProvider)view).setHintTitle((String)map.get("hint_title"));
-
-					if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
-						parentFolder.getElements().add(view);
-					else
-						model.getDefaultFolderForObject(view).getElements().add(view);
-				} catch (Exception e) {
-					DBPlugin.setAsyncException(e);
-				}
-			}
-		});
 		importProperties(view);
 
 		model.getAllViews().put(((IIdentifier)view).getId(), view);
@@ -2507,16 +2296,15 @@ public class DBDatabaseConnection {
 		//        importing an element will automatically import the relationships to and from this element
 		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
 		while ( importViewsObjects(model, view) ) { 
-			DBPlugin.checkAsyncException();
+			;
 		}
-		DBGui.sync();
 
 		// 3 : we import the connections and create the corresponding relationships if they do not exist yet
 		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
 		while ( importViewsConnections(model) ) {
-			DBPlugin.checkAsyncException();
+			;
 		}
-		DBGui.sync();
+		
 
 		model.resolveRelationshipsSourcesAndTargets();
 		model.resolveConnectionsSourcesAndTargets();
@@ -2524,9 +2312,7 @@ public class DBDatabaseConnection {
 		//TODO : import missing images
 		//for (String path: getAllImagePaths()) {
 		//    importImage(model, path);
-		//    DBPlugin.checkAsyncException();
 		//}
-		DBGui.sync();
 
 		return view;
 	}

@@ -21,12 +21,6 @@ import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
 import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.resource.JFaceResources;
@@ -843,7 +837,7 @@ public class DBGuiExportModel extends DBGui {
 		txtUpdatedImages.setText("");
 		txtSyncedImages.setText("");
 	}
-
+	
 	/**
 	 * Loop on model components and call doExportEObject to export them<br>
 	 * <br>
@@ -902,220 +896,166 @@ public class DBGuiExportModel extends DBGui {
 		} catch (SQLException err ) {
 			popup(Level.FATAL, "Failed to create a transaction in the database.", err);
 			setActiveAction(STATUS.Error);
-			doShowResult();
+			doShowResult(err);
 			return;
 		}
 
-		// we start a new thread to export the components
-		Job job = new Job("exportComponents") {
-			Map<String, IDiagramModelConnection> connectionsAlreadyExported;
+		// we export the components
+
 			
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				try {
-					// if we need to save the model
-					if ( getOptionValue() ) {
-						// we retrieve the latest version of the model in the database and increase the version number.
-					    exportedModel.setExportedVersion(connection.getLatestModelVersion(exportedModel) + 1);
-
-						// just in case
-						display.syncExec(new Runnable() {
-							@Override
-							public void run() {
-								if ( !DBPlugin.areEqual(exportedModel.getName(), txtModelName.getText()) )
-									exportedModel.setName(txtModelName.getText());
-
-								if ( !DBPlugin.areEqual(exportedModel.getPurpose(), txtPurpose.getText()) )
-									exportedModel.setPurpose(txtPurpose.getText());
-
-								if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
-								try {
-								    connection.exportModel(exportedModel, txtReleaseNote.getText());
-								} catch (Exception e) {
-									DBPlugin.setAsyncException(e);
-								}
-							}
-						});
-
-						DBPlugin.checkAsyncException();
-
-						if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
-						Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
-						while ( foldersIterator.hasNext() ) {
-							doExportEObject(foldersIterator.next().getValue(), txtSyncedFolders, txtNewFolders, txtUpdatedFolders);
-						}
-					}
-
-					if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
-					Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
-					while ( elementsIterator.hasNext() ) {
-						doExportEObject(elementsIterator.next().getValue(), txtSyncedElements, txtNewElements, txtUpdatedElements);
-					}
-
-					if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
-					Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
-					while ( relationshipsIterator.hasNext() ) {
-						doExportEObject(relationshipsIterator.next().getValue(), txtSyncedRelationships, txtNewRelationships, txtUpdatedRelationships);
-					}
-
-					if ( getOptionValue() ) {
-						
-						// we export first all the views in one gon in order to check as quicly as possible if there are some conflicts
-						List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
-						
-						if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
-						Iterator<Entry<String, IDiagramModel>> viewsIterator = exportedModel.getAllViews().entrySet().iterator();
-						while ( viewsIterator.hasNext() ) {
-							IDiagramModel view = viewsIterator.next().getValue(); 
-							if ( doExportEObject(view, txtSyncedViews, txtNewViews, txtUpdatedViews) ) {
-								exportedViews.add(view);
-							}
-						}
-						
-						for ( IDiagramModel view: exportedViews ) {
-							connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();		// we need to memorize exported connections as they can be get as sources AND as targets 
-							for ( IDiagramModelObject viewObject: view.getChildren() ) {
-								doExportViewObject(viewObject);
-							}
-						}
-
-						if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
-				    	IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
-						for ( String path: exportedModel.getAllImagePaths() ) {
-							switch ( connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
-								case isNew :
-									display.syncExec(new Runnable() {
-										@Override
-										public void run() {
-											txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
-											txtNewImages.setText(String.valueOf(Integer.valueOf(txtNewImages.getText())-1));
-										}
-									});
-									break;
-								case isUpdated :
-									display.syncExec(new Runnable() {
-										@Override
-										public void run() {
-											txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
-											txtUpdatedImages.setText(String.valueOf(Integer.valueOf(txtUpdatedImages.getText())-1));
-										}
-									});
-									break;
-								case isSynced :
-									// do nothing
-									break;
-							}
-						}
-					}
-
-				} catch (Exception err) {
-					DBPlugin.setAsyncException(err);
-                    DBPlugin.setAsyncException(err);
-					statusColor = RED_COLOR;
-					try  {
-					    connection.rollback();
-						popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
-					} catch (SQLException err2) {
-						popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction rollbacking failed and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
-					}
-					return Status.CANCEL_STATUS;
+		try {
+			// if we need to save the model
+			if ( getOptionValue() ) {
+				// we retrieve the latest version of the model in the database and increase the version number.
+			    exportedModel.setExportedVersion(connection.getLatestModelVersion(exportedModel) + 1);
+	
+				// just in case
+				if ( !DBPlugin.areEqual(exportedModel.getName(), txtModelName.getText()) )
+					exportedModel.setName(txtModelName.getText());
+	
+				if ( !DBPlugin.areEqual(exportedModel.getPurpose(), txtPurpose.getText()) )
+					exportedModel.setPurpose(txtPurpose.getText());
+	
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
+				connection.exportModel(exportedModel, txtReleaseNote.getText());
+	
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
+				Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
+				while ( foldersIterator.hasNext() ) {
+					doExportEObject(foldersIterator.next().getValue(), txtSyncedFolders, txtNewFolders, txtUpdatedFolders);
 				}
-				return Status.OK_STATUS;
 			}
-			
-			private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
-				if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
-				doExportEObject(viewObject, txtSyncedViewObjects, txtNewViewObjects, txtUpdatedViewObjects);
+	
+			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
+			Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
+			while ( elementsIterator.hasNext() ) {
+				doExportEObject(elementsIterator.next().getValue(), txtSyncedElements, txtNewElements, txtUpdatedElements);
+			}
+	
+			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
+			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
+			while ( relationshipsIterator.hasNext() ) {
+				doExportEObject(relationshipsIterator.next().getValue(), txtSyncedRelationships, txtNewRelationships, txtUpdatedRelationships);
+			}
+	
+			if ( getOptionValue() ) {
 				
-				if ( viewObject instanceof IConnectable) {
-					for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
-						if ( connectionsAlreadyExported.get(source.getId()) == null ) {
-							doExportEObject(source, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
-							connectionsAlreadyExported.put(source.getId(), source);
-						}
-					}
-					for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
-						if ( connectionsAlreadyExported.get(target.getId()) == null ) {
-							doExportEObject(target, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
-							connectionsAlreadyExported.put(target.getId(), target);
-						}
+				// we export first all the views in one gon in order to check as quicly as possible if there are some conflicts
+				List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
+				
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
+				Iterator<Entry<String, IDiagramModel>> viewsIterator = exportedModel.getAllViews().entrySet().iterator();
+				while ( viewsIterator.hasNext() ) {
+					IDiagramModel view = viewsIterator.next().getValue(); 
+					if ( doExportEObject(view, txtSyncedViews, txtNewViews, txtUpdatedViews) ) {
+						exportedViews.add(view);
 					}
 				}
 				
-				if ( viewObject instanceof IDiagramModelContainer ) {
-					for ( IDiagramModelObject child: ((IDiagramModelContainer)viewObject).getChildren() ) {
-						doExportViewObject(child);
+				for ( IDiagramModel view: exportedViews ) {
+					connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();		// we need to memorize exported connections as they can be get as sources AND as targets 
+					for ( IDiagramModelObject viewObject: view.getChildren() ) {
+						doExportViewObject(viewObject);
+					}
+				}
+	
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
+		    	IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
+				for ( String path: exportedModel.getAllImagePaths() ) {
+					switch ( connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
+						case isNew :
+							txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
+							txtNewImages.setText(String.valueOf(Integer.valueOf(txtNewImages.getText())-1));
+							break;
+						case isUpdated :
+							txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
+							txtUpdatedImages.setText(String.valueOf(Integer.valueOf(txtUpdatedImages.getText())-1));
+							break;
+						case isSynced :
+							// do nothing
+							break;
 					}
 				}
 			}
-		};
+	
+		} catch (Exception err) {
+			statusColor = RED_COLOR;
+			setActiveAction(STATUS.Error);
+			popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
+			try  {
+			    connection.rollback();
+				doShowResult(err);
+			} catch (SQLException err2) {
+				popup(Level.FATAL, "The transaction failed to rollback and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
+				doShowResult(err2);
+			}
+			return;
+		}
 
-		// if the user has to manually solve some conflicts, then we rollback the transaction in order to free up the database locks.
-		job.addJobChangeListener(new JobChangeAdapter() {
-			public void done(IJobChangeEvent event) {
-				if (event.getResult().isOK()) {
-					display.syncExec(new Runnable() {
-						@Override
-						public void run() {
-							if ( logger.isDebugEnabled() ) logger.debug("Found "+tblListConflicts.getItemCount()+" components conflicting with database");
-							if ( tblListConflicts.getItemCount() == 0 ) {
-								try  {
-								    connection.commit();
-								    connection.setAutoCommit(true);
-									setActiveAction(STATUS.Ok);
-								} catch (Exception err) {
-									popup(Level.FATAL, "Failed to commit the transaction. Please check carrefully your database !", err);
-									setActiveAction(STATUS.Error);
-								}
-								doShowResult();
-								return;
-							} else {
-								if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
-								resetProgressBar();
-								try  {
-								    connection.rollback();
-								} catch (Exception err) {
-									popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefullsy your database !", err);
-									setActiveAction(STATUS.Error);
-									doShowResult();
-									return;
-								}
-								tblListConflicts.setSelection(0);
-								try {
-									tblListConflicts.notifyListeners(SWT.Selection, new Event());		// shows up the tblListConflicts table and calls fillInCompareTable()
-									grpComponents.setVisible(false);
-									grpModelVersions.setVisible(false);
-									grpConflict.setVisible(true);
-								} catch (Exception e) {
-									statusColor = RED_COLOR;
-									popup(Level.ERROR, "Failed to compare component with its database version.", e);
-									DBPlugin.setAsyncException(e);
-									display.syncExec(new Runnable() {
-										@Override
-										public void run() {
-											setActiveAction(STATUS.Error);
-											doShowResult();
-											return;
-										}
-									});
-								}
-							}
-						}
-					});
-				} else {
-					display.syncExec(new Runnable() {
-						@Override
-						public void run() {
-							setActiveAction(STATUS.Error);
-							doShowResult();
-							return;
-						}
-					});
+		if ( logger.isDebugEnabled() ) logger.debug("Found "+tblListConflicts.getItemCount()+" components conflicting with database");
+		if ( tblListConflicts.getItemCount() == 0 ) {
+			try  {
+			    connection.commit();
+			    connection.setAutoCommit(true);
+				setActiveAction(STATUS.Ok);
+				doShowResult(null);
+			} catch (Exception err) {
+				popup(Level.FATAL, "Failed to commit the transaction. Please check carrefully your database !", err);
+				setActiveAction(STATUS.Error);
+				doShowResult(err);
+			}
+			return;
+		} else {
+			if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
+			resetProgressBar();
+			try  {
+			    connection.rollback();
+			} catch (Exception err) {
+				popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefullsy your database !", err);
+				setActiveAction(STATUS.Error);
+				doShowResult(err);
+				return;
+			}
+			tblListConflicts.setSelection(0);
+			try {
+				tblListConflicts.notifyListeners(SWT.Selection, new Event());		// shows up the tblListConflicts table and calls fillInCompareTable()
+				grpComponents.setVisible(false);
+				grpModelVersions.setVisible(false);
+				grpConflict.setVisible(true);
+			} catch (Exception err) {
+				statusColor = RED_COLOR;
+				popup(Level.ERROR, "Failed to compare component with its database version.", err);
+				setActiveAction(STATUS.Error);
+				doShowResult(err);
+			}
+		}
+	}
+
+	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
+	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
+		if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
+		doExportEObject(viewObject, txtSyncedViewObjects, txtNewViewObjects, txtUpdatedViewObjects);
+		
+		if ( viewObject instanceof IConnectable) {
+			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
+				if ( connectionsAlreadyExported.get(source.getId()) == null ) {
+					doExportEObject(source, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
+					connectionsAlreadyExported.put(source.getId(), source);
 				}
 			}
-		});
-		// We schedule the export job
-		job.schedule();
+			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
+				if ( connectionsAlreadyExported.get(target.getId()) == null ) {
+					doExportEObject(target, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
+					connectionsAlreadyExported.put(target.getId(), target);
+				}
+			}
+		}
+		
+		if ( viewObject instanceof IDiagramModelContainer ) {
+			for ( IDiagramModelObject child: ((IDiagramModelContainer)viewObject).getChildren() ) {
+				doExportViewObject(child);
+			}
+		}
 	}
 
 	/**
@@ -1132,17 +1072,12 @@ public class DBGuiExportModel extends DBGui {
 		boolean status = true;
 		try {
 			if ( connection.exportEObject(eObjectToExport, getOptionValue()) && txtSynced != null ) {
-				display.syncExec(new Runnable() {
-					@Override
-					public void run() {
-						txtSynced.setText(String.valueOf(Integer.valueOf(txtSynced.getText())+1));
-						if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isNew ) {
-							if ( txtNew != null ) txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1));
-						} else if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdated ) {
-							if ( txtUpdated != null ) txtUpdated.setText(String.valueOf(Integer.valueOf(txtUpdated.getText())-1));
-						}
-					}
-				});
+				txtSynced.setText(String.valueOf(Integer.valueOf(txtSynced.getText())+1));
+				if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isNew ) {
+					if ( txtNew != null ) txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1));
+				} else if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdated ) {
+					if ( txtUpdated != null ) txtUpdated.setText(String.valueOf(Integer.valueOf(txtUpdated.getText())-1));
+				}
 			}
 		} catch (SQLException err) {
 			status = false;
@@ -1181,16 +1116,11 @@ public class DBGuiExportModel extends DBGui {
 			switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
 				case askUser :
 					if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
-					display.syncExec(new Runnable() {
-						@Override
-						public void run() {
-							new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
-							if ( tblListConflicts.getItemCount() < 2 )
-								lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
-							else
-								lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
-						}
-					});
+					new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
+					if ( tblListConflicts.getItemCount() < 2 )
+						lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+					else
+						lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
 					break;
 				case doNotExport :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
@@ -1402,7 +1332,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 	}
 
-	protected void doShowResult() {
+	protected void doShowResult(Exception err) {
 		logger.debug("Showing result.");
 		if ( grpProgressBar != null ) grpProgressBar.setVisible(false);
 		if ( grpConflict != null ) grpConflict.setVisible(false);
@@ -1429,24 +1359,26 @@ public class DBGuiExportModel extends DBGui {
 			txtSyncedImages.setForeground( DBPlugin.areEqual(txtSyncedImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		}
 		
-		if ( statusColor == GREEN_COLOR ) {
-          setMessage("Export successful", statusColor);
-          if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-                close();
-                return;
-          }
-          if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
-              if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
-              CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
-              stack.markSaveLocation();
-          }
+		if ( err == null ) {
+			if ( statusColor == GREEN_COLOR ) {
+				setMessage("Export successful", statusColor);
+				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+					if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+				    	close();
+				        return;
+				  	}
+				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
+				    if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
+				    CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
+				    stack.markSaveLocation();
+				}
+			} else {
+				// if some counters are different from the expected values
+				setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", statusColor);
+			}
+			
 		} else {
-            if ( DBPlugin.getAsyncException() == null )
-                setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", statusColor);
-            else {
-                setMessage("Error while exporting model.\n"+ DBPlugin.getAsyncException().getMessage(), RED_COLOR);
-            }
+            setMessage("Error while exporting model.\n"+ err.getMessage(), RED_COLOR);
 		}
 	}
 

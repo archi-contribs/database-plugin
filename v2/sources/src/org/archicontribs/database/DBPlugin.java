@@ -208,7 +208,6 @@ import org.json.simple.parser.JSONParser;
  *											add more jdbc drivers (mongodb, odbc, etc ...)
  *
  * 									technical TODOs :
- *                                  	// TODO : continue to check for exceptions where required
  *                                  	// TODO : update component get history to search for history of folders and views
  * 										// TODO : do not calculate checksums on images anymore (the path is a checksum)
  *                                  	// TODO : check if it is really useful to export the diagram_ref_id of views objects
@@ -216,7 +215,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.6";
+	public static final String pluginVersion = "2.0.7";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
@@ -341,33 +340,6 @@ public class DBPlugin extends AbstractUIPlugin {
 	 */
 	public static boolean isEmpty(String str) {
 		return (str==null) || str.isEmpty();
-	}
-
-	/**
-	 * Exception raised during an asynchronous thread
-	 */
-	private static Exception asyncException = null;
-
-	/**
-	 * Gets the latest exception raised during an asynchronous thread
-	 */
-	public static Exception getAsyncException() {
-		return asyncException;
-	}
-
-	/**
-	 * Checks if an exception has been raised during an asynchronous thread, and throw it in the current thread if any
-	 * @throws Exception 
-	 */
-	public static void checkAsyncException() throws Exception {
-		if ( asyncException != null ) throw asyncException;
-	}
-
-	/**
-	 * Set an exception during an asynchronous thread
-	 */
-	public static void setAsyncException(Exception e) {
-		asyncException = e;
 	}
 
 	private static ProgressBar updateProgressbar = null;

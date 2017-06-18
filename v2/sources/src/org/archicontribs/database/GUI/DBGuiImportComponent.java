@@ -1309,7 +1309,6 @@ public class DBGuiImportComponent extends DBGui {
 			}
 		}
 
-		sync();
 		if ( !imported.isEmpty() ) {
 			// We select the element in the model tree
 			ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);

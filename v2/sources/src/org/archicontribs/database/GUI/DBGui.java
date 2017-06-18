@@ -16,6 +16,8 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseConnection;
@@ -182,6 +184,8 @@ public class DBGui {
 	 */
 	protected DBGui(String title) {
 		if ( logger.isDebugEnabled() ) logger.debug("Creating Form GUI.");
+		
+		setArrowCursor();
 
 		dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		dialog.setText(DBPlugin.pluginTitle + " - " + title);
@@ -482,15 +486,11 @@ public class DBGui {
 		if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
 		} else {
-			display.syncExec (new Runnable () {
-				public void run () {
-					for (DBDatabaseEntry databaseEntry: databaseEntries) {
-						comboDatabases.add(databaseEntry.getName());
-					}
-					comboDatabases.select(0);
-					comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
-				}
-			});
+			for (DBDatabaseEntry databaseEntry: databaseEntries) {
+				comboDatabases.add(databaseEntry.getName());
+			}
+			comboDatabases.select(0);
+			comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
 		}
 	}
 	
@@ -534,8 +534,6 @@ public class DBGui {
 	protected void databaseSelected() {
 		popup("Please wait while connecting to the database ...");
 		
-        DBPlugin.setAsyncException(null);   // we purge the previous async exceptions
-        
 		databaseSelectedCleanup();
 		
 		btnDoAction.setEnabled(false);
@@ -570,27 +568,45 @@ public class DBGui {
 		closePopup();
 	}
 	
+	/** 
+	 * This method is called by the databaseSelected method. It allows to do some actions when a new database is selected. 
+	 */
 	protected void databaseSelectedCleanup() {
 		//to be overriden
 	}
 	
+	/** 
+	 * This method is called by the databaseSelected method. It allows to do some actions when the connection to a new database is successful.
+	 * @param forceCheckDatabase true when the database should be checked. 
+	 */
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 		// to be overriden
 		enableOption();
 		btnDoAction.setEnabled(true);
 	}
 	
+	/** 
+	 * This method is called by the databaseSelected method. It allows to do some actions when the connection to a new database is failed.
+	 */
 	protected void notConnectedToDatabase() {
 		// to be overriden
 		disableOption();
 	}
 	
+	/** 
+	 * Sets the reference of the online help
+	 */
 	protected void setHelpHref(String href) {
 		HELP_HREF = href;
 		btnHelp.setVisible(HELP_HREF != null);
 	}
 	
 	private ACTION activeAction = null;
+	/**
+	 * Activate an action (on the left handside panel)
+	 * @param action Reference of the action
+	 * @param status status of the action
+	 */
 	protected void setActiveAction(ACTION action, STATUS status) {
 		Image icon;
 		switch ( status ) {
@@ -610,16 +626,29 @@ public class DBGui {
 		}
 	}
 	
+	/**
+	 * Changes the status of the current action (on the left handside panel)
+	 * @param status status of the action
+	 */
 	protected void setActiveAction(STATUS status) {
 		if ( activeAction == null )
 			activeAction = ACTION.One;
 		setActiveAction(activeAction, status);
 	}
 	
+	/**
+	 * Changes the active action (on the left handside panel)
+	 * @param action Reference of the action
+	 */
 	protected void setActiveAction(ACTION action) {
 		setActiveAction(action, STATUS.Selected);
 	}
 	
+	/**
+	 * Creates an action (on the left handside panel)
+	 * @param action Reference of the action
+	 * @param label Label of the action
+	 */
 	protected void createAction(ACTION action, String label) {
 		switch ( action ) {
 			case One : lblFirstAction.setText(label); break;
@@ -678,75 +707,84 @@ public class DBGui {
 	/**
 	 * Returns true if the first option is selected, false if the second option is selected
 	 */
-	private boolean _selection;	
 	protected boolean getOptionValue() {
-		display.syncExec(new Runnable() { @Override public void run() { _selection = radioOption1.getSelection(); } });
-		return _selection;
+		return radioOption1.getSelection();
 	}
 	
 	
 	
 	
+	private static Shell dialogShell = null;
+	private static Label dialogLabel = null;
 	/**
 	 * shows up an on screen popup displaying the message but does not wait for any user input<br>
 	 * it is the responsibility of the caller to dismiss the popup 
 	 */
-	private static Shell dialogShell = null;
-	private static Label dialogLabel = null;
 	public static Shell popup(String msg) {
 	    logger.info(msg);
 		if ( dialogShell == null ) {
-			display.syncExec(new Runnable() {
-				@Override
-				public void run() {
-					dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-					dialogShell.setSize(400, 50);
-					dialogShell.setBackground(BLACK_COLOR);
-					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
-					FillLayout layout = new FillLayout();
-					layout.marginWidth = 2;
-					layout.marginHeight = 2;
-					dialogShell.setLayout(layout);
-					
-					Composite composite = new Composite(dialogShell, SWT.NONE);
-					composite.setBackground(COMPO_LEFT_COLOR);
-					composite.setLayout( new GridLayout( 1, false ) );
-					
-					dialogLabel = new Label(composite, SWT.NONE);
-					dialogLabel.setBackground(COMPO_LEFT_COLOR);
-					dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
-					dialogLabel.setFont(TITLE_FONT);
-				}
-			});
+			dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
+			dialogShell.setSize(400, 50);
+			dialogShell.setBackground(BLACK_COLOR);
+			dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
+			FillLayout layout = new FillLayout();
+			layout.marginWidth = 2;
+			layout.marginHeight = 2;
+			dialogShell.setLayout(layout);
+			
+			Composite composite = new Composite(dialogShell, SWT.NONE);
+			composite.setBackground(COMPO_LEFT_COLOR);
+			composite.setLayout( new GridLayout( 1, false ) );
+			
+			dialogLabel = new Label(composite, SWT.NONE);
+			dialogLabel.setBackground(COMPO_LEFT_COLOR);
+			dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
+			dialogLabel.setFont(TITLE_FONT);
+		} else {
+			restoreCursors();
 		}
 		
-		display.syncExec(new Runnable() {
-			@Override
-			public void run() {
-				for ( Shell shell: display.getShells() ) {
-					shell.setCursor(CURSOR_WAIT);
-				}
-				dialogShell.setText(msg);
-				dialogLabel.setText(msg);
-				dialogShell.open();
-			}
-		});
+		dialogShell.setText(msg);
+		dialogLabel.setText(msg);
+		dialogShell.open();
+		
+		setArrowCursor();
+
 		return dialogShell;
 	}
 	
+	/**
+	 * dismiss the popup if it is displayed (else, does nothing) 
+	 */
 	public static void closePopup() {
 		if ( dialogShell != null ) {
-			display.syncExec(new Runnable() {
-				@Override
-				public void run() {
-					dialogShell.close();
-					dialogShell = null;
-					for ( Shell shell: display.getShells() ) {
-						shell.setCursor(CURSOR_ARROW);
-					}
-				}
-    		});
+			dialogShell.close();
+			dialogShell = null;
+			
+			restoreCursors();
 		}
+	}
+	
+	private static Stack<Map<Shell, Cursor>> cursorsStack = new Stack<Map<Shell, Cursor>>();
+	public static void setArrowCursor() {
+		if ( logger.isDebugEnabled() ) logger.debug("Setting arrow cursor");
+		Map<Shell, Cursor> cursors = new HashMap<Shell, Cursor>();
+		for ( Shell shell: display.getShells() ) {
+			cursors.put(shell,  shell.getCursor());
+			shell.setCursor(CURSOR_WAIT);
+		}
+		cursorsStack.push(cursors);
+		refreshDisplay();
+	}
+	
+	public static void restoreCursors() {
+		if ( logger.isDebugEnabled() ) logger.debug("Restoring cursors");
+		Map<Shell, Cursor> cursors = cursorsStack.pop();
+		for ( Shell shell: display.getShells() ) {
+			Cursor cursor = (cursors==null) ? null : cursors.get(shell);
+			shell.setCursor(cursor==null ? CURSOR_ARROW : cursor);
+		}
+		refreshDisplay();
 	}
 	
 	/**
@@ -756,14 +794,12 @@ public class DBGui {
 		popup(level,msg,null);
 	}
 	
-	// the popupMessage is a class variable because it will be used in an asyncExec() method.
-	private static String popupMessage;
 	/**
 	 * Shows up an on screen popup, displaying the message (and the exception message if any) and wait for the user to click on the "OK" button<br>
 	 * The exception stacktrace is also printed on the standard error stream
 	 */
 	public static void popup(Level level, String msg, Exception e) {
-		popupMessage = msg;
+		String popupMessage = msg;
 		logger.log(DBGui.class, level, msg, e);
 		
 		if ( e != null ) {
@@ -774,23 +810,20 @@ public class DBGui {
 			}
 		}
 
-		display.syncExec(new Runnable() {
-			@Override
-			public void run() {
-				switch ( level.toInt() ) {
-					case Level.FATAL_INT :
-					case Level.ERROR_INT :
-						MessageDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
-						break;
-					case Level.WARN_INT :
-						MessageDialog.openWarning(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
-						break;
-					default :
-						MessageDialog.openInformation(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
-						break;
-				}
-			}
-		});
+		switch ( level.toInt() ) {
+			case Level.FATAL_INT :
+			case Level.ERROR_INT :
+				MessageDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+				break;
+			case Level.WARN_INT :
+				MessageDialog.openWarning(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+				break;
+			default :
+				MessageDialog.openInformation(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+				break;
+		}
+		
+		refreshDisplay();
 	}
 	
 	private static int questionResult;
@@ -809,14 +842,11 @@ public class DBGui {
 	 */
 	public static int question(String msg, String[] buttonLabels) {
 		if ( logger.isDebugEnabled() ) logger.debug("question : "+msg);
-		display.syncExec(new Runnable() {
-			@Override
-			public void run() {
-				//questionResult = MessageDialog.openQuestion(display.getActiveShell(), DBPlugin.pluginTitle, msg);
-				MessageDialog dialog = new MessageDialog(display.getActiveShell(), DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
-				questionResult = dialog.open();
-			}
-		});
+		
+		//questionResult = MessageDialog.openQuestion(display.getActiveShell(), DBPlugin.pluginTitle, msg);
+		MessageDialog dialog = new MessageDialog(display.getActiveShell(), DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
+		questionResult = dialog.open();
+
 		if ( logger.isDebugEnabled() ) logger.debug("answer : "+buttonLabels[questionResult]);
 		return questionResult;
 	}
@@ -850,6 +880,8 @@ public class DBGui {
     	
     	shell.layout();
     	shell.open();
+    	
+    	refreshDisplay();
     	
     	return progressBar;
 	}
@@ -908,7 +940,7 @@ public class DBGui {
 	 */
 	protected void setProgressBarMinAndMax(int min, int max) {
 	    if ( logger.isTraceEnabled() ) logger.trace("Setting progressbar from "+min+" to "+max);
-		display.asyncExec(new Runnable() { @Override public void run() { progressBar.setMinimum(min); progressBar.setMaximum(max); } });
+		progressBar.setMinimum(min); progressBar.setMaximum(max);
 		resetProgressBar();
 	}
 	
@@ -916,19 +948,17 @@ public class DBGui {
 	 * Resets the progressBar to zero in the SWT thread (thread safe method)
 	 */
 	protected void resetProgressBar() {
-		display.asyncExec(new Runnable() { @Override public void run() { progressBar.setSelection(0); } });
+		progressBar.setSelection(0);
+		refreshDisplay();
 	}
 	
 	/**
 	 * Increases the progressBar selection in the SWT thread (thread safe method)
 	 */
 	protected void increaseProgressBar() {
-		display.asyncExec(new Runnable() {
-			@Override public void run() {
-				progressBar.setSelection(progressBar.getSelection()+1);
-				if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(progressBar.getSelection()+1)+"/"+progressBar.getMaximum());
-			}
-		});
+		progressBar.setSelection(progressBar.getSelection()+1);
+		if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(progressBar.getSelection()+1)+"/"+progressBar.getMaximum());
+		refreshDisplay();
 	}
 	
 	/**
@@ -946,53 +976,9 @@ public class DBGui {
 		    } catch (SQLException e) { logger.error("Failed to close database connection", e); }
 		    connection = null;
 		}
+		
+		restoreCursors();
 	}
-	
-	/**
-	 * Dispatches the graphical event until the close() method is called
-	 */
-	public void run() {
-		while ( !isClosed ) {
-		    display.readAndDispatch();
-		}
-	}
-	
-	/**
-	 * Waits for all the asynchronous commands sent to SWT have finished
-	 */
-	
-	public static void sync() throws InterruptedException {
-		if ( logger.isTraceEnabled() ) logger.trace("Synchronizing threads ...");
-		if ( Display.getCurrent() != null ) {
-			// if we are in the SWT thread, we dispatch all the events until there is no more
-			while ( Display.getCurrent().readAndDispatch() );
-		} else {
-			// if we are in an async thread, we lock an object and ask SWT to unlock it.
-			
-			int timeout = 10000;	// timeout = 10 seconds
-	        long before = 0L;
-	
-	        if ( logger.isTraceEnabled() ) before = System.nanoTime();
-	        
-			final Object waitObj = new Object();
-			display.asyncExec(new Runnable() {
-				public void run () {
-					synchronized (waitObj) { waitObj.notify(); }
-				}
-			});
-	
-			synchronized (waitObj) { waitObj.wait(timeout); }
-	        
-	        if ( logger.isTraceEnabled() ) {
-	        	long duration = (before - System.nanoTime())/1000000;		// we divide by 1000000 to convert nanoseconds to miliseconds
-	        	if ( duration >= timeout)
-	            	logger.trace("Timeout reached while waiting for thread synchronization ("+duration+") ...");
-	            else
-	            	logger.trace("Threads synchronized ...");
-	        }
-		}
-	}
-	
 	
 	protected void fillInCompareTable(Table table, EObject component, String version) {
 		logger.debug("comparing memory and database versions of component "+((IDBMetadata)component).getDBMetadata().getDebugName());
@@ -1008,8 +994,7 @@ public class DBGui {
 		}
 	    
 	    // we fill in the tblCompareComponent table
-	    
-		table.removeAll();
+	  	table.removeAll();
 
 	    addItemToCompareTable(table, "Version", String.valueOf(((IDBMetadata)component).getDBMetadata().getCurrentVersion()), String.valueOf(hashResult.get("version")), false);
 	    
@@ -1130,28 +1115,43 @@ public class DBGui {
     private static byte[] viewImage = null;
     public static byte[] createImage(IDiagramModel view, double scale, int margin) {
     	if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Creating image from view");
-    	display.syncExec (new Runnable () {
-			public void run () {
-				ByteArrayOutputStream out = new ByteArrayOutputStream();
-				DataOutputStream writeOut = new DataOutputStream(out);
-				ImageLoader saver = new ImageLoader();
-				Image image = DiagramUtils.createImage(view, scale, margin);
-				saver.data = new ImageData[] { image.getImageData() };
-				saver.save(writeOut, SWT.IMAGE_PNG);
-				image.dispose();
-				try {
-					writeOut.close();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				viewImage = out.toByteArray();
-			}
-		});
-    	return viewImage;
+
+		ByteArrayOutputStream out = new ByteArrayOutputStream();
+		DataOutputStream writeOut = new DataOutputStream(out);
+		ImageLoader saver = new ImageLoader();
+		Image image = DiagramUtils.createImage(view, scale, margin);
+		saver.data = new ImageData[] { image.getImageData() };
+		saver.save(writeOut, SWT.IMAGE_PNG);
+		image.dispose();
+		try {
+			writeOut.close();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		viewImage = out.toByteArray();
+
+		return viewImage;
     }
     
     public static void disposeImage() {
     	viewImage = null;
     }
+    
+	/**
+	 * Dispatches the graphical event until the close() method is called
+	 */
+	public void run() {
+		while ( !isClosed ) {
+		    display.readAndDispatch();
+		}
+	}
+	
+	/**
+	 * Refreshes the display
+	 */
+	public static void refreshDisplay() {
+		while ( display.readAndDispatch() )
+			;
+	}
 }

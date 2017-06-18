@@ -15,12 +15,6 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
-import org.eclipse.core.runtime.IProgressMonitor;
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.jobs.IJobChangeEvent;
-import org.eclipse.core.runtime.jobs.Job;
-import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -81,8 +75,6 @@ public class DBGuiImportModel extends DBGui {
     private Text txtImportedViewObjects;
     private Text txtImportedViewConnections;
     private Text txtImportedImages;
-
-    private Color statusColor = GREEN_COLOR;
 
     /**
      * Creates the GUI to import a model
@@ -638,217 +630,111 @@ public class DBGuiImportModel extends DBGui {
         IEditorModelManager.INSTANCE.registerModel(modelToImport);
 
         // we import the model from the database in a separate thread
-        Job job = new Job("importModel") {
-            @Override
-            protected IStatus run(IProgressMonitor monitor) {
-                try {
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-                    popup("Please wait while getting the model metadata ...");
-                    int importSize = connection.importModelMetadata(modelToImport);
-                    closePopup();
-                    setProgressBarMinAndMax(0, importSize);
-                    DBPlugin.checkAsyncException();
+        try {
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
+            popup("Please wait while getting the model metadata ...");
+            int importSize = connection.importModelMetadata(modelToImport);
+            closePopup();
+            setProgressBarMinAndMax(0, importSize);
 
-                    display.syncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtTotalElements.setText(String.valueOf(connection.countElementsToImport()));
-                            txtTotalRelationships.setText(String.valueOf(connection.countRelationshipsToImport()));
-                            txtTotalFolders.setText(String.valueOf(connection.countFoldersToImport()));
-                            txtTotalViews.setText(String.valueOf(connection.countViewsToImport()));
-                            txtTotalViewObjects.setText(String.valueOf(connection.countViewObjectsToImport()));
-                            txtTotalViewConnections.setText(String.valueOf(connection.countViewConnectionsToImport()));
-                            txtTotalImages.setText(String.valueOf(connection.countImagesToImport()));
+            txtTotalElements.setText(String.valueOf(connection.countElementsToImport()));
+            txtTotalRelationships.setText(String.valueOf(connection.countRelationshipsToImport()));
+            txtTotalFolders.setText(String.valueOf(connection.countFoldersToImport()));
+            txtTotalViews.setText(String.valueOf(connection.countViewsToImport()));
+            txtTotalViewObjects.setText(String.valueOf(connection.countViewObjectsToImport()));
+            txtTotalViewConnections.setText(String.valueOf(connection.countViewConnectionsToImport()));
+            txtTotalImages.setText(String.valueOf(connection.countImagesToImport()));
 
-                            txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
-                            txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
-                            txtImportedFolders.setText(String.valueOf(connection.countFoldersImported()));
-                            txtImportedViews.setText(String.valueOf(connection.countViewsImported()));
-                            txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
-                            txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
-                            txtImportedImages.setText(String.valueOf(connection.countImagesImported()));
-                        }
-                    });
+            txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
+            txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
+            txtImportedFolders.setText(String.valueOf(connection.countFoldersImported()));
+            txtImportedViews.setText(String.valueOf(connection.countViewsImported()));
+            txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
+            txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
+            txtImportedImages.setText(String.valueOf(connection.countImagesImported()));
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
-                    connection.prepareImportFolders(modelToImport);
-                    while ( connection.importFolders(modelToImport) ) {
-                        display.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                txtImportedFolders.setText(String.valueOf(connection.countFoldersImported()));
-                            }
-                        });
-                        increaseProgressBar();
-                        DBPlugin.checkAsyncException();
-                    }
-                    sync();
-                    DBPlugin.checkAsyncException();
-                    //connection.checkImportedFoldersCount();
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
+            connection.prepareImportFolders(modelToImport);
+            while ( connection.importFolders(modelToImport) ) {
+            	txtImportedFolders.setText(String.valueOf(connection.countFoldersImported()));
+                increaseProgressBar();
+            }
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
-                    connection.prepareImportElements(modelToImport);
-                    while ( connection.importElements(modelToImport) ) {
-                        display.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
-                            }
-                        });
-                        increaseProgressBar();
-                        DBPlugin.checkAsyncException();
-                    }
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
+            connection.prepareImportElements(modelToImport);
+            while ( connection.importElements(modelToImport) ) {
+            	txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
+                increaseProgressBar();
+            }
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
-                    connection.prepareImportRelationships(modelToImport);
-                    while ( connection.importRelationships(modelToImport) ) {
-                        display.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
-                            }
-                        });
-                        increaseProgressBar();
-                        DBPlugin.checkAsyncException();
-                    }
-                    sync();
-                    //connection.checkImportedElementsCount();
-                    //connection.checkImportedRelationshipsCount();
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
+            connection.prepareImportRelationships(modelToImport);
+            while ( connection.importRelationships(modelToImport) ) {
+            	txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
+                increaseProgressBar();
+            }
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
-                    display.syncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                modelToImport.resolveRelationshipsSourcesAndTargets();
-                            } catch (Exception e) {
-                                DBPlugin.setAsyncException(e);
-                            }
-                        }
-                    });
-                    DBPlugin.checkAsyncException();
+            if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
+            modelToImport.resolveRelationshipsSourcesAndTargets();
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
-                    connection.prepareImportViews(modelToImport);
-                    while ( connection.importViews(modelToImport) ) {
-                        display.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                txtImportedViews.setText(String.valueOf(connection.countViewsImported()));
-                            }
-                        });
-                        increaseProgressBar();
-                        DBPlugin.checkAsyncException();
-                    }
-                    sync();
-                    //connection.checkImportedViewsCount();
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
-                    for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                        connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
-                        while ( connection.importViewsObjects(modelToImport, view) ) {
-                            display.syncExec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
-                                }
-                            });
-                            increaseProgressBar();
-                            DBPlugin.checkAsyncException();
-                        }
-                    }
-                    display.syncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
-                        }
-                    });
-                    sync();
-                    //connection.checkImportedObjectsCount();
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
+            connection.prepareImportViews(modelToImport);
+            while ( connection.importViews(modelToImport) ) {
+            	txtImportedViews.setText(String.valueOf(connection.countViewsImported()));
+                increaseProgressBar();
+            }
 
-                    if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
-                    for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                        connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
-                        while ( connection.importViewsConnections(modelToImport) ) {
-                            display.syncExec(new Runnable() {
-                                @Override
-                                public void run() {
-                                    txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
-                                }
-                            });
-                            increaseProgressBar();
-                            DBPlugin.checkAsyncException();
-                        }
-                    }
-                    display.syncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
-                        }
-                    });
-                    sync();
-                    DBPlugin.checkAsyncException();
-                    //connection.checkImportedConnectionsCount();
-
-                    if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
-                    display.asyncExec(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                modelToImport.resolveConnectionsSourcesAndTargets();
-                            } catch (Exception e) {
-                                DBPlugin.setAsyncException(e);
-                            }
-                        }
-                    });
-                    DBPlugin.checkAsyncException();
-                    sync();
-
-                    if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
-                    for (String path: connection.getAllImagePaths()) {
-                        connection.importImage(modelToImport, path);
-                        display.syncExec(new Runnable() {
-                            @Override
-                            public void run() {
-                                txtImportedImages.setText(String.valueOf(connection.countImagesImported()));
-                            }
-                        });
-                        increaseProgressBar();
-                    }
-                    sync();
-
-                } catch (Exception err) {
-                	closePopup();
-                    popup(Level.ERROR, "Failed to import model from database.", err);
-                    DBPlugin.setAsyncException(err);
-                    statusColor=RED_COLOR;
-                    return Status.CANCEL_STATUS;
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
+            for (IDiagramModel view: modelToImport.getAllViews().values()) {
+                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                while ( connection.importViewsObjects(modelToImport, view) ) {
+                	txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
+                    increaseProgressBar();
                 }
-                statusColor=GREEN_COLOR;
-                return Status.OK_STATUS;
             }
-        };
+            txtImportedElements.setText(String.valueOf(connection.countElementsImported()));
 
-        job.addJobChangeListener(new JobChangeAdapter() {
-            public void done(IJobChangeEvent event) {
-
-                if (event.getResult().isOK())
-                    display.syncExec(new Runnable() { @Override public void run() { statusColor = GREEN_COLOR; setActiveAction(STATUS.Ok); doShowResult(); } });
-                else
-                    display.syncExec(new Runnable() { @Override public void run() { statusColor = RED_COLOR ; setActiveAction(STATUS.Error); doShowResult(); } });
+            if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
+            for (IDiagramModel view: modelToImport.getAllViews().values()) {
+                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                while ( connection.importViewsConnections(modelToImport) ) {
+                	txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
+                    increaseProgressBar();
+                }
             }
-        });
+            txtImportedRelationships.setText(String.valueOf(connection.countRelationshipsImported()));
 
-        // We schedule the import
-        job.schedule();
+            if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
+            modelToImport.resolveConnectionsSourcesAndTargets();
+
+            if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
+            for (String path: connection.getAllImagePaths()) {
+                connection.importImage(modelToImport, path);
+                txtImportedImages.setText(String.valueOf(connection.countImagesImported()));
+                increaseProgressBar();
+            }
+        } catch (Exception err) {
+        	closePopup();
+            popup(Level.ERROR, "Failed to import model from database.", err);
+            setActiveAction(STATUS.Error);
+            doShowResult(err);
+            return;
+        }
+
+        setActiveAction(STATUS.Ok);
+        doShowResult(null);
+        return;
     }
 
-    protected void doShowResult() {
+    protected void doShowResult(Exception err) {
         logger.debug("Showing result.");
         if ( grpProgressBar != null ) grpProgressBar.setVisible(false);
 
         setActiveAction(ACTION.Three);
         btnClose.setText("close");
+        
+        Color statusColor = GREEN_COLOR;
 
         txtImportedElements.setForeground( (connection.countElementsImported() == connection.countElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         txtImportedRelationships.setForeground( (connection.countRelationshipsImported() == connection.countRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
@@ -858,36 +744,39 @@ public class DBGuiImportModel extends DBGui {
         txtImportedViewConnections.setForeground( (connection.countViewConnectionsImported() == connection.countViewConnectionsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         txtImportedImages.setForeground( (connection.countImagesImported() == connection.countImagesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
-        if ( statusColor == GREEN_COLOR ) {
-        	setMessage("Import successful", statusColor);
-            // We open the Model in the Editor
-            IEditorModelManager.INSTANCE.openModel(modelToImport);
-
-            // We select the model in the tree
-            ITreeModelView view = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-            if(view != null) {
-                List<Object> elements = new ArrayList<Object>();
-                elements.add(modelToImport.getDefaultFolderForObject(modelToImport.getAllViews().entrySet().iterator().next().getValue()));
-                view.getViewer().setSelection(new StructuredSelection(elements), true);
-                elements = new ArrayList<Object>();
-                elements.add(modelToImport);
-                view.getViewer().setSelection(new StructuredSelection(elements), true);
-            }
+        if ( err == null ) {
+        	// if all the counters are equals to the expected values
+        	if ( statusColor == GREEN_COLOR ) {
+        	   	setMessage("Import successful", statusColor);
+            	
+            	IEditorModelManager.INSTANCE.openModel(modelToImport);											// We open the Model in the Editor
+            	ITreeModelView view = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);		// We select the model in the tree
+	            if(view != null) {
+	                List<Object> elements = new ArrayList<Object>();
+	                elements.add(modelToImport.getDefaultFolderForObject(modelToImport.getAllViews().entrySet().iterator().next().getValue()));
+	                view.getViewer().setSelection(new StructuredSelection(elements), true);
+	                elements = new ArrayList<Object>();
+	                elements.add(modelToImport);
+	                view.getViewer().setSelection(new StructuredSelection(elements), true);
+	            }
             
-            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-                close();
-                return;
-            }
+	            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+	                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+	                close();
+	                return;
+	            }
+        	} else {
+        		// if some counters are different from the expected values
+        		setMessage("No error has been raised during the import process,\nbut the count of imported components is not correct !", RED_COLOR);
+        	}
         } else {
-            if ( DBPlugin.getAsyncException() == null )
-                setMessage("No error has been raised but the number of imported components is not correct.\n\nPlease check thoroughly your database !", statusColor);
-            else {
-                setMessage("Error while importing model.\n"+DBPlugin.getAsyncException().getMessage(), RED_COLOR);
-            }
+        	statusColor = RED_COLOR;
+            setMessage("Error while importing model:\n"+err.getMessage(), RED_COLOR);
+        }
 
-            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError") ) {
-	            try {
+        if ( statusColor == RED_COLOR ) {
+        	if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError") ) {
+	        	try {
 	                // we remove the 'dirty' flag (i.e. we consider the model as saved) because we do not want the closeModel() method ask to save it
 	                CommandStack stack = (CommandStack)modelToImport.getAdapter(CommandStack.class);
 	                stack.markSaveLocation();
@@ -896,9 +785,9 @@ public class DBGuiImportModel extends DBGui {
 	            } catch (IOException e) {
 	                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
 	            }
-            } else {
-                popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
-            }
+	        } else {
+	            popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
+	        }
         }
     }
 }
