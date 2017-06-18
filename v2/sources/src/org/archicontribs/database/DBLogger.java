@@ -67,7 +67,7 @@ public class DBLogger {
 		if ( initialised ) {
 			Logger oldLogger = logger;
 			logger = Logger.getLogger(DBLogger.class);
-			if ( isDebugEnabled() ) debug("Logger initialised.");
+			info("Logger initialised.");
 			if ( isTraceEnabled() ) {
 				StringBuilder param = new StringBuilder();
 				String eol = "";
