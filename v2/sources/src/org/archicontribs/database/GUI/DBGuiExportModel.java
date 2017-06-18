@@ -60,9 +60,6 @@ public class DBGuiExportModel extends DBGui {
 	private Group grpComponents;
 	private Group grpModelVersions;
 
-	private Color statusColor = GREEN_COLOR;
-
-
 	/**
 	 * Creates the GUI to export components and model
 	 */
@@ -141,10 +138,10 @@ public class DBGuiExportModel extends DBGui {
 					txtModelName.setText((String) tblModelVersions.getSelection()[0].getData("name"));
 
 					if ( getOptionValue() && (tblModelVersions.getSelection()[0] == tblModelVersions.getItem(0)) ) {
-						txtReleaseNote.setEnabled(statusColor != GREEN_COLOR);
-						txtPurpose.setEnabled(statusColor != GREEN_COLOR);
-						txtModelName.setEnabled(statusColor != GREEN_COLOR);
-						btnDoAction.setEnabled(statusColor != GREEN_COLOR);
+						txtReleaseNote.setEnabled(true);
+						txtPurpose.setEnabled(true);
+						txtModelName.setEnabled(true);
+						btnDoAction.setEnabled(true);
 					} else {
 						txtReleaseNote.setEnabled(false);
 						txtPurpose.setEnabled(false);
@@ -665,19 +662,15 @@ public class DBGuiExportModel extends DBGui {
 			}
 		}
 
-		statusColor = GREEN_COLOR;
-
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.countSyncedElements()+" synced, "+connection.countUpdatedElements()+" updated, "+connection.countNewElements()+"new.");			
 		txtNewElements.setText(String.valueOf(connection.countNewElements()));
 		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
 		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
-		//txtSyncedElements.setForeground( (connection.countSyncedElements() == exportedModel.getAllElements().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model: "+connection.countSyncedRelationships()+" synced, "+connection.countUpdatedRelationships()+" updated, "+connection.countNewRelationships()+" new.");
 		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
 		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
 		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
-		//txtSyncedRelationships.setForeground( (connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 		txtTotalFolders.setVisible(getOptionValue());
 		txtNewFolders.setVisible(getOptionValue());
@@ -853,10 +846,6 @@ public class DBGuiExportModel extends DBGui {
 			progressBarWidth = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size();
 		}
 
-		// as we are confident, we set the status color to green :-)
-		statusColor = GREEN_COLOR;
-
-
 		// we disable the export button to avoid a second click
 		btnDoAction.setEnabled(false);
 
@@ -979,7 +968,6 @@ public class DBGuiExportModel extends DBGui {
 			}
 	
 		} catch (Exception err) {
-			statusColor = RED_COLOR;
 			setActiveAction(STATUS.Error);
 			popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
 			try  {
@@ -1023,7 +1011,6 @@ public class DBGuiExportModel extends DBGui {
 				grpModelVersions.setVisible(false);
 				grpConflict.setVisible(true);
 			} catch (Exception err) {
-				statusColor = RED_COLOR;
 				popup(Level.ERROR, "Failed to compare component with its database version.", err);
 				setActiveAction(STATUS.Error);
 				doShowResult(err);
@@ -1349,6 +1336,7 @@ public class DBGuiExportModel extends DBGui {
 		    logger.trace("new : "+txtNewElements.getText()+" elements, "+txtNewRelationships.getText()+" relationships, "+txtNewFolders.getText()+" folders, "+txtNewViews.getText()+" views, "+txtNewViewObjects.getText()+" view objects, "+txtNewViewConnections.getText()+" view connections.");
 		}
 
+		Color statusColor = GREEN_COLOR;
 		txtSyncedElements.setForeground( DBPlugin.areEqual(txtSyncedElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		txtSyncedRelationships.setForeground( DBPlugin.areEqual(txtSyncedRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		if ( getOptionValue() ) {
