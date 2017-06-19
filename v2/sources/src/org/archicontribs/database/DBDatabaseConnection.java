@@ -916,11 +916,12 @@ public class DBDatabaseConnection {
 		} else {
 			PreparedStatement pstmt = preparedStatementMap.get(request);
 
-			if ( pstmt == null ) {
+			if ( pstmt == null || pstmt.isClosed() ) {
 				pstmt = connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 				preparedStatementMap.put(request, pstmt);
 			} else {
 				pstmt.clearParameters();
+				pstmt.clearWarnings();
 			}
 
 			constructStatement(pstmt, request, parameters);
