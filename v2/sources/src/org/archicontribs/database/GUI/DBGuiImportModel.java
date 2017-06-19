@@ -590,6 +590,11 @@ public class DBGuiImportModel extends DBGui {
         txtModelName.setLayoutData(fd);
         
         fd = new FormData();
+        fd.top = new FormAttachment(txtModelName, 10);
+        fd.left = new FormAttachment(40, 0);
+        lblPurpose.setLayoutData(fd);
+        
+        fd = new FormData();
         fd.top = new FormAttachment(txtModelName, 5);
         fd.left = new FormAttachment(txtModelName, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -10);
@@ -598,7 +603,7 @@ public class DBGuiImportModel extends DBGui {
         
         fd = new FormData();
         fd.top = new FormAttachment(txtPurpose, 10);
-        fd.left = new FormAttachment(lblPurpose, 0, SWT.LEFT);
+        fd.left = new FormAttachment(40, 0);
         lblReleaseNote.setLayoutData(fd);
         
         fd = new FormData();
