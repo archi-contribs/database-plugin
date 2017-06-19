@@ -1075,7 +1075,7 @@ public class DBGui {
 	
 	
 	/**
-	 * Helper function to fill in the 
+	 * Helper function to fill in the compareTable
 	 */
     private void addItemToCompareTable(Table table, String col1, String col2, String col3, boolean highlighIfDifferent) {
     	TableItem tableItem = new TableItem(table, SWT.NULL);
@@ -1110,7 +1110,6 @@ public class DBGui {
         label.setLayoutData(fd);
         
         compoRightTop.layout();
-        compoRight.layout();
         refreshDisplay();
     }
     
