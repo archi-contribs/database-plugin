@@ -182,6 +182,8 @@ public class DBGuiImportModel extends DBGui {
         txtFilterModels.setToolTipText("You may use '%' as wildcard.");
         txtFilterModels.addModifyListener(new ModifyListener() {
             public void modifyText(ModifyEvent e) {
+                tblModels.removeAll();
+                tblModelVersions.removeAll();
                 try {
                     if ( connection.isConnected() )
                         connection.getModels("%"+txtFilterModels.getText()+"%", tblModels);
