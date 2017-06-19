@@ -1074,7 +1074,7 @@ public class DBDatabaseConnection {
 		if ( filter==null || filter.length()==0 )
 			result = select("SELECT id, name, version FROM "+schema+"models m WHERE version = (SELECT MAX(version) FROM "+schema+"models WHERE id = m.id) ORDER BY name");
 		else
-			result = select("SELECT id, name, version FROM "+schema+"models m WHERE version = (SELECT MAX(version) FROM "+schema+"models WHERE id = m.id) AND name like ? ORDER BY name", filter);
+			result = select("SELECT id, name, version FROM "+schema+"models m WHERE version = (SELECT MAX(version) FROM "+schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
 
 
 		while ( result.next() && result.getString("id") != null ) {
