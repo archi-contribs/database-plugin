@@ -2576,7 +2576,7 @@ public class DBDatabaseConnection {
 		}
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Database version : "+databaseVersion+", checksum : "+databaseChecksum+(hasCreatedByColumn ? ", created by : "+databaseCreatedBy+", created on : "+databaseCreatedOn : ""));
-		if ( logger.isTraceEnabled() ) logger.trace("   Current version  : "+currentVersion+", checksum : "+((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum());
+		if ( logger.isTraceEnabled() ) logger.trace("   Current version  : "+currentVersion+", checksum : "+((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum()+(DBPlugin.areEqual(databaseChecksum, ((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum())?"":" (updated)"));
 
 		if ( DBPlugin.areEqual(((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum(), databaseChecksum ) ) 
 			return COMPARE.IDENTICAL;
