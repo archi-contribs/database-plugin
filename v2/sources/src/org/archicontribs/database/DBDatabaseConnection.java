@@ -926,6 +926,7 @@ public class DBDatabaseConnection {
 
 			constructStatement(pstmt, request, parameters);
 
+			// on PostGreSQL databases, we can only send new requests if we rollback the transaction that caused the exception
 			Savepoint savepoint = null;
 			if ( DBPlugin.areEqual(databaseEntry.getDriver(), "postgresql") ) savepoint = connection.setSavepoint();
 			try {
@@ -936,6 +937,12 @@ public class DBDatabaseConnection {
 						connection.rollback(savepoint);
 						if ( logger.isTraceEnabled() ) logger.trace("Rolled back to savepoint");
 					} catch (SQLException e2) { logger.error("Failed to rollback to savepoint", e2); };
+				}
+				
+				// on sqlite databases, the prepared statement must be closed (then re-created) after the exception else we've got "statement is not executing" error messages
+				if ( DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ) {
+					preparedStatementMap.remove(pstmt);
+					pstmt.close();
 				}
 				throw e;
 			} finally {
