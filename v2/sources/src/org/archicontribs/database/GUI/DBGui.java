@@ -1087,6 +1087,7 @@ public class DBGui {
     }
     
     protected void setMessage(String message, Color foreground) {
+    	grpProgressBar.setVisible(false);
     	Label label = new Label(compoRightTop, SWT.VERTICAL | SWT.CENTER);
         label.setFont(GROUP_TITLE_FONT);
         label.setBackground(foreground);
