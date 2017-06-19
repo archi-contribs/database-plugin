@@ -1110,6 +1110,7 @@ public class DBGui {
         label.setLayoutData(fd);
         
         compoRightTop.layout();
+        refreshDisplay();
     }
     
     

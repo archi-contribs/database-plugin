@@ -1365,7 +1365,6 @@ public class DBGuiExportModel extends DBGui {
 		grpComponents.setVisible(true);
 
 		setActiveAction(ACTION.Three);
-		btnClose.setText("close");
 		
 		if ( logger.isTraceEnabled() ) {
 		    logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
@@ -1406,6 +1405,8 @@ public class DBGuiExportModel extends DBGui {
 		} else {
             setMessage("Error while exporting model.\n"+ err.getMessage(), RED_COLOR);
 		}
+		
+		btnClose.setText("close");
 	}
 
 	private Button btnDoNotExport;
