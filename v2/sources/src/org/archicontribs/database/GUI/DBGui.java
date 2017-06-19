@@ -83,7 +83,7 @@ public class DBGui {
 	protected DBDatabaseEntry selectedDatabase;
 	protected DBDatabaseConnection connection;
 	
-	protected static Display display = Display.getDefault();
+	protected static Display display = Display.getCurrent();
 	protected Shell dialog;
 	
 	protected boolean includeNeo4j = true;
@@ -1110,6 +1110,7 @@ public class DBGui {
         label.setLayoutData(fd);
         
         compoRightTop.layout();
+        compoRight.layout();
         refreshDisplay();
     }
     

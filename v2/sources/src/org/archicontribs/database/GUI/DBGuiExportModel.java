@@ -1014,6 +1014,7 @@ public class DBGuiExportModel extends DBGui {
 				popup(Level.ERROR, "Failed to compare component with its database version.", err);
 				setActiveAction(STATUS.Error);
 				doShowResult(err);
+				return;
 			}
 		}
 	}
