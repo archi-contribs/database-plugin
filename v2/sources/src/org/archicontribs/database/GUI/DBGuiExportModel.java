@@ -973,11 +973,12 @@ public class DBGuiExportModel extends DBGui {
 			try  {
 			    connection.rollback();
 				doShowResult(err);
+				return;
 			} catch (SQLException err2) {
 				popup(Level.FATAL, "The transaction failed to rollback and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
 				doShowResult(err2);
+				return;
 			}
-			return;
 		}
 
 		if ( logger.isDebugEnabled() ) logger.debug("Found "+tblListConflicts.getItemCount()+" components conflicting with database");
@@ -987,12 +988,13 @@ public class DBGuiExportModel extends DBGui {
 			    connection.setAutoCommit(true);
 				setActiveAction(STATUS.Ok);
 				doShowResult(null);
+				return;
 			} catch (Exception err) {
 				popup(Level.FATAL, "Failed to commit the transaction. Please check carrefully your database !", err);
 				setActiveAction(STATUS.Error);
 				doShowResult(err);
+				return;
 			}
-			return;
 		} else {
 			if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
 			resetProgressBar();
@@ -1004,12 +1006,10 @@ public class DBGuiExportModel extends DBGui {
 				doShowResult(err);
 				return;
 			}
+		
 			tblListConflicts.setSelection(0);
 			try {
 				tblListConflicts.notifyListeners(SWT.Selection, new Event());		// shows up the tblListConflicts table and calls fillInCompareTable()
-				grpComponents.setVisible(false);
-				grpModelVersions.setVisible(false);
-				grpConflict.setVisible(true);
 			} catch (Exception err) {
 				popup(Level.ERROR, "Failed to compare component with its database version.", err);
 				setActiveAction(STATUS.Error);
@@ -1184,6 +1184,8 @@ public class DBGuiExportModel extends DBGui {
 
 					fillInCompareTable(tblCompareComponent, conflictingComponent, null);
 				}
+				grpComponents.setVisible(false);
+				grpModelVersions.setVisible(false);
 				grpConflict.setVisible(true);
 				compoRightBottom.layout();
 			}
@@ -1342,6 +1344,8 @@ public class DBGuiExportModel extends DBGui {
 		tblListConflicts.remove(index);
 		if ( logger.isDebugEnabled() ) logger.debug("Remaining " + tblListConflicts.getItemCount() + " conflicts");
 		if ( tblListConflicts.getItemCount() == 0 ) {
+			grpComponents.setVisible(true);
+			grpModelVersions.setVisible(true);
 			grpConflict.setVisible(false);
 			export();
 		} else {
@@ -1362,8 +1366,8 @@ public class DBGuiExportModel extends DBGui {
 		logger.debug("Showing result.");
 		if ( grpProgressBar != null ) grpProgressBar.setVisible(false);
 		if ( grpConflict != null ) grpConflict.setVisible(false);
-		grpModelVersions.setVisible(true);
 		grpComponents.setVisible(true);
+		grpModelVersions.setVisible(true);
 
 		setActiveAction(ACTION.Three);
 		
@@ -1384,6 +1388,8 @@ public class DBGuiExportModel extends DBGui {
 			txtSyncedViewConnections.setForeground( DBPlugin.areEqual(txtSyncedViewConnections.getText(), txtTotalViewConnections.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			txtSyncedImages.setForeground( DBPlugin.areEqual(txtSyncedImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		}
+		
+		refreshDisplay();
 		
 		if ( err == null ) {
 			if ( statusColor == GREEN_COLOR ) {
@@ -1408,6 +1414,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		btnClose.setText("close");
+		logger.trace("we're here", new Exception("here"));
 	}
 
 	private Button btnDoNotExport;

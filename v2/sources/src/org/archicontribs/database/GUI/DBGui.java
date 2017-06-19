@@ -1144,7 +1144,8 @@ public class DBGui {
 	 */
 	public void run() {
 		while ( !isClosed ) {
-		    display.readAndDispatch();
+		    if ( display.readAndDispatch() )
+		    	display.sleep();
 		}
 	}
 	
@@ -1152,7 +1153,9 @@ public class DBGui {
 	 * Refreshes the display
 	 */
 	public static void refreshDisplay() {
-		while ( display.readAndDispatch() )
-			;
+		int i = 0;
+		while ( Display.getCurrent().readAndDispatch() )
+			++i;
+		if ( logger.isTraceEnabled() ) logger.trace("*** refreshed "+i+" events ***");
 	}
 }
