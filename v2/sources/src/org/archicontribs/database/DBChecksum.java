@@ -60,208 +60,209 @@ public class DBChecksum {
 		StringBuilder checksum = new StringBuilder();
 		char startOfText = (char)2;
 		char endOfText = (char)3;
+		boolean traceChecksum = false;
 		
 		if ( logger.isTraceEnabled() )
 		    logger.trace("Calculating checksum of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
 		
 		if ( eObject instanceof IIdentifier ) {
-	          if ( logger.isTraceEnabled() ) logger.trace("   id            : "+((IIdentifier)eObject).getId());
+	          if ( traceChecksum ) logger.trace("   id            : "+((IIdentifier)eObject).getId());
 	          checksum.append(startOfText+((IIdentifier)eObject).getId()+endOfText);
 		}
 		
 		if ( eObject instanceof INameable ) {
 			// we refuse null names, so if we got one, we replace it with an empty string
 			if ( ((INameable)eObject).getName() == null ) ((INameable)eObject).setName("");
-		    if ( logger.isTraceEnabled() ) logger.trace("   name          : "+((INameable)eObject).getName());
+		    if ( traceChecksum ) logger.trace("   name          : "+((INameable)eObject).getName());
 		    checksum.append(startOfText+((INameable)eObject).getName()+endOfText);
 		}
 		
 		if ( eObject instanceof IDocumentable ) {
-            if ( logger.isTraceEnabled() ) logger.trace("   documentation : "+((IDocumentable)eObject).getDocumentation());
+            if ( traceChecksum ) logger.trace("   documentation : "+((IDocumentable)eObject).getDocumentation());
 			checksum.append(startOfText+((IDocumentable)eObject).getDocumentation()+endOfText);
 		}
 		
 		if ( eObject instanceof IJunction ) {
-            if ( logger.isTraceEnabled() ) logger.trace("   junction type : "+((IJunction)eObject).getType());
+            if ( traceChecksum ) logger.trace("   junction type : "+((IJunction)eObject).getType());
 			checksum.append(startOfText+((IJunction)eObject).getType()+endOfText);
 		}
 		
 		if ( eObject instanceof IArchimateRelationship ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   rel source id : "+((IArchimateRelationship)eObject).getSource().getId());
+		    if ( traceChecksum ) logger.trace("   rel source id : "+((IArchimateRelationship)eObject).getSource().getId());
 			checksum.append(startOfText+((IArchimateRelationship)eObject).getSource().getId()+endOfText);
-			if ( logger.isTraceEnabled() ) logger.trace("   rel target id : "+((IArchimateRelationship)eObject).getTarget().getId());
+			if ( traceChecksum ) logger.trace("   rel target id : "+((IArchimateRelationship)eObject).getTarget().getId());
 			checksum.append(startOfText+((IArchimateRelationship)eObject).getTarget().getId()+endOfText);
 			
 			if ( eObject instanceof IInfluenceRelationship ) {
-			    if ( logger.isTraceEnabled() ) logger.trace("   rel strength  : "+((IArchimateRelationship)eObject).getTarget().getId());
+			    if ( traceChecksum ) logger.trace("   rel strength  : "+((IArchimateRelationship)eObject).getTarget().getId());
 				checksum.append(startOfText+((IInfluenceRelationship)eObject).getStrength()+endOfText);
 			}
 			if ( eObject instanceof IAccessRelationship ) {
-	            if ( logger.isTraceEnabled() ) logger.trace("   rel acc. type : "+((IAccessRelationship)eObject).getAccessType());
+	            if ( traceChecksum ) logger.trace("   rel acc. type : "+((IAccessRelationship)eObject).getAccessType());
 				checksum.append(startOfText+((IAccessRelationship)eObject).getAccessType()+endOfText);
 			}
 		}
 		
 		if ( eObject instanceof IFolder ) {
-            if ( logger.isTraceEnabled() ) logger.trace("   folder type   : "+((IFolder)eObject).getType().getLiteral());
+            if ( traceChecksum ) logger.trace("   folder type   : "+((IFolder)eObject).getType().getLiteral());
             checksum.append(startOfText+((IFolder)eObject).getType().getLiteral()+endOfText);
 		}
 		
 		if ( eObject instanceof IArchimateDiagramModel ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   viewpoint     : "+((IArchimateDiagramModel)eObject).getViewpoint());
+		    if ( traceChecksum ) logger.trace("   viewpoint     : "+((IArchimateDiagramModel)eObject).getViewpoint());
 		    checksum.append(startOfText+((IArchimateDiagramModel)eObject).getViewpoint()+endOfText);
 		}
 		
 		if ( eObject instanceof IDiagramModel ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   router type   : "+((IDiagramModel)eObject).getConnectionRouterType());
+		    if ( traceChecksum ) logger.trace("   router type   : "+((IDiagramModel)eObject).getConnectionRouterType());
 		    checksum.append(startOfText+((IDiagramModel)eObject).getConnectionRouterType()+endOfText);
 		}
 			
 		if ( eObject instanceof IBorderObject ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   border color  : "+((IBorderObject)eObject).getBorderColor());
+		    if ( traceChecksum ) logger.trace("   border color  : "+((IBorderObject)eObject).getBorderColor());
 		    checksum.append(startOfText+((IBorderObject)eObject).getBorderColor()+endOfText);
 		}
 		
 		if ( eObject instanceof IDiagramModelNote ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   border type   : "+((IDiagramModelNote)eObject).getBorderType());
+		    if ( traceChecksum ) logger.trace("   border type   : "+((IDiagramModelNote)eObject).getBorderType());
 		    checksum.append(startOfText+((IDiagramModelNote)eObject).getBorderType()+endOfText);
 		}
 		
 		if ( eObject instanceof IConnectable ) {
 			for ( IDiagramModelConnection conn: ((IConnectable)eObject).getSourceConnections() ) {
-			    if ( logger.isTraceEnabled() ) logger.trace("   source conn   : "+conn.getId());
+			    if ( traceChecksum ) logger.trace("   source conn   : "+conn.getId());
 				checksum.append(startOfText+conn.getId()+endOfText);
 			}
 			for ( IDiagramModelConnection conn: ((IConnectable)eObject).getTargetConnections() ) {
-			    if ( logger.isTraceEnabled() ) logger.trace("   target conn   : "+conn.getId());
+			    if ( traceChecksum ) logger.trace("   target conn   : "+conn.getId());
 			    checksum.append(startOfText+conn.getId()+endOfText);
 			}
 		}
 		
 		if ( eObject instanceof IDiagramModelArchimateObject ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   type          : "+((IDiagramModelArchimateObject)eObject).getType());
+		    if ( traceChecksum ) logger.trace("   type          : "+((IDiagramModelArchimateObject)eObject).getType());
 		    checksum.append(startOfText+((IDiagramModelArchimateObject)eObject).getType()+endOfText);
 		}
 		
 		if ( eObject instanceof IDiagramModelConnection ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   type          : "+((IDiagramModelConnection)eObject).getType());
+		    if ( traceChecksum ) logger.trace("   type          : "+((IDiagramModelConnection)eObject).getType());
 	        checksum.append(startOfText+((IDiagramModelConnection)eObject).getType()+endOfText);
-		    if ( logger.isTraceEnabled() ) logger.trace("   text position : "+((IDiagramModelConnection)eObject).getTextPosition());
+		    if ( traceChecksum ) logger.trace("   text position : "+((IDiagramModelConnection)eObject).getTextPosition());
 		    checksum.append(startOfText+((IDiagramModelConnection)eObject).getTextPosition()+endOfText);
 		    
 			for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
-			    if ( logger.isTraceEnabled() ) logger.trace("   bendpoint s.x : "+point.getStartX());
+			    if ( traceChecksum ) logger.trace("   bendpoint s.x : "+point.getStartX());
 				checksum.append(startOfText+point.getStartX()+endOfText);
-				if ( logger.isTraceEnabled() ) logger.trace("   bendpoint s.y : "+point.getStartY());
+				if ( traceChecksum ) logger.trace("   bendpoint s.y : "+point.getStartY());
 				checksum.append(startOfText+point.getStartY()+endOfText);
-				if ( logger.isTraceEnabled() ) logger.trace("   bendpoint e.x : "+point.getEndX());
+				if ( traceChecksum ) logger.trace("   bendpoint e.x : "+point.getEndX());
 				checksum.append(startOfText+point.getEndX()+endOfText);
-				if ( logger.isTraceEnabled() ) logger.trace("   bendpoint e.y : "+point.getEndY());
+				if ( traceChecksum ) logger.trace("   bendpoint e.y : "+point.getEndY());
 				checksum.append(startOfText+point.getEndY()+endOfText);
 			}
 		}
 		
 		if ( eObject instanceof IDiagramModelImageProvider ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   image path    : "+((IDiagramModelImageProvider)eObject).getImagePath());
+		    if ( traceChecksum ) logger.trace("   image path    : "+((IDiagramModelImageProvider)eObject).getImagePath());
 			checksum.append(startOfText+((IDiagramModelImageProvider)eObject).getImagePath()+endOfText);
 		}
 		
 
 		
 		if ( eObject instanceof IDiagramModelObject ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   fill color    : "+((IDiagramModelObject)eObject).getFillColor());
+		    if ( traceChecksum ) logger.trace("   fill color    : "+((IDiagramModelObject)eObject).getFillColor());
 		    checksum.append(((IDiagramModelObject)eObject).getFillColor()+endOfText);
 			IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
-			if ( logger.isTraceEnabled() ) logger.trace("   bounds x      : "+bounds.getX());
+			if ( traceChecksum ) logger.trace("   bounds x      : "+bounds.getX());
 			checksum.append(startOfText+bounds.getX()+endOfText);
-			if ( logger.isTraceEnabled() ) logger.trace("   bounds y      : "+bounds.getY());
+			if ( traceChecksum ) logger.trace("   bounds y      : "+bounds.getY());
 			checksum.append(startOfText+bounds.getY()+endOfText);
-			if ( logger.isTraceEnabled() ) logger.trace("   bounds width  : "+bounds.getWidth());
+			if ( traceChecksum ) logger.trace("   bounds width  : "+bounds.getWidth());
 			checksum.append(startOfText+bounds.getWidth()+endOfText);
-			if ( logger.isTraceEnabled() ) logger.trace("   bounds height : "+bounds.getHeight());
+			if ( traceChecksum ) logger.trace("   bounds height : "+bounds.getHeight());
 			checksum.append(startOfText+bounds.getHeight()+endOfText);
 		}
 		
 		if ( eObject instanceof IDiagramModelArchimateComponent ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   object element: "+((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
+		    if ( traceChecksum ) logger.trace("   object element: "+((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
 		    checksum.append(startOfText+((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId()+endOfText);
 		}
 		
 		if ( eObject instanceof IDiagramModelArchimateConnection ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   connection rel: "+((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
+		    if ( traceChecksum ) logger.trace("   connection rel: "+((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
 		    checksum.append(startOfText+((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId()+endOfText);
 		}
 		
 		if ( eObject instanceof IFontAttribute ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   font          : "+((IFontAttribute)eObject).getFont());
+		    if ( traceChecksum ) logger.trace("   font          : "+((IFontAttribute)eObject).getFont());
 		    checksum.append(startOfText+((IFontAttribute)eObject).getFont()+endOfText);
-		    if ( logger.isTraceEnabled() ) logger.trace("   font color    : "+((IFontAttribute)eObject).getFontColor());
+		    if ( traceChecksum ) logger.trace("   font color    : "+((IFontAttribute)eObject).getFontColor());
 			checksum.append(startOfText+((IFontAttribute)eObject).getFontColor()+endOfText);
 		}
 		
 		if ( eObject instanceof ILineObject ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   line width    : "+((ILineObject)eObject).getLineWidth());
+		    if ( traceChecksum ) logger.trace("   line width    : "+((ILineObject)eObject).getLineWidth());
 		    checksum.append(startOfText+((ILineObject)eObject).getLineWidth()+endOfText);
-		    if ( logger.isTraceEnabled() ) logger.trace("   line color    : "+((ILineObject)eObject).getLineColor());
+		    if ( traceChecksum ) logger.trace("   line color    : "+((ILineObject)eObject).getLineColor());
 			checksum.append(startOfText+((ILineObject)eObject).getLineColor()+endOfText);
 		}
 		
 		if ( eObject instanceof ILockable ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   lockable      : "+((ILockable)eObject).isLocked());
+		    if ( traceChecksum ) logger.trace("   lockable      : "+((ILockable)eObject).isLocked());
 		    checksum.append(startOfText+String.valueOf(((ILockable)eObject).isLocked())+endOfText);
 		}
 		
 		if ( eObject instanceof ISketchModel ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   background    : "+((ISketchModel)eObject).getBackground());
+		    if ( traceChecksum ) logger.trace("   background    : "+((ISketchModel)eObject).getBackground());
 		    checksum.append(startOfText+((ISketchModel)eObject).getBackground()+endOfText);
 		}
 		
 		if ( eObject instanceof ITextAlignment ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   text alignment: "+((ITextAlignment)eObject).getTextAlignment());
+		    if ( traceChecksum ) logger.trace("   text alignment: "+((ITextAlignment)eObject).getTextAlignment());
 		    checksum.append(startOfText+((ITextAlignment)eObject).getTextAlignment()+endOfText);
 		}
 		
 
         if ( eObject instanceof ITextPosition ) {
-            if ( logger.isTraceEnabled() ) logger.trace("   text position : "+((ITextPosition)eObject).getTextPosition());
+            if ( traceChecksum ) logger.trace("   text position : "+((ITextPosition)eObject).getTextPosition());
             checksum.append(startOfText+((ITextPosition)eObject).getTextPosition()+endOfText);
         }
 		
 		if ( eObject instanceof ITextContent ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   content       : "+((ITextContent)eObject).getContent());
+		    if ( traceChecksum ) logger.trace("   content       : "+((ITextContent)eObject).getContent());
 		    checksum.append(startOfText+((ITextContent)eObject).getContent()+endOfText);
 		}
 
 			
 		if ( eObject instanceof IHintProvider )	{
-		    if ( logger.isTraceEnabled() ) logger.trace("   hint title    : "+((IHintProvider)eObject).getHintTitle());
+		    if ( traceChecksum ) logger.trace("   hint title    : "+((IHintProvider)eObject).getHintTitle());
 		    checksum.append(startOfText+((IHintProvider)eObject).getHintTitle()+endOfText);
-		    if ( logger.isTraceEnabled() ) logger.trace("   hint content  : "+((IHintProvider)eObject).getHintContent());
+		    if ( traceChecksum ) logger.trace("   hint content  : "+((IHintProvider)eObject).getHintContent());
 		    checksum.append(startOfText+((IHintProvider)eObject).getHintContent()+endOfText);
 		}
 		
 		if ( eObject instanceof IHelpHintProvider ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   help hint titl: "+((IHelpHintProvider)eObject).getHelpHintTitle());
+		    if ( traceChecksum ) logger.trace("   help hint titl: "+((IHelpHintProvider)eObject).getHelpHintTitle());
 		    checksum.append(startOfText+((IHelpHintProvider)eObject).getHelpHintTitle()+endOfText);
-		    if ( logger.isTraceEnabled() ) logger.trace("   help hint cont: "+((IHelpHintProvider)eObject).getHelpHintContent());
+		    if ( traceChecksum ) logger.trace("   help hint cont: "+((IHelpHintProvider)eObject).getHelpHintContent());
 		    checksum.append(startOfText+((IHelpHintProvider)eObject).getHelpHintContent()+endOfText);
 		}
 				
 		if ( eObject instanceof IIconic ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   image position: "+((IIconic)eObject).getImagePosition());
+		    if ( traceChecksum ) logger.trace("   image position: "+((IIconic)eObject).getImagePosition());
 		    checksum.append(startOfText+((IIconic)eObject).getImagePosition()+endOfText);
 		}
 
 		if ( eObject instanceof INotesContent ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("   notes         : "+((INotesContent)eObject).getNotes());
+		    if ( traceChecksum ) logger.trace("   notes         : "+((INotesContent)eObject).getNotes());
 		    checksum.append(startOfText+((INotesContent)eObject).getNotes()+endOfText);
 		}
 
 		if ( eObject instanceof IProperties ) {
 			for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
-			    if ( logger.isTraceEnabled() ) logger.trace("   property key  : "+prop.getKey());
+			    if ( traceChecksum ) logger.trace("   property key  : "+prop.getKey());
 			    checksum.append(startOfText+prop.getKey()+endOfText);
-			    if ( logger.isTraceEnabled() ) logger.trace("   property value: "+prop.getValue());
+			    if ( traceChecksum ) logger.trace("   property value: "+prop.getValue());
 			    checksum.append(startOfText+prop.getValue()+endOfText);
 			}
 		}
