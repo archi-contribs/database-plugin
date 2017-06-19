@@ -77,7 +77,7 @@ public class DBChecksum {
 		}
 		
 		if ( eObject instanceof IDocumentable ) {
-            if ( logger.isTraceEnabled() ) logger.trace("   documentation : "+((IDocumentable)eObject).getDocumentation().substring(0, Math.min(((IDocumentable)eObject).getDocumentation().length(), 200)));
+            if ( logger.isTraceEnabled() ) logger.trace("   documentation : "+((IDocumentable)eObject).getDocumentation());
 			checksum.append(startOfText+((IDocumentable)eObject).getDocumentation()+endOfText);
 		}
 		
