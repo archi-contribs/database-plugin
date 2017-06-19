@@ -1390,9 +1390,9 @@ public class DBGuiExportModel extends DBGui {
 				setMessage("Export successful", statusColor);
 				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
 					if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-				    	close();
-				        return;
-				  	}
+				    close();
+				    return;
+				}
 				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
 				    if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
 				    CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
