@@ -766,7 +766,6 @@ public class DBGuiExportModel extends DBGui {
 			tblModelVersions.notifyListeners(SWT.Selection, new Event());
 		}
 
-		//if ( statusColor == GREEN_COLOR ) {
 		if ( 	(connection.countSyncedElements() == exportedModel.getAllElements().size()) &&
 				(connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) &&
 				(connection.countSyncedFolders() == exportedModel.getAllFolders().size()) &&
@@ -844,6 +843,37 @@ public class DBGuiExportModel extends DBGui {
 		} else {
 			logger.info("Exporting components : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships.");
 			progressBarWidth = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size();
+		}
+		
+		// we reset the counters because they may have been changed (in case of conflict for instance)
+		txtNewElements.setText(String.valueOf(connection.countNewElements()));
+		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
+		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
+
+		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
+		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
+		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
+
+		if ( getOptionValue() ) {
+			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
+			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
+			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
+
+			txtNewViews.setText(String.valueOf(connection.countNewViews()));
+			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
+			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
+
+			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
+			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
+			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
+
+			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
+			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
+			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
+
+			txtNewImages.setText(String.valueOf(connection.countNewImages()));
+			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
+			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
 		}
 
 		// we disable the export button to avoid a second click
@@ -1138,175 +1168,181 @@ public class DBGuiExportModel extends DBGui {
 	 * Creates a group that will display the conflicts raised during the export process
 	 */
 	protected void createGrpConflict() {		
-		grpConflict = new Group(compoRightBottom, SWT.NONE);
-		grpConflict.setBackground(GROUP_BACKGROUND_COLOR);
-		grpConflict.setFont(TITLE_FONT);
-		grpConflict.setText("Conflict : ");
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
-		fd.bottom = new FormAttachment(100);
-		grpConflict.setLayoutData(fd);
-		grpConflict.setLayout(new FormLayout());
-
-		lblCantExport = new Label(grpConflict, SWT.NONE);
-		lblCantExport.setBackground(GROUP_BACKGROUND_COLOR);
-		lblCantExport.setText("Can't export because some components conflict with newer version in the database :");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
-		fd.left = new FormAttachment(0, 10);
-		lblCantExport.setLayoutData(fd);
-
-		tblListConflicts = new Table(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
-		tblListConflicts.setLinesVisible(true);
-		tblListConflicts.setBackground(GROUP_BACKGROUND_COLOR);
-		tblListConflicts.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				// we search for the component that is conflicting
-				String id = tblListConflicts.getSelection()[0].getText();
-
-				EObject conflictingComponent = exportedModel.getAllElements().get(id);
-				if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllRelationships().get(id);
-				if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllFolders().get(id);
-				if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllViews().get(id);
-
-				if ( conflictingComponent == null ) {
-					btnExportMyVersion.setEnabled(false);
-					btnDoNotExport.setEnabled(false);
-					btnImportDatabaseVersion.setEnabled(false);
-					tblCompareComponent.removeAll();
-					popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
-				} else {				
-					btnExportMyVersion.setEnabled(true);
-					btnDoNotExport.setEnabled(true);
-					btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
-
-					fillInCompareTable(tblCompareComponent, conflictingComponent, null);
+		if ( grpConflict == null ) {
+			grpConflict = new Group(compoRightBottom, SWT.NONE);
+			grpConflict.setBackground(GROUP_BACKGROUND_COLOR);
+			grpConflict.setFont(TITLE_FONT);
+			grpConflict.setText("Conflict : ");
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(0);
+			fd.left = new FormAttachment(0);
+			fd.right = new FormAttachment(100);
+			fd.bottom = new FormAttachment(100);
+			grpConflict.setLayoutData(fd);
+			grpConflict.setLayout(new FormLayout());
+	
+			lblCantExport = new Label(grpConflict, SWT.NONE);
+			lblCantExport.setBackground(GROUP_BACKGROUND_COLOR);
+			lblCantExport.setText("Can't export because some components conflict with newer version in the database :");
+			fd = new FormData();
+			fd.top = new FormAttachment(0, 10);
+			fd.left = new FormAttachment(0, 10);
+			lblCantExport.setLayoutData(fd);
+	
+			tblListConflicts = new Table(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
+			tblListConflicts.setLinesVisible(true);
+			tblListConflicts.setBackground(GROUP_BACKGROUND_COLOR);
+			tblListConflicts.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					// we search for the component that is conflicting
+					String id = tblListConflicts.getSelection()[0].getText();
+	
+					EObject conflictingComponent = exportedModel.getAllElements().get(id);
+					if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllRelationships().get(id);
+					if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllFolders().get(id);
+					if ( conflictingComponent == null ) conflictingComponent = exportedModel.getAllViews().get(id);
+	
+					if ( conflictingComponent == null ) {
+						btnExportMyVersion.setEnabled(false);
+						btnDoNotExport.setEnabled(false);
+						btnImportDatabaseVersion.setEnabled(false);
+						tblCompareComponent.removeAll();
+						popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
+					} else {				
+						btnExportMyVersion.setEnabled(true);
+						btnDoNotExport.setEnabled(true);
+						btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
+	
+						fillInCompareTable(tblCompareComponent, conflictingComponent, null);
+					}
+					grpComponents.setVisible(false);
+					grpModelVersions.setVisible(false);
+					grpConflict.setVisible(true);
+					compoRightBottom.layout();
 				}
-				grpComponents.setVisible(false);
-				grpModelVersions.setVisible(false);
-				grpConflict.setVisible(true);
-				compoRightBottom.layout();
-			}
-		});
-		fd = new FormData();
-		fd.top = new FormAttachment(lblCantExport, 10);
-		fd.left = new FormAttachment(25);
-		fd.right = new FormAttachment(75);
-		fd.bottom = new FormAttachment(40);
-		tblListConflicts.setLayoutData(fd);
-
-		Label lblCompare = new Label(grpConflict, SWT.NONE);
-		lblCompare.setBackground(GROUP_BACKGROUND_COLOR);
-		lblCompare.setText("Please verify your version against the latest version in the database :");
-		fd = new FormData();
-		fd.top = new FormAttachment(tblListConflicts, 20);
-		fd.left = new FormAttachment(0, 10);
-		lblCompare.setLayoutData(fd);
-
-		tblCompareComponent = new Table(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
-		tblCompareComponent.setBackground(GROUP_BACKGROUND_COLOR);
-		tblCompareComponent.setHeaderVisible(true);
-		tblCompareComponent.setLinesVisible(true);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblCompare, 10);
-		fd.left = new FormAttachment(0,10);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -40);
-		tblCompareComponent.setLayoutData(fd);
-
-		TableColumn colItems = new TableColumn(tblCompareComponent, SWT.NONE);
-		colItems.setText("Items");
-		colItems.setWidth(119);
-
-		TableColumn colYourVersion = new TableColumn(tblCompareComponent, SWT.NONE);
-		colYourVersion.setText("Your version");
-		colYourVersion.setWidth(170);
-
-		TableColumn colDatabaseVersion = new TableColumn(tblCompareComponent, SWT.NONE);
-		colDatabaseVersion.setText("Database version");
-		colDatabaseVersion.setWidth(170);
-
-		btnImportDatabaseVersion = new Button(grpConflict, SWT.NONE);
-		btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
-		btnImportDatabaseVersion.setText("Import");
-		btnImportDatabaseVersion.setEnabled(false);
-		btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { 
-				if ( checkRememberChoice.getSelection() ) {
-					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
-					// at the end, only those with errors will stay
-					tblListConflicts.setSelection(0);
-					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+			});
+			fd = new FormData();
+			fd.top = new FormAttachment(lblCantExport, 10);
+			fd.left = new FormAttachment(25);
+			fd.right = new FormAttachment(75);
+			fd.bottom = new FormAttachment(40);
+			tblListConflicts.setLayoutData(fd);
+	
+			Label lblCompare = new Label(grpConflict, SWT.NONE);
+			lblCompare.setBackground(GROUP_BACKGROUND_COLOR);
+			lblCompare.setText("Please verify your version against the latest version in the database :");
+			fd = new FormData();
+			fd.top = new FormAttachment(tblListConflicts, 20);
+			fd.left = new FormAttachment(0, 10);
+			lblCompare.setLayoutData(fd);
+	
+			tblCompareComponent = new Table(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
+			tblCompareComponent.setBackground(GROUP_BACKGROUND_COLOR);
+			tblCompareComponent.setHeaderVisible(true);
+			tblCompareComponent.setLinesVisible(true);
+			fd = new FormData();
+			fd.top = new FormAttachment(lblCompare, 10);
+			fd.left = new FormAttachment(0,10);
+			fd.right = new FormAttachment(100, -10);
+			fd.bottom = new FormAttachment(100, -40);
+			tblCompareComponent.setLayoutData(fd);
+	
+			TableColumn colItems = new TableColumn(tblCompareComponent, SWT.NONE);
+			colItems.setText("Items");
+			colItems.setWidth(119);
+	
+			TableColumn colYourVersion = new TableColumn(tblCompareComponent, SWT.NONE);
+			colYourVersion.setText("Your version");
+			colYourVersion.setWidth(170);
+	
+			TableColumn colDatabaseVersion = new TableColumn(tblCompareComponent, SWT.NONE);
+			colDatabaseVersion.setText("Database version");
+			colDatabaseVersion.setWidth(170);
+	
+			btnImportDatabaseVersion = new Button(grpConflict, SWT.NONE);
+			btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
+			btnImportDatabaseVersion.setText("Import");
+			btnImportDatabaseVersion.setEnabled(false);
+			btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) { 
+					if ( checkRememberChoice.getSelection() ) {
+						// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+						// at the end, only those with errors will stay
+						tblListConflicts.setSelection(0);
+						for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+					} else {
+						// we only apply the choice to the selected component
 						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
-				} else {
-					// we only apply the choice to the selected component
-					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+					}
 				}
-			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		fd = new FormData(80,25);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		btnImportDatabaseVersion.setLayoutData(fd);
-
-		btnExportMyVersion = new Button(grpConflict, SWT.NONE);
-		btnExportMyVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-		btnExportMyVersion.setText("Export");
-		btnExportMyVersion.setEnabled(false);
-		btnExportMyVersion.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { 
-				if ( checkRememberChoice.getSelection() ) {
-					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
-					// at the end, only those with errors will stay
-					tblListConflicts.setSelection(0);
-					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+				public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			});
+			fd = new FormData(80,25);
+			fd.right = new FormAttachment(100, -10);
+			fd.bottom = new FormAttachment(100, -10);
+			btnImportDatabaseVersion.setLayoutData(fd);
+	
+			btnExportMyVersion = new Button(grpConflict, SWT.NONE);
+			btnExportMyVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
+			btnExportMyVersion.setText("Export");
+			btnExportMyVersion.setEnabled(false);
+			btnExportMyVersion.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) { 
+					if ( checkRememberChoice.getSelection() ) {
+						// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+						// at the end, only those with errors will stay
+						tblListConflicts.setSelection(0);
+						for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+					} else {
+						// we only apply the choice to the selected component
 						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
-				} else {
-					// we only apply the choice to the selected component
-					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+					}
 				}
-			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		fd = new FormData(80,25);
-		fd.right = new FormAttachment(btnImportDatabaseVersion, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		btnExportMyVersion.setLayoutData(fd);
-
-		btnDoNotExport = new Button(grpConflict, SWT.NONE);
-		btnDoNotExport.setText("Do not export");
-		btnDoNotExport.setEnabled(false);
-		btnDoNotExport.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { 
-				if ( checkRememberChoice.getSelection() ) {
-					// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
-					// at the end, only those with errors will stay
-					tblListConflicts.setSelection(0);
-					for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+				public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			});
+			fd = new FormData(80,25);
+			fd.right = new FormAttachment(btnImportDatabaseVersion, -10);
+			fd.bottom = new FormAttachment(100, -10);
+			btnExportMyVersion.setLayoutData(fd);
+	
+			btnDoNotExport = new Button(grpConflict, SWT.NONE);
+			btnDoNotExport.setText("Do not export");
+			btnDoNotExport.setEnabled(false);
+			btnDoNotExport.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) { 
+					if ( checkRememberChoice.getSelection() ) {
+						// if the button checkRememberChoice is checked, then we apply the choice for all the conflicting components.
+						// at the end, only those with errors will stay
+						tblListConflicts.setSelection(0);
+						for ( int i=0; i<tblListConflicts.getItemCount(); ++i)
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+					} else {
+						// we only apply the choice to the selected component
 						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
-				} else {
-					// we only apply the choice to the selected component
-					tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+					}
 				}
-			}
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		fd = new FormData(80,25);
-		fd.right = new FormAttachment(btnExportMyVersion, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		btnDoNotExport.setLayoutData(fd);
-
-		checkRememberChoice = new Button(grpConflict, SWT.CHECK);
-		checkRememberChoice.setText("Remember my choice");
-		fd = new FormData();
-		fd.right = new FormAttachment(btnDoNotExport, -20);
-		fd.top = new FormAttachment(btnDoNotExport, 0, SWT.CENTER);
-		checkRememberChoice.setLayoutData(fd);
-
-		grpConflict.layout();
+				public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			});
+			fd = new FormData(80,25);
+			fd.right = new FormAttachment(btnExportMyVersion, -10);
+			fd.bottom = new FormAttachment(100, -10);
+			btnDoNotExport.setLayoutData(fd);
+	
+			checkRememberChoice = new Button(grpConflict, SWT.CHECK);
+			checkRememberChoice.setText("Remember my choice");
+			fd = new FormData();
+			fd.right = new FormAttachment(btnDoNotExport, -20);
+			fd.top = new FormAttachment(btnDoNotExport, 0, SWT.CENTER);
+			checkRememberChoice.setLayoutData(fd);
+	
+			grpConflict.layout();
+		} else {
+			grpConflict.setVisible(true);
+			tblListConflicts.removeAll();
+			tblCompareComponent.removeAll();
+		}
 	}
 	
 	/**
