@@ -6,6 +6,7 @@
 
 package org.archicontribs.database;
 
+import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -49,241 +50,125 @@ import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
+
+
 public class DBChecksum {
 	private static final DBLogger logger = new DBLogger(DBChecksum.class);
+	private static final boolean traceChecksum = false;
+	private static final char startOfText = (char)2;
+	private static final char endOfText = (char)3;
+
 	/**
 	 * Calculate the checksum of an object.<br>
 	 * Please note that this method is *NOT* recursive. the recursion should be managed at a higher level for folders and views.
 	 * @throws NoSuchAlgorithmException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException {
+	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		StringBuilder checksum = new StringBuilder();
-		char startOfText = (char)2;
-		char endOfText = (char)3;
-		boolean traceChecksum = false;
+
 		
 		if ( logger.isTraceEnabled() )
 		    logger.trace("Calculating checksum of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
 		
-		if ( eObject instanceof IIdentifier ) {
-	          if ( traceChecksum ) logger.trace("   id            : "+((IIdentifier)eObject).getId());
-	          checksum.append(startOfText+((IIdentifier)eObject).getId()+endOfText);
+		if ( eObject instanceof IIdentifier )						append(checksum, "id", ((IIdentifier)eObject).getId());
+		if ( eObject instanceof INameable )							append(checksum, "name", ((INameable)eObject).getName());		// shall we do a setName("") in case of null ?
+		if ( eObject instanceof IDocumentable )						append(checksum, "documentation", ((IDocumentable)eObject).getDocumentation());
+		if ( eObject instanceof IJunction )							append(checksum, "junction type", ((IJunction)eObject).getType());
+		if ( eObject instanceof IArchimateRelationship ) {			append(checksum, "source id", ((IArchimateRelationship)eObject).getSource().getId());
+																	append(checksum, "target id", ((IArchimateRelationship)eObject).getTarget().getId());
+			if ( eObject instanceof IInfluenceRelationship )		append(checksum, "strength", ((IInfluenceRelationship)eObject).getStrength());
+			if ( eObject instanceof IAccessRelationship )			append(checksum, "access type", ((IAccessRelationship)eObject).getAccessType());
 		}
-		
-		if ( eObject instanceof INameable ) {
-			// we refuse null names, so if we got one, we replace it with an empty string
-			if ( ((INameable)eObject).getName() == null ) ((INameable)eObject).setName("");
-		    if ( traceChecksum ) logger.trace("   name          : "+((INameable)eObject).getName());
-		    checksum.append(startOfText+((INameable)eObject).getName()+endOfText);
+		if ( eObject instanceof IFolder )							append(checksum, "folder type", ((IFolder)eObject).getType().getLiteral());
+		if ( eObject instanceof IArchimateDiagramModel )			append(checksum, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
+		if ( eObject instanceof IDiagramModel )						append(checksum, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
+		if ( eObject instanceof IBorderObject )						append(checksum, "border color", ((IBorderObject)eObject).getBorderColor());
+		if ( eObject instanceof IDiagramModelNote )					append(checksum, "border type", ((IDiagramModelNote)eObject).getBorderType());
+		if ( eObject instanceof IConnectable ) {					for ( IDiagramModelConnection conn: ((IConnectable)eObject).getSourceConnections() )
+																		append(checksum, "source connections", conn.getId());
+																	for ( IDiagramModelConnection conn: ((IConnectable)eObject).getTargetConnections() )
+																		append(checksum, "target connections", conn.getId());
 		}
-		
-		if ( eObject instanceof IDocumentable ) {
-            if ( traceChecksum ) logger.trace("   documentation : "+((IDocumentable)eObject).getDocumentation());
-			checksum.append(startOfText+((IDocumentable)eObject).getDocumentation()+endOfText);
+		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksum, "type", ((IDiagramModelArchimateObject)eObject).getType());
+		if ( eObject instanceof IDiagramModelConnection ) {			append(checksum, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
+																	append(checksum, " text position : ", ((IDiagramModelConnection)eObject).getTextPosition());
+																	for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
+																		append(checksum, "bendpoint start x", point.getStartX());
+																		append(checksum, "bendpoint start y", point.getStartY());
+																		append(checksum, "bendpoint end x", point.getEndX());
+																		append(checksum, "bendpoint end y" ,point.getEndY());
+																	}
 		}
-		
-		if ( eObject instanceof IJunction ) {
-            if ( traceChecksum ) logger.trace("   junction type : "+((IJunction)eObject).getType());
-			checksum.append(startOfText+((IJunction)eObject).getType()+endOfText);
+		if ( eObject instanceof IDiagramModelImageProvider )		append(checksum, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
+		if ( eObject instanceof IDiagramModelObject ) {				append(checksum, "fill color", ((IDiagramModelObject)eObject).getFillColor());
+																	IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
+																	append(checksum, "bounds x", bounds.getX());
+																	append(checksum, "bounds y", bounds.getY());
+																	append(checksum, "bounds width" ,bounds.getWidth());
+																	append(checksum, "bounds height", bounds.getHeight());
 		}
-		
-		if ( eObject instanceof IArchimateRelationship ) {
-		    if ( traceChecksum ) logger.trace("   rel source id : "+((IArchimateRelationship)eObject).getSource().getId());
-			checksum.append(startOfText+((IArchimateRelationship)eObject).getSource().getId()+endOfText);
-			if ( traceChecksum ) logger.trace("   rel target id : "+((IArchimateRelationship)eObject).getTarget().getId());
-			checksum.append(startOfText+((IArchimateRelationship)eObject).getTarget().getId()+endOfText);
-			
-			if ( eObject instanceof IInfluenceRelationship ) {
-			    if ( traceChecksum ) logger.trace("   rel strength  : "+((IArchimateRelationship)eObject).getTarget().getId());
-				checksum.append(startOfText+((IInfluenceRelationship)eObject).getStrength()+endOfText);
-			}
-			if ( eObject instanceof IAccessRelationship ) {
-	            if ( traceChecksum ) logger.trace("   rel acc. type : "+((IAccessRelationship)eObject).getAccessType());
-				checksum.append(startOfText+((IAccessRelationship)eObject).getAccessType()+endOfText);
-			}
+		if ( eObject instanceof IDiagramModelArchimateComponent )	append(checksum, "archimate concept", ((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
+		if ( eObject instanceof IDiagramModelArchimateConnection )	append(checksum, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
+		if ( eObject instanceof IFontAttribute ) {					append(checksum, "font", ((IFontAttribute)eObject).getFont());
+																	append(checksum, "font color", ((IFontAttribute)eObject).getFontColor());
 		}
-		
-		if ( eObject instanceof IFolder ) {
-            if ( traceChecksum ) logger.trace("   folder type   : "+((IFolder)eObject).getType().getLiteral());
-            checksum.append(startOfText+((IFolder)eObject).getType().getLiteral()+endOfText);
+		if ( eObject instanceof ILineObject ) {						append(checksum, "line width", ((ILineObject)eObject).getLineWidth());
+																	append(checksum, "line color", ((ILineObject)eObject).getLineColor());
 		}
-		
-		if ( eObject instanceof IArchimateDiagramModel ) {
-		    if ( traceChecksum ) logger.trace("   viewpoint     : "+((IArchimateDiagramModel)eObject).getViewpoint());
-		    checksum.append(startOfText+((IArchimateDiagramModel)eObject).getViewpoint()+endOfText);
+		if ( eObject instanceof ILockable )							append(checksum, "lockable", ((ILockable)eObject).isLocked());
+		if ( eObject instanceof ISketchModel )						append(checksum, "background", ((ISketchModel)eObject).getBackground());
+		if ( eObject instanceof ITextAlignment )					append(checksum, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
+        if ( eObject instanceof ITextPosition )						append(checksum, "text position", ((ITextPosition)eObject).getTextPosition());
+		if ( eObject instanceof ITextContent )						append(checksum, "content", ((ITextContent)eObject).getContent());
+		if ( eObject instanceof IHintProvider )	{					append(checksum, "hint title", ((IHintProvider)eObject).getHintTitle());
+																	append(checksum, "hint content", ((IHintProvider)eObject).getHintContent());
 		}
-		
-		if ( eObject instanceof IDiagramModel ) {
-		    if ( traceChecksum ) logger.trace("   router type   : "+((IDiagramModel)eObject).getConnectionRouterType());
-		    checksum.append(startOfText+((IDiagramModel)eObject).getConnectionRouterType()+endOfText);
+		if ( eObject instanceof IHelpHintProvider ) {				append(checksum, "help hint title", ((IHelpHintProvider)eObject).getHelpHintTitle());
+																	append(checksum, "help hint content", ((IHelpHintProvider)eObject).getHelpHintContent());
 		}
-			
-		if ( eObject instanceof IBorderObject ) {
-		    if ( traceChecksum ) logger.trace("   border color  : "+((IBorderObject)eObject).getBorderColor());
-		    checksum.append(startOfText+((IBorderObject)eObject).getBorderColor()+endOfText);
-		}
-		
-		if ( eObject instanceof IDiagramModelNote ) {
-		    if ( traceChecksum ) logger.trace("   border type   : "+((IDiagramModelNote)eObject).getBorderType());
-		    checksum.append(startOfText+((IDiagramModelNote)eObject).getBorderType()+endOfText);
-		}
-		
-		if ( eObject instanceof IConnectable ) {
-			for ( IDiagramModelConnection conn: ((IConnectable)eObject).getSourceConnections() ) {
-			    if ( traceChecksum ) logger.trace("   source conn   : "+conn.getId());
-				checksum.append(startOfText+conn.getId()+endOfText);
-			}
-			for ( IDiagramModelConnection conn: ((IConnectable)eObject).getTargetConnections() ) {
-			    if ( traceChecksum ) logger.trace("   target conn   : "+conn.getId());
-			    checksum.append(startOfText+conn.getId()+endOfText);
-			}
-		}
-		
-		if ( eObject instanceof IDiagramModelArchimateObject ) {
-		    if ( traceChecksum ) logger.trace("   type          : "+((IDiagramModelArchimateObject)eObject).getType());
-		    checksum.append(startOfText+((IDiagramModelArchimateObject)eObject).getType()+endOfText);
-		}
-		
-		if ( eObject instanceof IDiagramModelConnection ) {
-		    if ( traceChecksum ) logger.trace("   type          : "+((IDiagramModelConnection)eObject).getType());
-	        checksum.append(startOfText+((IDiagramModelConnection)eObject).getType()+endOfText);
-		    if ( traceChecksum ) logger.trace("   text position : "+((IDiagramModelConnection)eObject).getTextPosition());
-		    checksum.append(startOfText+((IDiagramModelConnection)eObject).getTextPosition()+endOfText);
-		    
-			for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
-			    if ( traceChecksum ) logger.trace("   bendpoint s.x : "+point.getStartX());
-				checksum.append(startOfText+point.getStartX()+endOfText);
-				if ( traceChecksum ) logger.trace("   bendpoint s.y : "+point.getStartY());
-				checksum.append(startOfText+point.getStartY()+endOfText);
-				if ( traceChecksum ) logger.trace("   bendpoint e.x : "+point.getEndX());
-				checksum.append(startOfText+point.getEndX()+endOfText);
-				if ( traceChecksum ) logger.trace("   bendpoint e.y : "+point.getEndY());
-				checksum.append(startOfText+point.getEndY()+endOfText);
-			}
-		}
-		
-		if ( eObject instanceof IDiagramModelImageProvider ) {
-		    if ( traceChecksum ) logger.trace("   image path    : "+((IDiagramModelImageProvider)eObject).getImagePath());
-			checksum.append(startOfText+((IDiagramModelImageProvider)eObject).getImagePath()+endOfText);
-		}
-		
-
-		
-		if ( eObject instanceof IDiagramModelObject ) {
-		    if ( traceChecksum ) logger.trace("   fill color    : "+((IDiagramModelObject)eObject).getFillColor());
-		    checksum.append(((IDiagramModelObject)eObject).getFillColor()+endOfText);
-			IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
-			if ( traceChecksum ) logger.trace("   bounds x      : "+bounds.getX());
-			checksum.append(startOfText+bounds.getX()+endOfText);
-			if ( traceChecksum ) logger.trace("   bounds y      : "+bounds.getY());
-			checksum.append(startOfText+bounds.getY()+endOfText);
-			if ( traceChecksum ) logger.trace("   bounds width  : "+bounds.getWidth());
-			checksum.append(startOfText+bounds.getWidth()+endOfText);
-			if ( traceChecksum ) logger.trace("   bounds height : "+bounds.getHeight());
-			checksum.append(startOfText+bounds.getHeight()+endOfText);
-		}
-		
-		if ( eObject instanceof IDiagramModelArchimateComponent ) {
-		    if ( traceChecksum ) logger.trace("   object element: "+((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
-		    checksum.append(startOfText+((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId()+endOfText);
-		}
-		
-		if ( eObject instanceof IDiagramModelArchimateConnection ) {
-		    if ( traceChecksum ) logger.trace("   connection rel: "+((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
-		    checksum.append(startOfText+((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId()+endOfText);
-		}
-		
-		if ( eObject instanceof IFontAttribute ) {
-		    if ( traceChecksum ) logger.trace("   font          : "+((IFontAttribute)eObject).getFont());
-		    checksum.append(startOfText+((IFontAttribute)eObject).getFont()+endOfText);
-		    if ( traceChecksum ) logger.trace("   font color    : "+((IFontAttribute)eObject).getFontColor());
-			checksum.append(startOfText+((IFontAttribute)eObject).getFontColor()+endOfText);
-		}
-		
-		if ( eObject instanceof ILineObject ) {
-		    if ( traceChecksum ) logger.trace("   line width    : "+((ILineObject)eObject).getLineWidth());
-		    checksum.append(startOfText+((ILineObject)eObject).getLineWidth()+endOfText);
-		    if ( traceChecksum ) logger.trace("   line color    : "+((ILineObject)eObject).getLineColor());
-			checksum.append(startOfText+((ILineObject)eObject).getLineColor()+endOfText);
-		}
-		
-		if ( eObject instanceof ILockable ) {
-		    if ( traceChecksum ) logger.trace("   lockable      : "+((ILockable)eObject).isLocked());
-		    checksum.append(startOfText+String.valueOf(((ILockable)eObject).isLocked())+endOfText);
-		}
-		
-		if ( eObject instanceof ISketchModel ) {
-		    if ( traceChecksum ) logger.trace("   background    : "+((ISketchModel)eObject).getBackground());
-		    checksum.append(startOfText+((ISketchModel)eObject).getBackground()+endOfText);
-		}
-		
-		if ( eObject instanceof ITextAlignment ) {
-		    if ( traceChecksum ) logger.trace("   text alignment: "+((ITextAlignment)eObject).getTextAlignment());
-		    checksum.append(startOfText+((ITextAlignment)eObject).getTextAlignment()+endOfText);
-		}
-		
-
-        if ( eObject instanceof ITextPosition ) {
-            if ( traceChecksum ) logger.trace("   text position : "+((ITextPosition)eObject).getTextPosition());
-            checksum.append(startOfText+((ITextPosition)eObject).getTextPosition()+endOfText);
-        }
-		
-		if ( eObject instanceof ITextContent ) {
-		    if ( traceChecksum ) logger.trace("   content       : "+((ITextContent)eObject).getContent());
-		    checksum.append(startOfText+((ITextContent)eObject).getContent()+endOfText);
-		}
-
-			
-		if ( eObject instanceof IHintProvider )	{
-		    if ( traceChecksum ) logger.trace("   hint title    : "+((IHintProvider)eObject).getHintTitle());
-		    checksum.append(startOfText+((IHintProvider)eObject).getHintTitle()+endOfText);
-		    if ( traceChecksum ) logger.trace("   hint content  : "+((IHintProvider)eObject).getHintContent());
-		    checksum.append(startOfText+((IHintProvider)eObject).getHintContent()+endOfText);
-		}
-		
-		if ( eObject instanceof IHelpHintProvider ) {
-		    if ( traceChecksum ) logger.trace("   help hint titl: "+((IHelpHintProvider)eObject).getHelpHintTitle());
-		    checksum.append(startOfText+((IHelpHintProvider)eObject).getHelpHintTitle()+endOfText);
-		    if ( traceChecksum ) logger.trace("   help hint cont: "+((IHelpHintProvider)eObject).getHelpHintContent());
-		    checksum.append(startOfText+((IHelpHintProvider)eObject).getHelpHintContent()+endOfText);
-		}
-				
-		if ( eObject instanceof IIconic ) {
-		    if ( traceChecksum ) logger.trace("   image position: "+((IIconic)eObject).getImagePosition());
-		    checksum.append(startOfText+((IIconic)eObject).getImagePosition()+endOfText);
-		}
-
-		if ( eObject instanceof INotesContent ) {
-		    if ( traceChecksum ) logger.trace("   notes         : "+((INotesContent)eObject).getNotes());
-		    checksum.append(startOfText+((INotesContent)eObject).getNotes()+endOfText);
-		}
-
-		if ( eObject instanceof IProperties ) {
-			for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
-			    if ( traceChecksum ) logger.trace("   property key  : "+prop.getKey());
-			    checksum.append(startOfText+prop.getKey()+endOfText);
-			    if ( traceChecksum ) logger.trace("   property value: "+prop.getValue());
-			    checksum.append(startOfText+prop.getValue()+endOfText);
-			}
+		if ( eObject instanceof IIconic )							append(checksum, "image position", ((IIconic)eObject).getImagePosition());
+		if ( eObject instanceof INotesContent )						append(checksum, "notes", ((INotesContent)eObject).getNotes());
+		if ( eObject instanceof IProperties ) {						for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
+																		append(checksum, "property key", prop.getKey());
+																		append(checksum, "property value", prop.getValue());
+																	}
 		}
 		
 		return calculateChecksum(checksum);
 	}
 	
+	private static void append(StringBuilder sb, String name, String value) {
+		String sValue = (value == null ? "" : value);
+		
+		if ( traceChecksum ) logger.trace("   "+name+" : "+sValue);
+	    sb.append(startOfText+sValue+endOfText);
+	}
+	
+	private static void append(StringBuilder sb, String name, int value) {
+		append(sb, name, String.valueOf(value));
+	}
+	
+	private static void append(StringBuilder sb, String name, boolean value) {
+		append(sb, name, String.valueOf(value));
+	}
+	
 	/**
 	 * Calculate a MD5 from a StringBuilder
 	 * @throws NoSuchAlgorithmException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static String calculateChecksum(StringBuilder input) throws NoSuchAlgorithmException {
-		return calculateChecksum(input.toString().getBytes());
+	public static String calculateChecksum(StringBuilder input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		return calculateChecksum(input.toString().getBytes("UTF-8"));
 	}
 	
 	/**
 	 * Calculate a MD5 from a String
 	 * @throws NoSuchAlgorithmException 
+	 * @throws UnsupportedEncodingException 
 	 */
-	public static String calculateChecksum(String input) throws NoSuchAlgorithmException {
-		return calculateChecksum(input.getBytes());
+	public static String calculateChecksum(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		return calculateChecksum(input.getBytes("UTF-8"));
 	}
 	
 	/**
