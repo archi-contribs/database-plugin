@@ -2279,13 +2279,13 @@ public class DBDatabaseConnection {
 
 		((IDBMetadata)view).getDBMetadata().setCurrentVersion(result.getInt("version"));
 
-		view.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
-		view.setDocumentation(currentResultSet.getString("documentation"));
-		view.setConnectionRouterType(currentResultSet.getInt("connection_router_type"));
-		if ( view instanceof IArchimateDiagramModel && currentResultSet.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(currentResultSet.getString("viewpoint"));
-		if ( view instanceof ISketchModel           && currentResultSet.getObject("background")!=null )    ((ISketchModel)view).setBackground(currentResultSet.getInt("background"));
-		if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_content")!=null )  ((IHintProvider)view).setHintContent(currentResultSet.getString("hint_content"));
-		if ( view instanceof IHintProvider          && currentResultSet.getObject("hint_title")!=null )    ((IHintProvider)view).setHintTitle(currentResultSet.getString("hint_title"));
+		view.setName(result.getString("name")==null ? "" : result.getString("name"));
+		view.setDocumentation(result.getString("documentation"));
+		view.setConnectionRouterType(result.getInt("connection_router_type"));
+		if ( view instanceof IArchimateDiagramModel && result.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(result.getString("viewpoint"));
+		if ( view instanceof ISketchModel           && result.getObject("background")!=null )    ((ISketchModel)view).setBackground(result.getInt("background"));
+		if ( view instanceof IHintProvider          && result.getObject("hint_content")!=null )  ((IHintProvider)view).setHintContent(result.getString("hint_content"));
+		if ( view instanceof IHintProvider          && result.getObject("hint_title")!=null )    ((IHintProvider)view).setHintTitle(result.getString("hint_title"));
 	
 		if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
 			parentFolder.getElements().add(view);
