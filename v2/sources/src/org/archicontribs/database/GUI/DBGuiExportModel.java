@@ -1450,6 +1450,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		btnClose.setText("close");
+	}
 
 	private Button btnDoNotExport;
 	private Button btnExportMyVersion;
