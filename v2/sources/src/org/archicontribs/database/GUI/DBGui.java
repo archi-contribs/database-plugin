@@ -901,38 +901,43 @@ public class DBGui {
 	 * Creates the progress bar that will allow to follow the export process
 	 */
 	protected void createProgressBar(String label, int min, int max) {
-		grpProgressBar = new Group(compoRightTop, SWT.NONE);
-		grpProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
-		fd.bottom = new FormAttachment(100);
-		grpProgressBar.setLayoutData(fd);
-		grpProgressBar.setLayout(new FormLayout());
-		
-		
-		lblProgressBar = new Label(grpProgressBar, SWT.CENTER);
-		lblProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
-		lblProgressBar.setFont(TITLE_FONT);
-		lblProgressBar.setText(label);
-		fd = new FormData();
-		fd.top = new FormAttachment(0, -5);
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
-		lblProgressBar.setLayoutData(fd);
-		
-		progressBar = new ProgressBar(grpProgressBar, SWT.NONE);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblProgressBar);
-		fd.left = new FormAttachment(25);
-		fd.right = new FormAttachment(75);
-		fd.height = 15;
-		progressBar.setLayoutData(fd);
-		progressBar.setMinimum(min);
-		progressBar.setMaximum(max);
-		
-		compoRightTop.layout();
+		if ( grpProgressBar == null ) {
+			grpProgressBar = new Group(compoRightTop, SWT.NONE);
+			grpProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(0);
+			fd.left = new FormAttachment(0);
+			fd.right = new FormAttachment(100);
+			fd.bottom = new FormAttachment(100);
+			grpProgressBar.setLayoutData(fd);
+			grpProgressBar.setLayout(new FormLayout());
+			
+			
+			lblProgressBar = new Label(grpProgressBar, SWT.CENTER);
+			lblProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
+			lblProgressBar.setFont(TITLE_FONT);
+			lblProgressBar.setText(label);
+			fd = new FormData();
+			fd.top = new FormAttachment(0, -5);
+			fd.left = new FormAttachment(0);
+			fd.right = new FormAttachment(100);
+			lblProgressBar.setLayoutData(fd);
+			
+			progressBar = new ProgressBar(grpProgressBar, SWT.NONE);
+			fd = new FormData();
+			fd.top = new FormAttachment(lblProgressBar);
+			fd.left = new FormAttachment(25);
+			fd.right = new FormAttachment(75);
+			fd.height = 15;
+			progressBar.setLayoutData(fd);
+			progressBar.setMinimum(min);
+			progressBar.setMaximum(max);
+			
+			compoRightTop.layout();
+		} else {
+			grpProgressBar.setVisible(true);
+			resetProgressBar();
+		}
 	}
 	
 	/**
@@ -1153,9 +1158,7 @@ public class DBGui {
 	 * Refreshes the display
 	 */
 	public static void refreshDisplay() {
-		int i = 0;
-		while ( Display.getCurrent().readAndDispatch() )
-			++i;
-		if ( logger.isTraceEnabled() ) logger.trace("*** refreshed "+i+" events ***");
+		while ( Display.getCurrent().readAndDispatch() ) 
+			;
 	}
 }
