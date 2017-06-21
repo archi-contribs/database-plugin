@@ -742,6 +742,16 @@ public class DBGuiImportModel extends DBGui {
         btnClose.setText("close");
         
         Color statusColor = GREEN_COLOR;
+        
+		if ( logger.isTraceEnabled() ) {
+		    logger.trace(connection.countElementsImported()+"/"+connection.countElementsToImport()+" elements imported");
+		    logger.trace(connection.countRelationshipsImported()+"/"+connection.countRelationshipsToImport()+" relationships imported");
+		    logger.trace(connection.countFoldersImported()+"/"+connection.countFoldersToImport()+" folders imported");
+		    logger.trace(connection.countViewsImported()+"/"+connection.countViewsToImport()+" views imported");
+		    logger.trace(connection.countViewObjectsImported()+"/"+connection.countViewObjectsToImport()+" views objects imported");
+		    logger.trace(connection.countViewConnectionsImported()+"/"+connection.countViewConnectionsToImport()+" views connections imported");
+		    logger.trace(connection.countImagesImported()+"/"+connection.countImagesToImport()+" images imported");
+		}
 
         txtImportedElements.setForeground( (connection.countElementsImported() == connection.countElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         txtImportedRelationships.setForeground( (connection.countRelationshipsImported() == connection.countRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
