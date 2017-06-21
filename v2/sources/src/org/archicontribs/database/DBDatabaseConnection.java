@@ -2566,7 +2566,6 @@ public class DBDatabaseConnection {
 		result=null;
 
 		if ( currentVersion == 0 ) {
-
 			currentVersion = databaseVersion;
 		}
 
