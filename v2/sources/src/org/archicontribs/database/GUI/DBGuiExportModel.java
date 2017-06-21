@@ -1148,7 +1148,7 @@ public class DBGuiExportModel extends DBGui {
 					((IDBMetadata)eObjectToExport).getDBMetadata().setExportedVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setDatabaseVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.askUser);	// just in case there is a new conflict
-					doExportEObject(eObjectToExport, txtSynced, txtNew, txtUpdated);
+					status = doExportEObject(eObjectToExport, txtSynced, txtNew, txtUpdated);
 					break;
 				case importFromDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
