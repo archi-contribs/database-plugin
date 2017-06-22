@@ -103,7 +103,7 @@ public class DBGuiComponentHistory extends DBGui {
 		tblVersions.setLinesVisible(true);
 		tblVersions.addListener(SWT.Selection, new Listener() {
 		    public void handleEvent(Event e) {
-		        fillInCompareTable(tblContent, selectedComponent, tblVersions.getSelection()[0].getText(0));
+		        fillInCompareTable(tblContent, 0, selectedComponent, tblVersions.getSelection()[0].getText(0));
 		    }
 		});
 		fd = new FormData();
