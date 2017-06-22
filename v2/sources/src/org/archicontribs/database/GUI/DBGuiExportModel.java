@@ -663,14 +663,14 @@ public class DBGuiExportModel extends DBGui {
 		}
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.countSyncedElements()+" synced, "+connection.countUpdatedElements()+" updated, "+connection.countNewElements()+"new.");			
-		txtNewElements.setText(String.valueOf(connection.countNewElements()));
-		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
-		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
+		txtNewElements.setText(String.valueOf(connection.countNewElements()));							txtNewElements.setData("value", connection.countNewElements());
+		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));					txtUpdatedElements.setData("value", connection.countUpdatedElements());
+		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));					txtSyncedElements.setData("value", connection.countSyncedElements());
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model: "+connection.countSyncedRelationships()+" synced, "+connection.countUpdatedRelationships()+" updated, "+connection.countNewRelationships()+" new.");
-		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
-		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
-		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
+		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));				txtNewRelationships.setData("value", connection.countNewRelationships());
+		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));		txtUpdatedRelationships.setData("value", connection.countUpdatedRelationships());
+		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));			txtSyncedRelationships.setData("value", connection.countSyncedRelationships());
 
 		txtTotalFolders.setVisible(getOptionValue());
 		txtNewFolders.setVisible(getOptionValue());
@@ -699,33 +699,33 @@ public class DBGuiExportModel extends DBGui {
 
 		if ( getOptionValue() ) {
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" folders in the model: "+connection.countSyncedFolders()+" synced, "+connection.countUpdatedFolders()+" updated, "+connection.countNewFolders()+" new.");			
-			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
-			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
-			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
+			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));							txtNewFolders.setData("value", connection.countNewFolders());
+			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));					txtUpdatedFolders.setData("value", connection.countUpdatedFolders());
+			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));						txtSyncedFolders.setData("value", connection.countSyncedFolders());
 			//txtSyncedFolders.setForeground( (connection.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" views in the model: "+connection.countSyncedViews()+" synced, "+connection.countUpdatedViews()+" updated, "+connection.countNewViews()+" new.");			
-			txtNewViews.setText(String.valueOf(connection.countNewViews()));
-			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
-			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
+			txtNewViews.setText(String.valueOf(connection.countNewViews()));								txtNewViews.setData("value", connection.countNewViews());
+			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));						txtUpdatedViews.setData("value", connection.countUpdatedViews());
+			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));							txtSyncedViews.setData("value", connection.countSyncedViews());
 			//txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
-			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
-			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
-			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
+			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));					txtNewViewObjects.setData("value", connection.countNewViewObjects());
+			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));			txtUpdatedViewObjects.setData("value", connection.countUpdatedViewObjects());
+			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));				txtSyncedViewObjects.setData("value", connection.countSyncedViewObjects());
 			//txtSyncedViewObjects.setForeground( (connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" view connections in the model: "+connection.countSyncedViewConnections()+" synced, "+connection.countUpdatedViewConnections()+" updated, "+connection.countNewViewConnections()+" new.");
-			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
-			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
-			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
+			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));			txtNewViewConnections.setData("value", connection.countNewViewConnections());
+			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));	txtUpdatedViewConnections.setData("value", connection.countUpdatedViewConnections());
+			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));		txtSyncedViewConnections.setData("value", connection.countSyncedViewConnections());
 			//txtSyncedViewConnections.setForeground( (connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" ViewsImages in the model: "+connection.countSyncedImages()+" synced, "+connection.countUpdatedImages()+" updated, "+connection.countNewImages()+" new.");
-			txtNewImages.setText(String.valueOf(connection.countNewImages()));
-			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
-			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
+			txtNewImages.setText(String.valueOf(connection.countNewImages()));								txtNewImages.setData("value", connection.countNewImages());
+			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));						txtUpdatedImages.setData("value", connection.countUpdatedImages());
+			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));						txtSyncedImages.setData("value", connection.countSyncedImages());
 			//txtSyncedImages.setForeground( (connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
 			//TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
@@ -846,34 +846,34 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		// we reset the counters because they may have been changed (in case of conflict for instance)
-		txtNewElements.setText(String.valueOf(connection.countNewElements()));
-		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
-		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
+		connection.setCountNewElements((int)txtNewElements.getData("value"));							txtNewElements.setText(String.valueOf(connection.countNewElements()));
+		connection.setCountUpdatedElements((int)txtUpdatedElements.getData("value"));					txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
+		connection.setCountSyncedElements((int)txtSyncedElements.getData("value"));						txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
 
-		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
-		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
-		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
+		connection.setCountNewRelationships((int)txtNewRelationships.getData("value"));					txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
+		connection.setCountUpdatedRelationships((int)txtUpdatedRelationships.getData("value"));			txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
+		connection.setCountSyncedRelationships((int)txtSyncedRelationships.getData("value"));			txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
 
 		if ( getOptionValue() ) {
-			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
-			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
-			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
+			connection.setCountNewFolders((int)txtNewFolders.getData("value"));							txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
+			connection.setCountUpdatedFolders((int)txtUpdatedFolders.getData("value"));					txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
+			connection.setCountSyncedFolders((int)txtSyncedFolders.getData("value"));					txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
 
-			txtNewViews.setText(String.valueOf(connection.countNewViews()));
-			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
-			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
+			connection.setCountNewViews((int)txtNewViews.getData("value"));								txtNewViews.setText(String.valueOf(connection.countNewViews()));
+			connection.setCountUpdatedViews((int)txtUpdatedViews.getData("value"));						txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
+			connection.setCountSyncedViews((int)txtSyncedViews.getData("value"));						txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
 
-			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
-			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
-			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
+			connection.setCountNewViewObjects((int)txtNewViewObjects.getData("value"));					txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
+			connection.setCountUpdatedViewObjects((int)txtUpdatedViewObjects.getData("value"));			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
+			connection.setCountSyncedViewObjects((int)txtSyncedViewObjects.getData("value"));			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
 
-			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
-			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
-			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
+			connection.setCountNewViewConnections((int)txtNewViewConnections.getData("value"));			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
+			connection.setCountUpdatedViewConnections((int)txtUpdatedViewConnections.getData("value"));	txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
+			connection.setCountSyncedViewConnections((int)txtSyncedViewConnections.getData("value"));	txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
 
-			txtNewImages.setText(String.valueOf(connection.countNewImages()));
-			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
-			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
+			connection.setCountNewImages((int)txtNewImages.getData("value"));							txtNewImages.setText(String.valueOf(connection.countNewImages()));
+			connection.setCountUpdatedImages((int)txtUpdatedImages.getData("value"));					txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
+			connection.setCountSyncedImages((int)txtSyncedImages.getData("value"));						txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
 		}
 
 		// we disable the export button to avoid a second click
@@ -1213,7 +1213,7 @@ public class DBGuiExportModel extends DBGui {
 						btnDoNotExport.setEnabled(true);
 						btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
 	
-						fillInCompareTable(tblCompareComponent, conflictingComponent, null);
+						fillInCompareTable(tblCompareComponent, 0, conflictingComponent, null);
 					}
 					grpComponents.setVisible(false);
 					grpModelVersions.setVisible(false);
