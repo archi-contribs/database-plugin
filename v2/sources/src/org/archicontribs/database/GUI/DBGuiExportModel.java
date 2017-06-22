@@ -1031,7 +1031,7 @@ public class DBGuiExportModel extends DBGui {
 			try  {
 			    connection.rollback();
 			} catch (Exception err) {
-				popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefullsy your database !", err);
+				popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefully your database !", err);
 				setActiveAction(STATUS.Error);
 				doShowResult(err);
 				return;
