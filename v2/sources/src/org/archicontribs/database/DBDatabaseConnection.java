@@ -13,10 +13,8 @@ import java.sql.Timestamp;
 import java.sql.Types;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Calendar;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -1007,40 +1005,57 @@ public class DBDatabaseConnection {
 			else if ( component instanceof IArchimateRelationship ) result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships r WHERE version = (SELECT MAX(version) FROM "+schema+"relationships WHERE id = r.id) AND id = ?", id);
 			else if ( component instanceof IFolder ) result = select("SELECT version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE version = (SELECT MAX(version) FROM "+schema+"folders WHERE id = f.id) AND id = ?", id);
 			else if ( component instanceof IDiagramModel ) result = select("SELECT version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views v WHERE version = (SELECT MAX(version) FROM "+schema+"views WHERE id = v.id) AND id = ?", id);
+			else if ( component instanceof IDiagramModelArchimateObject	 ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects v WHERE version = (SELECT MAX(version) FROM "+schema+"views_objects WHERE id = v.id) AND id = ?", id);		
 			else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 		} else {        
 			if ( component instanceof IArchimateElement ) result = select("SELECT class, name, documentation, type, created_by, created_on, checksum FROM "+schema+"elements WHERE id = ? AND version = ?", id, version);
 			else if ( component instanceof IArchimateRelationship ) result = select("SELECT class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships WHERE id = ? AND version = ?", id, version);
 			else if ( component instanceof IFolder ) result = select("SELECT type, name, documentation, created_by, created_on, checksum FROM "+schema+"folders WHERE id = ? AND version = ?", id, version);
 			else if ( component instanceof IDiagramModel ) result = select("SELECT class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views WHERE id = ? AND version = ?", id, version);
+			else if ( component instanceof IDiagramModelArchimateObject	 ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ? ORDER BY rank", id	,version);
 			else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 		}
 
 		result.next();
 
-		HashMap<String, Object> hashResult = resultSetToHashMap(result);      //TODO : if ArchimateModel : add the children in the HashMap
+		HashMap<String, Object> hashResult = resultSetToHashMap(result);      					//TODO : if ArchimateModel : add the children in the HashMap
 
 		if ( component instanceof IFolder ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
 		result.close();
 		result=null;
 
 
+		// properties
 		result = select("SELECT count(*) as count_properties FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version);
 		result.next();
 		String[][] databaseProperties = new String[result.getInt("count_properties")][2];
 		result.close();
 		result=null;
 
-		result = select("SELECT name, value FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version );
-		int j = 0;
+		result = select("SELECT name, value FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
+		int i = 0;
 		while ( result.next() ) {
-			databaseProperties[j++] = new String[] { result.getString("name"), result.getString("value") };
+			databaseProperties[i++] = new String[] { result.getString("name"), result.getString("value") };
 		}
-		Arrays.sort(databaseProperties, new Comparator<String[]>() { public int compare(final String[] row1, final String[] row2) { return DBPlugin.collator.compare(row1[0],row2[0]); } });
+		hashResult.put("properties", databaseProperties);
 		result.close();
 		result=null;
-
-		hashResult.put("properties", databaseProperties);
+		
+		// bendpoints
+		result = select("SELECT count(*) as count_bendpoints FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version);
+		result.next();
+		Integer[][] databaseBendpoints = new Integer[result.getInt("count_bendpoints")][4];
+		result.close();
+		result=null;
+		
+		result = select("SELECT start_x, start_y, end_x, end_y FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
+		int j = 0;
+		while ( result.next() ) {
+			databaseBendpoints[j++] = new Integer[] { result.getInt("start_x"), result.getInt("start_y"), result.getInt("end_x"), result.getInt("end_y") };
+		}
+		hashResult.put("bendpoints", databaseBendpoints);
+		result.close();
+		result=null;
 
 		return hashResult;
 	}
@@ -2350,71 +2365,92 @@ public class DBDatabaseConnection {
 
 	private int countNewElements = 0;
 	public int countNewElements() { return countNewElements; }
+	public void setCountNewElements(int count) { countNewElements = count; }
 
 	private int countSyncedElements = 0;
 	public int countSyncedElements() { return countSyncedElements; }
+	public void setCountSyncedElements(int count) { countSyncedElements = count; }
 
 	private int countUpdatedElements = 0;
 	public int countUpdatedElements() { return countUpdatedElements; }
+	public void setCountUpdatedElements(int count) { countUpdatedElements = count; }
 
 
 	private int countNewRelationships = 0;
 	public int countNewRelationships() { return countNewRelationships; }
+	public void setCountNewRelationships(int count) { countNewRelationships = count; }
 
 	private int countSyncedRelationships = 0;
 	public int countSyncedRelationships() { return countSyncedRelationships; }
+	public void setCountSyncedRelationships(int count) { countSyncedRelationships = count; }
 
 	private int countUpdatedRelationships = 0;
 	public int countUpdatedRelationships() { return countUpdatedRelationships; }
+	public void setCountUpdatedRelationships(int count) { countUpdatedRelationships = count; }
 
 
 	private int countNewViews = 0;
 	public int countNewViews() { return countNewViews; }
+	public void setCountNewViews(int count) { countNewViews = count; }
 
 	private int countSyncedViews = 0;
 	public int countSyncedViews() { return countSyncedViews; }
+	public void setCountSyncedViews(int count) { countSyncedViews = count; }
 
 	private int countUpdatedViews = 0;
 	public int countUpdatedViews() { return countUpdatedViews; }
+	public void setCountUpdatedViews(int count) { countUpdatedViews = count; }
 
 	private int countNewViewObjects = 0;
 	public int countNewViewObjects() { return countNewViewObjects; }
+	public void setCountNewViewObjects(int count) { countNewViewObjects = count; }
 
 	private int countSyncedViewObjects = 0;
 	public int countSyncedViewObjects() { return countSyncedViewObjects; }
+	public void setCountSyncedViewObjects(int count) { countSyncedViewObjects = count; }
 
 	private int countUpdatedViewObjects = 0;
 	public int countUpdatedViewObjects() { return countUpdatedViewObjects; }
+	public void setCountUpdatedViewObjects(int count) { countUpdatedViewObjects = count; }
 
 
 	private int countNewViewConnections = 0;
 	public int countNewViewConnections() { return countNewViewConnections; }
+	public void setCountNewViewConnections(int count) { countNewViewConnections = count; }
 
 	private int countSyncedViewConnections = 0;
 	public int countSyncedViewConnections() { return countSyncedViewConnections; }
+	public void setCountSyncedViewConnections(int count) { countSyncedViewConnections = count; }
 
 	private int countUpdatedViewConnections = 0;
 	public int countUpdatedViewConnections() { return countUpdatedViewConnections; }
+	public void setCountUpdatedViewConnections(int count) { countUpdatedViewConnections = count; }
 
 
 	private int countNewFolders = 0;
 	public int countNewFolders() { return countNewFolders; }
+	public void setCountNewFolders(int count) { countNewFolders = count; }
 
 	private int countSyncedFolders = 0;
 	public int countSyncedFolders() { return countSyncedFolders; }
+	public void setCountSyncedFolders(int count) { countSyncedFolders = count; }
 
 	private int countUpdatedFolders = 0;
 	public int countUpdatedFolders() { return countUpdatedFolders; }
+	public void setCountUpdatedFolders(int count) { countUpdatedFolders = count; }
 
 
 	private int countNewImages = 0;
 	public int countNewImages() { return countNewImages; }
+	public void setCountNewImages(int count) { countNewImages = count; }
 
 	private int countSyncedImages = 0;
 	public int countSyncedImages() { return countSyncedImages; }
+	public void setCountSyncedImages(int count) { countSyncedImages = count; }
 
 	private int countUpdatedImages = 0;
 	public int countUpdatedImages() { return countUpdatedImages; }
+	public void setCountUpdatedImages(int count) { countUpdatedImages = count; }
 
 
 	public void checkComponentsToExport(ArchimateModel model, boolean checkFoldersAndViews) throws Exception {
@@ -2527,7 +2563,7 @@ public class DBDatabaseConnection {
 	 * Retrieves the version and the checksum of the component from the database
 	 */
 	private COMPARE checkComponent(String tableName, EObject eObject) throws Exception {
-		int currentVersion = 0;
+		int currentVersion = ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion();
 		int databaseVersion = 0;
 		String databaseChecksum = null;
 		String databaseCreatedBy = null;
@@ -2556,8 +2592,7 @@ public class DBDatabaseConnection {
 				}
 			}
 			// We check every version in the database to retrieve the version of the current object
-			// DO NOT SET IT BECAUSE IT VOIDS THE CONFLICT DETECTION
-			if ( DBPlugin.areEqual(((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum(), result.getString("checksum")) ) {
+			if ( currentVersion<result.getInt("version") && DBPlugin.areEqual(((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum(), result.getString("checksum")) ) {
 				currentVersion = result.getInt("version");
 				break;
 			}
@@ -3005,7 +3040,7 @@ public class DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getFillColor() : null)
 				,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFont() : null)
 				,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFontColor() : null)
-				,((viewObject instanceof INameable && !(viewObject instanceof IDiagramModelArchimateComponent) && !(viewObject instanceof IDiagramModelReference)) ? ((INameable)viewObject).getName() : null)      // They have got there own name. The others use the name of the corresponding ArchimateConcept
+				,((viewObject instanceof INameable ) ? ((INameable)viewObject).getName() : null)					// we export the name because it will be used in case of conflict
 				,((viewObject instanceof ICanvasModelSticky) ? ((ICanvasModelSticky)viewObject).getNotes() : null)
 				,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getSourceConnections()) : null)
 				,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getTargetConnections()) : null)

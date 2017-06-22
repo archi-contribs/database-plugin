@@ -29,6 +29,10 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
@@ -36,45 +40,60 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.layout.FillLayout;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.canvas.model.ICanvasModel;
+import com.archimatetool.canvas.model.IHintProvider;
+import com.archimatetool.canvas.model.IIconic;
+import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IBorderObject;
+import com.archimatetool.model.IBounds;
+import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelArchimateComponent;
+import com.archimatetool.model.IDiagramModelArchimateConnection;
+import com.archimatetool.model.IDiagramModelArchimateObject;
+import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelImageProvider;
+import com.archimatetool.model.IDiagramModelNote;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.IFolder;
+import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IInfluenceRelationship;
 import com.archimatetool.model.IJunction;
+import com.archimatetool.model.ILineObject;
+import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.ITextAlignment;
+import com.archimatetool.model.ITextContent;
+import com.archimatetool.model.ITextPosition;
 
 public class DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGui.class);
@@ -985,7 +1004,7 @@ public class DBGui {
 		restoreCursors();
 	}
 	
-	protected void fillInCompareTable(Table table, EObject component, String version) {
+	protected void fillInCompareTable(Table table, int level, EObject component, String version) {
 		logger.debug("comparing memory and database versions of component "+((IDBMetadata)component).getDBMetadata().getDebugName());
 		
 		// we get the database version of the component
@@ -999,92 +1018,206 @@ public class DBGui {
 		}
 	    
 	    // we fill in the tblCompareComponent table
-	  	table.removeAll();
+	  	if ( level == 0 )
+	  		table.removeAll();
 
-	    addItemToCompareTable(table, "Version", String.valueOf(((IDBMetadata)component).getDBMetadata().getCurrentVersion()), String.valueOf(hashResult.get("version")), false);
+	    if ( level == 0 ) {
+	    	addItemToCompareTable(table, level, "Version", String.valueOf(((IDBMetadata)component).getDBMetadata().getCurrentVersion()), String.valueOf(hashResult.get("version")), true);
 	    
-	    addItemToCompareTable(table, "Created by", ((IDBMetadata)component).getDBMetadata().getDatabaseCreatedBy(), (String)hashResult.get("created_by"), false);
-	    if ( ((IDBMetadata)component).getDBMetadata().getDatabaseCreatedOn() != null )
-	        addItemToCompareTable(table, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)component).getDBMetadata().getDatabaseCreatedOn().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(hashResult.get("created_on")), false);
-	    else
-	        addItemToCompareTable(table, "Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(hashResult.get("created_on")), false);
-	    addItemToCompareTable(table, "Class", component.getClass().getSimpleName(), (String)hashResult.get("class"), true);
-	    addItemToCompareTable(table, "Name", ((INameable)component).getName(), (String)hashResult.get("name"), true);
-	    addItemToCompareTable(table, "Documentation", ((IDocumentable)component).getDocumentation(), (String)hashResult.get("documentation"), true);
+	    	if ( (String)hashResult.get("created_by") != null ) {
+	    		addItemToCompareTable(table, level, "Created by", ((IDBMetadata)component).getDBMetadata().getDatabaseCreatedBy(), (String)hashResult.get("created_by"), true);
+	    	}
 	    
-		if ( component instanceof IJunction )
-			addItemToCompareTable(table, "Type", ((IJunction)component).getType(), (String)hashResult.get("type"), true);
-		
-		if ( component instanceof IArchimateRelationship ) {
-			addItemToCompareTable(table, "Source ID", ((IArchimateRelationship)component).getSource().getId(), (String)hashResult.get("source_id"), true);
-			addItemToCompareTable(table, "Target ID", ((IArchimateRelationship)component).getTarget().getId(), (String)hashResult.get("target_id"), true);
-			if ( component instanceof IInfluenceRelationship )
-				addItemToCompareTable(table, "Strength", ((IInfluenceRelationship)component).getStrength(), (String)hashResult.get("strength"), true);
-			if ( component instanceof IAccessRelationship )
-				addItemToCompareTable(table, "Access type", String.valueOf(((IAccessRelationship)component).getAccessType()), String.valueOf((Integer)hashResult.get("access_type")), true);
+	    	if ( hashResult.get("created_on") != null ) {
+	    		if ( ((IDBMetadata)component).getDBMetadata().getDatabaseCreatedOn() != null )
+	    			addItemToCompareTable(table, level, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)component).getDBMetadata().getDatabaseCreatedOn().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(hashResult.get("created_on")), true);
+	    		else
+	    			addItemToCompareTable(table, level, "Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(hashResult.get("created_on")), true);
+	    	}
+	    }
+	    
+	    addItemToCompareTable(table, level, "Class", component.getClass().getSimpleName(), (String)hashResult.get("class"), true);
+	    addItemToCompareTable(table, level, "Name", ((INameable)component).getName(), (String)hashResult.get("name"), true);
+	    
+	    if ( component instanceof IDocumentable )					addItemToCompareTable(table, level, "Documentation", ((IDocumentable)component).getDocumentation(), (String)hashResult.get("documentation"), true);
+	    
+	    if ( component instanceof IJunction )						addItemToCompareTable(table, level, "Type", ((IJunction)component).getType(), (String)hashResult.get("type"), true);
+		if ( component instanceof IArchimateRelationship ) {		addItemToCompareTable(table, level, "Source id", ((IArchimateRelationship)component).getSource().getId(), (String)hashResult.get("source_id"), true);
+																	addItemToCompareTable(table, level, "Target id", ((IArchimateRelationship)component).getTarget().getId(), (String)hashResult.get("target_id"), true);
+			if ( component instanceof IInfluenceRelationship )		addItemToCompareTable(table, level, "Strength", ((IInfluenceRelationship)component).getStrength(), (String)hashResult.get("strength"), true);
+			if ( component instanceof IAccessRelationship )			addItemToCompareTable(table, level, "Access type", String.valueOf(((IAccessRelationship)component).getAccessType()), String.valueOf((int)hashResult.get("access_type")), true);
 		}
-		if ( component instanceof IFolder )
-			addItemToCompareTable(table, "Type", ((IFolder)component).getType().getName(), FolderType.get((Integer)hashResult.get("type")).getName(), true);
-		
-		if ( component instanceof IDiagramModel ) {
-			addItemToCompareTable(table, "Connection router Type", String.valueOf(((IDiagramModel)component).getConnectionRouterType()), String.valueOf((Integer)hashResult.get("connection_router_type")), true);
-
-			if ( component instanceof IArchimateDiagramModel ) {
-				addItemToCompareTable(table, "Viewpoint", ((IArchimateDiagramModel)component).getViewpoint(), (String)hashResult.get("viewpoint"), true);
-			} else if ( component instanceof ICanvasModel ) {
-				addItemToCompareTable(table, "Hint content", ((ICanvasModel)component).getHintContent(), (String)hashResult.get("hint_content"), true);
-				addItemToCompareTable(table, "Hint title", ((ICanvasModel)component).getHintTitle(), (String)hashResult.get("hint_title"), true);
-			} else if ( component instanceof ISketchModel ) {
-				addItemToCompareTable(table, "Background", String.valueOf(((ISketchModel)component).getBackground()), String.valueOf((Integer)hashResult.get("background")), true);				
-			}
+		if ( component instanceof IFolder )							addItemToCompareTable(table, level, "Folder type", ((IFolder)component).getType().getLiteral(), FolderType.get((int)hashResult.get("type")).getLiteral(), true);
+		if ( component instanceof IArchimateDiagramModel )			addItemToCompareTable(table, level, "Viewpoint", ((IArchimateDiagramModel)component).getViewpoint(), (String)hashResult.get("viewpoint"), true);
+		if ( component instanceof IDiagramModel )					addItemToCompareTable(table, level, "Router type", String.valueOf(((IDiagramModel)component).getConnectionRouterType()), String.valueOf((int)hashResult.get("connection_router_type")), true);
+		if ( component instanceof IBorderObject )					addItemToCompareTable(table, level, "Border color", ((IBorderObject)component).getBorderColor(), (String)hashResult.get("border_color"), true);
+		if ( component instanceof IDiagramModelNote )				addItemToCompareTable(table, level, "Border type", String.valueOf(((IDiagramModelNote)component).getBorderType()), String.valueOf((int)hashResult.get("border_type")), true);
+		if ( component instanceof IConnectable ) {
+			// TODO: get source and target connections from database and compare then to component's ones
+			/*
+			for ( IDiagramModelConnection conn: ((IConnectable)component).getSourceConnections() )
+				addItemToCompareTable(table, level, "source connections", conn.getId(), (String)hashResult.get("xxxxx"), true);
+			for ( IDiagramModelConnection conn: ((IConnectable)component).getTargetConnections() )
+				addItemToCompareTable(table, level, "target connections", conn.getId(), (String)hashResult.get("xxxxx"), true);
+			*/
+		}
+		if ( component instanceof IDiagramModelArchimateObject )	addItemToCompareTable(table, level, "Type", String.valueOf(((IDiagramModelArchimateObject)component).getType()), String.valueOf((int)hashResult.get("type")), true);
+		if ( component instanceof IDiagramModelImageProvider )		addItemToCompareTable(table, level, "Image path", ((IDiagramModelImageProvider)component).getImagePath(), (String)hashResult.get("image_path"), true);
+		if ( component instanceof IDiagramModelObject ) {			addItemToCompareTable(table, level, "Fill color", ((IDiagramModelObject)component).getFillColor(), (String)hashResult.get("fill_color"), true);
+																	IBounds bounds = ((IDiagramModelObject)component).getBounds();
+																	addItemToCompareTable(table, level, "X", String.valueOf(bounds.getX()), String.valueOf((int)hashResult.get("x")), true);
+																	addItemToCompareTable(table, level, "Y", String.valueOf(bounds.getY()), String.valueOf((int)hashResult.get("y")), true);
+																	addItemToCompareTable(table, level, "Width" ,String.valueOf(bounds.getWidth()), String.valueOf((int)hashResult.get("width")), true);
+																	addItemToCompareTable(table, level, "Height", String.valueOf(bounds.getHeight()), String.valueOf((int)hashResult.get("height")), true);
+		}
+		if ( component instanceof IDiagramModelArchimateComponent )	addItemToCompareTable(table, level, "Archimate concept", ((IDiagramModelArchimateComponent)component).getArchimateConcept().getId(), (String)hashResult.get("element_id"), true);
+		if ( component instanceof IDiagramModelArchimateConnection )addItemToCompareTable(table, level, "Archimate concept", ((IDiagramModelArchimateConnection)component).getArchimateConcept().getId(), (String)hashResult.get("element_id"), true);
+		if ( component instanceof IFontAttribute ) {				addItemToCompareTable(table, level, "Font", ((IFontAttribute)component).getFont(), (String)hashResult.get("font"), true);
+																	addItemToCompareTable(table, level, "Font color", ((IFontAttribute)component).getFontColor(), (String)hashResult.get("font color"), true);
+		}
+		if ( component instanceof ILineObject ) {					addItemToCompareTable(table, level, "Line width", String.valueOf(((ILineObject)component).getLineWidth()), String.valueOf((int)hashResult.get("line_width")), true);
+																	addItemToCompareTable(table, level, "Line color", ((ILineObject)component).getLineColor(), (String)hashResult.get("line_color"), true);
+		}
+		if ( component instanceof ILockable )						addItemToCompareTable(table, level, "Lockable", String.valueOf(((ILockable)component).isLocked()), String.valueOf((boolean)hashResult.get("lockable")), true);
+		if ( component instanceof ISketchModel )					addItemToCompareTable(table, level, "Background", String.valueOf(((ISketchModel)component).getBackground()), String.valueOf((int)hashResult.get("background")), true);
+		if ( component instanceof ITextAlignment )					addItemToCompareTable(table, level, "Text alignment", String.valueOf(((ITextAlignment)component).getTextAlignment()), String.valueOf((int)hashResult.get("text_alignment")), true);
+        if ( component instanceof ITextPosition )					addItemToCompareTable(table, level, "Text position", String.valueOf(((ITextPosition)component).getTextPosition()), String.valueOf((int)hashResult.get("text_position")), true);
+		if ( component instanceof ITextContent )					addItemToCompareTable(table, level, "Content", ((ITextContent)component).getContent(), (String)hashResult.get("content"), true);
+		if ( component instanceof IHintProvider )	{				addItemToCompareTable(table, level, "Hint title", ((IHintProvider)component).getHintTitle(), (String)hashResult.get("hint_title"), true);
+																	addItemToCompareTable(table, level, "Hint content", ((IHintProvider)component).getHintContent(), (String)hashResult.get("hint_content"), true);
+		}
+		/* NOT EXPORTED YET
+		if ( component instanceof IHelpHintProvider ) {				addItemToCompareTable(table, level, "help hint title", ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"), true);
+																	addItemToCompareTable(table, level, "help hint content", ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"), true);
+		}
+		*/
+		if ( component instanceof IIconic )							addItemToCompareTable(table, level, "Image position", String.valueOf(((IIconic)component).getImagePosition()), String.valueOf((int)hashResult.get("image_position")), true);
+		if ( component instanceof INotesContent )					addItemToCompareTable(table, level, "Notes", ((INotesContent)component).getNotes(), (String)hashResult.get("notes"), true);
+	    
+		if ( component instanceof IDiagramModelConnection ) {
+			addItemToCompareTable(table, level, "Type", String.valueOf(((IDiagramModelConnection)component).getType()), String.valueOf((int)hashResult.get("type")), true);			// we do not use getText as it is deprecated
+			addItemToCompareTable(table, level, "Text position : ", String.valueOf(((IDiagramModelConnection)component).getTextPosition()), String.valueOf((int)hashResult.get("text_position")), true);
 			
-			//TODO addItemToCompareTable(table, "Type", CHILDREN !!! , CHILDREN !!!, true);
+			if ( (((IDiagramModelConnection)component).getBendpoints().size() != 0) || (((Integer[][])hashResult.get("bendpoints")).length != 0) ) {
+				// we get a sorted list of component's bendpoints
+				Integer[][] componentBendpoints = new Integer[((IDiagramModelConnection)component).getBendpoints().size()][4];
+				for (int i = 0; i < ((IProperties)component).getProperties().size(); ++i) {
+					componentBendpoints[i] = new Integer[] { ((IDiagramModelConnection)component).getBendpoints().get(i).getStartX(), ((IDiagramModelConnection)component).getBendpoints().get(i).getStartY(), ((IDiagramModelConnection)component).getBendpoints().get(i).getEndX(), ((IDiagramModelConnection)component).getBendpoints().get(i).getEndY() };
+				}
+				Arrays.sort(componentBendpoints, integerComparator);
+		
+				// we get a sorted list of properties from the database
+				Integer[][] databaseBendpoints = (Integer[][])hashResult.get("bendpoints");
+				Arrays.sort(databaseBendpoints, integerComparator);
+		
+				int indexComponent = 0;
+				int indexDatabase = 0;
+				while ( (indexComponent < componentBendpoints.length) || (indexDatabase < databaseBendpoints.length) ) {
+					if ( indexComponent >= componentBendpoints.length ) {			// only the database has got the property
+						addItemToCompareTable(table, level+1, "Start X", null, String.valueOf(databaseBendpoints[indexDatabase][0]), true);
+						addItemToCompareTable(table, level+1, "Start Y", null, String.valueOf(databaseBendpoints[indexDatabase][1]), true);
+						addItemToCompareTable(table, level+1, "End X", null, String.valueOf(databaseBendpoints[indexDatabase][2]), true);
+						addItemToCompareTable(table, level+1, "End Y", null, String.valueOf(databaseBendpoints[indexDatabase][3]), true);
+						++indexDatabase;
+					} else if ( indexDatabase >= databaseBendpoints.length ) {		// only the component has got the property
+						addItemToCompareTable(table, level+1, "Start X", String.valueOf(componentBendpoints[indexDatabase][0]), null, true);
+						addItemToCompareTable(table, level+1, "Start Y", String.valueOf(componentBendpoints[indexDatabase][1]), null, true);
+						addItemToCompareTable(table, level+1, "End X", String.valueOf(componentBendpoints[indexDatabase][2]), null, true);
+						addItemToCompareTable(table, level+1, "End Y", String.valueOf(componentBendpoints[indexDatabase][3]), null, true);
+						++indexComponent;
+					} else {
+						addItemToCompareTable(table, level+1, "Start X", String.valueOf(componentBendpoints[indexDatabase][0]), String.valueOf(databaseBendpoints[indexDatabase][0]), true);
+						addItemToCompareTable(table, level+1, "Start Y", String.valueOf(componentBendpoints[indexDatabase][1]), String.valueOf(databaseBendpoints[indexDatabase][1]), true);
+						addItemToCompareTable(table, level+1, "End X", String.valueOf(componentBendpoints[indexDatabase][2]), String.valueOf(databaseBendpoints[indexDatabase][2]), true);
+						addItemToCompareTable(table, level+1, "End Y", String.valueOf(componentBendpoints[indexDatabase][3]), String.valueOf(databaseBendpoints[indexDatabase][3]), true);
+						++indexComponent;
+						++indexDatabase;
+					}
+				}
+			}
 		}
 		
-		String[][] componentProperties = new String[((IProperties)component).getProperties().size()][2];
-		for (int i = 0; i < ((IProperties)component).getProperties().size(); ++i) {
-			componentProperties[i] = new String[] { ((IProperties)component).getProperties().get(i).getKey(), ((IProperties)component).getProperties().get(i).getValue() };
-		}
-		Arrays.sort(componentProperties, new Comparator<String[]>() { public int compare(final String[] row1, final String[] row2) { return DBPlugin.collator.compare(row1[0],row2[0]); } });
-
-		String[][] databaseProperties = (String[][])hashResult.get("properties");
-
-		int indexComponent = 0;
-		int indexDatabase = 0;
-		int compare;
-		while ( (indexComponent < componentProperties.length) || (indexDatabase < databaseProperties.length) ) {
-			if ( indexComponent >= componentProperties.length )
-				compare = 1;
-			else {
-				if ( indexDatabase >= databaseProperties.length )
-					compare = -1;
-				else
-					compare = DBPlugin.collator.compare(componentProperties[indexComponent][0], databaseProperties[indexDatabase][0]);
+		if ( component instanceof IProperties && ((IProperties)component).getProperties().size() != 0) {		
+			addItemToCompareTable(table, level, "Properties:", "", "", true);	
+			
+			// we get a sorted list of component's properties
+			String[][] componentProperties = new String[((IProperties)component).getProperties().size()][2];
+			for (int i = 0; i < ((IProperties)component).getProperties().size(); ++i) {
+				componentProperties[i] = new String[] { ((IProperties)component).getProperties().get(i).getKey(), ((IProperties)component).getProperties().get(i).getValue() };
 			}
-
-			if ( compare == 0 ) {				// both have got the same property
-				addItemToCompareTable(table, "Prop: "+componentProperties[indexComponent][0], componentProperties[indexComponent][1], databaseProperties[indexDatabase][1], true);
-				++indexComponent;
-				++indexDatabase;
-			} else if ( compare < 0 ) {			// only the component has got the property
-				addItemToCompareTable(table, "Prop: "+componentProperties[indexComponent][0], componentProperties[indexComponent][1], null, true);
-				++indexComponent;
-			} else {							// only the database has got the property
-				addItemToCompareTable(table, "Prop: "+componentProperties[indexDatabase][0], null, databaseProperties[indexDatabase][1], true);
-				++indexDatabase;
+			Arrays.sort(componentProperties, stringComparator);
+	
+			// we get a sorted list of properties from the database
+			String[][] databaseProperties = (String[][])hashResult.get("properties");
+			Arrays.sort(databaseProperties, stringComparator);
+	
+			int indexComponent = 0;
+			int indexDatabase = 0;
+			int compare;
+			while ( (indexComponent < componentProperties.length) || (indexDatabase < databaseProperties.length) ) {
+				if ( indexComponent >= componentProperties.length )
+					compare = 1;
+				else {
+					if ( indexDatabase >= databaseProperties.length )
+						compare = -1;
+					else
+						compare = DBPlugin.collator.compare(componentProperties[indexComponent][0], databaseProperties[indexDatabase][0]);
+				}
+	
+				if ( compare == 0 ) {				// both have got the same property
+					addItemToCompareTable(table, level+1, componentProperties[indexComponent][0], componentProperties[indexComponent][1], databaseProperties[indexDatabase][1], true);
+					++indexComponent;
+					++indexDatabase;
+				} else if ( compare < 0 ) {			// only the component has got the property
+					addItemToCompareTable(table, level+1, componentProperties[indexComponent][0], componentProperties[indexComponent][1], null, true);
+					++indexComponent;
+				} else {							// only the database has got the property
+					addItemToCompareTable(table, level+1, componentProperties[indexDatabase][0], null, databaseProperties[indexDatabase][1], true);
+					++indexDatabase;
+				}
 			}
 		}
 		
-		addItemToCompareTable(table, "Checksum", ((IDBMetadata)component).getDBMetadata().getCurrentChecksum(), (String)hashResult.get("checksum"), true);
+		if ( component instanceof IDiagramModelContainer && ((IDiagramModelContainer)component).getChildren().size() != 0) {
+			addItemToCompareTable(table, level, "Children:", "", "", true);
+			for ( EObject child: ((IDiagramModelContainer)component).getChildren() ) {
+				fillInCompareTable(table, level+1, child, version);
+			}
+		}
+		
+		addItemToCompareTable(table, level, "Checksum", ((IDBMetadata)component).getDBMetadata().getCurrentChecksum(), (String)hashResult.get("checksum"), true);
 	}
+	
+	Comparator<String[]> stringComparator = new Comparator<String[]>() {
+		public int compare(final String[] row1, final String[] row2) {
+			return DBPlugin.collator.compare(row1[0],row2[0]);
+		}
+	};
+	
+	Comparator<Integer[]> integerComparator = new Comparator<Integer[]>() {
+		public int compare(final Integer[] row1, final Integer[] row2) {
+			return DBPlugin.collator.compare(row1[0],row2[0]);
+		}
+	};
 	
 	
 	/**
 	 * Helper function to fill in the compareTable
 	 */
-    private void addItemToCompareTable(Table table, String col1, String col2, String col3, boolean highlighIfDifferent) {
+    private void addItemToCompareTable(Table table, int level, String col1, String col2, String col3, boolean highlighIfDifferent) {
     	TableItem tableItem = new TableItem(table, SWT.NULL);
-    	tableItem.setText(0, col1);
+    	StringBuilder prefix = new StringBuilder();
+    	if ( level > 0 ) {
+    		for ( int i=0; i<level-1; ++i)
+    			prefix.append("| ");
+    		if ( (level == 0 && DBPlugin.areEqual(col1, "Version")) || DBPlugin.areEqual(col1, "Class")  || DBPlugin.areEqual(col1, "Start X")) 
+    			prefix.append("┌ ");
+    		else if ( DBPlugin.areEqual(col1, "Checksum") || DBPlugin.areEqual(col1, "End Y") )
+    			prefix.append("└ ");
+    		else
+    			prefix.append("| ");
+    	}
+    	tableItem.setText(0, prefix + col1);
 		if ( col2 != null ) tableItem.setText(1, col2);
 		if ( col3 != null ) tableItem.setText(2, col3);
 		if ( highlighIfDifferent && !DBPlugin.areEqual(col2, col3) )
