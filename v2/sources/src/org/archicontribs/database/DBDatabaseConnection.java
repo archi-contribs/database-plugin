@@ -307,6 +307,7 @@ public class DBDatabaseConnection {
 					AUTO_INCREMENT = INTEGER+" IDENTITY NOT NULL" ;
 					IMAGE = "image";
 					BOOLEAN = "tinyint";
+					TEXT = "nvarchar(max)";
 					break;
 				case "oracle" :
 					INTEGER = "integer";
@@ -995,65 +996,107 @@ public class DBDatabaseConnection {
 	 * Gets a component from the database and convert the result into a HashMap<br>
 	 * Mainly used in DBGuiExportModel to compare a component to its database version.
 	 */
-	public HashMap<String, Object> getObject(EObject component, int version) throws Exception {
+	public HashMap<String, Object> getObjectFromDatabase(EObject component, int version) throws Exception {
 		String id = ((IIdentifier)component).getId();
+		String clazz;
+		if ( component instanceof IArchimateElement ) clazz = "IArchimateElement";
+		else if ( component instanceof IArchimateRelationship ) clazz = "IArchimateRelationship";
+		else if ( component instanceof IFolder ) clazz = "IFolder";
+		else if ( component instanceof IDiagramModel ) clazz = "IDiagramModel";
+		else if ( component instanceof IDiagramModelArchimateObject	 ) clazz = "IDiagramModelArchimateObject";		
+		else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
+		return getObject(id, clazz, version);
+	}
+	
+	/**
+	 * Gets a component from the database and convert the result into a HashMap<br>
+	 * Mainly used in DBGuiExportModel to compare a component to its database version.
+	 */
+	public HashMap<String, Object> getObject(String id, String clazz, int version) throws Exception {
 		ResultSet result = null;
 		if ( version == 0 ) {
 			// because of PostGreSQL, we need to split the request in two
-			if ( component instanceof IArchimateElement ) result = select("SELECT version, class, name, documentation, type, created_by, created_on, checksum FROM "+schema+"elements e WHERE version = (SELECT MAX(version) FROM "+schema+"elements WHERE id = e.id) AND id = ?", id);
-			else if ( component instanceof IArchimateRelationship ) result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships r WHERE version = (SELECT MAX(version) FROM "+schema+"relationships WHERE id = r.id) AND id = ?", id);
-			else if ( component instanceof IFolder ) result = select("SELECT version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE version = (SELECT MAX(version) FROM "+schema+"folders WHERE id = f.id) AND id = ?", id);
-			else if ( component instanceof IDiagramModel ) result = select("SELECT version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views v WHERE version = (SELECT MAX(version) FROM "+schema+"views WHERE id = v.id) AND id = ?", id);
-			else if ( component instanceof IDiagramModelArchimateObject	 ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects v WHERE version = (SELECT MAX(version) FROM "+schema+"views_objects WHERE id = v.id) AND id = ?", id);		
-			else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+			if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+schema+"elements e WHERE version = (SELECT MAX(version) FROM "+schema+"elements WHERE id = e.id) AND id = ?", id);
+			else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships r WHERE version = (SELECT MAX(version) FROM "+schema+"relationships WHERE id = r.id) AND id = ?", id);
+			else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE version = (SELECT MAX(version) FROM "+schema+"folders WHERE id = f.id) AND id = ?", id);
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views v WHERE version = (SELECT MAX(version) FROM "+schema+"views WHERE id = v.id) AND id = ?", id);
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects v WHERE version = (SELECT MAX(version) FROM "+schema+"views_objects WHERE id = v.id) AND id = ?", id);		
+			else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 		} else {        
-			if ( component instanceof IArchimateElement ) result = select("SELECT class, name, documentation, type, created_by, created_on, checksum FROM "+schema+"elements WHERE id = ? AND version = ?", id, version);
-			else if ( component instanceof IArchimateRelationship ) result = select("SELECT class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships WHERE id = ? AND version = ?", id, version);
-			else if ( component instanceof IFolder ) result = select("SELECT type, name, documentation, created_by, created_on, checksum FROM "+schema+"folders WHERE id = ? AND version = ?", id, version);
-			else if ( component instanceof IDiagramModel ) result = select("SELECT class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views WHERE id = ? AND version = ?", id, version);
-			else if ( component instanceof IDiagramModelArchimateObject	 ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ? ORDER BY rank", id	,version);
-			else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+			if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+schema+"elements WHERE id = ? AND version = ?", id, version);
+			else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+schema+"relationships WHERE id = ? AND version = ?", id, version);
+			else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM "+schema+"folders WHERE id = ? AND version = ?", id, version);
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+schema+"views WHERE id = ? AND version = ?", id, version);
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+schema+"views_objects WHERE id = ? AND version = ?", id, version);
+			else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 		}
 
-		result.next();
+		HashMap<String, Object> hashResult;
+		if ( result.next() ) {
+			version = result.getInt("version");
+			hashResult = resultSetToHashMap(result);
 
-		HashMap<String, Object> hashResult = resultSetToHashMap(result);      					//TODO : if ArchimateModel : add the children in the HashMap
+			if ( DBPlugin.areEqual(clazz,  "IFolder") ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
 
-		if ( component instanceof IFolder ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
-		result.close();
-		result=null;
+			result.close();
+			result=null;
 
 
-		// properties
-		result = select("SELECT count(*) as count_properties FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version);
-		result.next();
-		String[][] databaseProperties = new String[result.getInt("count_properties")][2];
-		result.close();
-		result=null;
-
-		result = select("SELECT name, value FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
-		int i = 0;
-		while ( result.next() ) {
-			databaseProperties[i++] = new String[] { result.getString("name"), result.getString("value") };
+			// properties
+			result = select("SELECT count(*) as count_properties FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version);
+			result.next();
+			String[][] databaseProperties = new String[result.getInt("count_properties")][2];
+			result.close();
+			result=null;
+	
+			result = select("SELECT name, value FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
+			int i = 0;
+			while ( result.next() ) {
+				databaseProperties[i++] = new String[] { result.getString("name"), result.getString("value") };
+			}
+			hashResult.put("properties", databaseProperties);
+			result.close();
+			result=null;
+			
+			//TODO: gather the views objects if it is a view
+			if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) {
+				int countChildren;
+				
+				result = select("select count(*) AS count_children FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ?", id, version);
+				result.next();
+				countChildren = result.getInt("count_children");
+				result.close();
+				result = null;
+				
+				
+				@SuppressWarnings("unchecked")
+				HashMap<String, Object>[] children = new HashMap[countChildren];
+				result = select("select id, version FROM "+schema+"views_objects WHERE view_id = ? AND view_version = ?", id, version);
+				i=0;
+				while ( result.next() ) {
+					children[i++] = getObject(result.getString("id"), "IDiagramModelArchimateObject", result.getInt("version"));
+				}
+				hashResult.put("children", children);
+			}
+			
+			// bendpoints
+			result = select("SELECT count(*) as count_bendpoints FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version);
+			result.next();
+			Integer[][] databaseBendpoints = new Integer[result.getInt("count_bendpoints")][4];
+			result.close();
+			result=null;
+			
+			result = select("SELECT start_x, start_y, end_x, end_y FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
+			int j = 0;
+			while ( result.next() ) {
+				databaseBendpoints[j++] = new Integer[] { result.getInt("start_x"), result.getInt("start_y"), result.getInt("end_x"), result.getInt("end_y") };
+			}
+			hashResult.put("bendpoints", databaseBendpoints);
+		} else {
+			hashResult = new HashMap<String, Object>();
 		}
-		hashResult.put("properties", databaseProperties);
-		result.close();
-		result=null;
 		
-		// bendpoints
-		result = select("SELECT count(*) as count_bendpoints FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version);
-		result.next();
-		Integer[][] databaseBendpoints = new Integer[result.getInt("count_bendpoints")][4];
-		result.close();
-		result=null;
-		
-		result = select("SELECT start_x, start_y, end_x, end_y FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version );
-		int j = 0;
-		while ( result.next() ) {
-			databaseBendpoints[j++] = new Integer[] { result.getInt("start_x"), result.getInt("start_y"), result.getInt("end_x"), result.getInt("end_y") };
-		}
-		hashResult.put("bendpoints", databaseBendpoints);
 		result.close();
 		result=null;
 
@@ -1334,12 +1377,12 @@ public class DBDatabaseConnection {
 			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, name, documentation, created_on"+
 									" FROM "+schema+"folders_in_model"+
 									" JOIN "+schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = (SELECT MAX(version) FROM "+schema+"folders WHERE folders.id = folders_in_model.folder_id)"+
-									" WHERE model_id = ? AND model_version = ? ORDER BY folders_in_model.rank";
+									" WHERE model_id = ? AND model_version = ?";
 		} else {
 			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, name, documentation, created_on"+
 									" FROM "+schema+"folders_in_model"+
 									" JOIN "+schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = folders_in_model.folder_version"+
-									" WHERE model_id = ? AND model_version = ? ORDER BY folders_in_model.rank";
+									" WHERE model_id = ? AND model_version = ?";
 		}
 		result = select("SELECT COUNT(*) AS countFolders FROM ("+importFoldersRequest+") fldrs"
 				,model.getId()
@@ -1350,17 +1393,18 @@ public class DBDatabaseConnection {
 		countFoldersImported = 0;
 		result.close();
 		result=null;
+		importFoldersRequest += " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		if ( model.getImportLatestVersion() ) {
 			importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on"+
 								 " FROM "+schema+"views_in_model"+
 								 " JOIN "+schema+"views ON views.id = views_in_model.view_id AND views.version = (select max(version) from "+schema+"views where views.id = views_in_model.view_id)"+
-								 " WHERE model_id = ? AND model_version = ? ORDER BY views_in_model.rank";
+								 " WHERE model_id = ? AND model_version = ?";
 		} else {
 			importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on"+
 								 " FROM "+schema+"views_in_model"+
 								 " JOIN "+schema+"views ON views.id = views_in_model.view_id AND views.version = views_in_model.view_version"+
-								 " WHERE model_id = ? AND model_version = ? ORDER BY views_in_model.rank";
+								 " WHERE model_id = ? AND model_version = ?";
 		}
 		result = select("SELECT COUNT(*) AS countViews FROM ("+importViewsRequest+") vws"
 				,model.getId()
@@ -1371,17 +1415,18 @@ public class DBDatabaseConnection {
 		countViewsImported = 0;
 		result.close();
 		result=null;
+		importViewsRequest += " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		if ( model.getImportLatestVersion() ) {
 			importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
 										" FROM "+schema+"views_in_model"+
 										" JOIN "+schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = (SELECT MAX(version) FROM "+schema+"views_objects WHERE views_objects.view_id = views_in_model.view_id)"+
-										" WHERE model_id = ? AND model_version = ? ORDER BY views_objects.rank";
+										" WHERE model_id = ? AND model_version = ?";
 		} else {
 			importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
 										" FROM "+schema+"views_in_model"+
 										" JOIN "+schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = views_in_model.view_version"+
-										" WHERE model_id = ? AND model_version = ? ORDER BY views_objects.rank";
+										" WHERE model_id = ? AND model_version = ?";
 		}
 		result = select("SELECT COUNT(*) AS countViewsObjects FROM ("+importViewsObjectsRequest+") vobjs"
 				,model.getId()
@@ -1392,17 +1437,18 @@ public class DBDatabaseConnection {
 		countViewObjectsImported = 0;
 		result.close();
 		result=null;
+		importViewsObjectsRequest += " ORDER BY views_objects.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		if ( model.getImportLatestVersion() ) {
 			importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type "+
 										" FROM "+schema+"views_in_model"+
 										" JOIN "+schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = (SELECT MAX(version) FROM "+schema+"views_connections WHERE views_connections.view_id = views_in_model.view_id)"+
-										" WHERE model_id = ? AND model_version = ? ORDER BY views_connections.rank";
+										" WHERE model_id = ? AND model_version = ?";
 		} else {
 			importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type"+
 										" FROM "+schema+"views_in_model"+
 										" JOIN "+schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = views_in_model.view_version"+
-										" WHERE model_id = ? AND model_version = ? ORDER BY views_connections.rank";
+										" WHERE model_id = ? AND model_version = ?";
 		}
 		result = select("SELECT COUNT(*) AS countViewsConnections FROM ("+importViewsConnectionsRequest+") vcons"
 				,model.getId()
@@ -1413,8 +1459,13 @@ public class DBDatabaseConnection {
 		countViewConnectionsImported = 0;
 		result.close();
 		result=null;
+		importViewsConnectionsRequest += " ORDER BY views_connections.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		result = select("SELECT COUNT(DISTINCT image_path) AS countImages FROM "+schema+"views_in_model INNER JOIN "+schema+"views ON "+schema+"views_in_model.view_id = views.id AND "+schema+"views_in_model.view_version = views.version INNER JOIN "+schema+"views_objects ON views.id = "+schema+"views_objects.view_id AND views.version = "+schema+"views_objects.version INNER JOIN "+schema+"images ON "+schema+"views_objects.image_path = images.path WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
+		result = select("SELECT COUNT(DISTINCT image_path) AS countImages FROM "+schema+"views_in_model"+
+						" INNER JOIN "+schema+"views ON "+schema+"views_in_model.view_id = views.id AND "+schema+"views_in_model.view_version = views.version"+
+						" INNER JOIN "+schema+"views_objects ON views.id = "+schema+"views_objects.view_id AND views.version = "+schema+"views_objects.version"+
+						" INNER JOIN "+schema+"images ON "+schema+"views_objects.image_path = images.path"+
+						" WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
 				,model.getId()
 				,model.getCurrentVersion()
 				);

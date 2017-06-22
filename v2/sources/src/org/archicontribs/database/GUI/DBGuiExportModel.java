@@ -1213,7 +1213,7 @@ public class DBGuiExportModel extends DBGui {
 						btnDoNotExport.setEnabled(true);
 						btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
 	
-						fillInCompareTable(tblCompareComponent, 0, conflictingComponent, null);
+						fillInCompareTable(tblCompareComponent, 0, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion(), null);
 					}
 					grpComponents.setVisible(false);
 					grpModelVersions.setVisible(false);
