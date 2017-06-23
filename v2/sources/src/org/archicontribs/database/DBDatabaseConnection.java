@@ -1374,12 +1374,12 @@ public class DBDatabaseConnection {
 		result=null;
 
 		if ( model.getImportLatestVersion() ) {
-			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, name, documentation, created_on"+
+			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on"+
 									" FROM "+schema+"folders_in_model"+
 									" JOIN "+schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = (SELECT MAX(version) FROM "+schema+"folders WHERE folders.id = folders_in_model.folder_id)"+
 									" WHERE model_id = ? AND model_version = ?";
 		} else {
-			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, name, documentation, created_on"+
+			importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on"+
 									" FROM "+schema+"folders_in_model"+
 									" JOIN "+schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = folders_in_model.folder_version"+
 									" WHERE model_id = ? AND model_version = ?";
