@@ -8,8 +8,6 @@ package org.archicontribs.database.model;
 
 import org.archicontribs.database.DBLogger;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.emf.ecore.EPackage;
-import org.eclipse.emf.ecore.plugin.EcorePlugin;
 import org.eclipse.swt.graphics.Image;
 
 import com.archimatetool.editor.ArchiPlugin;
@@ -119,16 +117,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	
     public static DBArchimateFactory init() {
     	if ( logger.isDebugEnabled() ) logger.debug("initializing DBArchimateFactory");
-        try {
-        	DBArchimateFactory theArchimateFactory = (DBArchimateFactory)EPackage.Registry.INSTANCE.getEFactory("eNS_URI");
-            if (theArchimateFactory != null) {
-                return theArchimateFactory;
-            }
-        }
-        catch (Exception exception) {
-            EcorePlugin.INSTANCE.log(exception);
-        }
-        return new DBArchimateFactory();
+        return eINSTANCE==null ? new DBArchimateFactory() : eINSTANCE;
     }
 	
     /**

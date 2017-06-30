@@ -44,7 +44,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		super();
 		if ( logger.isTraceEnabled() ) logger.trace("Creating new ArchimateModel");
 		super.setVersion(ModelVersion.VERSION);
-		metadata = DBArchimateFactory.eINSTANCE.createMetadata();
+		super.setMetadata(DBArchimateFactory.eINSTANCE.createMetadata());
 	}
 	
 	private int currentVersion = 0;
