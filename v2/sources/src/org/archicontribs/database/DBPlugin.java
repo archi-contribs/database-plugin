@@ -176,11 +176,16 @@ import org.json.simple.parser.JSONParser;
  * 										Added column "element_version" to table "views_objects"
  * 										Added column "relationship_version" to table "views_connections"
  * 
- * v2.0.7 : 21/06/2017				Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected
+ * v2.0.7 : 30/06/2017				Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected
  *                                  Improve checksum mechanism
+ *                                  Add an option to show up ID and checksum in context menu rather than relying on the logger mode
  *                                  Import model:
  *                                      Solve bug where the filter field was not working as expected
  *                                      Change the filter request to be case insensitive
+ *                                  Export model:
+ *                                      Use of a Tree rather than a Table to show up conflicts
+ *                                      show up more information about conflicting components
+ *                                      The conflict detection and resolution is now more reliable
  * 										
  *                                  Known bugs:
  *                                  -----------
@@ -198,8 +203,6 @@ import org.json.simple.parser.JSONParser;
  *											allow to import elements recursively
  *											allow to select all the classes of one group in a single click
  *											when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
- *										Export model:
- *											show up all the component properties in the conflict resolution table
  *										Get component history:
  *											allow to export individual component, or update it from the database, directly from the history window
  *											allow to get the database history
@@ -254,6 +257,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);
 		preferenceStore.setDefault("removeDirtyFlag",         false);
+		preferenceStore.setDefault("showIdInContextMenu",     false);
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
