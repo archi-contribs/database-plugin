@@ -66,6 +66,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnRemoveDirtyFlag;
 	private Button btnDeleteIfImportError;
 	private Button btnImportShared;
+	private Button btnShowIdInContextMenu;
 	
 	private DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
@@ -210,11 +211,20 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		btnDeleteIfImportError.setLayoutData(fd);
 		
+		btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
+		btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnShowIdInContextMenu.setText("Show debuging information in context menu");
+		btnShowIdInContextMenu.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showIdInContextMenu"));
+		fd = new FormData();
+		fd.top = new FormAttachment(btnDeleteIfImportError, 5);
+		fd.left = new FormAttachment(0, 10);
+		btnShowIdInContextMenu.setLayoutData(fd);
+		
 		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
 		lblDefaultImportType.setText("Default component import type :");
 		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(btnDeleteIfImportError, 5);
+		fd.top = new FormAttachment(btnShowIdInContextMenu, 5);
 		fd.left = new FormAttachment(0, 10);
 		lblDefaultImportType.setLayoutData(fd);
 		
@@ -407,6 +417,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("removeDirtyFlag", btnRemoveDirtyFlag.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
+    	DBPlugin.INSTANCE.getPreferenceStore().setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
     	DBPlugin.INSTANCE.getPreferenceStore().setValue("importShared", btnImportShared.getSelection());
     	table.store();
     	

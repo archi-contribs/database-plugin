@@ -50,25 +50,14 @@ public class DBMenuShowIdHandler extends AbstractHandler {
 		if ( selectedObject instanceof AbstractConnectedEditPart ) {
 			EObject eObject = ((AbstractConnectedEditPart)selectedObject).getModel();
 			
-			if ( eObject instanceof IIdentifier ) {
-				String id = ((IIdentifier)eObject).getId();
-				if ( id.equals("020858ed-2da4-474c-b045-1c6237fddaac") )
-					System.out.println("got you");
-			}
-			
 			if ( eObject instanceof IDiagramModelContainer ) {
 				String id = ((IIdentifier)eObject).getId();
 			}
 			
 			if ( eObject instanceof IFolder ) {
 				FolderType type = ((IFolder)eObject).getType();
-				int w = 12;
 			}
 		}
-		
-		
-
-		
 		return null;
 	}
 }

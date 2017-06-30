@@ -8,6 +8,7 @@ package org.archicontribs.database.menu;
 
 import java.util.Iterator;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.core.runtime.FileLocator;
@@ -58,6 +59,7 @@ public class DBMenu extends ExtensionContributionFactory {
         {
             IStructuredSelection selection = (IStructuredSelection) window.getSelectionService().getSelection();
             if ( selection.size() == 1 ) {
+            	boolean showIdInContextMenu = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showIdInContextMenu");
                 Object obj = selection.getFirstElement();
 
                 if ( logger.isDebugEnabled() ) logger.debug("Showing menu for class "+obj.getClass().getSimpleName());
@@ -66,7 +68,7 @@ public class DBMenu extends ExtensionContributionFactory {
                     // when a user right clicks on a model
                     case "ArchimateModel" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("model", (ArchimateModel)obj), null);
                             additions.addContributionItem(new Separator(), null);
                         }
@@ -76,7 +78,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         // when the user right clicks in a diagram background
                     case "ArchimateDiagramPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("view ", ((ArchimateDiagramPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((ArchimateDiagramPart)obj).getModel()), null);
                             additions.addContributionItem(showChecksum("", ((ArchimateDiagramPart)obj).getModel()), null);
@@ -94,7 +96,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         // when the user right clicks in a diagram and a unique component is selected
                     case "ArchimateElementEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("object ", ((ArchimateElementEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel()), null);
                             additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel()), null);
@@ -108,7 +110,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "ArchimateRelationshipEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("object ", ((ArchimateRelationshipEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel()), null);
                             additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel()), null);
@@ -122,7 +124,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "CanvasBlockEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("block ", ((CanvasBlockEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((CanvasBlockEditPart)obj).getModel()), null);
                             additions.addContributionItem(showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
@@ -132,7 +134,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "CanvasStickyEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) { 
+                        if ( showIdInContextMenu ) { 
                             additions.addContributionItem(showId("sticky ", ((CanvasStickyEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((CanvasStickyEditPart)obj).getModel()), null);
                             additions.addContributionItem(showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
@@ -142,7 +144,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "DiagramConnectionEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("connection ", ((DiagramConnectionEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((DiagramConnectionEditPart)obj).getModel()), null);
                             additions.addContributionItem(showChecksum("", ((DiagramConnectionEditPart)obj).getModel()), null);
@@ -152,7 +154,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "DiagramImageEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("image ", ((DiagramImageEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((DiagramImageEditPart)obj).getModel()), null);
                             additions.addContributionItem(showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
@@ -162,7 +164,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "GroupEditPart" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("group ", ((GroupEditPart)obj).getModel()), null);
                             additions.addContributionItem(showVersion(((GroupEditPart)obj).getModel()), null);
                         }
@@ -179,7 +181,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         //When the user right clicks in the model tree
                     case "ArchimateDiagramModel" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("view ", (IArchimateDiagramModel)obj), null);
                             additions.addContributionItem(showVersion((IArchimateDiagramModel)obj), null);
                             additions.addContributionItem(showChecksum("", (IArchimateDiagramModel)obj), null);
@@ -189,7 +191,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "CanvasModel" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("canvas ", (ICanvasModel)obj), null);
                             additions.addContributionItem(showVersion((ICanvasModel)obj), null);
                             additions.addContributionItem(showChecksum("", (ICanvasModel)obj), null);
@@ -199,7 +201,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "SketchModel" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("sketch ", (ISketchModel)obj), null);
                             additions.addContributionItem(showVersion((ISketchModel)obj), null);
                             additions.addContributionItem(showChecksum("", (ISketchModel)obj), null);
@@ -209,7 +211,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
                     case "Folder" :
                         additions.addContributionItem(new Separator(), null);
-                        if ( logger.isDebugEnabled() ) {
+                        if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("folder ", (IFolder)obj), null);
                             additions.addContributionItem(showVersion((IFolder)obj), null);
                             additions.addContributionItem(showChecksum("", (IFolder)obj), null);
@@ -220,7 +222,7 @@ public class DBMenu extends ExtensionContributionFactory {
                     default :
                         if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
                             additions.addContributionItem(new Separator(), null);
-                            if ( logger.isDebugEnabled() ) {
+                            if ( showIdInContextMenu ) {
                                 additions.addContributionItem(showId("", (IIdentifier)obj), null);
                                 additions.addContributionItem(showVersion((IIdentifier)obj), null);
                                 additions.addContributionItem(showChecksum("", (IIdentifier)obj), null);
