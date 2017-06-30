@@ -40,6 +40,8 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateElement;
@@ -1213,7 +1215,7 @@ public class DBGuiExportModel extends DBGui {
 						btnDoNotExport.setEnabled(true);
 						btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
 	
-						fillInCompareTable(tblCompareComponent, 0, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion(), null);
+						fillInCompareTable(tblCompareComponent, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion(), null);
 					}
 					grpComponents.setVisible(false);
 					grpModelVersions.setVisible(false);
@@ -1236,7 +1238,7 @@ public class DBGuiExportModel extends DBGui {
 			fd.left = new FormAttachment(0, 10);
 			lblCompare.setLayoutData(fd);
 	
-			tblCompareComponent = new Table(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
+			tblCompareComponent = new Tree(grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
 			tblCompareComponent.setBackground(GROUP_BACKGROUND_COLOR);
 			tblCompareComponent.setHeaderVisible(true);
 			tblCompareComponent.setLinesVisible(true);
@@ -1247,15 +1249,15 @@ public class DBGuiExportModel extends DBGui {
 			fd.bottom = new FormAttachment(100, -40);
 			tblCompareComponent.setLayoutData(fd);
 	
-			TableColumn colItems = new TableColumn(tblCompareComponent, SWT.NONE);
+			TreeColumn colItems = new TreeColumn(tblCompareComponent, SWT.NONE);
 			colItems.setText("Items");
 			colItems.setWidth(119);
 	
-			TableColumn colYourVersion = new TableColumn(tblCompareComponent, SWT.NONE);
+			TreeColumn colYourVersion = new TreeColumn(tblCompareComponent, SWT.NONE);
 			colYourVersion.setText("Your version");
 			colYourVersion.setWidth(170);
 	
-			TableColumn colDatabaseVersion = new TableColumn(tblCompareComponent, SWT.NONE);
+			TreeColumn colDatabaseVersion = new TreeColumn(tblCompareComponent, SWT.NONE);
 			colDatabaseVersion.setText("Database version");
 			colDatabaseVersion.setWidth(170);
 	
@@ -1460,7 +1462,7 @@ public class DBGuiExportModel extends DBGui {
 
 	private Group grpConflict;
 
-	private Table tblCompareComponent;
+	private Tree tblCompareComponent;
 	private Table tblListConflicts;
 	private Label lblCantExport;
 

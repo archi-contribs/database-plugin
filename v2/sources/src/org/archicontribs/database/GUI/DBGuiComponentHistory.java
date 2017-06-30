@@ -26,7 +26,8 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
-
+import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeColumn;
 import org.archicontribs.database.model.ArchimateModel;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
@@ -42,7 +43,7 @@ public class DBGuiComponentHistory extends DBGui {
 	private Button btnImportDatabaseVersion;
 	private Button btnExportModelVersion;
 	
-	private Table tblContent;
+	private Tree tblContent;
 	private Table tblVersions;
 	
 	/**
@@ -103,7 +104,7 @@ public class DBGuiComponentHistory extends DBGui {
 		tblVersions.setLinesVisible(true);
 		tblVersions.addListener(SWT.Selection, new Listener() {
 		    public void handleEvent(Event e) {
-		        fillInCompareTable(tblContent, 0, selectedComponent, Integer.valueOf(tblVersions.getSelection()[0].getText(0)), null);
+		        fillInCompareTable(tblContent, selectedComponent, Integer.valueOf(tblVersions.getSelection()[0].getText(0)), null);
 		    }
 		});
 		fd = new FormData();
@@ -134,7 +135,7 @@ public class DBGuiComponentHistory extends DBGui {
 		fd.right = new FormAttachment(100, -10);
 		lblContent.setLayoutData(fd);
 		
-		tblContent = new Table(grpComponents, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		tblContent = new Tree(grpComponents, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
 		tblContent.setHeaderVisible(true);
 		tblContent.setLinesVisible(true);
 		fd = new FormData();
@@ -144,15 +145,15 @@ public class DBGuiComponentHistory extends DBGui {
 		fd.bottom = new FormAttachment(100, -50);
 		tblContent.setLayoutData(fd);
 		
-		TableColumn colItem = new TableColumn(tblContent, SWT.NONE);
+		TreeColumn colItem = new TreeColumn(tblContent, SWT.NONE);
 		colItem.setWidth(100);
 		colItem.setText("Items");
 		
-		TableColumn colYourVersion = new TableColumn(tblContent, SWT.NONE);
+		TreeColumn colYourVersion = new TreeColumn(tblContent, SWT.NONE);
 		colYourVersion.setWidth(150);
 		colYourVersion.setText("Your version");
 		
-		TableColumn colDatabaseVersion = new TableColumn(tblContent, SWT.NONE);
+		TreeColumn colDatabaseVersion = new TreeColumn(tblContent, SWT.NONE);
 		colDatabaseVersion.setWidth(150);
 		colDatabaseVersion.setText("Database version");
 		
