@@ -1340,7 +1340,7 @@ public class DBGui {
 	 */
 	public void run() {
 		while ( !isClosed ) {
-		    if ( display.readAndDispatch() )
+		    if ( !display.readAndDispatch() )
 		    	display.sleep();
 		}
 	}
