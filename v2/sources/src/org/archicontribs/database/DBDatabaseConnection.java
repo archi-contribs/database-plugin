@@ -2624,10 +2624,7 @@ public class DBDatabaseConnection {
 		ResultSet result;
 
 		if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
-			if ( databaseEntry.getNeo4jNativeMode() )
-				result = select("MATCH [t:"+tableName+" {id:?}] RETURN t.version as version, t.checksum as checksum ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
-			else
-				result = select("MATCH (t:"+tableName+" {id:?}) RETURN t.version as version, t.checksum as checksum ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
+			result = select("MATCH (t:"+tableName+" {id:?}) RETURN t.version as version, t.checksum as checksum ORDER BY t.version DESC", ((IIdentifier)eObject).getId());
 		} else {
 			// we check the checksum in the database
 			result = select("SELECT version, checksum"+(hasCreatedByColumn ? ", created_by, created_on" : "")+" FROM "+tableName+" WHERE id = ? ORDER BY version DESC", ((IIdentifier)eObject).getId());
@@ -2683,8 +2680,13 @@ public class DBDatabaseConnection {
 	private COMPARE checkImage(String path) throws Exception {
 		COMPARE comp;
 		// we check the existence of the image in the database
-		ResultSet result = select("SELECT path FROM "+schema+"images WHERE path = ? ", path);
-
+		ResultSet result;
+		if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
+			result = select("MATCH (t:images {path:?}) RETURN t.path", path);
+		} else {
+			result = select("SELECT path FROM "+schema+"images WHERE path = ? ", path);
+		}
+		
 		if ( result.next() ) {
 			if ( logger.isTraceEnabled() ) logger.trace("   does exist in the database.");
 			comp = COMPARE.IDENTICAL;
@@ -2837,7 +2839,7 @@ public class DBDatabaseConnection {
 			// USE MERGE instead to replace existing nodes
 			if ( databaseEntry.getNeo4jNativeMode() ) {
 				if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
-					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE [relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}], (source)-[relationship]->(target)"
+					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
 							,((IArchimateRelationship)relationship).getSource().getId()
 							,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getExportedVersion()
 							,((IArchimateRelationship)relationship).getTarget().getId()
