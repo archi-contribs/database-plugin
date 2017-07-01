@@ -187,6 +187,8 @@ import org.json.simple.parser.JSONParser;
  *                                      show up more information about conflicting components
  *                                      The conflict detection and resolution is now more reliable
  * 										
+ * v2.0.7b : 01/07/2017				Solve Neo4J errors
+ * 
  *                                  Known bugs:
  *                                  -----------
  *										Import individual component:
