@@ -1300,24 +1300,36 @@ public class DBGuiImportComponent extends DBGui {
 	private void doImport() throws Exception {
 		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
-			popup("Importing "+tblComponents.getSelectionCount()+" component(s).");
+			logger.info("Importing "+tblComponents.getSelectionCount()+" component(s).");
 		else
-			popup("Importing a copy of "+tblComponents.getSelectionCount()+" component(s).");
+			logger.info("Importing a copy of "+tblComponents.getSelectionCount()+" component(s).");
 
 		List<Object> imported = new ArrayList<Object>();
+		int done = 0;
+		
+		try {
+			for ( TableItem tableItem: tblComponents.getSelection() ) {
+				String id = (String)tableItem.getData("id");
+				String name = tableItem.getText(0).trim();
 
-		for ( TableItem tableItem: tblComponents.getSelection() ) {
-			String id = (String)tableItem.getData("id");
-			if ( compoElements.getVisible() )
-				imported.addAll(connection.importElementFromId(importedModel, selectedView, id, !getOptionValue()));
-			//else if ( compoContainers.getVisible() )
-			//	database.importContainerFromId(importedModel, id, !getOptionValue());
-			//	database.importFolder(importedModel, id, !getOptionValue());
-			else if ( compoViews.getVisible() ) {
-				IDiagramModel view = connection.importViewFromId(importedModel, selectedFolder, id, !getOptionValue());
-				if ( view != null )
-					imported.add(view);
+				popup("("+(++done)+"/"+tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
+				
+				if ( compoElements.getVisible() )
+					imported.addAll(connection.importElementFromId(importedModel, selectedView, id, !getOptionValue()));
+				//else if ( compoContainers.getVisible() )
+				//	database.importContainerFromId(importedModel, id, !getOptionValue());
+				//	database.importFolder(importedModel, id, !getOptionValue());
+				else if ( compoViews.getVisible() ) {
+					IDiagramModel view = connection.importViewFromId(importedModel, selectedFolder, id, !getOptionValue());
+					if ( view != null )
+						imported.add(view);
+				}
 			}
+		} catch(RuntimeException e) {
+			popup(Level.ERROR, e.getMessage());
+		} finally {
+			// we do not catch the exception if any, but we need to close the popup
+			closePopup();
 		}
 
 		if ( !imported.isEmpty() ) {
@@ -1330,7 +1342,7 @@ public class DBGuiImportComponent extends DBGui {
 		}
 
 		// we redraw the tblComponents to unselect the items (and hide the newly imported components if the option is selected)
-		hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());;
+		hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
 	}
 
 	private class ComponentLabel extends Label {

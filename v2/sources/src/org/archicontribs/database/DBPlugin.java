@@ -190,7 +190,8 @@ import org.json.simple.parser.JSONParser;
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
  * v2.0.8 : 14/08/2017				Import individual component:
- * 										added documentation column				
+ * 										added documentation column
+ * 										added popup message during the import
  * 
  *                                  Known bugs:
  *                                  -----------
