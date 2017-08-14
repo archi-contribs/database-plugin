@@ -80,6 +80,7 @@ public class DBGuiImportComponent extends DBGui {
 	private Button canvasViews;
 	private Button sketchViews;
 
+	private Label lblComponents;
 	private Table tblComponents;
 
 
@@ -1027,6 +1028,14 @@ public class DBGuiImportComponent extends DBGui {
 		fd.bottom = new FormAttachment(100);
 		grpComponent.setLayoutData(fd);
 		grpComponent.setLayout(new FormLayout());
+		
+		lblComponents = new Label(grpComponent, SWT.NONE);
+		lblComponents.setBackground(GROUP_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 10);
+		fd.left = new FormAttachment(10);
+		fd.right = new FormAttachment(100, -10);
+		lblComponents.setLayoutData(fd);
 
 		SelectionListener redrawTblComponents = new SelectionListener() {
 			@Override
@@ -1064,13 +1073,25 @@ public class DBGuiImportComponent extends DBGui {
 		hideOption.setText("Hide components with empty names");
 		hideOption.setSelection(true);
 		hideOption.addSelectionListener(redrawTblComponents);
-
+		
 		tblComponents = new Table(grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
 		tblComponents.setLinesVisible(true);
 		tblComponents.setHeaderVisible(true);
 		tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		tblComponents.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
+				if ( tblComponents.getItemCount() < 2 ) {
+					lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+				} else {
+					lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+				}
+				
+				if ( tblComponents.getSelectionCount() == 0) {
+					lblComponents.setText(lblComponents.getText()+".");
+				} else {
+					lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
+				}
+				
 				btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
 			}
 		});
@@ -1100,7 +1121,7 @@ public class DBGuiImportComponent extends DBGui {
 		hideAlreadyInModel.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
+		fd.top = new FormAttachment(lblComponents, 10);
 		fd.left = new FormAttachment(10);
 		fd.right = new FormAttachment(90);
 		fd.bottom = new FormAttachment(hideAlreadyInModel, -5);
@@ -1157,6 +1178,18 @@ public class DBGuiImportComponent extends DBGui {
 					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
+		}
+		
+		if ( tblComponents.getItemCount() < 2 ) {
+			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		} else {
+			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+		}
+		
+		if ( tblComponents.getSelectionCount() == 0) {
+			lblComponents.setText(lblComponents.getText()+".");
+		} else {
+			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
 		}
 
 		btnDoAction.setEnabled(false);
@@ -1225,6 +1258,18 @@ public class DBGuiImportComponent extends DBGui {
 			}
 			result.close();
 		}
+		
+		if ( tblComponents.getItemCount() < 2 ) {
+			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		} else {
+			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+		}
+		
+		if ( tblComponents.getSelectionCount() == 0) {
+			lblComponents.setText(lblComponents.getText()+".");
+		} else {
+			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
+		}
 
 		btnDoAction.setEnabled(false);
 	}
@@ -1277,6 +1322,18 @@ public class DBGuiImportComponent extends DBGui {
 					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
+		}
+		
+		if ( tblComponents.getItemCount() < 2 ) {
+			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		} else {
+			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+		}
+		
+		if ( tblComponents.getSelectionCount() == 0) {
+			lblComponents.setText(lblComponents.getText()+".");
+		} else {
+			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
 		}
 
 		btnDoAction.setEnabled(false);
