@@ -2315,10 +2315,9 @@ public class DBDatabaseConnection {
 	public IDiagramModel importViewFromId(ArchimateModel model, IFolder parentFolder, String id, boolean mustCreateCopy) throws Exception {
 		if ( model.getAllViews().get(id) != null ) {
 			if ( mustCreateCopy )
-				DBGui.popup(Level.WARN, "Re-importing a view is not supported.\n\nIf you wish to create a copy of an existing table, you may use a copy-paste operation.");
+				throw new RuntimeException("Re-importing a view is not supported.\n\nIf you wish to create a copy of an existing table, you may use a copy-paste operation.");
 			else
-				DBGui.popup(Level.WARN, "Re-importing a view is not supported.\n\nIf you wish to refresh your view from the database, you may close your model and re-import it from the database.");
-			return null;
+				throw new RuntimeException("Re-importing a view is not supported.\n\nIf you wish to refresh your view from the database, you may close your model and re-import it from the database.");
 		}
 
 		if ( logger.isDebugEnabled() ) {
