@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
@@ -1066,18 +1067,27 @@ public class DBGuiImportComponent extends DBGui {
 
 		tblComponents = new Table(grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
 		tblComponents.setLinesVisible(true);
+		tblComponents.setHeaderVisible(true);
 		tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		tblComponents.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
 			}
 		});
+		
+		TableColumn colName = new TableColumn(tblComponents, SWT.NONE);
+		colName.setText("Name");
+		colName.setWidth(150);
+		TableColumn colDocumentation = new TableColumn(tblComponents, SWT.NONE);
+		colDocumentation.setText("Documentation");
+		colDocumentation.setWidth(300);
+		
 		tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
 			public void handleEvent(Event event) {
 				if ( btnDoAction.getEnabled() )
 					btnDoAction.notifyListeners(SWT.Selection, new Event());
 			}
-		});
+		});		
 
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
@@ -1091,8 +1101,8 @@ public class DBGuiImportComponent extends DBGui {
 
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
-		fd.left = new FormAttachment(30);
-		fd.right = new FormAttachment(70);
+		fd.left = new FormAttachment(10);
+		fd.right = new FormAttachment(90);
 		fd.bottom = new FormAttachment(hideAlreadyInModel, -5);
 		tblComponents.setLayoutData(fd);
 	}
@@ -1134,17 +1144,17 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result;
 
 			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else {
 				if ( ignoreCase.getSelection() )
-					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
+					result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
 				else
-					result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+					result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 			}
 
 			while (result.next()) {
 				if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllElements().get(result.getString("id"))==null))
-					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
+					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
 		}
@@ -1205,13 +1215,13 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result;
 
 			if ( filterName.getText().length() == 0 )
-				result = database.select("SELECT id, name FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")"+addOn, typeList);
+				result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")"+addOn, typeList);
 			else
-				result = database.select("SELECT id, name FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+") AND name like ?"+addOn, typeList, "%"+filterName.getText()+"%");
+				result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+") AND name like ?"+addOn, typeList, "%"+filterName.getText()+"%");
 
 			while (result.next()) {
 			    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllFolders().get(result.getString("id"))==null))
-			        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"));
+			        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
 		}
@@ -1258,13 +1268,13 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result;
 
 			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else
-				result = connection.select("SELECT id, class, name FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
 
 			while (result.next()) {
 				if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllViews().get(result.getString("id"))==null))
-					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"));
+					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
 		}
@@ -1274,11 +1284,12 @@ public class DBGuiImportComponent extends DBGui {
 
 
 
-	private void createTableItem(Table table, String id, String className, String text) {
-		if ( logger.isTraceEnabled() ) logger.trace("adding "+text+"("+className+") to tblComponents");
+	private void createTableItem(Table table, String id, String className, String name, String documentation) {
+		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to tblComponents");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
-		item.setText("   "+text);
+		item.setText(0, "   "+name);
+		item.setText(1, "   "+documentation);
 		if ( className.toUpperCase().startsWith("CANVAS") )
 			item.setImage(DBCanvasFactory.getImage(className));
 		else
@@ -1289,9 +1300,9 @@ public class DBGuiImportComponent extends DBGui {
 	private void doImport() throws Exception {
 		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
-			logger.info("Importing "+tblComponents.getSelectionCount()+" component(s).");
+			popup("Importing "+tblComponents.getSelectionCount()+" component(s).");
 		else
-			logger.info("Importing a copy of "+tblComponents.getSelectionCount()+" component(s).");
+			popup("Importing a copy of "+tblComponents.getSelectionCount()+" component(s).");
 
 		List<Object> imported = new ArrayList<Object>();
 

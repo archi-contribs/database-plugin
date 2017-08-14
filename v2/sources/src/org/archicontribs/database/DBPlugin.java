@@ -189,6 +189,9 @@ import org.json.simple.parser.JSONParser;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
+ * v2.0.8 : 14/08/2017				Import individual component:
+ * 										added documentation column				
+ * 
  *                                  Known bugs:
  *                                  -----------
  *										Import individual component:
@@ -214,7 +217,7 @@ import org.json.simple.parser.JSONParser;
  *											add a progressbar on the "please wait while checking components to export" window
  *											find a way to manage images from the database the same way it is done on disk
  *											create a new windows that will show up detailed statistics about the model
- *											add more jdbc drivers (mongodb, odbc, etc ...)
+ *											add more jdbc drivers (mongodb, odbc, etc ...)				
  *
  * 									technical TODOs :
  *                                  	// TODO : update component get history to search for history of folders and views
