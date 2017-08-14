@@ -40,7 +40,6 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
-import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -743,19 +742,12 @@ public class DBGui {
 	    logger.info(msg);
 		if ( dialogShell == null ) {
 			dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-			dialogShell.setSize(400, 50);
-			dialogShell.setBackground(BLACK_COLOR);
+			dialogShell.setSize(500, 70);
+			dialogShell.setBackground(COMPO_LEFT_COLOR);
 			dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
-			FillLayout layout = new FillLayout();
-			layout.marginWidth = 2;
-			layout.marginHeight = 2;
-			dialogShell.setLayout(layout);
+			dialogShell.setLayout(new GridLayout( 1, false ) );
 			
-			Composite composite = new Composite(dialogShell, SWT.NONE);
-			composite.setBackground(COMPO_LEFT_COLOR);
-			composite.setLayout( new GridLayout( 1, false ) );
-			
-			dialogLabel = new Label(composite, SWT.NONE);
+			dialogLabel = new Label(dialogShell, SWT.CENTER | SWT.WRAP);
 			dialogLabel.setBackground(COMPO_LEFT_COLOR);
 			dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
 			dialogLabel.setFont(TITLE_FONT);
@@ -763,8 +755,8 @@ public class DBGui {
 			restoreCursors();
 		}
 		
-		dialogShell.setText(msg);
 		dialogLabel.setText(msg);
+		dialogShell.layout(true);
 		dialogShell.open();
 		
 		setArrowCursor();
