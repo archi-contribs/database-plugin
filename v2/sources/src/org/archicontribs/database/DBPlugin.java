@@ -195,6 +195,8 @@ import org.json.simple.parser.JSONParser;
  * 										added popup message during the import
  * 									Export model:
  *										change the export algorithm to become more collaborative
+ *									Get history from database:
+ *										allows to get history for diagrams, canvas and sketches
  * 
  *                                  Known bugs:
  *                                  -----------
