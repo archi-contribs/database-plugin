@@ -191,8 +191,6 @@ public class DBGui {
 	protected Group grpProgressBar;
 	protected Label lblProgressBar;
 	private ProgressBar progressBar;
-	
-	private boolean isClosed = false;
 
 	/**
 	 * Create the dialog with minimal graphical objects : 
@@ -999,8 +997,6 @@ public class DBGui {
 	public void close() {
 		dialog.dispose();
 		dialog = null;
-
-		isClosed = true;
 		
 		if ( connection != null ) {
 		    try {
