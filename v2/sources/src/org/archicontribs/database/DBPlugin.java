@@ -189,9 +189,12 @@ import org.json.simple.parser.JSONParser;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.0.8 : 14/08/2017				Import individual component:
+ * v2.1 : 14/08/2017				Solve plugin initialization failure
+ * 									Import individual component:
  * 										added documentation column
  * 										added popup message during the import
+ * 									Export model:
+ *										change the export algorithm to become more collaborative
  * 
  *                                  Known bugs:
  *                                  -----------
@@ -228,7 +231,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.7";
+	public static final String pluginVersion = "2.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
@@ -283,7 +286,16 @@ public class DBPlugin extends AbstractUIPlugin {
 				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-30.30C{1} %m%n");
 		logger = new DBLogger(DBPlugin.class);
 		logger.info("Initialising "+pluginName+" plugin ...");
-
+		
+		logger.info("===============================================");
+		// we force the class initialization by the SWT thread
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				DBGui.closePopup();
+			}
+		});
+		
 		// we check if the plugin has been upgraded using the automatic procedure
 		try {
 			pluginsPackage = DBPlugin.class.getPackage().getName();

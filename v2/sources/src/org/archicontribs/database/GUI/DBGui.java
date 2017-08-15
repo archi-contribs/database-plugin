@@ -101,7 +101,7 @@ public class DBGui {
 	protected DBDatabaseEntry selectedDatabase;
 	protected DBDatabaseConnection connection;
 	
-	protected static Display display = Display.getCurrent();
+	protected static final Display display = Display.getCurrent();
 	protected Shell dialog;
 	
 	protected boolean includeNeo4j = true;
@@ -740,27 +740,33 @@ public class DBGui {
 	 */
 	public static Shell popup(String msg) {
 	    logger.info(msg);
-		if ( dialogShell == null ) {
-			dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
-			dialogShell.setSize(500, 70);
-			dialogShell.setBackground(COMPO_LEFT_COLOR);
-			dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
-			dialogShell.setLayout(new GridLayout( 1, false ) );
-			
-			dialogLabel = new Label(dialogShell, SWT.CENTER | SWT.WRAP);
-			dialogLabel.setBackground(COMPO_LEFT_COLOR);
-			dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
-			dialogLabel.setFont(TITLE_FONT);
-		} else {
-			restoreCursors();
-		}
-		
-		dialogLabel.setText(msg);
-		dialogShell.layout(true);
-		dialogShell.open();
-		
-		setArrowCursor();
 
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				if ( dialogShell == null ) {
+					dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
+					dialogShell.setSize(500, 70);
+					dialogShell.setBackground(COMPO_LEFT_COLOR);
+					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
+					dialogShell.setLayout(new GridLayout( 1, false ) );
+					
+					dialogLabel = new Label(dialogShell, SWT.CENTER | SWT.WRAP);
+					dialogLabel.setBackground(COMPO_LEFT_COLOR);
+					dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
+					dialogLabel.setFont(TITLE_FONT);
+				} else {
+					restoreCursors();
+				}
+				
+				dialogLabel.setText(msg);
+				dialogShell.layout(true);
+				dialogShell.open();
+				
+				setArrowCursor();
+			}
+		});
+		
 		return dialogShell;
 	}
 	
@@ -769,10 +775,15 @@ public class DBGui {
 	 */
 	public static void closePopup() {
 		if ( dialogShell != null ) {
-			dialogShell.close();
-			dialogShell = null;
-			
-			restoreCursors();
+			Display.getDefault().syncExec(new Runnable() {
+				@Override
+				public void run() {
+					dialogShell.close();
+					dialogShell = null;
+					
+					restoreCursors();
+				}
+			});
 		}
 	}
 	
@@ -854,9 +865,14 @@ public class DBGui {
 	public static int question(String msg, String[] buttonLabels) {
 		if ( logger.isDebugEnabled() ) logger.debug("question : "+msg);
 		
-		//questionResult = MessageDialog.openQuestion(display.getActiveShell(), DBPlugin.pluginTitle, msg);
-		MessageDialog dialog = new MessageDialog(display.getActiveShell(), DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
-		questionResult = dialog.open();
+		Display.getDefault().syncExec(new Runnable() {
+			@Override
+			public void run() {
+				//questionResult = MessageDialog.openQuestion(display.getActiveShell(), DBPlugin.pluginTitle, msg);
+				MessageDialog dialog = new MessageDialog(display.getActiveShell(), DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
+				questionResult = dialog.open();
+			}
+		});
 
 		if ( logger.isDebugEnabled() ) logger.debug("answer : "+buttonLabels[questionResult]);
 		return questionResult;
