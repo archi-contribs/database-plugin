@@ -30,13 +30,10 @@ public class DBExporter implements IModelExporter {
     public void export(IArchimateModel archimateModel) throws IOException {
         logger.info("Exporting model "+archimateModel.getName());
 
-        DBGuiExportModel exportDialog = null;
         try {
-            exportDialog = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
-            exportDialog.run();
+            new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot export model", e);
         }
-        exportDialog = null;
     }
 }

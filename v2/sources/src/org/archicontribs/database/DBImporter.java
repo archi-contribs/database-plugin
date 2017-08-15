@@ -35,13 +35,10 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 	public void doImport(IArchimateModel notUsed) throws IOException {
 		logger.info("Importing model.");
 	
-		DBGuiImportModel importDialog = null;
 		try {
-		    importDialog = new DBGuiImportModel("Import model");
-		    importDialog.run();
+		    new DBGuiImportModel("Import model");
 		} catch (Exception e) {
 		    DBGui.popup(Level.ERROR,"Cannot import model", e);
 		}
-		importDialog = null;
 	}
 }
