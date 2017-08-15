@@ -1342,16 +1342,6 @@ public class DBGui {
     public static void disposeImage() {
     	viewImage = null;
     }
-    
-	/**
-	 * Dispatches the graphical event until the close() method is called
-	 */
-	public void run() {
-		while ( !isClosed ) {
-		    if ( !display.readAndDispatch() )
-		    	display.sleep();
-		}
-	}
 	
 	/**
 	 * Refreshes the display
