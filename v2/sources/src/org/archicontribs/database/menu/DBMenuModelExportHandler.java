@@ -27,14 +27,11 @@ public class DBMenuModelExportHandler extends AbstractHandler {
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
 
-        DBGuiExportModel exportDialog = null;
         try {
-            exportDialog = new DBGuiExportModel(model, "Export model");
-            exportDialog.run();
+        	new DBGuiExportModel(model, "Export model");
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot export model", e);
         }
-        exportDialog = null;
         
 		return null;
 	}

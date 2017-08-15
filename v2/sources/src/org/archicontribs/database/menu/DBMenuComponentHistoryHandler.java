@@ -49,14 +49,11 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
 
         if ( logger.isDebugEnabled() ) logger.debug("Showing history for component "+((IDBMetadata)component).getDBMetadata().getDebugName());
 
-        DBGuiComponentHistory historyDialog = null;
         try {
-            historyDialog = new DBGuiComponentHistory(component);
-            historyDialog.run();
+            new DBGuiComponentHistory(component);
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot import model", e);
         }
-        historyDialog = null;
         return null;
     }
 }
