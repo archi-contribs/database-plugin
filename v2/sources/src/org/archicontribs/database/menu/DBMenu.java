@@ -27,6 +27,7 @@ import org.eclipse.ui.services.IServiceLocator;
 
 import com.archimatetool.canvas.editparts.CanvasBlockEditPart;
 import com.archimatetool.canvas.editparts.CanvasStickyEditPart;
+import com.archimatetool.canvas.editparts.CanvasDiagramPart;
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.editor.diagram.editparts.ArchimateDiagramPart;
 import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
@@ -34,9 +35,11 @@ import com.archimatetool.editor.diagram.editparts.ArchimateRelationshipEditPart;
 import com.archimatetool.editor.diagram.editparts.DiagramConnectionEditPart;
 import com.archimatetool.editor.diagram.editparts.diagram.DiagramImageEditPart;
 import com.archimatetool.editor.diagram.editparts.diagram.GroupEditPart;
+import com.archimatetool.editor.diagram.sketch.editparts.SketchDiagramPart;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
@@ -65,6 +68,7 @@ public class DBMenu extends ExtensionContributionFactory {
                 if ( logger.isDebugEnabled() ) logger.debug("Showing menu for class "+obj.getClass().getSimpleName());
 
                 switch ( obj.getClass().getSimpleName() ) {
+                	
                     // when a user right clicks on a model
                     case "ArchimateModel" :
                         additions.addContributionItem(new Separator(), null);
@@ -75,7 +79,8 @@ public class DBMenu extends ExtensionContributionFactory {
                         additions.addContributionItem(convertIds(), null);
                         additions.addContributionItem(exportModel(), null);
                         break;
-                        // when the user right clicks in a diagram background
+                        
+                    // when the user right clicks in a diagram background
                     case "ArchimateDiagramPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -84,16 +89,23 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(showChecksum("", ((ArchimateDiagramPart)obj).getModel()), null);
                             additions.addContributionItem(new Separator(), null);
                         }
+                        additions.addContributionItem(getHistory(((ArchimateDiagramPart)obj).getModel()), null);
                         additions.addContributionItem(importComponentIntoView(), null);
                         break;
+                        
+                    // when the user right clicks in a canvas background
                     case "CanvasDiagramPart" :
-                        // cannot import (yet) a component into a canvas, except an image ...
+                    	additions.addContributionItem(getHistory(((CanvasDiagramPart)obj).getModel()), null);
+                    	// cannot import (yet) a component into a canvas, except an image ...
                         break;
+                        
+                    // when the user right clicks in a sketch background
                     case "SketchDiagramPart" :
-                        // cannot import (yet) a component into a sketch
+                    	additions.addContributionItem(getHistory(((SketchDiagramPart)obj).getModel()), null);
+                    	// cannot import (yet) a component into a sketch
                         break;
 
-                        // when the user right clicks in a diagram and a unique component is selected
+                    // when the user right clicks in a diagram and an element is selected
                     case "ArchimateElementEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -108,6 +120,8 @@ public class DBMenu extends ExtensionContributionFactory {
                         }
                         additions.addContributionItem(getHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
                         break;
+                        
+                    // when the user right clicks in a diagram and a relationship is selected
                     case "ArchimateRelationshipEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -122,6 +136,8 @@ public class DBMenu extends ExtensionContributionFactory {
                         }
                         additions.addContributionItem(getHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
                         break;
+                        
+                    // when the user right clicks in a canvas' block
                     case "CanvasBlockEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -132,6 +148,8 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(new Separator(), null);
                         }	    				
                         break;
+                        
+                    // when the user right clicks in a canvas' sticky
                     case "CanvasStickyEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) { 
@@ -142,6 +160,8 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(new Separator(), null);
                         }
                         break;
+                        
+                    // when the user right clicks on a connection
                     case "DiagramConnectionEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -152,6 +172,8 @@ public class DBMenu extends ExtensionContributionFactory {
                         }
                         additions.addContributionItem(getHistory(((DiagramConnectionEditPart)obj).getModel()), null);
                         break;
+                        
+                    // when the user right clicks on an image
                     case "DiagramImageEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -162,6 +184,8 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(new Separator(), null);
                         }
                         break;
+                        
+                    // when the user right clicks on a group
                     case "GroupEditPart" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -169,16 +193,24 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(showVersion(((GroupEditPart)obj).getModel()), null);
                         }
                         break;
+                        
+                    // when the user right clicks on a note
                     case "NoteEditPart" :
                         break;
+                        
+                    // when the user right clicks on a sketch actor
                     case "SketchActorEditPart" :
                         break;
+                        
+                    // when the user right clicks on a sketch group
                     case "SketchGroupEditPart" :
-                        break;	
+                        break;
+                        
+                    // when the user right clicks on a sticky
                     case "StickyEditPart" :
                         break;	
 
-                        //When the user right clicks in the model tree
+                    // when the user right clicks on a diagram in the model tree
                     case "ArchimateDiagramModel" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -187,8 +219,11 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(showChecksum("", (IArchimateDiagramModel)obj), null);
                             additions.addContributionItem(new Separator(), null);
                         }
+                        additions.addContributionItem(getHistory((IArchimateDiagramModel)obj), null);
                         additions.addContributionItem(importComponentIntoView(), null);
                         break;
+                        
+                    // when the user right clicks on a canvas in the model tree
                     case "CanvasModel" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -197,8 +232,11 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(showChecksum("", (ICanvasModel)obj), null);
                             additions.addContributionItem(new Separator(), null);
                         }
+                        additions.addContributionItem(getHistory((ICanvasModel)obj), null);
                         additions.addContributionItem(importComponent(), null);
                         break;
+                        
+                    // when the user right clicks on a sketch in the model tree
                     case "SketchModel" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
@@ -207,6 +245,7 @@ public class DBMenu extends ExtensionContributionFactory {
                             additions.addContributionItem(showChecksum("", (ISketchModel)obj), null);
                             additions.addContributionItem(new Separator(), null);
                         }
+                        additions.addContributionItem(getHistory((ISketchModel)obj), null);
                         additions.addContributionItem(importComponent(), null);
                         break;
                     case "Folder" :
@@ -255,7 +294,7 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
 
-    CommandContributionItem getHistory(IArchimateConcept component) {
+    CommandContributionItem getHistory(IArchimateModelObject component) {
         String clazz = component.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
         String label = "get history for "+component.eClass().getName()+" \""+component.getName()+"\"";

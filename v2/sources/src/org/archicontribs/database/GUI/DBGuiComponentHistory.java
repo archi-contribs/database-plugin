@@ -29,14 +29,18 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.archicontribs.database.model.ArchimateModel;
-import com.archimatetool.model.IArchimateConcept;
+
+import com.archimatetool.canvas.model.ICanvasModel;
+import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.ISketchModel;
 
 public class DBGuiComponentHistory extends DBGui {
 	private static final DBLogger logger = new DBLogger(DBGuiComponentHistory.class);
 	
-	private IArchimateConcept selectedComponent = null;
+	private IArchimateModelObject selectedComponent = null;
 
 	private Label lblVersions;
 	
@@ -50,7 +54,7 @@ public class DBGuiComponentHistory extends DBGui {
 	 * Creates the GUI to export components and model
 	 * @throws Exception 
 	 */
-	public DBGuiComponentHistory(IArchimateConcept component) throws Exception {
+	public DBGuiComponentHistory(IArchimateModelObject component) throws Exception {
 		super("Component history");
 		selectedComponent = component;
 		
@@ -204,7 +208,9 @@ public class DBGuiComponentHistory extends DBGui {
 			    tableName = "elements";
 			else if ( selectedComponent instanceof IArchimateRelationship ) 
                 tableName = "relationships";
-			else {
+	        else if ( selectedComponent instanceof IArchimateDiagramModel || selectedComponent instanceof ICanvasModel || selectedComponent instanceof ISketchModel )
+	        	tableName = "views";
+        	else {
 			    popup(Level.FATAL, "Cannot get history for components of class "+selectedComponent.getClass().getSimpleName());
 			    return ;
 			}
