@@ -56,11 +56,13 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		includeNeo4j = false;
 		
+		((ArchimateModel)selectedComponent.getArchimateModel()).countObject(component, true, null);
+		/*
 		popup("Please wait while counting model's components");
 		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
 		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllElements().size()+" elements and "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllRelationships().size()+" relationships.");
 		closePopup();
-		
+		*/
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion+").");		
 		
 		setCompoRight();
