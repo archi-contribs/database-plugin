@@ -1163,6 +1163,21 @@ public class DBDatabaseConnection {
 			tblModels.notifyListeners(SWT.Selection, new Event());      // calls database.getModelVersions()
 		}
 	}
+	
+	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
+	    ResultSet result;
+	    
+	    // Using a GROUP BY on PostGresSQL does not give the expected result ...   
+        if ( ignoreCase )
+            result = select("SELECT id FROM "+schema+"models m WHERE UPPER(name) = UPPER(?)", modelName);
+        else
+            result = select("SELECT id FROM "+schema+"models m WHERE name = ?", modelName);
+
+        if ( result.next() ) 
+            return result.getString("id");
+        
+        return null;
+	}
 
 	public void getModelVersions(String id, Table tblModelVersions) throws Exception {
 		ResultSet result = select("SELECT version, created_by, created_on, name, note, purpose FROM "+schema+"models WHERE id = ? ORDER BY version DESC", id);
@@ -1260,11 +1275,18 @@ public class DBDatabaseConnection {
 		// reseting the model's counters
 		model.resetCounters();
 
-		ResultSet result = select("SELECT name, purpose FROM "+schema+"models WHERE id = ? AND version = ?"
-				,model.getId()
-				,model.getCurrentVersion()
-				);
+		ResultSet result;
+		
+		if ( model.getCurrentVersion() == 0 ) {
+		    result = select("SELECT MAX(version) AS version FROM "+schema+"models WHERE id = ?", model.getId());
+		    if ( result.next() ) {
+		        model.setCurrentVersion(result.getInt("version"));
+		    }
+		    result.close();
+		}
 
+	    result = select("SELECT name, purpose FROM "+schema+"models WHERE id = ? AND version = ?", model.getId(), model.getCurrentVersion());
+		
 		//TODO : manage the "real" model metadata :-)
 
 		result.next();

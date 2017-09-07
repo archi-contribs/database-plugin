@@ -197,6 +197,7 @@ import org.json.simple.parser.JSONParser;
  *										change the export algorithm to become more collaborative
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
+ *                                  Add procedures that can be called by the script plugin 
  * 
  *                                  Known bugs:
  *                                  -----------
