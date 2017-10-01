@@ -465,7 +465,7 @@ public class DBMenu extends ExtensionContributionFactory {
 
     CommandContributionItem showVersion(IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = "Version: current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion()+" exported="+((IDBMetadata)component).getDBMetadata().getExportedVersion();
+        String label = "Version: current="+((IDBMetadata)component).getDBMetadata().getInitialVersion()+" exported="+((IDBMetadata)component).getDBMetadata().getCurrentVersion();
         //label = "Checksum="+((IDBMetadata)component).getDBMetadata().getCurrentChecksum()+" DB="+((IDBMetadata)component).getDBMetadata().getDatabaseChecksum();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
