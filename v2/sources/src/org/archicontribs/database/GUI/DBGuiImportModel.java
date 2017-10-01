@@ -694,7 +694,7 @@ public class DBGuiImportModel extends DBGui {
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
                 while ( connection.importViewsObjects(modelToImport, view) ) {
                 	txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
                     increaseProgressBar();
@@ -704,7 +704,7 @@ public class DBGuiImportModel extends DBGui {
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
                 while ( connection.importViewsConnections(modelToImport) ) {
                 	txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
                     increaseProgressBar();
