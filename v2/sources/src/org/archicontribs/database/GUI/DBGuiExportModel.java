@@ -19,8 +19,8 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.preferences.DBPreferencePage.EXPORT_BEHAVIOUR;
 import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
-import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.resource.JFaceResources;
@@ -61,6 +61,8 @@ public class DBGuiExportModel extends DBGui {
 
 	private Group grpComponents;
 	private Group grpModelVersions;
+	
+	private EXPORT_BEHAVIOUR exportBehaviour;
 
 	/**
 	 * Creates the GUI to export components and model
@@ -315,35 +317,44 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(40, -10);
 		lblTotal.setLayoutData(fd);
 
-		Label lblSynced = new Label(grpComponents, SWT.CENTER);
-		lblSynced.setBackground(GROUP_BACKGROUND_COLOR);
-		lblSynced.setText("Sync'ed");
+		Label lblIdentical = new Label(grpComponents, SWT.CENTER);
+		lblIdentical.setBackground(GROUP_BACKGROUND_COLOR);
+		lblIdentical.setText("Identical");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(40, 10);
 		fd.right = new FormAttachment(60, -10);
-		lblSynced.setLayoutData(fd);
+		lblIdentical.setLayoutData(fd);
 
-		Label lblUpdated = new Label(grpComponents, SWT.CENTER);
-		lblUpdated.setBackground(GROUP_BACKGROUND_COLOR);
-		lblUpdated.setText("Updated");
+		Label lblNewer = new Label(grpComponents, SWT.CENTER);
+		lblNewer.setBackground(GROUP_BACKGROUND_COLOR);
+		lblNewer.setText("Newer");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(60, 10);
 		fd.right = new FormAttachment(80, -10);
-		lblUpdated.setLayoutData(fd);
-
-		Label lblNew = new Label(grpComponents, SWT.CENTER);
-		lblNew.setBackground(GROUP_BACKGROUND_COLOR);
-		lblNew.setText("New");
+		lblNewer.setLayoutData(fd);
+		
+		Label lblOlder = new Label(grpComponents, SWT.CENTER);
+		lblOlder.setBackground(GROUP_BACKGROUND_COLOR);
+		lblOlder.setText("Older");
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(60, 10);
+		fd.right = new FormAttachment(80, -10);
+		lblOlder.setLayoutData(fd);
+		
+		Label lblConflicting = new Label(grpComponents, SWT.CENTER);
+		lblConflicting.setBackground(GROUP_BACKGROUND_COLOR);
+		lblConflicting.setText("Conflicting");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(80, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblNew.setLayoutData(fd);
+		lblConflicting.setLayoutData(fd);
 
 		/* * * * * */
-
+		
 		txtTotalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalElements.setEditable(false);
 		fd = new FormData(26,18);
@@ -352,32 +363,40 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalElements.setLayoutData(fd);
 
-		txtSyncedElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedElements.setEditable(false);
+		txtIdenticalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalElements.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedElements.setLayoutData(fd);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalElements.setLayoutData(fd);
 
-		txtUpdatedElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedElements.setEditable(false);
+		txtNewerElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerElements.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedElements.setLayoutData(fd);
-
-		txtNewElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewElements.setEditable(false);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerElements.setLayoutData(fd);
+		
+		txtOlderElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderElements.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewElements.setLayoutData(fd);
-
-
-
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderElements.setLayoutData(fd);
+		
+		txtConflictingElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingElements.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingElements.setLayoutData(fd);
+		
+		/* * * * * */
+		
 		txtTotalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalRelationships.setEditable(false);
 		fd = new FormData(26,18);
@@ -386,33 +405,40 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalRelationships.setLayoutData(fd);
 
-		txtSyncedRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedRelationships.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedRelationships.setLayoutData(fd);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtUpdatedRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedRelationships.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedRelationships.setLayoutData(fd);
-
-		txtNewRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewRelationships.setEditable(false);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
+		
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewRelationships.setLayoutData(fd);
-
-
-
-
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
+		
+		/* * * * * */
+		
 		txtTotalFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalFolders.setEditable(false);
 		fd = new FormData(26,18);
@@ -421,32 +447,40 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalFolders.setLayoutData(fd);
 
-		txtSyncedFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedFolders.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedFolders.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtUpdatedFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedFolders.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedFolders.setLayoutData(fd);
-
-		txtNewFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewFolders.setEditable(false);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
+		
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewFolders.setLayoutData(fd);
-
-
-
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
+		
+		/* * * * * */
+		
 		txtTotalViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalViews.setEditable(false);
 		fd = new FormData(26,18);
@@ -455,32 +489,40 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalViews.setLayoutData(fd);
 
-		txtSyncedViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedViews.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedViews.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtUpdatedViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedViews.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedViews.setLayoutData(fd);
-
-		txtNewViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewViews.setEditable(false);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
+		
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewViews.setLayoutData(fd);
-
-
-
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
+		
+		/* * * * * */
+		
 		txtTotalViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalViewObjects.setEditable(false);
 		fd = new FormData(26,18);
@@ -489,31 +531,39 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalViewObjects.setLayoutData(fd);
 
-		txtSyncedViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedViewObjects.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedViewObjects.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtUpdatedViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedViewObjects.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedViewObjects.setLayoutData(fd);
-
-		txtNewViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewViewObjects.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewViewObjects.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
 		
-
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
+		
+		/* * * * * */
 		
 		txtTotalViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalViewConnections.setEditable(false);
@@ -523,32 +573,40 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalViewConnections.setLayoutData(fd);
 
-		txtSyncedViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedViewConnections.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedViewConnections.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtUpdatedViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedViewConnections.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedViewConnections.setLayoutData(fd);
-
-		txtNewViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewViewConnections.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewViewConnections.setLayoutData(fd);
-
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
 		
-
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
+		
+		/* * * * * */
+		
 		txtTotalImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
 		txtTotalImages.setEditable(false);
 		fd = new FormData(26,18);
@@ -557,29 +615,37 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		txtTotalImages.setLayoutData(fd);
 
-		txtSyncedImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtSyncedImages.setEditable(false);
+		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtIdenticalRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblSynced, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblSynced, 0, SWT.RIGHT);
-		txtSyncedImages.setLayoutData(fd);
-		
-		txtUpdatedImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtUpdatedImages.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblUpdated, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblUpdated, 0, SWT.RIGHT);
-		txtUpdatedImages.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
+		txtIdenticalRelationships.setLayoutData(fd);
 
-		txtNewImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewImages.setEditable(false);
+		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtNewerRelationships.setEditable(false);
 		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNew, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNew, 0, SWT.RIGHT);
-		txtNewImages.setLayoutData(fd);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
+		txtNewerRelationships.setLayoutData(fd);
+		
+		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtOlderRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
+		txtOlderRelationships.setLayoutData(fd);
+		
+		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+		txtConflictingRelationships.setEditable(false);
+		fd = new FormData(26,18);
+		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
+		txtConflictingRelationships.setLayoutData(fd);
 	}
 
 	/**
@@ -589,42 +655,56 @@ public class DBGuiExportModel extends DBGui {
 	 * If no exception is raised, then the "Export" button is enabled.
 	 */
 	@Override
-	protected void connectedToDatabase(boolean forceCheckDatabase) {	
+	protected void connectedToDatabase(boolean forceCheckDatabase) {
+		// We get the preference's export behaviour
+		switch ( DBPlugin.INSTANCE.getPreferenceStore().getString("exportBehaviour") ) {
+			case "sync":   exportBehaviour = EXPORT_BEHAVIOUR.syncMode; break;
+			case "master": exportBehaviour = EXPORT_BEHAVIOUR.masterMode; break;
+			default:       exportBehaviour = EXPORT_BEHAVIOUR.collaborativeMode;
+		}
+		
 		// We count the components to export and activate the export button
 		txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
-		txtNewElements.setText("");
-		txtUpdatedElements.setText("");
-		txtSyncedElements.setText("");
+		txtIdenticalElements.setText("");
+		txtNewerElements.setText("");
+		txtOlderElements.setText("");
+		txtConflictingElements.setText("");
 
 		txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
-		txtNewRelationships.setText("");
-		txtUpdatedRelationships.setText("");
-		txtSyncedRelationships.setText("");
+		txtIdenticalRelationships.setText("");
+		txtNewerRelationships.setText("");
+		txtOlderRelationships.setText("");
+		txtConflictingRelationships.setText("");
 
 		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-		txtNewFolders.setText("");
-		txtUpdatedFolders.setText("");
-		txtSyncedFolders.setText("");
+		txtIdenticalFolders.setText("");
+		txtNewerFolders.setText("");
+		txtOlderFolders.setText("");
+		txtConflictingFolders.setText("");
 
 		txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
-		txtNewViews.setText("");
-		txtUpdatedViews.setText("");
-		txtSyncedViews.setText("");
+		txtIdenticalViews.setText("");
+		txtNewerViews.setText("");
+		txtOlderViews.setText("");
+		txtConflictingViews.setText("");
 
 		txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
-		txtSyncedViewObjects.setText("");
-		txtUpdatedViewObjects.setText("");
-		txtNewViewObjects.setText("");
+		txtIdenticalViewObjects.setText("");
+		txtNewerViewObjects.setText("");
+		txtOlderViewObjects.setText("");
+		txtConflictingViewObjects.setText("");
 
 		txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
-		txtSyncedViewConnections.setText("");
-		txtUpdatedViewConnections.setText("");
-		txtNewViewConnections.setText("");
+		txtIdenticalViewConnections.setText("");
+		txtNewerViewConnections.setText("");
+		txtOlderViewConnections.setText("");
+		txtConflictingViewConnections.setText("");
 
 		txtTotalImages.setText(String.valueOf(((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()));
-		txtSyncedImages.setText("");
-		txtUpdatedImages.setText("");
-		txtNewImages.setText("");
+		txtIdenticalImages.setText("");
+		txtNewerImages.setText("");
+		txtOlderImages.setText("");
+		txtConflictingImages.setText("");
 
 		if ( forceCheckDatabase )
 		    setOption(selectedDatabase.getExportWholeModel());
@@ -633,12 +713,6 @@ public class DBGuiExportModel extends DBGui {
 			disableOption();
 		else
 			enableOption();
-
-		if ( getOptionValue() ) {
-			forceCheckDatabase = forceCheckDatabase || (connection.countNewViews()+connection.countUpdatedViews()+connection.countSyncedViews() != exportedModel.getAllViews().size());
-		} else {
-			forceCheckDatabase = forceCheckDatabase || (connection.countNewElements()+connection.countUpdatedElements()+connection.countSyncedElements() != exportedModel.getAllElements().size());
-		}
 
 		if ( forceCheckDatabase ) {
 			try {
@@ -664,71 +738,78 @@ public class DBGuiExportModel extends DBGui {
 			}
 		}
 
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.countSyncedElements()+" synced, "+connection.countUpdatedElements()+" updated, "+connection.countNewElements()+"new.");			
-		txtNewElements.setText(String.valueOf(connection.countNewElements()));							txtNewElements.setData("value", connection.countNewElements());
-		txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));					txtUpdatedElements.setData("value", connection.countUpdatedElements());
-		txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));					txtSyncedElements.setData("value", connection.countSyncedElements());
+		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.getCountIdenticalElements()+" identical, "+connection.getCountNewerElements()+" newer, "+connection.getCountOlderElements()+" older, "+connection.getCountConflictingElements()+" conflicting.");			
+		txtIdenticalElements.setText(String.valueOf(connection.getCountIdenticalElements()));			txtIdenticalElements.setData("value", connection.getCountIdenticalElements());
+		txtNewerElements.setText(String.valueOf(connection.getCountNewerElements()));					txtNewerElements.setData("value", connection.getCountNewerElements());
+		txtOlderElements.setText(String.valueOf(connection.getCountOlderElements()));					txtOlderElements.setData("value", connection.getCountOlderElements());
+		txtConflictingElements.setText(String.valueOf(connection.getCountConflictingElements()));		txtConflictingElements.setData("value", connection.getCountConflictingElements());
 
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" relationships in the model: "+connection.countSyncedRelationships()+" synced, "+connection.countUpdatedRelationships()+" updated, "+connection.countNewRelationships()+" new.");
-		txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));				txtNewRelationships.setData("value", connection.countNewRelationships());
-		txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));		txtUpdatedRelationships.setData("value", connection.countUpdatedRelationships());
-		txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));			txtSyncedRelationships.setData("value", connection.countSyncedRelationships());
+		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" Relationships in the model : "+connection.getCountIdenticalRelationships()+" identical, "+connection.getCountNewerRelationships()+" newer, "+connection.getCountOlderRelationships()+" older, "+connection.getCountConflictingRelationships()+" conflicting.");			
+		txtIdenticalRelationships.setText(String.valueOf(connection.getCountIdenticalRelationships()));			txtIdenticalRelationships.setData("value", connection.getCountIdenticalRelationships());
+		txtNewerRelationships.setText(String.valueOf(connection.getCountNewerRelationships()));					txtNewerRelationships.setData("value", connection.getCountNewerRelationships());
+		txtOlderRelationships.setText(String.valueOf(connection.getCountOlderRelationships()));					txtOlderRelationships.setData("value", connection.getCountOlderRelationships());
+		txtConflictingRelationships.setText(String.valueOf(connection.getCountConflictingRelationships()));		txtConflictingRelationships.setData("value", connection.getCountConflictingRelationships());
 
 		txtTotalFolders.setVisible(getOptionValue());
-		txtNewFolders.setVisible(getOptionValue());
-		txtUpdatedFolders.setVisible(getOptionValue());
-		txtSyncedFolders.setVisible(getOptionValue());
+		txtIdenticalFolders.setVisible(getOptionValue());
+		txtNewerFolders.setVisible(getOptionValue());
+		txtOlderFolders.setVisible(getOptionValue());
+		txtConflictingFolders.setVisible(getOptionValue());
 
 		txtTotalViews.setVisible(getOptionValue());
-		txtNewViews.setVisible(getOptionValue());
-		txtUpdatedViews.setVisible(getOptionValue());
-		txtSyncedViews.setVisible(getOptionValue());
+		txtIdenticalViews.setVisible(getOptionValue());
+		txtNewerViews.setVisible(getOptionValue());
+		txtOlderViews.setVisible(getOptionValue());
+		txtConflictingViews.setVisible(getOptionValue());
 
 		txtTotalViewObjects.setVisible(getOptionValue());
-		txtSyncedViewObjects.setVisible(getOptionValue());
-		txtUpdatedViewObjects.setVisible(getOptionValue());
-		txtNewViewObjects.setVisible(getOptionValue());
+		txtIdenticalViewObjects.setVisible(getOptionValue());
+		txtNewerViewObjects.setVisible(getOptionValue());
+		txtOlderViewObjects.setVisible(getOptionValue());
+		txtConflictingViewObjects.setVisible(getOptionValue());
 		
 		txtTotalViewConnections.setVisible(getOptionValue());
-		txtSyncedViewConnections.setVisible(getOptionValue());
-		txtUpdatedViewConnections.setVisible(getOptionValue());
-		txtNewViewConnections.setVisible(getOptionValue());
+		txtIdenticalViewConnections.setVisible(getOptionValue());
+		txtNewerViewConnections.setVisible(getOptionValue());
+		txtOlderViewConnections.setVisible(getOptionValue());
+		txtConflictingViewConnections.setVisible(getOptionValue());
 
 		txtTotalImages.setVisible(getOptionValue());
-		txtSyncedImages.setVisible(getOptionValue());
-		txtUpdatedImages.setVisible(getOptionValue());
-		txtNewImages.setVisible(getOptionValue());
+		txtIdenticalImages.setVisible(getOptionValue());
+		txtNewerImages.setVisible(getOptionValue());
+		txtOlderImages.setVisible(getOptionValue());
+		txtConflictingImages.setVisible(getOptionValue());
 
 		if ( getOptionValue() ) {
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" folders in the model: "+connection.countSyncedFolders()+" synced, "+connection.countUpdatedFolders()+" updated, "+connection.countNewFolders()+" new.");			
-			txtNewFolders.setText(String.valueOf(connection.countNewFolders()));							txtNewFolders.setData("value", connection.countNewFolders());
-			txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));					txtUpdatedFolders.setData("value", connection.countUpdatedFolders());
-			txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));						txtSyncedFolders.setData("value", connection.countSyncedFolders());
-			//txtSyncedFolders.setForeground( (connection.countSyncedFolders() == exportedModel.getAllFolders().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" Folders in the model : "+connection.getCountIdenticalFolders()+" identical, "+connection.getCountNewerFolders()+" newer, "+connection.getCountOlderFolders()+" older, "+connection.getCountConflictingFolders()+" conflicting.");			
+			txtIdenticalFolders.setText(String.valueOf(connection.getCountIdenticalFolders()));			txtIdenticalFolders.setData("value", connection.getCountIdenticalFolders());
+			txtNewerFolders.setText(String.valueOf(connection.getCountNewerFolders()));					txtNewerFolders.setData("value", connection.getCountNewerFolders());
+			txtOlderFolders.setText(String.valueOf(connection.getCountOlderFolders()));					txtOlderFolders.setData("value", connection.getCountOlderFolders());
+			txtConflictingFolders.setText(String.valueOf(connection.getCountConflictingFolders()));		txtConflictingFolders.setData("value", connection.getCountConflictingFolders());
 
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" views in the model: "+connection.countSyncedViews()+" synced, "+connection.countUpdatedViews()+" updated, "+connection.countNewViews()+" new.");			
-			txtNewViews.setText(String.valueOf(connection.countNewViews()));								txtNewViews.setData("value", connection.countNewViews());
-			txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));						txtUpdatedViews.setData("value", connection.countUpdatedViews());
-			txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));							txtSyncedViews.setData("value", connection.countSyncedViews());
-			//txtSyncedViews.setForeground( (connection.countSyncedViews() == exportedModel.getAllViews().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" Views in the model : "+connection.getCountIdenticalViews()+" identical, "+connection.getCountNewerViews()+" newer, "+connection.getCountOlderViews()+" older, "+connection.getCountConflictingViews()+" conflicting.");			
+			txtIdenticalViews.setText(String.valueOf(connection.getCountIdenticalViews()));			txtIdenticalViews.setData("value", connection.getCountIdenticalViews());
+			txtNewerViews.setText(String.valueOf(connection.getCountNewerViews()));					txtNewerViews.setData("value", connection.getCountNewerViews());
+			txtOlderViews.setText(String.valueOf(connection.getCountOlderViews()));					txtOlderViews.setData("value", connection.getCountOlderViews());
+			txtConflictingViews.setText(String.valueOf(connection.getCountConflictingViews()));		txtConflictingViews.setData("value", connection.getCountConflictingViews());
 			
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" view objects in the model: "+connection.countSyncedViewObjects()+" synced, "+connection.countUpdatedViewObjects()+" updated, "+connection.countNewViewObjects()+" new.");
-			txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));					txtNewViewObjects.setData("value", connection.countNewViewObjects());
-			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));			txtUpdatedViewObjects.setData("value", connection.countUpdatedViewObjects());
-			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));				txtSyncedViewObjects.setData("value", connection.countSyncedViewObjects());
-			//txtSyncedViewObjects.setForeground( (connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" ViewObjects in the model : "+connection.getCountIdenticalViewObjects()+" identical, "+connection.getCountNewerViewObjects()+" newer, "+connection.getCountOlderViewObjects()+" older, "+connection.getCountConflictingViewObjects()+" conflicting.");			
+			txtIdenticalViewObjects.setText(String.valueOf(connection.getCountIdenticalViewObjects()));			txtIdenticalViewObjects.setData("value", connection.getCountIdenticalViewObjects());
+			txtNewerViewObjects.setText(String.valueOf(connection.getCountNewerViewObjects()));					txtNewerViewObjects.setData("value", connection.getCountNewerViewObjects());
+			txtOlderViewObjects.setText(String.valueOf(connection.getCountOlderViewObjects()));					txtOlderViewObjects.setData("value", connection.getCountOlderViewObjects());
+			txtConflictingViewObjects.setText(String.valueOf(connection.getCountConflictingViewObjects()));		txtConflictingViewObjects.setData("value", connection.getCountConflictingViewObjects());
 
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" view connections in the model: "+connection.countSyncedViewConnections()+" synced, "+connection.countUpdatedViewConnections()+" updated, "+connection.countNewViewConnections()+" new.");
-			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));			txtNewViewConnections.setData("value", connection.countNewViewConnections());
-			txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));	txtUpdatedViewConnections.setData("value", connection.countUpdatedViewConnections());
-			txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));		txtSyncedViewConnections.setData("value", connection.countSyncedViewConnections());
-			//txtSyncedViewConnections.setForeground( (connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" ViewConnections in the model : "+connection.getCountIdenticalViewConnections()+" identical, "+connection.getCountNewerViewConnections()+" newer, "+connection.getCountOlderViewConnections()+" older, "+connection.getCountConflictingViewConnections()+" conflicting.");			
+			txtIdenticalViewConnections.setText(String.valueOf(connection.getCountIdenticalViewConnections()));			txtIdenticalViewConnections.setData("value", connection.getCountIdenticalViewConnections());
+			txtNewerViewConnections.setText(String.valueOf(connection.getCountNewerViewConnections()));					txtNewerViewConnections.setData("value", connection.getCountNewerViewConnections());
+			txtOlderViewConnections.setText(String.valueOf(connection.getCountOlderViewConnections()));					txtOlderViewConnections.setData("value", connection.getCountOlderViewConnections());
+			txtConflictingViewConnections.setText(String.valueOf(connection.getCountConflictingViewConnections()));		txtConflictingViewConnections.setData("value", connection.getCountConflictingViewConnections());
 
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" ViewsImages in the model: "+connection.countSyncedImages()+" synced, "+connection.countUpdatedImages()+" updated, "+connection.countNewImages()+" new.");
-			txtNewImages.setText(String.valueOf(connection.countNewImages()));								txtNewImages.setData("value", connection.countNewImages());
-			txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));						txtUpdatedImages.setData("value", connection.countUpdatedImages());
-			txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));						txtSyncedImages.setData("value", connection.countSyncedImages());
-			//txtSyncedImages.setForeground( (connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" Images in the model : "+connection.getCountIdenticalImages()+" identical, "+connection.getCountNewerImages()+" newer, "+connection.getCountOlderImages()+" older, "+connection.getCountConflictingImages()+" conflicting.");			
+			txtIdenticalImages.setText(String.valueOf(connection.getCountIdenticalImages()));			txtIdenticalImages.setData("value", connection.getCountIdenticalImages());
+			txtNewerImages.setText(String.valueOf(connection.getCountNewerImages()));					txtNewerImages.setData("value", connection.getCountNewerImages());
+			txtOlderImages.setText(String.valueOf(connection.getCountOlderImages()));					txtOlderImages.setData("value", connection.getCountOlderImages());
+			txtConflictingImages.setText(String.valueOf(connection.getCountConflictingImages()));		txtConflictingImages.setData("value", connection.getCountConflictingImages());
 
 			//TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
 			// we replace the line "Now" by "Not created yet"
@@ -768,13 +849,13 @@ public class DBGuiExportModel extends DBGui {
 			tblModelVersions.notifyListeners(SWT.Selection, new Event());
 		}
 
-		if ( 	(connection.countSyncedElements() == exportedModel.getAllElements().size()) &&
-				(connection.countSyncedRelationships() == exportedModel.getAllRelationships().size()) &&
-				(connection.countSyncedFolders() == exportedModel.getAllFolders().size()) &&
-				(connection.countSyncedViews() == exportedModel.getAllViews().size()) &&
-				(connection.countSyncedViewObjects() == exportedModel.getAllViewObjects().size()) &&
-				(connection.countSyncedViewConnections() == exportedModel.getAllViewConnections().size()) &&
-				(connection.countSyncedImages() == exportedModel.getAllImagePaths().size()) ) {
+		if ( 	(connection.getCountIdenticalElements() == exportedModel.getAllElements().size()) &&
+				(connection.getCountIdenticalRelationships() == exportedModel.getAllRelationships().size()) &&
+				(connection.getCountIdenticalFolders() == exportedModel.getAllFolders().size()) &&
+				(connection.getCountIdenticalViews() == exportedModel.getAllViews().size()) &&
+				(connection.getCountIdenticalViewObjects() == exportedModel.getAllViewObjects().size()) &&
+				(connection.getCountIdenticalViewConnections() == exportedModel.getAllViewConnections().size()) &&
+				(connection.getCountIdenticalImages() == exportedModel.getAllImagePaths().size()) ) {
 			popup(Level.INFO, "The model is already sync'ed to the database and doesn't need to be exported.");
 			btnDoAction.setEnabled(false);
 			return;
@@ -797,39 +878,46 @@ public class DBGuiExportModel extends DBGui {
 	@Override
 	protected void notConnectedToDatabase() {
 		txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
-		txtNewElements.setText("");
-		txtUpdatedElements.setText("");
-		txtSyncedElements.setText("");
-		
+		txtIdenticalElements.setText("");
+		txtNewerElements.setText("");
+		txtOlderElements.setText("");
+		txtConflictingElements.setText("");
+
 		txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
-		txtNewRelationships.setText("");
-		txtUpdatedRelationships.setText("");
-		txtSyncedRelationships.setText("");
-		
+		txtIdenticalRelationships.setText("");
+		txtNewerRelationships.setText("");
+		txtOlderRelationships.setText("");
+		txtConflictingRelationships.setText("");
+
 		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-		txtNewFolders.setText("");
-		txtUpdatedFolders.setText("");
-		txtSyncedFolders.setText("");
-		
+		txtIdenticalFolders.setText("");
+		txtNewerFolders.setText("");
+		txtOlderFolders.setText("");
+		txtConflictingFolders.setText("");
+
 		txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
-		txtNewViews.setText("");
-		txtUpdatedViews.setText("");
-		txtSyncedViews.setText("");
-		
+		txtIdenticalViews.setText("");
+		txtNewerViews.setText("");
+		txtOlderViews.setText("");
+		txtConflictingViews.setText("");
+
 		txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
-		txtNewViewObjects.setText("");
-		txtUpdatedViewObjects.setText("");
-		txtSyncedViewObjects.setText("");
-		
+		txtIdenticalViewObjects.setText("");
+		txtNewerViewObjects.setText("");
+		txtOlderViewObjects.setText("");
+		txtConflictingViewObjects.setText("");
+
 		txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
-		txtNewViewConnections.setText("");
-		txtUpdatedViewConnections.setText("");
-		txtSyncedViewConnections.setText("");
-		
+		txtIdenticalViewConnections.setText("");
+		txtNewerViewConnections.setText("");
+		txtOlderViewConnections.setText("");
+		txtConflictingViewConnections.setText("");
+
 		txtTotalImages.setText(String.valueOf(((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()));
-		txtNewImages.setText("");
-		txtUpdatedImages.setText("");
-		txtSyncedImages.setText("");
+		txtIdenticalImages.setText("");
+		txtNewerImages.setText("");
+		txtOlderImages.setText("");
+		txtConflictingImages.setText("");
 	}
 	
 	/**
@@ -848,34 +936,41 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		// we reset the counters because they may have been changed (in case of conflict for instance)
-		connection.setCountNewElements((int)txtNewElements.getData("value"));							txtNewElements.setText(String.valueOf(connection.countNewElements()));
-		connection.setCountUpdatedElements((int)txtUpdatedElements.getData("value"));					txtUpdatedElements.setText(String.valueOf(connection.countUpdatedElements()));
-		connection.setCountSyncedElements((int)txtSyncedElements.getData("value"));						txtSyncedElements.setText(String.valueOf(connection.countSyncedElements()));
+		connection.setCountIdenticalElements((int)txtIdenticalElements.getData("value"));					txtIdenticalElements.setText(String.valueOf((int)txtIdenticalElements.getData("value")));
+		connection.setCountNewerElements((int)txtNewerElements.getData("value"));							txtNewerElements.setText(String.valueOf((int)txtNewerElements.getData("value")));
+		connection.setCountOlderElements((int)txtOlderElements.getData("value"));							txtOlderElements.setText(String.valueOf((int)txtOlderElements.getData("value")));
+		connection.setCountConflictingElements((int)txtConflictingElements.getData("value"));				txtOlderElements.setText(String.valueOf((int)txtConflictingElements.getData("value")));
 
-		connection.setCountNewRelationships((int)txtNewRelationships.getData("value"));					txtNewRelationships.setText(String.valueOf(connection.countNewRelationships()));
-		connection.setCountUpdatedRelationships((int)txtUpdatedRelationships.getData("value"));			txtUpdatedRelationships.setText(String.valueOf(connection.countUpdatedRelationships()));
-		connection.setCountSyncedRelationships((int)txtSyncedRelationships.getData("value"));			txtSyncedRelationships.setText(String.valueOf(connection.countSyncedRelationships()));
+		connection.setCountIdenticalRelationships((int)txtIdenticalRelationships.getData("value"));			txtIdenticalRelationships.setText(String.valueOf((int)txtIdenticalRelationships.getData("value")));
+		connection.setCountNewerRelationships((int)txtNewerRelationships.getData("value"));					txtNewerRelationships.setText(String.valueOf((int)txtNewerRelationships.getData("value")));
+		connection.setCountOlderRelationships((int)txtOlderRelationships.getData("value"));					txtOlderRelationships.setText(String.valueOf((int)txtOlderRelationships.getData("value")));
+		connection.setCountConflictingRelationships((int)txtConflictingRelationships.getData("value"));		txtOlderRelationships.setText(String.valueOf((int)txtConflictingRelationships.getData("value")));
 
 		if ( getOptionValue() ) {
-			connection.setCountNewFolders((int)txtNewFolders.getData("value"));							txtNewFolders.setText(String.valueOf(connection.countNewFolders()));
-			connection.setCountUpdatedFolders((int)txtUpdatedFolders.getData("value"));					txtUpdatedFolders.setText(String.valueOf(connection.countUpdatedFolders()));
-			connection.setCountSyncedFolders((int)txtSyncedFolders.getData("value"));					txtSyncedFolders.setText(String.valueOf(connection.countSyncedFolders()));
+			connection.setCountIdenticalFolders((int)txtIdenticalFolders.getData("value"));					txtIdenticalFolders.setText(String.valueOf((int)txtIdenticalFolders.getData("value")));
+			connection.setCountNewerFolders((int)txtNewerFolders.getData("value"));							txtNewerFolders.setText(String.valueOf((int)txtNewerFolders.getData("value")));
+			connection.setCountOlderFolders((int)txtOlderFolders.getData("value"));							txtOlderFolders.setText(String.valueOf((int)txtOlderFolders.getData("value")));
+			connection.setCountConflictingFolders((int)txtConflictingFolders.getData("value"));				txtOlderFolders.setText(String.valueOf((int)txtConflictingFolders.getData("value")));
 
-			connection.setCountNewViews((int)txtNewViews.getData("value"));								txtNewViews.setText(String.valueOf(connection.countNewViews()));
-			connection.setCountUpdatedViews((int)txtUpdatedViews.getData("value"));						txtUpdatedViews.setText(String.valueOf(connection.countUpdatedViews()));
-			connection.setCountSyncedViews((int)txtSyncedViews.getData("value"));						txtSyncedViews.setText(String.valueOf(connection.countSyncedViews()));
+			connection.setCountIdenticalViews((int)txtIdenticalViews.getData("value"));						txtIdenticalViews.setText(String.valueOf((int)txtIdenticalViews.getData("value")));
+			connection.setCountNewerViews((int)txtNewerViews.getData("value"));								txtNewerViews.setText(String.valueOf((int)txtNewerViews.getData("value")));
+			connection.setCountOlderViews((int)txtOlderViews.getData("value"));								txtOlderViews.setText(String.valueOf((int)txtOlderViews.getData("value")));
+			connection.setCountConflictingViews((int)txtConflictingViews.getData("value"));					txtOlderViews.setText(String.valueOf((int)txtConflictingViews.getData("value")));
 
-			connection.setCountNewViewObjects((int)txtNewViewObjects.getData("value"));					txtNewViewObjects.setText(String.valueOf(connection.countNewViewObjects()));
-			connection.setCountUpdatedViewObjects((int)txtUpdatedViewObjects.getData("value"));			txtUpdatedViewObjects.setText(String.valueOf(connection.countUpdatedViewObjects()));
-			connection.setCountSyncedViewObjects((int)txtSyncedViewObjects.getData("value"));			txtSyncedViewObjects.setText(String.valueOf(connection.countSyncedViewObjects()));
+			connection.setCountIdenticalViewObjects((int)txtIdenticalViewObjects.getData("value"));				txtIdenticalViewObjects.setText(String.valueOf((int)txtIdenticalViewObjects.getData("value")));
+			connection.setCountNewerViewObjects((int)txtNewerViewObjects.getData("value"));						txtNewerViewObjects.setText(String.valueOf((int)txtNewerViewObjects.getData("value")));
+			connection.setCountOlderViewObjects((int)txtOlderViewObjects.getData("value"));						txtOlderViewObjects.setText(String.valueOf((int)txtOlderViewObjects.getData("value")));
+			connection.setCountConflictingViewObjects((int)txtConflictingViewObjects.getData("value"));			txtOlderViewObjects.setText(String.valueOf((int)txtConflictingViewObjects.getData("value")));
 
-			connection.setCountNewViewConnections((int)txtNewViewConnections.getData("value"));			txtNewViewConnections.setText(String.valueOf(connection.countNewViewConnections()));
-			connection.setCountUpdatedViewConnections((int)txtUpdatedViewConnections.getData("value"));	txtUpdatedViewConnections.setText(String.valueOf(connection.countUpdatedViewConnections()));
-			connection.setCountSyncedViewConnections((int)txtSyncedViewConnections.getData("value"));	txtSyncedViewConnections.setText(String.valueOf(connection.countSyncedViewConnections()));
+			connection.setCountIdenticalViewConnections((int)txtIdenticalViewConnections.getData("value"));		txtIdenticalViewConnections.setText(String.valueOf((int)txtIdenticalViewConnections.getData("value")));
+			connection.setCountNewerViewConnections((int)txtNewerViewConnections.getData("value"));				txtNewerViewConnections.setText(String.valueOf((int)txtNewerViewConnections.getData("value")));
+			connection.setCountOlderViewConnections((int)txtOlderViewConnections.getData("value"));				txtOlderViewConnections.setText(String.valueOf((int)txtOlderViewConnections.getData("value")));
+			connection.setCountConflictingViewConnections((int)txtConflictingViewConnections.getData("value"));	txtOlderViewConnections.setText(String.valueOf((int)txtConflictingViewConnections.getData("value")));
 
-			connection.setCountNewImages((int)txtNewImages.getData("value"));							txtNewImages.setText(String.valueOf(connection.countNewImages()));
-			connection.setCountUpdatedImages((int)txtUpdatedImages.getData("value"));					txtUpdatedImages.setText(String.valueOf(connection.countUpdatedImages()));
-			connection.setCountSyncedImages((int)txtSyncedImages.getData("value"));						txtSyncedImages.setText(String.valueOf(connection.countSyncedImages()));
+			connection.setCountIdenticalImages((int)txtIdenticalImages.getData("value"));						txtIdenticalImages.setText(String.valueOf((int)txtIdenticalImages.getData("value")));
+			connection.setCountNewerImages((int)txtNewerImages.getData("value"));								txtNewerImages.setText(String.valueOf((int)txtNewerImages.getData("value")));
+			connection.setCountOlderImages((int)txtOlderImages.getData("value"));								txtOlderImages.setText(String.valueOf((int)txtOlderImages.getData("value")));
+			connection.setCountConflictingImages((int)txtConflictingImages.getData("value"));					txtOlderImages.setText(String.valueOf((int)txtConflictingImages.getData("value")));
 		}
 
 		// we disable the export button to avoid a second click
@@ -893,14 +988,14 @@ public class DBGuiExportModel extends DBGui {
 		grpComponents.setVisible(true);
 		grpModelVersions.setVisible(true);
 		
-		// we change the synced text fields to black
-		txtSyncedElements.setForeground(BLACK_COLOR);
-		txtSyncedRelationships.setForeground(BLACK_COLOR);
-		txtSyncedFolders.setForeground(BLACK_COLOR);
-		txtSyncedViews.setForeground(BLACK_COLOR);
-		txtSyncedViewObjects.setForeground(BLACK_COLOR);
-		txtSyncedViewConnections.setForeground(BLACK_COLOR);
-		txtSyncedImages.setForeground(BLACK_COLOR);
+		// we change the "identical" text fields to black
+		txtIdenticalElements.setForeground(BLACK_COLOR);
+		txtIdenticalRelationships.setForeground(BLACK_COLOR);
+		txtIdenticalFolders.setForeground(BLACK_COLOR);
+		txtIdenticalViews.setForeground(BLACK_COLOR);
+		txtIdenticalViewObjects.setForeground(BLACK_COLOR);
+		txtIdenticalViewConnections.setForeground(BLACK_COLOR);
+		txtIdenticalImages.setForeground(BLACK_COLOR);
 
 		// We show up a small arrow in front of the second action "export components"
         setActiveAction(STATUS.Ok);
@@ -943,20 +1038,20 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 				Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
-					doExportEObject(foldersIterator.next().getValue(), txtSyncedFolders, txtNewFolders, txtUpdatedFolders);
+					doExportEObject(foldersIterator.next().getValue(), txtIdenticalFolders, txtNewerFolders, txtOlderFolders);
 				}
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
-				doExportEObject(elementsIterator.next().getValue(), txtSyncedElements, txtNewElements, txtUpdatedElements);
+				doExportEObject(elementsIterator.next().getValue(), txtIdenticalElements, txtNewerElements, txtOlderElements);
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
-				doExportEObject(relationshipsIterator.next().getValue(), txtSyncedRelationships, txtNewRelationships, txtUpdatedRelationships);
+				doExportEObject(relationshipsIterator.next().getValue(), txtIdenticalRelationships, txtNewerRelationships, txtOlderRelationships);
 			}
 	
 			if ( getOptionValue() ) {
@@ -968,7 +1063,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue(); 
-					if ( doExportEObject(view, txtSyncedViews, txtNewViews, txtUpdatedViews) ) {
+					if ( doExportEObject(view, txtIdenticalViews, txtNewerViews, txtOlderViews) ) {
 						exportedViews.add(view);
 					}
 				}
@@ -983,19 +1078,23 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: exportedModel.getAllImagePaths() ) {
+					connection.exportImage(path, archiveMgr.getBytesFromEntry(path));
+					//TODO : the imagePath is a checksum so an image cannot be modified without changing its imagePath;
+					/*
 					switch ( connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
 						case isNew :
-							txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
+							txtIdenticalImages.setText(String.valueOf(Integer.valueOf(txtIdenticalImages.getText())+1));
 							txtNewImages.setText(String.valueOf(Integer.valueOf(txtNewImages.getText())-1));
 							break;
 						case isUpdated :
-							txtSyncedImages.setText(String.valueOf(Integer.valueOf(txtSyncedImages.getText())+1));
-							txtUpdatedImages.setText(String.valueOf(Integer.valueOf(txtUpdatedImages.getText())-1));
+							txtIdenticalImages.setText(String.valueOf(Integer.valueOf(txtIdenticalImages.getText())+1));
+							txtOlderImages.setText(String.valueOf(Integer.valueOf(txtOlderImages.getText())-1));
 							break;
 						case isSynced :
 							// do nothing
 							break;
 					}
+					*/
 				}
 			}
 	
@@ -1054,18 +1153,18 @@ public class DBGuiExportModel extends DBGui {
 	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
 		if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
-		doExportEObject(viewObject, txtSyncedViewObjects, txtNewViewObjects, txtUpdatedViewObjects);
+		doExportEObject(viewObject, txtIdenticalViewObjects, txtNewerViewObjects, txtOlderViewObjects);
 		
 		if ( viewObject instanceof IConnectable) {
 			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
 				if ( connectionsAlreadyExported.get(source.getId()) == null ) {
-					doExportEObject(source, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
+					doExportEObject(source, txtIdenticalViewConnections, txtNewerViewConnections, txtOlderViewConnections);
 					connectionsAlreadyExported.put(source.getId(), source);
 				}
 			}
 			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
 				if ( connectionsAlreadyExported.get(target.getId()) == null ) {
-					doExportEObject(target, txtSyncedViewConnections, txtNewViewConnections, txtUpdatedViewConnections);
+					doExportEObject(target, txtIdenticalViewConnections, txtNewerViewConnections, txtOlderViewConnections);
 					connectionsAlreadyExported.put(target.getId(), target);
 				}
 			}
@@ -1085,18 +1184,26 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called by the export() method
 	 * @return true if the EObject has been exported, false if it is conflicting
 	 */
-	private boolean doExportEObject(EObject eObjectToExport, Text txtSynced, Text txtNew, Text txtUpdated) throws Exception {
+	private boolean doExportEObject(EObject eObjectToExport, Text txtIdentical, Text txtNew, Text txtOlder) throws Exception {
 		assert(eObjectToExport instanceof IDBMetadata);
 		assert(connection != null);
 		
+		//TODO : select the text field concerned BEFORE calling this method
+		
 		boolean status = true;
 		try {
-			if ( connection.exportEObject(eObjectToExport, getOptionValue()) && txtSynced != null ) {
-				txtSynced.setText(String.valueOf(Integer.valueOf(txtSynced.getText())+1));
-				if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isNew ) {
-					if ( txtNew != null ) txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1));
-				} else if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdated ) {
-					if ( txtUpdated != null ) txtUpdated.setText(String.valueOf(Integer.valueOf(txtUpdated.getText())-1));
+			connection.exportEObject(eObjectToExport);
+			if ( getOptionValue() )
+				connection.assignEObjectToModel(eObjectToExport);
+			
+			if ( txtIdentical != null ) {
+				txtIdentical.setText(String.valueOf(Integer.valueOf(txtIdentical.getText())+1));
+				switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getStatus() ) {
+					case conflict:	// should not be here !!!
+					case identical:	// should not be here !!!
+					case newer:		txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1)); break;
+					case older:		txtOlder.setText(String.valueOf(Integer.valueOf(txtOlder.getText())-1)); break;
+					case unknown:	// should not be here !!!
 				}
 			}
 		} catch (SQLException err) {
@@ -1147,10 +1254,10 @@ public class DBGuiExportModel extends DBGui {
 					break;
 				case exportToDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
-					((IDBMetadata)eObjectToExport).getDBMetadata().setExportedVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
+					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setDatabaseVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.askUser);	// just in case there is a new conflict
-					status = doExportEObject(eObjectToExport, txtSynced, txtNew, txtUpdated);
+					status = doExportEObject(eObjectToExport, txtIdentical, txtNew, txtOlder);
 					break;
 				case importFromDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
@@ -1411,20 +1518,20 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( logger.isTraceEnabled() ) {
 		    logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
-		    logger.trace("synced : "+txtSyncedElements.getText()+" elements, "+txtSyncedRelationships.getText()+" relationships, "+txtSyncedFolders.getText()+" folders, "+txtSyncedViews.getText()+" views, "+txtSyncedViewObjects.getText()+" view objects, "+txtSyncedViewConnections.getText()+" view connections.");
-		    logger.trace("updated : "+txtUpdatedElements.getText()+" elements, "+txtUpdatedRelationships.getText()+" relationships, "+txtUpdatedFolders.getText()+" folders, "+txtUpdatedViews.getText()+" views, "+txtUpdatedViewObjects.getText()+" view objects, "+txtUpdatedViewConnections.getText()+" view connections.");
-		    logger.trace("new : "+txtNewElements.getText()+" elements, "+txtNewRelationships.getText()+" relationships, "+txtNewFolders.getText()+" folders, "+txtNewViews.getText()+" views, "+txtNewViewObjects.getText()+" view objects, "+txtNewViewConnections.getText()+" view connections.");
+		    logger.trace("synced : "+txtIdenticalElements.getText()+" elements, "+txtIdenticalRelationships.getText()+" relationships, "+txtIdenticalFolders.getText()+" folders, "+txtIdenticalViews.getText()+" views, "+txtIdenticalViewObjects.getText()+" view objects, "+txtIdenticalViewConnections.getText()+" view connections.");
+		    logger.trace("updated : "+txtOlderElements.getText()+" elements, "+txtOlderRelationships.getText()+" relationships, "+txtOlderFolders.getText()+" folders, "+txtOlderViews.getText()+" views, "+txtOlderViewObjects.getText()+" view objects, "+txtOlderViewConnections.getText()+" view connections.");
+		    logger.trace("new : "+txtNewerElements.getText()+" elements, "+txtNewerRelationships.getText()+" relationships, "+txtNewerFolders.getText()+" folders, "+txtNewerViews.getText()+" views, "+txtNewerViewObjects.getText()+" view objects, "+txtNewerViewConnections.getText()+" view connections.");
 		}
 
 		Color statusColor = GREEN_COLOR;
-		txtSyncedElements.setForeground( DBPlugin.areEqual(txtSyncedElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-		txtSyncedRelationships.setForeground( DBPlugin.areEqual(txtSyncedRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		txtIdenticalElements.setForeground( DBPlugin.areEqual(txtIdenticalElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+		txtIdenticalRelationships.setForeground( DBPlugin.areEqual(txtIdenticalRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		if ( getOptionValue() ) {
-			txtSyncedFolders.setForeground( DBPlugin.areEqual(txtSyncedFolders.getText(), txtTotalFolders.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtSyncedViews.setForeground( DBPlugin.areEqual(txtSyncedViews.getText(), txtTotalViews.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtSyncedViewObjects.setForeground( DBPlugin.areEqual(txtSyncedViewObjects.getText(), txtTotalViewObjects.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtSyncedViewConnections.setForeground( DBPlugin.areEqual(txtSyncedViewConnections.getText(), txtTotalViewConnections.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtSyncedImages.setForeground( DBPlugin.areEqual(txtSyncedImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			txtIdenticalFolders.setForeground( DBPlugin.areEqual(txtIdenticalFolders.getText(), txtTotalFolders.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			txtIdenticalViews.setForeground( DBPlugin.areEqual(txtIdenticalViews.getText(), txtTotalViews.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			txtIdenticalViewObjects.setForeground( DBPlugin.areEqual(txtIdenticalViewObjects.getText(), txtTotalViewObjects.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			txtIdenticalViewConnections.setForeground( DBPlugin.areEqual(txtIdenticalViewConnections.getText(), txtTotalViewConnections.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+			txtIdenticalImages.setForeground( DBPlugin.areEqual(txtIdenticalImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		}
 		
 		refreshDisplay();
@@ -1469,39 +1576,46 @@ public class DBGuiExportModel extends DBGui {
 	private Text txtReleaseNote;
 
 	private Text txtTotalElements;
-	private Text txtSyncedElements;
-	private Text txtUpdatedElements;
-	private Text txtNewElements;
+	private Text txtIdenticalElements;
+	private Text txtNewerElements;
+	private Text txtOlderElements;
+	private Text txtConflictingElements;
 
 	private Text txtTotalRelationships;
-	private Text txtSyncedRelationships;
-	private Text txtUpdatedRelationships;
-	private Text txtNewRelationships;
+	private Text txtIdenticalRelationships;
+	private Text txtNewerRelationships;
+	private Text txtOlderRelationships;
+	private Text txtConflictingRelationships;
 
 	private Text txtTotalFolders;
-	private Text txtSyncedFolders;
-	private Text txtUpdatedFolders;
-	private Text txtNewFolders;
+	private Text txtIdenticalFolders;
+	private Text txtNewerFolders;
+	private Text txtOlderFolders;
+	private Text txtConflictingFolders;
 
 	private Text txtTotalViews;
-	private Text txtSyncedViews;
-	private Text txtUpdatedViews;
-	private Text txtNewViews;
+	private Text txtIdenticalViews;
+	private Text txtNewerViews;
+	private Text txtOlderViews;
+	private Text txtConflictingViews;
 
 	private Text txtTotalViewObjects;
-	private Text txtSyncedViewObjects;
-	private Text txtUpdatedViewObjects;
-	private Text txtNewViewObjects;
+	private Text txtIdenticalViewObjects;
+	private Text txtNewerViewObjects;
+	private Text txtOlderViewObjects;
+	private Text txtConflictingViewObjects;
 
 	private Text txtTotalViewConnections;
-	private Text txtSyncedViewConnections;
-	private Text txtUpdatedViewConnections;
-	private Text txtNewViewConnections;
+	private Text txtIdenticalViewConnections;
+	private Text txtNewerViewConnections;
+	private Text txtOlderViewConnections;
+	private Text txtConflictingViewConnections;
 	
 	private Text txtTotalImages;
-	private Text txtSyncedImages;
-	private Text txtUpdatedImages;
-	private Text txtNewImages;
+	private Text txtIdenticalImages;
+	private Text txtNewerImages;
+	private Text txtOlderImages;
+	private Text txtConflictingImages;
 
 	private Table tblModelVersions;
 	private Text txtModelName;

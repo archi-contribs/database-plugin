@@ -27,61 +27,42 @@ public class DBMetadata  {
 	private static final DBLogger logger = new DBLogger(ArchimateModel.class);
 	
 	/**
-	 * Choices available when a conflict is detected in the database<br>
-	 * <li><b>askUser</b> ask the user what he wishes to do</li>
-	 * <li><b>doNotExport</b> do not export to the database</li>
-	 * <li><b>exportToDatabase</b> export to the database</li>
-	 * <li><b>importFromDatabase</b> replace the component with the version in the database</li>
+	 * Initial version of the component.<br>
+	 * This property is set when the component is imported or after a successful export.<br>
+	 * Is 0 when the model has been loaded from an archimate file.
 	 */
-	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase};
-	/**
-	 * Stores the action that need to be done in case of a database conflict
-	 * @see CONFLICT_CHOICE
-	 */
-	private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
-	
-	/**
-	 * Status of the component regarding the database:
-     * <li><b>isSynced</b> the component is sync'ed with the database (version identical as the one in the database</li>
-     * <li><b>isUpdated</b> the component exists in the database but the version in memory has got updated values</li>
-     * <li><b>isNew</b> the component does not exist in the database</li>
-	 */
-	public enum DATABASE_STATUS {isSynced, isUpdated, isNew};
-	/**
-     * Status of the component regarding the database
-     * @see DATABASE_STATUS
-     */
-	private DATABASE_STATUS databaseStatus = DATABASE_STATUS.isNew;
+	private int initialVersion = 0;
 	
 	/**
 	 * Current version of the component.<br>
-	 * This property is set when the component is imported or after a successful export.
+	 * This property is calculated during the export process: currentVersion = initialVersion +1 when no conflict is detected, but may be higher in case of a conflict<br>
+	 * The value is copied to initialVersion if the export to the database transaction is committed.
 	 */
 	private int currentVersion = 0;
 	
 	/**
-	 * Exported version of the component.<br>
-	 * This property is set during the export process and copied to the current version if the transaction is committed to the database.<br>
-	 * When there is no conflict during export, exportedVersion = currentVersion +1, but is higher in case a conflict is detected
-	 */
-	private int exportedVersion = 0;
-	
-	/**
 	 * Latest version of the component in the database.<br>
-	 * This property is set during the export process when checking existing components and is used during the conflict resolution mechanism<br>
-	 * When there is no conflict during export, exportedVersion = currentVersion +1, but is higher in case a conflict is detected
+	 * This property is set during the export process when checking existing components and is used during the conflict resolution mechanism
 	 */
 	private int databaseVersion = 0;
 	
 	/**
+	 * Initial checksum of the component<br>
+	 * This property is set when the component is imported or after a successful export.<br>
+	 * Is Empty when the model has been loaded from an archimate file.
+	 */
+	private String initialChecksum = "";
+	
+	/**
 	 * Checksum of the component<br>
-	 * This property is set when the component is imported or before an export.
+	 * This property is calculated before each export and compared to initialChecksum to know if the component has been modified since it has been imported.<br>
+	 * The value is copied to initialchecksum if the export to the database transaction is committed.
 	 */
 	private String currentChecksum = "";
 	
 	/**
 	 * Checksum of the component in the database<br>
-	 * This property is retrieved from the database each time a connection is made to a database.
+	 * This property is retrieved from the database in syncMode or when a conflict is detected.
 	 */
 	private String databaseChecksum = "";
 	
@@ -118,27 +99,34 @@ public class DBMetadata  {
 		this.component = component;
 	}
 	
+	public int getInitialVersion() {
+		return initialVersion;
+	}
+	
+	public void setInitialVersion(int version) {
+		initialVersion = version;
+	}
+	
 	public int getCurrentVersion() {
-		return currentVersion;
+		// Version of viewObject and viewConnections is the version of their parent view
+	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
+	        return ((IDBMetadata)parentDiagram).getDBMetadata().getCurrentVersion();
+	    }
+    
+	    return currentVersion;
 	}
 	
 	public void setCurrentVersion(int version) {
+		// Version of viewObject and viewConnections is the version of their parent view
+		if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
+	        ((IDBMetadata)parentDiagram).getDBMetadata().setCurrentVersion(version);
+	    }
+		
 		currentVersion = version;
 	}
 	
-	public int getExportedVersion() {
-	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)parentDiagram).getDBMetadata().getExportedVersion();
-	    }
-    
-	    return exportedVersion;
-	}
-	
-	public void setExportedVersion(int version) {
-		exportedVersion = version;
-	}
-	
 	public int getDatabaseVersion() {
+		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)parentDiagram).getDBMetadata().getDatabaseVersion();
 	    }
@@ -147,7 +135,64 @@ public class DBMetadata  {
 	}
 	
 	public void setDatabaseVersion(int version) {
+		// Version of viewObject and viewConnections is the version of their parent view
+		if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
+	        ((IDBMetadata)parentDiagram).getDBMetadata().setDatabaseVersion(version);
+	    }
+		
 		databaseVersion = version;
+	}
+	
+	/**
+	 * Status that the component can have regarding the database
+	 * <li><b>unknown</b> the database version is unknown</li>
+	 * <li><b>identical</b> the component has got the same version than in the database</li>
+	 * <li><b>newer</b> the component has changed since last import/export, but not the database version</li>
+	 * <li><b>older</b> the current version has not changed since last import/export, but the database version has</li>
+	 * <li><b>conflict</b> the component has changed since last import/export, and the database version as well</li>
+	 */
+	public enum STATUS {unknown, identical, newer, older, conflict};
+	
+	/**
+	 * Calculates the status of the component regarding its database version
+	 * @see STATUS
+	 */
+	public STATUS getStatus() {
+		if ( databaseVersion == 0 || databaseChecksum.isEmpty() )
+			return STATUS.unknown;									// the database version is unknown
+		
+		if ( currentChecksum.equals(databaseChecksum) )
+			return STATUS.identical;								// the component has got the same version than in the database
+		
+		if ( currentChecksum.equals(initialChecksum) )
+			return STATUS.older;									// the current version has not changed since last import/export, but the database version has
+		
+		if ( initialChecksum.equals(databaseChecksum) )
+			return STATUS.newer;									// the component has changed since last import/export, but not the database version
+		
+		return STATUS.conflict;										// the component has changed since last import/export, and the database version as well
+	}
+	
+	/**
+	 * Choices available when a conflict is detected in the database<br>
+	 * <li><b>askUser</b> ask the user what he wishes to do</li>
+	 * <li><b>doNotExport</b> do not export to the database</li>
+	 * <li><b>exportToDatabase</b> export to the database</li>
+	 * <li><b>importFromDatabase</b> replace the component with the version in the database</li>
+	 */
+	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase};
+	/**
+	 * Stores the action that need to be done in case of a database conflict
+	 * @see CONFLICT_CHOICE
+	 */
+	private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
+	
+	public CONFLICT_CHOICE getConflictChoice() {
+		return conflictChoice;
+	}
+	
+	public void setConflictChoice(CONFLICT_CHOICE choice) {
+		conflictChoice = choice;
 	}
 	
 	public String getDatabaseCreatedBy() {
@@ -166,33 +211,22 @@ public class DBMetadata  {
 		databaseCreatedOn = timestamp;
 	}
 	
-	public CONFLICT_CHOICE getConflictChoice() {
-		return conflictChoice;
-	}
-	
-	public void setConflictChoice(CONFLICT_CHOICE choice) {
-		conflictChoice = choice;
-	}
-	
-	public void setDatabaseStatus(DATABASE_STATUS status) {
-		databaseStatus = status;
-	}
-	
-	public DATABASE_STATUS getDatabaseStatus() {
-		return databaseStatus;
-	}
-	
-	public boolean needsToBeExported() {
-		return databaseStatus != DATABASE_STATUS.isSynced;
-	}
-	
 	public String getCurrentChecksum() {
 		return currentChecksum;
 	}
 	
 	public void setCurrentChecksum(String checksum) {
-		if ( logger.isTraceEnabled() ) logger.trace("setting checksum for "+getDebugName()+" : "+checksum);
+		if ( logger.isTraceEnabled() ) logger.trace("setting current checksum for "+getDebugName()+" : "+checksum);
 		currentChecksum = checksum;
+	}
+	
+	public String getInitialChecksum() {
+		return initialChecksum;
+	}
+	
+	public void setInitialChecksum(String checksum) {
+		if ( logger.isTraceEnabled() ) logger.trace("setting initial checksum for "+getDebugName()+" : "+checksum);
+		initialChecksum = checksum;
 	}
 	
 	public String getDatabaseChecksum() {
