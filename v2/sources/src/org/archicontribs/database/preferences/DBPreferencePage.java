@@ -47,8 +47,11 @@ import org.eclipse.ui.IWorkbench;
 public class DBPreferencePage extends FieldEditorPreferencePage	implements IWorkbenchPreferencePage {
 	private static String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
 	private static String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
+	public static enum EXPORT_BEHAVIOUR {collaborativeMode, syncMode, masterMode};
 	
 	private static String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
+	
+	private static final IPreferenceStore preferenceStore = DBPlugin.INSTANCE.getPreferenceStore();
 	
 	private Composite loggerComposite;
 	
@@ -67,6 +70,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnDeleteIfImportError;
 	private Button btnImportShared;
 	private Button btnShowIdInContextMenu;
+	private Button btnCollaborativeMode;
+	private Button btnSyncMode;
+	private Button btnMasterMode;
 	
 	private DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
@@ -77,7 +83,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	public DBPreferencePage() {
 		super(FieldEditorPreferencePage.GRID);
 		if ( logger.isDebugEnabled() ) logger.debug("Setting preference store");
-		setPreferenceStore(DBPlugin.INSTANCE.getPreferenceStore());
+		setPreferenceStore(preferenceStore);
 	}
 	
 	/**
@@ -108,7 +114,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         behaviourComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
 		TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
-        behaviourTabItem.setText("Behaviour");
+        behaviourTabItem.setText("  Behaviour  ");
         behaviourTabItem.setControl(behaviourComposite);
         
 		Group grpVersion = new Group(behaviourComposite, SWT.NONE);
@@ -152,7 +158,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.top = new FormAttachment(versionLbl, 5);
 		fd.left = new FormAttachment(0, 10);
 		btnCheckForUpdateAtStartupButton.setLayoutData(fd);
-		btnCheckForUpdateAtStartupButton.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("checkForUpdateAtStartup"));
+		btnCheckForUpdateAtStartupButton.setSelection(preferenceStore.getBoolean("checkForUpdateAtStartup"));
 		
 		GridData gd = new GridData();
 		//gd.heightHint = 45;
@@ -178,7 +184,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
 		btnExportWithDefaultValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnExportWithDefaultValues.setText("Automatically start to export to default database");
-		btnExportWithDefaultValues.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("exportWithDefaultValues"));
+		btnExportWithDefaultValues.setSelection(preferenceStore.getBoolean("exportWithDefaultValues"));
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -187,7 +193,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
 		btnCloseIfSuccessful.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
-		btnCloseIfSuccessful.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful"));
+		btnCloseIfSuccessful.setSelection(preferenceStore.getBoolean("closeIfSuccessful"));
 		fd = new FormData();
 		fd.top = new FormAttachment(btnExportWithDefaultValues, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -196,7 +202,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
 		btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
-		btnRemoveDirtyFlag.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag"));
+		btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
 		fd = new FormData();
 		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -205,7 +211,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
 		btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnDeleteIfImportError.setText("Delete model in case of import error");
-		btnDeleteIfImportError.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("deleteIfImportError"));
+		btnDeleteIfImportError.setSelection(preferenceStore.getBoolean("deleteIfImportError"));
 		fd = new FormData();
 		fd.top = new FormAttachment(btnRemoveDirtyFlag, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -214,7 +220,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
 		btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnShowIdInContextMenu.setText("Show debuging information in context menu");
-		btnShowIdInContextMenu.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showIdInContextMenu"));
+		btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
 		fd = new FormData();
 		fd.top = new FormAttachment(btnDeleteIfImportError, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -244,8 +250,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(btnImportShared, 10);
 		btnImportCopy.setLayoutData(fd);
 		
-		btnImportShared.setSelection(DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
-		btnImportCopy.setSelection(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
+		btnImportShared.setSelection(preferenceStore.getBoolean("importShared"));
+		btnImportCopy.setSelection(!preferenceStore.getBoolean("importShared"));
 		
 		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
         grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -291,11 +297,104 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         fd.left = new FormAttachment(btnHelp, 10);
         helpLbl2.setLayoutData(fd);
 		
+        
+		// ********************************* */
+		// * Expert tab  ******************* */
+		// ********************************* */
+        Composite expertComposite = new Composite(tabFolder, SWT.NONE);
+        rowLayout = new RowLayout();
+        rowLayout.type = SWT.VERTICAL;
+        rowLayout.pack = true;
+        rowLayout.marginTop = 5;
+        rowLayout.marginBottom = 5;
+        rowLayout.justify = false;
+        rowLayout.fill = false;
+        expertComposite.setLayoutData(rowLayout);
+        expertComposite.setLayout(new GridLayout());
+        expertComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        
+        TabItem expertTabItem = new TabItem(tabFolder, SWT.NONE);
+        expertTabItem.setText("  Expert  ");
+        expertTabItem.setControl(expertComposite);
+        
+		Group grpBehaviour = new Group(expertComposite, SWT.NONE);
+		grpBehaviour.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		grpBehaviour.setText("Please choose the export behaviour :");
+		grpBehaviour.setLayout(new FormLayout());
+		grpBehaviour.setVisible(true);
+		
+		Label lblBehaviour = new Label(grpBehaviour, SWT.NONE);
+		lblBehaviour.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblBehaviour.setText("In case the database is used by several people, please choose how the the export procedure should behave:");
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(0, 10);
+		lblBehaviour.setLayoutData(fd);
+		
+		btnCollaborativeMode = new Button(grpBehaviour, SWT.RADIO);
+		btnCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnCollaborativeMode.setText(" Collaborative mode");
+		btnCollaborativeMode.setFont(DBGui.BOLD_FONT);
+		btnCollaborativeMode.setSelection(preferenceStore.getString("exportBehaviour").isEmpty() || preferenceStore.getString("exportBehaviour").equals("collaborative"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblBehaviour, 10);
+		fd.left = new FormAttachment(0, 10);
+		btnCollaborativeMode.setLayoutData(fd);
+		
+		Label lblCollaborativeMode = new Label(grpBehaviour, SWT.WRAP);
+		lblCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblCollaborativeMode.setText("This mode is the quickest way to export your model to the database:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be ignored,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnCollaborativeMode, 5);
+		fd.left = new FormAttachment(0, 26);
+		lblCollaborativeMode.setLayoutData(fd);
+
+		btnSyncMode = new Button(grpBehaviour, SWT.RADIO);
+		btnSyncMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnSyncMode.setText(" Sync mode");
+		btnSyncMode.setFont(DBGui.BOLD_FONT);
+		btnSyncMode.setSelection(preferenceStore.getString("exportBehaviour").equals("sync"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblCollaborativeMode, 15);
+		fd.left = new FormAttachment(0, 10);
+		btnSyncMode.setLayoutData(fd);
+		
+		Label lblSyncMode = new Label(grpBehaviour, SWT.WRAP);
+		lblSyncMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblSyncMode.setText("This mode allows you to keep an up to date model version but the export procedure will take a bit longer:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be imported,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnSyncMode, 5);
+		fd.left = new FormAttachment(0, 26);
+		lblSyncMode.setLayoutData(fd);
+		
+		btnMasterMode = new Button(grpBehaviour, SWT.RADIO);
+		btnMasterMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnMasterMode.setText(" Master mode");
+		btnMasterMode.setFont(DBGui.BOLD_FONT);
+		btnMasterMode.setSelection(preferenceStore.getString("exportBehaviour").equals("master"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblSyncMode, 15);
+		fd.left = new FormAttachment(0, 10);
+		btnMasterMode.setLayoutData(fd);
+		
+		Label lblMasterMode = new Label(grpBehaviour, SWT.WRAP);
+		lblMasterMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblMasterMode.setText("This mode allows you to keep a complete control over your model's content, at the price of more conflicts to manually solve:\n     - New and updated components in the model will be exported,\n     - New components in the database will be ignored,\n     - Updated components in the database, even not updated in the model, will generate conflict that will need to be manually solved.");
+		fd = new FormData();
+		fd.top = new FormAttachment(btnMasterMode, 5);
+		fd.left = new FormAttachment(0, 26);
+		lblMasterMode.setLayoutData(fd);
+		
+		gd = new GridData();
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		grpBehaviour.setLayoutData(gd);
+		
 		
 		// ********************************* */
 		// * Logger tab  ******************* */
 		// ********************************* */
-        loggerComposite = new Composite(tabFolder, SWT.NULL);
+        loggerComposite = new Composite(tabFolder, SWT.NONE);
         rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -306,15 +405,14 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         loggerComposite.setLayoutData(rowLayout);
         loggerComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
+        TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
+        loggerTabItem.setText("  Logger  ");
+        loggerTabItem.setControl(loggerComposite);
+        
         Label note = new Label(loggerComposite, SWT.NONE);
-        note = new Label(loggerComposite, SWT.NONE);
         note.setText(" Please be aware that enabling debug or, even more, trace level has got important impact on performances!\n Activate only if required.");
         note.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         note.setForeground(DBGui.RED_COLOR);
-        
-        TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
-        loggerTabItem.setText("Logger");
-        loggerTabItem.setControl(loggerComposite);
         
     	loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, loggerComposite, true);
       	addField(loggerModeRadioGroupEditor);
@@ -347,7 +445,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         expertTextFieldEditor.getTextControl().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
         addField(expertTextFieldEditor);
         
-        
         // We activate the Eclipse Help framework
        PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
        PlatformUI.getWorkbench().getHelpSystem().setHelp(behaviourComposite, HELP_ID);
@@ -379,9 +476,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		// when the preference page initialize, the radioButton selection is not (yet) made.
 		// so we get the value from the preferenceStore
 		if ( mode == null ) {
-			mode = DBPlugin.INSTANCE.getPreferenceStore().getString("loggerMode");
+			mode = preferenceStore.getString("loggerMode");
     		if ( mode == null ) {
-    			mode = DBPlugin.INSTANCE.getPreferenceStore().getDefaultString("loggerMode");
+    			mode = preferenceStore.getDefaultString("loggerMode");
     		}
 		}
 		
@@ -412,13 +509,14 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
     	
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("removeDirtyFlag", btnRemoveDirtyFlag.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
-    	DBPlugin.INSTANCE.getPreferenceStore().setValue("importShared", btnImportShared.getSelection());
+    	preferenceStore.setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
+    	preferenceStore.setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
+    	preferenceStore.setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
+    	preferenceStore.setValue("removeDirtyFlag", btnRemoveDirtyFlag.getSelection());
+    	preferenceStore.setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
+    	preferenceStore.setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
+    	preferenceStore.setValue("importShared", btnImportShared.getSelection());
+    	preferenceStore.setValue("exportBehaviour", btnCollaborativeMode.getSelection() ? "collaborative" : (btnSyncMode.getSelection() ? "sync" : "master"));
     	table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
@@ -452,7 +550,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
         try {
         	if ( logger.isDebugEnabled() ) logger.debug("Saving the preference store to disk.");
-            ((IPersistentPreferenceStore)DBPlugin.INSTANCE.getPreferenceStore()).save();
+            ((IPersistentPreferenceStore)preferenceStore).save();
         } catch (IOException err) {
         	DBGui.popup(Level.ERROR, "Failed to save the preference store to disk.", err);
         }
