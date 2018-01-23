@@ -62,6 +62,7 @@ public class DBGuiExportModel extends DBGui {
 	private Group grpComponents;
 	private Group grpModelVersions;
 	
+	@SuppressWarnings("unused")
 	private EXPORT_BEHAVIOUR exportBehaviour;
 
 	/**
@@ -677,7 +678,7 @@ public class DBGuiExportModel extends DBGui {
 		txtConflictingRelationships.setText("");
 
 		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-		txtIdenticalFolders.setText("");
+		txtIdenticalFolders.setText("");xxx
 		txtNewerFolders.setText("");
 		txtOlderFolders.setText("");
 		txtConflictingFolders.setText("");
