@@ -126,7 +126,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
      * Resets the counters of Sources and Targets to be resolved in the model<br>
      * Used when importing unitary relationship or connection
      */
-    public void resetsourceAndTargetCounters() {
+    public void resetSourceAndTargetCounters() {
         if ( logger.isTraceEnabled() ) logger.trace("Reseting source and target counters.");
         
         allRelationsSourceAndTarget.clear();

@@ -2459,7 +2459,7 @@ public class DBDatabaseConnection {
 
 		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
 
-		model.resetsourceAndTargetCounters();
+		model.resetSourceAndTargetCounters();
 
 		// 2 : we import the objects and create the corresponding elements if they do not exist yet
 		//        importing an element will automatically import the relationships to and from this element
