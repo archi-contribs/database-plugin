@@ -3311,4 +3311,10 @@ public class DBDatabaseConnection {
 		}
 		return target.toString();
 	}
+	
+	public boolean getExportWholeModel() {
+	    if ( databaseEntry != null )
+	        return databaseEntry.getExportWholeModel();
+	    return false;
+	}
 }
