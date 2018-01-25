@@ -400,8 +400,8 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
         }
 
         allSourceObjectsConnections.clear();
-        allTargetObjectsConnections.clear();
+        allSourceConnectionsConnections.clear();
         allSourceObjectsConnections.clear();
-        allTargetObjectsConnections.clear();
+        allTargetConnectionsConnections.clear();
 	}
 }
