@@ -95,9 +95,6 @@ public class DBGuiExportModel extends DBGui {
 		// we show an arrow in front of the first action
 		setActiveAction(ACTION.One);
 
-		// we show the option in the bottom
-		setOption("Export type :", "Whole model", "The whole model will be exported, including the views and graphical components.", "Elements and relationships only", "Only the elements and relationships will be exported.", true);
-
 		// We activate the btnDoAction button : if the user select the "Export" button --> call the exportComponents() method
 		setBtnAction("Export", new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
@@ -137,24 +134,21 @@ public class DBGuiExportModel extends DBGui {
 		tblModelVersions.setHeaderVisible(true);
 		tblModelVersions.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				if ( (tblModelVersions.getSelection() != null) && (tblModelVersions.getSelection().length > 0) && (tblModelVersions.getSelection()[0] != null) ) {
+				boolean canExport = (tblModelVersions.getSelection() != null) && (tblModelVersions.getSelection().length > 0) && (tblModelVersions.getSelection()[0] != null);
+				
+				btnDoAction.setEnabled(canExport);
+				
+				if ( canExport ) {
+                    boolean canChangeMetaData = (connection != null && connection.getExportWholeModel() && (tblModelVersions.getSelection()[0] == tblModelVersions.getItem(0)));
+                    
+                    txtReleaseNote.setEnabled(canChangeMetaData);
+                    txtPurpose.setEnabled(canChangeMetaData);
+                    txtModelName.setEnabled(canChangeMetaData);
+                    btnDoAction.setEnabled(canChangeMetaData);
+                    
 					txtReleaseNote.setText((String) tblModelVersions.getSelection()[0].getData("note"));
 					txtPurpose.setText((String) tblModelVersions.getSelection()[0].getData("purpose"));
 					txtModelName.setText((String) tblModelVersions.getSelection()[0].getData("name"));
-
-					if ( getOptionValue() && (tblModelVersions.getSelection()[0] == tblModelVersions.getItem(0)) ) {
-						txtReleaseNote.setEnabled(true);
-						txtPurpose.setEnabled(true);
-						txtModelName.setEnabled(true);
-						btnDoAction.setEnabled(true);
-					} else {
-						txtReleaseNote.setEnabled(false);
-						txtPurpose.setEnabled(false);
-						txtModelName.setEnabled(false);
-						btnDoAction.setEnabled(false);
-					}
-				} else {
-					btnDoAction.setEnabled(false);
 				}
 			}
 		});
@@ -238,416 +232,418 @@ public class DBGuiExportModel extends DBGui {
 	 * - number that do not exist in the database<br>
 	 * - number that exist in the database but with different values. 
 	 */
-	private void createGrpComponents() {
-		grpComponents = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
-		grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
-		grpComponents.setFont(GROUP_TITLE_FONT);
-		grpComponents.setText("Your model's components : ");
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(100, -220);
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
-		fd.bottom = new FormAttachment(100);
-		grpComponents.setLayoutData(fd);
-		grpComponents.setLayout(new FormLayout());
+    private void createGrpComponents() {
+        grpComponents = new Group(compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
+        grpComponents.setFont(GROUP_TITLE_FONT);
+        grpComponents.setText("Your model's components : ");
+        FormData fd = new FormData();
+        fd.top = new FormAttachment(100, -220);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(100);
+        fd.bottom = new FormAttachment(100);
+        grpComponents.setLayoutData(fd);
+        grpComponents.setLayout(new FormLayout());
 
-		Label lblElements = new Label(grpComponents, SWT.NONE);
-		lblElements.setBackground(GROUP_BACKGROUND_COLOR);
-		lblElements.setText("Elements :");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 25);
-		fd.left = new FormAttachment(0, 30);
-		lblElements.setLayoutData(fd);
+        Label lblElements = new Label(grpComponents, SWT.NONE);
+        lblElements.setBackground(GROUP_BACKGROUND_COLOR);
+        lblElements.setText("Elements :");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 25);
+        fd.left = new FormAttachment(0, 30);
+        lblElements.setLayoutData(fd);
 
-		Label lblRelationships = new Label(grpComponents, SWT.NONE);
-		lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
-		lblRelationships.setText("Relationships :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblElements, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblRelationships.setLayoutData(fd);
+        Label lblRelationships = new Label(grpComponents, SWT.NONE);
+        lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
+        lblRelationships.setText("Relationships :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblElements, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblRelationships.setLayoutData(fd);
 
-		Label lblFolders = new Label(grpComponents, SWT.NONE);
-		lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
-		lblFolders.setText("Folders :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblRelationships, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblFolders.setLayoutData(fd);
+        Label lblFolders = new Label(grpComponents, SWT.NONE);
+        lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
+        lblFolders.setText("Folders :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblRelationships, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblFolders.setLayoutData(fd);
 
-		Label lblViews = new Label(grpComponents, SWT.NONE);
-		lblViews.setBackground(GROUP_BACKGROUND_COLOR);
-		lblViews.setText("Views :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblFolders, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblViews.setLayoutData(fd);
+        Label lblViews = new Label(grpComponents, SWT.NONE);
+        lblViews.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViews.setText("Views :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblFolders, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViews.setLayoutData(fd);
 
-		Label lblViewObjects = new Label(grpComponents, SWT.NONE);
-		lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
-		lblViewObjects.setText("Objects :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblViews, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblViewObjects.setLayoutData(fd);
+        Label lblViewObjects = new Label(grpComponents, SWT.NONE);
+        lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViewObjects.setText("Objects :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViews, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViewObjects.setLayoutData(fd);
 
-		Label lblViewConnections = new Label(grpComponents, SWT.NONE);
-		lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
-		lblViewConnections.setText("Connections :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblViewObjects, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblViewConnections.setLayoutData(fd);
+        Label lblViewConnections = new Label(grpComponents, SWT.NONE);
+        lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
+        lblViewConnections.setText("Connections :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViewObjects, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblViewConnections.setLayoutData(fd);
 
-		Label lblImages = new Label(grpComponents, SWT.NONE);
-		lblImages.setBackground(GROUP_BACKGROUND_COLOR);
-		lblImages.setText("Images :");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblViewConnections, 10);
-		fd.left = new FormAttachment(0, 30);
-		lblImages.setLayoutData(fd);
+        Label lblImages = new Label(grpComponents, SWT.NONE);
+        lblImages.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImages.setText("Images :");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblViewConnections, 10);
+        fd.left = new FormAttachment(0, 30);
+        lblImages.setLayoutData(fd);
 
-		/* * * * * */
+        /* * * * * */
 
-		Label lblTotal = new Label(grpComponents, SWT.CENTER);
-		lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
-		lblTotal.setText("Total");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(20, 10);
-		fd.right = new FormAttachment(40, -10);
-		lblTotal.setLayoutData(fd);
+        Label lblModel = new Label(grpComponents, SWT.CENTER);
+        lblModel.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModel.setText("Model");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(40, 10);
+        fd.right = new FormAttachment(70, -10);
+        lblModel.setLayoutData(fd);
+        
+        Label lblExportedNew = new Label(grpComponents, SWT.CENTER);
+        lblExportedNew.setBackground(GROUP_BACKGROUND_COLOR);
+        lblExportedNew.setText("New");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModel, 5);
+        fd.left = new FormAttachment(40, 10);
+        fd.right = new FormAttachment(55, -5);
+        lblExportedNew.setLayoutData(fd);
+        
+        Label lblExportedUpdated = new Label(grpComponents, SWT.CENTER);
+        lblExportedUpdated.setBackground(GROUP_BACKGROUND_COLOR);
+        lblExportedUpdated.setText("Updated");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModel, 5);
+        fd.left = new FormAttachment(55, 5);
+        fd.right = new FormAttachment(70, -10);
+        lblExportedUpdated.setLayoutData(fd);
 
-		Label lblIdentical = new Label(grpComponents, SWT.CENTER);
-		lblIdentical.setBackground(GROUP_BACKGROUND_COLOR);
-		lblIdentical.setText("Identical");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(40, 10);
-		fd.right = new FormAttachment(60, -10);
-		lblIdentical.setLayoutData(fd);
+        Label lblDatabase = new Label(grpComponents, SWT.CENTER);
+        lblDatabase.setBackground(GROUP_BACKGROUND_COLOR);
+        lblDatabase.setText("Database");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(70, 10);
+        fd.right = new FormAttachment(100, -10);
+        lblDatabase.setLayoutData(fd);
+        
+        Label lblImportedNew = new Label(grpComponents, SWT.CENTER);
+        lblImportedNew.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImportedNew.setText("New");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblDatabase, 5);
+        fd.left = new FormAttachment(40, 10);
+        fd.right = new FormAttachment(55, -5);
+        lblImportedNew.setLayoutData(fd);
+        
+        Label lblImportedUpdated = new Label(grpComponents, SWT.CENTER);
+        lblImportedUpdated.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImportedUpdated.setText("Updated");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblDatabase, 5);
+        fd.left = new FormAttachment(55, 5);
+        fd.right = new FormAttachment(70, -10);
+        lblImportedUpdated.setLayoutData(fd);
+        
+        Label lblTotal = new Label(grpComponents, SWT.CENTER);
+        lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
+        lblTotal.setText("Total");
+        fd = new FormData();
+        fd.left = new FormAttachment(20, 10);
+        fd.right = new FormAttachment(40, -10);
+        fd.bottom = new FormAttachment(lblExportedNew, 0, SWT.BOTTOM);
+        lblTotal.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalElements.setLayoutData(fd);
 
-		Label lblNewer = new Label(grpComponents, SWT.CENTER);
-		lblNewer.setBackground(GROUP_BACKGROUND_COLOR);
-		lblNewer.setText("Newer");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(60, 10);
-		fd.right = new FormAttachment(80, -10);
-		lblNewer.setLayoutData(fd);
-		
-		Label lblOlder = new Label(grpComponents, SWT.CENTER);
-		lblOlder.setBackground(GROUP_BACKGROUND_COLOR);
-		lblOlder.setText("Older");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(60, 10);
-		fd.right = new FormAttachment(80, -10);
-		lblOlder.setLayoutData(fd);
-		
-		Label lblConflicting = new Label(grpComponents, SWT.CENTER);
-		lblConflicting.setBackground(GROUP_BACKGROUND_COLOR);
-		lblConflicting.setText("Conflicting");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(80, 10);
-		fd.right = new FormAttachment(100, -10);
-		lblConflicting.setLayoutData(fd);
+        txtNewModelElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelElements.setLayoutData(fd);
+        
+        txtUpdatedModelElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelElements.setLayoutData(fd);
+        
+        txtNewDatabaseElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseElements.setLayoutData(fd);
+        
+        txtUpdatedDatabaseElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseElements.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseElements.setLayoutData(fd);
 
-		/* * * * * */
-		
-		txtTotalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalElements.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalElements.setLayoutData(fd);
+        /* * * * * */
+        
+        txtTotalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalRelationships.setLayoutData(fd);
 
-		txtIdenticalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalElements.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalElements.setLayoutData(fd);
+        txtNewModelRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelRelationships.setLayoutData(fd);
+        
+        txtUpdatedModelRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelRelationships.setLayoutData(fd);
+        
+        txtNewDatabaseRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseRelationships.setLayoutData(fd);
+        
+        txtUpdatedDatabaseRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseRelationships.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseRelationships.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalFolders.setLayoutData(fd);
 
-		txtNewerElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerElements.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerElements.setLayoutData(fd);
-		
-		txtOlderElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderElements.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderElements.setLayoutData(fd);
-		
-		txtConflictingElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingElements.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingElements.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalRelationships.setLayoutData(fd);
+        txtNewModelFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelFolders.setLayoutData(fd);
+        
+        txtUpdatedModelFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelFolders.setLayoutData(fd);
+        
+        txtNewDatabaseFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseFolders.setLayoutData(fd);
+        
+        txtUpdatedDatabaseFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseFolders.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseFolders.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViews.setLayoutData(fd);
 
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
+        txtNewModelViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelViews.setLayoutData(fd);
+        
+        txtUpdatedModelViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelViews.setLayoutData(fd);
+        
+        txtNewDatabaseViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseViews.setLayoutData(fd);
+        
+        txtUpdatedDatabaseViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseViews.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseViews.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViewObjects.setLayoutData(fd);
 
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalFolders.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalFolders.setLayoutData(fd);
+        txtNewModelViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelViewObjects.setLayoutData(fd);
+        
+        txtUpdatedModelViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelViewObjects.setLayoutData(fd);
+        
+        txtNewDatabaseViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseViewObjects.setLayoutData(fd);
+        
+        txtUpdatedDatabaseViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseViewObjects.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalViewConnections.setLayoutData(fd);
 
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
+        txtNewModelViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelViewConnections.setLayoutData(fd);
+        
+        txtUpdatedModelViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedModelViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedModelViewConnections.setLayoutData(fd);
+        
+        txtNewDatabaseViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseViewConnections.setLayoutData(fd);
+        
+        txtUpdatedDatabaseViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtUpdatedDatabaseViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
+        txtUpdatedDatabaseViewConnections.setLayoutData(fd);
+        
+        /* * * * * */
+        
+        txtTotalImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalImages.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        txtTotalImages.setLayoutData(fd);
 
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalViews.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalViews.setLayoutData(fd);
-
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
-
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalViewObjects.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalViewObjects.setLayoutData(fd);
-
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
-
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalViewConnections.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalViewConnections.setLayoutData(fd);
-
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
-
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-		
-		/* * * * * */
-		
-		txtTotalImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtTotalImages.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
-		txtTotalImages.setLayoutData(fd);
-
-		txtIdenticalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtIdenticalRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblIdentical, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblIdentical, 0, SWT.RIGHT);
-		txtIdenticalRelationships.setLayoutData(fd);
-
-		txtNewerRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtNewerRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblNewer, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblNewer, 0, SWT.RIGHT);
-		txtNewerRelationships.setLayoutData(fd);
-		
-		txtOlderRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtOlderRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblOlder, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblOlder, 0, SWT.RIGHT);
-		txtOlderRelationships.setLayoutData(fd);
-		
-		txtConflictingRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-		txtConflictingRelationships.setEditable(false);
-		fd = new FormData(26,18);
-		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblConflicting, 0, SWT.LEFT);
-		fd.right = new FormAttachment(lblConflicting, 0, SWT.RIGHT);
-		txtConflictingRelationships.setLayoutData(fd);
-	}
+        txtNewModelImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewModelImages.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
+        txtNewModelImages.setLayoutData(fd);
+        
+        txtNewDatabaseImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtNewDatabaseImages.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
+        txtNewDatabaseImages.setLayoutData(fd);
+    }
 
 	/**
 	 * This method is called each time a database is selected and a connection has been established to it.<br>
@@ -666,46 +662,44 @@ public class DBGuiExportModel extends DBGui {
 		
 		// We count the components to export and activate the export button
 		txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
-		txtIdenticalElements.setText("");
-		txtNewerElements.setText("");
-		txtOlderElements.setText("");
-		txtConflictingElements.setText("");
+		txtNewModelElements.setText("");
+		txtUpdatedModelElements.setText("");
+		txtNewDatabaseElements.setText("");
+		txtUpdatedDatabaseElements.setText("");
 
 		txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
-		txtIdenticalRelationships.setText("");
-		txtNewerRelationships.setText("");
-		txtOlderRelationships.setText("");
-		txtConflictingRelationships.setText("");
+        txtNewModelRelationships.setText("");
+        txtUpdatedModelRelationships.setText("");
+        txtNewDatabaseRelationships.setText("");
+        txtUpdatedDatabaseRelationships.setText("");
 
 		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-		txtIdenticalFolders.setText("");xxx
-		txtNewerFolders.setText("");
-		txtOlderFolders.setText("");
-		txtConflictingFolders.setText("");
+        txtNewModelFolders.setText("");
+        txtUpdatedModelFolders.setText("");
+        txtNewDatabaseFolders.setText("");
+        txtUpdatedDatabaseFolders.setText("");
 
 		txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
-		txtIdenticalViews.setText("");
-		txtNewerViews.setText("");
-		txtOlderViews.setText("");
-		txtConflictingViews.setText("");
+        txtNewModelViews.setText("");
+        txtUpdatedModelViews.setText("");
+        txtNewDatabaseViews.setText("");
+        txtUpdatedDatabaseViews.setText("");
 
 		txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
-		txtIdenticalViewObjects.setText("");
-		txtNewerViewObjects.setText("");
-		txtOlderViewObjects.setText("");
-		txtConflictingViewObjects.setText("");
+        txtNewModelViewObjects.setText("");
+        txtUpdatedModelViewObjects.setText("");
+        txtNewDatabaseViewObjects.setText("");
+        txtUpdatedDatabaseViewObjects.setText("");
 
 		txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
-		txtIdenticalViewConnections.setText("");
-		txtNewerViewConnections.setText("");
-		txtOlderViewConnections.setText("");
-		txtConflictingViewConnections.setText("");
+        txtNewModelViewConnections.setText("");
+        txtUpdatedModelViewConnections.setText("");
+        txtNewDatabaseViewConnections.setText("");
+        txtUpdatedDatabaseViewConnections.setText("");
 
 		txtTotalImages.setText(String.valueOf(((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()));
-		txtIdenticalImages.setText("");
-		txtNewerImages.setText("");
-		txtOlderImages.setText("");
-		txtConflictingImages.setText("");
+        txtNewModelImages.setText("");
+        txtNewDatabaseImages.setText("");
 
 		if ( forceCheckDatabase )
 		    setOption(selectedDatabase.getExportWholeModel());
@@ -728,7 +722,7 @@ public class DBGuiExportModel extends DBGui {
 
 				if ( !DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 				    connection.getModelVersions(exportedModel.getId(), tblModelVersions);
-				connection.checkComponentsToExport(exportedModel, getOptionValue());
+				connection.compareModelFromDatabase(exportedModel, connection.getExportWholeModel());
 
 				closePopup();
 			} catch (Exception err) {
@@ -740,48 +734,45 @@ public class DBGuiExportModel extends DBGui {
 		}
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.getCountIdenticalElements()+" identical, "+connection.getCountNewerElements()+" newer, "+connection.getCountOlderElements()+" older, "+connection.getCountConflictingElements()+" conflicting.");			
-		txtIdenticalElements.setText(String.valueOf(connection.getCountIdenticalElements()));			txtIdenticalElements.setData("value", connection.getCountIdenticalElements());
-		txtNewerElements.setText(String.valueOf(connection.getCountNewerElements()));					txtNewerElements.setData("value", connection.getCountNewerElements());
-		txtOlderElements.setText(String.valueOf(connection.getCountOlderElements()));					txtOlderElements.setData("value", connection.getCountOlderElements());
-		txtConflictingElements.setText(String.valueOf(connection.getCountConflictingElements()));		txtConflictingElements.setData("value", connection.getCountConflictingElements());
+		txtNewModelElements.setText(String.valueOf(connection.getCountNewModelElements()));				  txtNewModelElements.setData("value", connection.getCountNewModelElements());
+		txtUpdatedModelElements.setText(String.valueOf(connection.getCountUpdatedModelElements()));       txtUpdatedModelElements.setData("value", connection.getCountUpdatedModelElements());
+	    txtNewDatabaseElements.setText(String.valueOf(connection.getCountNewDatabaseElements()));         txtNewDatabaseElements.setData("value", connection.getCountNewDatabaseElements());
+	    txtUpdatedDatabaseElements.setText(String.valueOf(connection.getCountUpdatedDatabaseElements())); txtUpdatedDatabaseElements.setData("value", connection.getCountUpdatedDatabaseElements());
 
 		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" Relationships in the model : "+connection.getCountIdenticalRelationships()+" identical, "+connection.getCountNewerRelationships()+" newer, "+connection.getCountOlderRelationships()+" older, "+connection.getCountConflictingRelationships()+" conflicting.");			
-		txtIdenticalRelationships.setText(String.valueOf(connection.getCountIdenticalRelationships()));			txtIdenticalRelationships.setData("value", connection.getCountIdenticalRelationships());
-		txtNewerRelationships.setText(String.valueOf(connection.getCountNewerRelationships()));					txtNewerRelationships.setData("value", connection.getCountNewerRelationships());
-		txtOlderRelationships.setText(String.valueOf(connection.getCountOlderRelationships()));					txtOlderRelationships.setData("value", connection.getCountOlderRelationships());
-		txtConflictingRelationships.setText(String.valueOf(connection.getCountConflictingRelationships()));		txtConflictingRelationships.setData("value", connection.getCountConflictingRelationships());
+        txtNewModelRelationships.setText(String.valueOf(connection.getCountNewModelRelationships()));               txtNewModelRelationships.setData("value", connection.getCountNewModelRelationships());
+        txtUpdatedModelRelationships.setText(String.valueOf(connection.getCountUpdatedModelRelationships()));       txtUpdatedModelRelationships.setData("value", connection.getCountUpdatedModelRelationships());
+        txtNewDatabaseRelationships.setText(String.valueOf(connection.getCountNewDatabaseRelationships()));         txtNewDatabaseRelationships.setData("value", connection.getCountNewDatabaseRelationships());
+        txtUpdatedDatabaseRelationships.setText(String.valueOf(connection.getCountUpdatedDatabaseRelationships())); txtUpdatedDatabaseRelationships.setData("value", connection.getCountUpdatedDatabaseRelationships());
 
-		txtTotalFolders.setVisible(getOptionValue());
-		txtIdenticalFolders.setVisible(getOptionValue());
-		txtNewerFolders.setVisible(getOptionValue());
-		txtOlderFolders.setVisible(getOptionValue());
-		txtConflictingFolders.setVisible(getOptionValue());
+		txtTotalFolders.setVisible(connection.getExportWholeModel());
+		txtNewerFolders.setVisible(connection.getExportWholeModel());
+		txtOlderFolders.setVisible(connection.getExportWholeModel());
+		txtConflictingFolders.setVisible(connection.getExportWholeModel());
 
-		txtTotalViews.setVisible(getOptionValue());
-		txtIdenticalViews.setVisible(getOptionValue());
-		txtNewerViews.setVisible(getOptionValue());
-		txtOlderViews.setVisible(getOptionValue());
-		txtConflictingViews.setVisible(getOptionValue());
+		txtTotalViews.setVisible(connection.getExportWholeModel());
+		txtNewerViews.setVisible(connection.getExportWholeModel());
+		txtOlderViews.setVisible(connection.getExportWholeModel());
+		txtConflictingViews.setVisible(connection.getExportWholeModel());
 
-		txtTotalViewObjects.setVisible(getOptionValue());
-		txtIdenticalViewObjects.setVisible(getOptionValue());
-		txtNewerViewObjects.setVisible(getOptionValue());
-		txtOlderViewObjects.setVisible(getOptionValue());
-		txtConflictingViewObjects.setVisible(getOptionValue());
+		txtTotalViewObjects.setVisible(connection.getExportWholeModel());
+		txtNewerViewObjects.setVisible(connection.getExportWholeModel());
+		txtOlderViewObjects.setVisible(connection.getExportWholeModel());
+		txtConflictingViewObjects.setVisible(connection.getExportWholeModel());
 		
-		txtTotalViewConnections.setVisible(getOptionValue());
-		txtIdenticalViewConnections.setVisible(getOptionValue());
-		txtNewerViewConnections.setVisible(getOptionValue());
-		txtOlderViewConnections.setVisible(getOptionValue());
-		txtConflictingViewConnections.setVisible(getOptionValue());
+		txtTotalViewConnections.setVisible(connection.getExportWholeModel());
+		txtIdenticalViewConnections.setVisible(connection.getExportWholeModel());
+		txtNewerViewConnections.setVisible(connection.getExportWholeModel());
+		txtOlderViewConnections.setVisible(connection.getExportWholeModel());
+		txtConflictingViewConnections.setVisible(connection.getExportWholeModel());
 
-		txtTotalImages.setVisible(getOptionValue());
-		txtIdenticalImages.setVisible(getOptionValue());
-		txtNewerImages.setVisible(getOptionValue());
-		txtOlderImages.setVisible(getOptionValue());
-		txtConflictingImages.setVisible(getOptionValue());
+		txtTotalImages.setVisible(connection.getExportWholeModel());
+		txtIdenticalImages.setVisible(connection.getExportWholeModel());
+		txtNewerImages.setVisible(connection.getExportWholeModel());
+		txtOlderImages.setVisible(connection.getExportWholeModel());
+		txtConflictingImages.setVisible(connection.getExportWholeModel());
 
-		if ( getOptionValue() ) {
+		if ( connection.getExportWholeModel() ) {
 			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" Folders in the model : "+connection.getCountIdenticalFolders()+" identical, "+connection.getCountNewerFolders()+" newer, "+connection.getCountOlderFolders()+" older, "+connection.getCountConflictingFolders()+" conflicting.");			
 			txtIdenticalFolders.setText(String.valueOf(connection.getCountIdenticalFolders()));			txtIdenticalFolders.setData("value", connection.getCountIdenticalFolders());
 			txtNewerFolders.setText(String.valueOf(connection.getCountNewerFolders()));					txtNewerFolders.setData("value", connection.getCountNewerFolders());
@@ -928,7 +919,7 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	protected void export() {
 		int progressBarWidth;
-		if ( getOptionValue() ) {
+		if ( connection.getExportWholeModel() ) {
 			logger.info("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllFolders().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
 			progressBarWidth = exportedModel.getAllFolders().size()+exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewObjects().size()+exportedModel.getAllViewConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
@@ -947,7 +938,7 @@ public class DBGuiExportModel extends DBGui {
 		connection.setCountOlderRelationships((int)txtOlderRelationships.getData("value"));					txtOlderRelationships.setText(String.valueOf((int)txtOlderRelationships.getData("value")));
 		connection.setCountConflictingRelationships((int)txtConflictingRelationships.getData("value"));		txtOlderRelationships.setText(String.valueOf((int)txtConflictingRelationships.getData("value")));
 
-		if ( getOptionValue() ) {
+		if ( connection.getExportWholeModel() ) {
 			connection.setCountIdenticalFolders((int)txtIdenticalFolders.getData("value"));					txtIdenticalFolders.setText(String.valueOf((int)txtIdenticalFolders.getData("value")));
 			connection.setCountNewerFolders((int)txtNewerFolders.getData("value"));							txtNewerFolders.setText(String.valueOf((int)txtNewerFolders.getData("value")));
 			connection.setCountOlderFolders((int)txtOlderFolders.getData("value"));							txtOlderFolders.setText(String.valueOf((int)txtOlderFolders.getData("value")));
@@ -1022,7 +1013,7 @@ public class DBGuiExportModel extends DBGui {
 			
 		try {
 			// if we need to save the model
-			if ( getOptionValue() ) {
+			if ( connection.getExportWholeModel() ) {
 				// we retrieve the latest version of the model in the database and increase the version number.
 			    exportedModel.setExportedVersion(connection.getLatestModelVersion(exportedModel) + 1);
 	
@@ -1055,7 +1046,7 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(relationshipsIterator.next().getValue(), txtIdenticalRelationships, txtNewerRelationships, txtOlderRelationships);
 			}
 	
-			if ( getOptionValue() ) {
+			if ( connection.getExportWholeModel() ) {
 				
 				// we export first all the views in one go in order to check as quickly as possible if there are some conflicts
 				List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
@@ -1194,7 +1185,7 @@ public class DBGuiExportModel extends DBGui {
 		boolean status = true;
 		try {
 			connection.exportEObject(eObjectToExport);
-			if ( getOptionValue() )
+			if ( connection.getExportWholeModel() )
 				connection.assignEObjectToModel(eObjectToExport);
 			
 			if ( txtIdentical != null ) {
@@ -1519,7 +1510,6 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( logger.isTraceEnabled() ) {
 		    logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
-		    logger.trace("synced : "+txtIdenticalElements.getText()+" elements, "+txtIdenticalRelationships.getText()+" relationships, "+txtIdenticalFolders.getText()+" folders, "+txtIdenticalViews.getText()+" views, "+txtIdenticalViewObjects.getText()+" view objects, "+txtIdenticalViewConnections.getText()+" view connections.");
 		    logger.trace("updated : "+txtOlderElements.getText()+" elements, "+txtOlderRelationships.getText()+" relationships, "+txtOlderFolders.getText()+" folders, "+txtOlderViews.getText()+" views, "+txtOlderViewObjects.getText()+" view objects, "+txtOlderViewConnections.getText()+" view connections.");
 		    logger.trace("new : "+txtNewerElements.getText()+" elements, "+txtNewerRelationships.getText()+" relationships, "+txtNewerFolders.getText()+" folders, "+txtNewerViews.getText()+" views, "+txtNewerViewObjects.getText()+" view objects, "+txtNewerViewConnections.getText()+" view connections.");
 		}
@@ -1527,7 +1517,7 @@ public class DBGuiExportModel extends DBGui {
 		Color statusColor = GREEN_COLOR;
 		txtIdenticalElements.setForeground( DBPlugin.areEqual(txtIdenticalElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 		txtIdenticalRelationships.setForeground( DBPlugin.areEqual(txtIdenticalRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-		if ( getOptionValue() ) {
+		if ( connection.getExportWholeModel() ) {
 			txtIdenticalFolders.setForeground( DBPlugin.areEqual(txtIdenticalFolders.getText(), txtTotalFolders.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			txtIdenticalViews.setForeground( DBPlugin.areEqual(txtIdenticalViews.getText(), txtTotalViews.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 			txtIdenticalViewObjects.setForeground( DBPlugin.areEqual(txtIdenticalViewObjects.getText(), txtTotalViewObjects.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
@@ -1576,47 +1566,45 @@ public class DBGuiExportModel extends DBGui {
 
 	private Text txtReleaseNote;
 
-	private Text txtTotalElements;
-	private Text txtIdenticalElements;
-	private Text txtNewerElements;
-	private Text txtOlderElements;
-	private Text txtConflictingElements;
+    private Text txtTotalElements;
+    private Text txtNewModelElements;
+    private Text txtUpdatedModelElements;
+    private Text txtNewDatabaseElements;
+    private Text txtUpdatedDatabaseElements;
 
-	private Text txtTotalRelationships;
-	private Text txtIdenticalRelationships;
-	private Text txtNewerRelationships;
-	private Text txtOlderRelationships;
-	private Text txtConflictingRelationships;
+    private Text txtTotalRelationships;
+    private Text txtNewModelRelationships;
+    private Text txtUpdatedModelRelationships;
+    private Text txtNewDatabaseRelationships;
+    private Text txtUpdatedDatabaseRelationships;
 
-	private Text txtTotalFolders;
-	private Text txtIdenticalFolders;
-	private Text txtNewerFolders;
-	private Text txtOlderFolders;
-	private Text txtConflictingFolders;
+    private Text txtTotalFolders;
+    private Text txtNewModelFolders;
+    private Text txtUpdatedModelFolders;
+    private Text txtNewDatabaseFolders;
+    private Text txtUpdatedDatabaseFolders;
 
-	private Text txtTotalViews;
-	private Text txtIdenticalViews;
-	private Text txtNewerViews;
-	private Text txtOlderViews;
-	private Text txtConflictingViews;
+    private Text txtTotalViews;
+    private Text txtNewModelViews;
+    private Text txtUpdatedModelViews;
+    private Text txtNewDatabaseViews;
+    private Text txtUpdatedDatabaseViews;
 
-	private Text txtTotalViewObjects;
-	private Text txtIdenticalViewObjects;
-	private Text txtNewerViewObjects;
-	private Text txtOlderViewObjects;
-	private Text txtConflictingViewObjects;
+    private Text txtTotalViewObjects;
+    private Text txtNewModelViewObjects;
+    private Text txtUpdatedModelViewObjects;
+    private Text txtNewDatabaseViewObjects;
+    private Text txtUpdatedDatabaseViewObjects;
 
-	private Text txtTotalViewConnections;
-	private Text txtIdenticalViewConnections;
-	private Text txtNewerViewConnections;
-	private Text txtOlderViewConnections;
-	private Text txtConflictingViewConnections;
-	
-	private Text txtTotalImages;
-	private Text txtIdenticalImages;
-	private Text txtNewerImages;
-	private Text txtOlderImages;
-	private Text txtConflictingImages;
+    private Text txtTotalViewConnections;
+    private Text txtNewModelViewConnections;
+    private Text txtUpdatedModelViewConnections;
+    private Text txtNewDatabaseViewConnections;
+    private Text txtUpdatedDatabaseViewConnections;
+    
+    private Text txtTotalImages;
+    private Text txtNewModelImages;
+    private Text txtNewDatabaseImages;
 
 	private Table tblModelVersions;
 	private Text txtModelName;

@@ -2507,83 +2507,367 @@ public class DBDatabaseConnection {
 	//                                                                               //
 	///////////////////////////////////////////////////////////////////////////////////
 
-	private int countIdenticalElements = 0;
-	private int countNewerElements = 0;
-	private int countOlderElements = 0;
-	private int countConflictingElements = 0;
-	public int getCountIdenticalElements() { return countIdenticalElements; }					public void setCountIdenticalElements(int count) { countIdenticalElements = count; }
-	public int getCountNewerElements() { return countNewerElements; }							public void setCountNewerElements(int count) { countNewerElements = count; }
-	public int getCountOlderElements() { return countOlderElements; }							public void setCountOlderElements(int count) { countOlderElements = count; }
-	public int getCountConflictingElements() { return countConflictingElements; }				public void setCountConflictingElements(int count) {  countConflictingElements = count; }
+//	private int countIdenticalElements = 0;
+//	private int countNewerElements = 0;
+//	private int countOlderElements = 0;
+//	private int countConflictingElements = 0;
+//	public int getCountIdenticalElements() { return countIdenticalElements; }					public void setCountIdenticalElements(int count) { countIdenticalElements = count; }
+//	public int getCountNewerElements() { return countNewerElements; }							public void setCountNewerElements(int count) { countNewerElements = count; }
+//	public int getCountOlderElements() { return countOlderElements; }							public void setCountOlderElements(int count) { countOlderElements = count; }
+//	public int getCountConflictingElements() { return countConflictingElements; }				public void setCountConflictingElements(int count) {  countConflictingElements = count; }
 	
-	private int countIdenticalRelationships = 0;
-	private int countNewerRelationships = 0;
-	private int countOlderRelationships = 0;
-	private int countConflictingRelationships = 0;
-	public int getCountIdenticalRelationships() { return countIdenticalRelationships; }			public void setCountIdenticalRelationships(int count) { countIdenticalRelationships = count; }
-	public int getCountNewerRelationships() { return countNewerRelationships; }					public void setCountNewerRelationships(int count) { countNewerRelationships = count; }
-	public int getCountOlderRelationships() { return countOlderRelationships; }					public void setCountOlderRelationships(int count) { countOlderRelationships = count; }
-	public int getCountConflictingRelationships() { return countConflictingRelationships; }		public void setCountConflictingRelationships(int count) { countConflictingRelationships = count; }
+//	private int countIdenticalRelationships = 0;
+//	private int countNewerRelationships = 0;
+//	private int countOlderRelationships = 0;
+//	private int countConflictingRelationships = 0;
+//	public int getCountIdenticalRelationships() { return countIdenticalRelationships; }			public void setCountIdenticalRelationships(int count) { countIdenticalRelationships = count; }
+//	public int getCountNewerRelationships() { return countNewerRelationships; }					public void setCountNewerRelationships(int count) { countNewerRelationships = count; }
+//	public int getCountOlderRelationships() { return countOlderRelationships; }					public void setCountOlderRelationships(int count) { countOlderRelationships = count; }
+//	public int getCountConflictingRelationships() { return countConflictingRelationships; }		public void setCountConflictingRelationships(int count) { countConflictingRelationships = count; }
 
-	private int countIdenticalViews = 0;
-	private int countNewerViews = 0;
-	private int countOlderViews = 0;
-	private int countConflictingViews = 0;
-	public int getCountIdenticalViews() { return countIdenticalViews; }							public void setCountIdenticalViews(int count) { countIdenticalViews = count; }
-	public int getCountNewerViews() { return countNewerViews; }									public void setCountNewerViews(int count) { countNewerViews = count; }
-	public int getCountOlderViews() { return countOlderViews; }									public void setCountOlderViews(int count) { countOlderViews = count; }
-	public int getCountConflictingViews() { return countConflictingViews; }						public void setCountConflictingViews(int count) { countConflictingViews = count; }		
+//	private int countIdenticalViews = 0;
+//	private int countNewerViews = 0;
+//	private int countOlderViews = 0;
+//	private int countConflictingViews = 0;
+//	public int getCountIdenticalViews() { return countIdenticalViews; }							public void setCountIdenticalViews(int count) { countIdenticalViews = count; }
+//	public int getCountNewerViews() { return countNewerViews; }									public void setCountNewerViews(int count) { countNewerViews = count; }
+//	public int getCountOlderViews() { return countOlderViews; }									public void setCountOlderViews(int count) { countOlderViews = count; }
+//	public int getCountConflictingViews() { return countConflictingViews; }						public void setCountConflictingViews(int count) { countConflictingViews = count; }		
 
-	private int countIdenticalViewObjects = 0;
-	private int countNewerViewObjects = 0;
-	private int countOlderViewObjects = 0;
-	private int countConflictingViewObjects = 0;
-	public int getCountIdenticalViewObjects() { return countIdenticalViewObjects; }				public void setCountIdenticalViewObjects(int count) { countIdenticalViewObjects = count; }
-	public int getCountNewerViewObjects() { return countNewerViewObjects; }						public void setCountNewerViewObjects(int count) { countNewerViewObjects = count; }
-	public int getCountOlderViewObjects() { return countOlderViewObjects; }						public void setCountOlderViewObjects(int count) { countOlderViewObjects = count; }
-	public int getCountConflictingViewObjects() { return countConflictingViewObjects; }			public void setCountConflictingViewObjects(int count) { countConflictingViewObjects = count; }	
+//	private int countIdenticalViewObjects = 0;
+//	private int countNewerViewObjects = 0;
+//	private int countOlderViewObjects = 0;
+//	private int countConflictingViewObjects = 0;
+//	public int getCountIdenticalViewObjects() { return countIdenticalViewObjects; }				public void setCountIdenticalViewObjects(int count) { countIdenticalViewObjects = count; }
+//	public int getCountNewerViewObjects() { return countNewerViewObjects; }						public void setCountNewerViewObjects(int count) { countNewerViewObjects = count; }
+//	public int getCountOlderViewObjects() { return countOlderViewObjects; }						public void setCountOlderViewObjects(int count) { countOlderViewObjects = count; }
+//	public int getCountConflictingViewObjects() { return countConflictingViewObjects; }			public void setCountConflictingViewObjects(int count) { countConflictingViewObjects = count; }	
 	
-	private int countIdenticalViewConnections = 0;
-	private int countNewerViewConnections = 0;
-	private int countOlderViewConnections = 0;
-	private int countConflictingViewConnections = 0;
-	public int getCountIdenticalViewConnections() { return countIdenticalViewConnections; }		public void setCountIdenticalViewConnections(int count) { countIdenticalViewConnections = count; }
-	public int getCountNewerViewConnections() { return countNewerViewConnections; }				public void setCountNewerViewConnections(int count) { countNewerViewConnections = count; }
-	public int getCountOlderViewConnections() { return countOlderViewConnections; }				public void setCountOlderViewConnections(int count) { countOlderViewConnections = count; }
-	public int getCountConflictingViewConnections() { return countConflictingViewConnections; }	public void setCountConflictingViewConnections(int count) { countConflictingViewConnections = count; }	
+//	private int countIdenticalViewConnections = 0;
+//	private int countNewerViewConnections = 0;
+//	private int countOlderViewConnections = 0;
+//	private int countConflictingViewConnections = 0;
+//	public int getCountIdenticalViewConnections() { return countIdenticalViewConnections; }		public void setCountIdenticalViewConnections(int count) { countIdenticalViewConnections = count; }
+//	public int getCountNewerViewConnections() { return countNewerViewConnections; }				public void setCountNewerViewConnections(int count) { countNewerViewConnections = count; }
+//	public int getCountOlderViewConnections() { return countOlderViewConnections; }				public void setCountOlderViewConnections(int count) { countOlderViewConnections = count; }
+//	public int getCountConflictingViewConnections() { return countConflictingViewConnections; }	public void setCountConflictingViewConnections(int count) { countConflictingViewConnections = count; }	
 	
-	private int countIdenticalFolders = 0;
-	private int countNewerFolders = 0;
-	private int countOlderFolders = 0;
-	private int countConflictingFolders = 0;
-	public int getCountIdenticalFolders() { return countIdenticalFolders; }						public void setCountIdenticalFolders(int count) { countIdenticalFolders = count; }
-	public int getCountNewerFolders() { return countNewerFolders; }								public void setCountNewerFolders(int count) { countNewerFolders = count; }
-	public int getCountOlderFolders() { return countOlderFolders; }								public void setCountOlderFolders(int count) { countOlderFolders = count; }
-	public int getCountConflictingFolders() { return countConflictingFolders; }					public void setCountConflictingFolders(int count) { countConflictingFolders = count; }	
+//	private int countIdenticalFolders = 0;
+//	private int countNewerFolders = 0;
+//	private int countOlderFolders = 0;
+//	private int countConflictingFolders = 0;
+//	public int getCountIdenticalFolders() { return countIdenticalFolders; }						public void setCountIdenticalFolders(int count) { countIdenticalFolders = count; }
+//	public int getCountNewerFolders() { return countNewerFolders; }								public void setCountNewerFolders(int count) { countNewerFolders = count; }
+//	public int getCountOlderFolders() { return countOlderFolders; }								public void setCountOlderFolders(int count) { countOlderFolders = count; }
+//	public int getCountConflictingFolders() { return countConflictingFolders; }					public void setCountConflictingFolders(int count) { countConflictingFolders = count; }	
 	
-	private int countIdenticalImages = 0;
-	private int countNewerImages = 0;
-	private int countOlderImages = 0;
-	private int countConflictingImages = 0;
-	public int getCountIdenticalImages() { return countIdenticalImages; }						public void setCountIdenticalImages(int count) { countIdenticalImages = count; }
-	public int getCountNewerImages() { return countNewerImages; }								public void setCountNewerImages(int count) { countNewerImages = count; }
-	public int getCountOlderImages() { return countOlderImages; }								public void setCountOlderImages(int count) { countOlderImages = count; }
-	public int getCountConflictingImages() { return countConflictingImages; }					public void setCountConflictingImages(int count) { countConflictingImages = count; }	
+//	private int countIdenticalImages = 0;
+//	private int countNewerImages = 0;
+//	private int countOlderImages = 0;
+//	private int countConflictingImages = 0;
+//	public int getCountIdenticalImages() { return countIdenticalImages; }						public void setCountIdenticalImages(int count) { countIdenticalImages = count; }
+//	public int getCountNewerImages() { return countNewerImages; }								public void setCountNewerImages(int count) { countNewerImages = count; }
+//	public int getCountOlderImages() { return countOlderImages; }								public void setCountOlderImages(int count) { countOlderImages = count; }
+//	public int getCountConflictingImages() { return countConflictingImages; }					public void setCountConflictingImages(int count) { countConflictingImages = count; }	
+	
+	   
+    private int countNewModelElements = 0;
+    /**
+     * This method counts the number of new elements in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelElements() {
+        return countNewModelElements;
+    }
+    
+    private int countUpdatedModelElements = 0;
+    /**
+     * This method counts the number of updated elements in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelElements() {
+        return countUpdatedModelElements;
+    }
+    
+    private int countNewDatabaseElements = 0;
+    /**
+     * This method counts the number of new elements in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseElements() {
+        return countNewDatabaseElements;
+    }
+    
+    private int countUpdatedDatabaseElements = 0;
+    /**
+     * This method counts the number of updated elements in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseElements() {
+        return countUpdatedDatabaseElements;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelRelationships = 0;
+    /**
+     * This method counts the number of new Relationships in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelRelationships() {
+        return countNewModelRelationships;
+    }
+    
+    private int countUpdatedModelRelationships = 0;
+    /**
+     * This method counts the number of updated Relationships in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelRelationships() {
+        return countUpdatedModelRelationships;
+    }
+    
+    private int countNewDatabaseRelationships = 0;
+    /**
+     * This method counts the number of new Relationships in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseRelationships() {
+        return countNewDatabaseRelationships;
+    }
+    
+    private int countUpdatedDatabaseRelationships = 0;
+    /**
+     * This method counts the number of updated Relationships in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseRelationships() {
+        return countUpdatedDatabaseRelationships;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelFolders = 0;
+    /**
+     * This method counts the number of new Folders in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelFolders() {
+        return countNewModelFolders;
+    }
+    
+    private int countUpdatedModelFolders = 0;
+    /**
+     * This method counts the number of updated Folders in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelFolders() {
+        return countUpdatedModelFolders;
+    }
+    
+    private int countNewDatabaseFolders = 0;
+    /**
+     * This method counts the number of new Folders in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseFolders() {
+        return countNewDatabaseFolders;
+    }
+    
+    private int countUpdatedDatabaseFolders = 0;
+    /**
+     * This method counts the number of updated Folders in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseFolders() {
+        return countUpdatedDatabaseFolders;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelViews = 0;
+    /**
+     * This method counts the number of new Views in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelViews() {
+        return countNewModelViews;
+    }
+    
+    private int countUpdatedModelViews = 0;
+    /**
+     * This method counts the number of updated Views in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelViews() {
+        return countUpdatedModelViews;
+    }
+    
+    private int countNewDatabaseViews = 0;
+    /**
+     * This method counts the number of new Views in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseViews() {
+        return countNewDatabaseViews;
+    }
+    
+    private int countUpdatedDatabaseViews = 0;
+    /**
+     * This method counts the number of updated Views in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseViews() {
+        return countUpdatedDatabaseViews;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelViewObjects = 0;
+    /**
+     * This method counts the number of new ViewObjects in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelViewObjects() {
+        return countNewModelViewObjects;
+    }
+    
+    private int countUpdatedModelViewObjects = 0;
+    /**
+     * This method counts the number of updated ViewObjects in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelViewObjects() {
+        return countUpdatedModelViewObjects;
+    }
+    
+    private int countNewDatabaseViewObjects = 0;
+    /**
+     * This method counts the number of new ViewObjects in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseViewObjects() {
+        return countNewDatabaseViewObjects;
+    }
+    
+    private int countUpdatedDatabaseViewObjects = 0;
+    /**
+     * This method counts the number of updated ViewObjects in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseViewObjects() {
+        return countUpdatedDatabaseViewObjects;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelViewConnections = 0;
+    /**
+     * This method counts the number of new ViewConnections in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelViewConnections() {
+        return countNewModelViewConnections;
+    }
+    
+    private int countUpdatedModelViewConnections = 0;
+    /**
+     * This method counts the number of updated ViewConnections in the model, i.e. that are in the model and the database but the model has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedModelViewConnections() {
+        return countUpdatedModelViewConnections;
+    }
+    
+    private int countNewDatabaseViewConnections = 0;
+    /**
+     * This method counts the number of new ViewConnections in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseViewConnections() {
+        return countNewDatabaseViewConnections;
+    }
+    
+    private int countUpdatedDatabaseViewConnections = 0;
+    /**
+     * This method counts the number of updated ViewConnections in the model, i.e. that are in the model and the database but the database has got a newer version.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountUpdatedDatabaseViewConnections() {
+        return countUpdatedDatabaseViewConnections;
+    }
+    
+    /* ***** */
+    
+    private int countNewModelImages = 0;
+    /**
+     * This method counts the number of new Images in the model, i.e. that are in the model but not in the database.<br>
+     * <br>
+     * the value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewModelImages() {
+        return countNewModelImages;
+    }
+    
+    private int countNewDatabaseImages = 0;
+    /**
+     * This method counts the number of new Images in the database, i.e. that are referenced to the model in the database, but not present in the model.<br>
+     * <br>
+     * The value is updated each time the plugin connects to a database.
+     */
+    public int getCountNewDatabaseImages() {
+        return countNewDatabaseImages;
+    }
+    
+    /* ***** */
 	
 	/**
-	 * Calculate how many components must be exported<br>
-	 * in sync mode, it also calculate how many components must be imported.
-	 * @param model
-	 * @param checkFoldersAndViews
-	 * @throws Exception
+	 * Compares the model from the database and calculates the following values:<br>
+	 * <li>countNewModelElements / countUpdatedModelElements</li>
+	 * <li>countNewModelRelationships / countUpdatedModelRelationships</li>
+	 * <br>
+     * If the plugin is configured in sync mode, then the following values are also calculated:<br>
+     * <li>countNewDatabaseElements / countUpdatedDatabaseElements</li>
+     * <li>countNewDatabaseRelationships / countUpdatedDatabaseRelationships</li>
+     * <br>
+     * If the database is configured to export the whole model, then the following values are also calculated:<br>
+     * <li>countNewXXXFolders / countUpdatedXXXFolders</li>
+     * <li>countNewXXXViews / countUpdatedXXXViews</li>
+     * <li>countNewXXXViewObjects / countUpdatedXXXViewObjects</li>
+     * <li>countNewXXXViewConnections / countUpdatedXXXViewConnections</li>
+     * <li>countNewXXXImages</li>
 	 */
-	public void checkComponentsToExport(ArchimateModel model, boolean checkFoldersAndViews) throws Exception {
+	public void compareModelFromDatabase(ArchimateModel model) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("Checking in database which components need to be exported.");
 
-		countIdenticalElements = 0;
-		countNewerElements = 0;
-		countOlderElements = 0;
-		countConflictingElements = 0;
+		countNewModelElements = 0;
+		countUpdatedModelElements = 0;
+		countNewDatabaseElements = 0;
+		countUpdatedDatabaseElements = 0;
 		for ( Entry<String, IArchimateElement> entry: model.getAllElements().entrySet() ) {
 			checkComponent(schema+"elements", entry.getValue());
 
