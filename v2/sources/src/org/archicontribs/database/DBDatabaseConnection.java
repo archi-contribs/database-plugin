@@ -978,7 +978,7 @@ public class DBDatabaseConnection {
 				
 				// on sqlite databases, the prepared statement must be closed (then re-created) after the exception else we've got "statement is not executing" error messages
 				if ( DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ) {
-					preparedStatementMap.remove(pstmt);
+					preparedStatementMap.remove((Object)pstmt);
 					pstmt.close();
 				}
 				throw e;
