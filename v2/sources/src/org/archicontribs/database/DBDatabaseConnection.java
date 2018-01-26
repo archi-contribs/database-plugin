@@ -1,3 +1,9 @@
+/**
+ * This program and the accompanying materials
+ * are made available under the terms of the License
+ * which accompanies this distribution in the file LICENSE.txt
+ */
+
 package org.archicontribs.database;
 
 import java.io.ByteArrayInputStream;
@@ -28,6 +34,7 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
+import org.archicontribs.database.preferences.DBPreferencePage.EXPORT_BEHAVIOUR;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
@@ -2570,6 +2577,13 @@ public class DBDatabaseConnection {
 //	public int getCountOlderImages() { return countOlderImages; }								public void setCountOlderImages(int count) { countOlderImages = count; }
 //	public int getCountConflictingImages() { return countConflictingImages; }					public void setCountConflictingImages(int count) { countConflictingImages = count; }	
 	
+	HashMap<String, DBVersion> versionsElementsInDatabase = new HashMap<String, DBVersion>();
+	HashMap<String, DBVersion> versionsRelationshipsInDatabase = new HashMap<String, DBVersion>();
+	HashMap<String, DBVersion> versionsFoldersInDatabase = new HashMap<String, DBVersion>();
+	HashMap<String, DBVersion> versionsViewsInDatabase = new HashMap<String, DBVersion>();
+	//HashMap<String, DBVersion> versionsViewObjectsInDatabase = new HashMap<String, DBVersion>();
+	//HashMap<String, DBVersion> versionsViewConnectionsInDatabase = new HashMap<String, DBVersion>();
+	HashMap<String, DBVersion> versionsImagesInDatabase = new HashMap<String, DBVersion>();
 	   
     private int countNewModelElements = 0;
     /**
@@ -2845,6 +2859,86 @@ public class DBDatabaseConnection {
     
     /* ***** */
 	
+    /**
+     * Gets the versions and checksum of one model's components from the database and fills in the versionsXXXXInDatabase variables.
+     * @param modelId the id of the mdoel
+     * @param modelVersion the versions of the model (0 to get the latest version)
+     * @param getWholeModel if true, fills in the folders and view variables as well
+     * @throws SQLException
+     */
+    private void getVersionsFromDatabase(String modelId, int modelVersion, boolean getWholeModel) throws SQLException {
+        // first, we empty the existing maps
+        versionsElementsInDatabase = new HashMap<String, DBVersion>();
+        versionsRelationshipsInDatabase = new HashMap<String, DBVersion>();
+        versionsFoldersInDatabase = new HashMap<String, DBVersion>();
+        versionsViewsInDatabase = new HashMap<String, DBVersion>();
+        //versionsViewObjectsInDatabase = new HashMap<String, DBVersion>();
+        //versionsViewConnectionsInDatabase = new HashMap<String, DBVersion>();
+        versionsImagesInDatabase = new HashMap<String, DBVersion>();
+        
+        // this method does not manage Neo4J databases
+        if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
+            return;
+        }
+        
+        ResultSet result;
+        
+        // if the modelVersion is not specified (i.e. zero), then we get the latest version from the database
+        if ( modelVersion == 0 ) {
+            if ( logger.isDebugEnabled() ) logger.debug("Getting latest version of the model from the database");
+            result = select("SELECT MAX(version) from "+schema+"models WHERE id = ?", modelId);
+            if ( result.next() ) {
+                modelVersion = result.getInt("version");
+            } else {
+                return;         // if the model is not not found in the database, this is not an error. this just means that the model is new. 
+            }
+        }
+        
+        // we get the list of elements
+        result = select("SELECT id, version, checksum from "+schema+"elements elements "+
+                "JOIN "+schema+"elements_in_model JOIN "+schema+"elements_in_model elements_in_model on elements.id = elements_in_model.element_id and elements.version = elements_in_model.element_version "+
+                "WHERE elements_in_model.model_id = ? and elements_in_model.model_version = ?"+
+                modelId,
+                modelVersion);
+        while ( result.next() ) {
+            versionsElementsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+        }
+        
+        // we get the list of relationships
+        result = select("SELECT id, version, checksum from "+schema+"relationships relationships "+
+                "JOIN "+schema+"relationships_in_model JOIN "+schema+"relationships_in_model relationships_in_model on relationships.id = relationships_in_model.element_id and relationships.version = relationships_in_model.element_version "+
+                "WHERE relationships_in_model.model_id = ? and relationships_in_model.model_version = ?"+
+                modelId,
+                modelVersion);
+        while ( result.next() ) {
+            versionsRelationshipsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+        }
+        
+        if ( getWholeModel ) {
+            // we get the list of folders
+            result = select("SELECT id, version, checksum from "+schema+"folders folders "+
+                    "JOIN "+schema+"folders_in_model JOIN "+schema+"folders_in_model folders_in_model on folders.id = folders_in_model.element_id and folders.version = folders_in_model.element_version "+
+                    "WHERE folders_in_model.model_id = ? and folders_in_model.model_version = ?"+
+                    modelId,
+                    modelVersion);
+            while ( result.next() ) {
+                versionsFoldersInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+            }
+            
+            // we get the list of views
+            result = select("SELECT id, version, checksum from "+schema+"views views "+
+                    "JOIN "+schema+"views_in_model JOIN "+schema+"views_in_model views_in_model on views.id = views_in_model.element_id and views.version = views_in_model.element_version "+
+                    "WHERE views_in_model.model_id = ? and views_in_model.model_version = ?"+
+                    modelId,
+                    modelVersion);
+            while ( result.next() ) {
+                versionsViewsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+            }
+        }
+        
+        //TODO: images
+    }
+    
 	/**
 	 * Compares the model from the database and calculates the following values:<br>
 	 * <li>countNewModelElements / countUpdatedModelElements</li>
@@ -2863,22 +2957,21 @@ public class DBDatabaseConnection {
 	 */
 	public void compareModelFromDatabase(ArchimateModel model) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("Checking in database which components need to be exported.");
+		DBVersion dbVersion;
+		
+		getVersionsFromDatabase(model.getId(), 0, getExportWholeModel());
 
 		countNewModelElements = 0;
 		countUpdatedModelElements = 0;
 		countNewDatabaseElements = 0;
 		countUpdatedDatabaseElements = 0;
 		for ( Entry<String, IArchimateElement> entry: model.getAllElements().entrySet() ) {
-			checkComponent(schema+"elements", entry.getValue());
-
-			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
-				case identical: ++countIdenticalElements; break;
-				case newer:     ++countNewerElements; break;
-				case older:     ++countOlderElements; break;
-				case conflict:  ++countConflictingElements; break;
-				default:
-					break;
-			}
+			// we check if the model's components are in the database
+		    dbVersion = versionsElementsInDatabase.get(entry.getValue().getId());
+		    if ( dbVersion == null )
+		        countNewModelElements++;
+		        if 
+		    }
 		}
 
 		countIdenticalRelationships = 0;
@@ -2886,7 +2979,7 @@ public class DBDatabaseConnection {
 		countOlderRelationships = 0;
 		countConflictingRelationships = 0;
 		for ( Entry<String, IArchimateRelationship> entry: model.getAllRelationships().entrySet() ) {
-			checkComponent(schema+"Relationships", entry.getValue());
+			checkComponentInDatabase(schema+"Relationships", entry.getValue());
 
 			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
 				case identical: ++countIdenticalRelationships; break;
@@ -2903,7 +2996,7 @@ public class DBDatabaseConnection {
 		countOlderFolders = 0;
 		countConflictingFolders = 0;
 		for ( Entry<String, IFolder> entry: model.getAllFolders().entrySet() ) {
-			checkComponent(schema+"Folders", entry.getValue());
+			checkComponentInDatabase(schema+"Folders", entry.getValue());
 
 			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
 				case identical: ++countIdenticalFolders; break;
@@ -2920,7 +3013,7 @@ public class DBDatabaseConnection {
 		countOlderViews = 0;
 		countConflictingViews = 0;
 		for ( Entry<String, IDiagramModel> entry: model.getAllViews().entrySet() ) {
-			checkComponent(schema+"Views", entry.getValue());
+			checkComponentInDatabase(schema+"Views", entry.getValue());
 
 			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
 				case identical: ++countIdenticalViews; break;
@@ -2937,7 +3030,7 @@ public class DBDatabaseConnection {
 		countOlderViewObjects = 0;
 		countConflictingViewObjects = 0;
 		for ( Entry<String, IDiagramModelComponent> entry: model.getAllViewObjects().entrySet() ) {
-			checkComponent(schema+"ViewObjects", entry.getValue());
+			checkComponentInDatabase(schema+"ViewObjects", entry.getValue());
 
 			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
 				case identical: ++countIdenticalViewObjects; break;
@@ -2954,7 +3047,7 @@ public class DBDatabaseConnection {
 		countOlderViewConnections = 0;
 		countConflictingViewConnections = 0;
 		for ( Entry<String, IDiagramModelConnection> entry: model.getAllViewConnections().entrySet() ) {
-			checkComponent(schema+"ViewConnections", entry.getValue());
+			checkComponentInDatabase(schema+"ViewConnections", entry.getValue());
 
 			switch ( ((IDBMetadata)entry.getValue()).getDBMetadata().getStatus() ) {
 				case identical: ++countIdenticalViewConnections; break;
@@ -2979,7 +3072,7 @@ public class DBDatabaseConnection {
 	/**
 	 * Retrieves the version and the checksum of the component from the database
 	 */
-	private void checkComponent(String tableName, EObject eObject) throws Exception {
+	private void checkComponentInDatabase(String tableName, EObject eObject) throws Exception {
 		int currentVersion = ((IDBMetadata)eObject).getDBMetadata().getInitialVersion();
 		int databaseVersion = 0;
 		String databaseChecksum = null;

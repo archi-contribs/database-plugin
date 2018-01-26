@@ -54,6 +54,11 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 
+/**
+ * This class holds the methods requires to export a model in a database
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiExportModel extends DBGui {
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 
@@ -303,72 +308,37 @@ public class DBGuiExportModel extends DBGui {
 
         /* * * * * */
 
-        Label lblModel = new Label(grpComponents, SWT.CENTER);
-        lblModel.setBackground(GROUP_BACKGROUND_COLOR);
-        lblModel.setText("Model");
-        fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(40, 10);
-        fd.right = new FormAttachment(70, -10);
-        lblModel.setLayoutData(fd);
-        
-        Label lblExportedNew = new Label(grpComponents, SWT.CENTER);
-        lblExportedNew.setBackground(GROUP_BACKGROUND_COLOR);
-        lblExportedNew.setText("New");
-        fd = new FormData();
-        fd.top = new FormAttachment(lblModel, 5);
-        fd.left = new FormAttachment(40, 10);
-        fd.right = new FormAttachment(55, -5);
-        lblExportedNew.setLayoutData(fd);
-        
-        Label lblExportedUpdated = new Label(grpComponents, SWT.CENTER);
-        lblExportedUpdated.setBackground(GROUP_BACKGROUND_COLOR);
-        lblExportedUpdated.setText("Updated");
-        fd = new FormData();
-        fd.top = new FormAttachment(lblModel, 5);
-        fd.left = new FormAttachment(55, 5);
-        fd.right = new FormAttachment(70, -10);
-        lblExportedUpdated.setLayoutData(fd);
-
-        Label lblDatabase = new Label(grpComponents, SWT.CENTER);
-        lblDatabase.setBackground(GROUP_BACKGROUND_COLOR);
-        lblDatabase.setText("Database");
-        fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(70, 10);
-        fd.right = new FormAttachment(100, -10);
-        lblDatabase.setLayoutData(fd);
-        
-        Label lblImportedNew = new Label(grpComponents, SWT.CENTER);
-        lblImportedNew.setBackground(GROUP_BACKGROUND_COLOR);
-        lblImportedNew.setText("New");
-        fd = new FormData();
-        fd.top = new FormAttachment(lblDatabase, 5);
-        fd.left = new FormAttachment(40, 10);
-        fd.right = new FormAttachment(55, -5);
-        lblImportedNew.setLayoutData(fd);
-        
-        Label lblImportedUpdated = new Label(grpComponents, SWT.CENTER);
-        lblImportedUpdated.setBackground(GROUP_BACKGROUND_COLOR);
-        lblImportedUpdated.setText("Updated");
-        fd = new FormData();
-        fd.top = new FormAttachment(lblDatabase, 5);
-        fd.left = new FormAttachment(55, 5);
-        fd.right = new FormAttachment(70, -10);
-        lblImportedUpdated.setLayoutData(fd);
-        
         Label lblTotal = new Label(grpComponents, SWT.CENTER);
         lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
         lblTotal.setText("Total");
         fd = new FormData();
-        fd.left = new FormAttachment(20, 10);
-        fd.right = new FormAttachment(40, -10);
-        fd.bottom = new FormAttachment(lblExportedNew, 0, SWT.BOTTOM);
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(40, 10);
+        fd.right = new FormAttachment(60, -10);
         lblTotal.setLayoutData(fd);
+        
+        Label lblExported = new Label(grpComponents, SWT.CENTER);
+        lblExported.setBackground(GROUP_BACKGROUND_COLOR);
+        lblExported.setText("Exported");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(60, 10);
+        fd.right = new FormAttachment(80, -10);
+        lblExported.setLayoutData(fd);
+        
+        Label lblImported = new Label(grpComponents, SWT.CENTER);
+        lblImported.setBackground(GROUP_BACKGROUND_COLOR);
+        lblImported.setText("Imported");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(80, 10);
+        fd.right = new FormAttachment(100, -10);
+        lblImported.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
         txtTotalElements.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -376,41 +346,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalElements.setLayoutData(fd);
 
-        txtNewModelElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelElements.setEditable(false);
+        txtExportedElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedElements.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelElements.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedElements.setLayoutData(fd);
         
-        txtUpdatedModelElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelElements.setEditable(false);
+        txtImportedElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedElements.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelElements.setLayoutData(fd);
-        
-        txtNewDatabaseElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseElements.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseElements.setLayoutData(fd);
-        
-        txtUpdatedDatabaseElements = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseElements.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseElements.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedElements.setLayoutData(fd);
 
         /* * * * * */
         
         txtTotalRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
         txtTotalRelationships.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -418,41 +373,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalRelationships.setLayoutData(fd);
 
-        txtNewModelRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelRelationships.setEditable(false);
+        txtExportedRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedRelationships.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelRelationships.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedRelationships.setLayoutData(fd);
         
-        txtUpdatedModelRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelRelationships.setEditable(false);
+        txtImportedRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedRelationships.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelRelationships.setLayoutData(fd);
-        
-        txtNewDatabaseRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseRelationships.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseRelationships.setLayoutData(fd);
-        
-        txtUpdatedDatabaseRelationships = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseRelationships.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseRelationships.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedRelationships.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
         txtTotalFolders.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -460,41 +400,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalFolders.setLayoutData(fd);
 
-        txtNewModelFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelFolders.setEditable(false);
+        txtExportedFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedFolders.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelFolders.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedFolders.setLayoutData(fd);
         
-        txtUpdatedModelFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelFolders.setEditable(false);
+        txtImportedFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedFolders.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelFolders.setLayoutData(fd);
-        
-        txtNewDatabaseFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseFolders.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseFolders.setLayoutData(fd);
-        
-        txtUpdatedDatabaseFolders = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseFolders.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseFolders.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedFolders.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
         txtTotalViews.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -502,41 +427,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViews.setLayoutData(fd);
 
-        txtNewModelViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelViews.setEditable(false);
+        txtExportedViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedViews.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelViews.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedViews.setLayoutData(fd);
         
-        txtUpdatedModelViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelViews.setEditable(false);
+        txtImportedViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViews.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelViews.setLayoutData(fd);
-        
-        txtNewDatabaseViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseViews.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseViews.setLayoutData(fd);
-        
-        txtUpdatedDatabaseViews = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseViews.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseViews.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViews.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
         txtTotalViewObjects.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -544,41 +454,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViewObjects.setLayoutData(fd);
 
-        txtNewModelViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelViewObjects.setEditable(false);
+        txtExportedViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedViewObjects.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelViewObjects.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedViewObjects.setLayoutData(fd);
         
-        txtUpdatedModelViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelViewObjects.setEditable(false);
+        txtImportedViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViewObjects.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelViewObjects.setLayoutData(fd);
-        
-        txtNewDatabaseViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseViewObjects.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseViewObjects.setLayoutData(fd);
-        
-        txtUpdatedDatabaseViewObjects = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseViewObjects.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseViewObjects.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViewObjects.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
         txtTotalViewConnections.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -586,41 +481,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViewConnections.setLayoutData(fd);
 
-        txtNewModelViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelViewConnections.setEditable(false);
+        txtExportedViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedViewConnections.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelViewConnections.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedViewConnections.setLayoutData(fd);
         
-        txtUpdatedModelViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedModelViewConnections.setEditable(false);
+        txtImportedViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedViewConnections.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedModelViewConnections.setLayoutData(fd);
-        
-        txtNewDatabaseViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseViewConnections.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseViewConnections.setLayoutData(fd);
-        
-        txtUpdatedDatabaseViewConnections = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtUpdatedDatabaseViewConnections.setEditable(false);
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedUpdated, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedUpdated, 0, SWT.RIGHT);
-        txtUpdatedDatabaseViewConnections.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedViewConnections.setLayoutData(fd);
         
         /* * * * * */
         
         txtTotalImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtTotalImages.setText(String.valueOf(exportedModel.getAllImagePaths().size()));
         txtTotalImages.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
@@ -628,231 +508,30 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalImages.setLayoutData(fd);
 
-        txtNewModelImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewModelImages.setEditable(false);
+        txtExportedImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtExportedImages.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblExportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblExportedNew, 0, SWT.RIGHT);
-        txtNewModelImages.setLayoutData(fd);
+        fd.left = new FormAttachment(lblExported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblExported, 0, SWT.RIGHT);
+        txtExportedImages.setLayoutData(fd);
         
-        txtNewDatabaseImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
-        txtNewDatabaseImages.setEditable(false);
+        txtImportedImages = new Text(grpComponents, SWT.BORDER | SWT.CENTER);
+        txtImportedImages.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-        fd.left = new FormAttachment(lblImportedNew, 0, SWT.LEFT);
-        fd.right = new FormAttachment(lblImportedNew, 0, SWT.RIGHT);
-        txtNewDatabaseImages.setLayoutData(fd);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        txtImportedImages.setLayoutData(fd);
     }
 
 	/**
 	 * This method is called each time a database is selected and a connection has been established to it.<br>
 	 * <br>
-	 * It calls the database.checkComponentsToExport() method to compare exported model's components checksum with the one stored in the database and fill in their count in the corresponding labels.<br>
-	 * If no exception is raised, then the "Export" button is enabled.
+	 * It enables the export button and starts the export if the "automatic start" is specified in the plugin preferences
 	 */
 	@Override
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
-		// We get the preference's export behaviour
-		switch ( DBPlugin.INSTANCE.getPreferenceStore().getString("exportBehaviour") ) {
-			case "sync":   exportBehaviour = EXPORT_BEHAVIOUR.syncMode; break;
-			case "master": exportBehaviour = EXPORT_BEHAVIOUR.masterMode; break;
-			default:       exportBehaviour = EXPORT_BEHAVIOUR.collaborativeMode;
-		}
-		
-		// We count the components to export and activate the export button
-		txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
-		txtNewModelElements.setText("");
-		txtUpdatedModelElements.setText("");
-		txtNewDatabaseElements.setText("");
-		txtUpdatedDatabaseElements.setText("");
-
-		txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
-        txtNewModelRelationships.setText("");
-        txtUpdatedModelRelationships.setText("");
-        txtNewDatabaseRelationships.setText("");
-        txtUpdatedDatabaseRelationships.setText("");
-
-		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-        txtNewModelFolders.setText("");
-        txtUpdatedModelFolders.setText("");
-        txtNewDatabaseFolders.setText("");
-        txtUpdatedDatabaseFolders.setText("");
-
-		txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
-        txtNewModelViews.setText("");
-        txtUpdatedModelViews.setText("");
-        txtNewDatabaseViews.setText("");
-        txtUpdatedDatabaseViews.setText("");
-
-		txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
-        txtNewModelViewObjects.setText("");
-        txtUpdatedModelViewObjects.setText("");
-        txtNewDatabaseViewObjects.setText("");
-        txtUpdatedDatabaseViewObjects.setText("");
-
-		txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
-        txtNewModelViewConnections.setText("");
-        txtUpdatedModelViewConnections.setText("");
-        txtNewDatabaseViewConnections.setText("");
-        txtUpdatedDatabaseViewConnections.setText("");
-
-		txtTotalImages.setText(String.valueOf(((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()));
-        txtNewModelImages.setText("");
-        txtNewDatabaseImages.setText("");
-
-		if ( forceCheckDatabase )
-		    setOption(selectedDatabase.getExportWholeModel());
-		
-		if ( DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
-			disableOption();
-		else
-			enableOption();
-
-		if ( forceCheckDatabase ) {
-			try {
-				popup("Checking which components to export ...");
-
-				// we save the name, note and purpose text fields values
-				if ( (tblModelVersions.getItemCount() > 0) && (tblModelVersions.getItem(0).getData("new") != null) ) {
-					tblModelVersions.setData("name", txtModelName.getText());
-					tblModelVersions.setData("note", txtReleaseNote.getText());
-					tblModelVersions.setData("purpose", txtPurpose.getText());
-				}
-
-				if ( !DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
-				    connection.getModelVersions(exportedModel.getId(), tblModelVersions);
-				connection.compareModelFromDatabase(exportedModel, connection.getExportWholeModel());
-
-				closePopup();
-			} catch (Exception err) {
-				closePopup();
-				popup(Level.FATAL, "Failed to check existing components in database", err);
-				setActiveAction(STATUS.Error);
-				return;
-			}
-		}
-
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllElements().size()+" elements in the model : "+connection.getCountIdenticalElements()+" identical, "+connection.getCountNewerElements()+" newer, "+connection.getCountOlderElements()+" older, "+connection.getCountConflictingElements()+" conflicting.");			
-		txtNewModelElements.setText(String.valueOf(connection.getCountNewModelElements()));				  txtNewModelElements.setData("value", connection.getCountNewModelElements());
-		txtUpdatedModelElements.setText(String.valueOf(connection.getCountUpdatedModelElements()));       txtUpdatedModelElements.setData("value", connection.getCountUpdatedModelElements());
-	    txtNewDatabaseElements.setText(String.valueOf(connection.getCountNewDatabaseElements()));         txtNewDatabaseElements.setData("value", connection.getCountNewDatabaseElements());
-	    txtUpdatedDatabaseElements.setText(String.valueOf(connection.getCountUpdatedDatabaseElements())); txtUpdatedDatabaseElements.setData("value", connection.getCountUpdatedDatabaseElements());
-
-		if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllRelationships().size()+" Relationships in the model : "+connection.getCountIdenticalRelationships()+" identical, "+connection.getCountNewerRelationships()+" newer, "+connection.getCountOlderRelationships()+" older, "+connection.getCountConflictingRelationships()+" conflicting.");			
-        txtNewModelRelationships.setText(String.valueOf(connection.getCountNewModelRelationships()));               txtNewModelRelationships.setData("value", connection.getCountNewModelRelationships());
-        txtUpdatedModelRelationships.setText(String.valueOf(connection.getCountUpdatedModelRelationships()));       txtUpdatedModelRelationships.setData("value", connection.getCountUpdatedModelRelationships());
-        txtNewDatabaseRelationships.setText(String.valueOf(connection.getCountNewDatabaseRelationships()));         txtNewDatabaseRelationships.setData("value", connection.getCountNewDatabaseRelationships());
-        txtUpdatedDatabaseRelationships.setText(String.valueOf(connection.getCountUpdatedDatabaseRelationships())); txtUpdatedDatabaseRelationships.setData("value", connection.getCountUpdatedDatabaseRelationships());
-
-		txtTotalFolders.setVisible(connection.getExportWholeModel());
-		txtNewerFolders.setVisible(connection.getExportWholeModel());
-		txtOlderFolders.setVisible(connection.getExportWholeModel());
-		txtConflictingFolders.setVisible(connection.getExportWholeModel());
-
-		txtTotalViews.setVisible(connection.getExportWholeModel());
-		txtNewerViews.setVisible(connection.getExportWholeModel());
-		txtOlderViews.setVisible(connection.getExportWholeModel());
-		txtConflictingViews.setVisible(connection.getExportWholeModel());
-
-		txtTotalViewObjects.setVisible(connection.getExportWholeModel());
-		txtNewerViewObjects.setVisible(connection.getExportWholeModel());
-		txtOlderViewObjects.setVisible(connection.getExportWholeModel());
-		txtConflictingViewObjects.setVisible(connection.getExportWholeModel());
-		
-		txtTotalViewConnections.setVisible(connection.getExportWholeModel());
-		txtIdenticalViewConnections.setVisible(connection.getExportWholeModel());
-		txtNewerViewConnections.setVisible(connection.getExportWholeModel());
-		txtOlderViewConnections.setVisible(connection.getExportWholeModel());
-		txtConflictingViewConnections.setVisible(connection.getExportWholeModel());
-
-		txtTotalImages.setVisible(connection.getExportWholeModel());
-		txtIdenticalImages.setVisible(connection.getExportWholeModel());
-		txtNewerImages.setVisible(connection.getExportWholeModel());
-		txtOlderImages.setVisible(connection.getExportWholeModel());
-		txtConflictingImages.setVisible(connection.getExportWholeModel());
-
-		if ( connection.getExportWholeModel() ) {
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllFolders().size()+" Folders in the model : "+connection.getCountIdenticalFolders()+" identical, "+connection.getCountNewerFolders()+" newer, "+connection.getCountOlderFolders()+" older, "+connection.getCountConflictingFolders()+" conflicting.");			
-			txtIdenticalFolders.setText(String.valueOf(connection.getCountIdenticalFolders()));			txtIdenticalFolders.setData("value", connection.getCountIdenticalFolders());
-			txtNewerFolders.setText(String.valueOf(connection.getCountNewerFolders()));					txtNewerFolders.setData("value", connection.getCountNewerFolders());
-			txtOlderFolders.setText(String.valueOf(connection.getCountOlderFolders()));					txtOlderFolders.setData("value", connection.getCountOlderFolders());
-			txtConflictingFolders.setText(String.valueOf(connection.getCountConflictingFolders()));		txtConflictingFolders.setData("value", connection.getCountConflictingFolders());
-
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViews().size()+" Views in the model : "+connection.getCountIdenticalViews()+" identical, "+connection.getCountNewerViews()+" newer, "+connection.getCountOlderViews()+" older, "+connection.getCountConflictingViews()+" conflicting.");			
-			txtIdenticalViews.setText(String.valueOf(connection.getCountIdenticalViews()));			txtIdenticalViews.setData("value", connection.getCountIdenticalViews());
-			txtNewerViews.setText(String.valueOf(connection.getCountNewerViews()));					txtNewerViews.setData("value", connection.getCountNewerViews());
-			txtOlderViews.setText(String.valueOf(connection.getCountOlderViews()));					txtOlderViews.setData("value", connection.getCountOlderViews());
-			txtConflictingViews.setText(String.valueOf(connection.getCountConflictingViews()));		txtConflictingViews.setData("value", connection.getCountConflictingViews());
-			
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewObjects().size()+" ViewObjects in the model : "+connection.getCountIdenticalViewObjects()+" identical, "+connection.getCountNewerViewObjects()+" newer, "+connection.getCountOlderViewObjects()+" older, "+connection.getCountConflictingViewObjects()+" conflicting.");			
-			txtIdenticalViewObjects.setText(String.valueOf(connection.getCountIdenticalViewObjects()));			txtIdenticalViewObjects.setData("value", connection.getCountIdenticalViewObjects());
-			txtNewerViewObjects.setText(String.valueOf(connection.getCountNewerViewObjects()));					txtNewerViewObjects.setData("value", connection.getCountNewerViewObjects());
-			txtOlderViewObjects.setText(String.valueOf(connection.getCountOlderViewObjects()));					txtOlderViewObjects.setData("value", connection.getCountOlderViewObjects());
-			txtConflictingViewObjects.setText(String.valueOf(connection.getCountConflictingViewObjects()));		txtConflictingViewObjects.setData("value", connection.getCountConflictingViewObjects());
-
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllViewConnections().size()+" ViewConnections in the model : "+connection.getCountIdenticalViewConnections()+" identical, "+connection.getCountNewerViewConnections()+" newer, "+connection.getCountOlderViewConnections()+" older, "+connection.getCountConflictingViewConnections()+" conflicting.");			
-			txtIdenticalViewConnections.setText(String.valueOf(connection.getCountIdenticalViewConnections()));			txtIdenticalViewConnections.setData("value", connection.getCountIdenticalViewConnections());
-			txtNewerViewConnections.setText(String.valueOf(connection.getCountNewerViewConnections()));					txtNewerViewConnections.setData("value", connection.getCountNewerViewConnections());
-			txtOlderViewConnections.setText(String.valueOf(connection.getCountOlderViewConnections()));					txtOlderViewConnections.setData("value", connection.getCountOlderViewConnections());
-			txtConflictingViewConnections.setText(String.valueOf(connection.getCountConflictingViewConnections()));		txtConflictingViewConnections.setData("value", connection.getCountConflictingViewConnections());
-
-			if ( logger.isDebugEnabled() ) logger.debug(exportedModel.getAllImagePaths().size()+" Images in the model : "+connection.getCountIdenticalImages()+" identical, "+connection.getCountNewerImages()+" newer, "+connection.getCountOlderImages()+" older, "+connection.getCountConflictingImages()+" conflicting.");			
-			txtIdenticalImages.setText(String.valueOf(connection.getCountIdenticalImages()));			txtIdenticalImages.setData("value", connection.getCountIdenticalImages());
-			txtNewerImages.setText(String.valueOf(connection.getCountNewerImages()));					txtNewerImages.setData("value", connection.getCountNewerImages());
-			txtOlderImages.setText(String.valueOf(connection.getCountOlderImages()));					txtOlderImages.setData("value", connection.getCountOlderImages());
-			txtConflictingImages.setText(String.valueOf(connection.getCountConflictingImages()));		txtConflictingImages.setData("value", connection.getCountConflictingImages());
-
-			//TableItem tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
-			// we replace the line "Now" by "Not created yet"
-			TableItem tableItem;
-			if ( tblModelVersions.getItemCount() == 0 ) {
-				tableItem = new TableItem(tblModelVersions, SWT.BOLD, 0);
-				tableItem.setText(0, "1");
-			} else {
-				tableItem = tblModelVersions.getItem(0);
-				tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
-				tableItem.setText(0, (tblModelVersions.getItemCount()>1 ? String.valueOf(Integer.valueOf(tblModelVersions.getItem(1).getText(0))+1) : "1"));
-			}
-			tableItem.setText(1, "(not created yet)");
-			tableItem.setText(2, System.getProperty("user.name"));
-			tableItem.setFont(JFaceResources.getFontRegistry().getBold(tableItem.getFont(0).toString()));
-			tableItem.setData("new", true);
-			tableItem.setData("name", (tblModelVersions.getData("name")!=null ? tblModelVersions.getData("name") : exportedModel.getName()));
-			tableItem.setData("note", (tblModelVersions.getData("note")!=null ? tblModelVersions.getData("note") : ""));
-			tableItem.setData("purpose", (tblModelVersions.getData("purpose")!=null ? tblModelVersions.getData("purpose") : exportedModel.getPurpose()));
-		} else if ( (tblModelVersions.getItemCount() > 0) && (tblModelVersions.getItem(0).getData("new") != null) ) {
-			tblModelVersions.setData("name", txtModelName.getText());
-			tblModelVersions.setData("note", txtReleaseNote.getText());
-			tblModelVersions.setData("purpose", txtPurpose.getText());			
-			tblModelVersions.remove(0);
-			
-			txtModelName.setText("");
-			txtModelName.setEnabled(false);
-			
-			txtReleaseNote.setText("");
-			txtReleaseNote.setEnabled(false);
-			
-			txtPurpose.setText("");
-			txtPurpose.setEnabled(false);
-		}
-		if ( tblModelVersions.getItemCount() > 0 ) {
-			tblModelVersions.setSelection(0);
-			tblModelVersions.notifyListeners(SWT.Selection, new Event());
-		}
-
-		if ( 	(connection.getCountIdenticalElements() == exportedModel.getAllElements().size()) &&
-				(connection.getCountIdenticalRelationships() == exportedModel.getAllRelationships().size()) &&
-				(connection.getCountIdenticalFolders() == exportedModel.getAllFolders().size()) &&
-				(connection.getCountIdenticalViews() == exportedModel.getAllViews().size()) &&
-				(connection.getCountIdenticalViewObjects() == exportedModel.getAllViewObjects().size()) &&
-				(connection.getCountIdenticalViewConnections() == exportedModel.getAllViewConnections().size()) &&
-				(connection.getCountIdenticalImages() == exportedModel.getAllImagePaths().size()) ) {
-			popup(Level.INFO, "The model is already sync'ed to the database and doesn't need to be exported.");
-			btnDoAction.setEnabled(false);
-			return;
-		}
-
 		if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");;
 		btnDoAction.setEnabled(true);
 		
@@ -862,56 +541,6 @@ public class DBGuiExportModel extends DBGui {
 		}
 	}
 
-	/**
-	 * Empties the labels showing the number of components equals or different from their database values.<br>
-	 * <br>
-	 * This method is called each time a database is selected and a connection failed to be established to it.
-	 */
-	@Override
-	protected void notConnectedToDatabase() {
-		txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
-		txtIdenticalElements.setText("");
-		txtNewerElements.setText("");
-		txtOlderElements.setText("");
-		txtConflictingElements.setText("");
-
-		txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
-		txtIdenticalRelationships.setText("");
-		txtNewerRelationships.setText("");
-		txtOlderRelationships.setText("");
-		txtConflictingRelationships.setText("");
-
-		txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
-		txtIdenticalFolders.setText("");
-		txtNewerFolders.setText("");
-		txtOlderFolders.setText("");
-		txtConflictingFolders.setText("");
-
-		txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
-		txtIdenticalViews.setText("");
-		txtNewerViews.setText("");
-		txtOlderViews.setText("");
-		txtConflictingViews.setText("");
-
-		txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
-		txtIdenticalViewObjects.setText("");
-		txtNewerViewObjects.setText("");
-		txtOlderViewObjects.setText("");
-		txtConflictingViewObjects.setText("");
-
-		txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
-		txtIdenticalViewConnections.setText("");
-		txtNewerViewConnections.setText("");
-		txtOlderViewConnections.setText("");
-		txtConflictingViewConnections.setText("");
-
-		txtTotalImages.setText(String.valueOf(((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()));
-		txtIdenticalImages.setText("");
-		txtNewerImages.setText("");
-		txtOlderImages.setText("");
-		txtConflictingImages.setText("");
-	}
-	
 	/**
 	 * Loop on model components and call doExportEObject to export them<br>
 	 * <br>
@@ -1567,44 +1196,32 @@ public class DBGuiExportModel extends DBGui {
 	private Text txtReleaseNote;
 
     private Text txtTotalElements;
-    private Text txtNewModelElements;
-    private Text txtUpdatedModelElements;
-    private Text txtNewDatabaseElements;
-    private Text txtUpdatedDatabaseElements;
+    private Text txtExportedElements;
+    private Text txtImportedElements;
 
     private Text txtTotalRelationships;
-    private Text txtNewModelRelationships;
-    private Text txtUpdatedModelRelationships;
-    private Text txtNewDatabaseRelationships;
-    private Text txtUpdatedDatabaseRelationships;
+    private Text txtExportedRelationships;
+    private Text txtImportedRelationships;
 
     private Text txtTotalFolders;
-    private Text txtNewModelFolders;
-    private Text txtUpdatedModelFolders;
-    private Text txtNewDatabaseFolders;
-    private Text txtUpdatedDatabaseFolders;
+    private Text txtExportedFolders;
+    private Text txtImportedFolders;
 
     private Text txtTotalViews;
-    private Text txtNewModelViews;
-    private Text txtUpdatedModelViews;
-    private Text txtNewDatabaseViews;
-    private Text txtUpdatedDatabaseViews;
+    private Text txtExportedViews;
+    private Text txtImportedViews;
 
     private Text txtTotalViewObjects;
-    private Text txtNewModelViewObjects;
-    private Text txtUpdatedModelViewObjects;
-    private Text txtNewDatabaseViewObjects;
-    private Text txtUpdatedDatabaseViewObjects;
+    private Text txtExportedViewObjects;
+    private Text txtImportedViewObjects;
 
     private Text txtTotalViewConnections;
-    private Text txtNewModelViewConnections;
-    private Text txtUpdatedModelViewConnections;
-    private Text txtNewDatabaseViewConnections;
-    private Text txtUpdatedDatabaseViewConnections;
+    private Text txtExportedViewConnections;
+    private Text txtImportedViewConnections;
     
     private Text txtTotalImages;
-    private Text txtNewModelImages;
-    private Text txtNewDatabaseImages;
+    private Text txtExportedImages;
+    private Text txtImportedImages;
 
 	private Table tblModelVersions;
 	private Text txtModelName;
