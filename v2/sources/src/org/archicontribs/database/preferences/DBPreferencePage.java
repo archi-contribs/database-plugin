@@ -47,7 +47,6 @@ import org.eclipse.ui.IWorkbench;
 public class DBPreferencePage extends FieldEditorPreferencePage	implements IWorkbenchPreferencePage {
 	private static String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
 	private static String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
-	public static enum EXPORT_BEHAVIOUR {collaborativeMode, syncMode, masterMode};
 	
 	private static String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
 	
@@ -70,7 +69,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnDeleteIfImportError;
 	private Button btnImportShared;
 	private Button btnShowIdInContextMenu;
-	private Button btnCollaborativeMode;
+	
+	private Button btnStandardMode;
 	private Button btnSyncMode;
 	private Button btnMasterMode;
 	
@@ -325,29 +325,29 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
 		Label lblBehaviour = new Label(grpBehaviour, SWT.NONE);
 		lblBehaviour.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblBehaviour.setText("In case the database is used by several people, please choose how the the export procedure should behave:");
+		lblBehaviour.setText("In case the database is used by several people, please choose how the export procedure should behave:");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 10);
 		lblBehaviour.setLayoutData(fd);
 		
-		btnCollaborativeMode = new Button(grpBehaviour, SWT.RADIO);
-		btnCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnCollaborativeMode.setText(" Collaborative mode");
-		btnCollaborativeMode.setFont(DBGui.BOLD_FONT);
-		btnCollaborativeMode.setSelection(preferenceStore.getString("exportBehaviour").isEmpty() || preferenceStore.getString("exportBehaviour").equals("collaborative"));
+		btnStandardMode = new Button(grpBehaviour, SWT.RADIO);
+		btnStandardMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnStandardMode.setText(" Standard mode");
+		btnStandardMode.setFont(DBGui.BOLD_FONT);
+		btnStandardMode.setSelection(preferenceStore.getString("exportBehaviour").isEmpty() || preferenceStore.getString("exportBehaviour").equals("standard"));
 		fd = new FormData();
 		fd.top = new FormAttachment(lblBehaviour, 10);
 		fd.left = new FormAttachment(0, 10);
-		btnCollaborativeMode.setLayoutData(fd);
+		btnStandardMode.setLayoutData(fd);
 		
-		Label lblCollaborativeMode = new Label(grpBehaviour, SWT.WRAP);
-		lblCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblCollaborativeMode.setText("This mode is the quickest way to export your model to the database:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be ignored,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
+		Label lblStandardMode = new Label(grpBehaviour, SWT.WRAP);
+		lblStandardMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblStandardMode.setText("This mode is the quickest way to export your model to the database:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be ignored,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
 		fd = new FormData();
-		fd.top = new FormAttachment(btnCollaborativeMode, 5);
+		fd.top = new FormAttachment(btnStandardMode, 5);
 		fd.left = new FormAttachment(0, 26);
-		lblCollaborativeMode.setLayoutData(fd);
+		lblStandardMode.setLayoutData(fd);
 
 		btnSyncMode = new Button(grpBehaviour, SWT.RADIO);
 		btnSyncMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -355,7 +355,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		btnSyncMode.setFont(DBGui.BOLD_FONT);
 		btnSyncMode.setSelection(preferenceStore.getString("exportBehaviour").equals("sync"));
 		fd = new FormData();
-		fd.top = new FormAttachment(lblCollaborativeMode, 15);
+		fd.top = new FormAttachment(lblStandardMode, 15);
 		fd.left = new FormAttachment(0, 10);
 		btnSyncMode.setLayoutData(fd);
 		
@@ -516,7 +516,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
     	preferenceStore.setValue("importShared", btnImportShared.getSelection());
-    	preferenceStore.setValue("exportBehaviour", btnCollaborativeMode.getSelection() ? "collaborative" : (btnSyncMode.getSelection() ? "sync" : "master"));
+    	preferenceStore.setValue("exportBehaviour", btnStandardMode.getSelection() ? "standard" : (btnSyncMode.getSelection() ? "sync" : "master"));
     	table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
