@@ -270,6 +270,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("importShared",            false);
 		preferenceStore.setDefault("removeDirtyFlag",         false);
 		preferenceStore.setDefault("showIdInContextMenu",     false);
+		preferenceStore.setDefault("exportBehaviour",         "standard");
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
