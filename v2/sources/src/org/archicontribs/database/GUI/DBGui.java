@@ -1037,15 +1037,15 @@ public class DBGui {
 	        tree.removeAll();
 	        refreshDisplay();
         
-	        addItemToCompareTable(tree, treeItem, "Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion()), String.valueOf(databaseObject.get("version")));
+	        addItemToCompareTable(tree, treeItem, "Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getCurrentVersion().getVersion()), String.valueOf(databaseObject.get("version")));
         
             if ( (String)databaseObject.get("created_by") != null ) {
-                addItemToCompareTable(tree, treeItem, "Created by", ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseCreatedBy(), (String)databaseObject.get("created_by"));
+                addItemToCompareTable(tree, treeItem, "Username", System.getProperty("user.name"), (String)databaseObject.get("created_by"));
             }
         
             if ( databaseObject.get("created_on") != null ) {
-                if ( ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseCreatedOn() != null )
-                    addItemToCompareTable(tree, treeItem, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getDatabaseCreatedOn().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
+                if ( ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp() != null )
+                    addItemToCompareTable(tree, treeItem, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
                 else
                     addItemToCompareTable(tree, treeItem, "Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
             }
@@ -1217,7 +1217,7 @@ public class DBGui {
 			}
 		}
 		
-	    addItemToCompareTable(tree, treeItem, "Checksum", memoryObject==null ? null : ((IDBMetadata)memoryObject).getDBMetadata().getCurrentChecksum(), (String)databaseObject.get("checksum"));
+	    addItemToCompareTable(tree, treeItem, "Checksum", memoryObject==null ? null : ((IDBMetadata)memoryObject).getDBMetadata().getCurrentVersion().getChecksum(), (String)databaseObject.get("checksum"));
 		
 		// we show up the children if both exist
 		if ( memoryObject != null && databaseObject.containsKey("children") ) {
