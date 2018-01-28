@@ -15,19 +15,18 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.DBVersion;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
-import org.archicontribs.database.preferences.DBPreferencePage.EXPORT_BEHAVIOUR;
 import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
-import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -67,9 +66,8 @@ public class DBGuiExportModel extends DBGui {
 	private Group grpComponents;
 	private Group grpModelVersions;
 	
-	@SuppressWarnings("unused")
-	private EXPORT_BEHAVIOUR exportBehaviour;
-
+	HashMap<String, DBVersion> newDatabaseComponents;
+	
 	/**
 	 * Creates the GUI to export components and model
 	 */
@@ -185,7 +183,7 @@ public class DBGuiExportModel extends DBGui {
 		lblModelName.setLayoutData(fd);
 
 		txtModelName = new Text(grpModelVersions, SWT.BORDER);
-		//txtModelName.setBackground(GROUP_BACKGROUND_COLOR);
+		txtModelName.setText(exportedModel.getName());
 		txtModelName.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblModelName, 0, SWT.CENTER);
@@ -202,7 +200,7 @@ public class DBGuiExportModel extends DBGui {
 		lblPurpose.setLayoutData(fd);
 
 		txtPurpose = new Text(grpModelVersions, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
-		//txtPurpose.setBackground(GROUP_BACKGROUND_COLOR);
+		txtPurpose.setText(exportedModel.getPurpose());
 		txtPurpose.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(txtModelName, 5);
@@ -326,7 +324,7 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(80, -10);
         lblExported.setLayoutData(fd);
         
-        Label lblImported = new Label(grpComponents, SWT.CENTER);
+        lblImported = new Label(grpComponents, SWT.CENTER);
         lblImported.setBackground(GROUP_BACKGROUND_COLOR);
         lblImported.setText("Imported");
         fd = new FormData();
@@ -341,7 +339,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalElements.setText(String.valueOf(exportedModel.getAllElements().size()));
         txtTotalElements.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalElements.setLayoutData(fd);
@@ -368,7 +366,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalRelationships.setText(String.valueOf(exportedModel.getAllRelationships().size()));
         txtTotalRelationships.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalRelationships.setLayoutData(fd);
@@ -395,7 +393,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalFolders.setText(String.valueOf(exportedModel.getAllFolders().size()));
         txtTotalFolders.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalFolders.setLayoutData(fd);
@@ -422,7 +420,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalViews.setText(String.valueOf(exportedModel.getAllViews().size()));
         txtTotalViews.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViews.setLayoutData(fd);
@@ -449,7 +447,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalViewObjects.setText(String.valueOf(exportedModel.getAllViewObjects().size()));
         txtTotalViewObjects.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViewObjects.setLayoutData(fd);
@@ -476,7 +474,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalViewConnections.setText(String.valueOf(exportedModel.getAllViewConnections().size()));
         txtTotalViewConnections.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalViewConnections.setLayoutData(fd);
@@ -503,7 +501,7 @@ public class DBGuiExportModel extends DBGui {
         txtTotalImages.setText(String.valueOf(exportedModel.getAllImagePaths().size()));
         txtTotalImages.setEditable(false);
         fd = new FormData(26,18);
-        fd.top = new FormAttachment(lblTotal, 0, SWT.CENTER);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
         txtTotalImages.setLayoutData(fd);
@@ -532,13 +530,56 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	@Override
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
-		if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");;
+		if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
 		btnDoAction.setEnabled(true);
 		
+		// we hide or show the import column depending if we are standalone or collaborative mode
+		lblImported.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedElements.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedRelationships.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedFolders.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViews.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViewObjects.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViewConnections.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedImages.setVisible(selectedDatabase.getCollaborativeMode());
+		
+		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
+		try {
+			if ( !DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") )
+				connection.getModelVersions(exportedModel.getId(), tblModelVersions);
+		} catch (Exception err) {
+			closePopup();
+			popup(Level.FATAL, "Failed to check existing components in database", err);
+			setActiveAction(STATUS.Error);
+			return;
+		}
+		
+		// if the exportWithDefaultValues preference is set, then we automatically start the export
 		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("exportWithDefaultValues") ) {
 			logger.debug("Automatically start export as specified in preferences.");
 			btnDoAction.notifyListeners(SWT.Selection, new Event());
 		}
+	}
+	
+	/**
+	 * This method is called each time a connection to the database fails.<br>
+	 * <br>
+	 * It disables the export button
+	 */
+	@Override
+	protected void notConnectedToDatabase() {
+		if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
+		btnDoAction.setEnabled(true);
+		
+		// we hide or show the import column depending if we are standalone or collaborative mode
+		lblImported.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedElements.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedRelationships.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedFolders.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViews.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViewObjects.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedViewConnections.setVisible(selectedDatabase.getCollaborativeMode());
+		txtImportedImages.setVisible(selectedDatabase.getCollaborativeMode());
 	}
 
 	/**
@@ -556,44 +597,6 @@ public class DBGuiExportModel extends DBGui {
 			progressBarWidth = exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size();
 		}
 		
-		// we reset the counters because they may have been changed (in case of conflict for instance)
-		connection.setCountIdenticalElements((int)txtIdenticalElements.getData("value"));					txtIdenticalElements.setText(String.valueOf((int)txtIdenticalElements.getData("value")));
-		connection.setCountNewerElements((int)txtNewerElements.getData("value"));							txtNewerElements.setText(String.valueOf((int)txtNewerElements.getData("value")));
-		connection.setCountOlderElements((int)txtOlderElements.getData("value"));							txtOlderElements.setText(String.valueOf((int)txtOlderElements.getData("value")));
-		connection.setCountConflictingElements((int)txtConflictingElements.getData("value"));				txtOlderElements.setText(String.valueOf((int)txtConflictingElements.getData("value")));
-
-		connection.setCountIdenticalRelationships((int)txtIdenticalRelationships.getData("value"));			txtIdenticalRelationships.setText(String.valueOf((int)txtIdenticalRelationships.getData("value")));
-		connection.setCountNewerRelationships((int)txtNewerRelationships.getData("value"));					txtNewerRelationships.setText(String.valueOf((int)txtNewerRelationships.getData("value")));
-		connection.setCountOlderRelationships((int)txtOlderRelationships.getData("value"));					txtOlderRelationships.setText(String.valueOf((int)txtOlderRelationships.getData("value")));
-		connection.setCountConflictingRelationships((int)txtConflictingRelationships.getData("value"));		txtOlderRelationships.setText(String.valueOf((int)txtConflictingRelationships.getData("value")));
-
-		if ( connection.getExportWholeModel() ) {
-			connection.setCountIdenticalFolders((int)txtIdenticalFolders.getData("value"));					txtIdenticalFolders.setText(String.valueOf((int)txtIdenticalFolders.getData("value")));
-			connection.setCountNewerFolders((int)txtNewerFolders.getData("value"));							txtNewerFolders.setText(String.valueOf((int)txtNewerFolders.getData("value")));
-			connection.setCountOlderFolders((int)txtOlderFolders.getData("value"));							txtOlderFolders.setText(String.valueOf((int)txtOlderFolders.getData("value")));
-			connection.setCountConflictingFolders((int)txtConflictingFolders.getData("value"));				txtOlderFolders.setText(String.valueOf((int)txtConflictingFolders.getData("value")));
-
-			connection.setCountIdenticalViews((int)txtIdenticalViews.getData("value"));						txtIdenticalViews.setText(String.valueOf((int)txtIdenticalViews.getData("value")));
-			connection.setCountNewerViews((int)txtNewerViews.getData("value"));								txtNewerViews.setText(String.valueOf((int)txtNewerViews.getData("value")));
-			connection.setCountOlderViews((int)txtOlderViews.getData("value"));								txtOlderViews.setText(String.valueOf((int)txtOlderViews.getData("value")));
-			connection.setCountConflictingViews((int)txtConflictingViews.getData("value"));					txtOlderViews.setText(String.valueOf((int)txtConflictingViews.getData("value")));
-
-			connection.setCountIdenticalViewObjects((int)txtIdenticalViewObjects.getData("value"));				txtIdenticalViewObjects.setText(String.valueOf((int)txtIdenticalViewObjects.getData("value")));
-			connection.setCountNewerViewObjects((int)txtNewerViewObjects.getData("value"));						txtNewerViewObjects.setText(String.valueOf((int)txtNewerViewObjects.getData("value")));
-			connection.setCountOlderViewObjects((int)txtOlderViewObjects.getData("value"));						txtOlderViewObjects.setText(String.valueOf((int)txtOlderViewObjects.getData("value")));
-			connection.setCountConflictingViewObjects((int)txtConflictingViewObjects.getData("value"));			txtOlderViewObjects.setText(String.valueOf((int)txtConflictingViewObjects.getData("value")));
-
-			connection.setCountIdenticalViewConnections((int)txtIdenticalViewConnections.getData("value"));		txtIdenticalViewConnections.setText(String.valueOf((int)txtIdenticalViewConnections.getData("value")));
-			connection.setCountNewerViewConnections((int)txtNewerViewConnections.getData("value"));				txtNewerViewConnections.setText(String.valueOf((int)txtNewerViewConnections.getData("value")));
-			connection.setCountOlderViewConnections((int)txtOlderViewConnections.getData("value"));				txtOlderViewConnections.setText(String.valueOf((int)txtOlderViewConnections.getData("value")));
-			connection.setCountConflictingViewConnections((int)txtConflictingViewConnections.getData("value"));	txtOlderViewConnections.setText(String.valueOf((int)txtConflictingViewConnections.getData("value")));
-
-			connection.setCountIdenticalImages((int)txtIdenticalImages.getData("value"));						txtIdenticalImages.setText(String.valueOf((int)txtIdenticalImages.getData("value")));
-			connection.setCountNewerImages((int)txtNewerImages.getData("value"));								txtNewerImages.setText(String.valueOf((int)txtNewerImages.getData("value")));
-			connection.setCountOlderImages((int)txtOlderImages.getData("value"));								txtOlderImages.setText(String.valueOf((int)txtOlderImages.getData("value")));
-			connection.setCountConflictingImages((int)txtConflictingImages.getData("value"));					txtOlderImages.setText(String.valueOf((int)txtConflictingImages.getData("value")));
-		}
-
 		// we disable the export button to avoid a second click
 		btnDoAction.setEnabled(false);
 
@@ -609,15 +612,6 @@ public class DBGuiExportModel extends DBGui {
 		grpComponents.setVisible(true);
 		grpModelVersions.setVisible(true);
 		
-		// we change the "identical" text fields to black
-		txtIdenticalElements.setForeground(BLACK_COLOR);
-		txtIdenticalRelationships.setForeground(BLACK_COLOR);
-		txtIdenticalFolders.setForeground(BLACK_COLOR);
-		txtIdenticalViews.setForeground(BLACK_COLOR);
-		txtIdenticalViewObjects.setForeground(BLACK_COLOR);
-		txtIdenticalViewConnections.setForeground(BLACK_COLOR);
-		txtIdenticalImages.setForeground(BLACK_COLOR);
-
 		// We show up a small arrow in front of the second action "export components"
         setActiveAction(STATUS.Ok);
         setActiveAction(ACTION.Two);
@@ -633,50 +627,67 @@ public class DBGuiExportModel extends DBGui {
 		} catch (SQLException err ) {
 			popup(Level.FATAL, "Failed to create a transaction in the database.", err);
 			setActiveAction(STATUS.Error);
-			doShowResult(err);
+			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 			return;
 		}
-
-		// we export the components
-
-			
+		
 		try {
-			// if we need to save the model
+			newDatabaseComponents = connection.getVersionsFromDatabase(exportedModel, 0);
+		} catch (SQLException err ) {
+			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+			setActiveAction(STATUS.Error);
+			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+			return;
+		}
+		
+		txtExportedElements.setText("0");		txtImportedElements.setText("0");
+		txtExportedRelationships.setText("0");	txtImportedRelationships.setText("0");
+		txtExportedFolders.setText("0");		txtImportedFolders.setText("0");
+		txtExportedViews.setText("0");			txtImportedViews.setText("0");
+		txtExportedViewObjects.setText("0");	txtImportedViewObjects.setText("0");
+		txtExportedViewConnections.setText("0");txtImportedViewConnections.setText("0");
+		txtExportedImages.setText("0");			txtImportedImages.setText("0");
+		
+		// we export the components
+		try {
+			// if we need to save the whole model (i.e. not only the elements and the relationships) 
 			if ( connection.getExportWholeModel() ) {
+				// we calculate the model's checksum
+				exportedModel.setCurrentChecksum(DBChecksum.calculateChecksum(exportedModel, txtReleaseNote.getText()));
+				
 				// we retrieve the latest version of the model in the database and increase the version number.
-			    exportedModel.setExportedVersion(connection.getLatestModelVersion(exportedModel) + 1);
-	
-				// just in case
+				exportedModel.setExportedVersion(exportedModel.getDatabaseVersion() + 1);
+			    
+				// We update the model name and purpose in case they've been changed in the export windows
 				if ( !DBPlugin.areEqual(exportedModel.getName(), txtModelName.getText()) )
 					exportedModel.setName(txtModelName.getText());
-	
+
 				if ( !DBPlugin.areEqual(exportedModel.getPurpose(), txtPurpose.getText()) )
 					exportedModel.setPurpose(txtPurpose.getText());
-	
+
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
 				connection.exportModel(exportedModel, txtReleaseNote.getText());
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 				Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
-					doExportEObject(foldersIterator.next().getValue(), txtIdenticalFolders, txtNewerFolders, txtOlderFolders);
+					doExportEObject(foldersIterator.next().getValue(), txtExportedFolders, txtImportedFolders);
 				}
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
-				doExportEObject(elementsIterator.next().getValue(), txtIdenticalElements, txtNewerElements, txtOlderElements);
+				doExportEObject(elementsIterator.next().getValue(), txtExportedElements, txtImportedElements);
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
-				doExportEObject(relationshipsIterator.next().getValue(), txtIdenticalRelationships, txtNewerRelationships, txtOlderRelationships);
+				doExportEObject(relationshipsIterator.next().getValue(), txtExportedRelationships, txtImportedRelationships);
 			}
 	
 			if ( connection.getExportWholeModel() ) {
-				
 				// we export first all the views in one go in order to check as quickly as possible if there are some conflicts
 				List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
 				
@@ -684,7 +695,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue(); 
-					if ( doExportEObject(view, txtIdenticalViews, txtNewerViews, txtOlderViews) ) {
+					if ( doExportEObject(view, txtExportedViews, txtImportedViews) ) {
 						exportedViews.add(view);
 					}
 				}
@@ -718,33 +729,70 @@ public class DBGuiExportModel extends DBGui {
 					*/
 				}
 			}
-	
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
 			popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
 			try  {
 			    connection.rollback();
-				doShowResult(err);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			} catch (SQLException err2) {
 				popup(Level.FATAL, "The transaction failed to rollback and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
-				doShowResult(err2);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err2.getMessage());
 				return;
 			}
 		}
-
+		
 		if ( logger.isDebugEnabled() ) logger.debug("Found "+tblListConflicts.getItemCount()+" components conflicting with database");
 		if ( tblListConflicts.getItemCount() == 0 ) {
+			// the export is successfull
 			try  {
+				// we check if something has been really exported				
+				if ( connection.getExportWholeModel() ) {
+					if ( txtExportedElements.getText().equals("0") && txtExportedRelationships.getText().equals("0") && txtExportedFolders.getText().equals("0") && txtExportedViews.getText().equals("0") &&
+							exportedModel.getCurrentChecksum().equals(exportedModel.getDatabaseChecksum()) ) {
+						connection.rollback();
+					    connection.setAutoCommit(true);
+						setActiveAction(STATUS.Ok);
+						doShowResult(STATUS.Ok, "The database is already up to date.");
+						return;
+					}
+				}
 			    connection.commit();
 			    connection.setAutoCommit(true);
 				setActiveAction(STATUS.Ok);
-				doShowResult(null);
+				doShowResult(STATUS.Ok, "Export successful");
+				
+				//we copy current checksum to initial checksum
+				Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
+				while ( elementsIterator.hasNext() ) {
+					IDBMetadata obj = (IDBMetadata)elementsIterator.next().getValue();
+					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
+				}
+				
+				Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
+				while ( relationshipsIterator.hasNext() ) {
+					IDBMetadata obj = (IDBMetadata)relationshipsIterator.next().getValue();
+					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
+				}
+				
+				Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
+				while ( foldersIterator.hasNext() ) {
+					IDBMetadata obj = (IDBMetadata)foldersIterator.next().getValue();
+					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
+				}
+				
+				Iterator<Entry<String, IDiagramModel>> viewIterator = exportedModel.getAllViews().entrySet().iterator();
+				while ( viewIterator.hasNext() ) {
+					IDBMetadata obj = (IDBMetadata)viewIterator.next().getValue();
+					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
+				}
+				
 				return;
 			} catch (Exception err) {
 				popup(Level.FATAL, "Failed to commit the transaction. Please check carrefully your database !", err);
 				setActiveAction(STATUS.Error);
-				doShowResult(err);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			}
 		} else {
@@ -755,7 +803,7 @@ public class DBGuiExportModel extends DBGui {
 			} catch (Exception err) {
 				popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefully your database !", err);
 				setActiveAction(STATUS.Error);
-				doShowResult(err);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			}
 		
@@ -765,7 +813,7 @@ public class DBGuiExportModel extends DBGui {
 			} catch (Exception err) {
 				popup(Level.ERROR, "Failed to compare component with its database version.", err);
 				setActiveAction(STATUS.Error);
-				doShowResult(err);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			}
 		}
@@ -774,26 +822,28 @@ public class DBGuiExportModel extends DBGui {
 	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
 		if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
-		doExportEObject(viewObject, txtIdenticalViewObjects, txtNewerViewObjects, txtOlderViewObjects);
+		boolean exported = doExportEObject(viewObject, txtExportedViewObjects, txtImportedViewObjects);
 		
-		if ( viewObject instanceof IConnectable) {
-			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
-				if ( connectionsAlreadyExported.get(source.getId()) == null ) {
-					doExportEObject(source, txtIdenticalViewConnections, txtNewerViewConnections, txtOlderViewConnections);
-					connectionsAlreadyExported.put(source.getId(), source);
+		if ( exported ) {
+			if ( viewObject instanceof IConnectable) {
+				for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
+					if ( connectionsAlreadyExported.get(source.getId()) == null ) {
+						doExportEObject(source, txtExportedViewConnections, txtImportedViewConnections);
+						connectionsAlreadyExported.put(source.getId(), source);
+					}
+				}
+				for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
+					if ( connectionsAlreadyExported.get(target.getId()) == null ) {
+						doExportEObject(target, txtExportedViewConnections, txtImportedViewConnections);
+						connectionsAlreadyExported.put(target.getId(), target);
+					}
 				}
 			}
-			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
-				if ( connectionsAlreadyExported.get(target.getId()) == null ) {
-					doExportEObject(target, txtIdenticalViewConnections, txtNewerViewConnections, txtOlderViewConnections);
-					connectionsAlreadyExported.put(target.getId(), target);
+			
+			if ( viewObject instanceof IDiagramModelContainer ) {
+				for ( IDiagramModelObject child: ((IDiagramModelContainer)viewObject).getChildren() ) {
+					doExportViewObject(child);
 				}
-			}
-		}
-		
-		if ( viewObject instanceof IDiagramModelContainer ) {
-			for ( IDiagramModelObject child: ((IDiagramModelContainer)viewObject).getChildren() ) {
-				doExportViewObject(child);
 			}
 		}
 	}
@@ -805,30 +855,53 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called by the export() method
 	 * @return true if the EObject has been exported, false if it is conflicting
 	 */
-	private boolean doExportEObject(EObject eObjectToExport, Text txtIdentical, Text txtNew, Text txtOlder) throws Exception {
+	private boolean doExportEObject(EObject eObjectToExport, Text txtExported, Text txtImported) throws Exception {
 		assert(eObjectToExport instanceof IDBMetadata);
 		assert(connection != null);
 		
-		//TODO : select the text field concerned BEFORE calling this method
-		
-		boolean status = true;
+		boolean exported = false;
 		try {
-			connection.exportEObject(eObjectToExport);
+			boolean mustExport = true;
+
+			// in Neo4J databases, we export all the elements and all the relationships
+			// but in SQL databases, we do not export components that have not been updated
+			if ( ! DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+				// we do not export components that are in the database with the same checksum
+				if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseChecksum()) )
+					mustExport = false;
+				else {
+					// in collaborative mode, components that are in the database with a different checksum will generate a conflict that will need to be solved manually
+					// but in standalone mode, we change the version to avoid the conflict
+					if ( !selectedDatabase.getCollaborativeMode() )
+						((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion());
+					}
+			}
+				
+			if ( mustExport ) {
+				if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() == 0 ) {
+					// if the component is not in the database, then we reset its version to 1
+					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(1);
+				} else {
+					// else, we calculate it from the initialVersion
+					xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+				}
+					
+				DBVersion dbVersion = versionsInDatabase.get(((IIdentifier)eObjectToExport).getId());
+				if ( dbVersion == null )
+					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(1);
+				else
+					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(dbVersion.getVersion() + 1);
+				connection.exportEObject(eObjectToExport);
+				txtExported.setText(String.valueOf(Integer.valueOf(txtExported.getText())+1));
+				exported = true;
+			}
+			
+			// even if the eObject is not exported (because it is already in the database)
+			// it has to be referenced as beeing part of the model
 			if ( connection.getExportWholeModel() )
 				connection.assignEObjectToModel(eObjectToExport);
-			
-			if ( txtIdentical != null ) {
-				txtIdentical.setText(String.valueOf(Integer.valueOf(txtIdentical.getText())+1));
-				switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getStatus() ) {
-					case conflict:	// should not be here !!!
-					case identical:	// should not be here !!!
-					case newer:		txtNew.setText(String.valueOf(Integer.valueOf(txtNew.getText())-1)); break;
-					case older:		txtOlder.setText(String.valueOf(Integer.valueOf(txtOlder.getText())-1)); break;
-					case unknown:	// should not be here !!!
-				}
-			}
 		} catch (SQLException err) {
-			status = false;
+			exported = false;
 			// if the SQL exception is not linked to a primary key violation, then we escalate the exception
 			// unfortunately, this is constructor dependent
 			// worst, it may change from one driver version to another version
@@ -878,7 +951,7 @@ public class DBGuiExportModel extends DBGui {
 					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setDatabaseVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
 					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.askUser);	// just in case there is a new conflict
-					status = doExportEObject(eObjectToExport, txtIdentical, txtNew, txtOlder);
+					exported = doExportEObject(eObjectToExport, txtExported, txtImported);
 					break;
 				case importFromDatabase :
 					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
@@ -887,11 +960,17 @@ public class DBGuiExportModel extends DBGui {
 			            connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
 			        else
 			            connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+					if ( txtImported != null) {
+						if ( txtImported.getText().isEmpty() )
+							txtImported.setText("1");
+						else
+							txtImported.setText(String.valueOf(Integer.valueOf(txtImported.getText())+1));
+					}
 					break;
 			}
 		}
 		increaseProgressBar();
-		return status;
+		return exported;
 	}
 
 	/**
@@ -1128,7 +1207,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 	}
 
-	protected void doShowResult(Exception err) {
+	protected void doShowResult(STATUS status, String message) {
 		logger.debug("Showing result.");
 		if ( grpProgressBar != null ) grpProgressBar.setVisible(false);
 		if ( grpConflict != null ) grpConflict.setVisible(false);
@@ -1137,48 +1216,31 @@ public class DBGuiExportModel extends DBGui {
 
 		setActiveAction(ACTION.Three);
 		
-		if ( logger.isTraceEnabled() ) {
-		    logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
-		    logger.trace("updated : "+txtOlderElements.getText()+" elements, "+txtOlderRelationships.getText()+" relationships, "+txtOlderFolders.getText()+" folders, "+txtOlderViews.getText()+" views, "+txtOlderViewObjects.getText()+" view objects, "+txtOlderViewConnections.getText()+" view connections.");
-		    logger.trace("new : "+txtNewerElements.getText()+" elements, "+txtNewerRelationships.getText()+" relationships, "+txtNewerFolders.getText()+" folders, "+txtNewerViews.getText()+" views, "+txtNewerViewObjects.getText()+" view objects, "+txtNewerViewConnections.getText()+" view connections.");
-		}
-
-		Color statusColor = GREEN_COLOR;
-		txtIdenticalElements.setForeground( DBPlugin.areEqual(txtIdenticalElements.getText(), txtTotalElements.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-		txtIdenticalRelationships.setForeground( DBPlugin.areEqual(txtIdenticalRelationships.getText(), txtTotalRelationships.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-		if ( connection.getExportWholeModel() ) {
-			txtIdenticalFolders.setForeground( DBPlugin.areEqual(txtIdenticalFolders.getText(), txtTotalFolders.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtIdenticalViews.setForeground( DBPlugin.areEqual(txtIdenticalViews.getText(), txtTotalViews.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtIdenticalViewObjects.setForeground( DBPlugin.areEqual(txtIdenticalViewObjects.getText(), txtTotalViewObjects.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtIdenticalViewConnections.setForeground( DBPlugin.areEqual(txtIdenticalViewConnections.getText(), txtTotalViewConnections.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-			txtIdenticalImages.setForeground( DBPlugin.areEqual(txtIdenticalImages.getText(), txtTotalImages.getText()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-		}
+		if ( logger.isTraceEnabled() ) logger.trace("Model : "+txtTotalElements.getText()+" elements, "+txtTotalRelationships.getText()+" relationships, "+txtTotalFolders.getText()+" folders, "+txtTotalViews.getText()+" views, "+txtTotalViewObjects.getText()+" view objects, "+txtTotalViewConnections.getText()+" view connections.");
 		
-		refreshDisplay();
-		
-		if ( err == null ) {
-			if ( statusColor == GREEN_COLOR ) {
-				setMessage("Export successful", statusColor);
-				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
-					if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
-				    close();
-				    return;
-				}
-				if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
-				    if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
-				    CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
-				    stack.markSaveLocation();
-				}
-			} else {
-				// if some counters are different from the expected values
-				setMessage("No error has been raised but the number of exported components is not correct.\n\nPlease check thoroughly your database !", RED_COLOR);
+		if ( status == STATUS.Ok ) {
+			setMessage(message, GREEN_COLOR);
+			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
+				if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
+			    close();
+			    return;
 			}
-			
+			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
+			    CommandStack stack = (CommandStack)exportedModel.getAdapter(CommandStack.class);
+			    stack.markSaveLocation();
+			}
 		} else {
-            setMessage("Error while exporting model.\n"+ err.getMessage(), RED_COLOR);
+			setMessage(message, RED_COLOR);
 		}
 		
 		btnClose.setText("close");
+		try {
+			connection.close();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	private Button btnDoNotExport;
@@ -1194,6 +1256,8 @@ public class DBGuiExportModel extends DBGui {
 	private Label lblCantExport;
 
 	private Text txtReleaseNote;
+	
+	private Label lblImported;
 
     private Text txtTotalElements;
     private Text txtExportedElements;
