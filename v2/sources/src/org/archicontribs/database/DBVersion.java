@@ -12,15 +12,29 @@ package org.archicontribs.database;
  * @author Herve Jouin
  */
 public class DBVersion {
+	public enum Type {element, relationship, folder, view };
+	private Type type;
     private int version = 0;
     private String checksum = null;
     
-    public DBVersion() {
-    }
-    
-    public DBVersion(int version, String checksum) {
+    public DBVersion(Type type, int version, String checksum) {
+    	this.type = type;
         this.version = version;
         this.checksum = checksum;
+    }
+    
+    /**
+     * @return the type of the component
+     */
+    public Type getType() {
+        return type;
+    }
+
+    /**
+     * @param type of the component to set
+     */
+    public void setVersion(Type type) {
+        this.type = type;
     }
 
     /**
@@ -31,7 +45,7 @@ public class DBVersion {
     }
 
     /**
-     * @param version the version to set
+     * @param version of the component
      */
     public void setVersion(int version) {
         this.version = version;
@@ -45,7 +59,7 @@ public class DBVersion {
     }
 
     /**
-     * @param checksum the checksum to set
+     * @param checksum of the component
      */
     public void setChecksum(String checksum) {
         this.checksum = checksum;
