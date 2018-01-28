@@ -575,8 +575,8 @@ public class DBGui {
 			connection.checkDatabase();
 		} catch (Exception err) {
 			closePopup();
-			notConnectedToDatabase();
 			popup(Level.ERROR, "Cannot use this database.", err);
+			notConnectedToDatabase();
 			return;
 		}
 		
