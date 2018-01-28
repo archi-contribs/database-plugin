@@ -1075,7 +1075,7 @@ public class DBDatabaseConnection {
 	 * Gets the timestamp of the beginning of the current transaction<br>
 	 * if the database is in auto-commit mode, then it returns the current time. 
 	 */
-	protected Timestamp getLastTransactionTimestamp() throws SQLException {
+	public Timestamp getLastTransactionTimestamp() throws SQLException {
 		// if autocommit is on, then each call will return the current time
 		if ( connection.getAutoCommit() )
 			return new Timestamp(Calendar.getInstance().getTime().getTime());
@@ -1432,10 +1432,10 @@ public class DBDatabaseConnection {
 
 		ResultSet result;
 		
-		if ( model.getCurrentVersion() == 0 ) {
+		if ( model.getCurrentVersion().getVersion() == 0 ) {
 		    result = select("SELECT MAX(version) AS version FROM "+schema+"models WHERE id = ?", model.getId());
 		    if ( result.next() ) {
-		        model.setCurrentVersion(result.getInt("version"));
+		        model.getCurrentVersion().setVersion(result.getInt("version"));
 		    }
 		    result.close();
 		}
@@ -1679,8 +1679,8 @@ public class DBDatabaseConnection {
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 
 				folder.setId(currentResultSet.getString("folder_id"));
-				((IDBMetadata)folder).getDBMetadata().setInitialVersion(currentResultSet.getInt("folder_version"));
-				((IDBMetadata)folder).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("folder_version"));
+				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setTimestamp(currentResultSet.getTimestamp("created_on"));
 
 				folder.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				folder.setDocumentation(currentResultSet.getString("documentation"));
@@ -1703,7 +1703,7 @@ public class DBDatabaseConnection {
 				}
 
 				importProperties(folder);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion()+" of folder "+currentResultSet.getString("name")+"("+currentResultSet.getString("folder_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+" of folder "+currentResultSet.getString("name")+"("+currentResultSet.getString("folder_id")+")");
 
 				// we reference this folder for future use (storing sub-folders or components into it ...)
 				model.countObject(folder, false, null);
@@ -1747,8 +1747,8 @@ public class DBDatabaseConnection {
 			if ( currentResultSet.next() ) {
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(currentResultSet.getString("class"));
 				element.setId(currentResultSet.getString("element_id"));
-				((IDBMetadata)element).getDBMetadata().setInitialVersion(currentResultSet.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(currentResultSet.getTimestamp("created_on"));
 
 				element.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				element.setDocumentation(currentResultSet.getString("documentation"));
@@ -1764,7 +1764,7 @@ public class DBDatabaseConnection {
 
 				importProperties(element);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getInitialVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("element_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("element_id")+")");
 
 				// we reference the element for future use (establishing relationships, creating views objects, ...)
 				model.countObject(element, false, null);
@@ -1806,8 +1806,8 @@ public class DBDatabaseConnection {
 			if ( currentResultSet.next() ) {
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(currentResultSet.getString("class"));
 				relationship.setId(currentResultSet.getString("relationship_id"));
-				((IDBMetadata)relationship).getDBMetadata().setInitialVersion(currentResultSet.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("version"));
+				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(currentResultSet.getTimestamp("created_on"));
 
 				relationship.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				relationship.setDocumentation(currentResultSet.getString("documentation"));
@@ -1825,7 +1825,7 @@ public class DBDatabaseConnection {
 
 				importProperties(relationship);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("relationship_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+" of "+currentResultSet.getString("class")+":"+currentResultSet.getString("name")+"("+currentResultSet.getString("relationship_id")+")");
 
 				// we reference the relationship for future use (establishing relationships, creating views connections, ...)
 				model.countObject(relationship, false, null);
@@ -1862,8 +1862,8 @@ public class DBDatabaseConnection {
 					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(currentResultSet.getString("class"));
 
 				view.setId(currentResultSet.getString("id"));
-				((IDBMetadata)view).getDBMetadata().setInitialVersion(currentResultSet.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().setDatabaseCreatedOn(currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("version"));
+				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(currentResultSet.getTimestamp("created_on"));
 
 				view.setName(currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"));
 				view.setDocumentation(currentResultSet.getString("documentation"));
@@ -1877,7 +1877,7 @@ public class DBDatabaseConnection {
 
 				importProperties(view);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion()+" of "+currentResultSet.getString("name")+"("+currentResultSet.getString("id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+" of "+currentResultSet.getString("name")+"("+currentResultSet.getString("id")+")");
 
 				// we reference the view for future use
 				model.countObject(view, false, null);
@@ -1914,7 +1914,7 @@ public class DBDatabaseConnection {
 					eObject = DBArchimateFactory.eINSTANCE.create(currentResultSet.getString("class"));
 
 				((IIdentifier)eObject).setId(currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().setInitialVersion(currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("version"));
 
 				if ( eObject instanceof IDiagramModelArchimateComponent && currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
@@ -1965,7 +1965,7 @@ public class DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -2007,7 +2007,7 @@ public class DBDatabaseConnection {
 					eObject = DBArchimateFactory.eINSTANCE.create(currentResultSet.getString("class"));
 
 				((IIdentifier)eObject).setId(currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().setInitialVersion(currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setVersion(currentResultSet.getInt("version"));
 
 				if ( eObject instanceof IDiagramModelArchimateConnection && currentResultSet.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
@@ -2038,7 +2038,7 @@ public class DBDatabaseConnection {
 				if ( eObject instanceof IDiagramModelConnection ) {
 					ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank"
 							,((IIdentifier)eObject).getId()
-							,((IDBMetadata)eObject).getDBMetadata().getInitialVersion()
+							,((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()
 							);
 					while(resultBendpoints.next()) {
 						IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
@@ -2060,7 +2060,7 @@ public class DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 				return true;
 			}
@@ -2136,9 +2136,9 @@ public class DBDatabaseConnection {
 		int currentVersion;
 
 		if ( parent instanceof IArchimateModel )
-			currentVersion = ((ArchimateModel)parent).getCurrentVersion();
+			currentVersion = ((ArchimateModel)parent).getCurrentVersion().getVersion();
 		else
-			currentVersion = ((IDBMetadata)parent).getDBMetadata().getInitialVersion();
+			currentVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
 
 		ResultSet result = select("SELECT name, value FROM "+schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY rank"
 				,((IIdentifier)parent).getId()
@@ -2280,8 +2280,8 @@ public class DBDatabaseConnection {
 			newElement = true;
 
 			element.setName((currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"))+" (copy)");
-			((IDBMetadata)element).getDBMetadata().setInitialVersion(0);
-			((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(new Timestamp(Calendar.getInstance().getTime().getTime()));
+			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
+			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
 		} else {
 			element = model.getAllElements().get(elementId);
@@ -2296,8 +2296,8 @@ public class DBDatabaseConnection {
 			}
 
 			if ( !DBPlugin.areEqual(element.getName(), result.getString("name")) ) element.setName(result.getString("name")==null ? "" : result.getString("name"));
-			((IDBMetadata)element).getDBMetadata().setInitialVersion(result.getInt("version"));
-			((IDBMetadata)element).getDBMetadata().setDatabaseCreatedOn(result.getTimestamp("created_on"));
+			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
 		}
 
 		if ( !DBPlugin.areEqual(element.getDocumentation(), result.getString("documentation")) ) element.setDocumentation(result.getString("documentation"));
@@ -2413,8 +2413,8 @@ public class DBDatabaseConnection {
 			relationship.setId(model.getIDAdapter().getNewID());
 			newRelationship = true;
 
-			((IDBMetadata)relationship).getDBMetadata().setInitialVersion(0);
-			((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(new Timestamp(Calendar.getInstance().getTime().getTime()));
+			((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(0);
+			((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 		} else {
 			relationship = model.getAllRelationships().get(relationshipId);
 			if ( relationship == null ) {
@@ -2427,8 +2427,8 @@ public class DBDatabaseConnection {
 				newRelationship = false;
 			}
 
-			((IDBMetadata)relationship).getDBMetadata().setInitialVersion(result.getInt("version"));
-			((IDBMetadata)relationship).getDBMetadata().setDatabaseCreatedOn(result.getTimestamp("created_on"));
+			((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+			((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
 		}
 
 		if ( !DBPlugin.areEqual(relationship.getName(), result.getString("name")) ) relationship.setName(result.getString("name")==null ? "" : result.getString("name"));
@@ -2519,7 +2519,7 @@ public class DBDatabaseConnection {
 		else
 			view.setId(id);
 
-		((IDBMetadata)view).getDBMetadata().setInitialVersion(result.getInt("version"));
+		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
 
 		view.setName(result.getString("name")==null ? "" : result.getString("name"));
 		view.setDocumentation(result.getString("documentation"));
@@ -2538,19 +2538,19 @@ public class DBDatabaseConnection {
 
 		model.getAllViews().put(((IIdentifier)view).getId(), view);
 
-		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
+		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
 
 		model.resetSourceAndTargetCounters();
 
 		// 2 : we import the objects and create the corresponding elements if they do not exist yet
 		//        importing an element will automatically import the relationships to and from this element
-		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
+		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
 		while ( importViewsObjects(model, view) ) { 
 			;
 		}
 
 		// 3 : we import the connections and create the corresponding relationships if they do not exist yet
-		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
+		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
 		while ( importViewsConnections(model) ) {
 			;
 		}
@@ -2933,36 +2933,40 @@ public class DBDatabaseConnection {
      * @return HashMap with versions and checksum of components that are not in the model.
      * @throws SQLException
      */
-    public HashMap<String, DBVersion> getVersionsFromDatabase(ArchimateModel model, int modelVersion) throws SQLException, RuntimeException {
-    	HashMap<String, DBVersion> versions = new HashMap<String, DBVersion>();
+    public HashMap<String, DBVersion> getVersionsFromDatabase(ArchimateModel model) throws SQLException, RuntimeException {
+        if ( logger.isDebugEnabled() ) logger.debug("Getting latest version of the model from the database");
+        
+    	HashMap<String, DBVersion> componentsNotInModel = new HashMap<String, DBVersion>();
     	
-        // This method can retreive versions if the database contains the whole model tables
+        // This method can retrieve versions if the database contains the whole model tables
         if ( !databaseEntry.getExportWholeModel() ) {
-        	return versions;
+        	return componentsNotInModel;
         }
         
         ResultSet result;
+        int modelVersion = -1;
         
-        // if the modelVersion is not specified (i.e. zero), then we get the latest version from the database
-        if ( modelVersion == 0 ) {
-            if ( logger.isDebugEnabled() ) logger.debug("Getting latest version of the model from the database");
-            result = select("SELECT MAX(version) version from "+schema+"models WHERE id = ?", model.getId());
-            if ( result.next() && result.getObject("version") != null ) {
-            	modelVersion = result.getInt("version");
-                model.setDatabaseVersion(modelVersion);
-            } else
-                return versions;         // if the model is not not found in the database, this is not an error. this just means that the model is new. 
-            result.close();
-            
-            result = select("SELECT checksum from "+schema+"models WHERE id = ? AND version = ?", model.getId(), modelVersion);
-            result.next();
-            if ( result.getString("checksum") != null )
-            	model.setDatabaseChecksum(result.getString("checksum"));
-            result.close();
+        // we get the model version from the database
+        result = select("SELECT MAX(version) version from "+schema+"models WHERE id = ?", model.getId());
+        if ( result.next() && result.getObject("version") != null ) {
+        	modelVersion = result.getInt("version");
+            model.getDatabaseVersion().setVersion(modelVersion);
         }
+        result.close();
+        
+        if ( modelVersion == -1 )
+            return componentsNotInModel;         // if the model is not not found in the database, this is not an error. this just means that the model is new. 
+
+        result = select("SELECT checksum, created_on from "+schema+"models WHERE id = ? AND version = ?", model.getId(), modelVersion);
+        result.next();
+        if ( result.getString("checksum") != null ) {
+        	model.getDatabaseVersion().setChecksum(result.getString("checksum"));
+        	model.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+        }
+        result.close();
         
         // we get the list of elements
-        result = select("SELECT id, version, checksum from "+schema+"elements elements "+
+        result = select("SELECT id, version, checksum, created_on from "+schema+"elements elements "+
                 "JOIN "+schema+"elements_in_model elements_in_model on elements.id = elements_in_model.element_id and elements.version = elements_in_model.element_version "+
                 "WHERE elements_in_model.model_id = ? and elements_in_model.model_version = ?",
                 model.getId(),
@@ -2970,15 +2974,18 @@ public class DBDatabaseConnection {
         while ( result.next() ) {
             IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
             if ( element != null ) {
-            	element.getDBMetadata().setDatabaseVersion(result.getInt("version"));
-            	element.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            	if ( logger.isTraceEnabled() )
+            		logger.trace("   element "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
+            	element.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+            	element.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+            	element.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
             } else
-            	versions.put(result.getString("id"), new DBVersion("elements", result.getInt("version"), result.getString("checksum")));
+            	componentsNotInModel.put(result.getString("id"), new DBVersion("elements", result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on")));
         }
         result.close();
         
         // we get the list of relationships
-        result = select("SELECT id, version, checksum from "+schema+"relationships relationships "+
+        result = select("SELECT id, version, checksum, created_on from "+schema+"relationships relationships "+
                 "JOIN "+schema+"relationships_in_model relationships_in_model on relationships.id = relationships_in_model.relationship_id and relationships.version = relationships_in_model.relationship_version "+
                 "WHERE relationships_in_model.model_id = ? and relationships_in_model.model_version = ?",
                 model.getId(),
@@ -2986,15 +2993,18 @@ public class DBDatabaseConnection {
         while ( result.next() ) {
             IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
             if ( relationship != null ) {
-            	relationship.getDBMetadata().setDatabaseVersion(result.getInt("version"));
-            	relationship.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            	if ( logger.isTraceEnabled() )
+            		logger.trace("   relationship "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
+            	relationship.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+            	relationship.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+            	relationship.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
             } else
-            	versions.put(result.getString("id"), new DBVersion("relationships", result.getInt("version"), result.getString("checksum")));
+            	componentsNotInModel.put(result.getString("id"), new DBVersion("relationships", result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on")));
         }
         result.close();
         
         // we get the list of folders
-        result = select("SELECT id, version, checksum from "+schema+"folders folders "+
+        result = select("SELECT id, version, checksum, created_on from "+schema+"folders folders "+
                 "JOIN "+schema+"folders_in_model folders_in_model on folders.id = folders_in_model.folder_id and folders.version = folders_in_model.folder_version "+
                 "WHERE folders_in_model.model_id = ? and folders_in_model.model_version = ?",
                 model.getId(),
@@ -3002,15 +3012,18 @@ public class DBDatabaseConnection {
         while ( result.next() ) {
             IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
             if ( folder != null ) {
-            	folder.getDBMetadata().setDatabaseVersion(result.getInt("version"));
-            	folder.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            	if ( logger.isTraceEnabled() )
+            		logger.trace("   folder "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
+            	folder.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+            	folder.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+            	folder.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
             } else
-            	versions.put(result.getString("id"), new DBVersion("folders", result.getInt("version"), result.getString("checksum")));
+            	componentsNotInModel.put(result.getString("id"), new DBVersion("folders", result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on")));
         }
         result.close();
         
         // we get the list of views
-        result = select("SELECT id, version, checksum from "+schema+"views views "+
+        result = select("SELECT id, version, checksum, created_on from "+schema+"views views "+
                 "JOIN "+schema+"views_in_model views_in_model on views.id = views_in_model.view_id and views.version = views_in_model.view_version "+
                 "WHERE views_in_model.model_id = ? and views_in_model.model_version = ?",
                 model.getId(),
@@ -3018,15 +3031,18 @@ public class DBDatabaseConnection {
         while ( result.next() ) {
             IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
             if ( view != null ) {
-            	view.getDBMetadata().setDatabaseVersion(result.getInt("version"));
-            	view.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            	if ( logger.isTraceEnabled() )
+            		logger.trace("   view "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
+            	view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+            	view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+            	view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
             } else
-            	versions.put(result.getString("id"), new DBVersion("views", result.getInt("version"), result.getString("checksum")));
+            	componentsNotInModel.put(result.getString("id"), new DBVersion("views", result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on")));
         }
         result.close();
         
         //TODO: images
-        return versions;
+        return componentsNotInModel;
     }
     
 	/**
@@ -3166,7 +3182,7 @@ public class DBDatabaseConnection {
 	 */
     /*
 	private void checkComponentInDatabase(String tableName, EObject eObject) throws Exception {
-		int currentVersion = ((IDBMetadata)eObject).getDBMetadata().getInitialVersion();
+		int currentVersion = ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion();
 		int databaseVersion = 0;
 		String databaseChecksum = null;
 		String databaseCreatedBy = null;
@@ -3205,12 +3221,12 @@ public class DBDatabaseConnection {
 		}
 
 		// Then, we store the values in the DBMetadata
-		((IDBMetadata)eObject).getDBMetadata().setInitialVersion(currentVersion);
+		((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setVersion(currentVersion);
 		((IDBMetadata)eObject).getDBMetadata().setCurrentVersion(currentVersion + 1);
 		((IDBMetadata)eObject).getDBMetadata().setDatabaseVersion(databaseVersion);
 		((IDBMetadata)eObject).getDBMetadata().setDatabaseChecksum(databaseChecksum);
 		((IDBMetadata)eObject).getDBMetadata().setDatabaseCreatedBy(databaseCreatedBy);
-		((IDBMetadata)eObject).getDBMetadata().setDatabaseCreatedOn(databaseCreatedOn);
+		((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setTimestamp(databaseCreatedOn);
 
 		if ( databaseVersion == 0 ) {
 			if ( logger.isTraceEnabled() ) logger.trace("   does not exist in the database. Current version  : "+currentVersion+", checksum : "+((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum());
@@ -3268,13 +3284,13 @@ public class DBDatabaseConnection {
 
 		insert(schema+"models", modelsColumns
 				,model.getId()
-				,model.getExportedVersion()
+				,model.getCurrentVersion().getVersion()
 				,model.getName()
 				,releaseNote
 				,model.getPurpose()
 				,System.getProperty("user.name")
 				,getLastTransactionTimestamp()
-				,model.getCurrentChecksum()
+				,model.getCurrentVersion().getChecksum()
 				);
 
 		exportProperties(model);
@@ -3284,7 +3300,7 @@ public class DBDatabaseConnection {
 	 * Export a component to the database
 	 */
 	public void exportEObject(EObject eObject) throws Exception {
-		if ( logger.isDebugEnabled() ) logger.debug("version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" is exported");
+		if ( logger.isDebugEnabled() ) logger.debug("version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" is exported");
 
 		if ( eObject instanceof IArchimateElement ) 			exportElement((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship ) 	exportRelationship((IArchimateRelationship)eObject);
@@ -3319,24 +3335,24 @@ public class DBDatabaseConnection {
 			// USE MERGE instead to replace existing nodes
 			request("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
 					,element.getId()
-					,((IDBMetadata)element).getDBMetadata().getCurrentVersion()
+					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
 					,element.getClass().getSimpleName()
 					,element.getName()
 					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
 					,element.getDocumentation()
-					,((IDBMetadata)element).getDBMetadata().getCurrentChecksum()
+					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
 					);
 		} else {
 			insert(schema+"elements", elementsColumns
 					,element.getId()
-					,((IDBMetadata)element).getDBMetadata().getCurrentVersion()
+					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
 					,element.getClass().getSimpleName()
 					,element.getName()
 					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
 					,element.getDocumentation()
 					,System.getProperty("user.name")
 					,getLastTransactionTimestamp()
-					,((IDBMetadata)element).getDBMetadata().getCurrentChecksum()
+					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
 					);
 		}
 
@@ -3361,10 +3377,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"elements_in_model", elementsInModelColumns
 				,element.getId()
-				,((IDBMetadata)element).getDBMetadata().getInitialVersion()   // we use currentVersion as it has been set in exportElement()
+				,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportElement()
 				,((IFolder)((IArchimateConcept)element).eContainer()).getId()
 				,model.getId()
-				,model.getExportedVersion()
+				,model.getCurrentVersion().getVersion()
 				,++elementRank
 				);
 	}
@@ -3391,7 +3407,7 @@ public class DBDatabaseConnection {
 							,relationship.getDocumentation()
 							,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 							,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-							,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
+							,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
 							);
 				}
 			} else {
@@ -3401,19 +3417,19 @@ public class DBDatabaseConnection {
 						,((IArchimateRelationship)relationship).getTarget().getId()
 						,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getCurrentVersion()
 						,relationship.getId()
-						,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion()
+						,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
 						,relationship.getClass().getSimpleName()
 						,relationship.getName()
 						,relationship.getDocumentation()
 						,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 						,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-						,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
+						,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
 						);
 			}
 		} else {
 			insert(schema+"relationships", relationshipsColumns
 					,relationship.getId()
-					,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion()
+					,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
 					,relationship.getClass().getSimpleName()
 					,relationship.getName()
 					,relationship.getDocumentation()
@@ -3423,7 +3439,7 @@ public class DBDatabaseConnection {
 					,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
 					,System.getProperty("user.name")
 					,getLastTransactionTimestamp()
-					,((IDBMetadata)relationship).getDBMetadata().getCurrentChecksum()
+					,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
 					);
 		}
 
@@ -3449,10 +3465,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"relationships_in_model", relationshipsInModelColumns
 				,relationship.getId()
-				,((IDBMetadata)relationship).getDBMetadata().getInitialVersion()   // we use currentVersion as it has been set in exportRelationship()
+				,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportRelationship()
 				,((IFolder)((IArchimateConcept)relationship).eContainer()).getId()
 				,model.getId()
-				,model.getExportedVersion()
+				,model.getCurrentVersion().getVersion()
 				,++relationshipRank
 				);
 	}
@@ -3465,14 +3481,14 @@ public class DBDatabaseConnection {
 
 		insert(schema+"folders", foldersColumns
 				,folder.getId()
-				,((IDBMetadata)folder).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()
 				,folder.getType().getValue()
 				,((IDBMetadata)folder).getDBMetadata().getRootFolderType()
 				,folder.getName()
 				,folder.getDocumentation()
 				,System.getProperty("user.name")
 				,getLastTransactionTimestamp()
-				,((Folder)folder).getDBMetadata().getCurrentChecksum()
+				,((Folder)folder).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
 		exportProperties(folder);
@@ -3498,10 +3514,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"folders_in_model", foldersInModelColumns
 				,folder.getId()
-				,((IDBMetadata)folder).getDBMetadata().getInitialVersion()   // we use currentVersion as it has been set in exportFolder()
+				,((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportFolder()
 				,(((IIdentifier)((Folder)folder).eContainer()).getId() == model.getId() ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
 				,model.getId()
-				,model.getExportedVersion()
+				,model.getCurrentVersion().getVersion()
 				,++folderRank
 				);
 	}
@@ -3520,7 +3536,7 @@ public class DBDatabaseConnection {
 
 		insert(schema+"views", ViewsColumns
 				,view.getId()
-				,((IDBMetadata)view).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
 				,System.getProperty("user.name")
 				,new Timestamp(Calendar.getInstance().getTime().getTime())
@@ -3532,7 +3548,7 @@ public class DBDatabaseConnection {
 				,((view instanceof IArchimateDiagramModel) ? ((IArchimateDiagramModel)view).getViewpoint() : null)
 				,((view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null)
 				,viewImage
-				,((IDBMetadata)view).getDBMetadata().getCurrentChecksum()
+				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
 		if ( databaseEntry.getExportViewsImages() ) {
@@ -3561,10 +3577,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"views_in_model", viewsInModelColumns
 				,view.getId()
-				,((IDBMetadata)view).getDBMetadata().getInitialVersion()   // we use currentVersion as it has been set in exportView()
+				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportView()
 				,((IFolder)view.eContainer()).getId()
 				,model.getId()
-				,model.getExportedVersion()
+				,model.getCurrentVersion().getVersion()
 				,++viewRank
 				);
 	}
@@ -3589,10 +3605,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"views_objects", ViewsObjectsColumns
 				,((IIdentifier)viewObject).getId()
-				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
 				,((IIdentifier)viewObject.eContainer()).getId()
 				,((IIdentifier)viewContainer).getId()
-				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,viewObject.getClass().getSimpleName()
 				,((viewObject instanceof IDiagramModelArchimateComponent) ? ((IDiagramModelArchimateComponent)viewObject).getArchimateConcept().getId() : null)
 				,((viewObject instanceof IDiagramModelReference) ? ((IDiagramModelReference)viewObject).getReferencedModel().getId() : null)
@@ -3623,7 +3639,7 @@ public class DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getWidth() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
 				,++viewObjectRank
-				,((IDBMetadata)viewObject).getDBMetadata().getCurrentChecksum()
+				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
 		if ( viewObject instanceof IProperties && !(viewObject instanceof IDiagramModelArchimateComponent))
@@ -3655,10 +3671,10 @@ public class DBDatabaseConnection {
 
 		insert(schema+"views_connections", ViewsConnectionsColumns
 				,((IIdentifier)viewConnection).getId()
-				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
 				,((IIdentifier)viewConnection.eContainer()).getId()
 				,((IIdentifier)viewContainer).getId()
-				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion()
+				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,viewConnection.getClass().getSimpleName()
 				,((viewConnection instanceof INameable     && !(viewConnection instanceof IDiagramModelArchimateConnection)) ? ((INameable)viewConnection).getName() : null)                    // if there is a relationship behind, the name is the relationship name, so no need to store it.
 				,((viewConnection instanceof IDocumentable && !(viewConnection instanceof IDiagramModelArchimateConnection)) ? ((IDocumentable)viewConnection).getDocumentation() : null)       // if there is a relationship behind, the documentation is the relationship name, so no need to store it.
@@ -3675,7 +3691,7 @@ public class DBDatabaseConnection {
 				,((viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getTextPosition() : null)
 				,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : (viewConnection instanceof IDiagramModelConnection) ? ((IDiagramModelConnection)viewConnection).getType() : null)
 				,++viewConnectionRank
-				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentChecksum()
+				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
 		if ( viewConnection instanceof IProperties )
@@ -3686,7 +3702,7 @@ public class DBDatabaseConnection {
 				IDiagramModelBendpoint bendpoint = ((IDiagramModelConnection)viewConnection).getBendpoints().get(pos);
 				insert(schema+"bendpoints", bendpointsColumns
 						,((IIdentifier)viewConnection).getId()
-						,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion()
+						,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
 						,pos
 						,bendpoint.getStartX()
 						,bendpoint.getStartY()
@@ -3707,9 +3723,9 @@ public class DBDatabaseConnection {
 
 		int exportedVersion;
 		if ( parent instanceof ArchimateModel ) {
-			exportedVersion = ((ArchimateModel)parent).getExportedVersion();
+			exportedVersion = ((ArchimateModel)parent).getCurrentVersion().getVersion();
 		} else 
-			exportedVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion();
+			exportedVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
 
 		for ( int propRank = 0 ; propRank < parent.getProperties().size(); ++propRank) {
 			IProperty prop = parent.getProperties().get(propRank);
