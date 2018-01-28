@@ -21,6 +21,7 @@ import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.help.hints.IHelpHintProvider;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
@@ -57,10 +58,31 @@ public class DBChecksum {
 	private static final boolean traceChecksum = false;
 	private static final char startOfText = (char)2;
 	private static final char endOfText = (char)3;
+	
+	/**
+	 * Calculate the checksum of a model.<br>
+	 * Please note that this method is *NOT* recursive: the checksum only considers the information of the model itself.
+	 * @throws NoSuchAlgorithmException 
+	 * @throws UnsupportedEncodingException 
+	 */
+	public static String calculateChecksum(IArchimateModel model, String releaseNote) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+		StringBuilder checksum = new StringBuilder();
+
+		
+		if ( logger.isTraceEnabled() )
+		    logger.trace("Calculating checksum of model "+model.getName()+"("+model.getId()+")");
+		
+		append(checksum, "id", model.getId());
+		append(checksum, "name", model.getName());
+		append(checksum, "purpose", model.getPurpose());
+		append(checksum, "note", releaseNote);
+		
+		return calculateChecksum(checksum);
+	}
 
 	/**
 	 * Calculate the checksum of an object.<br>
-	 * Please note that this method is *NOT* recursive. the recursion should be managed at a higher level for folders and views.
+	 * Please note that this method is *NOT* recursive: the recursion should be managed at a higher level for folders and views.
 	 * @throws NoSuchAlgorithmException 
 	 * @throws UnsupportedEncodingException 
 	 */
@@ -138,18 +160,18 @@ public class DBChecksum {
 		return calculateChecksum(checksum);
 	}
 	
-	private static void append(StringBuilder sb, String name, String value) {
+	public static void append(StringBuilder sb, String name, String value) {
 		String sValue = (value == null ? "" : value);
 		
 		if ( traceChecksum ) logger.trace("   "+name+" : "+sValue);
 	    sb.append(startOfText+sValue+endOfText);
 	}
 	
-	private static void append(StringBuilder sb, String name, int value) {
+	public static void append(StringBuilder sb, String name, int value) {
 		append(sb, name, String.valueOf(value));
 	}
 	
-	private static void append(StringBuilder sb, String name, boolean value) {
+	public static void append(StringBuilder sb, String name, boolean value) {
 		append(sb, name, String.valueOf(value));
 	}
 	
