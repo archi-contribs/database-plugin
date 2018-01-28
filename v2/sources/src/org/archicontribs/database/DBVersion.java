@@ -6,20 +6,24 @@
 
 package org.archicontribs.database;
 
+import java.sql.Timestamp;
+
 /**
- * This class holds the version and checksum for a component ID
+ * This class holds the table name, version, checksum and a timestamp
  * 
  * @author Herve Jouin
  */
 public class DBVersion {
 	private String tableName;
-    private int version = 0;
-    private String checksum = null;
+    private int version;
+    private String checksum;
+    private Timestamp timestamp;
     
-    public DBVersion(String tableName, int version, String checksum) {
+    public DBVersion(String tableName, int version, String checksum, Timestamp timestamp) {
     	this.tableName = tableName;
         this.version = version;
         this.checksum = checksum;
+        this.timestamp = timestamp;
     }
     
     /**
@@ -64,5 +68,17 @@ public class DBVersion {
         this.checksum = checksum;
     }
     
-    
+    /**
+     * @return the timestamp of the component
+     */
+    public Timestamp getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * @param the timestamp of the component
+     */
+    public void setTimestamp(Timestamp timestamp) {
+        this.timestamp = timestamp;
+    }
 }
