@@ -20,10 +20,14 @@ public class DBVersion {
     private Timestamp timestamp;
     
     public DBVersion(String tableName, int version, String checksum, Timestamp timestamp) {
-    	this.tableName = tableName;
-        this.version = version;
-        this.checksum = checksum;
-        this.timestamp = timestamp;
+    	setTableName(tableName);
+        setVersion(version);
+        setChecksum(checksum);
+        setTimestamp(timestamp);
+    }
+    
+    public DBVersion() {
+    	this(null, 0, null, null);
     }
     
     /**
@@ -37,7 +41,7 @@ public class DBVersion {
      * @param table name where the component can be imported/exported
      */
     public void setTableName(String tableName) {
-        this.tableName = tableName;
+        this.tableName = (tableName==null ? "" : tableName);
     }
 
     /**
@@ -65,7 +69,7 @@ public class DBVersion {
      * @param the checksum of the component
      */
     public void setChecksum(String checksum) {
-        this.checksum = checksum;
+        this.checksum = (checksum==null ? "" : checksum);
     }
     
     /**
@@ -79,6 +83,6 @@ public class DBVersion {
      * @param the timestamp of the component
      */
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = timestamp;
+        this.timestamp = (timestamp==null ? new Timestamp(0) : timestamp);
     }
 }
