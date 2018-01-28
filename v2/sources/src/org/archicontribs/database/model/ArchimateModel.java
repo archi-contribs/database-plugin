@@ -9,6 +9,8 @@ package org.archicontribs.database.model;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.sql.Timestamp;
+import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
@@ -49,9 +51,8 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
-	
-	private DBVersion currentVersion = new DBVersion();
-	private DBVersion databaseVersion = new DBVersion();
+	private DBVersion currentVersion = new DBVersion(Timestamp.from(Instant.now()));
+	private DBVersion databaseVersion = new DBVersion(Timestamp.from(Instant.MIN));
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
