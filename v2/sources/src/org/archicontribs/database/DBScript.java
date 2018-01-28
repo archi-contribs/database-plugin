@@ -86,13 +86,13 @@ public class DBScript {
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
                 while ( connection.importViewsObjects(modelToImport, view) );
             }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
                 while ( connection.importViewsConnections(modelToImport) );
             }
             
@@ -105,7 +105,7 @@ public class DBScript {
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion());
+                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
                 while ( connection.importViewsConnections(modelToImport) );
             }
         } catch ( Exception e) {
