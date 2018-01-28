@@ -15,7 +15,6 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBVersion;
@@ -632,7 +631,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		try {
-			newDatabaseComponents = connection.getVersionsFromDatabase(exportedModel, 0);
+			newDatabaseComponents = connection.getVersionsFromDatabase(exportedModel);
 		} catch (SQLException err ) {
 			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
@@ -650,14 +649,12 @@ public class DBGuiExportModel extends DBGui {
 		
 		// we export the components
 		try {
+			// we calculate the model's version, and timestamp
+			exportedModel.getCurrentVersion().setVersion(exportedModel.getDatabaseVersion().getVersion() + 1);
+			exportedModel.getCurrentVersion().setTimestamp(connection.getLastTransactionTimestamp());
+			
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
 			if ( connection.getExportWholeModel() ) {
-				// we calculate the model's checksum
-				exportedModel.setCurrentChecksum(DBChecksum.calculateChecksum(exportedModel, txtReleaseNote.getText()));
-				
-				// we retrieve the latest version of the model in the database and increase the version number.
-				exportedModel.setExportedVersion(exportedModel.getDatabaseVersion() + 1);
-			    
 				// We update the model name and purpose in case they've been changed in the export windows
 				if ( !DBPlugin.areEqual(exportedModel.getName(), txtModelName.getText()) )
 					exportedModel.setName(txtModelName.getText());
@@ -665,7 +662,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( !DBPlugin.areEqual(exportedModel.getPurpose(), txtPurpose.getText()) )
 					exportedModel.setPurpose(txtPurpose.getText());
 
-				if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getExportedVersion()+" of the model");
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+exportedModel.getCurrentVersion().getVersion()+" of the model ("+exportedModel.getCurrentVersion().getTimestamp().toString()+")");
 				connection.exportModel(exportedModel, txtReleaseNote.getText());
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
@@ -750,7 +747,7 @@ public class DBGuiExportModel extends DBGui {
 				// we check if something has been really exported				
 				if ( connection.getExportWholeModel() ) {
 					if ( txtExportedElements.getText().equals("0") && txtExportedRelationships.getText().equals("0") && txtExportedFolders.getText().equals("0") && txtExportedViews.getText().equals("0") &&
-							exportedModel.getCurrentChecksum().equals(exportedModel.getDatabaseChecksum()) ) {
+							exportedModel.getCurrentVersion().getChecksum().equals(exportedModel.getDatabaseVersion().getChecksum()) ) {
 						connection.rollback();
 					    connection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
@@ -762,31 +759,6 @@ public class DBGuiExportModel extends DBGui {
 			    connection.setAutoCommit(true);
 				setActiveAction(STATUS.Ok);
 				doShowResult(STATUS.Ok, "Export successful");
-				
-				//we copy current checksum to initial checksum
-				Iterator<Entry<String, IArchimateElement>> elementsIterator = exportedModel.getAllElements().entrySet().iterator();
-				while ( elementsIterator.hasNext() ) {
-					IDBMetadata obj = (IDBMetadata)elementsIterator.next().getValue();
-					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
-				}
-				
-				Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
-				while ( relationshipsIterator.hasNext() ) {
-					IDBMetadata obj = (IDBMetadata)relationshipsIterator.next().getValue();
-					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
-				}
-				
-				Iterator<Entry<String, IFolder>> foldersIterator = exportedModel.getAllFolders().entrySet().iterator();
-				while ( foldersIterator.hasNext() ) {
-					IDBMetadata obj = (IDBMetadata)foldersIterator.next().getValue();
-					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
-				}
-				
-				Iterator<Entry<String, IDiagramModel>> viewIterator = exportedModel.getAllViews().entrySet().iterator();
-				while ( viewIterator.hasNext() ) {
-					IDBMetadata obj = (IDBMetadata)viewIterator.next().getValue();
-					obj.getDBMetadata().setInitialChecksum(obj.getDBMetadata().getCurrentChecksum());
-				}
 				
 				return;
 			} catch (Exception err) {
@@ -859,116 +831,78 @@ public class DBGuiExportModel extends DBGui {
 		assert(eObjectToExport instanceof IDBMetadata);
 		assert(connection != null);
 		
+		boolean mustExport = true;
 		boolean exported = false;
-		try {
-			boolean mustExport = true;
-
-			// in Neo4J databases, we export all the elements and all the relationships
-			// but in SQL databases, we do not export components that have not been updated
-			if ( ! DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-				// we do not export components that are in the database with the same checksum
-				if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseChecksum()) )
-					mustExport = false;
-				else {
-					// in collaborative mode, components that are in the database with a different checksum will generate a conflict that will need to be solved manually
-					// but in standalone mode, we change the version to avoid the conflict
-					if ( !selectedDatabase.getCollaborativeMode() )
-						((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion());
-					}
-			}
-				
-			if ( mustExport ) {
-				if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() == 0 ) {
-					// if the component is not in the database, then we reset its version to 1
-					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(1);
-				} else {
-					// else, we calculate it from the initialVersion
-					xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
-				}
-					
-				DBVersion dbVersion = versionsInDatabase.get(((IIdentifier)eObjectToExport).getId());
-				if ( dbVersion == null )
-					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(1);
-				else
-					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(dbVersion.getVersion() + 1);
-				connection.exportEObject(eObjectToExport);
-				txtExported.setText(String.valueOf(Integer.valueOf(txtExported.getText())+1));
-				exported = true;
-			}
+		boolean imported = false;
+		
+		// in Neo4J databases, we do not manage versions so we export all the elements and all the relationships
+		// but in SQL databases, we do not export components that have not been updated
+		if ( ! DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+			// we set the current version to the database one plus one
+			((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion()+1);
 			
-			// even if the eObject is not exported (because it is already in the database)
-			// it has to be referenced as beeing part of the model
-			if ( connection.getExportWholeModel() )
-				connection.assignEObjectToModel(eObjectToExport);
-		} catch (SQLException err) {
-			exported = false;
-			// if the SQL exception is not linked to a primary key violation, then we escalate the exception
-			// unfortunately, this is constructor dependent
-			// worst, it may change from one driver version to another version
-			switch ( selectedDatabase.getDriver().toLowerCase() ) {
-			    case "sqlite" :
-			        if ( err.getErrorCode() != 19 )
-			            throw err;
-			        break;
-			    case "postgresql" :
-			        if ( !DBPlugin.areEqual(err.getSQLState(), "23505") )
-                        throw err;
-			        break;
-			    case "mysql" :
-			    	if ( err.getErrorCode() != 1062 )
-			    		throw err;
-			    	break;
-			    case "oracle" :
-			    	if ( err.getErrorCode() != 1 )
-			    		throw err;
-			    	break;
-			    case "ms-sql" :
-			    	if ( err.getErrorCode() != 2627 )
-			    		throw err;
-			    	break;
-			    case "neo4j" :		// we do not use primary keys on neo4j databases
-			    default :
-			        throw err;
-			        // TODO : we need to determine the right value for all the databases
-			}
-			
-			// if we're here, it means that a conflict has been detected
-			if ( logger.isDebugEnabled() ) logger.debug("The component conflicts with the version in the database.");
-			switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
-				case askUser :
-					if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
-					new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
-					if ( tblListConflicts.getItemCount() < 2 )
-						lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
-					else
-						lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
-					break;
-				case doNotExport :
-					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
-					break;
-				case exportToDatabase :
-					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
-					((IDBMetadata)eObjectToExport).getDBMetadata().setCurrentVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
-					((IDBMetadata)eObjectToExport).getDBMetadata().setDatabaseVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion() + 1);
-					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.askUser);	// just in case there is a new conflict
-					exported = doExportEObject(eObjectToExport, txtExported, txtImported);
-					break;
-				case importFromDatabase :
-					if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
-					// For the moment, we can import concepts only during an export !!!
-			        if ( eObjectToExport instanceof IArchimateElement )
-			            connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
-			        else
-			            connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
-					if ( txtImported != null) {
-						if ( txtImported.getText().isEmpty() )
-							txtImported.setText("1");
-						else
-							txtImported.setText(String.valueOf(Integer.valueOf(txtImported.getText())+1));
-					}
-					break;
+			// we do not export components that are in the database with the same checksum (even if the timestamp is newer)
+			if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getChecksum()) ) {
+				mustExport = false;
 			}
 		}
+		
+		if ( mustExport ) {
+			// if the model's timestamp is newer than the database timestamp, then nobody wrote a more recent version, so we just export the component
+			if ( logger.isTraceEnabled() ) {
+				logger.trace("   database timestamp = "+((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getTimestamp().toString());
+			}
+			if ( exportedModel.getCurrentVersion().getTimestamp().after(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getTimestamp()) ) {
+				connection.exportEObject(eObjectToExport);
+				exported = true;
+			} else {
+				// we generate a conflict
+				if ( logger.isDebugEnabled() ) logger.debug("The component conflicts with the version in the database.");
+				
+				//    --> in collaborative mode, the conflict will need to be manually solved
+				//    --> in standalone mode, we force the export to the database
+				if ( selectedDatabase.getCollaborativeMode() ) 
+					((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.exportToDatabase);
+			
+				switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
+					case askUser :
+						if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
+						new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
+						if ( tblListConflicts.getItemCount() < 2 )
+							lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+						else
+							lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
+						break;
+					case doNotExport :
+						if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
+						break;
+					case exportToDatabase :
+						if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
+						connection.exportEObject(eObjectToExport);
+						exported = true;
+						break;
+					case importFromDatabase :
+						if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
+						// For the moment, we can import concepts only during an export !!!
+				        if ( eObjectToExport instanceof IArchimateElement )
+				            connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+				        else
+				            connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+						imported = true;
+						break;
+				}
+			}
+			
+			if ( exported && txtExported != null)
+				txtExported.setText(String.valueOf(Integer.valueOf(txtExported.getText()) + 1));
+			if ( imported && txtImported != null )
+				txtImported.setText(String.valueOf(Integer.valueOf(txtImported.getText()) + 1));
+		}
+		
+		// even if the eObject is not exported (because it is already in the database), it has to be referenced as beeing part of the model
+		if ( connection.getExportWholeModel() )
+			connection.assignEObjectToModel(eObjectToExport);
+		
 		increaseProgressBar();
 		return exported;
 	}
@@ -1022,7 +956,7 @@ public class DBGuiExportModel extends DBGui {
 						btnDoNotExport.setEnabled(true);
 						btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
 	
-						fillInCompareTable(tblCompareComponent, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion(), null);
+						fillInCompareTable(tblCompareComponent, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion().getVersion(), null);
 					}
 					grpComponents.setVisible(false);
 					grpModelVersions.setVisible(false);
