@@ -70,10 +70,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnImportShared;
 	private Button btnShowIdInContextMenu;
 	
-	private Button btnStandardMode;
-	private Button btnSyncMode;
-	private Button btnMasterMode;
-	
 	private DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
 	private TabFolder tabFolder;
@@ -297,100 +293,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         fd.left = new FormAttachment(btnHelp, 10);
         helpLbl2.setLayoutData(fd);
 		
-        
-		// ********************************* */
-		// * Expert tab  ******************* */
-		// ********************************* */
-        Composite expertComposite = new Composite(tabFolder, SWT.NONE);
-        rowLayout = new RowLayout();
-        rowLayout.type = SWT.VERTICAL;
-        rowLayout.pack = true;
-        rowLayout.marginTop = 5;
-        rowLayout.marginBottom = 5;
-        rowLayout.justify = false;
-        rowLayout.fill = false;
-        expertComposite.setLayoutData(rowLayout);
-        expertComposite.setLayout(new GridLayout());
-        expertComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
-        
-        TabItem expertTabItem = new TabItem(tabFolder, SWT.NONE);
-        expertTabItem.setText("  Expert  ");
-        expertTabItem.setControl(expertComposite);
-        
-		Group grpBehaviour = new Group(expertComposite, SWT.NONE);
-		grpBehaviour.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		grpBehaviour.setText("Please choose the export behaviour :");
-		grpBehaviour.setLayout(new FormLayout());
-		grpBehaviour.setVisible(true);
-		
-		Label lblBehaviour = new Label(grpBehaviour, SWT.NONE);
-		lblBehaviour.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblBehaviour.setText("In case the database is used by several people, please choose how the export procedure should behave:");
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(0, 10);
-		lblBehaviour.setLayoutData(fd);
-		
-		btnStandardMode = new Button(grpBehaviour, SWT.RADIO);
-		btnStandardMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnStandardMode.setText(" Standard mode");
-		btnStandardMode.setFont(DBGui.BOLD_FONT);
-		btnStandardMode.setSelection(preferenceStore.getString("exportBehaviour").isEmpty() || preferenceStore.getString("exportBehaviour").equals("standard"));
-		fd = new FormData();
-		fd.top = new FormAttachment(lblBehaviour, 10);
-		fd.left = new FormAttachment(0, 10);
-		btnStandardMode.setLayoutData(fd);
-		
-		Label lblStandardMode = new Label(grpBehaviour, SWT.WRAP);
-		lblStandardMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblStandardMode.setText("This mode is the quickest way to export your model to the database:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be ignored,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
-		fd = new FormData();
-		fd.top = new FormAttachment(btnStandardMode, 5);
-		fd.left = new FormAttachment(0, 26);
-		lblStandardMode.setLayoutData(fd);
-
-		btnSyncMode = new Button(grpBehaviour, SWT.RADIO);
-		btnSyncMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnSyncMode.setText(" Sync mode");
-		btnSyncMode.setFont(DBGui.BOLD_FONT);
-		btnSyncMode.setSelection(preferenceStore.getString("exportBehaviour").equals("sync"));
-		fd = new FormData();
-		fd.top = new FormAttachment(lblStandardMode, 15);
-		fd.left = new FormAttachment(0, 10);
-		btnSyncMode.setLayoutData(fd);
-		
-		Label lblSyncMode = new Label(grpBehaviour, SWT.WRAP);
-		lblSyncMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblSyncMode.setText("This mode allows you to keep an up to date model version but the export procedure will take a bit longer:\n     - New and updated components in the model will be exported,\n     - New and updated components in the database will be imported,\n     - Updated components in both the model and the database will generate conflicts that will need to be manually solved.");
-		fd = new FormData();
-		fd.top = new FormAttachment(btnSyncMode, 5);
-		fd.left = new FormAttachment(0, 26);
-		lblSyncMode.setLayoutData(fd);
-		
-		btnMasterMode = new Button(grpBehaviour, SWT.RADIO);
-		btnMasterMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnMasterMode.setText(" Master mode");
-		btnMasterMode.setFont(DBGui.BOLD_FONT);
-		btnMasterMode.setSelection(preferenceStore.getString("exportBehaviour").equals("master"));
-		fd = new FormData();
-		fd.top = new FormAttachment(lblSyncMode, 15);
-		fd.left = new FormAttachment(0, 10);
-		btnMasterMode.setLayoutData(fd);
-		
-		Label lblMasterMode = new Label(grpBehaviour, SWT.WRAP);
-		lblMasterMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblMasterMode.setText("This mode allows you to keep a complete control over your model's content, at the price of more conflicts to manually solve:\n     - New and updated components in the model will be exported,\n     - New components in the database will be ignored,\n     - Updated components in the database, even not updated in the model, will generate conflict that will need to be manually solved.");
-		fd = new FormData();
-		fd.top = new FormAttachment(btnMasterMode, 5);
-		fd.left = new FormAttachment(0, 26);
-		lblMasterMode.setLayoutData(fd);
-		
-		gd = new GridData();
-		gd.horizontalAlignment = GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		grpBehaviour.setLayoutData(gd);
-		
-		
 		// ********************************* */
 		// * Logger tab  ******************* */
 		// ********************************* */
@@ -516,7 +418,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
     	preferenceStore.setValue("importShared", btnImportShared.getSelection());
-    	preferenceStore.setValue("exportBehaviour", btnStandardMode.getSelection() ? "standard" : (btnSyncMode.getSelection() ? "sync" : "master"));
     	table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
