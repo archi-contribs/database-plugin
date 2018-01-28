@@ -49,9 +49,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	
 	private int currentVersion = 0;
 	private int exportedVersion = 0;
+	private int databaseVersion = 0;
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
 	
-	private String checksum = "";
+	private String currentChecksum = "";
+	private String databaseChecksum = "";
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
@@ -104,17 +106,45 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
 	/**
-	 * Sets the checksum
+	 * @return the version of the model in the database
 	 */
-	public void setChecksum(String checksum) {
-		this.checksum = checksum;
+	public int getDatabaseVersion() {
+		return databaseVersion;
 	}
 	
 	/**
-	 * Gets the checksum
+	 * Sets the version of the model as it is in the database
 	 */
-	public String getChecksum() {
-		return this.checksum;
+	public void setDatabaseVersion(int version) {
+		databaseVersion = version;
+	}
+	
+	/**
+	 * Sets the current checksum
+	 */
+	public void setCurrentChecksum(String checksum) {
+		currentChecksum = checksum;
+	}
+	
+	/**
+	 * Gets the current checksum
+	 */
+	public String getCurrentChecksum() {
+		return currentChecksum;
+	}
+	
+	/**
+	 * Sets the database checksum
+	 */
+	public void setDatabaseChecksum(String checksum) {
+		databaseChecksum = checksum;
+	}
+	
+	/**
+	 * Gets the database checksum
+	 */
+	public String getCDatabaseChecksum() {
+		return databaseChecksum;
 	}
 	
 	/**
