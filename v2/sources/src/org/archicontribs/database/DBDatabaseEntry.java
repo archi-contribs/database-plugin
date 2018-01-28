@@ -24,11 +24,12 @@ public class DBDatabaseEntry {
 	private boolean exportWholeModel = false;
 	private boolean exportViewImages = false;
 	private boolean neo4jNativeMode = false;
+	private boolean collaborativeMode = false;
 
 	public DBDatabaseEntry() {
 	}
 
-	public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode) throws Exception {
+	public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean collaborativeMode) throws Exception {
 		setName(name);
 		setDriver(driver);
 		setServer(server);
@@ -42,6 +43,7 @@ public class DBDatabaseEntry {
 		setExportViewImages(exportViewImages);
 
 		setNeo4jNativeMode(neo4jNativeMode);
+		setCollaborativeMode(collaborativeMode);
 	}
 
 	public String getName() {
@@ -161,6 +163,14 @@ public class DBDatabaseEntry {
 	public void setNeo4jNativeMode(boolean neo4jNativeMode) {
 		this.neo4jNativeMode = neo4jNativeMode;
 	}
+	
+	public boolean getCollaborativeMode()  {
+		return collaborativeMode;
+	}
+
+	public void setCollaborativeMode(boolean collaborativeMode) {
+		this.collaborativeMode = collaborativeMode;
+	}
 
 	public String getLanguage() {
 		if ( DBPlugin.areEqual(driver, "neo4j") )
@@ -207,6 +217,8 @@ public class DBDatabaseEntry {
 					if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
 						databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 					}
+					
+					databaseEntry.setCollaborativeMode(store.getBoolean(preferenceName+"_collaborative-mode_"+String.valueOf(line)));
 
 					databaseEntries.add(databaseEntry);
 				} catch (Exception e) {
@@ -237,7 +249,7 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_export-whole-model_"+String.valueOf(line), databaseEntry.getExportWholeModel());
 			store.setValue(preferenceName+"_export-views-images_"+String.valueOf(line), databaseEntry.getExportViewsImages());
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.getNeo4jNativeMode());
-
+			store.setValue(preferenceName+"_collaborative-mode_"+String.valueOf(line), databaseEntry.getCollaborativeMode());
 		}
 	}
 
