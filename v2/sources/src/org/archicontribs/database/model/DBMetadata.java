@@ -6,6 +6,9 @@
 
 package org.archicontribs.database.model;
 
+import java.sql.Timestamp;
+import java.time.Instant;
+
 import org.archicontribs.database.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
@@ -22,8 +25,8 @@ import com.archimatetool.model.INameable;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBMetadata  {
-	DBVersion currentVersion = new DBVersion();
-	DBVersion databaseVersion = new DBVersion();
+	DBVersion currentVersion = new DBVersion(Timestamp.from(Instant.now()));
+	DBVersion databaseVersion = new DBVersion(Timestamp.from(Instant.EPOCH));
 	
 	/**
 	 * diagram 
