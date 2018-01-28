@@ -141,7 +141,7 @@ public class DBGuiExportModel extends DBGui {
 				btnDoAction.setEnabled(canExport);
 				
 				if ( canExport ) {
-                    boolean canChangeMetaData = (connection != null && connection.getExportWholeModel() && (tblModelVersions.getSelection()[0] == tblModelVersions.getItem(0)));
+                    boolean canChangeMetaData = (connection != null && selectedDatabase.getExportWholeModel() && (tblModelVersions.getSelection()[0] == tblModelVersions.getItem(0)));
                     
                     txtReleaseNote.setEnabled(canChangeMetaData);
                     txtPurpose.setEnabled(canChangeMetaData);
@@ -588,7 +588,7 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	protected void export() {
 		int progressBarWidth;
-		if ( connection.getExportWholeModel() ) {
+		if ( selectedDatabase.getExportWholeModel() ) {
 			logger.info("Exporting model : "+exportedModel.getAllElements().size()+" elements, "+exportedModel.getAllRelationships().size()+" relationships, "+exportedModel.getAllFolders().size()+" folders, "+exportedModel.getAllViews().size()+" views, "+exportedModel.getAllViewObjects().size()+" views objects, "+exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
 			progressBarWidth = exportedModel.getAllFolders().size()+exportedModel.getAllElements().size()+exportedModel.getAllRelationships().size()+exportedModel.getAllViews().size()+exportedModel.getAllViewObjects().size()+exportedModel.getAllViewConnections().size()+((IArchiveManager)exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
@@ -654,7 +654,7 @@ public class DBGuiExportModel extends DBGui {
 			exportedModel.getCurrentVersion().setTimestamp(connection.getLastTransactionTimestamp());
 			
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
-			if ( connection.getExportWholeModel() ) {
+			if ( selectedDatabase.getExportWholeModel() ) {
 				// We update the model name and purpose in case they've been changed in the export windows
 				if ( !DBPlugin.areEqual(exportedModel.getName(), txtModelName.getText()) )
 					exportedModel.setName(txtModelName.getText());
@@ -684,7 +684,7 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(relationshipsIterator.next().getValue(), txtExportedRelationships, txtImportedRelationships);
 			}
 	
-			if ( connection.getExportWholeModel() ) {
+			if ( selectedDatabase.getExportWholeModel() ) {
 				// we export first all the views in one go in order to check as quickly as possible if there are some conflicts
 				List<IDiagramModel> exportedViews = new ArrayList<IDiagramModel>();
 				
@@ -745,7 +745,7 @@ public class DBGuiExportModel extends DBGui {
 			// the export is successfull
 			try  {
 				// we check if something has been really exported				
-				if ( connection.getExportWholeModel() ) {
+				if ( selectedDatabase.getExportWholeModel() ) {
 					if ( txtExportedElements.getText().equals("0") && txtExportedRelationships.getText().equals("0") && txtExportedFolders.getText().equals("0") && txtExportedViews.getText().equals("0") &&
 							exportedModel.getCurrentVersion().getChecksum().equals(exportedModel.getDatabaseVersion().getChecksum()) ) {
 						connection.rollback();
@@ -900,7 +900,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		// even if the eObject is not exported (because it is already in the database), it has to be referenced as beeing part of the model
-		if ( connection.getExportWholeModel() )
+		if ( selectedDatabase.getExportWholeModel() )
 			connection.assignEObjectToModel(eObjectToExport);
 		
 		increaseProgressBar();
