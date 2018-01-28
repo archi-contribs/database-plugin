@@ -12,29 +12,28 @@ package org.archicontribs.database;
  * @author Herve Jouin
  */
 public class DBVersion {
-	public enum Type {element, relationship, folder, view };
-	private Type type;
+	private String tableName;
     private int version = 0;
     private String checksum = null;
     
-    public DBVersion(Type type, int version, String checksum) {
-    	this.type = type;
+    public DBVersion(String tableName, int version, String checksum) {
+    	this.tableName = tableName;
         this.version = version;
         this.checksum = checksum;
     }
     
     /**
-     * @return the type of the component
+     * @return the table name where the component can be imported/exported
      */
-    public Type getType() {
-        return type;
+    public String getTableName() {
+        return tableName;
     }
 
     /**
-     * @param type of the component to set
+     * @param table name where the component can be imported/exported
      */
-    public void setVersion(Type type) {
-        this.type = type;
+    public void setTableName(String tableName) {
+        this.tableName = tableName;
     }
 
     /**
@@ -45,7 +44,7 @@ public class DBVersion {
     }
 
     /**
-     * @param version of the component
+     * @param the version of the component
      */
     public void setVersion(int version) {
         this.version = version;
@@ -59,7 +58,7 @@ public class DBVersion {
     }
 
     /**
-     * @param checksum of the component
+     * @param the checksum of the component
      */
     public void setChecksum(String checksum) {
         this.checksum = checksum;
