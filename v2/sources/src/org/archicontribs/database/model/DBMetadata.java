@@ -47,18 +47,48 @@ public class DBMetadata  {
 	private int databaseVersion = 0;
 	
 	/**
-	 * Initial checksum of the component<br>
-	 * This property is set when the component is imported or after a successful export.<br>
+	 * Initial checksum of the component<br><br>
+	 * This property is set when the component is imported or after a successful export.<br><br>
 	 * Is Empty when the model has been loaded from an archimate file.
 	 */
 	private String initialChecksum = "";
 	
 	/**
-	 * Checksum of the component<br>
-	 * This property is calculated before each export and compared to initialChecksum to know if the component has been modified since it has been imported.<br>
-	 * The value is copied to initialchecksum if the export to the database transaction is committed.
+	 * Gets the {@link #initialChecksum} of the component
+	 */
+	public String getInitialChecksum() {
+		return initialChecksum;
+	}
+	
+	/**
+	 * Gets the {@link #initialChecksum} of the component
+	 */
+	public void setInitialChecksum(String checksum) {
+		if ( logger.isTraceEnabled() ) logger.trace("setting initial checksum for "+getDebugName()+" : "+checksum);
+		initialChecksum = checksum;
+	}
+	
+	/**
+	 * Checksum of the component<br><br>
+	 * This property is calculated before each export and compared to initialChecksum to know if the component has been modified since last import or export.<br><br>
+	 * The value is copied to {@link #initialChecksum} if the export to the database transaction is committed.
 	 */
 	private String currentChecksum = "";
+	
+	/**
+	 * Gets the {@link #currentChecksum} of the component
+	 */
+	public String getCurrentChecksum() {
+		return currentChecksum;
+	}
+	
+	/**
+	 * Gets the {@link #currentChecksum} of the component
+	 */
+	public void setCurrentChecksum(String checksum) {
+		if ( logger.isTraceEnabled() ) logger.trace("setting current checksum for "+getDebugName()+" : "+checksum);
+		currentChecksum = checksum;
+	}
 	
 	/**
 	 * Checksum of the component in the database<br>
@@ -151,12 +181,13 @@ public class DBMetadata  {
 	 * <li><b>older</b> the current version has not changed since last import/export, but the database version has</li>
 	 * <li><b>conflict</b> the component has changed since last import/export, and the database version as well</li>
 	 */
-	public enum STATUS {unknown, identical, newer, older, conflict};
+	//public enum STATUS {unknown, identical, newer, older, conflict};
 	
 	/**
 	 * Calculates the status of the component regarding its database version
 	 * @see STATUS
 	 */
+	/*
 	public STATUS getStatus() {
 		if ( databaseVersion == 0 || databaseChecksum.isEmpty() )
 			return STATUS.unknown;									// the database version is unknown
@@ -172,6 +203,7 @@ public class DBMetadata  {
 		
 		return STATUS.conflict;										// the component has changed since last import/export, and the database version as well
 	}
+	*/
 	
 	/**
 	 * Choices available when a conflict is detected in the database<br>
@@ -211,23 +243,7 @@ public class DBMetadata  {
 		databaseCreatedOn = timestamp;
 	}
 	
-	public String getCurrentChecksum() {
-		return currentChecksum;
-	}
-	
-	public void setCurrentChecksum(String checksum) {
-		if ( logger.isTraceEnabled() ) logger.trace("setting current checksum for "+getDebugName()+" : "+checksum);
-		currentChecksum = checksum;
-	}
-	
-	public String getInitialChecksum() {
-		return initialChecksum;
-	}
-	
-	public void setInitialChecksum(String checksum) {
-		if ( logger.isTraceEnabled() ) logger.trace("setting initial checksum for "+getDebugName()+" : "+checksum);
-		initialChecksum = checksum;
-	}
+
 	
 	public String getDatabaseChecksum() {
 		return databaseChecksum;
