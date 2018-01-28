@@ -20,8 +20,12 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.VerifyEvent;
+import org.eclipse.swt.events.VerifyListener;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -72,6 +76,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Composite compoNeo4jMode;
 	private Button btnNeo4jNativeMode;
 	private Button btnNeo4jExtendedMode;
+	private Label lblExportMode;
+	private Composite compoExportMode;
+	private Button btnStandaloneMode;
+	private Button btnCollaborativeMode;
 	private Label lblServer;
 	private Text txtServer;
 	private Label lblPort;
@@ -240,7 +248,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblDriver.setText("Driver :");
 		lblDriver.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblName, 10);
+		fd.top = new FormAttachment(lblName, 8);
 		fd.left = new FormAttachment(lblName, 0 , SWT.LEFT);
 		lblDriver.setLayoutData(fd);
 		lblDriver.setVisible(false);
@@ -255,7 +263,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		comboDriver.setVisible(false);
 		comboDriver.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				comboSelectionChanged();		// when the database driver is changed, we call comboSelectionChanged()
+				driverChanged();		// when the database driver is changed, we call comboSelectionChanged()
 				e.doit = true;
 			}
 		});
@@ -264,7 +272,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblFile.setText("File :");
 		lblFile.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblDriver, 10);
+		fd.top = new FormAttachment(lblDriver, 8);
 		fd.left = new FormAttachment(lblDriver, 0 , SWT.LEFT);
 		lblFile.setLayoutData(fd);
 		lblFile.setVisible(false);
@@ -293,7 +301,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblServer.setText("Server or IP :");
 		lblServer.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblDriver, 10);
+		fd.top = new FormAttachment(lblDriver, 8);
 		fd.left = new FormAttachment(lblDriver, 0 , SWT.LEFT);
 		lblServer.setLayoutData(fd);
 		lblServer.setVisible(false);
@@ -310,7 +318,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPort.setText("Port :");
 		lblPort.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblServer, 10, SWT.CENTER);
+		fd.top = new FormAttachment(lblServer, 0, SWT.CENTER);
 		fd.left = new FormAttachment(txtServer, 30);
 		lblPort.setLayoutData(fd);
 		lblPort.setVisible(false);
@@ -323,12 +331,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd.width = 40;
 		txtPort.setLayoutData(fd);
 		txtPort.setVisible(false);
+		txtPort.addVerifyListener(checkPortListener);
+		txtPort.addModifyListener(setPortListener);
 
 		lblDatabase = new Label(grpDatabases, SWT.NONE);
 		lblDatabase.setText("Database :");
 		lblDatabase.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblServer, 10);
+		fd.top = new FormAttachment(lblServer, 8);
 		fd.left = new FormAttachment(lblServer, 0 , SWT.LEFT);
 		lblDatabase.setLayoutData(fd);
 		lblDatabase.setVisible(false);
@@ -345,7 +355,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblSchema.setText("Schema :");
 		lblSchema.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblDatabase, 10, SWT.CENTER);
+		fd.top = new FormAttachment(lblDatabase, 9, SWT.CENTER);
 		fd.left = new FormAttachment(txtDatabase, 30);
 		lblSchema.setLayoutData(fd);
 		lblSchema.setVisible(false);
@@ -362,7 +372,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblUsername.setText("Username :");
 		lblUsername.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblDatabase, 10);
+		fd.top = new FormAttachment(lblDatabase, 8);
 		fd.left = new FormAttachment(lblDatabase, 0 , SWT.LEFT);
 		lblUsername.setLayoutData(fd);
 		lblUsername.setVisible(false);
@@ -379,7 +389,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPassword.setText("Password :");
 		lblPassword.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblUsername, 10, SWT.CENTER);
+		fd.top = new FormAttachment(lblUsername, 9, SWT.CENTER);
 		fd.left = new FormAttachment(lblPort, 0, SWT.LEFT);
 		lblPassword.setLayoutData(fd);
 		lblPassword.setVisible(false);
@@ -407,13 +417,15 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		txtPassword.setVisible(false);
 
 		lblExportType = new Label(grpDatabases, SWT.NONE);
-		lblExportType.setText("Default export type :");
+		lblExportType.setText("Export type :");
 		lblExportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblUsername, 10);
+		fd.top = new FormAttachment(lblUsername, 4);
 		fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
 		lblExportType.setLayoutData(fd);
 		lblExportType.setVisible(false);
+		lblExportType.setToolTipText("Please choose what information should be exported to the database.");
+
 
 		compoExportType = new Composite(grpDatabases, SWT.NONE);
 		compoExportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -434,55 +446,27 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnWholeType.setText("Whole model");
 		btnWholeType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnWholeType.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { comboSelectionChanged(); }
+			public void widgetSelected(SelectionEvent e) { driverChanged(); }
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
+		btnWholeType.setToolTipText("The plugin will export the whole model content : elements, relationships, folders, views and images.\n"+
+				"   --> It will therefore be possible to import back your models from the database.");
 
 		btnComponentsType = new Button(compoExportType, SWT.RADIO);
 		btnComponentsType.setText("Components only");
 		btnComponentsType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		btnComponentsType.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { comboSelectionChanged(); }
+			public void widgetSelected(SelectionEvent e) { driverChanged(); }
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
-
-		lblExportViewImages = new Label(grpDatabases, SWT.NONE);
-		lblExportViewImages.setText("Export View Images :");
-		lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblExportType, 10);
-		fd.left = new FormAttachment(lblExportType, 0 , SWT.LEFT);
-		lblExportViewImages.setLayoutData(fd);
-		lblExportViewImages.setVisible(false);
-
-		compoExportViewImages = new Composite(grpDatabases, SWT.NONE);
-		compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		compoExportViewImages.setVisible(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblExportViewImages, 0, SWT.TOP);
-		fd.bottom = new FormAttachment(lblExportViewImages, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(txtName, 50, SWT.LEFT);
-		fd.right = new FormAttachment(txtName, 0, SWT.RIGHT);
-		compoExportViewImages.setLayoutData(fd);
-		rl = new RowLayout();
-		rl.marginTop = 0;
-		rl.marginLeft = 0;
-		rl.spacing = 10;
-		compoExportViewImages.setLayout(rl);
-
-		btnExportViewImages = new Button(compoExportViewImages, SWT.RADIO);
-		btnExportViewImages.setText("Yes");
-		btnExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-
-		btnDoNotExportViewImages = new Button(compoExportViewImages, SWT.RADIO);
-		btnDoNotExportViewImages.setText("No");
-		btnDoNotExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnWholeType.setToolTipText("The plugin will export the elements and relationships only (folders, views and images won't be exported).\n"+
+				"   --> This mode is useful for graph databases for instance, but please be careful, it won't be possible to import your models back from the database.");
 
 		lblNeo4jMode = new Label(grpDatabases, SWT.NONE);
 		lblNeo4jMode.setText("Export graph mode :");
 		lblNeo4jMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblExportType, 10);
+		fd.top = new FormAttachment(lblExportType, 4);
 		fd.left = new FormAttachment(lblExportType, 0 , SWT.LEFT);
 		lblNeo4jMode.setLayoutData(fd);
 		lblNeo4jMode.setVisible(false);
@@ -509,6 +493,80 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnNeo4jExtendedMode = new Button(compoNeo4jMode, SWT.RADIO);
 		btnNeo4jExtendedMode.setText("Extended");
 		btnNeo4jExtendedMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+
+		lblExportMode = new Label(grpDatabases, SWT.NONE);
+		lblExportMode.setText("Export mode :");
+		lblExportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportType, 4);
+		fd.left = new FormAttachment(lblExportType, 0 , SWT.LEFT);
+		lblExportMode.setLayoutData(fd);
+		lblExportMode.setVisible(false);
+		lblExportMode.setToolTipText("Please choose how the plugin shoud export your data.");
+
+		compoExportMode = new Composite(grpDatabases, SWT.NONE);
+		compoExportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		compoExportMode.setVisible(false);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportMode, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(lblExportMode, 0, SWT.BOTTOM);
+		fd.left = new FormAttachment(txtName, 50, SWT.LEFT);
+		fd.right = new FormAttachment(txtName, 0, SWT.RIGHT);
+		compoExportMode.setLayoutData(fd);
+		rl = new RowLayout();
+		rl.marginTop = 0;
+		rl.marginLeft = 0;
+		rl.spacing = 10;
+		compoExportMode.setLayout(rl);
+
+		btnCollaborativeMode = new Button(compoExportMode, SWT.RADIO);
+		btnCollaborativeMode.setText("Collaborative mode");
+		btnCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnCollaborativeMode.setToolTipText("The collaborative mode is a bit slower than the standalone mode but allows for several people to work on the same model at the same time."+
+				"   --> While exporting your model, the plugin checks if components have been updated in the database while you were editing the model:\n"+
+				"           - components updated in both your model and the database generate conflicts that need to be manually solved\n"+
+				"           - components that have been created or updated in the database but not in the model are automatically imported without generating any conflict.");
+		
+		btnStandaloneMode = new Button(compoExportMode, SWT.RADIO);
+		btnStandaloneMode.setText("Standalone mode");
+		btnStandaloneMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnStandaloneMode.setToolTipText("The standalone mode is the quickest mode if only one person is working on a model at a time."+
+				"   --> The plugin behaves as for archimate files : it exports your model as it is, without checking if components have been updated in the database while you were editing the model.");
+		
+		lblExportViewImages = new Label(grpDatabases, SWT.NONE);
+		lblExportViewImages.setText("Export View Images :");
+		lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportMode, 4);
+		fd.left = new FormAttachment(lblExportMode, 0 , SWT.LEFT);
+		lblExportViewImages.setLayoutData(fd);
+		lblExportViewImages.setVisible(false);
+		lblExportViewImages.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
+
+		compoExportViewImages = new Composite(grpDatabases, SWT.NONE);
+		compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		compoExportViewImages.setVisible(false);
+		fd = new FormData();
+		fd.top = new FormAttachment(lblExportViewImages, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(lblExportViewImages, 0, SWT.BOTTOM);
+		fd.left = new FormAttachment(txtName, 50, SWT.LEFT);
+		fd.right = new FormAttachment(txtName, 0, SWT.RIGHT);
+		compoExportViewImages.setLayoutData(fd);
+		rl = new RowLayout();
+		rl.marginTop = 0;
+		rl.marginLeft = 0;
+		rl.spacing = 10;
+		compoExportViewImages.setLayout(rl);
+
+		btnExportViewImages = new Button(compoExportViewImages, SWT.RADIO);
+		btnExportViewImages.setText("Yes");
+		btnExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnExportViewImages.setToolTipText("The plugin will create views screenshots (jpg) and export them to the database.");
+
+		btnDoNotExportViewImages = new Button(compoExportViewImages, SWT.RADIO);
+		btnDoNotExportViewImages.setText("No");
+		btnDoNotExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		btnDoNotExportViewImages.setToolTipText("The plugin won't create any view screenshot.");
 
 		btnSave = new Button(grpDatabases, SWT.NONE);
 		btnSave.setText("Save");
@@ -537,7 +595,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnDiscard.setVisible(false);
 
 
-		grpDatabases.setTabList(new Control[] {txtName, comboDriver, txtFile, btnBrowse, txtServer, txtPort, txtDatabase, txtSchema, txtUsername, txtPassword, btnShowPassword, compoExportType, compoExportViewImages, btnDiscard, btnSave});
+		grpDatabases.setTabList(new Control[] {txtName, comboDriver, txtFile, btnBrowse, txtServer, txtPort, txtDatabase, txtSchema, txtUsername, txtPassword, compoExportType, compoExportViewImages, compoNeo4jMode, compoExportMode, btnDiscard, btnSave});
 
 		grpDatabases.layout();
 
@@ -604,62 +662,33 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	/**
 	 * Invoked when the selection in the driver combo has changed.
 	 */
-	protected void comboSelectionChanged() {
-		if ( logger.isTraceEnabled() ) logger.trace("comboSelectionChanged()");
-		boolean isFile = false;
+	protected void driverChanged() {
+		boolean isFile = comboDriver.getText().equalsIgnoreCase("sqlite");
+		boolean isNeo4j = comboDriver.getText().equalsIgnoreCase("neo4j");
 		boolean hasSchema = DBDatabase.get(comboDriver.getText()).hasSchema();
-
-		if ( comboDriver.getText().equalsIgnoreCase("sqlite") ) {
-			isFile = true;
-			FormData fd = new FormData();
-			fd.top = new FormAttachment(lblFile, 10);
-			fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
-			lblExportType.setLayoutData(fd);
-		} else {
-			FormData fd = new FormData();
-			fd.top = new FormAttachment(lblUsername, 10);
-			fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
-			lblExportType.setLayoutData(fd);
-		}
-
-		if ( comboDriver.getText().equalsIgnoreCase("ms-sql") ) {
-			txtUsername.setToolTipText("Leave username and password empty to use Windows integrated security");
-			txtPassword.setToolTipText("Leave username and password empty to use Windows integrated security");
-			txtServer.setToolTipText("Specify \"server\\\\instance\" in case of named instance.");
-		} else {
-			txtUsername.setToolTipText(null);
-			txtPassword.setToolTipText(null);
-			txtServer.setToolTipText(null);
-		}
-
-		if ( txtPort.getText().isEmpty() || DBPlugin.areEqual(txtPort.getText(), "0")) {
-			txtPort.setText(String.valueOf(DBDatabase.get(comboDriver.getText()).getDefaultPort()));
-		}
-
+		
 		lblFile.setVisible(isFile);
 		txtFile.setVisible(isFile);		
 		btnBrowse.setVisible(isFile);
 		lblExportType.setVisible(true);
 		compoExportType.setVisible(true);
-		if ( comboDriver.getText().equalsIgnoreCase("neo4j") ) {
-			//TODO : if neo4j ; pas d'export full
-			btnWholeType.setEnabled(false);
-			btnWholeType.setSelection(false);
-			btnComponentsType.setEnabled(false);
-			btnComponentsType.setSelection(true);
-			btnExportViewImages.setEnabled(false);
-			btnDoNotExportViewImages.setEnabled(false);
-			lblNeo4jMode.setVisible(true);
-			compoNeo4jMode.setVisible(true);
-		}
-		else {
-			btnWholeType.setEnabled(txtName.getEnabled());
-			btnComponentsType.setEnabled(txtName.getEnabled());
-			btnExportViewImages.setEnabled(txtName.getEnabled());
-			btnDoNotExportViewImages.setEnabled(txtName.getEnabled());
-			lblNeo4jMode.setVisible(false);
-			compoNeo4jMode.setVisible(false);
-		}
+		
+		btnWholeType.setEnabled(!isNeo4j);
+		btnWholeType.setSelection(!isNeo4j);
+		btnComponentsType.setEnabled(!isNeo4j);
+		btnComponentsType.setSelection(isNeo4j);
+
+		lblNeo4jMode.setVisible(isNeo4j);
+		compoNeo4jMode.setVisible(isNeo4j);
+		
+		lblExportMode.setVisible(!isNeo4j);
+		compoExportMode.setVisible(!isNeo4j);
+		btnCollaborativeMode.setSelection(!isFile);
+		btnStandaloneMode.setSelection(isFile);
+		
+		btnExportViewImages.setEnabled(!isNeo4j);
+		btnExportViewImages.setEnabled(!isNeo4j);
+		btnDoNotExportViewImages.setEnabled(!isNeo4j);
 
 		lblServer.setVisible(!isFile);
 		txtServer.setVisible(!isFile);
@@ -674,8 +703,30 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblPassword.setVisible(!isFile);
 		txtPassword.setVisible(!isFile);
 		btnShowPassword.setVisible(!isFile);
+		
 		lblExportViewImages.setVisible(btnWholeType.getSelection());
 		compoExportViewImages.setVisible(btnWholeType.getSelection());
+
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(isFile ? lblFile: lblUsername, 8);
+		fd.left = new FormAttachment(lblUsername, 0 , SWT.LEFT);
+		lblExportType.setLayoutData(fd);
+		
+		if ( comboDriver.getText().equalsIgnoreCase("ms-sql") ) {
+			txtUsername.setToolTipText("Leave username and password empty to use Windows integrated security");
+			txtPassword.setToolTipText("Leave username and password empty to use Windows integrated security");
+			txtServer.setToolTipText("Specify \"server\\\\instance\" in case of named instance.");
+		} else {
+			txtUsername.setToolTipText(null);
+			txtPassword.setToolTipText(null);
+			txtServer.setToolTipText(null);
+		}
+
+		if ( DBPlugin.isEmpty((String)txtPort.getData("manualPort")) ) {
+			txtPort.removeModifyListener(setPortListener);
+			txtPort.setText(String.valueOf(DBDatabase.get(comboDriver.getText()).getDefaultPort()));
+			txtPort.addModifyListener(setPortListener);
+		}
 
 		grpDatabases.layout();
 	}
@@ -785,7 +836,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblDriver.setVisible(true);
 		comboDriver.setVisible(true);
 
-		comboSelectionChanged();
+		driverChanged();
 
 		btnSave.setVisible(editMode);
 		btnDiscard.setVisible(editMode);
@@ -877,6 +928,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			btnShowPassword.setVisible(false);
 			lblExportViewImages.setVisible(false);
 			compoExportViewImages.setVisible(false);
+			lblExportMode.setVisible(false);
+			compoExportMode.setVisible(false);
 
 			btnSave.setVisible(false);
 			btnDiscard.setVisible(false);
@@ -958,4 +1011,30 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			}			
 		}
 	}
+	
+	private VerifyListener checkPortListener = new VerifyListener() {
+        @Override
+        public void verifyText(VerifyEvent e) {
+            // get old text and create new text by using the VerifyEvent.text
+            final String oldString = txtPort.getText();
+            String newString = oldString.substring(0, e.start) + e.text + oldString.substring(e.end);
+            try {
+                if ( DBPlugin.isEmpty(newString) )
+                	e.doit = true;
+                else {
+                	int port = Integer.parseInt(newString);
+                	e.doit = port > 0 && port < 65536;
+                }
+            } catch(NumberFormatException ex) {
+            	e.doit = false;
+            }
+        }
+	};
+	
+	private ModifyListener setPortListener = new ModifyListener() {
+		@Override
+		public void modifyText(ModifyEvent e) {
+			txtPort.setData("manualPort", txtPort.getText());
+		}
+	};
 }
