@@ -143,7 +143,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	/**
 	 * Gets the database checksum
 	 */
-	public String getCDatabaseChecksum() {
+	public String getDatabaseChecksum() {
 		return databaseChecksum;
 	}
 	
