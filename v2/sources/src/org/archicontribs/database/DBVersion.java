@@ -7,6 +7,7 @@
 package org.archicontribs.database;
 
 import java.sql.Timestamp;
+import java.time.Instant;
 
 /**
  * This class holds the table name, version, checksum and a timestamp
@@ -83,6 +84,6 @@ public class DBVersion {
      * @param the timestamp of the component
      */
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = (timestamp==null ? new Timestamp(0) : timestamp);
+        this.timestamp = (timestamp==null ? Timestamp.from(Instant.now()) : timestamp);
     }
 }
