@@ -189,12 +189,12 @@ import org.json.simple.parser.JSONParser;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 14/08/2017				Solve plugin initialization failure
+ * v2.1 : 28/01/2018				Solve plugin initialization failure
  * 									Import individual component:
  * 										added documentation column
  * 										added popup message during the import
  * 									Export model:
- *										change the export algorithm to become more collaborative
+ *										change the export algorithm to manage standalone and collaborative modes
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
  *                                  Add procedures that can be called by the script plugin 
@@ -234,7 +234,7 @@ import org.json.simple.parser.JSONParser;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.0.8";
+	public static final String pluginVersion = "2.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
