@@ -20,7 +20,7 @@ public class DBVersion {
     private String checksum;
     private Timestamp timestamp;
     
-    public static Timestamp NEVER = Timestamp.from(Instant.MIN);
+    public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
     public DBVersion(String tableName, int version, String checksum, Timestamp timestamp) {
     	setTableName(tableName);
