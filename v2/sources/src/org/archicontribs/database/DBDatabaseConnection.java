@@ -25,7 +25,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
@@ -34,7 +33,6 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
-import org.archicontribs.database.preferences.DBPreferencePage.EXPORT_BEHAVIOUR;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
@@ -96,7 +94,7 @@ public class DBDatabaseConnection {
 	 * Version of the expected database model.<br>
 	 * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
 	 */
-	public static final int databaseVersion = 203;
+	public static final int databaseVersion = 204;
 
 	/**
 	 * This class variable stores the last commit transaction
@@ -561,6 +559,7 @@ public class DBDatabaseConnection {
 					+ "checkedin_on "+ DATETIME +", "
 					+ "deleted_by "+ USERNAME +", "
 					+ "deleted_on "+ DATETIME +", "
+					+ "checksum "+ OBJECTID +" NOT NULL, "
 					+ PRIMARY_KEY+" (id, version)"
 					+ ")");
 
@@ -754,8 +753,9 @@ public class DBDatabaseConnection {
 
 	/**
 	 * Upgrades the database
+	 * @throws ClassNotFoundException 
 	 */
-	private void upgradeDatabase(int fromVersion) throws SQLException {
+	private void upgradeDatabase(int fromVersion) throws SQLException, ClassNotFoundException {
 		String COLUMN = DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
 
 		// convert from version 200 to 201 :
@@ -805,6 +805,80 @@ public class DBDatabaseConnection {
 			setAutoCommit(true);
 
 			fromVersion = 203;
+		}
+		
+		// convert from version 203 to 204 :
+		//      - add a checksum to the model
+		//
+		// unfortunately, some databases do not support to alter an existing column
+		// so we create a new table
+		if ( fromVersion == 203 ) {
+			setAutoCommit(false);
+			
+			String[] columns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checkedin_by", "checkedin_on", "deleted_by", "deleted_on", "checksum"};
+			
+			request("ALTER TABLE "+schema+"models RENAME TO "+schema+"models_old");
+			
+			request("CREATE TABLE "+schema+"models ("
+					+ "id "+ OBJECTID +" NOT NULL, "
+					+ "version "+ INTEGER +" NOT NULL, "
+					+ "name "+ OBJ_NAME +" NOT NULL, "
+					+ "note "+ TEXT +", "
+					+ "purpose "+ TEXT +", "
+					+ "created_by "+ USERNAME +" NOT NULL, "
+					+ "created_on "+ DATETIME +" NOT NULL, "
+					+ "checkedin_by "+ USERNAME +", "
+					+ "checkedin_on "+ DATETIME +", "
+					+ "deleted_by "+ USERNAME +", "
+					+ "deleted_on "+ DATETIME +", "
+					+ "checksum "+ OBJECTID +" NOT NULL, "
+					+ PRIMARY_KEY+" (id, version)"
+					+ ")");
+			
+			ResultSet result = select("SELECT id, version, name, note, purpose, created_by, created_on, checkedin_by, checkedin_on, deleted_by, deleted_on FROM models_old");
+			while ( result.next() ) {
+				StringBuilder checksumBuilder = new StringBuilder();
+				DBChecksum.append(checksumBuilder, "id", result.getString("id"));
+				DBChecksum.append(checksumBuilder, "name", result.getString("name"));
+				DBChecksum.append(checksumBuilder, "purpose", result.getString("purpose"));
+				DBChecksum.append(checksumBuilder, "note", result.getString("note"));
+				String checksum;
+				try {
+					checksum = DBChecksum.calculateChecksum(checksumBuilder);
+				} catch (Exception err) {
+					DBGui.popup(Level.FATAL, "Failed to calculate models checksum.", err);
+					rollback();
+					return;
+				}
+				insert(schema+"models", columns,
+						result.getString("id"),
+						result.getInt("version"),
+						result.getString("name"),
+						result.getString("note"),
+						result.getString("purpose"),
+						result.getString("created_by"),
+						result.getTimestamp("created_on"),
+						result.getString("checkedin_by"),
+						result.getTimestamp("checkedin_on"),
+						result.getString("deleted_by"),
+						result.getTimestamp("deleted_on"),
+						checksum
+						);
+			}
+			result.close();
+			
+			request("UPDATE "+schema+"database_version SET version = 204 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+			commit();
+			
+			// SQLite refuses to drop the table if we do not close the connection and reopen it
+			connection.close();
+			openConnection();
+			request("DROP TABLE "+schema+"models_old");
+			commit();
+
+			setAutoCommit(true);
+
+			fromVersion = 204;
 		}
 	}
 
@@ -2577,14 +2651,6 @@ public class DBDatabaseConnection {
 //	public int getCountOlderImages() { return countOlderImages; }								public void setCountOlderImages(int count) { countOlderImages = count; }
 //	public int getCountConflictingImages() { return countConflictingImages; }					public void setCountConflictingImages(int count) { countConflictingImages = count; }	
 	
-	HashMap<String, DBVersion> versionsElementsInDatabase = new HashMap<String, DBVersion>();
-	HashMap<String, DBVersion> versionsRelationshipsInDatabase = new HashMap<String, DBVersion>();
-	HashMap<String, DBVersion> versionsFoldersInDatabase = new HashMap<String, DBVersion>();
-	HashMap<String, DBVersion> versionsViewsInDatabase = new HashMap<String, DBVersion>();
-	//HashMap<String, DBVersion> versionsViewObjectsInDatabase = new HashMap<String, DBVersion>();
-	//HashMap<String, DBVersion> versionsViewConnectionsInDatabase = new HashMap<String, DBVersion>();
-	HashMap<String, DBVersion> versionsImagesInDatabase = new HashMap<String, DBVersion>();
-	   
     private int countNewModelElements = 0;
     /**
      * This method counts the number of new elements in the model, i.e. that are in the model but not in the database.<br>
@@ -2860,25 +2926,19 @@ public class DBDatabaseConnection {
     /* ***** */
 	
     /**
-     * Gets the versions and checksum of one model's components from the database and fills in the versionsXXXXInDatabase variables.
-     * @param modelId the id of the mdoel
+     * Gets the versions and checksum of one model's components from the database and fills their DBMetadata. Components that are not in the current model are returned in a HashMap.
+     * @param modelId the id of the model
      * @param modelVersion the versions of the model (0 to get the latest version)
      * @param getWholeModel if true, fills in the folders and view variables as well
+     * @return HashMap with versions and checksum of components that are not in the model.
      * @throws SQLException
      */
-    private void getVersionsFromDatabase(String modelId, int modelVersion, boolean getWholeModel) throws SQLException {
-        // first, we empty the existing maps
-        versionsElementsInDatabase = new HashMap<String, DBVersion>();
-        versionsRelationshipsInDatabase = new HashMap<String, DBVersion>();
-        versionsFoldersInDatabase = new HashMap<String, DBVersion>();
-        versionsViewsInDatabase = new HashMap<String, DBVersion>();
-        //versionsViewObjectsInDatabase = new HashMap<String, DBVersion>();
-        //versionsViewConnectionsInDatabase = new HashMap<String, DBVersion>();
-        versionsImagesInDatabase = new HashMap<String, DBVersion>();
-        
-        // this method does not manage Neo4J databases
-        if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
-            return;
+    public HashMap<String, DBVersion> getVersionsFromDatabase(ArchimateModel model, int modelVersion) throws SQLException, RuntimeException {
+    	HashMap<String, DBVersion> versions = new HashMap<String, DBVersion>();
+    	
+        // This method can retreive versions if the database contains the whole model tables
+        if ( !databaseEntry.getExportWholeModel() ) {
+        	return versions;
         }
         
         ResultSet result;
@@ -2886,57 +2946,87 @@ public class DBDatabaseConnection {
         // if the modelVersion is not specified (i.e. zero), then we get the latest version from the database
         if ( modelVersion == 0 ) {
             if ( logger.isDebugEnabled() ) logger.debug("Getting latest version of the model from the database");
-            result = select("SELECT MAX(version) from "+schema+"models WHERE id = ?", modelId);
-            if ( result.next() ) {
-                modelVersion = result.getInt("version");
-            } else {
-                return;         // if the model is not not found in the database, this is not an error. this just means that the model is new. 
-            }
+            result = select("SELECT MAX(version) version from "+schema+"models WHERE id = ?", model.getId());
+            if ( result.next() && result.getObject("version") != null ) {
+            	modelVersion = result.getInt("version");
+                model.setDatabaseVersion(modelVersion);
+            } else
+                return versions;         // if the model is not not found in the database, this is not an error. this just means that the model is new. 
+            result.close();
+            
+            result = select("SELECT checksum from "+schema+"models WHERE id = ? AND version = ?", model.getId(), modelVersion);
+            result.next();
+            if ( result.getString("checksum") != null )
+            	model.setDatabaseChecksum(result.getString("checksum"));
+            result.close();
         }
         
         // we get the list of elements
         result = select("SELECT id, version, checksum from "+schema+"elements elements "+
-                "JOIN "+schema+"elements_in_model JOIN "+schema+"elements_in_model elements_in_model on elements.id = elements_in_model.element_id and elements.version = elements_in_model.element_version "+
-                "WHERE elements_in_model.model_id = ? and elements_in_model.model_version = ?"+
-                modelId,
+                "JOIN "+schema+"elements_in_model elements_in_model on elements.id = elements_in_model.element_id and elements.version = elements_in_model.element_version "+
+                "WHERE elements_in_model.model_id = ? and elements_in_model.model_version = ?",
+                model.getId(),
                 modelVersion);
         while ( result.next() ) {
-            versionsElementsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+            IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
+            if ( element != null ) {
+            	element.getDBMetadata().setDatabaseVersion(result.getInt("version"));
+            	element.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            } else
+            	versions.put(result.getString("id"), new DBVersion("elements", result.getInt("version"), result.getString("checksum")));
         }
+        result.close();
         
         // we get the list of relationships
         result = select("SELECT id, version, checksum from "+schema+"relationships relationships "+
-                "JOIN "+schema+"relationships_in_model JOIN "+schema+"relationships_in_model relationships_in_model on relationships.id = relationships_in_model.element_id and relationships.version = relationships_in_model.element_version "+
-                "WHERE relationships_in_model.model_id = ? and relationships_in_model.model_version = ?"+
-                modelId,
+                "JOIN "+schema+"relationships_in_model relationships_in_model on relationships.id = relationships_in_model.relationship_id and relationships.version = relationships_in_model.relationship_version "+
+                "WHERE relationships_in_model.model_id = ? and relationships_in_model.model_version = ?",
+                model.getId(),
                 modelVersion);
         while ( result.next() ) {
-            versionsRelationshipsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
+            IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
+            if ( relationship != null ) {
+            	relationship.getDBMetadata().setDatabaseVersion(result.getInt("version"));
+            	relationship.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            } else
+            	versions.put(result.getString("id"), new DBVersion("relationships", result.getInt("version"), result.getString("checksum")));
         }
+        result.close();
         
-        if ( getWholeModel ) {
-            // we get the list of folders
-            result = select("SELECT id, version, checksum from "+schema+"folders folders "+
-                    "JOIN "+schema+"folders_in_model JOIN "+schema+"folders_in_model folders_in_model on folders.id = folders_in_model.element_id and folders.version = folders_in_model.element_version "+
-                    "WHERE folders_in_model.model_id = ? and folders_in_model.model_version = ?"+
-                    modelId,
-                    modelVersion);
-            while ( result.next() ) {
-                versionsFoldersInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
-            }
-            
-            // we get the list of views
-            result = select("SELECT id, version, checksum from "+schema+"views views "+
-                    "JOIN "+schema+"views_in_model JOIN "+schema+"views_in_model views_in_model on views.id = views_in_model.element_id and views.version = views_in_model.element_version "+
-                    "WHERE views_in_model.model_id = ? and views_in_model.model_version = ?"+
-                    modelId,
-                    modelVersion);
-            while ( result.next() ) {
-                versionsViewsInDatabase.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum")));
-            }
+        // we get the list of folders
+        result = select("SELECT id, version, checksum from "+schema+"folders folders "+
+                "JOIN "+schema+"folders_in_model folders_in_model on folders.id = folders_in_model.folder_id and folders.version = folders_in_model.folder_version "+
+                "WHERE folders_in_model.model_id = ? and folders_in_model.model_version = ?",
+                model.getId(),
+                modelVersion);
+        while ( result.next() ) {
+            IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
+            if ( folder != null ) {
+            	folder.getDBMetadata().setDatabaseVersion(result.getInt("version"));
+            	folder.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            } else
+            	versions.put(result.getString("id"), new DBVersion("folders", result.getInt("version"), result.getString("checksum")));
         }
+        result.close();
+        
+        // we get the list of views
+        result = select("SELECT id, version, checksum from "+schema+"views views "+
+                "JOIN "+schema+"views_in_model views_in_model on views.id = views_in_model.view_id and views.version = views_in_model.view_version "+
+                "WHERE views_in_model.model_id = ? and views_in_model.model_version = ?",
+                model.getId(),
+                modelVersion);
+        while ( result.next() ) {
+            IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
+            if ( view != null ) {
+            	view.getDBMetadata().setDatabaseVersion(result.getInt("version"));
+            	view.getDBMetadata().setDatabaseChecksum(result.getString("checksum"));
+            } else
+            	versions.put(result.getString("id"), new DBVersion("views", result.getInt("version"), result.getString("checksum")));
+        }
+        result.close();
         
         //TODO: images
+        return versions;
     }
     
 	/**
@@ -2955,6 +3045,7 @@ public class DBDatabaseConnection {
      * <li>countNewXXXViewConnections / countUpdatedXXXViewConnections</li>
      * <li>countNewXXXImages</li>
 	 */
+    /*
 	public void compareModelFromDatabase(ArchimateModel model) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("Checking in database which components need to be exported.");
 		DBVersion dbVersion;
@@ -3068,10 +3159,12 @@ public class DBDatabaseConnection {
 				++countIdenticalImages;
 		}
 	}
+	*/
 
 	/**
 	 * Retrieves the version and the checksum of the component from the database
 	 */
+    /*
 	private void checkComponentInDatabase(String tableName, EObject eObject) throws Exception {
 		int currentVersion = ((IDBMetadata)eObject).getDBMetadata().getInitialVersion();
 		int databaseVersion = 0;
@@ -3127,10 +3220,12 @@ public class DBDatabaseConnection {
 		if ( logger.isTraceEnabled() ) logger.trace("   Database version : "+databaseVersion+", checksum : "+databaseChecksum+(hasCreatedByColumn ? ", created by : "+databaseCreatedBy+", created on : "+databaseCreatedOn : ""));
 		if ( logger.isTraceEnabled() ) logger.trace("   Current version  : "+currentVersion+", checksum : "+((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum()+(DBPlugin.areEqual(databaseChecksum, ((IDBMetadata)eObject).getDBMetadata().getCurrentChecksum())?"":" (updated)"));
 	}
+	*/
 
 	/**
 	 * Checks if the image exists in the database
 	 */
+    /*
 	private boolean checkImage(String path) throws Exception {
 		boolean exists;
 		// we check the existence of the image in the database
@@ -3153,6 +3248,7 @@ public class DBDatabaseConnection {
 		result=null;
 		return exists;
 	}
+	*/
 
 
 	/* *********************************************************************************** */
@@ -3165,7 +3261,7 @@ public class DBDatabaseConnection {
 	 * Exports the model metadata into the database
 	 */
 	public void exportModel(ArchimateModel model, String releaseNote) throws Exception {
-		final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on"};
+		final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checksum"};
 		
 		if ( (model.getName() == null) || (model.getName().equals("")) )
 			throw new RuntimeException("Model name cannot be empty.");
@@ -3178,6 +3274,7 @@ public class DBDatabaseConnection {
 				,model.getPurpose()
 				,System.getProperty("user.name")
 				,getLastTransactionTimestamp()
+				,model.getCurrentChecksum()
 				);
 
 		exportProperties(model);
@@ -3197,8 +3294,6 @@ public class DBDatabaseConnection {
 		else if ( eObject instanceof IDiagramModelConnection )	exportViewConnection((IDiagramModelConnection)eObject);
 		else
 			throw new Exception("Do not know how to export "+eObject.getClass().getSimpleName());
-		//} else
-		//	if ( logger.isDebugEnabled() ) logger.debug("version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" does not need to be exported");
 	}
 	
 	public void assignEObjectToModel(EObject eObject) throws Exception {
