@@ -20,6 +20,8 @@ public class DBVersion {
     private String checksum;
     private Timestamp timestamp;
     
+    public static Timestamp NEVER = Timestamp.from(Instant.MIN);
+    
     public DBVersion(String tableName, int version, String checksum, Timestamp timestamp) {
     	setTableName(tableName);
         setVersion(version);
@@ -29,6 +31,10 @@ public class DBVersion {
     
     public DBVersion() {
     	this(null, 0, null, null);
+    }
+    
+    public DBVersion(Timestamp timestamp) {
+    	this(null, 0, null, timestamp);
     }
     
     /**
@@ -84,6 +90,6 @@ public class DBVersion {
      * @param the timestamp of the component
      */
     public void setTimestamp(Timestamp timestamp) {
-        this.timestamp = (timestamp==null ? Timestamp.from(Instant.now()) : timestamp);
+        this.timestamp = (timestamp==null ? NEVER : timestamp);
     }
 }
