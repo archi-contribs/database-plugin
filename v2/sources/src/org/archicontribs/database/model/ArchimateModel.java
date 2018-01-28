@@ -14,6 +14,7 @@ import java.util.Map.Entry;
 
 import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
@@ -47,13 +48,10 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		super.setMetadata(DBArchimateFactory.eINSTANCE.createMetadata());
 	}
 	
-	private int currentVersion = 0;
-	private int exportedVersion = 0;
-	private int databaseVersion = 0;
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
 	
-	private String currentChecksum = "";
-	private String databaseChecksum = "";
+	private DBVersion currentVersion;
+	private DBVersion databaseVersion;
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
@@ -79,72 +77,15 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	/**
 	 * @return the current version of the model 
 	 */
-	public int getCurrentVersion() {
+	public DBVersion getCurrentVersion() {
 		return currentVersion;
 	}
 	
 	/**
-	 * sets the current version of the model
+	 * @return the version of the model as it is in the database 
 	 */
-	public void setCurrentVersion(int version) {
-		currentVersion = version;
-	}
-	
-	/**
-	 * @return the version that was exported to the database
-	 */
-	public int getExportedVersion() {
-		return exportedVersion;
-	}
-	
-	/**
-	 * Sets the version of the model as it is exported in the database<br>
-	 * copied to current version once the database transaction is committed.
-	 */
-	public void setExportedVersion(int version) {
-		exportedVersion = version;
-	}
-	
-	/**
-	 * @return the version of the model in the database
-	 */
-	public int getDatabaseVersion() {
+	public DBVersion getDatabaseVersion() {
 		return databaseVersion;
-	}
-	
-	/**
-	 * Sets the version of the model as it is in the database
-	 */
-	public void setDatabaseVersion(int version) {
-		databaseVersion = version;
-	}
-	
-	/**
-	 * Sets the current checksum
-	 */
-	public void setCurrentChecksum(String checksum) {
-		currentChecksum = checksum;
-	}
-	
-	/**
-	 * Gets the current checksum
-	 */
-	public String getCurrentChecksum() {
-		return currentChecksum;
-	}
-	
-	/**
-	 * Sets the database checksum
-	 */
-	public void setDatabaseChecksum(String checksum) {
-		databaseChecksum = checksum;
-	}
-	
-	/**
-	 * Gets the database checksum
-	 */
-	public String getDatabaseChecksum() {
-		return databaseChecksum;
 	}
 	
 	/**
