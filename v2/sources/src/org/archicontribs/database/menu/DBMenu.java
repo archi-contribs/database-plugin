@@ -443,7 +443,7 @@ public class DBMenu extends ExtensionContributionFactory {
     
     CommandContributionItem showChecksum(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = prefix+"checksum : "+((IDBMetadata)component).getDBMetadata().getCurrentChecksum();
+        String label = prefix+"checksum : "+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -465,7 +465,7 @@ public class DBMenu extends ExtensionContributionFactory {
 
     CommandContributionItem showVersion(IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = "Version: current="+((IDBMetadata)component).getDBMetadata().getInitialVersion()+" exported="+((IDBMetadata)component).getDBMetadata().getCurrentVersion();
+        String label = "Version: current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion();
         //label = "Checksum="+((IDBMetadata)component).getDBMetadata().getCurrentChecksum()+" DB="+((IDBMetadata)component).getDBMetadata().getDatabaseChecksum();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
