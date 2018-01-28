@@ -626,10 +626,10 @@ public class DBGuiImportModel extends DBGui {
         // we get the selected model version to import
         // if the value is empty, this means that the user selected the "Now" line, so wh must load the latest version of the views
         if ( !tblModelVersions.getSelection()[0].getText(0).isEmpty() ) {
-        	modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
+        	modelToImport.getCurrentVersion().setVersion(Integer.valueOf(tblModelVersions.getSelection()[0].getText(0)));
         	modelToImport.setImportLatestVersion(false);
         } else {
-        	modelToImport.setCurrentVersion(Integer.valueOf(tblModelVersions.getItem(1).getText(0)));
+        	modelToImport.getCurrentVersion().setVersion(Integer.valueOf(tblModelVersions.getItem(1).getText(0)));
         	modelToImport.setImportLatestVersion(true);
         }
 
@@ -694,7 +694,7 @@ public class DBGuiImportModel extends DBGui {
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
+                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
                 while ( connection.importViewsObjects(modelToImport, view) ) {
                 	txtImportedViewObjects.setText(String.valueOf(connection.countViewObjectsImported()));
                     increaseProgressBar();
@@ -704,7 +704,7 @@ public class DBGuiImportModel extends DBGui {
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
-                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion());
+                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
                 while ( connection.importViewsConnections(modelToImport) ) {
                 	txtImportedViewConnections.setText(String.valueOf(connection.countViewConnectionsImported()));
                     increaseProgressBar();
