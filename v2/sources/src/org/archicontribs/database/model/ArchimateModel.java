@@ -51,6 +51,8 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	private int exportedVersion = 0;
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
 	
+	private String checksum = "";
+	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
 	private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
@@ -99,6 +101,20 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	 */
 	public void setExportedVersion(int version) {
 		exportedVersion = version;
+	}
+	
+	/**
+	 * Sets the checksum
+	 */
+	public void setChecksum(String checksum) {
+		this.checksum = checksum;
+	}
+	
+	/**
+	 * Gets the checksum
+	 */
+	public String getChecksum() {
+		return this.checksum;
 	}
 	
 	/**
@@ -152,7 +168,6 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			//    - but graphical objects order is important to know which one is over (or under) which others
 		
 			// we also ensure that the root folders are exported first
-		
 		for (IFolder folder: getFolders() ) {
 		    ((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
 		    allFolders.put(folder.getId(), folder);
