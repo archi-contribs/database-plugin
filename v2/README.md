@@ -14,7 +14,7 @@ Database export/import plugin that store models in a central repository.
 * Automatically create and update the database tables when needed
 
 ## Installation instructions :
-* download the **org.archicontribs.database_v2.0.1.alpha1.jar** file to the Archi **plugins** folder
+* download the **org.archicontribs.database_v2.xxx.jar** file to the Archi **plugins** folder
 * download the **sqljdbc_auth.dll** file to the Archi **JRE\bin** folder if you plan to use MSQ SQL integrated security mode (i.e. Windows authentication)
 * start (or restart) Archi and the *import from database*, *export to database* menu entries and the *Database plugin* preferences page should be visible ...
 
