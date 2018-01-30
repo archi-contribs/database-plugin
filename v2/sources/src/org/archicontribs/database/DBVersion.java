@@ -15,40 +15,56 @@ import java.time.Instant;
  * @author Herve Jouin
  */
 public class DBVersion {
-	private String tableName;
+	private String id;
     private int version;
     private String checksum;
     private Timestamp timestamp;
+    private int latestVersion;
+    private String latestChecksum;
+    private Timestamp latestTimestamp;
     
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
-    public DBVersion(String tableName, int version, String checksum, Timestamp timestamp) {
-    	setTableName(tableName);
+    public DBVersion(String id, int version, String checksum, Timestamp timestamp, int latestVersion, String latestChecksum, Timestamp latestTimestamp) {
+    	setId(id);
         setVersion(version);
         setChecksum(checksum);
         setTimestamp(timestamp);
+        setLatestVersion(latestVersion);
+        setLatestChecksum(latestChecksum);
+        setLatestTimestamp(latestTimestamp);
     }
     
     public DBVersion() {
-    	this(null, 0, null, null);
+    	this(null, 0, null, null,0, null, null);
     }
     
     public DBVersion(Timestamp timestamp) {
-    	this(null, 0, null, timestamp);
+    	this(null, 0, null, timestamp, 0, null, null);
+    }
+    
+    public void reset() {
+    	setId(null);
+        setVersion(0);
+        setChecksum(null);
+        setTimestamp(null);
+        setLatestVersion(0);
+        setLatestChecksum(null);
+        setLatestTimestamp(null);
     }
     
     /**
      * @return the table name where the component can be imported/exported
      */
-    public String getTableName() {
-        return tableName;
+    public String getId() {
+        return id;
     }
 
     /**
      * @param table name where the component can be imported/exported
      */
-    public void setTableName(String tableName) {
-        this.tableName = (tableName==null ? "" : tableName);
+    public void setId(String id) {
+        this.id = (id==null ? "" : id);
     }
 
     /**
@@ -91,5 +107,47 @@ public class DBVersion {
      */
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = (timestamp==null ? NEVER : timestamp);
+    }
+    
+    /**
+     * @return the latest version of the component
+     */
+    public int getLatestVersion() {
+        return latestVersion;
+    }
+
+    /**
+     * @param the latest version of the component
+     */
+    public void setLatestVersion(int version) {
+        this.latestVersion = version;
+    }
+
+    /**
+     * @return the latest checksum of the component
+     */
+    public String getLatestChecksum() {
+        return latestChecksum;
+    }
+
+    /**
+     * @param the latest checksum of the component
+     */
+    public void setLatestChecksum(String checksum) {
+        this.latestChecksum = (checksum==null ? "" : checksum);
+    }
+    
+    /**
+     * @return the latest timestamp of the component
+     */
+    public Timestamp getLatestTimestamp() {
+        return latestTimestamp;
+    }
+
+    /**
+     * @param the latest timestamp of the component
+     */
+    public void setLatestTimestamp(Timestamp timestamp) {
+        this.latestTimestamp = (timestamp==null ? NEVER : timestamp);
     }
 }
