@@ -676,9 +676,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 		lblExportMode.setVisible(!isNeo4j);
 		compoExportMode.setVisible(!isNeo4j);
-		btnCollaborativeMode.setSelection(!isFile);
 		btnCollaborativeMode.setVisible(!isNeo4j);
-		btnStandaloneMode.setSelection(isFile);
 		btnStandaloneMode.setVisible(!isNeo4j);
 		
 		btnExportViewImages.setVisible(!isNeo4j);
@@ -773,12 +771,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			return;
 		}
 		tableItem.setText(txtName.getText());
-
+        tableItem.setData(databaseEntry);
+        tblDatabases.setSelection(tableItem);
+        tblDatabases.notifyListeners(SWT.Selection, new Event());
+        
 		setDatabaseDetails(false);
 
-		tableItem.setData(databaseEntry);
-		tblDatabases.setSelection(tableItem);
-		tblDatabases.notifyListeners(SWT.Selection, new Event());
+		
 	}
 
 	private DBDatabaseEntry getDatabaseDetails(DBDatabaseEntry databaseEntry) throws NumberFormatException, Exception {
@@ -795,6 +794,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setPassword(txtPassword.getText());
 		databaseEntry.setExportWholeModel(btnWholeType.getSelection());
 		databaseEntry.setExportViewImages(btnExportViewImages.getSelection());
+		databaseEntry.setCollaborativeMode(btnCollaborativeMode.getSelection());
 		databaseEntry.setNeo4jNativeMode(btnNeo4jNativeMode.getSelection());
 
 		return databaseEntry;
@@ -803,41 +803,77 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private void setDatabaseDetails(boolean editMode) {
 		DBDatabaseEntry databaseEntry = null;
 
-		if ( tblDatabases.getSelectionIndex() != -1 )
+		if ( tblDatabases.getSelectionIndex() == -1 ) {
+		    txtName.setText("");
+		    comboDriver.setText("");
+		    txtFile.setText("");
+	        txtServer.setText("");
+	        txtPort.setText("");
+	        txtDatabase.setText("");
+	        txtSchema.setText("");
+	        txtUsername.setText("");
+	        txtPassword.setText("");
+	        btnWholeType.setSelection(false);
+	        btnComponentsType.setSelection(false);
+	        btnNeo4jNativeMode.setSelection(false);
+	        btnNeo4jExtendedMode.setSelection(false);
+	        btnCollaborativeMode.setSelection(false);
+	        btnStandaloneMode.setSelection(false);
+	        btnExportViewImages.setSelection(false);
+	        btnDoNotExportViewImages.setSelection(false);
+		} else {
 			databaseEntry = (DBDatabaseEntry)tblDatabases.getItem(tblDatabases.getSelectionIndex()).getData();
 
-		if ( !editMode )
-			btnShowPassword.setSelection(true);
+            txtName.setText(databaseEntry.getName());
+            comboDriver.setText(databaseEntry.getDriver());
+            txtFile.setText(databaseEntry.getServer());
+            txtServer.setText(databaseEntry.getServer());
+            txtPort.setText(String.valueOf(databaseEntry.getPort()));
+            txtDatabase.setText(databaseEntry.getDatabase());
+            txtSchema.setText(databaseEntry.getSchema());
+            txtUsername.setText(databaseEntry.getUsername());
+            txtPassword.setText(databaseEntry.getPassword());
+            btnWholeType.setSelection(databaseEntry.getExportWholeModel());
+            btnComponentsType.setSelection(!databaseEntry.getExportWholeModel());
+            btnNeo4jNativeMode.setSelection(databaseEntry.getNeo4jNativeMode());
+            btnNeo4jExtendedMode.setSelection(!databaseEntry.getNeo4jNativeMode());
+            btnCollaborativeMode.setSelection(databaseEntry.getCollaborativeMode());
+            btnStandaloneMode.setSelection(!databaseEntry.getCollaborativeMode());
+            btnExportViewImages.setSelection(databaseEntry.getExportViewsImages());
+            btnDoNotExportViewImages.setSelection(!databaseEntry.getExportViewsImages());
+		}
+		
+		btnShowPassword.setSelection(!editMode);
 		showOrHidePasswordCallback();
 
         lblName.setVisible(true);
         txtName.setVisible(true);
-		txtName.setEnabled(editMode);					txtName.setText(databaseEntry != null ? databaseEntry.getName(): "");
+		txtName.setEnabled(editMode);
 		
 	    lblDriver.setVisible(true);
 	    comboDriver.setVisible(true);
-		comboDriver.setEnabled(editMode);				comboDriver.setText(databaseEntry != null ? databaseEntry.getDriver() : "");
+		comboDriver.setEnabled(editMode);				
 		
-		txtFile.setEnabled(editMode);					txtFile.setText(databaseEntry != null ? databaseEntry.getServer() : "");
-		txtServer.setEnabled(editMode);					txtServer.setText(databaseEntry != null ? databaseEntry.getServer() : "");
-		txtPort.setEnabled(editMode);					txtPort.setText(String.valueOf( databaseEntry != null ? databaseEntry.getPort() : DBDatabaseEntry.getDefaultPort(comboDriver.getText())));
-		txtDatabase.setEnabled(editMode);				txtDatabase.setText(databaseEntry != null ? databaseEntry.getDatabase() : "");
-		txtSchema.setEnabled(editMode);					txtSchema.setText(databaseEntry != null ? databaseEntry.getSchema() : "");
-		txtUsername.setEnabled(editMode);				txtUsername.setText(databaseEntry != null ? databaseEntry.getUsername() : "");
+		txtFile.setEnabled(editMode);
+		txtServer.setEnabled(editMode);
+		txtPort.setEnabled(editMode);
+		txtDatabase.setEnabled(editMode);
+		txtSchema.setEnabled(editMode);
+		txtUsername.setEnabled(editMode);
 		btnShowPassword.setEnabled(editMode);
-		txtPassword.setEnabled(editMode);				txtPassword.setText(databaseEntry != null ? databaseEntry.getPassword() : "");
+		txtPassword.setEnabled(editMode);
 		
-		btnWholeType.setEnabled(editMode);              btnWholeType.setSelection(databaseEntry != null ? databaseEntry.getExportWholeModel() : true);
-		btnComponentsType.setEnabled(editMode);         btnComponentsType.setSelection(databaseEntry != null ? !databaseEntry.getExportWholeModel() : false);
+		btnWholeType.setEnabled(editMode);
+		btnComponentsType.setEnabled(editMode);
 		
-		btnNeo4jNativeMode.setEnabled(editMode);		btnNeo4jNativeMode.setSelection(databaseEntry != null ? databaseEntry.getNeo4jNativeMode() : true);
-		btnNeo4jExtendedMode.setEnabled(editMode);		btnNeo4jExtendedMode.setSelection(databaseEntry != null ? !databaseEntry.getNeo4jNativeMode() : false);
+		btnNeo4jNativeMode.setEnabled(editMode);
+		btnNeo4jExtendedMode.setEnabled(editMode);
 		
-	    btnCollaborativeMode.setEnabled(editMode);      btnCollaborativeMode.setSelection(databaseEntry != null ? databaseEntry.getCollaborativeMode() : false);
-	    btnStandaloneMode.setEnabled(editMode);         btnStandaloneMode.setSelection(databaseEntry != null ? !databaseEntry.getCollaborativeMode() : true);
+	    btnCollaborativeMode.setEnabled(editMode);
+	    btnStandaloneMode.setEnabled(editMode);
 	    
-	    btnExportViewImages.setEnabled(editMode);       btnExportViewImages.setSelection(databaseEntry != null ? databaseEntry.getExportViewsImages() : false);
-	    btnDoNotExportViewImages.setEnabled(editMode);  btnDoNotExportViewImages.setSelection(databaseEntry != null ? !databaseEntry.getExportViewsImages() : true);
+	    btnExportViewImages.setEnabled(editMode);
+	    btnDoNotExportViewImages.setEnabled(editMode);
 
 		driverChanged();
 
