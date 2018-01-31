@@ -55,6 +55,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
@@ -1345,5 +1346,15 @@ public class DBGui {
 	public static void refreshDisplay() {
 		while ( Display.getCurrent().readAndDispatch() ) 
 			;
+	}
+	
+	public void incrementText(Text txt) {
+	    if ( txt != null ) {
+	        try {
+	            txt.setText(String.valueOf(Integer.valueOf(txt.getText()) + 1));
+	        } catch (Exception ign) {
+	            // ignore
+	        }
+	    }
 	}
 }
