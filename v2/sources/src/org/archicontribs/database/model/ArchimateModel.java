@@ -250,7 +250,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		
 		if ( mustCalculateChecksum ) {
 			String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
-			((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
+			((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setLatestChecksum(checksum);
 			return checksum;
 		}
 		
