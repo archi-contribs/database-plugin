@@ -2589,10 +2589,10 @@ public class DBDatabaseConnection {
 	//                                                                               //
 	///////////////////////////////////////////////////////////////////////////////////
 
-	private HashSet<DBVersion> elementsNotInModel = new HashSet<DBVersion>();			; public HashSet<DBVersion> getElementsNotInModel() { return elementsNotInModel; }
-	private HashSet<DBVersion> relationshipsNotInModel = new HashSet<DBVersion>();		; public HashSet<DBVersion> getRelationshipsNotInModel() { return relationshipsNotInModel; }
-	private HashSet<DBVersion> foldersNotInModel = new HashSet<DBVersion>();			; public HashSet<DBVersion> getFoldersNotInModel() { return foldersNotInModel; }
-	private HashSet<DBVersion> viewsNotInModel = new HashSet<DBVersion>();				; public HashSet<DBVersion> getViewsNotInModel() { return viewsNotInModel; }
+	private HashMap<String, DBVersion> elementsNotInModel = new HashMap<String, DBVersion>();			; public HashMap<String, DBVersion> getElementsNotInModel() { return elementsNotInModel; }
+	private HashMap<String, DBVersion> relationshipsNotInModel = new HashMap<String, DBVersion>();		; public HashMap<String, DBVersion> getRelationshipsNotInModel() { return relationshipsNotInModel; }
+	private HashMap<String, DBVersion> foldersNotInModel = new HashMap<String, DBVersion>();			; public HashMap<String, DBVersion> getFoldersNotInModel() { return foldersNotInModel; }
+	private HashMap<String, DBVersion> viewsNotInModel = new HashMap<String, DBVersion>();				; public HashMap<String, DBVersion> getViewsNotInModel() { return viewsNotInModel; }
 	
     /**
      * Gets the versions and checksum of one model's components from the database and fills their DBMetadata. Components that are not in the current model are set in elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel
@@ -2620,10 +2620,10 @@ public class DBDatabaseConnection {
         result.close();
         
         // we reset the variables
-    	elementsNotInModel = new HashSet<DBVersion>();
-    	relationshipsNotInModel = new HashSet<DBVersion>();
-    	foldersNotInModel = new HashSet<DBVersion>();
-    	viewsNotInModel = new HashSet<DBVersion>();
+    	elementsNotInModel = new HashMap<String, DBVersion>();
+    	relationshipsNotInModel = new HashMap<String, DBVersion>();
+    	foldersNotInModel = new HashMap<String, DBVersion>();
+    	viewsNotInModel = new HashMap<String, DBVersion>();
         
         // we set the database version of elements
     	Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
@@ -2674,7 +2674,7 @@ public class DBDatabaseConnection {
 	            	element.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	element.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            } else
-	            	elementsNotInModel.add(new DBVersion(result.getString("id"), result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	            	elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
 	        result.close();
         }
@@ -2728,7 +2728,7 @@ public class DBDatabaseConnection {
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            } else
-	            	relationshipsNotInModel.add(new DBVersion(result.getString("id"), result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	            	relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
 	        result.close();
         }
@@ -2782,7 +2782,7 @@ public class DBDatabaseConnection {
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            } else
-	            	foldersNotInModel.add(new DBVersion(result.getString("id"), result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	            	foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
 	        result.close();
         }
@@ -2836,7 +2836,7 @@ public class DBDatabaseConnection {
 	            	view.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	view.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            } else
-	            	viewsNotInModel.add(new DBVersion(result.getString("id"), result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	            	viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
 	        result.close();
         }
