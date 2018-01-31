@@ -608,6 +608,7 @@ public class DBGui {
 	protected void notConnectedToDatabase() {
 		// to be overriden
 		disableOption();
+		btnDoAction.setEnabled(false);
 	}
 	
 	/** 
