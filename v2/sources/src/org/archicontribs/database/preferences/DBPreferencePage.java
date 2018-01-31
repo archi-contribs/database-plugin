@@ -54,7 +54,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	
 	private Composite loggerComposite;
 	
-	private DBDatabaseEntryTableEditor table;
+	private DBDatabaseEntryTableEditor table = null;
 	
 	private RadioGroupFieldEditor loggerModeRadioGroupEditor;
 	private FileFieldEditor filenameFileFieldEditor;
@@ -407,7 +407,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	
     @Override
     public boolean performOk() {
-    	table.close();
+    	if ( table != null )
+    	    table.close();
     	
     	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
     	
@@ -418,7 +419,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
     	preferenceStore.setValue("importShared", btnImportShared.getSelection());
-    	table.store();
+    	
+    	if ( table != null )
+    	    table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
 		try {
