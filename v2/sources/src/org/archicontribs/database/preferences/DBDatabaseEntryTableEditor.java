@@ -449,8 +449,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			public void widgetSelected(SelectionEvent e) { driverChanged(); }
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
-		btnWholeType.setToolTipText("The plugin will export the whole model content : elements, relationships, folders, views and images.\n"+
-				"   --> It will therefore be possible to import back your models from the database.");
+		btnWholeType.setToolTipText("The plugin will export the whole model content : elements, relationships, folders, views and images.\n   --> It will therefore be possible to import back your models from the database.");
 
 		btnComponentsType = new Button(compoExportType, SWT.RADIO);
 		btnComponentsType.setText("Components only");
@@ -459,8 +458,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			public void widgetSelected(SelectionEvent e) { driverChanged(); }
 			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
-		btnWholeType.setToolTipText("The plugin will export the elements and relationships only (folders, views and images won't be exported).\n"+
-				"   --> This mode is useful for graph databases for instance, but please be careful, it won't be possible to import your models back from the database.");
+		btnComponentsType.setToolTipText("The plugin will export the elements and relationships only (folders, views and images won't be exported).\n   --> This mode is useful for graph databases for instance, but please be careful, it won't be possible to import your models back from the database.");
 
 		lblNeo4jMode = new Label(grpDatabases, SWT.NONE);
 		lblNeo4jMode.setText("Export graph mode :");
@@ -672,11 +670,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		btnBrowse.setVisible(isFile);
 		lblExportType.setVisible(true);
 		compoExportType.setVisible(true);
-		
-		btnWholeType.setEnabled(!isNeo4j);
-		btnWholeType.setSelection(!isNeo4j);
-		btnComponentsType.setEnabled(!isNeo4j);
-		btnComponentsType.setSelection(isNeo4j);
 
 		lblNeo4jMode.setVisible(isNeo4j);
 		compoNeo4jMode.setVisible(isNeo4j);
@@ -684,11 +677,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		lblExportMode.setVisible(!isNeo4j);
 		compoExportMode.setVisible(!isNeo4j);
 		btnCollaborativeMode.setSelection(!isFile);
+		btnCollaborativeMode.setVisible(!isNeo4j);
 		btnStandaloneMode.setSelection(isFile);
+		btnStandaloneMode.setVisible(!isNeo4j);
 		
-		btnExportViewImages.setEnabled(!isNeo4j);
-		btnExportViewImages.setEnabled(!isNeo4j);
-		btnDoNotExportViewImages.setEnabled(!isNeo4j);
+		btnExportViewImages.setVisible(!isNeo4j);
+		btnDoNotExportViewImages.setVisible(!isNeo4j);
 
 		lblServer.setVisible(!isFile);
 		txtServer.setVisible(!isFile);
@@ -758,8 +752,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private void saveCallback() {
 		if ( logger.isTraceEnabled() ) logger.trace("saveCallback()");
 
-		if ( txtName.getText().isEmpty() )
+		if ( txtName.getText().isEmpty() ) {
+		    DBGui.popup(Level.ERROR, "Please provide a name for your configuration.");
 			return;
+		}
 
 		DBDatabaseEntry databaseEntry = null;
 		TableItem tableItem;
@@ -814,8 +810,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			btnShowPassword.setSelection(true);
 		showOrHidePasswordCallback();
 
+        lblName.setVisible(true);
+        txtName.setVisible(true);
 		txtName.setEnabled(editMode);					txtName.setText(databaseEntry != null ? databaseEntry.getName(): "");
+		
+	    lblDriver.setVisible(true);
+	    comboDriver.setVisible(true);
 		comboDriver.setEnabled(editMode);				comboDriver.setText(databaseEntry != null ? databaseEntry.getDriver() : "");
+		
 		txtFile.setEnabled(editMode);					txtFile.setText(databaseEntry != null ? databaseEntry.getServer() : "");
 		txtServer.setEnabled(editMode);					txtServer.setText(databaseEntry != null ? databaseEntry.getServer() : "");
 		txtPort.setEnabled(editMode);					txtPort.setText(String.valueOf( databaseEntry != null ? databaseEntry.getPort() : DBDatabaseEntry.getDefaultPort(comboDriver.getText())));
@@ -824,17 +826,18 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		txtUsername.setEnabled(editMode);				txtUsername.setText(databaseEntry != null ? databaseEntry.getUsername() : "");
 		btnShowPassword.setEnabled(editMode);
 		txtPassword.setEnabled(editMode);				txtPassword.setText(databaseEntry != null ? databaseEntry.getPassword() : "");
-		btnWholeType.setEnabled(editMode);				btnWholeType.setSelection(databaseEntry != null ? databaseEntry.getExportWholeModel() : true);
-		btnComponentsType.setEnabled(editMode);			btnComponentsType.setSelection(databaseEntry != null ? !databaseEntry.getExportWholeModel() : false);
-		btnExportViewImages.setEnabled(editMode);		btnExportViewImages.setSelection(databaseEntry != null ? databaseEntry.getExportViewsImages() : false);
-		btnDoNotExportViewImages.setEnabled(editMode);	btnDoNotExportViewImages.setSelection(databaseEntry != null ? !databaseEntry.getExportViewsImages() : true);
+		
+		btnWholeType.setEnabled(editMode);              btnWholeType.setSelection(databaseEntry != null ? databaseEntry.getExportWholeModel() : true);
+		btnComponentsType.setEnabled(editMode);         btnComponentsType.setSelection(databaseEntry != null ? !databaseEntry.getExportWholeModel() : false);
+		
 		btnNeo4jNativeMode.setEnabled(editMode);		btnNeo4jNativeMode.setSelection(databaseEntry != null ? databaseEntry.getNeo4jNativeMode() : true);
 		btnNeo4jExtendedMode.setEnabled(editMode);		btnNeo4jExtendedMode.setSelection(databaseEntry != null ? !databaseEntry.getNeo4jNativeMode() : false);
-
-		lblName.setVisible(true);
-		txtName.setVisible(true);
-		lblDriver.setVisible(true);
-		comboDriver.setVisible(true);
+		
+	    btnCollaborativeMode.setEnabled(editMode);      btnCollaborativeMode.setSelection(databaseEntry != null ? databaseEntry.getCollaborativeMode() : false);
+	    btnStandaloneMode.setEnabled(editMode);         btnStandaloneMode.setSelection(databaseEntry != null ? !databaseEntry.getCollaborativeMode() : true);
+	    
+	    btnExportViewImages.setEnabled(editMode);       btnExportViewImages.setSelection(databaseEntry != null ? databaseEntry.getExportViewsImages() : false);
+	    btnDoNotExportViewImages.setEnabled(editMode);  btnDoNotExportViewImages.setSelection(databaseEntry != null ? !databaseEntry.getExportViewsImages() : true);
 
 		driverChanged();
 
@@ -910,7 +913,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			txtFile.setVisible(false);		
 			btnBrowse.setVisible(false);
 			lblExportType.setVisible(false);
-			compoExportType.setVisible(false);
+			compoExportType.setVisible(false);System.out.println("***************** compoExportType.setvisible(false) ********************");
 			lblNeo4jMode.setVisible(false);
 			compoNeo4jMode.setVisible(false);
 			lblServer.setVisible(false);
