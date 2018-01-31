@@ -1357,4 +1357,14 @@ public class DBGui {
 	        }
 	    }
 	}
+	
+	   public void decrementText(Text txt) {
+	        if ( txt != null ) {
+	            try {
+	                txt.setText(String.valueOf(Integer.valueOf(txt.getText()) - 1));
+	            } catch (Exception ign) {
+	                // ignore
+	            }
+	        }
+	    }
 }
