@@ -15,7 +15,6 @@ import java.time.Instant;
  * @author Herve Jouin
  */
 public class DBVersion {
-	private String id;
     private int version;
     private String checksum;
     private Timestamp timestamp;
@@ -25,8 +24,7 @@ public class DBVersion {
     
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
-    public DBVersion(String id, int version, String checksum, Timestamp timestamp, int latestVersion, String latestChecksum, Timestamp latestTimestamp) {
-    	setId(id);
+    public DBVersion(int version, String checksum, Timestamp timestamp, int latestVersion, String latestChecksum, Timestamp latestTimestamp) {
         setVersion(version);
         setChecksum(checksum);
         setTimestamp(timestamp);
@@ -36,15 +34,14 @@ public class DBVersion {
     }
     
     public DBVersion() {
-    	this(null, 0, null, null,0, null, null);
+    	this(0, null, null,0, null, null);
     }
     
     public DBVersion(Timestamp timestamp) {
-    	this(null, 0, null, timestamp, 0, null, null);
+    	this(0, null, timestamp, 0, null, null);
     }
     
     public void reset() {
-    	setId(null);
         setVersion(0);
         setChecksum(null);
         setTimestamp(null);
@@ -53,20 +50,6 @@ public class DBVersion {
         setLatestTimestamp(null);
     }
     
-    /**
-     * @return the table name where the component can be imported/exported
-     */
-    public String getId() {
-        return id;
-    }
-
-    /**
-     * @param table name where the component can be imported/exported
-     */
-    public void setId(String id) {
-        this.id = (id==null ? "" : id);
-    }
-
     /**
      * @return the version of the component
      */
