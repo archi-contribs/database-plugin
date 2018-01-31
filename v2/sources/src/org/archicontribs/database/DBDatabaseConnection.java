@@ -2652,7 +2652,15 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
+	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
+	            	
+	            	logger.trace("   --> DatabaseVersion().setVersion("+result.getInt("version")+")");
+	            	logger.trace("   --> DatabaseVersion().setChecksum("+result.getInt("checksum")+")");
+	            	logger.trace("   --> DatabaseVersion().setTimestamp("+result.getInt("created_on")+")");
+	            	logger.trace("   --> DatabaseVersion().setLatestVersion("+result.getInt("version")+")");
+	            	logger.trace("   --> DatabaseVersion().setLatestChecksum("+result.getInt("checksum")+")");
+	            	logger.trace("   --> DatabaseVersion().setLatestTimestamp("+result.getInt("created_on")+")");
+	            	logger.trace("   --> CurrentVersion().setVersion("+result.getInt("version")+")");
             	}
             	 else
                      ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(1);
@@ -2686,7 +2694,7 @@ public class DBDatabaseConnection {
 	            	element.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	element.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
 	            } else
 	            	elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2712,7 +2720,7 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
+	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
             	} else
                     ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(1);
             	result.close();
@@ -2745,7 +2753,7 @@ public class DBDatabaseConnection {
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
 	            } else
 	            	relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2771,7 +2779,7 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
+	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
             	} else
             	    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(1);
             	result.close();
@@ -2804,7 +2812,7 @@ public class DBDatabaseConnection {
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
 	            } else
 	            	foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2830,7 +2838,7 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
+	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
             	} else
                     ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(1);
             	result.close();
@@ -2863,7 +2871,7 @@ public class DBDatabaseConnection {
 	            	view.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	view.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
 	            } else
 	            	viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2907,7 +2915,7 @@ public class DBDatabaseConnection {
 	 * Export a component to the database
 	 */
 	public void exportEObject(EObject eObject) throws Exception {
-		if ( logger.isDebugEnabled() ) logger.debug("version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" is exported");
+		if ( logger.isDebugEnabled() ) logger.debug("version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getLatestVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" is exported");
 
 		if ( eObject instanceof IArchimateElement ) 			exportElement((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship ) 	exportRelationship((IArchimateRelationship)eObject);

@@ -738,157 +738,181 @@ public class DBGuiExportModel extends DBGui {
 		        || exportedModel.getCurrentVersion().getLatestVersion() == exportedModel.getCurrentVersion().getVersion()
 		        || !selectedDatabase.getCollaborativeMode();
 
-        int newElts = 0;
-        int updElts = 0;
-        int updDbElts = 0;
-        int cflElts = 0;
+        int nbNews = 0;
+        int nbUpdated = 0;
+        int nbUpdatedDb = 0;
+        int nbConflict = 0;
         Iterator<Map.Entry<String, IArchimateElement>> ite = exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
+            logger.trace("element");
+        	logger.trace("   --> CurrentVersion().getVersion() = "+metadata.getCurrentVersion().getVersion());
+        	logger.trace("   --> CurrentVersion().getChecksum() = "+metadata.getCurrentVersion().getChecksum());
+        	logger.trace("   --> CurrentVersion().getTimestamp() = "+metadata.getCurrentVersion().getTimestamp());
+        	logger.trace("   --> CurrentVersion().getLatestVersion() = "+metadata.getCurrentVersion().getLatestVersion());
+        	logger.trace("   --> CurrentVersion().getLatestChecksum() = "+metadata.getCurrentVersion().getLatestChecksum());
+        	logger.trace("   --> CurrentVersion().getLatestTimestamp() = "+metadata.getCurrentVersion().getLatestTimestamp());
+        	logger.trace("   --> DatabaseVersion().getVersion() = "+metadata.getDatabaseVersion().getVersion());
+        	logger.trace("   --> DatabaseVersion().getChecksum() = "+metadata.getDatabaseVersion().getChecksum());
+        	logger.trace("   --> DatabaseVersion().getTimestamp() = "+metadata.getDatabaseVersion().getTimestamp());
+        	logger.trace("   --> DatabaseVersion().getLatestVersion() = "+metadata.getDatabaseVersion().getLatestVersion());
+        	logger.trace("   --> DatabaseVersion().getLatestChecksum() = "+metadata.getDatabaseVersion().getLatestChecksum());
+        	logger.trace("   --> DatabaseVersion().getLatestTimestamp() = "+metadata.getDatabaseVersion().getLatestTimestamp());
         	if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
         	    // if the database version is zero, then the component is not in the database (therefore, new in the model)
-        		++newElts;
+        		++nbNews;
         	} else {
-        		if ( DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-        		    // if the checksum of the latest version in the database equals the latest checksum
-        		    // then the database is up to date and the component does not need to be exported
-        		} else {
-        		    // else, the component is different between the model and the database
-        		    if ( forceExport )
-        		        ++updElts;
-        			else {
-        			    // we check if there is a conflict
-        				if ( DBPlugin.areEqual(metadata.getCurrentVersion().getLatestChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-        				    // if the checksum that has just been calculated equals to the checksum calculating during the last import/export
-        				    // then the component has been not been updated in the model but has been updated in the database
-        					++updDbElts;
-        				} else {
-        				    // else the component has been modified in both the model and the database, therefore a conflict arises
-        					++cflElts;
-        				}
+        		if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+        			boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+        			
+        			if ( modifiedInModel && modifiedInDatabase ) {
+        				if ( forceExport )			++nbUpdated;
+        				else {						++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+        			} else {
+        				if ( modifiedInModel )		++nbUpdated;
+        				if ( modifiedInDatabase )	++nbUpdatedDb;
         			}
         		}
         	}
         }
-        txtNewElementsInModel.setText(String.valueOf(newElts));
-        txtUpdatedElementsInModel.setText(String.valueOf(updElts));
-        txtUpdatedElementsInDatabase.setText(String.valueOf(updDbElts));
+        txtNewElementsInModel.setText(String.valueOf(nbNews));
+        txtUpdatedElementsInModel.setText(String.valueOf(nbUpdated));
+        txtUpdatedElementsInDatabase.setText(String.valueOf(nbUpdatedDb));
         txtNewElementsInDatabase.setText(String.valueOf(connection.getElementsNotInModel().size()));
-        txtConflictingElements.setText(String.valueOf(cflElts));
+        txtConflictingElements.setText(String.valueOf(nbConflict));
         
-        int newRels = 0;
-        int updRels = 0;
-        int updDbRels = 0;
-        int cflRels = 0;
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++newRels;
-            } else {
-                if ( DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                    // if the checksum of the latest version in the database equals the latest checksum
-                    // then the database is up to date and the component does not need to be exported
-                } else {
-                    // else, the component is different between the model and the database
-                    if ( forceExport )
-                        ++updRels;
-                    else {
-                        // we check if there is a conflict
-                        if ( DBPlugin.areEqual(metadata.getCurrentVersion().getLatestChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                            // if the checksum that has just been calculated equals to the checksum calculating during the last import/export
-                            // then the component has been not been updated in the model but has been updated in the database
-                            ++updDbRels;
-                        } else {
-                            // else the component has been modified in both the model and the database, therefore a conflict arises
-                            ++cflRels;
-                        }
-                    }
-                }
-            }
+            logger.trace("relationship");
+        	logger.trace("   --> CurrentVersion().getVersion() = "+metadata.getCurrentVersion().getVersion());
+        	logger.trace("   --> CurrentVersion().getChecksum() = "+metadata.getCurrentVersion().getChecksum());
+        	logger.trace("   --> CurrentVersion().getTimestamp() = "+metadata.getCurrentVersion().getTimestamp());
+        	logger.trace("   --> CurrentVersion().getLatestVersion() = "+metadata.getCurrentVersion().getLatestVersion());
+        	logger.trace("   --> CurrentVersion().getLatestChecksum() = "+metadata.getCurrentVersion().getLatestChecksum());
+        	logger.trace("   --> CurrentVersion().getLatestTimestamp() = "+metadata.getCurrentVersion().getLatestTimestamp());
+        	logger.trace("   --> DatabaseVersion().getVersion() = "+metadata.getDatabaseVersion().getVersion());
+        	logger.trace("   --> DatabaseVersion().getChecksum() = "+metadata.getDatabaseVersion().getChecksum());
+        	logger.trace("   --> DatabaseVersion().getTimestamp() = "+metadata.getDatabaseVersion().getTimestamp());
+        	logger.trace("   --> DatabaseVersion().getLatestVersion() = "+metadata.getDatabaseVersion().getLatestVersion());
+        	logger.trace("   --> DatabaseVersion().getLatestChecksum() = "+metadata.getDatabaseVersion().getLatestChecksum());
+        	logger.trace("   --> DatabaseVersion().getLatestTimestamp() = "+metadata.getDatabaseVersion().getLatestTimestamp());
+        	if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+        	    // if the database version is zero, then the component is not in the database (therefore, new in the model)
+        		++nbNews;
+        	} else {
+        		if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+        			boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+        			
+        			if ( modifiedInModel && modifiedInDatabase ) {
+        				if ( forceExport )			++nbUpdated;
+        				else {						++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+        			} else {
+        				if ( modifiedInModel )		++nbUpdated;
+        				if ( modifiedInDatabase )	++nbUpdatedDb;
+        			}
+        		}
+        	}
         }
-        txtNewRelationshipsInModel.setText(String.valueOf(newRels));
-        txtUpdatedRelationshipsInModel.setText(String.valueOf(updRels));
-        txtUpdatedRelationshipsInDatabase.setText(String.valueOf(updDbRels));
+        txtNewRelationshipsInModel.setText(String.valueOf(nbNews));
+        txtUpdatedRelationshipsInModel.setText(String.valueOf(nbUpdated));
+        txtUpdatedRelationshipsInDatabase.setText(String.valueOf(nbUpdatedDb));
         txtNewRelationshipsInDatabase.setText(String.valueOf(connection.getRelationshipsNotInModel().size()));
-        txtConflictingRelationships.setText(String.valueOf(cflRels));
+        txtConflictingRelationships.setText(String.valueOf(nbConflict));
         
-        int newFlds = 0;
-        int updFlds = 0;
-        int updDbFlds = 0;
-        int cflFlds = 0;
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
         Iterator<Map.Entry<String, IFolder>> itf = exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++newFlds;
-            } else {
-                if ( DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                    // if the checksum of the latest version in the database equals the latest checksum
-                    // then the database is up to date and the component does not need to be exported
-                } else {
-                    // else, the component is different between the model and the database
-                    if ( forceExport )
-                        ++updFlds;
-                    else {
-                        // we check if there is a conflict
-                        if ( DBPlugin.areEqual(metadata.getCurrentVersion().getLatestChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                            // if the checksum that has just been calculated equals to the checksum calculating during the last import/export
-                            // then the component has been not been updated in the model but has been updated in the database
-                            ++updDbFlds;
-                        } else {
-                            // else the component has been modified in both the model and the database, therefore a conflict arises
-                            ++cflFlds;
-                        }
-                    }
-                }
-            }
+            logger.trace("folder");
+        	logger.trace("   --> CurrentVersion().getVersion() = "+metadata.getCurrentVersion().getVersion());
+        	logger.trace("   --> CurrentVersion().getChecksum() = "+metadata.getCurrentVersion().getChecksum());
+        	logger.trace("   --> CurrentVersion().getTimestamp() = "+metadata.getCurrentVersion().getTimestamp());
+        	logger.trace("   --> CurrentVersion().getLatestVersion() = "+metadata.getCurrentVersion().getLatestVersion());
+        	logger.trace("   --> CurrentVersion().getLatestChecksum() = "+metadata.getCurrentVersion().getLatestChecksum());
+        	logger.trace("   --> CurrentVersion().getLatestTimestamp() = "+metadata.getCurrentVersion().getLatestTimestamp());
+        	logger.trace("   --> DatabaseVersion().getVersion() = "+metadata.getDatabaseVersion().getVersion());
+        	logger.trace("   --> DatabaseVersion().getChecksum() = "+metadata.getDatabaseVersion().getChecksum());
+        	logger.trace("   --> DatabaseVersion().getTimestamp() = "+metadata.getDatabaseVersion().getTimestamp());
+        	logger.trace("   --> DatabaseVersion().getLatestVersion() = "+metadata.getDatabaseVersion().getLatestVersion());
+        	logger.trace("   --> DatabaseVersion().getLatestChecksum() = "+metadata.getDatabaseVersion().getLatestChecksum());
+        	logger.trace("   --> DatabaseVersion().getLatestTimestamp() = "+metadata.getDatabaseVersion().getLatestTimestamp());
+        	if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+        	    // if the database version is zero, then the component is not in the database (therefore, new in the model)
+        		++nbNews;
+        	} else {
+        		if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+        			boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+        			
+        			if ( modifiedInModel && modifiedInDatabase ) {
+        				if ( forceExport )			++nbUpdated;
+        				else {						++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+        			} else {
+        				if ( modifiedInModel )		++nbUpdated;
+        				if ( modifiedInDatabase )	++nbUpdatedDb;
+        			}
+        		}
+        	}
         }
-        txtNewFoldersInModel.setText(String.valueOf(newFlds));
-        txtUpdatedFoldersInModel.setText(String.valueOf(updFlds));
-        txtUpdatedFoldersInDatabase.setText(String.valueOf(updDbFlds));
+        txtNewFoldersInModel.setText(String.valueOf(nbNews));
+        txtUpdatedFoldersInModel.setText(String.valueOf(nbUpdated));
+        txtUpdatedFoldersInDatabase.setText(String.valueOf(nbUpdatedDb));
         txtNewFoldersInDatabase.setText(String.valueOf(connection.getFoldersNotInModel().size()));
-        txtConflictingFolders.setText(String.valueOf(cflFlds));
+        txtConflictingFolders.setText(String.valueOf(nbConflict));
         
-        int newView = 0;
-        int updView = 0;
-        int updDbView = 0;
-        int cflView = 0;
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
         Iterator<Map.Entry<String, IDiagramModel>> itv = exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++newView;
-            } else {
-                if ( DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                    // if the checksum of the latest version in the database equals the latest checksum
-                    // then the database is up to date and the component does not need to be exported
-                } else {
-                    // else, the component is different between the model and the database
-                    if ( forceExport )
-                        ++updView;
-                    else {
-                        // we check if there is a conflict
-                        if ( DBPlugin.areEqual(metadata.getCurrentVersion().getLatestChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                            // if the checksum that has just been calculated equals to the checksum calculating during the last import/export
-                            // then the component has been not been updated in the model but has been updated in the database
-                            ++updDbView;
-                        } else {
-                            // else the component has been modified in both the model and the database, therefore a conflict arises
-                            ++cflView;
-                        }
-                    }
-                }
-            }
+            logger.trace("view");
+        	logger.trace("   --> CurrentVersion().getVersion() = "+metadata.getCurrentVersion().getVersion());
+        	logger.trace("   --> CurrentVersion().getChecksum() = "+metadata.getCurrentVersion().getChecksum());
+        	logger.trace("   --> CurrentVersion().getTimestamp() = "+metadata.getCurrentVersion().getTimestamp());
+        	logger.trace("   --> CurrentVersion().getLatestVersion() = "+metadata.getCurrentVersion().getLatestVersion());
+        	logger.trace("   --> CurrentVersion().getLatestChecksum() = "+metadata.getCurrentVersion().getLatestChecksum());
+        	logger.trace("   --> CurrentVersion().getLatestTimestamp() = "+metadata.getCurrentVersion().getLatestTimestamp());
+        	logger.trace("   --> DatabaseVersion().getVersion() = "+metadata.getDatabaseVersion().getVersion());
+        	logger.trace("   --> DatabaseVersion().getChecksum() = "+metadata.getDatabaseVersion().getChecksum());
+        	logger.trace("   --> DatabaseVersion().getTimestamp() = "+metadata.getDatabaseVersion().getTimestamp());
+        	logger.trace("   --> DatabaseVersion().getLatestVersion() = "+metadata.getDatabaseVersion().getLatestVersion());
+        	logger.trace("   --> DatabaseVersion().getLatestChecksum() = "+metadata.getDatabaseVersion().getLatestChecksum());
+        	logger.trace("   --> DatabaseVersion().getLatestTimestamp() = "+metadata.getDatabaseVersion().getLatestTimestamp());
+        	if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+        	    // if the database version is zero, then the component is not in the database (therefore, new in the model)
+        		++nbNews;
+        	} else {
+        		if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+        			boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+        			
+        			if ( modifiedInModel && modifiedInDatabase ) {
+        				if ( forceExport )			++nbUpdated;
+        				else {						++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+        			} else {
+        				if ( modifiedInModel )		++nbUpdated;
+        				if ( modifiedInDatabase )	++nbUpdatedDb;
+        			}
+        		}
+        	}
         }
-        txtNewViewsInModel.setText(String.valueOf(newView));
-        txtUpdatedViewsInModel.setText(String.valueOf(updView));
-        txtUpdatedViewsInDatabase.setText(String.valueOf(updDbView));
+        txtNewViewsInModel.setText(String.valueOf(nbNews));
+        txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
+        txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedDb));
         txtNewViewsInDatabase.setText(String.valueOf(connection.getViewsNotInModel().size()));
-        txtConflictingViews.setText(String.valueOf(cflView));
+        txtConflictingViews.setText(String.valueOf(nbConflict));
 	}
 
 	/**
@@ -1135,7 +1159,7 @@ public class DBGuiExportModel extends DBGui {
             DBVersion version = ((IDBMetadata)ite.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
-            version.setTimestamp(version.getLatestTimestamp());
+            version.setTimestamp(exportedModel.getCurrentVersion().getLatestTimestamp());
         }
         
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = exportedModel.getAllRelationships().entrySet().iterator();
@@ -1143,7 +1167,7 @@ public class DBGuiExportModel extends DBGui {
             DBVersion version = ((IDBMetadata)itr.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
-            version.setTimestamp(version.getLatestTimestamp());
+            version.setTimestamp(exportedModel.getCurrentVersion().getLatestTimestamp());
         }
         
         Iterator<Map.Entry<String, IFolder>> itf = exportedModel.getAllFolders().entrySet().iterator();
@@ -1151,7 +1175,7 @@ public class DBGuiExportModel extends DBGui {
             DBVersion version = ((IDBMetadata)itf.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
-            version.setTimestamp(version.getLatestTimestamp());
+            version.setTimestamp(exportedModel.getCurrentVersion().getLatestTimestamp());
         }
         
         Iterator<Map.Entry<String, IDiagramModel>> itv = exportedModel.getAllViews().entrySet().iterator();
@@ -1159,7 +1183,7 @@ public class DBGuiExportModel extends DBGui {
             DBVersion version = ((IDBMetadata)itv.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
-            version.setTimestamp(version.getLatestTimestamp());
+            version.setTimestamp(exportedModel.getCurrentVersion().getLatestTimestamp());
         }
 	}
 
@@ -1210,94 +1234,81 @@ public class DBGuiExportModel extends DBGui {
 		if ( DBPlugin.areEqual(selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 		    // in Neo4J databases, we do not manage versions so we export all the elements and all the relationships
 		    mustExport = true;
-		    mustImport = false;
 		} else {
 		    // but in SQL databases, we need to calculate the component version and check if there is no conflict in the database
 
 		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion() == 0 ) {
                 // if the database version is zero then the component is not in the database, therefore, it is new in the model and we must export it
                 mustExport = true;
-                mustImport = false;
             } else {
                 if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getLatestChecksum()) ) {
                     // if the checksum of the latest version in the database equals the latest checksum
                     // then the database is up to date and the component does not need to be exported
                 } else {
                     // else, the component is different between the model and the database
-                    if ( forceExport ) {
-                        mustExport = true;
-                        mustImport = false;
-                    } else {
-                        // we check if there is a conflict
-                        if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getLatestChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum()) ) {
-                            // if the checksum that has just been calculated equals to the checksum calculating during the last import/export
-                            // then the component has been not been updated in the model but has been updated in the database
-                            mustExport = false;
-                            mustImport = true;
-                        } else {
-                            // else the component has been modified in both the model and the database, therefore a conflict arises
-                            mustExport = true;
-                            mustImport = true;
-                        }
-                    }
+        			boolean modifiedInModel = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getLatestChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestChecksum());
+        			
+        			if ( modifiedInModel && modifiedInDatabase ) {
+        				// if the component has been updated in both the model and the database, there is a conflict
+        				// except if we force the export
+        				if ( forceExport )
+            		        mustExport = true;
+        				else {
+        					if ( logger.isDebugEnabled() ) logger.debug("The component conflicts with the version in the database.");
+        					switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
+        						case askUser :
+        							if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
+        	                    	new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
+        	                    	if ( tblListConflicts.getItemCount() < 2 )
+        	                    		lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+        	                    	else
+        	                    		lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
+        	                    	incrementText(txtConflicting);
+        	                    	break;
+        						case exportToDatabase :
+        		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
+        		                    mustExport = true;
+        		                    break;
+        						case importFromDatabase :
+        		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
+        		                    mustImport = true;
+        		                    break;
+        						case doNotExport :
+        		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
+        		                    break;
+        					}
+        				}
+        			} else {
+        				if ( modifiedInModel )
+        					mustExport = true;
+        				else
+        					mustImport = true;
+        			}
                 }
             }
 		}
 	            
 		if ( mustExport ) {
-		    // we set the current version to the database
-            //((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion()+1);
-            
-            if ( mustImport ) {
-                // we generate a conflict
-                if ( logger.isDebugEnabled() ) logger.debug("The component conflicts with the version in the database.");
-                
-                //    --> in collaborative mode, the conflict will need to be manually solved
-                //    --> in standalone mode, we force the export to the database
-                if ( selectedDatabase.getCollaborativeMode() ) 
-                    ((IDBMetadata)eObjectToExport).getDBMetadata().setConflictChoice(CONFLICT_CHOICE.exportToDatabase);
-            
-                switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
-                    case askUser :
-                        if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
-                        new TableItem(tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
-                        if ( tblListConflicts.getItemCount() < 2 )
-                            lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
-                        else
-                            lblCantExport.setText("Can't export because "+tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
-                        incrementText(txtConflicting);
-                        break;
-                    case doNotExport :
-                        if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
-                        break;
-                    case exportToDatabase :
-                        if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
-                        ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-                        connection.exportEObject(eObjectToExport);
-                        incrementText(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion() == 0 ? txtNewInModel : txtUpdatedInModel);
-                        exported = true;
-                        break;
-                    case importFromDatabase :
-                        if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
-                        // For the moment, we can import concepts only during an export !!!
-                        if ( eObjectToExport instanceof IArchimateElement ) {
-                            eObjectToExport = connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
-                        } else {
-                            eObjectToExport = connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
-                            incrementText(connection.getRelationshipsNotInModel().get(((IIdentifier)eObjectToExport).getId()) != null ? txtNewInDatabase : txtUpdatedInDatabase);
-                        }
-                        break;
-                }
-            } else {
-                ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-				connection.exportEObject(eObjectToExport);
-                if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion() == 0 )
-                    incrementText(txtNewInModel);
-                else
-                    incrementText(txtUpdatedInModel);
-                exported = true;
-			}
+			connection.exportEObject(eObjectToExport);
+            if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion() == 0 )
+            	incrementText(txtNewInModel);
+            else
+                incrementText(txtUpdatedInModel);
+            exported = true;
 		}
+		
+		if ( mustImport ) {
+            // For the moment, we can import elements and relationships only during an export !!!
+            if ( eObjectToExport instanceof IArchimateElement ) {
+                eObjectToExport = connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+            } else if ( eObjectToExport instanceof IArchimateRelationship ) {
+                eObjectToExport = connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+                incrementText(connection.getRelationshipsNotInModel().get(((IIdentifier)eObjectToExport).getId()) != null ? txtNewInDatabase : txtUpdatedInDatabase);
+            } else
+            	throw new Exception ("Cannot import a "+eObjectToExport.getClass().getSimpleName()+" during an export :(");
+		}
+		
 		
 		// even if the eObject is not exported, it has to be referenced as beeing part of the model
 		if ( selectedDatabase.getExportWholeModel() )
