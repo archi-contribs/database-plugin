@@ -663,58 +663,6 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		// else, we check what needs to be exported to the database
-		getVersionsFromDatabase();
-		
-        if ( txtNewElementsInModel.getText().equals("0") && txtNewRelationshipsInModel.getText().equals("0") && txtNewFoldersInModel.getText().equals("0") && txtNewViewsInModel.getText().equals("0") &&
-                txtUpdatedElementsInModel.getText().equals("0") && txtUpdatedRelationshipsInModel.getText().equals("0") && txtUpdatedFoldersInModel.getText().equals("0") && txtUpdatedViewsInModel.getText().equals("0") && 
-                txtNewElementsInDatabase.getText().equals("0") && txtNewRelationshipsInDatabase.getText().equals("0") && txtNewFoldersInDatabase.getText().equals("0") && txtNewViewsInDatabase.getText().equals("0") &&
-                txtUpdatedElementsInDatabase.getText().equals("0") && txtUpdatedRelationshipsInDatabase.getText().equals("0") && txtUpdatedFoldersInDatabase.getText().equals("0") && txtUpdatedViewsInDatabase.getText().equals("0") &&
-                txtConflictingElements.getText().equals("0") && txtConflictingRelationships.getText().equals("0") && txtConflictingFolders.getText().equals("0") && txtConflictingViews.getText().equals("0") ) {
-            popup(Level.INFO, "Your database is already up to date.");
-            if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
-            btnDoAction.setEnabled(false);
-        } else {
-            if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
-            btnDoAction.setEnabled(true);
-        }
-	}
-	
-	/**
-	 * This method is called each time a connection to the database fails.<br>
-	 * <br>
-	 * It disables the export button
-	 */
-	@Override
-	protected void notConnectedToDatabase() {
-		if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
-		btnDoAction.setEnabled(false);
-		
-		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
-		lblDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		lblDatabaseNew.setVisible(selectedDatabase.getCollaborativeMode());
-		lblDatabaseUpdated.setVisible(selectedDatabase.getCollaborativeMode());
-		lblConflict.setVisible(selectedDatabase.getCollaborativeMode());
-		txtNewElementsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtUpdatedElementsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtConflictingElements.setVisible(selectedDatabase.getCollaborativeMode());
-		txtNewRelationshipsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtUpdatedRelationshipsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtConflictingRelationships.setVisible(selectedDatabase.getCollaborativeMode());
-		txtNewFoldersInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtUpdatedFoldersInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtConflictingFolders.setVisible(selectedDatabase.getCollaborativeMode());
-		txtNewViewsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtUpdatedViewsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
-		txtConflictingViews.setVisible(selectedDatabase.getCollaborativeMode());
-		
-		txtNewElementsInModel.setText("");			txtUpdatedElementsInModel.setText("");			txtNewElementsInDatabase.setText("");			txtUpdatedElementsInDatabase.setText("");			txtConflictingElements.setText("");
-		txtNewRelationshipsInModel.setText("");		txtUpdatedRelationshipsInModel.setText("");		txtNewRelationshipsInDatabase.setText("");		txtUpdatedRelationshipsInDatabase.setText("");		txtConflictingRelationships.setText("");
-		txtNewFoldersInModel.setText("");			txtUpdatedFoldersInModel.setText("");			txtNewFoldersInDatabase.setText("");			txtUpdatedFoldersInDatabase.setText("");			txtConflictingFolders.setText("");
-		txtNewViewsInModel.setText("");				txtUpdatedViewsInModel.setText("");				txtNewViewsInDatabase.setText("");				txtUpdatedViewsInDatabase.setText("");				txtConflictingViews.setText("");
-		txtNewElementsInModel.setText("");			txtUpdatedElementsInModel.setText("");			txtNewElementsInDatabase.setText("");			txtUpdatedElementsInDatabase.setText("");			txtConflictingElements.setText("");
-	}
-	
-	private void getVersionsFromDatabase() {
 		txtNewElementsInModel.setText("0");			txtUpdatedElementsInModel.setText("0");			txtNewElementsInDatabase.setText("0");			txtUpdatedElementsInDatabase.setText("0");			txtConflictingElements.setText("0");
 		txtNewRelationshipsInModel.setText("0");	txtUpdatedRelationshipsInModel.setText("0");	txtNewRelationshipsInDatabase.setText("0");		txtUpdatedRelationshipsInDatabase.setText("0");		txtConflictingRelationships.setText("0");
 		txtNewFoldersInModel.setText("0");			txtUpdatedFoldersInModel.setText("0");			txtNewFoldersInDatabase.setText("0");			txtUpdatedFoldersInDatabase.setText("0");			txtConflictingFolders.setText("0");
@@ -722,8 +670,10 @@ public class DBGuiExportModel extends DBGui {
 		txtNewElementsInModel.setText("0");			txtUpdatedElementsInModel.setText("0");			txtNewElementsInDatabase.setText("0");			txtUpdatedElementsInDatabase.setText("0");			txtConflictingElements.setText("0");
 
 		try {
+	    	popup("Please wait while comparing model to the database ...");
 			connection.getVersionsFromDatabase(exportedModel);
 		} catch (SQLException err ) {
+			closePopup();
 			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -913,6 +863,56 @@ public class DBGuiExportModel extends DBGui {
         txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedDb));
         txtNewViewsInDatabase.setText(String.valueOf(connection.getViewsNotInModel().size()));
         txtConflictingViews.setText(String.valueOf(nbConflict));
+        
+		closePopup();
+		
+        if ( txtNewElementsInModel.getText().equals("0") && txtNewRelationshipsInModel.getText().equals("0") && txtNewFoldersInModel.getText().equals("0") && txtNewViewsInModel.getText().equals("0") &&
+                txtUpdatedElementsInModel.getText().equals("0") && txtUpdatedRelationshipsInModel.getText().equals("0") && txtUpdatedFoldersInModel.getText().equals("0") && txtUpdatedViewsInModel.getText().equals("0") && 
+                txtNewElementsInDatabase.getText().equals("0") && txtNewRelationshipsInDatabase.getText().equals("0") && txtNewFoldersInDatabase.getText().equals("0") && txtNewViewsInDatabase.getText().equals("0") &&
+                txtUpdatedElementsInDatabase.getText().equals("0") && txtUpdatedRelationshipsInDatabase.getText().equals("0") && txtUpdatedFoldersInDatabase.getText().equals("0") && txtUpdatedViewsInDatabase.getText().equals("0") &&
+                txtConflictingElements.getText().equals("0") && txtConflictingRelationships.getText().equals("0") && txtConflictingFolders.getText().equals("0") && txtConflictingViews.getText().equals("0") ) {
+            popup(Level.INFO, "Your database is already up to date.");
+            if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
+            btnDoAction.setEnabled(false);
+        } else {
+            if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
+            btnDoAction.setEnabled(true);
+        }
+	}
+	
+	/**
+	 * This method is called each time a connection to the database fails.<br>
+	 * <br>
+	 * It disables the export button
+	 */
+	@Override
+	protected void notConnectedToDatabase() {
+		if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
+		btnDoAction.setEnabled(false);
+		
+		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
+		lblDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		lblDatabaseNew.setVisible(selectedDatabase.getCollaborativeMode());
+		lblDatabaseUpdated.setVisible(selectedDatabase.getCollaborativeMode());
+		lblConflict.setVisible(selectedDatabase.getCollaborativeMode());
+		txtNewElementsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtUpdatedElementsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtConflictingElements.setVisible(selectedDatabase.getCollaborativeMode());
+		txtNewRelationshipsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtUpdatedRelationshipsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtConflictingRelationships.setVisible(selectedDatabase.getCollaborativeMode());
+		txtNewFoldersInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtUpdatedFoldersInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtConflictingFolders.setVisible(selectedDatabase.getCollaborativeMode());
+		txtNewViewsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtUpdatedViewsInDatabase.setVisible(selectedDatabase.getCollaborativeMode());
+		txtConflictingViews.setVisible(selectedDatabase.getCollaborativeMode());
+		
+		txtNewElementsInModel.setText("");			txtUpdatedElementsInModel.setText("");			txtNewElementsInDatabase.setText("");			txtUpdatedElementsInDatabase.setText("");			txtConflictingElements.setText("");
+		txtNewRelationshipsInModel.setText("");		txtUpdatedRelationshipsInModel.setText("");		txtNewRelationshipsInDatabase.setText("");		txtUpdatedRelationshipsInDatabase.setText("");		txtConflictingRelationships.setText("");
+		txtNewFoldersInModel.setText("");			txtUpdatedFoldersInModel.setText("");			txtNewFoldersInDatabase.setText("");			txtUpdatedFoldersInDatabase.setText("");			txtConflictingFolders.setText("");
+		txtNewViewsInModel.setText("");				txtUpdatedViewsInModel.setText("");				txtNewViewsInDatabase.setText("");				txtUpdatedViewsInDatabase.setText("");				txtConflictingViews.setText("");
+		txtNewElementsInModel.setText("");			txtUpdatedElementsInModel.setText("");			txtNewElementsInDatabase.setText("");			txtUpdatedElementsInDatabase.setText("");			txtConflictingElements.setText("");
 	}
 
 	/**
