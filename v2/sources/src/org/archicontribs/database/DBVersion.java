@@ -41,6 +41,10 @@ public class DBVersion {
     	this(0, null, timestamp, 0, null, null);
     }
     
+    public DBVersion(int version) {
+    	this(version, null, null, 0, null, null);
+    }
+    
     public void reset() {
         setVersion(0);
         setChecksum(null);
