@@ -36,7 +36,8 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		logger.info("Importing model.");
 	
 		try {
-		    new DBGuiImportModel("Import model");
+			DBGuiImportModel importModel = new DBGuiImportModel("Import model");
+			importModel.run();
 		} catch (Exception e) {
 		    DBGui.popup(Level.ERROR,"Cannot import model", e);
 		}
