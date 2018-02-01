@@ -12,7 +12,7 @@ import org.archicontribs.database.model.IDBMetadata;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class TechnologyInterface extends com.archimatetool.model.impl.TechnologyInterface implements IDBMetadata {
-	private DBMetadata dbMetadata;;
+	private DBMetadata dbMetadata;
 	
 	public TechnologyInterface() {
 		super();
