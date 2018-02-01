@@ -1,7 +1,7 @@
 package org.archicontribs.database.model.impl;
 
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;;
+import org.archicontribs.database.model.IDBMetadata;
 
 /**
  * extends InfluenceRelationship<br>
