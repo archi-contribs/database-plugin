@@ -822,11 +822,18 @@ public class DBGuiExportModel extends DBGui {
                 popup(Level.INFO, "Your database is already up to date.");
                 if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
                 btnDoAction.setEnabled(false);
+                btnDoAction.setText("Export");
                 
-                exportedModel.getDatabaseVersion().setTimestamp(exportedModel.getDatabaseVersion().getLatestTimestamp());
+                exportedModel.getCurrentVersion().setTimestamp(exportedModel.getDatabaseVersion().getLatestTimestamp());
             } else {
                 if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
                 btnDoAction.setEnabled(true);
+                
+                if ( txtUpdatedElementsInDatabase.getText().equals("0") && txtUpdatedRelationshipsInDatabase.getText().equals("0") && txtUpdatedFoldersInDatabase.getText().equals("0") && txtUpdatedViewsInDatabase.getText().equals("0") &&
+                txtConflictingElements.getText().equals("0") && txtConflictingRelationships.getText().equals("0") && txtConflictingFolders.getText().equals("0") && txtConflictingViews.getText().equals("0") )
+                    btnDoAction.setText("Export");
+                else
+                    btnDoAction.setText("Sync");
             }
 	    }
 	}
@@ -864,6 +871,8 @@ public class DBGuiExportModel extends DBGui {
 		txtNewFoldersInModel.setText("");			txtUpdatedFoldersInModel.setText("");			txtNewFoldersInDatabase.setText("");			txtUpdatedFoldersInDatabase.setText("");			txtConflictingFolders.setText("");
 		txtNewViewsInModel.setText("");				txtUpdatedViewsInModel.setText("");				txtNewViewsInDatabase.setText("");				txtUpdatedViewsInDatabase.setText("");				txtConflictingViews.setText("");
 		txtNewElementsInModel.setText("");			txtUpdatedElementsInModel.setText("");			txtNewElementsInDatabase.setText("");			txtUpdatedElementsInDatabase.setText("");			txtConflictingElements.setText("");
+		
+		btnDoAction.setText("Export");
 	}
 
 	/**
@@ -978,12 +987,26 @@ public class DBGuiExportModel extends DBGui {
 			while ( elementsIterator.hasNext() ) {
 				doExportEObject(elementsIterator.next().getValue(), txtNewElementsInModel, txtUpdatedElementsInModel, txtNewElementsInDatabase, txtUpdatedElementsInDatabase, txtConflictingElements);
 			}
-	
+			
+			if ( logger.isDebugEnabled() ) logger.debug("Must import "+connection.getElementsNotInModel().size()+" elements");
+			for (String id : connection.getElementsNotInModel().keySet() ) {
+			    DBVersion versionToImport = connection.getElementsNotInModel().get(id);
+			    connection.importElementFromId(exportedModel, null, id, versionToImport.getLatestVersion(), false);
+			    incrementText(txtNewElementsInDatabase);
+			}
+			    
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
 				doExportEObject(relationshipsIterator.next().getValue(), txtNewRelationshipsInModel, txtUpdatedRelationshipsInModel, txtNewRelationshipsInDatabase, txtUpdatedRelationshipsInDatabase, txtConflictingRelationships);
 			}
+			
+	        if ( logger.isDebugEnabled() ) logger.debug("Must import "+connection.getRelationshipsNotInModel().size()+" relationships");
+	        for (String id : connection.getRelationshipsNotInModel().keySet() ) {
+	            DBVersion versionToImport = connection.getRelationshipsNotInModel().get(id);
+	            connection.importRelationshipFromId(exportedModel, null, id, versionToImport.getLatestVersion(), false);
+	            incrementText(txtNewRelationshipsInDatabase);
+	        }
 	
 			if ( selectedDatabase.getExportWholeModel() ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
@@ -1051,10 +1074,6 @@ public class DBGuiExportModel extends DBGui {
 						setActiveAction(STATUS.Ok);
 						setComponentVersion();
 						doShowResult(STATUS.Ok, "The database is already up to date.");
-				        //TODO: if the model is not in the database, we force its export even if all the components are the same version !!!!!
-						//TODO:
-						//TODO:
-						//TODO:
 						return;
 					}
 				}
@@ -1252,12 +1271,12 @@ public class DBGuiExportModel extends DBGui {
 		if ( mustImport ) {
             // For the moment, we can import elements and relationships only during an export !!!
             if ( eObjectToExport instanceof IArchimateElement ) {
-                eObjectToExport = connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+                eObjectToExport = connection.importElementFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
             } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                eObjectToExport = connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), false);
+                eObjectToExport = connection.importRelationshipFromId(exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
                 incrementText(connection.getRelationshipsNotInModel().get(((IIdentifier)eObjectToExport).getId()) != null ? txtNewInDatabase : txtUpdatedInDatabase);
             } else
-            	throw new Exception ("Cannot import a "+eObjectToExport.getClass().getSimpleName()+" during an export :(");
+            	throw new Exception ("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
 		}
 		
 		

@@ -1918,7 +1918,7 @@ public class DBDatabaseConnection {
 					IArchimateElement element = model.getAllElements().get(currentResultSet.getString("element_id"));
 					if ( element == null ) {
 						if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
-						importElementFromId(model, null, currentResultSet.getString("element_id"), false);
+						importElementFromId(model, null, currentResultSet.getString("element_id"), 0, false);
 					}
 				}
 
@@ -2010,7 +2010,7 @@ public class DBDatabaseConnection {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(currentResultSet.getString("relationship_id"));
 					if ( relationship == null ) {
-						importRelationshipFromId(model, null, currentResultSet.getString("relationship_id"), false);
+						importRelationshipFromId(model, null, currentResultSet.getString("relationship_id"), 0, false);
 					}
 				}
 
@@ -2252,21 +2252,35 @@ public class DBDatabaseConnection {
 		return "?";
 	}
 
-	public IArchimateElement importElementFromId(ArchimateModel model, IArchimateDiagramModel view, String elementId, boolean mustCreateCopy) throws Exception {
+	/**
+	 * Imports an element into the model<br>
+	 * @param model model into which the element will be imported
+	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param elementId id of the element to import
+	 * @param elementVersion version of the element to import (0 if the latest version should be imported)
+	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should kee its original id 
+	 * @return the imported element
+	 * @throws Exception
+	 */
+	public IArchimateElement importElementFromId(ArchimateModel model, IArchimateDiagramModel view, String elementId, int elementVersion, boolean mustCreateCopy) throws Exception {
 		IArchimateElement element;
 		List<Object> imported = new ArrayList<Object>();
 		boolean newElement = false;
 
 		// TODO add an option to import elements recursively
 
-		//TODO : add try catch block !!!
+		ResultSet result;
+		if ( elementVersion == 0 )
+		    result = select("SELECT version, class, name, documentation, type, created_on FROM "+schema+"elements e WHERE id = ? AND version = (SELECT MAX(version) FROM "+schema+"elements WHERE id = e.id)", elementId);
+		else
+		    result = select("SELECT version, class, name, documentation, type, created_on FROM "+schema+"elements e WHERE id = ? AND version = ?", elementId, elementVersion);
 
-		// We import the element
-		ResultSet result = select("SELECT version, class, name, documentation, type, created_on FROM "+schema+"elements e WHERE version = (SELECT MAX(version) FROM "+schema+"elements WHERE id = e.id) AND id = ?", elementId);
 		if ( !result.next() ) {
 			result.close();
-			result=null;
-			throw new Exception("Element with id="+elementId+" has not been found in the database.");
+			if ( elementVersion == 0 )
+			    throw new Exception("Element with id="+elementId+" has not been found in the database.");
+			else
+			    throw new Exception("Element with id="+elementId+" and version="+elementVersion+" has not been found in the database.");
 		}
 
 		if ( mustCreateCopy ) {
@@ -2275,10 +2289,8 @@ public class DBDatabaseConnection {
 			element.setId(model.getIDAdapter().getNewID());
 			newElement = true;
 
-			element.setName((currentResultSet.getString("name")==null ? "" : currentResultSet.getString("name"))+" (copy)");
 			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
 			((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-
 		} else {
 			element = model.getAllElements().get(elementId);
 			if ( element == null ) {
@@ -2338,7 +2350,7 @@ public class DBDatabaseConnection {
 
 				// we import only relations when both source and target are in the model
 				if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
-					imported.add(importRelationshipFromId(model, view, result.getString("id"), false));
+					imported.add(importRelationshipFromId(model, view, result.getString("id"), 0, false));
 				}
 			}
 		}
@@ -2390,17 +2402,33 @@ public class DBDatabaseConnection {
 		return connectables;
 	}
 
-	public IArchimateRelationship importRelationshipFromId(ArchimateModel model, IArchimateDiagramModel view, String relationshipId, boolean mustCreateCopy) throws Exception {
+	/**
+	 * Imports a relationship into the model
+	 * @param model model into which the relationship will be imported
+	 * @param view if a view is provided, then an ArchimateConnection will be automatically created
+	 * @param relationshipId id of the relationship to import
+	 * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
+	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should kee its original id
+	 * @return the imported relationship
+	 * @throws Exception
+	 */
+	public IArchimateRelationship importRelationshipFromId(ArchimateModel model, IArchimateDiagramModel view, String relationshipId, int relationshipVersion, boolean mustCreateCopy) throws Exception {
 		boolean newRelationship = false;
 
-		ResultSet result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+schema+"relationships r WHERE version = (SELECT MAX(version) FROM "+schema+"relationships WHERE id = r.id) AND id = ?", relationshipId);
-		if ( !result.next() ) {
-			result.close();
-			result=null;
-			throw new Exception("relationship with id="+relationshipId+" has not been found in the database.");
-		}
-		// TODO check that the element does not exist yet ...
+        ResultSet result;
+        if ( relationshipVersion == 0 )
+            result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+schema+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+schema+"relationships WHERE id = r.id)", relationshipId);
+        else
+            result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+schema+"relationships r WHERE id = ? AND version = ?", relationshipId, relationshipVersion);
 
+        if ( !result.next() ) {
+            result.close();
+            if ( relationshipVersion == 0 )
+                throw new Exception("Relationship with id="+relationshipId+" has not been found in the database.");
+            else
+                throw new Exception("Relationship with id="+relationshipId+" and version="+relationshipVersion+" has not been found in the database.");
+        }
+	        
 		IArchimateRelationship relationship;
 
 		if ( mustCreateCopy ) {
@@ -2661,21 +2689,19 @@ public class DBDatabaseConnection {
         }
         if ( model.getDatabaseVersion().getVersion() != 0 ) {
         	// if the model is in the database, this big request gives us the latest version of all the elements that are in the latest version of the model in the database
-	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version as latest_version, tt.checksum as latest_checksum, tt.created_on as latest_created_on FROM ("+
-	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) as latest_version FROM "+schema+"elements t1 "+
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+schema+"elements t1 "+
 	        		"JOIN "+schema+"elements t2 ON t2.id = t1.id AND t2.version >= t1.version "+
 	                "JOIN "+schema+"elements_in_model m ON t1.id = m.element_id AND t1.version = m.element_version "+
 	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-	                "HAVING  m.model_id = ? and m.model_version = ? "+
-	        		"ORDER BY m.eim_id) as t "+
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") as t "+
 	        		"JOIN elements AS tt on tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
 	                model.getDatabaseVersion().getVersion());
 	        while ( result.next() ) {
 	        	IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
 	            if ( element != null ) {
-	            	if ( logger.isTraceEnabled() )
-	            		logger.trace("   element "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
 	            	element.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 	            	element.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 	            	element.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
@@ -2720,21 +2746,19 @@ public class DBDatabaseConnection {
         }
         if ( model.getDatabaseVersion().getVersion() != 0 ) {
         	// if the model is in the database, this big request gives us the latest version of all the relationships that are in the latest version of the model in the database
-	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version as latest_version, tt.checksum as latest_checksum, tt.created_on as latest_created_on FROM ("+
-	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) as latest_version FROM "+schema+"relationships t1 "+
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+schema+"relationships t1 "+
 	        		"JOIN "+schema+"relationships t2 ON t2.id = t1.id AND t2.version >= t1.version "+
 	                "JOIN "+schema+"relationships_in_model m ON t1.id = m.relationship_id AND t1.version = m.relationship_version "+
 	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-	                "HAVING  m.model_id = ? and m.model_version = ? "+
-	        		"ORDER BY m.rim_id) as t "+
-	        		"JOIN relationships AS tt on tt.id = t.id AND tt.version = t.latest_version",
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN relationships AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
 	                model.getDatabaseVersion().getVersion());
 	        while ( result.next() ) {
 	            IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
 	            if ( relationship != null ) {
-	            	if ( logger.isTraceEnabled() )
-	            		logger.trace("   relationship "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
@@ -2779,21 +2803,19 @@ public class DBDatabaseConnection {
         }
         if ( model.getDatabaseVersion().getVersion() != 0 ) {
         	// if the model is in the database, this big request gives us the latest version of all the folders that are in the latest version of the model in the database
-	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version as latest_version, tt.checksum as latest_checksum, tt.created_on as latest_created_on FROM ("+
-	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) as latest_version FROM "+schema+"folders t1 "+
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+schema+"folders t1 "+
 	        		"JOIN "+schema+"folders t2 ON t2.id = t1.id AND t2.version >= t1.version "+
 	                "JOIN "+schema+"folders_in_model m ON t1.id = m.folder_id AND t1.version = m.folder_version "+
 	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-	                "HAVING  m.model_id = ? and m.model_version = ? "+
-	        		"ORDER BY m.fim_id) as t "+
-	        		"JOIN folders AS tt on tt.id = t.id AND tt.version = t.latest_version",
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN folders AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
 	                model.getDatabaseVersion().getVersion());
 	        while ( result.next() ) {
 	            IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
 	            if ( folder != null ) {
-	            	if ( logger.isTraceEnabled() )
-	            		logger.trace("   folder "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
 	            	folder.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 	            	folder.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 	            	folder.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
@@ -2838,21 +2860,19 @@ public class DBDatabaseConnection {
         }
         if ( model.getDatabaseVersion().getVersion() != 0 ) {
         	// if the model is in the database, this big request gives us the latest version of all the views that are in the latest version of the model in the database
-	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version as latest_version, tt.checksum as latest_checksum, tt.created_on as latest_created_on FROM ("+
-	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) as latest_version FROM "+schema+"views t1 "+
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+schema+"views t1 "+
 	        		"JOIN "+schema+"views t2 ON t2.id = t1.id AND t2.version >= t1.version "+
 	                "JOIN "+schema+"views_in_model m ON t1.id = m.view_id AND t1.version = m.view_version "+
 	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-	                "HAVING  m.model_id = ? and m.model_version = ? "+
-	        		"ORDER BY m.vim_id) as t "+
-	        		"JOIN views AS tt on tt.id = t.id AND tt.version = t.latest_version",
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN views AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
 	                model.getDatabaseVersion().getVersion());
 	        while ( result.next() ) {
 	            IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
 	            if ( view != null ) {
-	            	if ( logger.isTraceEnabled() )
-	            		logger.trace("   view "+result.getString("id")+" : created on "+result.getTimestamp("created_on"));
 	            	view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 	            	view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 	            	view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
