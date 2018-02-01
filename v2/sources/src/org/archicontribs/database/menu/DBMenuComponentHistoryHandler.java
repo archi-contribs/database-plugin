@@ -27,7 +27,7 @@ import com.archimatetool.model.ISketchModel;
 public class DBMenuComponentHistoryHandler extends AbstractHandler {
     private static final DBLogger logger = new DBLogger(DBMenu.class);
 
-    @Override
+	@Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
         IArchimateModelObject component;
@@ -35,7 +35,7 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
         if ( selection instanceof IArchimateConcept ) {										// if the component is selected in the tree
             component = (IArchimateConcept)selection;
         } else if ( selection instanceof ArchimateElementEditPart ) {						// if the component is selected in a view
-            component = (IArchimateConcept) ((ArchimateElementEditPart)selection).getModel().getArchimateConcept();
+            component = ((ArchimateElementEditPart)selection).getModel().getArchimateConcept();
         } else if ( selection instanceof IArchimateDiagramModel ) {							// if the user clicked on a view in the tree
         	component = (IArchimateDiagramModel)selection;
         } else if ( selection instanceof ICanvasModel ) {									// if the user clicked on a view in the tree
@@ -50,7 +50,8 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
         if ( logger.isDebugEnabled() ) logger.debug("Showing history for component "+((IDBMetadata)component).getDBMetadata().getDebugName());
 
         try {
-            new DBGuiComponentHistory(component);
+            DBGuiComponentHistory componentHistory = new DBGuiComponentHistory(component);
+            componentHistory.run();
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot import model", e);
         }
