@@ -47,6 +47,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IFolder;
 
 public class DBGuiImportComponent extends DBGui {
+	@SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiImportComponent.class);
 
 	protected ArchimateModel importedModel;
