@@ -60,6 +60,7 @@ import com.archimatetool.model.IIdentifier;
  * @author Herve Jouin
  */
 public class DBGuiExportModel extends DBGui {
+	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 
 	private ArchimateModel exportedModel = null;
@@ -1090,27 +1091,27 @@ public class DBGuiExportModel extends DBGui {
 				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			}
-		} else {
-			if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
-			resetProgressBar();
-			try  {
-			    connection.rollback();
-			} catch (Exception err) {
-				popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefully your database !", err);
-				setActiveAction(STATUS.Error);
-				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-				return;
-			}
+		}
 		
-			tblListConflicts.setSelection(0);
-			try {
-				tblListConflicts.notifyListeners(SWT.Selection, new Event());		// shows up the tblListConflicts table and calls fillInCompareTable()
-			} catch (Exception err) {
-				popup(Level.ERROR, "Failed to compare component with its database version.", err);
-				setActiveAction(STATUS.Error);
-				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-				return;
-			}
+		if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
+		resetProgressBar();
+		try  {
+		    connection.rollback();
+		} catch (Exception err) {
+			popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefully your database !", err);
+			setActiveAction(STATUS.Error);
+			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+			return;
+		}
+	
+		tblListConflicts.setSelection(0);
+		try {
+			tblListConflicts.notifyListeners(SWT.Selection, new Event());		// shows up the tblListConflicts table and calls fillInCompareTable()
+		} catch (Exception err) {
+			popup(Level.ERROR, "Failed to compare component with its database version.", err);
+			setActiveAction(STATUS.Error);
+			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+			return;
 		}
 	}
 	
@@ -1163,18 +1164,16 @@ public class DBGuiExportModel extends DBGui {
 		boolean exported = doExportEObject(viewObject, null, null, null, null, null);
 		
 		if ( exported ) {
-			if ( viewObject instanceof IConnectable) {
-				for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
-					if ( connectionsAlreadyExported.get(source.getId()) == null ) {
-						doExportEObject(source, null, null, null, null, null);
-						connectionsAlreadyExported.put(source.getId(), source);
-					}
+			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
+				if ( connectionsAlreadyExported.get(source.getId()) == null ) {
+					doExportEObject(source, null, null, null, null, null);
+					connectionsAlreadyExported.put(source.getId(), source);
 				}
-				for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
-					if ( connectionsAlreadyExported.get(target.getId()) == null ) {
-						doExportEObject(target, null, null, null, null, null);
-						connectionsAlreadyExported.put(target.getId(), target);
-					}
+			}
+			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
+				if ( connectionsAlreadyExported.get(target.getId()) == null ) {
+					doExportEObject(target, null, null, null, null, null);
+					connectionsAlreadyExported.put(target.getId(), target);
 				}
 			}
 			
@@ -1247,6 +1246,8 @@ public class DBGuiExportModel extends DBGui {
         						case doNotExport :
         		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
         		                    break;
+								default:
+									break;
         					}
         				}
         			} else {
@@ -1498,6 +1499,7 @@ public class DBGuiExportModel extends DBGui {
 			case exportToDatabase:   if ( logger.isDebugEnabled() ) logger.debug("Tagging component to export current version to database"); break;
 			case importFromDatabase: if ( logger.isDebugEnabled() ) logger.debug("Tagging component to import database version");            break;
 			case askUser:            if ( logger.isDebugEnabled() ) logger.debug("Tagging component to ask user");                           break;
+			default:
 		}
 
 		int index = tblListConflicts.getSelectionIndex();
