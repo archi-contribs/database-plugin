@@ -78,7 +78,7 @@ public class DBMetadata  {
 	 * <li><b>exportToDatabase</b> export to the database</li>
 	 * <li><b>importFromDatabase</b> replace the component with the version in the database</li>
 	 */
-	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase};
+	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase}
 	/**
 	 * Stores the action that need to be done in case of a database conflict
 	 * @see CONFLICT_CHOICE
