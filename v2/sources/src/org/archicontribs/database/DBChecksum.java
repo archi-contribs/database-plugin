@@ -12,7 +12,6 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.IHintProvider;
@@ -54,8 +53,6 @@ import com.archimatetool.model.ITextPosition;
 
 
 public class DBChecksum {
-	private static final DBLogger logger = new DBLogger(DBChecksum.class);
-	private static final boolean traceChecksum = false;
 	private static final char startOfText = (char)2;
 	private static final char endOfText = (char)3;
 	
@@ -67,10 +64,6 @@ public class DBChecksum {
 	 */
 	public static String calculateChecksum(IArchimateModel model, String releaseNote) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		StringBuilder checksum = new StringBuilder();
-
-		
-		if ( logger.isTraceEnabled() )
-		    logger.trace("Calculating checksum of model "+model.getName()+"("+model.getId()+")");
 		
 		append(checksum, "id", model.getId());
 		append(checksum, "name", model.getName());
@@ -88,10 +81,6 @@ public class DBChecksum {
 	 */
 	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		StringBuilder checksum = new StringBuilder();
-
-		
-		if ( logger.isTraceEnabled() )
-		    logger.trace("Calculating checksum of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
 		
 		if ( eObject instanceof IIdentifier )						append(checksum, "id", ((IIdentifier)eObject).getId());
 		if ( eObject instanceof INameable )							append(checksum, "name", ((INameable)eObject).getName());		// shall we do a setName("") in case of null ?
@@ -162,8 +151,7 @@ public class DBChecksum {
 	
 	public static void append(StringBuilder sb, String name, String value) {
 		String sValue = (value == null ? "" : value);
-		
-		if ( traceChecksum ) logger.trace("   "+name+" : "+sValue);
+
 	    sb.append(startOfText+sValue+endOfText);
 	}
 	
@@ -222,10 +210,7 @@ public class DBChecksum {
 			DBGui.popup(Level.ERROR, "Failed to calculate checksum.", e);
 			throw e;
 		}
-		
-		if ( logger.isTraceEnabled() ) {
-		    logger.trace("checksum is "+md5.toString()+" ("+md5.length()+") from "+bytes.length+" bytes : "+new String(bytes, 0, Math.min(bytes.length, 200)));
-		}
+
 		return md5.toString();
 	}
 }
