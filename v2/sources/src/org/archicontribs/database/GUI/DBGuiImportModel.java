@@ -42,7 +42,8 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 
 public class DBGuiImportModel extends DBGui {
-    protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
+    @SuppressWarnings("hiding")
+	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
 
     private ArchimateModel modelToImport;
     private Table tblModels;
