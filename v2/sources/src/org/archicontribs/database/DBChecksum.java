@@ -149,16 +149,34 @@ public class DBChecksum {
 		return calculateChecksum(checksum);
 	}
 	
+	/**
+	 * Adds the value to the StringBuilder that will be used to calculate the checksum.
+	 * @param sb StringBuilder that will be used to calculate the checksum
+	 * @param name was used for log purpose but is not used anymore
+	 * @param value value to add
+	 */
 	public static void append(StringBuilder sb, String name, String value) {
 		String sValue = (value == null ? "" : value);
 
 	    sb.append(startOfText+sValue+endOfText);
 	}
 	
+	/**
+	 * Adds the value to the StringBuilder that will be used to calculate the checksum.
+	 * @param sb StringBuilder that will be used to calculate the checksum
+	 * @param name was used for log purpose but is not used anymore
+	 * @param value value to add
+	 */
 	public static void append(StringBuilder sb, String name, int value) {
 		append(sb, name, String.valueOf(value));
 	}
 	
+	/**
+	 * Adds the value to the StringBuilder that will be used to calculate the checksum.
+	 * @param sb StringBuilder that will be used to calculate the checksum
+	 * @param name was used for log purpose but is not used anymore
+	 * @param value value to add
+	 */
 	public static void append(StringBuilder sb, String name, boolean value) {
 		append(sb, name, String.valueOf(value));
 	}
