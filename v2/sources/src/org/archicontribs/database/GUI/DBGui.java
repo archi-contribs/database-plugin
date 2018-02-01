@@ -733,6 +733,7 @@ public class DBGui {
 	
 	
 	private static Shell dialogShell = null;
+	private static Composite dialogComposite = null;
 	private static Label dialogLabel = null;
 	/**
 	 * shows up an on screen popup displaying the message but does not wait for any user input<br>
@@ -745,13 +746,19 @@ public class DBGui {
 			@Override
 			public void run() {
 				if ( dialogShell == null ) {
-					dialogShell = new Shell(display, SWT.BORDER | SWT.APPLICATION_MODAL);
+					dialogShell = new Shell(display, SWT.APPLICATION_MODAL);
 					dialogShell.setSize(500, 70);
-					dialogShell.setBackground(COMPO_LEFT_COLOR);
+					dialogShell.setBackground(BLACK_COLOR);
 					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
-					dialogShell.setLayout(new GridLayout( 1, false ) );
 					
-					dialogLabel = new Label(dialogShell, SWT.CENTER | SWT.WRAP);
+					int borderWidth = (dialogShell.getBorderWidth()+1)*2;
+                    dialogComposite = new Composite(dialogShell, SWT.NONE);
+                    dialogComposite.setSize(500-borderWidth, 70-borderWidth);
+                    dialogComposite.setLocation(1, 1);
+                    dialogComposite.setBackground(COMPO_LEFT_COLOR);
+                    dialogComposite.setLayout(new GridLayout( 1, false ) );
+					
+					dialogLabel = new Label(dialogComposite, SWT.CENTER | SWT.WRAP);
 					dialogLabel.setBackground(COMPO_LEFT_COLOR);
 					dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
 					dialogLabel.setFont(TITLE_FONT);
@@ -762,6 +769,8 @@ public class DBGui {
 				dialogLabel.setText(msg);
 				dialogShell.layout(true);
 				dialogShell.open();
+				
+				dialogComposite.layout();
 				
 				setArrowCursor();
 			}
