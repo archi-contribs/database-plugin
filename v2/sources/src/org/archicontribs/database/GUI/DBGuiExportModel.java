@@ -1280,7 +1280,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		
-		// even if the eObject is not exported, it has to be referenced as beeing part of the model
+		// even if the eObject is not exported, it has to be referenced as being part of the model
 		if ( selectedDatabase.getExportWholeModel() )
 			connection.assignEObjectToModel(eObjectToExport);
 		
