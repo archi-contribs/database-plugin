@@ -36,6 +36,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	static DBLogger logger = new DBLogger(DBCanvasFactory.class);
 	static boolean ignoreNext = false;
 	
+	@SuppressWarnings("hiding")
 	public static DBCanvasFactory eINSTANCE = init();
 	
     public static DBCanvasFactory init() {
