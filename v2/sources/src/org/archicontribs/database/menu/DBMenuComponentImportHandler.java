@@ -54,7 +54,8 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 		if ( logger.isDebugEnabled() ) logger.debug("Importing component in model "+model.getName());
 		
         try {
-            new DBGuiImportComponent(model, view, folder, "Import a component");
+        	DBGuiImportComponent importComponent = new DBGuiImportComponent(model, view, folder, "Import a component");
+        	importComponent.run();
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot import model", e);
         }
