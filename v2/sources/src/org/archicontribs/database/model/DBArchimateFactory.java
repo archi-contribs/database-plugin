@@ -113,6 +113,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	static DBLogger logger = new DBLogger(DBArchimateFactory.class);
 	static boolean ignoreNext = false;
 	
+	@SuppressWarnings("hiding")
 	public static DBArchimateFactory eINSTANCE = init();
 	
     public static DBArchimateFactory init() {
