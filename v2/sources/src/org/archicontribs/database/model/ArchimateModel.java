@@ -156,6 +156,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	 * If it is a folder, we set its type that it is the same as its root parent
 	 * @return : the concatenation of the checksums of all the eObject components
 	 */
+	@SuppressWarnings("null")
 	public String countObject(EObject eObject, boolean mustCalculateChecksum, IDiagramModel parentDiagram) throws Exception {
 		StringBuilder checksumBuilder = null;
 		int len = 0;
@@ -222,7 +223,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 													// but a solution needs to be found !!!
 			
 													for ( IFolder subFolder: ((IFolder)eObject).getFolders() ) {
-														((IDBMetadata)subFolder).getDBMetadata().setRootFolderType( ( ((IFolder)subFolder).getType().getValue() != 0 ) ? ((IFolder)subFolder).getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
+														((IDBMetadata)subFolder).getDBMetadata().setRootFolderType( ( subFolder.getType().getValue() != 0 ) ? subFolder.getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
 														countObject(subFolder, mustCalculateChecksum, parentDiagram);
 														//SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
 													}
@@ -316,7 +317,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
     public void registerSourceConnection(IDiagramModelObject object, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) if ( sourceId != null && sourceId.length()!=0 ) allSourceObjectsConnections.put(object, sourceId);
+        if ( sourceId != null && sourceId.length()!=0 ) allSourceObjectsConnections.put(object, sourceId);
     }
     
     public void registerTargetConnection(IDiagramModelObject object, String targetId) throws Exception {
@@ -338,9 +339,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            for ( String id: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
-                IDiagramModelConnection connection = getAllViewConnections().get(id);
+            for ( String val: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
+                IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setSource(object);
                 object.getSourceConnections().add(connection);
@@ -351,9 +352,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            for ( String id: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
-                IDiagramModelConnection connection = getAllViewConnections().get(id);
+            for ( String val: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
+                IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setSource(object);
                 object.getSourceConnections().add(connection);
@@ -364,9 +365,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            for ( String id: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
-                IDiagramModelConnection connection = getAllViewConnections().get(id);
+            for ( String val: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
+                IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setTarget(object);
                 object.getTargetConnections().add(connection);
@@ -377,9 +378,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            for ( String id: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+id);
-                IDiagramModelConnection connection = getAllViewConnections().get(id);
+            for ( String val: entry.getValue().split(",") ) {
+                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
+                IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setTarget(object);
                 object.getTargetConnections().add(connection);
