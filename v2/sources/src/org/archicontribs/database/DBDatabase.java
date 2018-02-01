@@ -51,6 +51,8 @@ public enum DBDatabase {
             case ORACLE_VALUE: return ORACLE;
             case POSTGRESQL_VALUE: return POSTGRESQL;
             case SQLITE_VALUE: return SQLITE;
+			default:
+				break;
         }
         return null;
     }
