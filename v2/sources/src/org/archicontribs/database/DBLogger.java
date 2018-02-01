@@ -71,11 +71,13 @@ public class DBLogger {
 			if ( isTraceEnabled() ) {
 				StringBuilder param = new StringBuilder();
 				String eol = "";
-				for ( Object oKey: properties.orderedKeys() ) {
-					param.append((String)oKey+" = "+properties.getProperty((String)oKey)+eol);
-					eol = "\n";
+				if ( properties!= null ) {
+					for ( Object oKey: properties.orderedKeys() ) {
+						param.append((String)oKey+" = "+properties.getProperty((String)oKey)+eol);
+						eol = "\n";
+					}
+					trace(param.toString());
 				}
-				trace(param.toString());
 			}
 			logger = oldLogger;
 		}
@@ -268,6 +270,10 @@ public class DBLogger {
 			} catch (IOException err) {
 				throw new Exception("Error while parsing \"loggerExpert\" properties from the preference store");
 			}
+    		break;
+    		
+			default:
+				break;
 		}
 		
 		return properties;
@@ -288,11 +294,11 @@ public class DBLogger {
 	        return Collections.list(keys());
 	    }
 
-	    public Enumeration<Object> keys() {
+	    public synchronized Enumeration<Object> keys() {
 	        return Collections.<Object>enumeration(keys);
 	    }
 
-	    public Object put(Object key, Object value) {
+	    public synchronized Object put(Object key, Object value) {
 	        keys.add(key);
 	        return super.put(key, value);
 	    }
