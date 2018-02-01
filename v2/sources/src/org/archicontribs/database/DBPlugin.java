@@ -197,7 +197,8 @@ import org.json.simple.parser.JSONParser;
  *										change the export algorithm to manage standalone and collaborative modes
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
- *                                  Add procedures that can be called by the script plugin 
+ *                                  Add procedures that can be called by the script plugin
+ *                                  reduce memory leak
  * 
  *                                  Known bugs:
  *                                  -----------
@@ -418,9 +419,8 @@ public class DBPlugin extends AbstractUIPlugin {
 									// Seems to be OK.
 									logger.debug("Setting PasswordAuthenticator");
 									return new PasswordAuthentication(user, pass.toCharArray());
-								} else {
-								    logger.debug("Not setting PasswordAuthenticator as the request does not come from the proxy (host + port)");
 								}
+								logger.debug("Not setting PasswordAuthenticator as the request does not come from the proxy (host + port)");
 							}
 							return null;
 						}  
@@ -481,7 +481,7 @@ public class DBPlugin extends AbstractUIPlugin {
 					// treemap is sorted in descending order, so first entry should have the "bigger" key value, i.e. the latest version
 					Entry<String, String> entry = versions.entrySet().iterator().next();
 
-					if ( pluginVersion.compareTo((String)entry.getKey()) >= 0 ) {
+					if ( pluginVersion.compareTo(entry.getKey()) >= 0 ) {
 						if ( verbose )
 							DBGui.popup(Level.INFO, "You already have got the latest version : "+pluginVersion);
 						else
@@ -491,20 +491,22 @@ public class DBPlugin extends AbstractUIPlugin {
 					
 					if ( !pluginsFilename.endsWith(".jar") ) {
 						if ( verbose )
-							DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+(String)entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
+							DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 						else
-							logger.error("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+(String)entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
+							logger.error("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 						return;
 					}
 
 					boolean ask = true;
 					while ( ask ) {
-					    switch ( DBGui.question("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+(String)entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}) ) {
+					    switch ( DBGui.question("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}) ) {
 					        case 0 : ask = false ; break;  // Yes
 					        case 1 : return ;              // No
 					        case 2 : ask = true ;          // release note
         					         Program.launch(RELEASENOTE_URL);
         					         break;
+							default:
+								break;
 					    }
 					}
 
@@ -527,8 +529,8 @@ public class DBPlugin extends AbstractUIPlugin {
 
 					if (fileLength == -1)
 						throw new IOException("Failed to get file size.");
-					else
-						Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setMaximum(fileLength); }});
+					
+					Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setMaximum(fileLength); }});
 
 					InputStream in = conn.getInputStream();
 					FileOutputStream fos = new FileOutputStream(new File(tmpFilename));	                
@@ -545,6 +547,7 @@ public class DBPlugin extends AbstractUIPlugin {
 					}
 					fos.flush();
 					fos.close();
+					in.close();
 
 					if ( logger.isDebugEnabled() ) logger.debug("download finished");
 
@@ -592,7 +595,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				if( DBGui.question("A new version on the database plugin has been downloaded. Archi needs to be restarted to install it.\n\nDo you wish to restart Archi now ?") ) {
 					Display.getDefault().syncExec(new Runnable() { @Override public void run() { PlatformUI.getWorkbench().restart(); }});
 				}
-			};
+			}
 		}.start();
 	}
 }
