@@ -62,8 +62,8 @@ public class DBDatabaseEntry {
 		// we ensure that the driver is known
 		this.driver = null;
 		driver = driver.toLowerCase();		// just in case
-		for ( DBDatabase database: DBDatabase.VALUES ) {
-			if ( DBPlugin.areEqual(database.getDriverName(), driver) ) {
+		for ( DBDatabase db: DBDatabase.VALUES ) {
+			if ( DBPlugin.areEqual(db.getDriverName(), driver) ) {
 				this.driver = driver;
 				return;
 			}
@@ -175,8 +175,7 @@ public class DBDatabaseEntry {
 	public String getLanguage() {
 		if ( DBPlugin.areEqual(driver, "neo4j") )
 			return "CQL";
-		else
-			return "SQL";
+		return "SQL";
 	}
 
 	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
