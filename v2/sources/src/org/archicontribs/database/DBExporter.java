@@ -31,7 +31,8 @@ public class DBExporter implements IModelExporter {
         logger.info("Exporting model "+archimateModel.getName());
 
         try {
-            new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+        	DBGuiExportModel exportModel = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+        	exportModel.run();
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot export model", e);
         }
