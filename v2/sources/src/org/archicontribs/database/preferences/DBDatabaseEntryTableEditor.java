@@ -118,6 +118,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * 
 	 * called by createControl(parent)
 	 */
+	@SuppressWarnings("unused")
 	protected void doFillIntoGrid(Composite parent, int numColumns) {
 		if ( logger.isTraceEnabled() ) logger.trace("doFillIntoGrid()");
 
