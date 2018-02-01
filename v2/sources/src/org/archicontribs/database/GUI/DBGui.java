@@ -749,7 +749,7 @@ public class DBGui {
 					dialogShell = new Shell(display, SWT.APPLICATION_MODAL);
 					dialogShell.setSize(500, 70);
 					dialogShell.setBackground(BLACK_COLOR);
-					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialogShell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialogShell.getSize().y) / 4);
+					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 2);
 					
 					int borderWidth = (dialogShell.getBorderWidth()+1)*2;
                     dialogComposite = new Composite(dialogShell, SWT.NONE);
