@@ -2619,14 +2619,11 @@ public class DBDatabaseConnection {
                 
             }
             
-            logger.debug("The model already exists in the database (current version = "+model.getDatabaseVersion().getVersion()+", latest version = "+model.getDatabaseVersion().getVersion()+")");
+            logger.debug("The model already exists in the database (current version = "+model.getDatabaseVersion().getVersion()+", latest version = "+model.getDatabaseVersion().getLatestVersion()+")");
         } else
             logger.debug("The model does not (yet) exist in the database");
         result.close();
 
-        model.getCurrentVersion().setLatestVersion(model.getDatabaseVersion().getLatestVersion()+1);
-        logger.debug("Model's version set to "+model.getCurrentVersion().getLatestVersion());
-        
         // we reset the variables
     	elementsNotInModel = new HashMap<String, DBVersion>();
     	relationshipsNotInModel = new HashMap<String, DBVersion>();
@@ -2652,18 +2649,10 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
-	            	
-	            	logger.trace("   --> DatabaseVersion().setVersion("+result.getInt("version")+")");
-	            	logger.trace("   --> DatabaseVersion().setChecksum("+result.getInt("checksum")+")");
-	            	logger.trace("   --> DatabaseVersion().setTimestamp("+result.getInt("created_on")+")");
-	            	logger.trace("   --> DatabaseVersion().setLatestVersion("+result.getInt("version")+")");
-	            	logger.trace("   --> DatabaseVersion().setLatestChecksum("+result.getInt("checksum")+")");
-	            	logger.trace("   --> DatabaseVersion().setLatestTimestamp("+result.getInt("created_on")+")");
-	            	logger.trace("   --> CurrentVersion().setVersion("+result.getInt("version")+")");
+	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
             	}
             	 else
-                     ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(1);
+                     ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(0);
             	result.close();
         	} else {
         		// else we reset the database version
@@ -2694,7 +2683,7 @@ public class DBDatabaseConnection {
 	            	element.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	element.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
+	            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 	            } else
 	            	elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2720,9 +2709,9 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
+	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
             	} else
-                    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(1);
+                    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(0);
             	result.close();
         	} else {
         		// else we reset the database version
@@ -2753,7 +2742,7 @@ public class DBDatabaseConnection {
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	relationship.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
+	            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 	            } else
 	            	relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2779,9 +2768,9 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
+	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
             	} else
-            	    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(1);
+            	    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(0);
             	result.close();
         	} else {
         		// else we reset the database version
@@ -2812,7 +2801,7 @@ public class DBDatabaseConnection {
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	folder.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
+	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 	            } else
 	            	foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2838,9 +2827,9 @@ public class DBDatabaseConnection {
 	            	((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("checksum"));
 	            	((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("created_on"));
 	            	
-	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version")+1);
+	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("version"));
             	} else
-                    ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(1);
+                    ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(0);
             	result.close();
         	} else {
         		// else we reset the database version
@@ -2871,7 +2860,7 @@ public class DBDatabaseConnection {
 	            	view.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
 	            	view.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
 	            	
-	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version")+1);
+	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 	            } else
 	            	viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
@@ -2896,6 +2885,9 @@ public class DBDatabaseConnection {
             model.getCurrentVersion().setLatestTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
         else
             model.getCurrentVersion().setLatestTimestamp(lastTransactionTimestamp);
+        
+        model.getCurrentVersion().setLatestVersion(model.getDatabaseVersion().getLatestVersion()+1);
+        logger.debug("Set model's version to "+model.getCurrentVersion().getLatestVersion());
 
 		insert(schema+"models", modelsColumns
 				,model.getId()
@@ -2945,6 +2937,8 @@ public class DBDatabaseConnection {
 	 */
 	private void exportElement(IArchimateConcept element) throws Exception {
 		final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "checksum"};
+		
+		((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)element).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
 
 		if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
 			// USE MERGE instead to replace existing nodes
@@ -3005,6 +2999,8 @@ public class DBDatabaseConnection {
 	 */
 	private void exportRelationship(IArchimateConcept relationship) throws Exception {
 		final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "checksum"};
+		
+		((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
 
 		if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
 			// USE MERGE instead to replace existing nodes
@@ -3090,6 +3086,8 @@ public class DBDatabaseConnection {
 	 */
 	private void exportFolder(IFolder folder) throws Exception {
 		final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "checksum"};
+		
+		((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
 
 		insert(schema+"folders", foldersColumns
 				,folder.getId()
@@ -3136,6 +3134,8 @@ public class DBDatabaseConnection {
 	 */
 	private void exportView(IDiagramModel view) throws Exception {
 		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum"};
+		
+		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)view).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
 
 		byte[] viewImage = null;
 
