@@ -7,6 +7,7 @@
 package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
+import java.sql.SQLException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
@@ -38,6 +39,7 @@ import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.ISketchModel;
 
 public class DBGuiComponentHistory extends DBGui {
+	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiComponentHistory.class);
 	
 	private IArchimateModelObject selectedComponent = null;
@@ -198,24 +200,26 @@ public class DBGuiComponentHistory extends DBGui {
 		dialog.setCursor(CURSOR_ARROW);
 			// if everything goes well, then we search for all the versions of the component
 		if ( logger.isDebugEnabled() ) logger.debug("Searching for all versions of the component");
+
+		tblVersions.removeAll();
+		tblContent.removeAll();
+		btnImportDatabaseVersion.setEnabled(false);
+		
+		String tableName = null;
+		if ( selectedComponent instanceof IArchimateElement ) 
+		    tableName = "elements";
+		else if ( selectedComponent instanceof IArchimateRelationship ) 
+            tableName = "relationships";
+        else if ( selectedComponent instanceof IArchimateDiagramModel || selectedComponent instanceof ICanvasModel || selectedComponent instanceof ISketchModel )
+        	tableName = "views";
+    	else {
+		    popup(Level.FATAL, "Cannot get history for components of class "+selectedComponent.getClass().getSimpleName());
+		    return ;
+		}
+	
+		ResultSet result = null;
 		try {
-			tblVersions.removeAll();
-			tblContent.removeAll();
-			btnImportDatabaseVersion.setEnabled(false);
-			
-			String tableName = null;
-			if ( selectedComponent instanceof IArchimateElement ) 
-			    tableName = "elements";
-			else if ( selectedComponent instanceof IArchimateRelationship ) 
-                tableName = "relationships";
-	        else if ( selectedComponent instanceof IArchimateDiagramModel || selectedComponent instanceof ICanvasModel || selectedComponent instanceof ISketchModel )
-	        	tableName = "views";
-        	else {
-			    popup(Level.FATAL, "Cannot get history for components of class "+selectedComponent.getClass().getSimpleName());
-			    return ;
-			}
-			    
-			ResultSet result = connection.select("SELECT version, created_by, created_on FROM "+selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
+			result = connection.select("SELECT version, created_by, created_on FROM "+selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
 				
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(tblVersions, SWT.NULL);
@@ -223,7 +227,11 @@ public class DBGuiComponentHistory extends DBGui {
 			    tableItem.setText(1, result.getString("created_by"));
 			    tableItem.setText(2, result.getTimestamp("created_on").toString());
 			}
+			result.close();
 		} catch (Exception err) {
+			try {
+				if ( result != null ) result.close();
+			} catch (SQLException ign) {}
 		    tblVersions.removeAll();
 			popup(Level.FATAL, "Failed to search component versions in the database.", err);
 		}
