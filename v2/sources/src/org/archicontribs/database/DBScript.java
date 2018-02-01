@@ -39,7 +39,7 @@ public class DBScript {
         DBDatabaseConnection connection = new DBDatabaseConnection(databaseEntry);
         
         // we check if we are connected to the database
-        if ( connection == null || !connection.isConnected() )
+        if ( !connection.isConnected() )
             throw new RuntimeException("Cannot connect to the database \""+databaseName+"\"");
         
         // we check if the model exists in the database
@@ -67,33 +67,33 @@ public class DBScript {
         
             if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
             connection.prepareImportFolders(modelToImport);
-            while ( connection.importFolders(modelToImport) );
+            while ( connection.importFolders(modelToImport) ) {}
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
             connection.prepareImportElements(modelToImport);
-            while ( connection.importElements(modelToImport) );
+            while ( connection.importElements(modelToImport) ) {}
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
             connection.prepareImportRelationships(modelToImport);
-            while ( connection.importRelationships(modelToImport) );
+            while ( connection.importRelationships(modelToImport) ) {}
             
             if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
             modelToImport.resolveRelationshipsSourcesAndTargets();
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
             connection.prepareImportViews(modelToImport);
-            while ( connection.importViews(modelToImport) );
+            while ( connection.importViews(modelToImport) ) {}
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsObjects(modelToImport, view) );
+                while ( connection.importViewsObjects(modelToImport, view) ) {}
             }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsConnections(modelToImport) );
+                while ( connection.importViewsConnections(modelToImport) ) {}
             }
             
             if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
@@ -106,7 +106,7 @@ public class DBScript {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsConnections(modelToImport) );
+                while ( connection.importViewsConnections(modelToImport) ) {}
             }
         } catch ( Exception e) {
             // in case of an import error, we remove the newly created model, except if we are in force mode
