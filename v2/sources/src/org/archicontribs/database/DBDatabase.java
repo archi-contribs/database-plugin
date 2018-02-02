@@ -58,23 +58,23 @@ public enum DBDatabase {
     }
 
 	public String getDriverName() {
-		return driverName.toLowerCase();		// just in case
+		return this.driverName.toLowerCase();		// just in case
 	}
 
 	public int getDefaultPort() {
-		return defaultPort;
+		return this.defaultPort;
 	}
 
 	public boolean hasSchema() {
-		return hasSchema;
+		return this.hasSchema;
 	}
 
 	public int getValue() {
-		return value;
+		return this.value;
 	}
 	
     @Override
     public String toString() {
-        return driverName;
+        return this.driverName;
     }
 }
