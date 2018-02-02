@@ -69,7 +69,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	/**
 	 * The text field, or <code>null</code> if none.
 	 */
-	private Text textField;
+	Text textField;
 
 	/**
 	 * Text limit of text field in characters; initially unlimited.
@@ -114,8 +114,8 @@ public class DBTextFieldEditor extends FieldEditor {
 	public DBTextFieldEditor(String name, String labelText, int width, int strategy, Composite parent) {
 		init(name, labelText);
 		setValidateStrategy(strategy);
-		isValid = false;
-		errorMessage = "Please give correct input";
+		this.isValid = false;
+		this.errorMessage = "Please give correct input";
 		createControl(parent);
 	}
 
@@ -159,7 +159,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	protected void adjustForNumColumns(int numColumns) {
-		GridData gd = (GridData) textField.getLayoutData();
+		GridData gd = (GridData) this.textField.getLayoutData();
 		gd.horizontalSpan = numColumns - 1;
 		// We only grab excess space if we have to
 		// If another field editor has more columns then
@@ -174,19 +174,19 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	protected boolean checkState() {
 		boolean result = false;
-		if (emptyStringAllowed)
+		if (this.emptyStringAllowed)
 			result = true;
 
-		if (textField == null)
+		if (this.textField == null)
 			result = false;
 
-		String txt = textField.getText();
+		String txt = this.textField.getText();
 
 		if (txt == null) {
 			result = false;
 		}
 		else {
-			result = (txt.trim().length() > 0) || emptyStringAllowed;
+			result = (txt.trim().length() > 0) || this.emptyStringAllowed;
 		}
 
 		// call hook for subclasses
@@ -195,7 +195,7 @@ public class DBTextFieldEditor extends FieldEditor {
 		if (result)
 			clearErrorMessage();
 		else
-			showErrorMessage(errorMessage);
+			showErrorMessage(this.errorMessage);
 
 		return result;
 	}
@@ -210,7 +210,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @return <code>true</code> if the field value is valid,
 	 *   and <code>false</code> if invalid
 	 */
-	protected boolean doCheckState() {
+	protected static boolean doCheckState() {
 		return true;
 	}
 	/**
@@ -224,17 +224,17 @@ public class DBTextFieldEditor extends FieldEditor {
 	@Override
 	protected void doFillIntoGrid(Composite parent, int numColumns) {
 
-		title = new Label(parent, SWT.UP);
-		title.setFont(parent.getFont());
+		this.title = new Label(parent, SWT.UP);
+		this.title.setFont(parent.getFont());
 		this.compTitle = getLabelText();
-		title.setText(this.compTitle);
-		title.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		this.title.setText(this.compTitle);
+		this.title.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
-		textField = getTextControl(parent);
+		this.textField = getTextControl(parent);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.widthHint = 100;
 		gd.heightHint = 70;
-		textField.setLayoutData(gd);
+		this.textField.setLayoutData(gd);
 
 	}
 
@@ -248,10 +248,10 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	protected void doLoad() {
-		if (textField != null) {
+		if (this.textField != null) {
 			String value = DBPlugin.INSTANCE.getPreferenceStore().getString(getPreferenceName());
-			textField.setText(value);
-			oldValue = value;
+			this.textField.setText(value);
+			this.oldValue = value;
 		}
 	}
 
@@ -265,10 +265,10 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	protected void doLoadDefault() {
-		if (textField != null) {
+		if (this.textField != null) {
 			String value =
 					DBPlugin.INSTANCE.getPreferenceStore().getDefaultString(getPreferenceName());
-			textField.setText(value);
+			this.textField.setText(value);
 		}
 		valueChanged();
 	}
@@ -278,7 +278,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	protected void doStore() {
-		DBPlugin.INSTANCE.getPreferenceStore().setValue(getPreferenceName(), textField.getText());
+		DBPlugin.INSTANCE.getPreferenceStore().setValue(getPreferenceName(), this.textField.getText());
 	}
 
 	/**
@@ -288,7 +288,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @return the error message, or <code>null</code> if none
 	 */
 	public String getErrorMessage() {
-		return errorMessage;
+		return this.errorMessage;
 	}
 	/**
 		* Returns the number of basic controls this field editor consists of.
@@ -305,8 +305,8 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @return the current value
 	 */
 	public String getStringValue() {
-		if (textField != null)
-			return textField.getText();
+		if (this.textField != null)
+			return this.textField.getText();
 		return DBPlugin.INSTANCE.getPreferenceStore().getString(getPreferenceName());
 	}
 
@@ -316,7 +316,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * text field is created yet
 	 */
 	public Text getTextControl() {
-		return textField;
+		return this.textField;
 	}
 
 	/**
@@ -329,45 +329,48 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @return the text control
 	 */
 	public Text getTextControl(Composite parent) {
-		if (textField == null) {
-			textField =
+		if (this.textField == null) {
+			this.textField =
 				new Text(
 					parent,
 					SWT.MULTI | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP);
-			textField.setFont(parent.getFont());
-			switch (validateStrategy) {
+			this.textField.setFont(parent.getFont());
+			switch (this.validateStrategy) {
 				case VALIDATE_ON_KEY_STROKE :
-					textField.addKeyListener(new KeyAdapter() {
+					this.textField.addKeyListener(new KeyAdapter() {
 						@Override
 						public void keyPressed(KeyEvent e) {
 							valueChanged();
 						}
 					});
 
-					textField.addFocusListener(new FocusAdapter() {
+					this.textField.addFocusListener(new FocusAdapter() {
 						@Override
 						public void focusGained(FocusEvent e) {
 							refreshValidState();
 						}
-						@Override
+						@SuppressWarnings("synthetic-access")
+                        @Override
 						public void focusLost(FocusEvent e) {
 							clearErrorMessage();
 						}
 					});
 					break;
 				case VALIDATE_ON_FOCUS_LOST :
-					textField.addKeyListener(new KeyAdapter() {
-						@Override
+					this.textField.addKeyListener(new KeyAdapter() {
+						@SuppressWarnings("synthetic-access")
+                        @Override
 						public void keyPressed(KeyEvent e) {
 							clearErrorMessage();
 						}
 					});
-					textField.addFocusListener(new FocusAdapter() {
+					this.textField.addFocusListener(new FocusAdapter() {
 						@Override
 						public void focusGained(FocusEvent e) {
 							refreshValidState();
 						}
-						@Override
+						@SuppressWarnings("synthetic-access")
+                        @Override
 						public void focusLost(FocusEvent e) {
 							valueChanged();
 							clearErrorMessage();
@@ -376,19 +379,19 @@ public class DBTextFieldEditor extends FieldEditor {
 					break;
 				default :
 			}
-			textField.addDisposeListener(new DisposeListener() {
+			this.textField.addDisposeListener(new DisposeListener() {
 				@Override
 				public void widgetDisposed(DisposeEvent event) {
-					textField = null;
+					DBTextFieldEditor.this.textField = null;
 				}
 			});
-			if (textLimit > 0) { //Only set limits above 0 - see SWT spec
-				textField.setTextLimit(textLimit);
+			if (this.textLimit > 0) { //Only set limits above 0 - see SWT spec
+				this.textField.setTextLimit(this.textLimit);
 			}
 		} else {
-			checkParent(textField, parent);
+			checkParent(this.textField, parent);
 		}
-		return textField;
+		return this.textField;
 	}
 
 	/**
@@ -399,7 +402,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @see #setEmptyStringAllowed
 	 */
 	public boolean isEmptyStringAllowed() {
-		return emptyStringAllowed;
+		return this.emptyStringAllowed;
 	}
 
 	/**
@@ -417,7 +420,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	public boolean isValid() {
-		return isValid;
+		return this.isValid;
 	}
 
 	/**
@@ -432,7 +435,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	@Override
 	protected void refreshValidState() {
-		isValid = checkState();
+		this.isValid = checkState();
 	}
 
 	/**
@@ -442,7 +445,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 *  and <code>false</code> if it is considered invalid
 	 */
 	public void setEmptyStringAllowed(boolean b) {
-		emptyStringAllowed = b;
+		this.emptyStringAllowed = b;
 	}
 
 	/**
@@ -452,7 +455,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @param message the error message
 	 */
 	public void setErrorMessage(String message) {
-		errorMessage = message;
+		this.errorMessage = message;
 	}
 
 	/**
@@ -464,8 +467,8 @@ public class DBTextFieldEditor extends FieldEditor {
 	*/
 	@Override
 	public void setFocus() {
-		if (textField != null) {
-			textField.setFocus();
+		if (this.textField != null) {
+			this.textField.setFocus();
 		}
 	}
 
@@ -475,12 +478,11 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * @param value the new value, or <code>null</code> meaning the empty string
 	 */
 	public void setStringValue(String value) {
-		if (textField != null) {
-			if (value == null)
-				value = ""; //$NON-NLS-1$
-			oldValue = textField.getText();
-			if (!DBPlugin.areEqual(oldValue, value)) {
-				textField.setText(value);
+		if (this.textField != null) {
+		    String newValue = value==null ? "" : value;//$NON-NLS-1$
+			this.oldValue = this.textField.getText();
+			if (!DBPlugin.areEqual(this.oldValue, newValue)) {
+				this.textField.setText(newValue);
 				valueChanged();
 			}
 		}
@@ -493,9 +495,9 @@ public class DBTextFieldEditor extends FieldEditor {
 	 *  input field, or <code>UNLIMITED</code> for no limit
 	 */
 	public void setTextLimit(int limit) {
-		textLimit = limit;
-		if (textField != null)
-			textField.setTextLimit(limit);
+		this.textLimit = limit;
+		if (this.textField != null)
+			this.textField.setTextLimit(limit);
 	}
 
 	/**
@@ -514,14 +516,14 @@ public class DBTextFieldEditor extends FieldEditor {
 	public void setValidateStrategy(int value) {
 		Assert.isTrue(
 			value == VALIDATE_ON_FOCUS_LOST || value == VALIDATE_ON_KEY_STROKE);
-		validateStrategy = value;
+		this.validateStrategy = value;
 	}
 
 	/**
 	 * Shows the error message set via <code>setErrorMessage</code>.
 	 */
 	public void showErrorMessage() {
-		showErrorMessage(errorMessage);
+		showErrorMessage(this.errorMessage);
 	}
 
 	/**
@@ -535,16 +537,16 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	protected void valueChanged() {
 		setPresentsDefaultValue(false);
-		boolean oldState = isValid;
+		boolean oldState = this.isValid;
 		refreshValidState();
 
-		if (isValid != oldState)
-			fireStateChanged(IS_VALID, oldState, isValid);
+		if (this.isValid != oldState)
+			fireStateChanged(IS_VALID, oldState, this.isValid);
 
-		String newValue = textField.getText();
-		if (!DBPlugin.areEqual(newValue, oldValue)) {
-			fireValueChanged(VALUE, oldValue, newValue);
-			oldValue = newValue;
+		String newValue = this.textField.getText();
+		if (!DBPlugin.areEqual(newValue, this.oldValue)) {
+			fireValueChanged(VALUE, this.oldValue, newValue);
+			this.oldValue = newValue;
 		}
 	}
 }

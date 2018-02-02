@@ -70,15 +70,15 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnImportShared;
 	private Button btnShowIdInContextMenu;
 	
-	private DBLogger logger = new DBLogger(DBPreferencePage.class);
+	DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
 	private TabFolder tabFolder;
 	
-	private boolean mouseOverHelpButton = false;
+	boolean mouseOverHelpButton = false;
 	
 	public DBPreferencePage() {
 		super(FieldEditorPreferencePage.GRID);
-		if ( logger.isDebugEnabled() ) logger.debug("Setting preference store");
+		if ( this.logger.isDebugEnabled() ) this.logger.debug("Setting preference store");
 		setPreferenceStore(preferenceStore);
 	}
 	
@@ -88,17 +88,18 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	 * of preferences. Each field editor knows how to save and
 	 * restore itself.
 	 */
-	protected void createFieldEditors() {
-		if ( logger.isDebugEnabled() ) logger.debug("Creating field editors on preference page");
+	@Override
+    protected void createFieldEditors() {
+		if ( this.logger.isDebugEnabled() ) this.logger.debug("Creating field editors on preference page");
         
-		tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
-		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
+		this.tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		this.tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
 		
 		// ******************************** */
 		// * Behaviour tab **************** */
 		// ******************************** */
-		Composite behaviourComposite = new Composite(tabFolder, SWT.NULL);
+		Composite behaviourComposite = new Composite(this.tabFolder, SWT.NULL);
         RowLayout rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -109,7 +110,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         behaviourComposite.setLayoutData(rowLayout);
         behaviourComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-		TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
+		TabItem behaviourTabItem = new TabItem(this.tabFolder, SWT.NONE);
         behaviourTabItem.setText("  Behaviour  ");
         behaviourTabItem.setControl(behaviourComposite);
         
@@ -143,18 +144,20 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(versionValue, 100);
 		checkUpdateButton.setLayoutData(fd);
 		checkUpdateButton.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { DBPlugin.checkForUpdate(true); }
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+			@Override
+            public void widgetSelected(SelectionEvent e) { DBPlugin.checkForUpdate(true); }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		
-		btnCheckForUpdateAtStartupButton = new Button(grpVersion, SWT.CHECK);
-		btnCheckForUpdateAtStartupButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnCheckForUpdateAtStartupButton.setText("Automatically check for update at startup");
+		this.btnCheckForUpdateAtStartupButton = new Button(grpVersion, SWT.CHECK);
+		this.btnCheckForUpdateAtStartupButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnCheckForUpdateAtStartupButton.setText("Automatically check for update at startup");
 		fd = new FormData();
 		fd.top = new FormAttachment(versionLbl, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnCheckForUpdateAtStartupButton.setLayoutData(fd);
-		btnCheckForUpdateAtStartupButton.setSelection(preferenceStore.getBoolean("checkForUpdateAtStartup"));
+		this.btnCheckForUpdateAtStartupButton.setLayoutData(fd);
+		this.btnCheckForUpdateAtStartupButton.setSelection(preferenceStore.getBoolean("checkForUpdateAtStartup"));
 		
 		GridData gd = new GridData();
 		//gd.heightHint = 45;
@@ -162,8 +165,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		gd.grabExcessHorizontalSpace = true;
 		grpVersion.setLayoutData(gd);
         
-		table = new DBDatabaseEntryTableEditor("databases", "", behaviourComposite);
-		addField(table);
+		this.table = new DBDatabaseEntryTableEditor("databases", "", behaviourComposite);
+		addField(this.table);
 		
 		Group grpMiscellaneous = new Group(behaviourComposite, SWT.NONE);
 		grpMiscellaneous.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -177,76 +180,76 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		grpMiscellaneous.setLayoutData(gd);
 
 
-		btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
-		btnExportWithDefaultValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnExportWithDefaultValues.setText("Automatically start to export to default database");
-		btnExportWithDefaultValues.setSelection(preferenceStore.getBoolean("exportWithDefaultValues"));
+		this.btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnExportWithDefaultValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnExportWithDefaultValues.setText("Automatically start to export to default database");
+		this.btnExportWithDefaultValues.setSelection(preferenceStore.getBoolean("exportWithDefaultValues"));
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnExportWithDefaultValues.setLayoutData(fd);		
+		this.btnExportWithDefaultValues.setLayoutData(fd);		
 		
-		btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
-		btnCloseIfSuccessful.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
-		btnCloseIfSuccessful.setSelection(preferenceStore.getBoolean("closeIfSuccessful"));
+		this.btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCloseIfSuccessful.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
+		this.btnCloseIfSuccessful.setSelection(preferenceStore.getBoolean("closeIfSuccessful"));
 		fd = new FormData();
-		fd.top = new FormAttachment(btnExportWithDefaultValues, 5);
+		fd.top = new FormAttachment(this.btnExportWithDefaultValues, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnCloseIfSuccessful.setLayoutData(fd);
+		this.btnCloseIfSuccessful.setLayoutData(fd);
 		
-		btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
-		btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
-		btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
+		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
+		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
 		fd = new FormData();
-		fd.top = new FormAttachment(btnCloseIfSuccessful, 5);
+		fd.top = new FormAttachment(this.btnCloseIfSuccessful, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnRemoveDirtyFlag.setLayoutData(fd);
+		this.btnRemoveDirtyFlag.setLayoutData(fd);
 		
-		btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
-		btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnDeleteIfImportError.setText("Delete model in case of import error");
-		btnDeleteIfImportError.setSelection(preferenceStore.getBoolean("deleteIfImportError"));
+		this.btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnDeleteIfImportError.setText("Delete model in case of import error");
+		this.btnDeleteIfImportError.setSelection(preferenceStore.getBoolean("deleteIfImportError"));
 		fd = new FormData();
-		fd.top = new FormAttachment(btnRemoveDirtyFlag, 5);
+		fd.top = new FormAttachment(this.btnRemoveDirtyFlag, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnDeleteIfImportError.setLayoutData(fd);
+		this.btnDeleteIfImportError.setLayoutData(fd);
 		
-		btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
-		btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		btnShowIdInContextMenu.setText("Show debuging information in context menu");
-		btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
+		this.btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnShowIdInContextMenu.setText("Show debuging information in context menu");
+		this.btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
 		fd = new FormData();
-		fd.top = new FormAttachment(btnDeleteIfImportError, 5);
+		fd.top = new FormAttachment(this.btnDeleteIfImportError, 5);
 		fd.left = new FormAttachment(0, 10);
-		btnShowIdInContextMenu.setLayoutData(fd);
+		this.btnShowIdInContextMenu.setLayoutData(fd);
 		
 		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
 		lblDefaultImportType.setText("Default component import type :");
 		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(btnShowIdInContextMenu, 5);
+		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
 		fd.left = new FormAttachment(0, 10);
 		lblDefaultImportType.setLayoutData(fd);
 		
-		btnImportShared = new Button(grpMiscellaneous, SWT.RADIO);
-		btnImportShared.setText("Shared");
-		btnImportShared.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnImportShared = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnImportShared.setText("Shared");
+		this.btnImportShared.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
 		fd.left = new FormAttachment(lblDefaultImportType, 10);
-		btnImportShared.setLayoutData(fd);
+		this.btnImportShared.setLayoutData(fd);
 		
 		Button btnImportCopy = new Button(grpMiscellaneous, SWT.RADIO);
 		btnImportCopy.setText("Copy");
 		btnImportCopy.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
-		fd.left = new FormAttachment(btnImportShared, 10);
+		fd.left = new FormAttachment(this.btnImportShared, 10);
 		btnImportCopy.setLayoutData(fd);
 		
-		btnImportShared.setSelection(preferenceStore.getBoolean("importShared"));
+		this.btnImportShared.setSelection(preferenceStore.getBoolean("importShared"));
 		btnImportCopy.setSelection(!preferenceStore.getBoolean("importShared"));
 		
 		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
@@ -261,17 +264,17 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         grpHelp.setLayoutData(gd);
         
         Label btnHelp = new Label(grpHelp, SWT.NONE);
-        btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = true; btnHelp.redraw(); } });
-        btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = false; btnHelp.redraw(); } });
+        btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { DBPreferencePage.this.mouseOverHelpButton = true; btnHelp.redraw(); } });
+        btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { DBPreferencePage.this.mouseOverHelpButton = false; btnHelp.redraw(); } });
         btnHelp.addPaintListener(new PaintListener() {
             @Override
             public void paintControl(PaintEvent e)
             {
-                 if ( mouseOverHelpButton ) e.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
+                 if ( DBPreferencePage.this.mouseOverHelpButton ) e.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
                  e.gc.drawImage(DBGui.HELP_ICON, 2, 2);
             }
         });
-        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
+        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBPreferencePage.this.logger.isDebugEnabled() ) DBPreferencePage.this.logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
         fd = new FormData(30,30);
         fd.top = new FormAttachment(0, 11);
         fd.left = new FormAttachment(0, 10);
@@ -296,7 +299,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		// ********************************* */
 		// * Logger tab  ******************* */
 		// ********************************* */
-        loggerComposite = new Composite(tabFolder, SWT.NONE);
+        this.loggerComposite = new Composite(this.tabFolder, SWT.NONE);
         rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -304,65 +307,66 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         rowLayout.marginBottom = 5;
         rowLayout.justify = false;
         rowLayout.fill = false;
-        loggerComposite.setLayoutData(rowLayout);
-        loggerComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        this.loggerComposite.setLayoutData(rowLayout);
+        this.loggerComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-        TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
+        TabItem loggerTabItem = new TabItem(this.tabFolder, SWT.NONE);
         loggerTabItem.setText("  Logger  ");
-        loggerTabItem.setControl(loggerComposite);
+        loggerTabItem.setControl(this.loggerComposite);
         
-        Label note = new Label(loggerComposite, SWT.NONE);
+        Label note = new Label(this.loggerComposite, SWT.NONE);
         note.setText(" Please be aware that enabling debug or, even more, trace level has got important impact on performances!\n Activate only if required.");
         note.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         note.setForeground(DBGui.RED_COLOR);
         
-    	loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, loggerComposite, true);
-      	addField(loggerModeRadioGroupEditor);
+    	this.loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, this.loggerComposite, true);
+      	addField(this.loggerModeRadioGroupEditor);
     	
-    	simpleModeGroup = new Group(loggerComposite, SWT.NONE);
-    	simpleModeGroup.setLayout(new GridLayout());
+    	this.simpleModeGroup = new Group(this.loggerComposite, SWT.NONE);
+    	this.simpleModeGroup.setLayout(new GridLayout());
     	gd = new GridData(GridData.FILL_HORIZONTAL);
         //gd.widthHint = 300;
-        simpleModeGroup.setLayoutData(gd);
-        simpleModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        this.simpleModeGroup.setLayoutData(gd);
+        this.simpleModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
         
-        loggerLevelRadioGroupEditor = new RadioGroupFieldEditor("loggerLevel", "", 6, LOGGER_LEVELS, simpleModeGroup, false);
-        addField(loggerLevelRadioGroupEditor);
+        this.loggerLevelRadioGroupEditor = new RadioGroupFieldEditor("loggerLevel", "", 6, LOGGER_LEVELS, this.simpleModeGroup, false);
+        addField(this.loggerLevelRadioGroupEditor);
         
-        filenameFileFieldEditor = new DBFileFieldEditor("loggerFilename", "Log filename : ", false, FileFieldEditor.VALIDATE_ON_KEY_STROKE, simpleModeGroup);
-        addField(filenameFileFieldEditor);
+        this.filenameFileFieldEditor = new DBFileFieldEditor("loggerFilename", "Log filename : ", false, StringFieldEditor.VALIDATE_ON_KEY_STROKE, this.simpleModeGroup);
+        addField(this.filenameFileFieldEditor);
         
         
         
-    	expertModeGroup = new Group(loggerComposite, SWT.NONE);
-    	expertModeGroup.setLayout(new GridLayout());
+    	this.expertModeGroup = new Group(this.loggerComposite, SWT.NONE);
+    	this.expertModeGroup.setLayout(new GridLayout());
     	gd = new GridData(GridData.FILL_BOTH);
     	//gd.widthHint = 350;
-    	expertModeGroup.setLayoutData(gd);
-    	expertModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+    	this.expertModeGroup.setLayoutData(gd);
+    	this.expertModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-        expertTextFieldEditor = new DBTextFieldEditor("loggerExpert", "", expertModeGroup);
-        expertTextFieldEditor.getTextControl().setLayoutData(gd);
-        expertTextFieldEditor.getTextControl().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
-        addField(expertTextFieldEditor);
+        this.expertTextFieldEditor = new DBTextFieldEditor("loggerExpert", "", this.expertModeGroup);
+        this.expertTextFieldEditor.getTextControl().setLayoutData(gd);
+        this.expertTextFieldEditor.getTextControl().setFont(JFaceResources.getFont(JFaceResources.TEXT_FONT));
+        addField(this.expertTextFieldEditor);
         
         // We activate the Eclipse Help framework
        PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
        PlatformUI.getWorkbench().getHelpSystem().setHelp(behaviourComposite, HELP_ID);
-       PlatformUI.getWorkbench().getHelpSystem().setHelp(loggerComposite, HELP_ID);
+       PlatformUI.getWorkbench().getHelpSystem().setHelp(this.loggerComposite, HELP_ID);
        
 
         showLogger();
 	}
 	
-	public void propertyChange(PropertyChangeEvent event) {
+	@Override
+    public void propertyChange(PropertyChangeEvent event) {
 		super.propertyChange(event);
 		
-		if ( event.getSource() == loggerModeRadioGroupEditor )
+		if ( event.getSource() == this.loggerModeRadioGroupEditor )
 			showLogger();
 		
-		 if( event.getSource() == filenameFileFieldEditor )
+		 if( event.getSource() == this.filenameFileFieldEditor )
 			 setValid(true);
 	}
 	
@@ -370,7 +374,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		String mode = null;
 		
 		// If the user changes the value, we get it
-		for ( Control control: loggerModeRadioGroupEditor.getRadioBoxControl(loggerComposite).getChildren() ) {
+		for ( Control control: this.loggerModeRadioGroupEditor.getRadioBoxControl(this.loggerComposite).getChildren() ) {
 			if (((Button)control).getSelection())
 				mode = (String)((Button)control).getData();
 		}
@@ -387,80 +391,80 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		// Defining of the user's choice, we show up the simple or expert parameters or none of them
 		switch ( mode ) {
 		case "disabled" :
-			expertModeGroup.setVisible(false);
-			simpleModeGroup.setVisible(false);
+			this.expertModeGroup.setVisible(false);
+			this.simpleModeGroup.setVisible(false);
 			break;
 		case "simple" :
-			expertModeGroup.setVisible(false);
-			simpleModeGroup.setVisible(true);
+			this.expertModeGroup.setVisible(false);
+			this.simpleModeGroup.setVisible(true);
 			break;
 		case "expert" :
-			expertModeGroup.setVisible(true);
-			simpleModeGroup.setVisible(false);
+			this.expertModeGroup.setVisible(true);
+			this.simpleModeGroup.setVisible(false);
 			break;
 		default : 
-			expertModeGroup.setVisible(false);
-			simpleModeGroup.setVisible(false);
-			logger.error("Unknown value \""+mode+"\" in loggerModeRadioGroupEditor.");
+			this.expertModeGroup.setVisible(false);
+			this.simpleModeGroup.setVisible(false);
+			this.logger.error("Unknown value \""+mode+"\" in loggerModeRadioGroupEditor.");
 		}
 	}
 	
     @Override
     public boolean performOk() {
-    	if ( table != null )
-    	    table.close();
+    	if ( this.table != null )
+    	    this.table.close();
     	
-    	if ( logger.isTraceEnabled() ) logger.trace("Saving preferences in preference store");
+    	if ( this.logger.isTraceEnabled() ) this.logger.trace("Saving preferences in preference store");
     	
-    	preferenceStore.setValue("exportWithDefaultValues", btnExportWithDefaultValues.getSelection());
-    	preferenceStore.setValue("closeIfSuccessful", btnCloseIfSuccessful.getSelection());
-    	preferenceStore.setValue("checkForUpdateAtStartup", btnCheckForUpdateAtStartupButton.getSelection());
-    	preferenceStore.setValue("removeDirtyFlag", btnRemoveDirtyFlag.getSelection());
-    	preferenceStore.setValue("deleteIfImportError", btnDeleteIfImportError.getSelection());
-    	preferenceStore.setValue("showIdInContextMenu", btnShowIdInContextMenu.getSelection());
-    	preferenceStore.setValue("importShared", btnImportShared.getSelection());
+    	preferenceStore.setValue("exportWithDefaultValues", this.btnExportWithDefaultValues.getSelection());
+    	preferenceStore.setValue("closeIfSuccessful", this.btnCloseIfSuccessful.getSelection());
+    	preferenceStore.setValue("checkForUpdateAtStartup", this.btnCheckForUpdateAtStartupButton.getSelection());
+    	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
+    	preferenceStore.setValue("deleteIfImportError", this.btnDeleteIfImportError.getSelection());
+    	preferenceStore.setValue("showIdInContextMenu", this.btnShowIdInContextMenu.getSelection());
+    	preferenceStore.setValue("importShared", this.btnImportShared.getSelection());
     	
-    	if ( table != null )
-    	    table.store();
+    	if ( this.table != null )
+    	    this.table.store();
     	
     	// the loggerMode is a private property, so we use reflection to access it
 		try {
 			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
 			field.setAccessible(true);
-			if ( logger.isTraceEnabled() ) logger.trace("loggerMode = "+(String)field.get(loggerModeRadioGroupEditor));
+			if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerMode = "+(String)field.get(this.loggerModeRadioGroupEditor));
 			field.setAccessible(false);
 		} catch (Exception err) {
-			logger.error("Failed to retrieve the \"loggerMode\" value from the preference page", err);
+			this.logger.error("Failed to retrieve the \"loggerMode\" value from the preference page", err);
 		}
-		loggerModeRadioGroupEditor.store();
+		this.loggerModeRadioGroupEditor.store();
     	
     	// the loggerLevel is a private property, so we use reflection to access it
 		try {
 			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
 			field.setAccessible(true);
-			if ( logger.isTraceEnabled() ) logger.trace("loggerLevel = "+(String)field.get(loggerLevelRadioGroupEditor));
+			if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerLevel = "+(String)field.get(this.loggerLevelRadioGroupEditor));
 			field.setAccessible(false);
 		} catch (Exception err) {
-			logger.error("Failed to retrieve the \"loggerLevel\" value from the preference page", err);
+			this.logger.error("Failed to retrieve the \"loggerLevel\" value from the preference page", err);
 		}
-		loggerLevelRadioGroupEditor.store();
+		this.loggerLevelRadioGroupEditor.store();
 		
 		//TODO : if we are in simple mode, check that is is a valid writable filename
-		if ( logger.isTraceEnabled() ) logger.trace("loggerFilename = "+filenameFileFieldEditor.getStringValue());
-		filenameFileFieldEditor.store();
+		if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerFilename = "+this.filenameFileFieldEditor.getStringValue());
+		this.filenameFileFieldEditor.store();
 		
-		if ( logger.isTraceEnabled() ) logger.trace("loggerExpert = "+expertTextFieldEditor.getStringValue());
-		expertTextFieldEditor.store();
+		if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerExpert = "+this.expertTextFieldEditor.getStringValue());
+		this.expertTextFieldEditor.store();
 		
         try {
-        	if ( logger.isDebugEnabled() ) logger.debug("Saving the preference store to disk.");
+        	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving the preference store to disk.");
             ((IPersistentPreferenceStore)preferenceStore).save();
         } catch (IOException err) {
         	DBGui.popup(Level.ERROR, "Failed to save the preference store to disk.", err);
         }
 		
 		try {
-			logger.configure();
+			this.logger.configure();
 		} catch (Exception e) {
 			DBGui.popup(Level.ERROR, "Faied to configure logger", e);
 		}
@@ -470,5 +474,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 
 	@Override
 	public void init(IWorkbench workbench) {
+	    // nothing to do
 	}
 }
