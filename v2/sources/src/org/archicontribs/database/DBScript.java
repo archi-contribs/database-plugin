@@ -14,7 +14,7 @@ import com.archimatetool.model.IDiagramModel;
 public class DBScript {
     private static final DBLogger logger = new DBLogger(DBDatabaseConnection.class);
 
-    public IArchimateModel importModel(String modelName, String databaseName, boolean force) throws Exception {
+    public static IArchimateModel importModel(String modelName, String databaseName, boolean force) throws Exception {
 
         // we get the databases list from the preferences
         List<DBDatabaseEntry> databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(true);
@@ -67,33 +67,45 @@ public class DBScript {
         
             if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
             connection.prepareImportFolders(modelToImport);
-            while ( connection.importFolders(modelToImport) ) {}
+            while ( connection.importFolders(modelToImport) ) {
+                // each loop imports a folder
+            }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
             connection.prepareImportElements(modelToImport);
-            while ( connection.importElements(modelToImport) ) {}
+            while ( connection.importElements(modelToImport) ) {
+                // each loop imports an element
+            }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
             connection.prepareImportRelationships(modelToImport);
-            while ( connection.importRelationships(modelToImport) ) {}
+            while ( connection.importRelationships(modelToImport) ) {
+                // each loop imports a relationship
+            }
             
             if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
             modelToImport.resolveRelationshipsSourcesAndTargets();
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
             connection.prepareImportViews(modelToImport);
-            while ( connection.importViews(modelToImport) ) {}
+            while ( connection.importViews(modelToImport) ) {
+                // each loop imports a view
+            }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsObjects(modelToImport, view) ) {}
+                while ( connection.importViewsObjects(modelToImport, view) ) {
+                    // each loop imports a view object
+                }
             }
             
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsConnections(modelToImport) ) {}
+                while ( connection.importViewsConnections(modelToImport) ) {
+                    // each loop imports a view connection
+                }
             }
             
             if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
@@ -106,7 +118,9 @@ public class DBScript {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: modelToImport.getAllViews().values()) {
                 connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( connection.importViewsConnections(modelToImport) ) {}
+                while ( connection.importViewsConnections(modelToImport) ) {
+                    // each loop imports a view connection
+                }
             }
         } catch ( Exception e) {
             // in case of an import error, we remove the newly created model, except if we are in force mode
