@@ -29,6 +29,9 @@ import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.data.DBChecksum;
+import org.archicontribs.database.data.DBNameId;
+import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
@@ -1274,11 +1277,11 @@ public class DBDatabaseConnection {
 	/**
 	 * Gets the list of models and fills-in the tblModels table
 	 * @param filter
-	 * @param tblModels
 	 * @throws Exception
 	 */
-	public void getModels(String filter, Table tblModels) throws Exception {
-		//TODO: separate the data and GUI functions : do not fill in the tblModels table in this method
+	public ArrayList<DBNameId> getModels(String filter) throws Exception {
+	    ArrayList<DBNameId> listNameId = new ArrayList<DBNameId>();
+	    
 		ResultSet result;
 
 		// We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
@@ -1287,26 +1290,13 @@ public class DBDatabaseConnection {
 		else
 			result = select("SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
 
-
 		while ( result.next() && result.getString("id") != null ) {
 			if (logger.isTraceEnabled() ) logger.trace("found model \""+result.getString("name")+"\"");
-			TableItem tableItem = new TableItem(tblModels, SWT.BORDER);
-			tableItem.setText(result.getString("name"));
-			tableItem.setData("id", result.getString("id"));
+			listNameId.add(new DBNameId(result.getString("name"), result.getString("id")));
 		}
-		tblModels.layout();
-		tblModels.setVisible(true);
-		tblModels.setLinesVisible(true);
-		tblModels.setRedraw(true);
-		if (logger.isTraceEnabled() ) logger.trace("found "+tblModels.getItemCount()+" model"+(tblModels.getItemCount()>1?"s":"")+" in total");
-
 		result.close();
-		result=null;
-
-		if ( tblModels.getItemCount() != 0 ) {
-			tblModels.setSelection(0);
-			tblModels.notifyListeners(SWT.Selection, new Event());      // calls database.getModelVersions()
-		}
+		
+		return listNameId;
 	}
 	
 	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
@@ -1440,7 +1430,7 @@ public class DBDatabaseConnection {
 		}
 
 		//TODO : manage the "real" model metadata :-)
-		ResultSet result = select("SELECT name, purpose FROM "+this.schema+"models WHERE id = ? AND version = ?", model.getId(), model.getCurrentVersion());
+		ResultSet result = select("SELECT name, purpose FROM "+this.schema+"models WHERE id = ? AND version = ?", model.getId(), model.getCurrentVersion().getVersion());
 		result.next();
 		model.setPurpose(result.getString("purpose"));
 		result.close();
@@ -1473,11 +1463,11 @@ public class DBDatabaseConnection {
 									" ) elements GROUP BY element_id, parent_folder_id, version, class, name, type, documentation, created_on";
 			result = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts"
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		} else {
 			this.importElementsRequest = "SELECT DISTINCT elements_in_model.element_id, elements_in_model.parent_folder_id, elements.version, elements.class, elements.name, elements.type, "+elementsDocumentation+", elements.created_on"+
@@ -1487,7 +1477,7 @@ public class DBDatabaseConnection {
 									" GROUP BY element_id, parent_folder_id, version, class, name, type, "+documentation+", created_on";
 			result = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts"
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		}
 
@@ -1521,11 +1511,11 @@ public class DBDatabaseConnection {
 										 " ) relationships GROUP BY relationship_id, parent_folder_id, version, class, name, documentation, source_id, target_id, strength, access_type, created_on";
 			result = select("SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		} else {
 			this.importRelationshipsRequest = "SELECT relationships_in_model.relationship_id, relationships_in_model.parent_folder_id, relationships.version, relationships.class, relationships.name, "+relationshipsDocumentation+", relationships.source_id, relationships.target_id, relationships.strength, relationships.access_type, relationships.created_on"+
@@ -1535,7 +1525,7 @@ public class DBDatabaseConnection {
 										 " GROUP BY relationship_id, parent_folder_id, version, class, name, "+documentation+", source_id, target_id, strength, access_type, created_on";
 			result = select("SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		}
 		result.next();
@@ -1557,7 +1547,7 @@ public class DBDatabaseConnection {
 		}
 		result = select("SELECT COUNT(*) AS countFolders FROM ("+this.importFoldersRequest+") fldrs"
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 		result.next();
 		this.countFoldersToImport = result.getInt("countFolders");
@@ -1579,7 +1569,7 @@ public class DBDatabaseConnection {
 		}
 		result = select("SELECT COUNT(*) AS countViews FROM ("+this.importViewsRequest+") vws"
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 		result.next();
 		this.countViewsToImport = result.getInt("countViews");
@@ -1601,7 +1591,7 @@ public class DBDatabaseConnection {
 		}
 		result = select("SELECT COUNT(*) AS countViewsObjects FROM ("+this.importViewsObjectsRequest+") vobjs"
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 		result.next();
 		this.countViewObjectsToImport = result.getInt("countViewsObjects");
@@ -1623,7 +1613,7 @@ public class DBDatabaseConnection {
 		}
 		result = select("SELECT COUNT(*) AS countViewsConnections FROM ("+this.importViewsConnectionsRequest+") vcons"
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 		result.next();
 		this.countViewConnectionsToImport = result.getInt("countViewsConnections");
@@ -1638,7 +1628,7 @@ public class DBDatabaseConnection {
 						" INNER JOIN "+this.schema+"images ON "+this.schema+"views_objects.image_path = images.path"+
 						" WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 		result.next();
 		this.countImagesToImport = result.getInt("countImages");
@@ -1660,7 +1650,7 @@ public class DBDatabaseConnection {
 	public void prepareImportFolders(ArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importFoldersRequest
 				,model.getId()
-				,model.getCurrentVersion()
+				,model.getCurrentVersion().getVersion()
 				);
 	}
 
@@ -1718,16 +1708,16 @@ public class DBDatabaseConnection {
 		if ( model.getImportLatestVersion() ) {
 			this.currentResultSet = select(this.importElementsRequest
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		} else {
 			this.currentResultSet = select(this.importElementsRequest
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		}
 			
@@ -1778,16 +1768,16 @@ public class DBDatabaseConnection {
 		if ( model.getImportLatestVersion() ) {
 			this.currentResultSet = select(this.importRelationshipsRequest
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		} else {
 			this.currentResultSet = select(this.importRelationshipsRequest
 					,model.getId()
-					,model.getCurrentVersion()
+					,model.getCurrentVersion().getVersion()
 					);
 		}
 	}
@@ -1839,7 +1829,7 @@ public class DBDatabaseConnection {
 	public void prepareImportViews(ArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importViewsRequest,
 				model.getId(),
-				model.getCurrentVersion()
+				model.getCurrentVersion().getVersion()
 				);
 	}
 

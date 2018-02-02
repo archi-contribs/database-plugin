@@ -14,9 +14,9 @@ import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.Map.Entry;
 
-import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.DBVersion;
+import org.archicontribs.database.data.DBChecksum;
+import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;

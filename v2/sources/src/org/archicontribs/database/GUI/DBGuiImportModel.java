@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.data.DBNameId;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
@@ -32,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.model.IEditorModelManager;
@@ -154,10 +156,28 @@ public class DBGuiImportModel extends DBGui {
     protected void connectedToDatabase(boolean ignore) {	
         this.compoRightBottom.setVisible(true);
         this.compoRightBottom.layout();
+        
+        this.tblModels.removeAll();
+        
         try {
-            this.connection.getModels(this.txtFilterModels.getText(), this.tblModels);
+            for (DBNameId nameId : this.connection.getModels(this.txtFilterModels.getText())) {
+                TableItem tableItem = new TableItem(this.tblModels, SWT.BORDER);
+                tableItem.setText(nameId.getName());
+                tableItem.setData("id", nameId.getId());
+            }
         } catch (Exception err) {
             DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+        }
+        
+        this.tblModels.layout();
+        this.tblModels.setVisible(true);
+        this.tblModels.setLinesVisible(true);
+        this.tblModels.setRedraw(true);
+        if (logger.isTraceEnabled() ) logger.trace("found "+this.tblModels.getItemCount()+" model"+(this.tblModels.getItemCount()>1?"s":"")+" in total");
+        
+        if ( this.tblModels.getItemCount() != 0 ) {
+            this.tblModels.setSelection(0);
+            this.tblModels.notifyListeners(SWT.Selection, new Event());      // calls database.getModelVersions()
         }
     }
 

@@ -15,10 +15,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBChecksum;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.DBVersion;
+import org.archicontribs.database.data.DBChecksum;
+import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
