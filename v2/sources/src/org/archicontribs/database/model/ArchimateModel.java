@@ -68,25 +68,25 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	private Map<IDiagramModelConnection, String> allTargetConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
 	
 	public void setImportLatestVersion(boolean latest) {
-		importLatestVersion = latest;
+		this.importLatestVersion = latest;
 	}
 	
 	public boolean getImportLatestVersion() {
-		return importLatestVersion;
+		return this.importLatestVersion;
 	}
 	
 	/**
 	 * @return the current version of the model 
 	 */
 	public DBVersion getCurrentVersion() {
-		return currentVersion;
+		return this.currentVersion;
 	}
 	
 	/**
 	 * @return the version of the model as it is in the database 
 	 */
 	public DBVersion getDatabaseVersion() {
-		return databaseVersion;
+		return this.databaseVersion;
 	}
 	
 	/**
@@ -96,18 +96,18 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		if ( logger.isTraceEnabled() ) logger.trace("Reseting model's counters.");
 		
 
-		allElements.clear();
-		allRelationships.clear();
-		allViews.clear();
-		allViewsObjects.clear();
-		allViewsConnections.clear();
-		allFolders.clear();
+		this.allElements.clear();
+		this.allRelationships.clear();
+		this.allViews.clear();
+		this.allViewsObjects.clear();
+		this.allViewsConnections.clear();
+		this.allFolders.clear();
 		
-		allRelationsSourceAndTarget.clear();
-		allSourceObjectsConnections.clear();
-		allTargetObjectsConnections.clear();
-	    allSourceConnectionsConnections.clear();
-	    allTargetConnectionsConnections.clear();
+		this.allRelationsSourceAndTarget.clear();
+		this.allSourceObjectsConnections.clear();
+		this.allTargetObjectsConnections.clear();
+	    this.allSourceConnectionsConnections.clear();
+	    this.allTargetConnectionsConnections.clear();
 	}
 	
 	/**
@@ -117,11 +117,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
     public void resetSourceAndTargetCounters() {
         if ( logger.isTraceEnabled() ) logger.trace("Reseting source and target counters.");
         
-        allRelationsSourceAndTarget.clear();
-        allSourceObjectsConnections.clear();
-        allTargetObjectsConnections.clear();
-        allSourceConnectionsConnections.clear();
-        allTargetConnectionsConnections.clear();
+        this.allRelationsSourceAndTarget.clear();
+        this.allSourceObjectsConnections.clear();
+        this.allTargetObjectsConnections.clear();
+        this.allSourceConnectionsConnections.clear();
+        this.allTargetConnectionsConnections.clear();
     }
 	
 	/**
@@ -142,7 +142,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			// we also ensure that the root folders are exported first
 		for (IFolder folder: getFolders() ) {
 		    ((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
-		    allFolders.put(folder.getId(), folder);
+		    this.allFolders.put(folder.getId(), folder);
 		}
 		
 		for (IFolder folder: getFolders() ) {
@@ -174,7 +174,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		switch ( eObject.eClass().getName() ) {
 			case "ArchimateDiagramModel" :
 			case "CanvasModel" :
-			case "SketchModel" :					allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
+			case "SketchModel" :					this.allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
 													for ( EObject child: ((IDiagramModel)eObject).getChildren() ) {
 														String subChecksum = countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
@@ -189,7 +189,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			case "DiagramModelNote" :
 			case "DiagramModelReference" :
 			case "CanvasModelSticky" :
-			case "SketchModelSticky" :				allViewsObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
+			case "SketchModelSticky" :				this.allViewsObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
 			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
 													if ( eObject instanceof IDiagramModelContainer ) {
 														for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
@@ -211,11 +211,11 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	
 			case "CanvasModelConnection" :
 			case "DiagramModelArchimateConnection":
-			case "DiagramModelConnection" :			allViewsConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
+			case "DiagramModelConnection" :			this.allViewsConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
 			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
 													break;
 													
-			case "Folder" :							allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
+			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
 													// WARNING : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 													// so we do not use sub folders or elements in the checksum calculation anymore
@@ -241,9 +241,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 													
 			default :								// here, the class is too detailed (Node, Artefact, BusinessActor, etc ...), so we use "instanceof" to distinguish elements from relationships
 				if ( eObject instanceof IArchimateElement ) {
-					allElements.put(((IIdentifier)eObject).getId(), (IArchimateElement)eObject);
+					this.allElements.put(((IIdentifier)eObject).getId(), (IArchimateElement)eObject);
 				} else if ( eObject instanceof IArchimateRelationship ) {
-					allRelationships.put(((IIdentifier)eObject).getId(), (IArchimateRelationship)eObject);
+					this.allRelationships.put(((IIdentifier)eObject).getId(), (IArchimateRelationship)eObject);
 				} else { //we should never be there, but just in case ...
 					throw new Exception("Unknown "+eObject.eClass().getName()+" object.");
 				}
@@ -259,27 +259,27 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
 	public Map<String, IArchimateElement> getAllElements() {
-		return allElements;
+		return this.allElements;
 	}
 	
 	public Map<String, IArchimateRelationship> getAllRelationships() {
-		return allRelationships;
+		return this.allRelationships;
 	}
 	
 	public Map<String, IDiagramModel> getAllViews() {
-		return allViews;
+		return this.allViews;
 	}
 	
 	public Map<String, IDiagramModelComponent> getAllViewObjects() {
-		return allViewsObjects;
+		return this.allViewsObjects;
 	}
 	
 	public Map<String, IDiagramModelConnection> getAllViewConnections() {
-		return allViewsConnections;
+		return this.allViewsConnections;
 	}
 	
 	public Map<String, IFolder> getAllFolders() {
-		return allFolders;
+		return this.allFolders;
 	}
 	
 	public List<String> getAllImagePaths() {
@@ -293,12 +293,12 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	public void registerSourceAndTarget(IArchimateRelationship relationship, String sourceId, String targetId) throws Exception {
 		assert (sourceId != null && targetId != null);
 		
-		allRelationsSourceAndTarget.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
+		this.allRelationsSourceAndTarget.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
 	}
 	
 	public void resolveRelationshipsSourcesAndTargets() {
 	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for relationships");
-		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: allRelationsSourceAndTarget.entrySet() ) {
+		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: this.allRelationsSourceAndTarget.entrySet() ) {
 			IArchimateRelationship relationship = entry.getKey();
 			Entry<String, String> rel = entry.getValue();
 
@@ -313,29 +313,29 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			relationship.setTarget(target);
 		}
 		
-		allRelationsSourceAndTarget.clear();
+		this.allRelationsSourceAndTarget.clear();
 	}
 	
     public void registerSourceConnection(IDiagramModelObject object, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) allSourceObjectsConnections.put(object, sourceId);
+        if ( sourceId != null && sourceId.length()!=0 ) this.allSourceObjectsConnections.put(object, sourceId);
     }
     
     public void registerTargetConnection(IDiagramModelObject object, String targetId) throws Exception {
-        if ( targetId != null && targetId.length()!=0 ) allTargetObjectsConnections.put(object, targetId);
+        if ( targetId != null && targetId.length()!=0 ) this.allTargetObjectsConnections.put(object, targetId);
     }
     
     public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) allSourceConnectionsConnections.put(connection, sourceId);
+        if ( sourceId != null && sourceId.length()!=0 ) this.allSourceConnectionsConnections.put(connection, sourceId);
     }
     
     public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
-        if ( targetId != null && targetId.length()!=0 ) allTargetConnectionsConnections.put(connection, targetId);
+        if ( targetId != null && targetId.length()!=0 ) this.allTargetConnectionsConnections.put(connection, targetId);
     }
 	
     public void resolveConnectionsSourcesAndTargets() throws Exception {
         if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
 
-        for ( Map.Entry<IDiagramModelObject, String> entry: allSourceObjectsConnections.entrySet() ) {
+        for ( Map.Entry<IDiagramModelObject, String> entry: this.allSourceObjectsConnections.entrySet() ) {
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
@@ -348,7 +348,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             }
         }
         
-        for ( Map.Entry<IDiagramModelConnection, String> entry: allSourceConnectionsConnections.entrySet() ) {
+        for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsConnections.entrySet() ) {
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
@@ -361,7 +361,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             }
         }
         
-        for ( Map.Entry<IDiagramModelObject, String> entry: allTargetObjectsConnections.entrySet() ) {
+        for ( Map.Entry<IDiagramModelObject, String> entry: this.allTargetObjectsConnections.entrySet() ) {
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
@@ -374,7 +374,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             }
         }
         
-        for ( Map.Entry<IDiagramModelConnection, String> entry: allTargetConnectionsConnections.entrySet() ) {
+        for ( Map.Entry<IDiagramModelConnection, String> entry: this.allTargetConnectionsConnections.entrySet() ) {
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
@@ -387,9 +387,9 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
             }
         }
 
-        allSourceObjectsConnections.clear();
-        allSourceConnectionsConnections.clear();
-        allSourceObjectsConnections.clear();
-        allTargetConnectionsConnections.clear();
+        this.allSourceObjectsConnections.clear();
+        this.allSourceConnectionsConnections.clear();
+        this.allSourceObjectsConnections.clear();
+        this.allTargetConnectionsConnections.clear();
 	}
 }

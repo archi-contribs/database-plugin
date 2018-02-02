@@ -16,13 +16,14 @@ public class Outcome extends com.archimatetool.model.impl.Outcome implements IDB
 	
 	public Outcome() {
 		super();
-		dbMetadata = new DBMetadata(this);
+		this.dbMetadata = new DBMetadata(this);
 	}
 	
 	/**
 	 * Gets the DBMetadata of the object
 	 */
-	public DBMetadata getDBMetadata() {
-		return dbMetadata;
+	@Override
+    public DBMetadata getDBMetadata() {
+		return this.dbMetadata;
 	}
 }

@@ -42,15 +42,15 @@ public class DBGuiComponentHistory extends DBGui {
 	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiComponentHistory.class);
 	
-	private IArchimateModelObject selectedComponent = null;
+	IArchimateModelObject selectedComponent = null;
 
 	private Label lblVersions;
 	
 	private Button btnImportDatabaseVersion;
 	private Button btnExportModelVersion;
 	
-	private Tree tblContent;
-	private Table tblVersions;
+	Tree tblContent;
+	Table tblVersions;
 	
 	/**
 	 * Creates the GUI to export components and model
@@ -58,11 +58,11 @@ public class DBGuiComponentHistory extends DBGui {
 	 */
 	public DBGuiComponentHistory(IArchimateModelObject component) throws Exception {
 		super("Component history");
-		selectedComponent = component;
+		this.selectedComponent = component;
 		
-		includeNeo4j = false;
+		this.includeNeo4j = false;
 		
-		((ArchimateModel)selectedComponent.getArchimateModel()).countObject(component, true, null);
+		((ArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
 		/*
 		popup("Please wait while counting model's components");
 		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
@@ -72,8 +72,8 @@ public class DBGuiComponentHistory extends DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion+").");		
 		
 		setCompoRight();
-		compoRightBottom.setVisible(true);
-		compoRightBottom.layout();
+		this.compoRightBottom.setVisible(true);
+		this.compoRightBottom.layout();
 		
 		
 		createAction(ACTION.One, "Component history");
@@ -86,7 +86,7 @@ public class DBGuiComponentHistory extends DBGui {
 	 * creates the composites where the user can check the components to export
 	 */
 	protected void setCompoRight() {
-		Group grpComponents = new Group(compoRightBottom, SWT.NONE);
+		Group grpComponents = new Group(this.compoRightBottom, SWT.NONE);
 		grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		grpComponents.setFont(GROUP_TITLE_FONT);
 		grpComponents.setText("Component history : ");
@@ -98,39 +98,40 @@ public class DBGuiComponentHistory extends DBGui {
 		grpComponents.setLayoutData(fd);
 		grpComponents.setLayout(new FormLayout());
 		
-		lblVersions = new Label(grpComponents, SWT.NONE);
-		lblVersions.setBackground(GROUP_BACKGROUND_COLOR);
-		lblVersions.setText("Versions :");		
+		this.lblVersions = new Label(grpComponents, SWT.NONE);
+		this.lblVersions.setBackground(GROUP_BACKGROUND_COLOR);
+		this.lblVersions.setText("Versions :");		
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblVersions.setLayoutData(fd);
+		this.lblVersions.setLayoutData(fd);
 		
-		tblVersions = new Table(grpComponents, SWT.BORDER | SWT.FULL_SELECTION);
-		tblVersions.setHeaderVisible(true);
-		tblVersions.setLinesVisible(true);
-		tblVersions.addListener(SWT.Selection, new Listener() {
-		    public void handleEvent(Event e) {
-		        fillInCompareTable(tblContent, selectedComponent, Integer.valueOf(tblVersions.getSelection()[0].getText(0)), null);
+		this.tblVersions = new Table(grpComponents, SWT.BORDER | SWT.FULL_SELECTION);
+		this.tblVersions.setHeaderVisible(true);
+		this.tblVersions.setLinesVisible(true);
+		this.tblVersions.addListener(SWT.Selection, new Listener() {
+		    @Override
+            public void handleEvent(Event e) {
+		        fillInCompareTable(DBGuiComponentHistory.this.tblContent, DBGuiComponentHistory.this.selectedComponent, Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)), null);
 		    }
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(lblVersions, 10);
+		fd.top = new FormAttachment(this.lblVersions, 10);
 		fd.left = new FormAttachment(20, 0);
 		fd.right = new FormAttachment(80, 0);
 		fd.bottom = new FormAttachment(30, 0);
-		tblVersions.setLayoutData(fd);
+		this.tblVersions.setLayoutData(fd);
 		
-		TableColumn colVersion = new TableColumn(tblVersions, SWT.NONE);
+		TableColumn colVersion = new TableColumn(this.tblVersions, SWT.NONE);
 		colVersion.setWidth(47);
 		colVersion.setText("Version");
 		
-		TableColumn colCreatedBy = new TableColumn(tblVersions, SWT.NONE);
+		TableColumn colCreatedBy = new TableColumn(this.tblVersions, SWT.NONE);
 		colCreatedBy.setWidth(121);
 		colCreatedBy.setText("Created by");
 		
-		TableColumn colCreatedOn = new TableColumn(tblVersions, SWT.NONE);
+		TableColumn colCreatedOn = new TableColumn(this.tblVersions, SWT.NONE);
 		colCreatedOn.setWidth(145);
 		colCreatedOn.setText("Created on");
 		
@@ -138,58 +139,62 @@ public class DBGuiComponentHistory extends DBGui {
 		lblContent.setBackground(GROUP_BACKGROUND_COLOR);
 		lblContent.setText("Content :");
 		fd = new FormData();
-		fd.top = new FormAttachment(tblVersions, 20);
+		fd.top = new FormAttachment(this.tblVersions, 20);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(100, -10);
 		lblContent.setLayoutData(fd);
 		
-		tblContent = new Tree(grpComponents, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
-		tblContent.setHeaderVisible(true);
-		tblContent.setLinesVisible(true);
+		this.tblContent = new Tree(grpComponents, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		this.tblContent.setHeaderVisible(true);
+		this.tblContent.setLinesVisible(true);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblContent, 10);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -50);
-		tblContent.setLayoutData(fd);
+		this.tblContent.setLayoutData(fd);
 		
-		TreeColumn colItem = new TreeColumn(tblContent, SWT.NONE);
+		TreeColumn colItem = new TreeColumn(this.tblContent, SWT.NONE);
 		colItem.setWidth(100);
 		colItem.setText("Items");
 		
-		TreeColumn colYourVersion = new TreeColumn(tblContent, SWT.NONE);
+		TreeColumn colYourVersion = new TreeColumn(this.tblContent, SWT.NONE);
 		colYourVersion.setWidth(150);
 		colYourVersion.setText("Your version");
 		
-		TreeColumn colDatabaseVersion = new TreeColumn(tblContent, SWT.NONE);
+		TreeColumn colDatabaseVersion = new TreeColumn(this.tblContent, SWT.NONE);
 		colDatabaseVersion.setWidth(150);
 		colDatabaseVersion.setText("Database version");
 		
-		btnImportDatabaseVersion = new Button(grpComponents, SWT.NONE);
-		btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
-		btnImportDatabaseVersion.setText("Import database version");
-		btnImportDatabaseVersion.setEnabled(false);
-		btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) { /*importFromDatabase();*/ }		//TODO
-			public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		this.btnImportDatabaseVersion = new Button(grpComponents, SWT.NONE);
+		this.btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
+		this.btnImportDatabaseVersion.setText("Import database version");
+		this.btnImportDatabaseVersion.setEnabled(false);
+		this.btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
+			@Override
+            public void widgetSelected(SelectionEvent e) { /*importFromDatabase();*/ }		//TODO
+			@Override
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(tblContent, 10);
+		fd.top = new FormAttachment(this.tblContent, 10);
 		fd.right = new FormAttachment(100, -10);
-		btnImportDatabaseVersion.setLayoutData(fd);
+		this.btnImportDatabaseVersion.setLayoutData(fd);
 		
-		btnExportModelVersion = new Button(grpComponents, SWT.NONE);
-		btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-		btnExportModelVersion.setText("Export to the database");
-		btnExportModelVersion.setEnabled(false);
-		btnExportModelVersion.addSelectionListener(new SelectionListener() {
-		    public void widgetSelected(SelectionEvent e) { /*exportToDatabase();*/ }      //TODO
-		    public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		this.btnExportModelVersion = new Button(grpComponents, SWT.NONE);
+		this.btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
+		this.btnExportModelVersion.setText("Export to the database");
+		this.btnExportModelVersion.setEnabled(false);
+		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
+		    @Override
+            public void widgetSelected(SelectionEvent e) { /*exportToDatabase();*/ }      //TODO
+		    @Override
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(tblContent, 10);
-		fd.right = new FormAttachment(btnImportDatabaseVersion, -10);
-		btnExportModelVersion.setLayoutData(fd);
+		fd.top = new FormAttachment(this.tblContent, 10);
+		fd.right = new FormAttachment(this.btnImportDatabaseVersion, -10);
+		this.btnExportModelVersion.setLayoutData(fd);
 	}
 	
 	/**
@@ -197,32 +202,32 @@ public class DBGuiComponentHistory extends DBGui {
 	 */
 	@Override
 	protected void connectedToDatabase(boolean forceCheck) {	
-		dialog.setCursor(CURSOR_ARROW);
+		this.dialog.setCursor(CURSOR_ARROW);
 			// if everything goes well, then we search for all the versions of the component
 		if ( logger.isDebugEnabled() ) logger.debug("Searching for all versions of the component");
 
-		tblVersions.removeAll();
-		tblContent.removeAll();
-		btnImportDatabaseVersion.setEnabled(false);
+		this.tblVersions.removeAll();
+		this.tblContent.removeAll();
+		this.btnImportDatabaseVersion.setEnabled(false);
 		
 		String tableName = null;
-		if ( selectedComponent instanceof IArchimateElement ) 
+		if ( this.selectedComponent instanceof IArchimateElement ) 
 		    tableName = "elements";
-		else if ( selectedComponent instanceof IArchimateRelationship ) 
+		else if ( this.selectedComponent instanceof IArchimateRelationship ) 
             tableName = "relationships";
-        else if ( selectedComponent instanceof IArchimateDiagramModel || selectedComponent instanceof ICanvasModel || selectedComponent instanceof ISketchModel )
+        else if ( this.selectedComponent instanceof IArchimateDiagramModel || this.selectedComponent instanceof ICanvasModel || this.selectedComponent instanceof ISketchModel )
         	tableName = "views";
     	else {
-		    popup(Level.FATAL, "Cannot get history for components of class "+selectedComponent.getClass().getSimpleName());
+		    popup(Level.FATAL, "Cannot get history for components of class "+this.selectedComponent.getClass().getSimpleName());
 		    return ;
 		}
 	
 		ResultSet result = null;
 		try {
-			result = connection.select("SELECT version, created_by, created_on FROM "+selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", selectedComponent.getId());
+			result = this.connection.select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId());
 				
 			while ( result.next() ) {
-			    TableItem tableItem = new TableItem(tblVersions, SWT.NULL);
+			    TableItem tableItem = new TableItem(this.tblVersions, SWT.NULL);
 			    tableItem.setText(0, String.valueOf(result.getInt("version")));
 			    tableItem.setText(1, result.getString("created_by"));
 			    tableItem.setText(2, result.getTimestamp("created_on").toString());
@@ -231,26 +236,29 @@ public class DBGuiComponentHistory extends DBGui {
 		} catch (Exception err) {
 			try {
 				if ( result != null ) result.close();
-			} catch (SQLException ign) {}
-		    tblVersions.removeAll();
+			} catch (@SuppressWarnings("unused") SQLException ign) {
+			    // ignore
+			}
+		    this.tblVersions.removeAll();
 			popup(Level.FATAL, "Failed to search component versions in the database.", err);
 		}
 		
-		if ( tblVersions.getItemCount() > 1 ) {
-		    lblVersions.setText(tblVersions.getItemCount()+" versions have been found in the database :");
+		if ( this.tblVersions.getItemCount() > 1 ) {
+		    this.lblVersions.setText(this.tblVersions.getItemCount()+" versions have been found in the database :");
 		} else {
-		    lblVersions.setText(tblVersions.getItemCount()+" version has been found in the database :");
+		    this.lblVersions.setText(this.tblVersions.getItemCount()+" version has been found in the database :");
 		}
 		
-		if ( tblVersions.getItemCount() != 0 ) {
-			tblVersions.select(0);
-			tblVersions.notifyListeners(SWT.Selection, new Event());
+		if ( this.tblVersions.getItemCount() != 0 ) {
+			this.tblVersions.select(0);
+			this.tblVersions.notifyListeners(SWT.Selection, new Event());
 		}
 	}
 	
-	protected void notConnectedToDatabase() {
-	    lblVersions.setText("");
-	    tblContent.removeAll();
-	    tblVersions.removeAll();
+	@Override
+    protected void notConnectedToDatabase() {
+	    this.lblVersions.setText("");
+	    this.tblContent.removeAll();
+	    this.tblVersions.removeAll();
 	}
 }

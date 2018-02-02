@@ -294,7 +294,7 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
 
-    CommandContributionItem getHistory(IArchimateModelObject component) {
+    static CommandContributionItem getHistory(IArchimateModelObject component) {
         String clazz = component.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
         String label = "get history for "+component.eClass().getName()+" \""+component.getName()+"\"";
@@ -319,7 +319,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem getHistory(IDiagramModelConnection connection) {
+    static CommandContributionItem getHistory(IDiagramModelConnection connection) {
         String clazz = connection.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
         String label = "get history for "+connection.eClass().getName()+" \""+connection.getName()+"\"";
@@ -344,7 +344,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem exportModel() {
+    static CommandContributionItem exportModel() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -369,7 +369,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem importComponent() {
+    static CommandContributionItem importComponent() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -394,7 +394,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
     
-    CommandContributionItem importComponentIntoView() {
+    static CommandContributionItem importComponentIntoView() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -419,7 +419,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem showId(String prefix, IIdentifier component) {
+    static CommandContributionItem showId(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = prefix+"ID : "+component.getId();
 
@@ -441,7 +441,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
     
-    CommandContributionItem showChecksum(String prefix, IIdentifier component) {
+    static CommandContributionItem showChecksum(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = prefix+"checksum : "+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum();
 
@@ -463,7 +463,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem showVersion(IIdentifier component) {
+    static CommandContributionItem showVersion(IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = "Version: current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion();
         //label = "Checksum="+((IDBMetadata)component).getDBMetadata().getCurrentChecksum()+" DB="+((IDBMetadata)component).getDBMetadata().getDatabaseChecksum();
@@ -486,7 +486,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem convertIds() {
+    static CommandContributionItem convertIds() {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Convert old fashion IDs to Archi4";
 
@@ -508,9 +508,9 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem showImagePath(String path) {
+    static CommandContributionItem showImagePath(String imagePath) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        if ( path == null ) path = "null";
+        String path = (imagePath==null) ? "null" : imagePath;
 
         String label = "Image : "+path;
 
@@ -532,7 +532,7 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
-    CommandContributionItem mergeModels() {
+    static CommandContributionItem mergeModels() {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Merge models";
 

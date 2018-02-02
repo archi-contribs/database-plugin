@@ -17,13 +17,14 @@ public class CanvasModel extends com.archimatetool.canvas.model.impl.CanvasModel
 	public CanvasModel() {
 		super();
 		
-		dbMetadata = new DBMetadata(this);
+		this.dbMetadata = new DBMetadata(this);
 	}
 	
 	/**
 	 * Gets the DBMetadata of the object
 	 */
-	public DBMetadata getDBMetadata() {
-		return dbMetadata;
+	@Override
+    public DBMetadata getDBMetadata() {
+		return this.dbMetadata;
 	}
 }

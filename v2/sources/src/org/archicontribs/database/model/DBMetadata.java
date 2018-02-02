@@ -55,20 +55,20 @@ public class DBMetadata  {
 	
 	public DBVersion getCurrentVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
-	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)parentDiagram).getDBMetadata().getCurrentVersion();
+	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
+	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
 	    }
     
-	    return currentVersion;
+	    return this.currentVersion;
 	}
 	
 	public DBVersion getDatabaseVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
-	    if ( component!=null && parentDiagram!=null && !(component instanceof IDiagramModel) && (component instanceof IDiagramModelComponent || component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)parentDiagram).getDBMetadata().getDatabaseVersion();
+	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
+	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getDatabaseVersion();
 	    }
     
-	    return databaseVersion;
+	    return this.databaseVersion;
 	}
 	
 	/**
@@ -86,27 +86,27 @@ public class DBMetadata  {
 	private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
 	
 	public CONFLICT_CHOICE getConflictChoice() {
-		return conflictChoice;
+		return this.conflictChoice;
 	}
 	
 	public void setConflictChoice(CONFLICT_CHOICE choice) {
-		conflictChoice = choice;
+		this.conflictChoice = choice;
 	}
 	
 	public IDiagramModelComponent getParentDiagram() {
-	    return parentDiagram;
+	    return this.parentDiagram;
 	}
 	
 	public void setParentdiagram(IDiagramModelComponent parent) {
-	    parentDiagram = parent;
+	    this.parentDiagram = parent;
 	}
 	
 	public int getRootFolderType() {
-		return rootFolderType;
+		return this.rootFolderType;
 	}
 	
 	public void setRootFolderType(int type) {
-		rootFolderType = type;
+		this.rootFolderType = type;
 	}
 	
 	/**
@@ -114,7 +114,7 @@ public class DBMetadata  {
 	 * @return getclass().getSimpleName()+":\""+getName()+"\""
 	 */
 	public String getFullName() {
-		return new StringBuilder(component.getClass().getSimpleName()).append(":\""+((INameable)component).getName()+"\"").toString();
+		return new StringBuilder(this.component.getClass().getSimpleName()).append(":\""+((INameable)this.component).getName()+"\"").toString();
 	}
 	
 	/**
@@ -122,6 +122,6 @@ public class DBMetadata  {
 	 * @return getclass().getSimpleName()+":\""+getName()+"\"("+getId()+")"
 	 */
 	public String getDebugName() {
-		return new StringBuilder(getFullName()).append("("+((IIdentifier)component).getId()+")").toString();
+		return new StringBuilder(getFullName()).append("("+((IIdentifier)this.component).getId()+")").toString();
 	}
 }

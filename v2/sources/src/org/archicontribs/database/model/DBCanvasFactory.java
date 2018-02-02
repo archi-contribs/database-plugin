@@ -89,6 +89,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Override of the original createCanvasModel<br>
 	 * Creates a DBCanvasModel instead of a CanvasModel 
 	 */
+    @Override
     public ICanvasModel createCanvasModel() {
         return new org.archicontribs.database.model.impl.CanvasModel();
     }
@@ -97,6 +98,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Override of the original createCanvasModelSticky<br>
 	 * Creates a DBCanvasModelSticky instead of a CanvasModelSticky 
 	 */
+    @Override
     public ICanvasModelSticky createCanvasModelSticky() {
         return new org.archicontribs.database.model.impl.CanvasModelSticky();
     }
@@ -105,6 +107,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Override of the original createCanvasModelBlock<br>
 	 * Creates a DBCanvasModelBlock instead of a CanvasModelBlock 
 	 */
+    @Override
     public ICanvasModelBlock createCanvasModelBlock() {
         return new org.archicontribs.database.model.impl.CanvasModelBlock();
     }
@@ -113,6 +116,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Override of the original createCanvasModelImage<br>
 	 * Creates a DBCanvasModelImage instead of a CanvasModelImage 
 	 */
+    @Override
     public ICanvasModelImage createCanvasModelImage() {
         return new org.archicontribs.database.model.impl.CanvasModelImage();
     }
@@ -121,6 +125,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	 * Override of the original createCanvasModelConnection<br>
 	 * Creates a DBCanvasModelConnection instead of a CanvasModelConnection 
 	 */
+    @Override
     public ICanvasModelConnection createCanvasModelConnection() {
         return new org.archicontribs.database.model.impl.CanvasModelConnection();
     }

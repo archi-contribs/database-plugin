@@ -54,7 +54,6 @@ import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelGroup;
 import com.archimatetool.model.IDiagramModelImage;
 import com.archimatetool.model.IDiagramModelNote;
-import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IDistributionNetwork;
 import com.archimatetool.model.IDriver;
@@ -317,6 +316,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createArchimateDiagramModel<br>
 	 * Creates a DBArchimateDiagramModel instead of a ArchimateDiagramModel 
 	 */
+    @Override
     public IArchimateDiagramModel createArchimateDiagramModel() {
         return new org.archicontribs.database.model.impl.ArchimateDiagramModel();
     }
@@ -325,6 +325,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createArchimateModel<br>
 	 * Creates a DBArchimateModel instead of a ArchimateModel 
 	 */
+    @Override
     public IArchimateModel createArchimateModel() {
         return new org.archicontribs.database.model.ArchimateModel();
     }
@@ -333,6 +334,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createNode<br>
 	 * Creates a DBArchimateElement instead of a Node
 	 */
+    @Override
     public INode createNode() {
         return new org.archicontribs.database.model.impl.Node();
     }
@@ -341,6 +343,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createAccessRelationship<br>
 	 * Creates a DBAccessRelationship instead of a AccessRelationship
 	 */
+    @Override
     public IAccessRelationship createAccessRelationship() {
         return new org.archicontribs.database.model.impl.AccessRelationship();
     }
@@ -349,6 +352,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createAggregationRelationship<br>
 	 * Creates a DBAggregationRelationship instead of a AggregationRelationship
 	 */
+    @Override
     public IAggregationRelationship createAggregationRelationship() {
         return new org.archicontribs.database.model.impl.AggregationRelationship();
     }
@@ -357,6 +361,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationCollaboration<br>
 	 * Creates a DBApplicationCollaboration instead of a ApplicationCollaboration
 	 */
+    @Override
     public IApplicationCollaboration createApplicationCollaboration() {
         return new org.archicontribs.database.model.impl.ApplicationCollaboration();
     }
@@ -365,6 +370,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationComponent<br>
 	 * Creates a DBApplicationComponent instead of a ApplicationComponent
 	 */
+    @Override
     public IApplicationComponent createApplicationComponent() {
         return new org.archicontribs.database.model.impl.ApplicationComponent();
     }
@@ -373,6 +379,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationEvent<br>
 	 * Creates a DBApplicationEvent instead of a ApplicationEvent
 	 */
+    @Override
     public IApplicationEvent createApplicationEvent() {
         return new org.archicontribs.database.model.impl.ApplicationEvent();
     }
@@ -381,6 +388,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationFunction<br>
 	 * Creates a DBApplicationFunction instead of a ApplicationFunction
 	 */
+    @Override
     public IApplicationFunction createApplicationFunction() {
         return new org.archicontribs.database.model.impl.ApplicationFunction();
     }
@@ -389,6 +397,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationInteraction<br>
 	 * Creates a DBApplicationInteraction instead of a ApplicationInteraction
 	 */
+    @Override
     public IApplicationInteraction createApplicationInteraction() {
         return new org.archicontribs.database.model.impl.ApplicationInteraction();
     }
@@ -397,6 +406,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationInterface<br>
 	 * Creates a DBApplicationInterface instead of a ApplicationInterface
 	 */
+    @Override
     public IApplicationInterface createApplicationInterface() {
         return new org.archicontribs.database.model.impl.ApplicationInterface();
     }
@@ -405,6 +415,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationProcess<br>
 	 * Creates a DBApplicationProcess instead of a ApplicationProcess
 	 */
+    @Override
     public IApplicationProcess createApplicationProcess() {
         return new org.archicontribs.database.model.impl.ApplicationProcess();
     }
@@ -413,6 +424,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createApplicationService<br>
 	 * Creates a DBApplicationService instead of a ApplicationService
 	 */
+    @Override
     public IApplicationService createApplicationService() {
         return new org.archicontribs.database.model.impl.ApplicationService();
     }
@@ -421,6 +433,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createArtifact<br>
 	 * Creates a DBArtifact instead of a Artifact
 	 */
+    @Override
     public IArtifact createArtifact() {
         return new org.archicontribs.database.model.impl.Artifact();
     }
@@ -429,6 +442,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createAssessment<br>
 	 * Creates a DBAssessment instead of a Assessment
 	 */
+    @Override
     public IAssessment createAssessment() {
         return new org.archicontribs.database.model.impl.Assessment();
     }
@@ -437,6 +451,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createAssignmentRelationship<br>
 	 * Creates a DBAssignmentRelationship instead of a AssignmentRelationship
 	 */
+    @Override
     public IAssignmentRelationship createAssignmentRelationship() {
         return new org.archicontribs.database.model.impl.AssignmentRelationship();
     }
@@ -445,6 +460,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createAssociationRelationship<br>
 	 * Creates a DBAssociationRelationship instead of a AssociationRelationship
 	 */
+    @Override
     public IAssociationRelationship createAssociationRelationship() {
         return new org.archicontribs.database.model.impl.AssociationRelationship();
     }
@@ -453,6 +469,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessActor<br>
 	 * Creates a DBBusinessActor instead of a BusinessActor
 	 */
+    @Override
     public IBusinessActor createBusinessActor() {
         return new org.archicontribs.database.model.impl.BusinessActor();
     }
@@ -461,6 +478,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessCollaboration<br>
 	 * Creates a DBBusinessCollaboration instead of a BusinessCollaboration
 	 */
+    @Override
     public IBusinessCollaboration createBusinessCollaboration() {
         return new org.archicontribs.database.model.impl.BusinessCollaboration();
     }
@@ -469,6 +487,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessEvent<br>
 	 * Creates a DBBusinessEvent instead of a BusinessEvent
 	 */
+    @Override
     public IBusinessEvent createBusinessEvent() {
         return new org.archicontribs.database.model.impl.BusinessEvent();
     }
@@ -477,6 +496,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessRole<br>
 	 * Creates a DBBusinessRole instead of a BusinessRole
 	 */
+    @Override
     public IBusinessRole createBusinessRole() {
         return new org.archicontribs.database.model.impl.BusinessRole();
     }
@@ -485,6 +505,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessProcess<br>
 	 * Creates a DBBusinessProcess instead of a BusinessProcess
 	 */
+    @Override
     public IBusinessProcess createBusinessProcess() {
         return new org.archicontribs.database.model.impl.BusinessProcess();
     }
@@ -493,6 +514,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessObject<br>
 	 * Creates a DBBusinessObject instead of a BusinessObject
 	 */
+    @Override
     public IBusinessObject createBusinessObject() {
         return new org.archicontribs.database.model.impl.BusinessObject();
     }
@@ -501,6 +523,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessInterface<br>
 	 * Creates a DBBusinessInterface instead of a BusinessInterface
 	 */
+    @Override
     public IBusinessInterface createBusinessInterface() {
         return new org.archicontribs.database.model.impl.BusinessInterface();
     }
@@ -509,6 +532,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessInteraction<br>
 	 * Creates a DBBusinessInteraction instead of a BusinessInteraction
 	 */
+    @Override
     public IBusinessInteraction createBusinessInteraction() {
         return new org.archicontribs.database.model.impl.BusinessInteraction();
     }
@@ -517,6 +541,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessFunction<br>
 	 * Creates a DBBusinessFunction instead of a BusinessFunction
 	 */
+    @Override
     public IBusinessFunction createBusinessFunction() {
         return new org.archicontribs.database.model.impl.BusinessFunction();
     }
@@ -525,6 +550,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDataObject<br>
 	 * Creates a DBDataObject instead of a DataObject
 	 */
+    @Override
     public IDataObject createDataObject() {
         return new org.archicontribs.database.model.impl.DataObject();
     }
@@ -533,6 +559,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createCourseOfAction<br>
 	 * Creates a DBCourseOfAction instead of a CourseOfAction
 	 */
+    @Override
     public ICourseOfAction createCourseOfAction() {
         return new org.archicontribs.database.model.impl.CourseOfAction();
     }
@@ -541,6 +568,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createContract<br>
 	 * Creates a DBContract instead of a Contract
 	 */
+    @Override
     public IContract createContract() {
         return new org.archicontribs.database.model.impl.Contract();
     }
@@ -549,6 +577,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createConstraint<br>
 	 * Creates a DBConstraint instead of a Constraint
 	 */
+    @Override
     public IConstraint createConstraint() {
         return new org.archicontribs.database.model.impl.Constraint();
     }
@@ -557,6 +586,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createCompositionRelationship<br>
 	 * Creates a DBCompositionRelationship instead of a CompositionRelationship
 	 */
+    @Override
     public ICompositionRelationship createCompositionRelationship() {
         return new org.archicontribs.database.model.impl.CompositionRelationship();
     }
@@ -565,6 +595,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createCapability<br>
 	 * Creates a DBCapability instead of a Capability
 	 */
+    @Override
     public ICapability createCapability() {
         return new org.archicontribs.database.model.impl.Capability();
     }
@@ -573,6 +604,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createCommunicationNetwork<br>
 	 * Creates a DBCommunicationNetwork instead of a CommunicationNetwork
 	 */
+    @Override
     public ICommunicationNetwork createCommunicationNetwork() {
         return new org.archicontribs.database.model.impl.CommunicationNetwork();
     }
@@ -581,6 +613,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createBusinessService<br>
 	 * Creates a DBBusinessService instead of a BusinessService
 	 */
+    @Override
     public IBusinessService createBusinessService() {
         return new org.archicontribs.database.model.impl.BusinessService();
     }
@@ -589,6 +622,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDeliverable<br>
 	 * Creates a DBDeliverable instead of a Deliverable
 	 */
+    @Override
     public IDeliverable createDeliverable() {
         return new org.archicontribs.database.model.impl.Deliverable();
     }
@@ -597,6 +631,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDevice<br>
 	 * Creates a DBDevice instead of a Device
 	 */
+    @Override
     public IDevice createDevice() {
         return new org.archicontribs.database.model.impl.Device();
     }
@@ -605,6 +640,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelArchimateConnection<br>
 	 * Creates a DBDiagramModelArchimateConnection instead of a DiagramModelArchimateConnection
 	 */
+    @Override
     public IDiagramModelArchimateConnection createDiagramModelArchimateConnection() {
         return new org.archicontribs.database.model.impl.DiagramModelArchimateConnection();
     }
@@ -613,6 +649,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelArchimateObject<br>
 	 * Creates a DBDiagramModelArchimateObject instead of a DiagramModelArchimateObject
 	 */
+    @Override
     public IDiagramModelArchimateObject createDiagramModelArchimateObject() {
         return new org.archicontribs.database.model.impl.DiagramModelArchimateObject();
     }
@@ -621,6 +658,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelConnection<br>
 	 * Creates a DBDiagramModelArchimateObject instead of a DiagramModelConnection
 	 */
+    @Override
     public IDiagramModelConnection createDiagramModelConnection() {
         return new org.archicontribs.database.model.impl.DiagramModelConnection();
     }
@@ -629,6 +667,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelGroup<br>
 	 * Creates a DBDiagramModelGroup instead of a DiagramModelGroup
 	 */
+    @Override
     public IDiagramModelGroup createDiagramModelGroup() {
         return new org.archicontribs.database.model.impl.DiagramModelGroup();
     }
@@ -637,6 +676,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelImage<br>
 	 * Creates a DBDiagramModelImage instead of a DiagramModelImage
 	 */
+    @Override
     public IDiagramModelImage createDiagramModelImage() {
         return new org.archicontribs.database.model.impl.DiagramModelImage();
     }
@@ -645,22 +685,16 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDiagramModelNote<br>
 	 * Creates a DBDiagramModelNote instead of a DiagramModelNote
 	 */
+    @Override
     public IDiagramModelNote createDiagramModelNote() {
         return new org.archicontribs.database.model.impl.DiagramModelNote();
-    }
-    
-	/**
-	 * Override of the original createDiagramModelObject<br>
-	 * Creates a DBDiagramModelObject instead of a DiagramModelObject
-	 */
-    public IDiagramModelObject createDiagramModelObject() {
-        return new org.archicontribs.database.model.impl.DiagramModelObject();
     }
     
 	/**
 	 * Override of the original createDiagramModelReference<br>
 	 * Creates a DBDiagramModelReference instead of a DiagramModelReference
 	 */
+    @Override
     public IDiagramModelReference createDiagramModelReference() {
         return new org.archicontribs.database.model.impl.DiagramModelReference();
     }
@@ -669,6 +703,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDistributionNetwork<br>
 	 * Creates a DBDistributionNetwork instead of a DistributionNetwork
 	 */
+    @Override
     public IDistributionNetwork createDistributionNetwork() {
         return new org.archicontribs.database.model.impl.DistributionNetwork();
     }
@@ -677,6 +712,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createDriver<br>
 	 * Creates a DBDriver instead of a Driver
 	 */
+    @Override
     public IDriver createDriver() {
         return new org.archicontribs.database.model.impl.Driver();
     }
@@ -685,6 +721,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createEquipment<br>
 	 * Creates a DBEquipment instead of a Equipment
 	 */
+    @Override
     public IEquipment createEquipment() {
         return new org.archicontribs.database.model.impl.Equipment();
     }
@@ -693,6 +730,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createFacility<br>
 	 * Creates a DBFacility instead of a Facility
 	 */
+    @Override
     public IFacility createFacility() {
         return new org.archicontribs.database.model.impl.Facility();
     }
@@ -701,6 +739,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createFolder<br>
 	 * Creates a DBFolder instead of a Folder
 	 */
+    @Override
     public IFolder createFolder() {
         return new org.archicontribs.database.model.impl.Folder();
     }
@@ -709,6 +748,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createFlowRelationship<br>
 	 * Creates a DBFlowRelationship instead of a FlowRelationship
 	 */
+    @Override
     public IFlowRelationship createFlowRelationship() {
         return new org.archicontribs.database.model.impl.FlowRelationship();
     }
@@ -717,6 +757,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createGap<br>
 	 * Creates a DBGap instead of a Gap
 	 */
+    @Override
     public IGap createGap() {
         return new org.archicontribs.database.model.impl.Gap();
     }
@@ -725,6 +766,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createGoal<br>
 	 * Creates a DBGoal instead of a Goal
 	 */
+    @Override
     public IGoal createGoal() {
         return new org.archicontribs.database.model.impl.Goal();
     }
@@ -733,6 +775,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createGrouping<br>
 	 * Creates a DBGrouping instead of a Grouping
 	 */
+    @Override
     public IGrouping createGrouping() {
         return new org.archicontribs.database.model.impl.Grouping();
     }
@@ -741,6 +784,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createImplementationEvent<br>
 	 * Creates a DBImplementationEvent instead of a ImplementationEvent
 	 */
+    @Override
     public IImplementationEvent createImplementationEvent() {
         return new org.archicontribs.database.model.impl.ImplementationEvent();
     }
@@ -749,6 +793,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createInfluenceRelationship<br>
 	 * Creates a DBInfluenceRelationship instead of a InfluenceRelationship
 	 */
+    @Override
     public IInfluenceRelationship createInfluenceRelationship() {
         return new org.archicontribs.database.model.impl.InfluenceRelationship();
     }
@@ -757,6 +802,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createJunction<br>
 	 * Creates a DBJunction instead of a Junction
 	 */
+    @Override
     public IJunction createJunction() {
         return new org.archicontribs.database.model.impl.Junction();
     }
@@ -765,6 +811,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createLocation<br>
 	 * Creates a DBLocation instead of a Location
 	 */
+    @Override
     public ILocation createLocation() {
         return new org.archicontribs.database.model.impl.Location();
     }
@@ -773,6 +820,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createMaterial<br>
 	 * Creates a DBMaterial instead of a Material
 	 */
+    @Override
     public IMaterial createMaterial() {
         return new org.archicontribs.database.model.impl.Material();
     }
@@ -781,6 +829,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createMeaning<br>
 	 * Creates a DBMeaning instead of a Meaning
 	 */
+    @Override
     public IMeaning createMeaning() {
         return new org.archicontribs.database.model.impl.Meaning();
     }
@@ -789,6 +838,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createOutcome<br>
 	 * Creates a DBOutcome instead of a Outcome
 	 */
+    @Override
     public IOutcome createOutcome() {
         return new org.archicontribs.database.model.impl.Outcome();
     }
@@ -797,6 +847,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createPath<br>
 	 * Creates a DBPath instead of a Path
 	 */
+    @Override
     public IPath createPath() {
         return new org.archicontribs.database.model.impl.Path();
     }
@@ -805,6 +856,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createPlateau<br>
 	 * Creates a DBPlateau instead of a Plateau
 	 */
+    @Override
     public IPlateau createPlateau() {
         return new org.archicontribs.database.model.impl.Plateau();
     }
@@ -813,6 +865,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createPrinciple<br>
 	 * Creates a DBPrinciple instead of a Principle
 	 */
+    @Override
     public IPrinciple createPrinciple() {
         return new org.archicontribs.database.model.impl.Principle();
     }
@@ -821,6 +874,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createProduct<br>
 	 * Creates a DBProduct instead of a Product
 	 */
+    @Override
     public IProduct createProduct() {
         return new org.archicontribs.database.model.impl.Product();
     }
@@ -829,6 +883,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createRealizationRelationship<br>
 	 * Creates a DBRealizationRelationship instead of a RealizationRelationship
 	 */
+    @Override
     public IRealizationRelationship createRealizationRelationship() {
         return new org.archicontribs.database.model.impl.RealizationRelationship();
     }
@@ -837,6 +892,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createRepresentation<br>
 	 * Creates a DBRepresentation instead of a Representation
 	 */
+    @Override
     public IRepresentation createRepresentation() {
         return new org.archicontribs.database.model.impl.Representation();
     }
@@ -845,6 +901,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createRequirement<br>
 	 * Creates a DBRequirement instead of a Requirement
 	 */
+    @Override
     public IRequirement createRequirement() {
         return new org.archicontribs.database.model.impl.Requirement();
     }
@@ -853,6 +910,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createResource<br>
 	 * Creates a DBResource instead of a Resource
 	 */
+    @Override
     public IResource createResource() {
         return new org.archicontribs.database.model.impl.Resource();
     }
@@ -861,6 +919,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createServingRelationship<br>
 	 * Creates a DBServingRelationship instead of a ServingRelationship
 	 */
+    @Override
     public IServingRelationship createServingRelationship() {
         return new org.archicontribs.database.model.impl.ServingRelationship();
     }
@@ -869,6 +928,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createSketchModel<br>
 	 * Creates a DBSketchModel instead of a SketchModel
 	 */
+    @Override
     public ISketchModel createSketchModel() {
         return new org.archicontribs.database.model.impl.SketchModel();
     }
@@ -877,6 +937,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createSketchModelActor<br>
 	 * Creates a DBSketchModelActor instead of a SketchModelActor
 	 */
+    @Override
     public ISketchModelActor createSketchModelActor() {
         return new org.archicontribs.database.model.impl.SketchModelActor();
     }
@@ -885,6 +946,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createSketchModelSticky<br>
 	 * Creates a DBSketchModelSticky instead of a SketchModelSticky
 	 */
+    @Override
     public ISketchModelSticky createSketchModelSticky() {
         return new org.archicontribs.database.model.impl.SketchModelSticky();
     }
@@ -893,6 +955,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createSpecializationRelationship<br>
 	 * Creates a DBSpecializationRelationship instead of a SpecializationRelationship
 	 */
+    @Override
     public ISpecializationRelationship createSpecializationRelationship() {
         return new org.archicontribs.database.model.impl.SpecializationRelationship();
     }
@@ -902,6 +965,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createStakeholder<br>
 	 * Creates a DBStakeholder instead of a Stakeholder
 	 */
+    @Override
     public IStakeholder createStakeholder() {
         return new org.archicontribs.database.model.impl.Stakeholder();
     }
@@ -910,6 +974,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createSystemSoftware<br>
 	 * Creates a DBSystemSoftware instead of a SystemSoftware
 	 */
+    @Override
     public ISystemSoftware createSystemSoftware() {
         return new org.archicontribs.database.model.impl.SystemSoftware();
     }
@@ -918,6 +983,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyCollaboration<br>
 	 * Creates a DBTechnologyCollaboration instead of a TechnologyCollaboration
 	 */
+    @Override
     public ITechnologyCollaboration createTechnologyCollaboration() {
         return new org.archicontribs.database.model.impl.TechnologyCollaboration();
     }
@@ -926,6 +992,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyEvent<br>
 	 * Creates a DBTechnologyEvent instead of a TechnologyEvent
 	 */
+    @Override
     public ITechnologyEvent createTechnologyEvent() {
         return new org.archicontribs.database.model.impl.TechnologyEvent();
     }
@@ -934,6 +1001,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyFunction<br>
 	 * Creates a DBTechnologyFunction instead of a TechnologyFunction
 	 */
+    @Override
     public ITechnologyFunction createTechnologyFunction() {
         return new org.archicontribs.database.model.impl.TechnologyFunction();
     }
@@ -942,6 +1010,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyInteraction<br>
 	 * Creates a DBTechnologyInteraction instead of a TechnologyInteraction
 	 */
+    @Override
     public ITechnologyInteraction createTechnologyInteraction() {
         return new org.archicontribs.database.model.impl.TechnologyInteraction();
     }
@@ -950,6 +1019,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyInterface<br>
 	 * Creates a DBTechnologyInterface instead of a TechnologyInterface
 	 */
+    @Override
     public ITechnologyInterface createTechnologyInterface() {
         return new org.archicontribs.database.model.impl.TechnologyInterface();
     }
@@ -958,6 +1028,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyProcess<br>
 	 * Creates a DBTechnologyProcess instead of a TechnologyProcess
 	 */
+    @Override
     public ITechnologyProcess createTechnologyProcess() {
         return new org.archicontribs.database.model.impl.TechnologyProcess();
     }
@@ -966,6 +1037,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTechnologyService<br>
 	 * Creates a DBTechnologyService instead of a TechnologyService
 	 */
+    @Override
     public ITechnologyService createTechnologyService() {
         return new org.archicontribs.database.model.impl.TechnologyService();
     }
@@ -974,6 +1046,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createTriggeringRelationship<br>
 	 * Creates a DBTriggeringRelationship instead of a TriggeringRelationship
 	 */
+    @Override
     public ITriggeringRelationship createTriggeringRelationship() {
         return new org.archicontribs.database.model.impl.TriggeringRelationship();
     }
@@ -982,6 +1055,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createValue<br>
 	 * Creates a DBValue instead of a Value
 	 */
+    @Override
     public IValue createValue() {
         return new org.archicontribs.database.model.impl.Value();
     }
@@ -990,6 +1064,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Override of the original createWorkPackage<br>
 	 * Creates a DBWorkPackage instead of a WorkPackage
 	 */
+    @Override
     public IWorkPackage createWorkPackage() {
         return new org.archicontribs.database.model.impl.WorkPackage();
     }

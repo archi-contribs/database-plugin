@@ -57,7 +57,7 @@ public class DBGuiImportComponent extends DBGui {
 	private Group grpFilter;
 	private Group grpComponent;
 
-	private Composite compoElements;
+	Composite compoElements;
 	private Button radioOptionElement;
 	private Button radioOptionView;
 	private Text filterName;
@@ -76,13 +76,13 @@ public class DBGuiImportComponent extends DBGui {
 	//private Button motivationFolders;
 	//private Button implementationFolders;
 
-	private Composite compoViews;
+	Composite compoViews;
 	private Button archimateViews;
 	private Button canvasViews;
 	private Button sketchViews;
 
-	private Label lblComponents;
-	private Table tblComponents;
+	Label lblComponents;
+	Table tblComponents;
 
 
 	ComponentLabel resourceLabel;
@@ -153,7 +153,7 @@ public class DBGuiImportComponent extends DBGui {
 	public DBGuiImportComponent(ArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
 		super(title);
 
-		includeNeo4j = false;
+		this.includeNeo4j = false;
 
 		popup("Please wait while counting model's components");
 		model.countAllObjects();
@@ -163,13 +163,13 @@ public class DBGuiImportComponent extends DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion+").");
 
 		// model in which the component should be imported
-		importedModel = model;
+		this.importedModel = model;
 
 		// if specified, the imported element or relationship will be instantiated as an object or a connection in the view
-		selectedView = view;
+		this.selectedView = view;
 
 		// if specified, the imported view will be instantiated into the folder (if the root folder type is view)
-		selectedFolder = folder;
+		this.selectedFolder = folder;
 
 		createAction(ACTION.One, "Choose component");
 		setActiveAction(ACTION.One);
@@ -179,15 +179,17 @@ public class DBGuiImportComponent extends DBGui {
 		
 		// We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
 		setBtnAction("Import", new SelectionListener() {
-			public void widgetSelected(SelectionEvent event) {
-				btnDoAction.setEnabled(false);
+			@Override
+            public void widgetSelected(SelectionEvent event) {
+				DBGuiImportComponent.this.btnDoAction.setEnabled(false);
 				try {
 					doImport();
 				} catch (Exception err) {
 					DBGui.popup(Level.ERROR, "An exception has been raised during import.", err);
 				}
 			}
-			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 
 		// We activate the Eclipse Help framework
@@ -204,24 +206,24 @@ public class DBGuiImportComponent extends DBGui {
 		enableOption();
 		createGrpFilter();
 		createGrpComponents();
-		compoRightBottom.setVisible(true);
-		compoRightBottom.layout();
+		this.compoRightBottom.setVisible(true);
+		this.compoRightBottom.layout();
 	}
 
 	private void createGrpFilter() {
-		grpFilter = new Group(compoRightBottom, SWT.NONE);
-		grpFilter.setBackground(GROUP_BACKGROUND_COLOR);
-		grpFilter.setFont(GROUP_TITLE_FONT);
-		grpFilter.setText("Filter : ");
+		this.grpFilter = new Group(this.compoRightBottom, SWT.NONE);
+		this.grpFilter.setBackground(GROUP_BACKGROUND_COLOR);
+		this.grpFilter.setFont(GROUP_TITLE_FONT);
+		this.grpFilter.setText("Filter : ");
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(50, -5);
-		grpFilter.setLayoutData(fd);
-		grpFilter.setLayout(new FormLayout());
+		this.grpFilter.setLayoutData(fd);
+		this.grpFilter.setLayout(new FormLayout());
 
-		Label chooseCategory = new Label(grpFilter, SWT.NONE);
+		Label chooseCategory = new Label(this.grpFilter, SWT.NONE);
 		chooseCategory.setBackground(GROUP_BACKGROUND_COLOR);
 		chooseCategory.setFont(BOLD_FONT);
 		chooseCategory.setText("Category :");
@@ -230,11 +232,11 @@ public class DBGuiImportComponent extends DBGui {
 		fd.left = new FormAttachment(0, 10);
 		chooseCategory.setLayoutData(fd);
 
-		radioOptionElement = new Button(grpFilter, SWT.RADIO);
-		radioOptionElement.setBackground(GROUP_BACKGROUND_COLOR);
-		radioOptionElement.setText("Elements");
-		radioOptionElement.setSelection(true);
-		radioOptionElement.addSelectionListener(new SelectionListener() {
+		this.radioOptionElement = new Button(this.grpFilter, SWT.RADIO);
+		this.radioOptionElement.setBackground(GROUP_BACKGROUND_COLOR);
+		this.radioOptionElement.setText("Elements");
+		this.radioOptionElement.setSelection(true);
+		this.radioOptionElement.addSelectionListener(new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent event) {
 				try {
 					getElements();
@@ -246,12 +248,12 @@ public class DBGuiImportComponent extends DBGui {
 		fd = new FormData();
 		fd.top = new FormAttachment(chooseCategory, 5);
 		fd.left = new FormAttachment(0, 20);
-		radioOptionElement.setLayoutData(fd);
+		this.radioOptionElement.setLayoutData(fd);
 
-		radioOptionView = new Button(grpFilter, SWT.RADIO);
-		radioOptionView.setBackground(GROUP_BACKGROUND_COLOR);
-		radioOptionView.setText("Views");
-		radioOptionView.addSelectionListener(new SelectionListener() {
+		this.radioOptionView = new Button(this.grpFilter, SWT.RADIO);
+		this.radioOptionView.setBackground(GROUP_BACKGROUND_COLOR);
+		this.radioOptionView.setText("Views");
+		this.radioOptionView.addSelectionListener(new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent event) {
 				try {
 					getViews();
@@ -262,36 +264,37 @@ public class DBGuiImportComponent extends DBGui {
 			@Override public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionElement, 5);
+		fd.top = new FormAttachment(this.radioOptionElement, 5);
 		fd.left = new FormAttachment(0, 20);
-		radioOptionView.setLayoutData(fd);
+		this.radioOptionView.setLayoutData(fd);
 
-		Label chooseName = new Label(grpFilter, SWT.NONE);
+		Label chooseName = new Label(this.grpFilter, SWT.NONE);
 		chooseName.setBackground(GROUP_BACKGROUND_COLOR);
 		chooseName.setFont(BOLD_FONT);
 		chooseName.setText("Name filter :");
 		fd = new FormData();
-		fd.top = new FormAttachment(radioOptionView, 10);
+		fd.top = new FormAttachment(this.radioOptionView, 10);
 		fd.left = new FormAttachment(0, 10);
 		chooseName.setLayoutData(fd);
 
-		filterName = new Text(grpFilter, SWT.NONE);
+		this.filterName = new Text(this.grpFilter, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(chooseName, 5);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(0, 125);
-		filterName.setLayoutData(fd);
-		filterName.addModifyListener(new ModifyListener() {
-			public void modifyText(ModifyEvent event) {
+		this.filterName.setLayoutData(fd);
+		this.filterName.addModifyListener(new ModifyListener() {
+			@Override
+            public void modifyText(ModifyEvent event) {
 				try {
-					if ( connection.isConnected() ) {
-						if ( compoElements.isVisible() )
+					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
 						//	getContainers();
 						//else if ( compoFolders.isVisible() )
 						//	getFolders();
-						else if ( compoViews.isVisible() )
+						else if ( DBGuiImportComponent.this.compoViews.isVisible() )
 							getViews();
 					}
 				} catch (Exception err) {
@@ -300,26 +303,26 @@ public class DBGuiImportComponent extends DBGui {
 			}
 		});
 
-		ignoreCase = new Button(grpFilter, SWT.CHECK);
-		ignoreCase.setBackground(GROUP_BACKGROUND_COLOR);
-		ignoreCase.setText("Ignore case");
-		ignoreCase.setSelection(true);
+		this.ignoreCase = new Button(this.grpFilter, SWT.CHECK);
+		this.ignoreCase.setBackground(GROUP_BACKGROUND_COLOR);
+		this.ignoreCase.setText("Ignore case");
+		this.ignoreCase.setSelection(true);
 		fd = new FormData();
-		fd.top = new FormAttachment(filterName, 5);
+		fd.top = new FormAttachment(this.filterName, 5);
 		fd.left = new FormAttachment(0, 10);
-		ignoreCase.setLayoutData(fd);
-		ignoreCase.addListener(SWT.MouseUp, new Listener() {
+		this.ignoreCase.setLayoutData(fd);
+		this.ignoreCase.addListener(SWT.MouseUp, new Listener() {
 			@Override
 			public void handleEvent(Event event) {
 				try {
-					if ( connection.isConnected() ) {
-						if ( compoElements.isVisible() )
+					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
 						//	getContainers();
 						//else if ( compoFolders.isVisible() )
 						//	getFolders();
-						else if ( compoViews.isVisible() )
+						else if ( DBGuiImportComponent.this.compoViews.isVisible() )
 							getViews();
 					}
 				} catch (Exception err) {
@@ -328,146 +331,146 @@ public class DBGuiImportComponent extends DBGui {
 			}
 		});
 
-		createCompoElements();		compoElements.setVisible(true);
+		createCompoElements();		this.compoElements.setVisible(true);
 		//createCompoComposites();	compoContainers.setVisible(false);
 		//createCompoFolders();		compoFolders.setVisible(false);
-		createCompoViews();			compoViews.setVisible(false);
+		createCompoViews();			this.compoViews.setVisible(false);
 	}
 
 	private void createCompoElements() {		
-		compoElements = new Composite(grpFilter, SWT.NONE);
-		compoElements.setBackground(GROUP_BACKGROUND_COLOR);
+		this.compoElements = new Composite(this.grpFilter, SWT.NONE);
+		this.compoElements.setBackground(GROUP_BACKGROUND_COLOR);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -10);
-		compoElements.setLayoutData(fd);
-		compoElements.setLayout(new FormLayout());
+		this.compoElements.setLayoutData(fd);
+		this.compoElements.setLayout(new FormLayout());
 
-		Composite strategyActiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite strategyBehaviorCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite strategyPassiveCompo = new Composite(compoElements, SWT.TRANSPARENT );
+		Composite strategyActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite strategyBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite strategyPassiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT );
 
-		Composite businessActiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite businessBehaviorCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite businessPassiveCompo = new Composite(compoElements, SWT.TRANSPARENT );
+		Composite businessActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite businessBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite businessPassiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT );
 
-		Composite applicationActiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite applicationBehaviorCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite applicationPassiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite applicationActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite applicationBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite applicationPassiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 
-		Composite technologyActiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite technologyBehaviorCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite technologyPassiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite technologyActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite technologyBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite technologyPassiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 
-		Composite physicalActiveCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite physicalBehaviorCompo = new Composite(compoElements, SWT.TRANSPARENT);
-		Composite physicalPassive = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite physicalActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite physicalBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
+		Composite physicalPassive = new Composite(this.compoElements, SWT.TRANSPARENT);
 
-		Composite implementationCompo = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite implementationCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 
 
-		Composite motivationCompo = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite motivationCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 
-		Composite otherCompo = new Composite(compoElements, SWT.TRANSPARENT);
+		Composite otherCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		// Strategy layer
 		// Passive
 		// Behavior
-		capabilityLabel = new ComponentLabel(strategyBehaviorCompo,  "Capability");
-		courseOfActionLabel = new ComponentLabel(strategyBehaviorCompo,  "Course Of Action");
+		this.capabilityLabel = new ComponentLabel(strategyBehaviorCompo,  "Capability");
+		this.courseOfActionLabel = new ComponentLabel(strategyBehaviorCompo,  "Course Of Action");
 		// Active
-		resourceLabel = new ComponentLabel(strategyActiveCompo, "Resource");
+		this.resourceLabel = new ComponentLabel(strategyActiveCompo, "Resource");
 
 		// Business layer
 		// Passive
-		productLabel = new ComponentLabel(businessPassiveCompo, "Product");
+		this.productLabel = new ComponentLabel(businessPassiveCompo, "Product");
 		// Behavior
-		businessProcessLabel = new ComponentLabel(businessBehaviorCompo, "Business Process");
-		businessFunctionLabel = new ComponentLabel(businessBehaviorCompo, "Business Function");
-		businessInteractionLabel = new ComponentLabel(businessBehaviorCompo, "Business Interaction");
-		businessEventLabel = new ComponentLabel(businessBehaviorCompo, "Business Event");
-		businessServiceLabel = new ComponentLabel(businessBehaviorCompo, "Business Service");
-		businessObjectLabel = new ComponentLabel(businessBehaviorCompo, "Business Object");
-		contractLabel = new ComponentLabel(businessBehaviorCompo, "Contract");
-		representationLabel = new ComponentLabel(businessBehaviorCompo, "Representation");
+		this.businessProcessLabel = new ComponentLabel(businessBehaviorCompo, "Business Process");
+		this.businessFunctionLabel = new ComponentLabel(businessBehaviorCompo, "Business Function");
+		this.businessInteractionLabel = new ComponentLabel(businessBehaviorCompo, "Business Interaction");
+		this.businessEventLabel = new ComponentLabel(businessBehaviorCompo, "Business Event");
+		this.businessServiceLabel = new ComponentLabel(businessBehaviorCompo, "Business Service");
+		this.businessObjectLabel = new ComponentLabel(businessBehaviorCompo, "Business Object");
+		this.contractLabel = new ComponentLabel(businessBehaviorCompo, "Contract");
+		this.representationLabel = new ComponentLabel(businessBehaviorCompo, "Representation");
 		// Active
-		businessActorLabel = new ComponentLabel(businessActiveCompo, "Business Actor");
-		businessRoleLabel = new ComponentLabel(businessActiveCompo, "Business Role");
-		businessCollaborationLabel = new ComponentLabel(businessActiveCompo, "Business Collaboration");
-		businessInterfaceLabel = new ComponentLabel(businessActiveCompo, "Business Interface");
+		this.businessActorLabel = new ComponentLabel(businessActiveCompo, "Business Actor");
+		this.businessRoleLabel = new ComponentLabel(businessActiveCompo, "Business Role");
+		this.businessCollaborationLabel = new ComponentLabel(businessActiveCompo, "Business Collaboration");
+		this.businessInterfaceLabel = new ComponentLabel(businessActiveCompo, "Business Interface");
 
 		// Application layer
 		//Passive
-		dataObjectLabel = new ComponentLabel(applicationPassiveCompo, "Data Object");
+		this.dataObjectLabel = new ComponentLabel(applicationPassiveCompo, "Data Object");
 		//Behavior
-		applicationFunctionLabel = new ComponentLabel(applicationBehaviorCompo, "Application Function");
-		applicationInteractionLabel = new ComponentLabel(applicationBehaviorCompo, "Application Interaction");
-		applicationEventLabel = new ComponentLabel(applicationBehaviorCompo, "Application Event");
-		applicationServiceLabel = new ComponentLabel(applicationBehaviorCompo, "Application Service");
-		applicationProcessLabel = new ComponentLabel(applicationBehaviorCompo, "Application Process");
+		this.applicationFunctionLabel = new ComponentLabel(applicationBehaviorCompo, "Application Function");
+		this.applicationInteractionLabel = new ComponentLabel(applicationBehaviorCompo, "Application Interaction");
+		this.applicationEventLabel = new ComponentLabel(applicationBehaviorCompo, "Application Event");
+		this.applicationServiceLabel = new ComponentLabel(applicationBehaviorCompo, "Application Service");
+		this.applicationProcessLabel = new ComponentLabel(applicationBehaviorCompo, "Application Process");
 		//	Active		
-		applicationComponentLabel = new ComponentLabel(applicationActiveCompo, "Application Component");
-		applicationCollaborationLabel = new ComponentLabel(applicationActiveCompo, "Application Collaboration");
-		applicationInterfaceLabel = new ComponentLabel(applicationActiveCompo, "Application Interface");
+		this.applicationComponentLabel = new ComponentLabel(applicationActiveCompo, "Application Component");
+		this.applicationCollaborationLabel = new ComponentLabel(applicationActiveCompo, "Application Collaboration");
+		this.applicationInterfaceLabel = new ComponentLabel(applicationActiveCompo, "Application Interface");
 
 		// Technology layer
 		// Passive
-		artifactLabel = new ComponentLabel(technologyPassiveCompo, "Artifact");
+		this.artifactLabel = new ComponentLabel(technologyPassiveCompo, "Artifact");
 		// Behavior
-		technologyFunctionLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Function");
-		technologyProcessLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Process");
-		technologyInteractionLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Interaction");
-		technologyEventLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Event");
-		technologyServiceLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Service");
+		this.technologyFunctionLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Function");
+		this.technologyProcessLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Process");
+		this.technologyInteractionLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Interaction");
+		this.technologyEventLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Event");
+		this.technologyServiceLabel = new ComponentLabel(technologyBehaviorCompo, "Technology Service");
 		// Active
-		nodeLabel = new ComponentLabel(technologyActiveCompo, "Node");
-		deviceLabel = new ComponentLabel(technologyActiveCompo, "Device");
-		systemSoftwareLabel = new ComponentLabel(technologyActiveCompo, "System Software");
-		technologyCollaborationLabel = new ComponentLabel(technologyActiveCompo, "Technology Collaboration");
-		technologyInterfaceLabel = new ComponentLabel(technologyActiveCompo, "Technology Interface");
-		pathLabel = new ComponentLabel(technologyActiveCompo, "Path");
-		communicationNetworkLabel = new ComponentLabel(technologyActiveCompo, "Communication Network");
+		this.nodeLabel = new ComponentLabel(technologyActiveCompo, "Node");
+		this.deviceLabel = new ComponentLabel(technologyActiveCompo, "Device");
+		this.systemSoftwareLabel = new ComponentLabel(technologyActiveCompo, "System Software");
+		this.technologyCollaborationLabel = new ComponentLabel(technologyActiveCompo, "Technology Collaboration");
+		this.technologyInterfaceLabel = new ComponentLabel(technologyActiveCompo, "Technology Interface");
+		this.pathLabel = new ComponentLabel(technologyActiveCompo, "Path");
+		this.communicationNetworkLabel = new ComponentLabel(technologyActiveCompo, "Communication Network");
 
 		// Physical layer
 		// Passive
 		// Behavior
-		materialLabel = new ComponentLabel(physicalBehaviorCompo, "Material");
+		this.materialLabel = new ComponentLabel(physicalBehaviorCompo, "Material");
 		// Active
-		equipmentLabel = new ComponentLabel(physicalActiveCompo, "Equipment");
-		facilityLabel = new ComponentLabel(physicalActiveCompo, "Facility");
-		distributionNetworkLabel = new ComponentLabel(physicalActiveCompo, "Distribution Network");
+		this.equipmentLabel = new ComponentLabel(physicalActiveCompo, "Equipment");
+		this.facilityLabel = new ComponentLabel(physicalActiveCompo, "Facility");
+		this.distributionNetworkLabel = new ComponentLabel(physicalActiveCompo, "Distribution Network");
 
 		// Implementation layer
-		workpackageLabel = new ComponentLabel(implementationCompo, "Work Package");
-		deliverableLabel = new ComponentLabel(implementationCompo, "Deliverable");
-		implementationEventLabel = new ComponentLabel(implementationCompo, "Implementation Event");
-		plateauLabel = new ComponentLabel(implementationCompo, "Plateau");
-		gapLabel = new ComponentLabel(implementationCompo, "Gap");
+		this.workpackageLabel = new ComponentLabel(implementationCompo, "Work Package");
+		this.deliverableLabel = new ComponentLabel(implementationCompo, "Deliverable");
+		this.implementationEventLabel = new ComponentLabel(implementationCompo, "Implementation Event");
+		this.plateauLabel = new ComponentLabel(implementationCompo, "Plateau");
+		this.gapLabel = new ComponentLabel(implementationCompo, "Gap");
 
 		// Motivation layer
-		stakeholderLabel = new ComponentLabel(motivationCompo, "Stakeholder");
-		driverLabel = new ComponentLabel(motivationCompo, "Driver");
-		assessmentLabel = new ComponentLabel(motivationCompo, "Assessment");
-		goalLabel = new ComponentLabel(motivationCompo, "Goal");
-		outcomeLabel = new ComponentLabel(motivationCompo, "Outcome");
-		principleLabel = new ComponentLabel(motivationCompo, "Principle");
-		requirementLabel = new ComponentLabel(motivationCompo, "Requirement");
-		constaintLabel = new ComponentLabel(motivationCompo, "Constraint");
-		smeaningLabel = new ComponentLabel(motivationCompo, "Meaning");
-		valueLabel = new ComponentLabel(motivationCompo, "Value");
+		this.stakeholderLabel = new ComponentLabel(motivationCompo, "Stakeholder");
+		this.driverLabel = new ComponentLabel(motivationCompo, "Driver");
+		this.assessmentLabel = new ComponentLabel(motivationCompo, "Assessment");
+		this.goalLabel = new ComponentLabel(motivationCompo, "Goal");
+		this.outcomeLabel = new ComponentLabel(motivationCompo, "Outcome");
+		this.principleLabel = new ComponentLabel(motivationCompo, "Principle");
+		this.requirementLabel = new ComponentLabel(motivationCompo, "Requirement");
+		this.constaintLabel = new ComponentLabel(motivationCompo, "Constraint");
+		this.smeaningLabel = new ComponentLabel(motivationCompo, "Meaning");
+		this.valueLabel = new ComponentLabel(motivationCompo, "Value");
 
 		// Containers !!!
 		//
 		//createTableItem(tblClasses, "Grouping");
-		locationLabel = new ComponentLabel(otherCompo, "Location");
+		this.locationLabel = new ComponentLabel(otherCompo, "Location");
 
-		allElementLabels = new ComponentLabel[]{ resourceLabel, capabilityLabel, courseOfActionLabel, applicationComponentLabel, applicationCollaborationLabel, applicationInterfaceLabel, applicationFunctionLabel, applicationInteractionLabel, applicationEventLabel, applicationServiceLabel, dataObjectLabel, applicationProcessLabel, businessActorLabel, businessRoleLabel, businessCollaborationLabel, businessInterfaceLabel, businessProcessLabel, businessFunctionLabel, businessInteractionLabel, businessEventLabel, businessServiceLabel, businessObjectLabel, contractLabel, representationLabel, nodeLabel, deviceLabel, systemSoftwareLabel, technologyCollaborationLabel, technologyInterfaceLabel, pathLabel, communicationNetworkLabel, technologyFunctionLabel, technologyProcessLabel, technologyInteractionLabel, technologyEventLabel, technologyServiceLabel, artifactLabel, equipmentLabel, facilityLabel, distributionNetworkLabel, materialLabel, workpackageLabel, deliverableLabel, implementationEventLabel, plateauLabel, gapLabel, stakeholderLabel, driverLabel, assessmentLabel, goalLabel, outcomeLabel, principleLabel, requirementLabel, constaintLabel, smeaningLabel, valueLabel, productLabel, locationLabel};
+		this.allElementLabels = new ComponentLabel[]{ this.resourceLabel, this.capabilityLabel, this.courseOfActionLabel, this.applicationComponentLabel, this.applicationCollaborationLabel, this.applicationInterfaceLabel, this.applicationFunctionLabel, this.applicationInteractionLabel, this.applicationEventLabel, this.applicationServiceLabel, this.dataObjectLabel, this.applicationProcessLabel, this.businessActorLabel, this.businessRoleLabel, this.businessCollaborationLabel, this.businessInterfaceLabel, this.businessProcessLabel, this.businessFunctionLabel, this.businessInteractionLabel, this.businessEventLabel, this.businessServiceLabel, this.businessObjectLabel, this.contractLabel, this.representationLabel, this.nodeLabel, this.deviceLabel, this.systemSoftwareLabel, this.technologyCollaborationLabel, this.technologyInterfaceLabel, this.pathLabel, this.communicationNetworkLabel, this.technologyFunctionLabel, this.technologyProcessLabel, this.technologyInteractionLabel, this.technologyEventLabel, this.technologyServiceLabel, this.artifactLabel, this.equipmentLabel, this.facilityLabel, this.distributionNetworkLabel, this.materialLabel, this.workpackageLabel, this.deliverableLabel, this.implementationEventLabel, this.plateauLabel, this.gapLabel, this.stakeholderLabel, this.driverLabel, this.assessmentLabel, this.goalLabel, this.outcomeLabel, this.principleLabel, this.requirementLabel, this.constaintLabel, this.smeaningLabel, this.valueLabel, this.productLabel, this.locationLabel};
 
-		Label passiveLabel = new Label(compoElements, SWT.TRANSPARENT | SWT.CENTER);
-		Canvas passiveCanvas = new Canvas(compoElements, SWT.TRANSPARENT | SWT.BORDER);
+		Label passiveLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
+		Canvas passiveCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
@@ -482,8 +485,8 @@ public class DBGuiImportComponent extends DBGui {
 		passiveLabel.setText("Passive");
 		passiveLabel.setBackground(PASSIVE_COLOR);
 
-		Label behaviorLabel = new Label(compoElements, SWT.TRANSPARENT | SWT.CENTER);
-		Canvas behaviorCanvas = new Canvas(compoElements, SWT.TRANSPARENT | SWT.BORDER);
+		Label behaviorLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
+		Canvas behaviorCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
@@ -498,8 +501,8 @@ public class DBGuiImportComponent extends DBGui {
 		behaviorLabel.setText("Behavior");
 		behaviorLabel.setBackground(PASSIVE_COLOR);
 
-		Label activeLabel = new Label(compoElements, SWT.TRANSPARENT | SWT.CENTER);
-		Canvas activeCanvas = new Canvas(compoElements, SWT.TRANSPARENT | SWT.BORDER);
+		Label activeLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
+		Canvas activeCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
@@ -514,8 +517,8 @@ public class DBGuiImportComponent extends DBGui {
 		activeLabel.setText("Active");
 		activeLabel.setBackground(PASSIVE_COLOR);
 
-		Label motivationLabel = new Label(compoElements, SWT.TRANSPARENT | SWT.CENTER);
-		Canvas motivationCanvas = new Canvas(compoElements, SWT.TRANSPARENT);
+		Label motivationLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
+		Canvas motivationCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.bottom = new FormAttachment(85, -2);
@@ -531,7 +534,8 @@ public class DBGuiImportComponent extends DBGui {
 		motivationLabel.setBackground(MOTIVATION_COLOR);
 
 		PaintListener redraw = new PaintListener() {
-			public void paintControl(PaintEvent event) {
+			@Override
+            public void paintControl(PaintEvent event) {
 				event.gc.setAlpha(100);
 				if ( event.widget == motivationCanvas ) 
 					event.gc.setBackground(MOTIVATION_COLOR);
@@ -552,8 +556,8 @@ public class DBGuiImportComponent extends DBGui {
 
 
 
-		Label strategyLabel = new Label(compoElements, SWT.NONE);
-		Canvas strategyCanvas = new Canvas(compoElements, SWT.NONE);
+		Label strategyLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas strategyCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(10, 2);
 		fd.bottom = new FormAttachment(25, -2);
@@ -568,8 +572,8 @@ public class DBGuiImportComponent extends DBGui {
 		strategyLabel.setBackground(STRATEGY_COLOR);
 		strategyLabel.setText("Strategy");
 
-		Label businessLabel = new Label(compoElements, SWT.NONE);
-		Canvas businessCanvas = new Canvas(compoElements, SWT.NONE);
+		Label businessLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas businessCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(25, 2);
 		fd.bottom = new FormAttachment(40, -2);
@@ -584,8 +588,8 @@ public class DBGuiImportComponent extends DBGui {
 		businessLabel.setBackground(BUSINESS_COLOR);
 		businessLabel.setText("Business");
 
-		Label applicationLabel = new Label(compoElements, SWT.NONE);
-		Canvas applicationCanvas = new Canvas(compoElements, SWT.NONE);
+		Label applicationLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas applicationCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(40, 2);
 		fd.bottom = new FormAttachment(55, -2);
@@ -600,8 +604,8 @@ public class DBGuiImportComponent extends DBGui {
 		applicationLabel.setBackground(APPLICATION_COLOR);
 		applicationLabel.setText("Application");
 
-		Label technologyLabel = new Label(compoElements, SWT.NONE);
-		Canvas technologyCanvas = new Canvas(compoElements, SWT.NONE);
+		Label technologyLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas technologyCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(55, 2);
 		fd.bottom = new FormAttachment(70, -2);
@@ -616,8 +620,8 @@ public class DBGuiImportComponent extends DBGui {
 		technologyLabel.setBackground(TECHNOLOGY_COLOR);
 		technologyLabel.setText("Technology");
 
-		Label physicalLabel = new Label(compoElements, SWT.NONE);
-		Canvas physicalCanvas = new Canvas(compoElements, SWT.NONE);
+		Label physicalLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas physicalCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(70, 2);
 		fd.bottom = new FormAttachment(85, -2);
@@ -632,8 +636,8 @@ public class DBGuiImportComponent extends DBGui {
 		physicalLabel.setBackground(PHYSICAL_COLOR);
 		physicalLabel.setText("Physical");
 
-		Label implementationLabel = new Label(compoElements, SWT.NONE);
-		Canvas implementationCanvas = new Canvas(compoElements, SWT.NONE);
+		Label implementationLabel = new Label(this.compoElements, SWT.NONE);
+		Canvas implementationCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(85, 2);
 		fd.bottom = new FormAttachment(100);
@@ -648,7 +652,7 @@ public class DBGuiImportComponent extends DBGui {
 		implementationLabel.setBackground(IMPLEMENTATION_COLOR);
 		implementationLabel.setText("Implementation");
 
-		Canvas otherCanvas = new Canvas(compoElements, SWT.NONE);
+		Canvas otherCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(85, 2);
 		fd.bottom = new FormAttachment(100);
@@ -971,17 +975,17 @@ public class DBGuiImportComponent extends DBGui {
 	 */
 
 	private void createCompoViews() {
-		compoViews = new Composite(grpFilter, SWT.NONE);
-		compoViews.setBackground(GROUP_BACKGROUND_COLOR);
+		this.compoViews = new Composite(this.grpFilter, SWT.NONE);
+		this.compoViews.setBackground(GROUP_BACKGROUND_COLOR);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -10);
-		compoViews.setLayoutData(fd);
-		compoViews.setLayout(new FormLayout());
+		this.compoViews.setLayoutData(fd);
+		this.compoViews.setLayout(new FormLayout());
 
-		Label viewTypeLabel = new Label(compoViews, SWT.NONE);
+		Label viewTypeLabel = new Label(this.compoViews, SWT.NONE);
 		viewTypeLabel.setBackground(GROUP_BACKGROUND_COLOR);
 		viewTypeLabel.setText("Select views type to display :");
 		fd = new FormData();
@@ -989,67 +993,67 @@ public class DBGuiImportComponent extends DBGui {
 		fd.left = new FormAttachment(0, 30);
 		viewTypeLabel.setLayoutData(fd);
 
-		archimateViews = new Button(compoViews, SWT.CHECK);
-		archimateViews.setBackground(GROUP_BACKGROUND_COLOR);
-		archimateViews.setText("Archimate views");
+		this.archimateViews = new Button(this.compoViews, SWT.CHECK);
+		this.archimateViews.setBackground(GROUP_BACKGROUND_COLOR);
+		this.archimateViews.setText("Archimate views");
 		fd = new FormData();
 		fd.top = new FormAttachment(viewTypeLabel, 5);
 		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
-		archimateViews.setLayoutData(fd);
-		archimateViews.addListener(SWT.MouseUp, getViewsListener); 
+		this.archimateViews.setLayoutData(fd);
+		this.archimateViews.addListener(SWT.MouseUp, this.getViewsListener); 
 
-		canvasViews = new Button(compoViews, SWT.CHECK);
-		canvasViews.setBackground(GROUP_BACKGROUND_COLOR);
-		canvasViews.setText("Canvas");
+		this.canvasViews = new Button(this.compoViews, SWT.CHECK);
+		this.canvasViews.setBackground(GROUP_BACKGROUND_COLOR);
+		this.canvasViews.setText("Canvas");
 		fd = new FormData();
-		fd.top = new FormAttachment(archimateViews, 5);
+		fd.top = new FormAttachment(this.archimateViews, 5);
 		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
-		canvasViews.setLayoutData(fd);
-		canvasViews.addListener(SWT.MouseUp, getViewsListener); 
+		this.canvasViews.setLayoutData(fd);
+		this.canvasViews.addListener(SWT.MouseUp, this.getViewsListener); 
 
-		sketchViews = new Button(compoViews, SWT.CHECK);
-		sketchViews.setBackground(GROUP_BACKGROUND_COLOR);
-		sketchViews.setText("Sketch views");
+		this.sketchViews = new Button(this.compoViews, SWT.CHECK);
+		this.sketchViews.setBackground(GROUP_BACKGROUND_COLOR);
+		this.sketchViews.setText("Sketch views");
 		fd = new FormData();
-		fd.top = new FormAttachment(canvasViews, 5);
+		fd.top = new FormAttachment(this.canvasViews, 5);
 		fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
-		sketchViews.setLayoutData(fd);
-		sketchViews.addListener(SWT.MouseUp, getViewsListener); 
+		this.sketchViews.setLayoutData(fd);
+		this.sketchViews.addListener(SWT.MouseUp, this.getViewsListener); 
 	}
 
 	private void createGrpComponents() {
-		grpComponent = new Group(compoRightBottom, SWT.NONE);
-		grpComponent.setBackground(GROUP_BACKGROUND_COLOR);
-		grpComponent.setFont(GROUP_TITLE_FONT);
-		grpComponent.setText("Select the component to import : ");
+		this.grpComponent = new Group(this.compoRightBottom, SWT.NONE);
+		this.grpComponent.setBackground(GROUP_BACKGROUND_COLOR);
+		this.grpComponent.setFont(GROUP_TITLE_FONT);
+		this.grpComponent.setText("Select the component to import : ");
 		FormData fd = new FormData();
-		fd.top = new FormAttachment(grpFilter, 10);
+		fd.top = new FormAttachment(this.grpFilter, 10);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(100);
-		grpComponent.setLayoutData(fd);
-		grpComponent.setLayout(new FormLayout());
+		this.grpComponent.setLayoutData(fd);
+		this.grpComponent.setLayout(new FormLayout());
 		
-		lblComponents = new Label(grpComponent, SWT.NONE);
-		lblComponents.setBackground(GROUP_BACKGROUND_COLOR);
+		this.lblComponents = new Label(this.grpComponent, SWT.NONE);
+		this.lblComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
 		fd.left = new FormAttachment(10);
 		fd.right = new FormAttachment(100, -10);
-		lblComponents.setLayoutData(fd);
+		this.lblComponents.setLayoutData(fd);
 
 		SelectionListener redrawTblComponents = new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
 				try {
-					if ( connection.isConnected() ) {
-						if ( compoElements.isVisible() )
+					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
 						//  getContainers();
 						//else if ( compoFolders.isVisible() )
 						//    getFolders();
-						else if ( compoViews.isVisible() )
+						else if ( DBGuiImportComponent.this.compoViews.isVisible() )
 							getViews();
 					}
 				} catch (Exception err) {
@@ -1063,137 +1067,139 @@ public class DBGuiImportComponent extends DBGui {
 			}
 		};
 
-		hideAlreadyInModel = new Button(grpComponent, SWT.CHECK);
-		hideAlreadyInModel.setBackground(GROUP_BACKGROUND_COLOR);
-		hideAlreadyInModel.setText("Hide components already in model");
-		hideAlreadyInModel.setSelection(true);
-		hideAlreadyInModel.addSelectionListener(redrawTblComponents);
+		this.hideAlreadyInModel = new Button(this.grpComponent, SWT.CHECK);
+		this.hideAlreadyInModel.setBackground(GROUP_BACKGROUND_COLOR);
+		this.hideAlreadyInModel.setText("Hide components already in model");
+		this.hideAlreadyInModel.setSelection(true);
+		this.hideAlreadyInModel.addSelectionListener(redrawTblComponents);
 
-		hideOption = new Button(grpComponent, SWT.CHECK);
-		hideOption.setBackground(GROUP_BACKGROUND_COLOR);
-		hideOption.setText("Hide components with empty names");
-		hideOption.setSelection(true);
-		hideOption.addSelectionListener(redrawTblComponents);
+		this.hideOption = new Button(this.grpComponent, SWT.CHECK);
+		this.hideOption.setBackground(GROUP_BACKGROUND_COLOR);
+		this.hideOption.setText("Hide components with empty names");
+		this.hideOption.setSelection(true);
+		this.hideOption.addSelectionListener(redrawTblComponents);
 		
-		tblComponents = new Table(grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
-		tblComponents.setLinesVisible(true);
-		tblComponents.setHeaderVisible(true);
-		tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
-		tblComponents.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				if ( tblComponents.getItemCount() < 2 ) {
-					lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		this.tblComponents = new Table(this.grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
+		this.tblComponents.setLinesVisible(true);
+		this.tblComponents.setHeaderVisible(true);
+		this.tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
+		this.tblComponents.addListener(SWT.Selection, new Listener() {
+			@Override
+            public void handleEvent(Event event) {
+				if ( DBGuiImportComponent.this.tblComponents.getItemCount() < 2 ) {
+					DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.tblComponents.getItemCount()+" component matches your criterias");
 				} else {
-					lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+					DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.tblComponents.getItemCount()+" components match your criterias");
 				}
 				
-				if ( tblComponents.getSelectionCount() == 0) {
-					lblComponents.setText(lblComponents.getText()+".");
+				if ( DBGuiImportComponent.this.tblComponents.getSelectionCount() == 0) {
+					DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.lblComponents.getText()+".");
 				} else {
-					lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
+					DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.lblComponents.getText()+" ("+DBGuiImportComponent.this.tblComponents.getSelectionCount()+" selected).");
 				}
 				
-				btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
+				DBGuiImportComponent.this.btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
 			}
 		});
 		
-		TableColumn colName = new TableColumn(tblComponents, SWT.NONE);
+		TableColumn colName = new TableColumn(this.tblComponents, SWT.NONE);
 		colName.setText("Name");
 		colName.setWidth(150);
-		TableColumn colDocumentation = new TableColumn(tblComponents, SWT.NONE);
+		TableColumn colDocumentation = new TableColumn(this.tblComponents, SWT.NONE);
 		colDocumentation.setText("Documentation");
 		colDocumentation.setWidth(300);
 		
-		tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
-			public void handleEvent(Event event) {
-				if ( btnDoAction.getEnabled() )
-					btnDoAction.notifyListeners(SWT.Selection, new Event());
+		this.tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
+			@Override
+            public void handleEvent(Event event) {
+				if ( DBGuiImportComponent.this.btnDoAction.getEnabled() )
+					DBGuiImportComponent.this.btnDoAction.notifyListeners(SWT.Selection, new Event());
 			}
 		});		
 
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
 		fd.left = new FormAttachment(50, 5);
-		hideOption.setLayoutData(fd);
+		this.hideOption.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.bottom = new FormAttachment(100, -5);
 		fd.right = new FormAttachment(50, -5);
-		hideAlreadyInModel.setLayoutData(fd);
+		this.hideAlreadyInModel.setLayoutData(fd);
 
 		fd = new FormData();
-		fd.top = new FormAttachment(lblComponents, 10);
+		fd.top = new FormAttachment(this.lblComponents, 10);
 		fd.left = new FormAttachment(10);
 		fd.right = new FormAttachment(90);
-		fd.bottom = new FormAttachment(hideAlreadyInModel, -5);
-		tblComponents.setLayoutData(fd);
+		fd.bottom = new FormAttachment(this.hideAlreadyInModel, -5);
+		this.tblComponents.setLayoutData(fd);
 	}
 
-	private void getElements() throws Exception {
-		compoElements.setVisible(true);
+	void getElements() throws Exception {
+		this.compoElements.setVisible(true);
 		//compoContainers.setVisible(false);
 		//compoFolders.setVisible(false);
-		compoViews.setVisible(false);
+		this.compoViews.setVisible(false);
 
 		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
-		tblComponents.removeAll();
+		this.tblComponents.removeAll();
 
 		if ( logger.isTraceEnabled() ) logger.trace("getting elements");
 
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
-		for (ComponentLabel label: allElementLabels) {
+		for (ComponentLabel label: this.allElementLabels) {
 			if ( label.isSelected ) {
 				inList.append(inList.length()==0 ? "?" : ", ?");
 				classList.add(label.getElementClassname());
 			}
 		}
 
-		hideOption.setText("Hide components with empty names");
+		this.hideOption.setText("Hide components with empty names");
 		String addOn = "";
-		if ( hideOption.getSelection() ) {
-			if ( selectedDatabase.getDriver().equals("oracle") ) {
+		if ( this.hideOption.getSelection() ) {
+			if ( this.selectedDatabase.getDriver().equals("oracle") ) {
 				addOn = " AND LENGTH(name) <> 0";
 			} else {
 				addOn = " AND name <> ''";
 			}
 		}
 			
-		addOn += " AND version = (SELECT MAX(version) FROM "+selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
+		addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 
-			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
+			if ( this.filterName.getText().length() == 0 )
+				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else {
-				if ( ignoreCase.getSelection() )
-					result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+filterName.getText().toUpperCase()+"%");
+				if ( this.ignoreCase.getSelection() )
+					result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
 				else
-					result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+					result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 			}
 
 			while (result.next()) {
-				if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllElements().get(result.getString("id"))==null))
-					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+				if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null))
+					createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
 		}
 		
-		if ( tblComponents.getItemCount() < 2 ) {
-			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		if ( this.tblComponents.getItemCount() < 2 ) {
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" component matches your criterias");
 		} else {
-			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" components match your criterias");
 		}
 		
-		if ( tblComponents.getSelectionCount() == 0) {
-			lblComponents.setText(lblComponents.getText()+".");
+		if ( this.tblComponents.getSelectionCount() == 0) {
+			this.lblComponents.setText(this.lblComponents.getText()+".");
 		} else {
-			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
+			this.lblComponents.setText(this.lblComponents.getText()+" ("+this.tblComponents.getSelectionCount()+" selected).");
 		}
 
-		btnDoAction.setEnabled(false);
+		this.btnDoAction.setEnabled(false);
 	}
 
 	/*
@@ -1276,73 +1282,73 @@ public class DBGuiImportComponent extends DBGui {
 	}
 	 */
 
-	private void getViews() throws Exception {
-		compoElements.setVisible(false);
+	void getViews() throws Exception {
+		this.compoElements.setVisible(false);
 		//compoContainers.setVisible(false);
 		//compoFolders.setVisible(false);
-		compoViews.setVisible(true);
+		this.compoViews.setVisible(true);
 
 		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
-		tblComponents.removeAll();
+		this.tblComponents.removeAll();
 
 		if ( logger.isTraceEnabled() ) logger.trace("getting views");
 
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
-		if ( archimateViews.getSelection() ) {
+		if ( this.archimateViews.getSelection() ) {
 			inList.append(inList.length()==0 ? "?" : ", ?");
 			classList.add("ArchimateDiagramModel");
 		}
-		if ( canvasViews.getSelection() ) {
+		if ( this.canvasViews.getSelection() ) {
 			inList.append(inList.length()==0 ? "?" : ", ?");
 			classList.add("CanvasModel");
 		}
-		if ( sketchViews.getSelection() ) {
+		if ( this.sketchViews.getSelection() ) {
 			inList.append(inList.length()==0 ? "?" : ", ?");
 			classList.add("SketchModel");
 		}
 
-		hideOption.setText("Hide default views");
+		this.hideOption.setText("Hide default views");
 		String addOn = "";
-		if ( hideOption.getSelection() )
+		if ( this.hideOption.getSelection() )
 			addOn = " AND name <> 'Default View'";
 		
-		addOn += " AND version = (SELECT MAX(version) FROM "+selectedDatabase.getSchemaPrefix()+"views WHERE id = v.id)";
+		addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views WHERE id = v.id)";
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
 
-			if ( filterName.getText().length() == 0 )
-				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
+			if ( this.filterName.getText().length() == 0 )
+				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else
-				result = connection.select("SELECT id, class, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+filterName.getText()+"%");
+				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 
 			while (result.next()) {
-				if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllViews().get(result.getString("id"))==null))
-					createTableItem(tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+				if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null))
+					createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 			}
 			result.close();
 		}
 		
-		if ( tblComponents.getItemCount() < 2 ) {
-			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
+		if ( this.tblComponents.getItemCount() < 2 ) {
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" component matches your criterias");
 		} else {
-			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" components match your criterias");
 		}
 		
-		if ( tblComponents.getSelectionCount() == 0) {
-			lblComponents.setText(lblComponents.getText()+".");
+		if ( this.tblComponents.getSelectionCount() == 0) {
+			this.lblComponents.setText(this.lblComponents.getText()+".");
 		} else {
-			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
+			this.lblComponents.setText(this.lblComponents.getText()+" ("+this.tblComponents.getSelectionCount()+" selected).");
 		}
 
-		btnDoAction.setEnabled(false);
+		this.btnDoAction.setEnabled(false);
 	}
 
 
 
-	private void createTableItem(Table table, String id, String className, String name, String documentation) {
+	private static void createTableItem(Table table, String id, String className, String name, String documentation) {
 		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to tblComponents");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
@@ -1355,30 +1361,30 @@ public class DBGuiImportComponent extends DBGui {
 	}
 
 
-	private void doImport() throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+tblComponents.getItemCount()+" items");
+	void doImport() throws Exception {
+		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+this.tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
-			logger.info("Importing "+tblComponents.getSelectionCount()+" component(s).");
+			logger.info("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
 		else
-			logger.info("Importing a copy of "+tblComponents.getSelectionCount()+" component(s).");
+			logger.info("Importing a copy of "+this.tblComponents.getSelectionCount()+" component(s).");
 
 		List<Object> imported = new ArrayList<Object>();
 		int done = 0;
 		
 		try {
-			for ( TableItem tableItem: tblComponents.getSelection() ) {
+			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
-				popup("("+(++done)+"/"+tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
+				popup("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
 				
-				if ( compoElements.getVisible() )
-					imported.add(connection.importElementFromId(importedModel, selectedView, id, 0, !getOptionValue()));
+				if ( this.compoElements.getVisible() )
+					imported.add(this.connection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue()));
 				//else if ( compoContainers.getVisible() )
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());
-				else if ( compoViews.getVisible() ) {
-					IDiagramModel view = connection.importViewFromId(importedModel, selectedFolder, id, !getOptionValue());
+				else if ( this.compoViews.getVisible() ) {
+					IDiagramModel view = this.connection.importViewFromId(this.importedModel, this.selectedFolder, id, !getOptionValue());
 					if ( view != null )
 						imported.add(view);
 				}
@@ -1400,7 +1406,7 @@ public class DBGuiImportComponent extends DBGui {
 		}
 
 		// we redraw the tblComponents to unselect the items (and hide the newly imported components if the option is selected)
-		hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
+		this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
 	}
 
 	private class ComponentLabel extends Label {
@@ -1411,15 +1417,15 @@ public class DBGuiImportComponent extends DBGui {
 			setSize(100,  100);
 			setToolTipText(toolTip);
 			setImage(DBArchimateFactory.getImage(getElementClassname()));
-			addPaintListener(redraw);
-			addListener(SWT.MouseUp, getElementsListener); 
+			addPaintListener(this.redraw);
+			addListener(SWT.MouseUp, DBGuiImportComponent.this.getElementsListener); 
 		}
 
 		private PaintListener redraw = new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent event)
 			{
-				if ( isSelected )
+				if ( ComponentLabel.this.isSelected )
 					setBackground(GREY_COLOR);
 				//event.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
 				else
@@ -1430,13 +1436,9 @@ public class DBGuiImportComponent extends DBGui {
 		public String getElementClassname() {
 			return getToolTipText().replaceAll(" ",  "");
 		}
-
-		@Override
-		protected void checkSubclass() {
-		}
 	}
 
-	private Listener getElementsListener = new Listener() {
+	Listener getElementsListener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
 			ComponentLabel label = (ComponentLabel)event.widget;

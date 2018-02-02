@@ -16,13 +16,14 @@ public class ApplicationFunction extends com.archimatetool.model.impl.Applicatio
 	
 	public ApplicationFunction() {
 		super();
-		dbMetadata = new DBMetadata(this);
+		this.dbMetadata = new DBMetadata(this);
 	}
 	
 	/**
 	 * Gets the DBMetadata of the object
 	 */
-	public DBMetadata getDBMetadata() {
-		return dbMetadata;
+	@Override
+    public DBMetadata getDBMetadata() {
+		return this.dbMetadata;
 	}
 }

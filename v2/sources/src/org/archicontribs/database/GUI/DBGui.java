@@ -107,8 +107,8 @@ public class DBGui {
 	
 	protected boolean includeNeo4j = true;
 	
-	private String HELP_HREF = null;
-	private boolean mouseOverHelpButton = false;
+	String HELP_HREF = null;
+	boolean mouseOverHelpButton = false;
 	
 	protected enum ACTION {One, Two, Three, Four}
 	protected enum STATUS {Empty, Selected, Running, Bypassed, Ok, Warn, Error}
@@ -178,8 +178,8 @@ public class DBGui {
 	private Label lblFourthAction;
 	
 	private Label lblOption;
-	private Button radioOption1;
-	private Button radioOption2; 
+	Button radioOption1;
+	Button radioOption2; 
 	
 	protected Combo comboDatabases;
 	protected Button btnSetPreferences;
@@ -204,16 +204,17 @@ public class DBGui {
 		
 		setArrowCursor();
 
-		dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
-		dialog.setText(DBPlugin.pluginTitle + " - " + title);
-		dialog.setMinimumSize(750, 550);
-		dialog.setSize(800,600);
-		dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - dialog.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - dialog.getSize().y) / 4);
-		dialog.setLayout(new FormLayout());
+		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
+		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
+		this.dialog.setMinimumSize(750, 550);
+		this.dialog.setSize(800,600);
+		this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 4);
+		this.dialog.setLayout(new FormLayout());
 		
-	    dialog.addListener(SWT.Close, new Listener()
+	    this.dialog.addListener(SWT.Close, new Listener()
 	    {
-	        public void handleEvent(Event event)
+	        @Override
+            public void handleEvent(Event event)
 	        {
 	            close();
 	            event.doit = true;         // TODO : manage stopping the import or export in the middle
@@ -224,17 +225,17 @@ public class DBGui {
 		//////////////////////////////////////////////////////////////////////// compoLeft ////////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		compoLeft = new Composite(dialog, SWT.BORDER);
-		compoLeft.setBackground(COMPO_LEFT_COLOR);
+		this.compoLeft = new Composite(this.dialog, SWT.BORDER);
+		this.compoLeft.setBackground(COMPO_LEFT_COLOR);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(0, 160);
 		fd.bottom = new FormAttachment(100, -40);
-		compoLeft.setLayoutData(fd);
-		compoLeft.setLayout(new FormLayout());
+		this.compoLeft.setLayoutData(fd);
+		this.compoLeft.setLayout(new FormLayout());
 		
-		Composite compoTitle = new Composite(compoLeft, SWT.BORDER);
+		Composite compoTitle = new Composite(this.compoLeft, SWT.BORDER);
 		compoTitle.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData(140,50);
 		fd.top = new FormAttachment(0, 40);
@@ -262,7 +263,7 @@ public class DBGui {
 		fd.right = new FormAttachment(100);
 		lblPluginVersion.setLayoutData(fd);
 		
-		Label imgDatabase = new Label(compoLeft, SWT.CENTER);
+		Label imgDatabase = new Label(this.compoLeft, SWT.CENTER);
 		imgDatabase.setBackground(COMPO_LEFT_COLOR);
 		imgDatabase.setImage(LOGO_IMAGE);
 		fd = new FormData(135,115);
@@ -271,113 +272,113 @@ public class DBGui {
 		fd.right = new FormAttachment(100);
 		imgDatabase.setLayoutData(fd);
 		
-		imgFirstAction = new Label(compoLeft, SWT.CENTER);
-		imgFirstAction.setBackground(COMPO_LEFT_COLOR);
+		this.imgFirstAction = new Label(this.compoLeft, SWT.CENTER);
+		this.imgFirstAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData(10,10);
 		fd.top = new FormAttachment(imgDatabase, 50);
 		fd.left = new FormAttachment(0, 10);
-		imgFirstAction.setLayoutData(fd);
+		this.imgFirstAction.setLayoutData(fd);
 		
-		lblFirstAction = new Label(compoLeft, SWT.NONE);
-		lblFirstAction.setBackground(COMPO_LEFT_COLOR);
+		this.lblFirstAction = new Label(this.compoLeft, SWT.NONE);
+		this.lblFirstAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(imgFirstAction, 0, SWT.CENTER);
-		fd.left = new FormAttachment(imgFirstAction, 10);
+		fd.top = new FormAttachment(this.imgFirstAction, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.imgFirstAction, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblFirstAction.setLayoutData(fd);
+		this.lblFirstAction.setLayoutData(fd);
 		
-		imgSecondAction = new Label(compoLeft, SWT.CENTER);
-		imgSecondAction.setBackground(COMPO_LEFT_COLOR);
+		this.imgSecondAction = new Label(this.compoLeft, SWT.CENTER);
+		this.imgSecondAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData(10,10);
-		fd.top = new FormAttachment(imgFirstAction, 10);
+		fd.top = new FormAttachment(this.imgFirstAction, 10);
 		fd.left = new FormAttachment(0, 10);
-		imgSecondAction.setLayoutData(fd);
+		this.imgSecondAction.setLayoutData(fd);
 		
-		lblSecondAction = new Label(compoLeft, SWT.NONE);
-		lblSecondAction.setBackground(COMPO_LEFT_COLOR);
+		this.lblSecondAction = new Label(this.compoLeft, SWT.NONE);
+		this.lblSecondAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(imgSecondAction, 0, SWT.CENTER);
-		fd.left = new FormAttachment(imgSecondAction, 10);
+		fd.top = new FormAttachment(this.imgSecondAction, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.imgSecondAction, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblSecondAction.setLayoutData(fd);
+		this.lblSecondAction.setLayoutData(fd);
 		
-		imgThirdAction = new Label(compoLeft, SWT.CENTER);
-		imgThirdAction.setBackground(COMPO_LEFT_COLOR);
+		this.imgThirdAction = new Label(this.compoLeft, SWT.CENTER);
+		this.imgThirdAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData(10,10);
-		fd.top = new FormAttachment(imgSecondAction, 10);
+		fd.top = new FormAttachment(this.imgSecondAction, 10);
 		fd.left = new FormAttachment(0, 10);
-		imgThirdAction.setLayoutData(fd);
+		this.imgThirdAction.setLayoutData(fd);
 		
-		lblThirdAction = new Label(compoLeft, SWT.NONE);
-		lblThirdAction.setBackground(COMPO_LEFT_COLOR);
+		this.lblThirdAction = new Label(this.compoLeft, SWT.NONE);
+		this.lblThirdAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(imgThirdAction, 0, SWT.CENTER);
-		fd.left = new FormAttachment(imgThirdAction, 10);
+		fd.top = new FormAttachment(this.imgThirdAction, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.imgThirdAction, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblThirdAction.setLayoutData(fd);
+		this.lblThirdAction.setLayoutData(fd);
 		
-		imgFourthAction = new Label(compoLeft, SWT.CENTER);
-		imgFourthAction.setBackground(COMPO_LEFT_COLOR);
+		this.imgFourthAction = new Label(this.compoLeft, SWT.CENTER);
+		this.imgFourthAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData(10,10);
-		fd.top = new FormAttachment(imgThirdAction, 10);
+		fd.top = new FormAttachment(this.imgThirdAction, 10);
 		fd.left = new FormAttachment(0, 10);
-		imgFourthAction.setLayoutData(fd);
+		this.imgFourthAction.setLayoutData(fd);
 		
-		lblFourthAction = new Label(compoLeft, SWT.NONE);
-		lblFourthAction.setBackground(COMPO_LEFT_COLOR);
+		this.lblFourthAction = new Label(this.compoLeft, SWT.NONE);
+		this.lblFourthAction.setBackground(COMPO_LEFT_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(imgFourthAction, 0, SWT.CENTER);
-		fd.left = new FormAttachment(imgFourthAction, 10);
+		fd.top = new FormAttachment(this.imgFourthAction, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.imgFourthAction, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblFourthAction.setLayoutData(fd);
+		this.lblFourthAction.setLayoutData(fd);
 		
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////// compoRight ///////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		compoRight = new Composite(dialog, SWT.BORDER);
-		compoRight.setBackground(COMPO_BACKGROUND_COLOR);
+		this.compoRight = new Composite(this.dialog, SWT.BORDER);
+		this.compoRight.setBackground(COMPO_BACKGROUND_COLOR);
 		FormData fd_compoRight = new FormData();
 		fd_compoRight.top = new FormAttachment(0);
 		fd_compoRight.bottom = new FormAttachment(100, -40);
-		fd_compoRight.left = new FormAttachment(compoLeft);
+		fd_compoRight.left = new FormAttachment(this.compoLeft);
 		fd_compoRight.right = new FormAttachment(100);
-		compoRight.setLayoutData(fd_compoRight);
-		compoRight.setLayout(new FormLayout());
+		this.compoRight.setLayoutData(fd_compoRight);
+		this.compoRight.setLayout(new FormLayout());
 		
-		compoRightTop = new Composite(compoRight, SWT.NONE);
-		compoRightTop.setBackground(COMPO_BACKGROUND_COLOR);
+		this.compoRightTop = new Composite(this.compoRight, SWT.NONE);
+		this.compoRightTop.setBackground(COMPO_BACKGROUND_COLOR);
 		FormData fd_compoRightUp = new FormData();
 		fd_compoRightUp.top = new FormAttachment(0, 10);
 		fd_compoRightUp.bottom = new FormAttachment(0, 60);
 		fd_compoRightUp.left = new FormAttachment(0, 10);
 		fd_compoRightUp.right = new FormAttachment(100, -10);
-		compoRightTop.setLayoutData(fd_compoRightUp);
-		compoRightTop.setLayout(new FormLayout());
+		this.compoRightTop.setLayoutData(fd_compoRightUp);
+		this.compoRightTop.setLayout(new FormLayout());
 		
-		compoRightBottom = new Composite(compoRight, SWT.NONE);
-		compoRightBottom.setBackground(COMPO_BACKGROUND_COLOR);
+		this.compoRightBottom = new Composite(this.compoRight, SWT.NONE);
+		this.compoRightBottom.setBackground(COMPO_BACKGROUND_COLOR);
 		FormData fd_compoRightBottom = new FormData();
-		fd_compoRightBottom.top = new FormAttachment(compoRightTop, 10);
+		fd_compoRightBottom.top = new FormAttachment(this.compoRightTop, 10);
 		fd_compoRightBottom.bottom = new FormAttachment(100, -10);
 		fd_compoRightBottom.left = new FormAttachment(0, 10);
 		fd_compoRightBottom.right = new FormAttachment(100, -10);
-		compoRightBottom.setLayoutData(fd_compoRightBottom);
-		compoRightBottom.setLayout(new FormLayout());
+		this.compoRightBottom.setLayoutData(fd_compoRightBottom);
+		this.compoRightBottom.setLayout(new FormLayout());
 		
-		grpDatabase = new Group(compoRightTop, SWT.SHADOW_ETCHED_IN);
-		grpDatabase.setBackground(GROUP_BACKGROUND_COLOR);
-		grpDatabase.setFont(GROUP_TITLE_FONT);
-		grpDatabase.setText("Database : ");
+		this.grpDatabase = new Group(this.compoRightTop, SWT.SHADOW_ETCHED_IN);
+		this.grpDatabase.setBackground(GROUP_BACKGROUND_COLOR);
+		this.grpDatabase.setFont(GROUP_TITLE_FONT);
+		this.grpDatabase.setText("Database : ");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(100);
-		grpDatabase.setLayoutData(fd);
-		grpDatabase.setLayout(new FormLayout());
+		this.grpDatabase.setLayoutData(fd);
+		this.grpDatabase.setLayout(new FormLayout());
 		
-		Label lblRegisteredDatabases = new Label(grpDatabase, SWT.NONE);
+		Label lblRegisteredDatabases = new Label(this.grpDatabase, SWT.NONE);
 		lblRegisteredDatabases.setBackground(GROUP_BACKGROUND_COLOR);
 		lblRegisteredDatabases.setText("Registered databases :");
 		fd = new FormData();
@@ -385,28 +386,32 @@ public class DBGui {
 		fd.left = new FormAttachment(0, 10);
 		lblRegisteredDatabases.setLayoutData(fd);
 		
-		btnSetPreferences = new Button(grpDatabase, SWT.NONE);
-		btnSetPreferences.setText("Set preferences ...");
-		btnSetPreferences.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent event) { try { setPreferences(); } catch (Exception e) { popup(Level.ERROR, "Failed to set preferences", e); } }
-			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+		this.btnSetPreferences = new Button(this.grpDatabase, SWT.NONE);
+		this.btnSetPreferences.setText("Set preferences ...");
+		this.btnSetPreferences.addSelectionListener(new SelectionListener() {
+			@Override
+            public void widgetSelected(SelectionEvent event) { try { setPreferences(); } catch (Exception e) { popup(Level.ERROR, "Failed to set preferences", e); } }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
 		fd.top = new FormAttachment(lblRegisteredDatabases, 0, SWT.CENTER);
 		fd.right = new FormAttachment(100, -10);
-		btnSetPreferences.setLayoutData(fd);
+		this.btnSetPreferences.setLayoutData(fd);
 		
-		comboDatabases = new Combo(grpDatabase, SWT.NONE | SWT.READ_ONLY);
-		comboDatabases.setBackground(GROUP_BACKGROUND_COLOR);
-		comboDatabases.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent event) { databaseSelected(); }
-			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+		this.comboDatabases = new Combo(this.grpDatabase, SWT.NONE | SWT.READ_ONLY);
+		this.comboDatabases.setBackground(GROUP_BACKGROUND_COLOR);
+		this.comboDatabases.addSelectionListener(new SelectionListener() {
+			@Override
+            public void widgetSelected(SelectionEvent event) { databaseSelected(); }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
 		fd.top = new FormAttachment(lblRegisteredDatabases, 0, SWT.CENTER);
 		fd.left = new FormAttachment(lblRegisteredDatabases, 10);
-		fd.right = new FormAttachment(btnSetPreferences, -40);
-		comboDatabases.setLayoutData(fd);
+		fd.right = new FormAttachment(this.btnSetPreferences, -40);
+		this.comboDatabases.setLayoutData(fd);
 		
 
 		
@@ -414,86 +419,90 @@ public class DBGui {
 		//////////////////////////////////////////////////////////////////////// compoBottom //////////////////////////////////////////////////////////////////////
 		///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		
-		compoBottom = new Composite(dialog, SWT.NONE);
-		compoBottom.setBackground(COMPO_BACKGROUND_COLOR);
+		this.compoBottom = new Composite(this.dialog, SWT.NONE);
+		this.compoBottom.setBackground(COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(100, -40);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(100);
-		compoBottom.setLayoutData(fd);
-		compoBottom.setLayout(new FormLayout());
+		this.compoBottom.setLayoutData(fd);
+		this.compoBottom.setLayout(new FormLayout());
 		
-		btnHelp = new Label(compoBottom, SWT.NONE);
-		btnHelp.setVisible(false);
-		btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = true; btnHelp.redraw(); } });
-		btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { mouseOverHelpButton = false; btnHelp.redraw(); } });
-		btnHelp.addPaintListener(new PaintListener() {
+		this.btnHelp = new Label(this.compoBottom, SWT.NONE);
+		this.btnHelp.setVisible(false);
+		this.btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { DBGui.this.mouseOverHelpButton = true; DBGui.this.btnHelp.redraw(); } });
+		this.btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { DBGui.this.mouseOverHelpButton = false; DBGui.this.btnHelp.redraw(); } });
+		this.btnHelp.addPaintListener(new PaintListener() {
             @Override
             public void paintControl(PaintEvent event)
             {
-                 if ( mouseOverHelpButton ) event.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
+                 if ( DBGui.this.mouseOverHelpButton ) event.gc.drawRoundRectangle(0, 0, 29, 29, 10, 10);
                  event.gc.drawImage(HELP_ICON, 2, 2);
             }
         });
-		btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/"+HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+HELP_HREF); } } });
+		this.btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBGui.this.HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); } } });
 		fd = new FormData(30,30);
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 5);
-		btnHelp.setLayoutData(fd);
+		this.btnHelp.setLayoutData(fd);
 		
 
-		btnClose = new Button(compoBottom, SWT.NONE);
-		btnClose.setText("Close");
-		btnClose.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent event) {
+		this.btnClose = new Button(this.compoBottom, SWT.NONE);
+		this.btnClose.setText("Close");
+		this.btnClose.addSelectionListener(new SelectionListener() {
+			@Override
+            public void widgetSelected(SelectionEvent event) {
 				close();
 			}
-			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData(100,25);
 		fd.top = new FormAttachment(0, 8);
 		fd.right = new FormAttachment(100, -10);
-		btnClose.setLayoutData(fd);
+		this.btnClose.setLayoutData(fd);
 		
-		btnDoAction = new Button(compoBottom, SWT.NONE);
-		btnDoAction.setEnabled(false);
-		btnDoAction.setVisible(false);
+		this.btnDoAction = new Button(this.compoBottom, SWT.NONE);
+		this.btnDoAction.setEnabled(false);
+		this.btnDoAction.setVisible(false);
 		fd = new FormData(100,25);
 		fd.top = new FormAttachment(0, 8);
-		fd.right = new FormAttachment(btnClose, -10);
-		btnDoAction.setLayoutData(fd);
+		fd.right = new FormAttachment(this.btnClose, -10);
+		this.btnDoAction.setLayoutData(fd);
 		
-		radioOption2 = new Button(compoBottom, SWT.RADIO);
-		radioOption2.setBackground(COMPO_BACKGROUND_COLOR);
-		radioOption2.setVisible(false);
+		this.radioOption2 = new Button(this.compoBottom, SWT.RADIO);
+		this.radioOption2.setBackground(COMPO_BACKGROUND_COLOR);
+		this.radioOption2.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(btnDoAction, 0, SWT.CENTER);
-		fd.right = new FormAttachment(btnDoAction, -20);
-		radioOption2.setLayoutData(fd);
-		radioOption2.addListener(SWT.Selection, new Listener() { public void handleEvent(Event event) { if ( connection.isConnected() && radioOption1.getSelection() ) connectedToDatabase(false); } });
+		fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
+		fd.right = new FormAttachment(this.btnDoAction, -20);
+		this.radioOption2.setLayoutData(fd);
+		this.radioOption2.addListener(SWT.Selection, new Listener() { @Override
+        public void handleEvent(Event event) { if ( DBGui.this.connection.isConnected() && DBGui.this.radioOption1.getSelection() ) connectedToDatabase(false); } });
 		
-		radioOption1 = new Button(compoBottom, SWT.RADIO);
-		radioOption1.setBackground(COMPO_BACKGROUND_COLOR);
-		radioOption1.setVisible(false);
+		this.radioOption1 = new Button(this.compoBottom, SWT.RADIO);
+		this.radioOption1.setBackground(COMPO_BACKGROUND_COLOR);
+		this.radioOption1.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(btnDoAction, 0, SWT.CENTER);
-		fd.right = new FormAttachment(radioOption2, -10);
-		radioOption1.setLayoutData(fd);
-		radioOption1.addListener(SWT.Selection, new Listener() { public void handleEvent(Event event) { if ( connection.isConnected() && radioOption2.getSelection() ) connectedToDatabase(false); } });
+		fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
+		fd.right = new FormAttachment(this.radioOption2, -10);
+		this.radioOption1.setLayoutData(fd);
+		this.radioOption1.addListener(SWT.Selection, new Listener() { @Override
+        public void handleEvent(Event event) { if ( DBGui.this.connection.isConnected() && DBGui.this.radioOption2.getSelection() ) connectedToDatabase(false); } });
 		
-		lblOption = new Label(compoBottom, SWT.NONE);
-		lblOption.setBackground(COMPO_BACKGROUND_COLOR);
-		lblOption.setVisible(false);
+		this.lblOption = new Label(this.compoBottom, SWT.NONE);
+		this.lblOption.setBackground(COMPO_BACKGROUND_COLOR);
+		this.lblOption.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(btnDoAction, 0, SWT.CENTER);
-		fd.right = new FormAttachment(radioOption1, -10);
-		lblOption.setLayoutData(fd);
+		fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
+		fd.right = new FormAttachment(this.radioOption1, -10);
+		this.lblOption.setLayoutData(fd);
 	}
 	
 	public void run() {
-		dialog.open();
-		dialog.layout();
+		this.dialog.open();
+		this.dialog.layout();
 	}
 	
 	/**
@@ -501,15 +510,15 @@ public class DBGui {
 	 * @throws Exception 
 	 */
 	protected void getDatabases() throws Exception {
-		databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(includeNeo4j);
-		if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
+		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(this.includeNeo4j);
+		if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
 		} else {
-			for (DBDatabaseEntry databaseEntry: databaseEntries) {
-				comboDatabases.add(databaseEntry.getName());
+			for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
+				this.comboDatabases.add(databaseEntry.getName());
 			}
-			comboDatabases.select(0);
-			comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
+			this.comboDatabases.select(0);
+			this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
 		}
 	}
 	
@@ -525,25 +534,25 @@ public class DBGui {
 		if ( prefDialog.open() == 0 ) {
 			if ( logger.isDebugEnabled() ) logger.debug("Resetting settings from preferences ...");
 			
-			comboDatabases.removeAll();
+			this.comboDatabases.removeAll();
 			
-			databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(includeNeo4j);
-			if ( (databaseEntries == null) || (databaseEntries.size() == 0) ) {
-				comboDatabases.select(0);
+			this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(this.includeNeo4j);
+			if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
+				this.comboDatabases.select(0);
 				popup(Level.ERROR, "You won't be able to export until a database is configured in the preferences.");
 			} else {
-				for (DBDatabaseEntry databaseEntry: databaseEntries) {
-					comboDatabases.add(databaseEntry.getName());
+				for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
+					this.comboDatabases.add(databaseEntry.getName());
 				}
-				comboDatabases.select(0);
-				comboDatabases.notifyListeners(SWT.Selection, new Event());
+				this.comboDatabases.select(0);
+				this.comboDatabases.notifyListeners(SWT.Selection, new Event());
 			}
 		} else {
 			if ( logger.isDebugEnabled() ) logger.debug("Preferences cancelled ...");
-			if ( comboDatabases.getItemCount() == 0 )
+			if ( this.comboDatabases.getItemCount() == 0 )
 				popup(Level.ERROR, "You won't be able to export until a database is configured in the preferences.");
 		}
-		comboDatabases.setFocus();
+		this.comboDatabases.setFocus();
 	}
 	
 	/**
@@ -555,15 +564,15 @@ public class DBGui {
 		
 		databaseSelectedCleanup();
 		
-		btnDoAction.setEnabled(false);
+		this.btnDoAction.setEnabled(false);
 		
 			// we get the databaseEntry corresponding to the selected combo entry
-		selectedDatabase = databaseEntries.get(comboDatabases.getSelectionIndex());
-		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + selectedDatabase.getName()+" ("+selectedDatabase.getDriver()+", "+selectedDatabase.getServer()+", "+selectedDatabase.getPort()+", "+selectedDatabase.getDatabase()+", "+selectedDatabase.getUsername()+", "+selectedDatabase.getPassword()+")");
+		this.selectedDatabase = this.databaseEntries.get(this.comboDatabases.getSelectionIndex());
+		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername()+", "+this.selectedDatabase.getPassword()+")");
 		
 			// then we connect to the database.
 		try {
-			connection = new DBDatabaseConnection(selectedDatabase);
+			this.connection = new DBDatabaseConnection(this.selectedDatabase);
 			//if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
 			if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
 		} catch (Exception err) {
@@ -575,7 +584,7 @@ public class DBGui {
 		
 			// then, we check if the database has got the right pre-requisites
 		try {
-			connection.checkDatabase();
+			this.connection.checkDatabase();
 		} catch (Exception err) {
 			closePopup();
 			popup(Level.ERROR, "Cannot use this database.", err);
@@ -601,7 +610,7 @@ public class DBGui {
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 		// to be overriden
 		enableOption();
-		btnDoAction.setEnabled(true);
+		this.btnDoAction.setEnabled(true);
 	}
 	
 	/** 
@@ -610,15 +619,15 @@ public class DBGui {
 	protected void notConnectedToDatabase() {
 		// to be overriden
 		disableOption();
-		btnDoAction.setEnabled(false);
+		this.btnDoAction.setEnabled(false);
 	}
 	
 	/** 
 	 * Sets the reference of the online help
 	 */
 	protected void setHelpHref(String href) {
-		HELP_HREF = href;
-		btnHelp.setVisible(HELP_HREF != null);
+		this.HELP_HREF = href;
+		this.btnHelp.setVisible(this.HELP_HREF != null);
 	}
 	
 	private ACTION activeAction = null;
@@ -639,10 +648,10 @@ public class DBGui {
 			default : icon = null;
 		}
 		switch ( action ) {
-			case One : activeAction = ACTION.One; imgFirstAction.setImage(icon); break;
-			case Two : activeAction = ACTION.Two; imgSecondAction.setImage(icon); break;
-			case Three : activeAction = ACTION.Three; imgThirdAction.setImage(icon); break;
-			case Four : activeAction = ACTION.Four; imgFourthAction.setImage(icon); break;
+			case One : this.activeAction = ACTION.One; this.imgFirstAction.setImage(icon); break;
+			case Two : this.activeAction = ACTION.Two; this.imgSecondAction.setImage(icon); break;
+			case Three : this.activeAction = ACTION.Three; this.imgThirdAction.setImage(icon); break;
+			case Four : this.activeAction = ACTION.Four; this.imgFourthAction.setImage(icon); break;
 			default:
 		}
 	}
@@ -652,9 +661,9 @@ public class DBGui {
 	 * @param status status of the action
 	 */
 	protected void setActiveAction(STATUS status) {
-		if ( activeAction == null )
-			activeAction = ACTION.One;
-		setActiveAction(activeAction, status);
+		if ( this.activeAction == null )
+			this.activeAction = ACTION.One;
+		setActiveAction(this.activeAction, status);
 	}
 	
 	/**
@@ -672,73 +681,73 @@ public class DBGui {
 	 */
 	protected void createAction(ACTION action, String label) {
 		switch ( action ) {
-			case One : lblFirstAction.setText(label); break;
-			case Two : lblSecondAction.setText(label); break;
-			case Three : lblThirdAction.setText(label); break;
-			case Four : lblFourthAction.setText(label); break;
+			case One : this.lblFirstAction.setText(label); break;
+			case Two : this.lblSecondAction.setText(label); break;
+			case Three : this.lblThirdAction.setText(label); break;
+			case Four : this.lblFourthAction.setText(label); break;
 			default:
 		}
 	}
 	
 	protected void setOption(boolean firstSelected) {
-		radioOption1.setSelection(firstSelected == true);
-		radioOption2.setSelection(firstSelected == false);
+		this.radioOption1.setSelection(firstSelected == true);
+		this.radioOption2.setSelection(firstSelected == false);
 	}
 	
 	protected void setOption(String label, String option1, String toolTip1, String option2, String toolTip2, boolean firstSelected ) {
-		if ( label != null ) lblOption.setText(label);
+		if ( label != null ) this.lblOption.setText(label);
 				
-		if ( option1 != null ) radioOption1.setText(option1);
-		if ( toolTip1 != null ) radioOption1.setToolTipText(toolTip1);
-		radioOption1.setSelection(firstSelected == true);
+		if ( option1 != null ) this.radioOption1.setText(option1);
+		if ( toolTip1 != null ) this.radioOption1.setToolTipText(toolTip1);
+		this.radioOption1.setSelection(firstSelected == true);
 		
-		if ( option2 != null ) radioOption2.setText(option2);
-		if ( toolTip2 != null ) radioOption2.setToolTipText(toolTip2);
-		radioOption2.setSelection(firstSelected == false);
+		if ( option2 != null ) this.radioOption2.setText(option2);
+		if ( toolTip2 != null ) this.radioOption2.setToolTipText(toolTip2);
+		this.radioOption2.setSelection(firstSelected == false);
 		
-		compoBottom.layout();
+		this.compoBottom.layout();
 		
 		showOption();
 		disableOption();
 	}
 	
 	protected void enableOption() {
-		lblOption.setEnabled(true);
-		radioOption1.setEnabled(true);
-		radioOption2.setEnabled(true);
+		this.lblOption.setEnabled(true);
+		this.radioOption1.setEnabled(true);
+		this.radioOption2.setEnabled(true);
 	}
 	
 	protected void disableOption() {
-		lblOption.setEnabled(false);
-		radioOption1.setEnabled(false);
-		radioOption2.setEnabled(false);
+		this.lblOption.setEnabled(false);
+		this.radioOption1.setEnabled(false);
+		this.radioOption2.setEnabled(false);
 	}
 	
 	protected void hideOption() {
-		lblOption.setVisible(false);
-		radioOption1.setVisible(false);
-		radioOption1.setVisible(false);
+		this.lblOption.setVisible(false);
+		this.radioOption1.setVisible(false);
+		this.radioOption1.setVisible(false);
 	}
 	
 	protected void showOption() {
-		lblOption.setVisible(true);
-		radioOption1.setVisible(true);
-		radioOption2.setVisible(true);
+		this.lblOption.setVisible(true);
+		this.radioOption1.setVisible(true);
+		this.radioOption2.setVisible(true);
 	}
 	
 	/**
 	 * Returns true if the first option is selected, false if the second option is selected
 	 */
 	protected boolean getOptionValue() {
-		return radioOption1.getSelection();
+		return this.radioOption1.getSelection();
 	}
 	
 	
 	
 	
-	private static Shell dialogShell = null;
-	private static Composite dialogComposite = null;
-	private static Label dialogLabel = null;
+	static Shell dialogShell = null;
+	static Composite dialogComposite = null;
+	static Label dialogLabel = null;
 	/**
 	 * shows up an on screen popup displaying the message but does not wait for any user input<br>
 	 * it is the responsibility of the caller to dismiss the popup 
@@ -928,54 +937,54 @@ public class DBGui {
 	
 	
 	protected void hideGrpDatabase() {
-		grpDatabase.setVisible(false);
+		this.grpDatabase.setVisible(false);
 	}
 	
 	protected void setBtnAction(String label, SelectionListener listener) {
-		btnDoAction.setText(label);
-		btnDoAction.addSelectionListener(listener);
-		btnDoAction.setVisible(true);
+		this.btnDoAction.setText(label);
+		this.btnDoAction.addSelectionListener(listener);
+		this.btnDoAction.setVisible(true);
 	}
 	
 	/**
 	 * Creates the progress bar that will allow to follow the export process
 	 */
 	protected void createProgressBar(String label, int min, int max) {
-		if ( grpProgressBar == null ) {
-			grpProgressBar = new Group(compoRightTop, SWT.NONE);
-			grpProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
+		if ( this.grpProgressBar == null ) {
+			this.grpProgressBar = new Group(this.compoRightTop, SWT.NONE);
+			this.grpProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0);
 			fd.left = new FormAttachment(0);
 			fd.right = new FormAttachment(100);
 			fd.bottom = new FormAttachment(100);
-			grpProgressBar.setLayoutData(fd);
-			grpProgressBar.setLayout(new FormLayout());
+			this.grpProgressBar.setLayoutData(fd);
+			this.grpProgressBar.setLayout(new FormLayout());
 			
 			
-			lblProgressBar = new Label(grpProgressBar, SWT.CENTER);
-			lblProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
-			lblProgressBar.setFont(TITLE_FONT);
-			lblProgressBar.setText(label);
+			this.lblProgressBar = new Label(this.grpProgressBar, SWT.CENTER);
+			this.lblProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
+			this.lblProgressBar.setFont(TITLE_FONT);
+			this.lblProgressBar.setText(label);
 			fd = new FormData();
 			fd.top = new FormAttachment(0, -5);
 			fd.left = new FormAttachment(0);
 			fd.right = new FormAttachment(100);
-			lblProgressBar.setLayoutData(fd);
+			this.lblProgressBar.setLayoutData(fd);
 			
-			progressBar = new ProgressBar(grpProgressBar, SWT.NONE);
+			this.progressBar = new ProgressBar(this.grpProgressBar, SWT.NONE);
 			fd = new FormData();
-			fd.top = new FormAttachment(lblProgressBar);
+			fd.top = new FormAttachment(this.lblProgressBar);
 			fd.left = new FormAttachment(25);
 			fd.right = new FormAttachment(75);
 			fd.height = 15;
-			progressBar.setLayoutData(fd);
-			progressBar.setMinimum(min);
-			progressBar.setMaximum(max);
+			this.progressBar.setLayoutData(fd);
+			this.progressBar.setMinimum(min);
+			this.progressBar.setMaximum(max);
 			
-			compoRightTop.layout();
+			this.compoRightTop.layout();
 		} else {
-			grpProgressBar.setVisible(true);
+			this.grpProgressBar.setVisible(true);
 			resetProgressBar();
 		}
 	}
@@ -985,7 +994,7 @@ public class DBGui {
 	 */
 	protected void setProgressBarMinAndMax(int min, int max) {
 	    if ( logger.isTraceEnabled() ) logger.trace("Setting progressbar from "+min+" to "+max);
-		progressBar.setMinimum(min); progressBar.setMaximum(max);
+		this.progressBar.setMinimum(min); this.progressBar.setMaximum(max);
 		resetProgressBar();
 	}
 	
@@ -993,7 +1002,7 @@ public class DBGui {
 	 * Resets the progressBar to zero in the SWT thread (thread safe method)
 	 */
 	protected void resetProgressBar() {
-		progressBar.setSelection(0);
+		this.progressBar.setSelection(0);
 		refreshDisplay();
 	}
 	
@@ -1001,8 +1010,8 @@ public class DBGui {
 	 * Increases the progressBar selection in the SWT thread (thread safe method)
 	 */
 	protected void increaseProgressBar() {
-		progressBar.setSelection(progressBar.getSelection()+1);
-		if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(progressBar.getSelection()+1)+"/"+progressBar.getMaximum());
+		this.progressBar.setSelection(this.progressBar.getSelection()+1);
+		if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(this.progressBar.getSelection()+1)+"/"+this.progressBar.getMaximum());
 		refreshDisplay();
 	}
 	
@@ -1010,14 +1019,14 @@ public class DBGui {
 	 * Method used to close graphical objects if needed
 	 */
 	public void close() {
-		dialog.dispose();
-		dialog = null;
+		this.dialog.dispose();
+		this.dialog = null;
 		
-		if ( connection != null ) {
+		if ( this.connection != null ) {
 		    try {
-		        connection.close();
+		        this.connection.close();
 		    } catch (SQLException e) { logger.error("Failed to close database connection", e); }
-		    connection = null;
+		    this.connection = null;
 		}
 		
 		restoreCursors();
@@ -1034,7 +1043,7 @@ public class DBGui {
         
 		// we get the database version of the component
 		try {
-			databaseObject = connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
+			databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
 			//TODO: shall we exit to the status page with status=error ???
@@ -1136,12 +1145,12 @@ public class DBGui {
 					for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i) {
 						componentBendpoints[i] = new Integer[] { ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartY(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndY() };
 					}
-					Arrays.sort(componentBendpoints, integerComparator);
+					Arrays.sort(componentBendpoints, this.integerComparator);
 			
 					// we get a sorted list of properties from the database
 					Integer[][] databaseBendpoints = (Integer[][])databaseObject.get("bendpoints");
 					if ( databaseBendpoints == null ) databaseBendpoints = new Integer[0][0];			// just because it must not be null
-					Arrays.sort(databaseBendpoints, integerComparator);
+					Arrays.sort(databaseBendpoints, this.integerComparator);
 			
 					int indexComponent = 0;
 					int indexDatabase = 0;
@@ -1191,11 +1200,11 @@ public class DBGui {
 				for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i) {
 					componentProperties[i] = new String[] { ((IProperties)memoryObject).getProperties().get(i).getKey(), ((IProperties)memoryObject).getProperties().get(i).getValue() };
 				}
-				Arrays.sort(componentProperties, stringComparator);
+				Arrays.sort(componentProperties, this.stringComparator);
 		
 				// we get a sorted list of properties from the database
 				String[][] databaseProperties = (String[][])databaseObject.get("properties");
-				Arrays.sort(databaseProperties, stringComparator);
+				Arrays.sort(databaseProperties, this.stringComparator);
 		
 				int indexComponent = 0;
 				int indexDatabase = 0;
@@ -1260,13 +1269,15 @@ public class DBGui {
 	}
 	
 	Comparator<String[]> stringComparator = new Comparator<String[]>() {
-		public int compare(final String[] row1, final String[] row2) {
+		@Override
+        public int compare(final String[] row1, final String[] row2) {
 			return DBPlugin.collator.compare(row1[0],row2[0]);
 		}
 	};
 	
 	Comparator<Integer[]> integerComparator = new Comparator<Integer[]>() {
-		public int compare(final Integer[] row1, final Integer[] row2) {
+		@Override
+        public int compare(final Integer[] row1, final Integer[] row2) {
 			return DBPlugin.collator.compare(row1[0],row2[0]);
 		}
 	};
@@ -1295,7 +1306,7 @@ public class DBGui {
     }
     
     protected void setMessage(String message, Color foreground) {
-    	Label label = new Label(compoRightTop, SWT.VERTICAL | SWT.CENTER);
+    	Label label = new Label(this.compoRightTop, SWT.VERTICAL | SWT.CENTER);
         label.setFont(GROUP_TITLE_FONT);
         label.setBackground(foreground);
         message = message.replace("\n\n", "\n");
@@ -1316,7 +1327,7 @@ public class DBGui {
         fd.bottom = new FormAttachment(100, 0);
         label.setLayoutData(fd);
         
-        compoRightTop.layout();
+        this.compoRightTop.layout();
         refreshDisplay();
     }
     
