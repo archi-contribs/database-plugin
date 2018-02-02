@@ -47,7 +47,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getName() {
-		return name;
+		return this.name;
 	}
 
 	public void setName(String name) {
@@ -55,16 +55,15 @@ public class DBDatabaseEntry {
 	}
 
 	public String getDriver() {
-		return driver;
+		return this.driver;
 	}
 
 	public void setDriver(String driver) throws Exception {
 		// we ensure that the driver is known
 		this.driver = null;
-		driver = driver.toLowerCase();		// just in case
 		for ( DBDatabase db: DBDatabase.VALUES ) {
 			if ( DBPlugin.areEqual(db.getDriverName(), driver) ) {
-				this.driver = driver;
+				this.driver = driver.toLowerCase();
 				return;
 			}
 		}
@@ -73,7 +72,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getServer() {
-		return server;
+		return this.server;
 	}
 
 	public void setServer(String server) {
@@ -81,15 +80,14 @@ public class DBDatabaseEntry {
 	}
 
 	public static int getDefaultPort(String driver) {
-		driver = driver.toLowerCase();			// just in case
 		for ( DBDatabase database: DBDatabase.VALUES ) {
-			if ( DBPlugin.areEqual(database.getDriverName(), driver) ) return database.getDefaultPort();
+			if ( DBPlugin.areEqual(database.getDriverName(), driver.toLowerCase()) ) return database.getDefaultPort();
 		}
 		return 0;
 	}
 
 	public int getPort() {
-		return port;
+		return this.port;
 	}
 
 	public void setPort(int port) throws Exception {
@@ -100,7 +98,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getDatabase() {
-		return database;
+		return this.database;
 	}
 
 	public void setDatabase(String database) {
@@ -108,16 +106,16 @@ public class DBDatabaseEntry {
 	}
 
 	public String getSchema() {
-		return schema;
+		return this.schema;
 	}
 
 	/**
 	 * if the schema is set, returns the schema name followed by a dot, directly usable in SQL requests
 	 */
 	public String getSchemaPrefix() {
-		if ( schema.isEmpty() )
+		if ( this.schema.isEmpty() )
 			return "";
-		return schema + ".";
+		return this.schema + ".";
 	}
 
 	public void setSchema(String schema) {
@@ -125,7 +123,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getUsername() {
-		return username;
+		return this.username;
 	}
 
 	public void setUsername(String username) {
@@ -133,7 +131,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getPassword() {
-		return password;
+		return this.password;
 	}
 
 	public void setPassword(String password) {
@@ -141,7 +139,7 @@ public class DBDatabaseEntry {
 	}
 
 	public boolean getExportWholeModel() {
-		return exportWholeModel;
+		return this.exportWholeModel;
 	}
 
 	public void setExportWholeModel(boolean exportWholeModel) {
@@ -149,7 +147,7 @@ public class DBDatabaseEntry {
 	}
 
 	public boolean getExportViewsImages()  {
-		return exportViewImages;
+		return this.exportViewImages;
 	}
 
 	public void setExportViewImages(boolean exportViewImages) {
@@ -157,7 +155,7 @@ public class DBDatabaseEntry {
 	}
 
 	public boolean getNeo4jNativeMode()  {
-		return neo4jNativeMode;
+		return this.neo4jNativeMode;
 	}
 
 	public void setNeo4jNativeMode(boolean neo4jNativeMode) {
@@ -165,7 +163,7 @@ public class DBDatabaseEntry {
 	}
 	
 	public boolean getCollaborativeMode()  {
-		return collaborativeMode;
+		return this.collaborativeMode;
 	}
 
 	public void setCollaborativeMode(boolean collaborativeMode) {
@@ -173,7 +171,7 @@ public class DBDatabaseEntry {
 	}
 
 	public String getLanguage() {
-		if ( DBPlugin.areEqual(driver, "neo4j") )
+		if ( DBPlugin.areEqual(this.driver, "neo4j") )
 			return "CQL";
 		return "SQL";
 	}
