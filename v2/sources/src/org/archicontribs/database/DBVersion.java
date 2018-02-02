@@ -58,7 +58,7 @@ public class DBVersion {
      * @return the version of the component
      */
     public int getVersion() {
-        return version;
+        return this.version;
     }
 
     /**
@@ -72,7 +72,7 @@ public class DBVersion {
      * @return the checksum of the component
      */
     public String getChecksum() {
-        return checksum;
+        return this.checksum;
     }
 
     /**
@@ -86,7 +86,7 @@ public class DBVersion {
      * @return the timestamp of the component
      */
     public Timestamp getTimestamp() {
-        return timestamp;
+        return this.timestamp;
     }
 
     /**
@@ -100,7 +100,7 @@ public class DBVersion {
      * @return the latest version of the component
      */
     public int getLatestVersion() {
-        return latestVersion;
+        return this.latestVersion;
     }
 
     /**
@@ -114,7 +114,7 @@ public class DBVersion {
      * @return the latest checksum of the component
      */
     public String getLatestChecksum() {
-        return latestChecksum;
+        return this.latestChecksum;
     }
 
     /**
@@ -128,7 +128,7 @@ public class DBVersion {
      * @return the latest timestamp of the component
      */
     public Timestamp getLatestTimestamp() {
-        return latestTimestamp;
+        return this.latestTimestamp;
     }
 
     /**
