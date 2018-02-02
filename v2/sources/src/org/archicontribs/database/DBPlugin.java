@@ -259,7 +259,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	 */
 	public static String[] allSQLTables = { "archimatediagrammodel", "archimateelement", "bendpoint", "canvasmodel", "canvasmodelblock", "canvasmodelimage", "canvasmodelsticky", "connection", "diagrammodelarchimateobject", "diagrammodelreference", "folder", "model", "property", "relationship", "sketchmodel", "sketchmodelactor", "sketchmodelsticky"};
 
-	private static DBLogger logger;
+	static DBLogger logger;
 
 	public DBPlugin() {
 		INSTANCE = this;
@@ -372,8 +372,8 @@ public class DBPlugin extends AbstractUIPlugin {
 		return (str==null) || str.isEmpty();
 	}
 
-	private static ProgressBar updateProgressbar = null;
-	private static int updateDownloaded = 0;
+	static ProgressBar updateProgressbar = null;
+	static int updateDownloaded = 0;
 	public static void checkForUpdate(boolean verbose) {
 		new Thread("checkForUpdate") {
 			@Override
@@ -576,9 +576,9 @@ public class DBPlugin extends AbstractUIPlugin {
 					Files.move(FileSystems.getDefault().getPath(tmpFilename), FileSystems.getDefault().getPath(newPluginFilename), StandardCopyOption.REPLACE_EXISTING);
 				} catch (IOException e) {
 					if ( verbose )
-						DBGui.popup(Level.ERROR, "Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+						DBGui.popup(Level.ERROR, "Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"",e);
 					else
-						logger.error("Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+						logger.error("Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"",e);
 					return;
 				}
 
