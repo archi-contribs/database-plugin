@@ -324,14 +324,14 @@ public class DBPlugin extends AbstractUIPlugin {
 						DBGui.popup(Level.INFO, "The database plugin has been correctly updated to version "+pluginVersion);
 					else
 						DBGui.popup(Level.ERROR, "The database plugin has been correctly downloaded to \""+installedPluginsFilename+"\" but you are still using the database plugin version "+pluginVersion+".\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
-				} catch (IOException e1) {
+				} catch (@SuppressWarnings("unused") IOException e) {
 					DBGui.popup(Level.WARN, "A new version of the database plugin has been downloaded but we failed to check if you are using the latest version.\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
 				}
 				
 				try {
 					if ( logger.isDebugEnabled() ) logger.debug("deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
 					Files.delete(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"));
-				} catch ( IOException e ) {
+				} catch ( @SuppressWarnings("unused") IOException e ) {
 					DBGui.popup(Level.ERROR, "Failed to delete file \""+pluginsFolder+File.separator+"databasePlugin.new\"\n\nYou need to delete it manually.");
 				}
 			} else if ( preferenceStore.getBoolean("checkForUpdateAtStartup") ) {
