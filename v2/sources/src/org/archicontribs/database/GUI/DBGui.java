@@ -20,6 +20,7 @@ import java.util.Map;
 import java.util.Stack;
 
 import org.apache.log4j.Level;
+import org.apache.log4j.Priority;
 import org.archicontribs.database.DBDatabaseConnection;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
@@ -855,11 +856,11 @@ public class DBGui {
 		}
 
 		switch ( level.toInt() ) {
-			case Level.FATAL_INT :
-			case Level.ERROR_INT :
+			case Priority.FATAL_INT :
+			case Priority.ERROR_INT :
 				MessageDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
 				break;
-			case Level.WARN_INT :
+			case Priority.WARN_INT :
 				MessageDialog.openWarning(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
 				break;
 			default :
@@ -870,7 +871,7 @@ public class DBGui {
 		refreshDisplay();
 	}
 	
-	private static int questionResult;
+	static int questionResult;
 	
 	/**
 	 * Shows up an on screen popup displaying the question (and the exception message if any)  and wait for the user to click on the "YES" or "NO" button<br>
@@ -1032,16 +1033,17 @@ public class DBGui {
 		restoreCursors();
 	}
 	
-	protected void fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion, HashMap<String, Object> databaseObject) {
-	    fillInCompareTable(tree, null, memoryObject, memoryObjectversion, databaseObject);
+	protected void fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion) {
+	    fillInCompareTable(tree, null, memoryObject, memoryObjectversion);
 	}
 	
-    protected void fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion, HashMap<String, Object> databaseObject) {
-        assert ( memoryObject!=null || databaseObject!=null );
+    protected void fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
+        assert ( memoryObject!=null );
 
         logger.debug("showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
         
 		// we get the database version of the component
+        HashMap<String, Object> databaseObject;
 		try {
 			databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
 		} catch (Exception err) {
@@ -1256,9 +1258,7 @@ public class DBGui {
                     TreeItem childTreeItem = new TreeItem(childrenTreeItem, SWT.NONE);
                     childTreeItem.setText("Child "+i+1);
                     childTreeItem.setExpanded(false);
-					@SuppressWarnings("unchecked")
-					HashMap<String, Object> result = ((HashMap<String, Object>[])databaseObject.get("children"))[i];
-					fillInCompareTable(tree, childTreeItem, child, memoryObjectversion, result);
+					fillInCompareTable(tree, childTreeItem, child, memoryObjectversion);
 					if ( childTreeItem.getBackground().equals(DBGui.LIGHT_RED_COLOR))
 					    childrenTreeItem.setBackground(DBGui.LIGHT_RED_COLOR);
 					++i;
@@ -1287,7 +1287,7 @@ public class DBGui {
 	 * Helper function to fill in the compareTable
 	 * @return true if col2 and col3 are equals, false if they differ 
 	 */
-    private void addItemToCompareTable(Tree tree, TreeItem treeItem, String col1, String col2, String col3) {
+    private static void addItemToCompareTable(Tree tree, TreeItem treeItem, String col1, String col2, String col3) {
     	TreeItem subTreeItem;
     	
     	if ( treeItem != null ) 
@@ -1309,16 +1309,16 @@ public class DBGui {
     	Label label = new Label(this.compoRightTop, SWT.VERTICAL | SWT.CENTER);
         label.setFont(GROUP_TITLE_FONT);
         label.setBackground(foreground);
-        message = message.replace("\n\n", "\n");
+        String msg = message.replace("\n\n", "\n");
         
         if ( foreground == GREEN_COLOR )
-        	logger.info(message);
+        	logger.info(msg);
         else
-        	logger.error(message);
+        	logger.error(msg);
         
-        if ( message.split("\n").length == 1 )
-            message = "\n" + message;               // we try to vertically center it, more or less ...
-        label.setText(message);
+        if ( msg.split("\n").length == 1 )
+            msg = "\n" + msg;               // we try to vertically center it, more or less ...
+        label.setText(msg);
 
         FormData fd = new FormData();
         fd.top = new FormAttachment(0, 0);
@@ -1362,24 +1362,26 @@ public class DBGui {
 	 * Refreshes the display
 	 */
 	public static void refreshDisplay() {
-		while ( Display.getCurrent().readAndDispatch() ) {}
+		while ( Display.getCurrent().readAndDispatch() ) {
+		    // nothing to do
+		}
 	}
 	
-	public void incrementText(Text txt) {
+	public static void incrementText(Text txt) {
 	    if ( txt != null ) {
 	        try {
 	            txt.setText(String.valueOf(Integer.valueOf(txt.getText()) + 1));
-	        } catch (Exception ign) {
+	        } catch (@SuppressWarnings("unused") Exception ign) {
 	            // ignore
 	        }
 	    }
 	}
 	
-	   public void decrementText(Text txt) {
+	   public static void decrementText(Text txt) {
 	        if ( txt != null ) {
 	            try {
 	                txt.setText(String.valueOf(Integer.valueOf(txt.getText()) - 1));
-	            } catch (Exception ign) {
+	            } catch (@SuppressWarnings("unused") Exception ign) {
 	                // ignore
 	            }
 	        }

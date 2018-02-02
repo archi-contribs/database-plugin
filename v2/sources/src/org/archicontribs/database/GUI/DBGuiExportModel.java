@@ -1344,7 +1344,7 @@ public class DBGuiExportModel extends DBGui {
 						DBGuiExportModel.this.btnDoNotExport.setEnabled(true);
 						DBGuiExportModel.this.btnImportDatabaseVersion.setEnabled( (conflictingComponent instanceof IArchimateElement) || (conflictingComponent instanceof IArchimateRelationship) );
 	
-						fillInCompareTable(DBGuiExportModel.this.tblCompareComponent, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion().getLatestVersion(), null);
+						fillInCompareTable(DBGuiExportModel.this.tblCompareComponent, conflictingComponent, ((IDBMetadata)conflictingComponent).getDBMetadata().getDatabaseVersion().getLatestVersion());
 					}
 					DBGuiExportModel.this.grpComponents.setVisible(false);
 					DBGuiExportModel.this.grpModelVersions.setVisible(false);
