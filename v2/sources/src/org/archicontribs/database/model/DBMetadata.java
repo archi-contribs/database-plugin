@@ -9,7 +9,7 @@ package org.archicontribs.database.model;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import org.archicontribs.database.DBVersion;
+import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModel;

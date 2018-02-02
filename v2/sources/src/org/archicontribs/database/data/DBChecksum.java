@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database;
+package org.archicontribs.database.data;
 
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
