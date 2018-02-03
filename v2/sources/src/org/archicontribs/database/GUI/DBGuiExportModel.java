@@ -9,7 +9,10 @@ package org.archicontribs.database.GUI;
 import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -651,8 +654,28 @@ public class DBGuiExportModel extends DBGui {
 		
 		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
 		try {
-			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
-				this.connection.getModelVersions(this.exportedModel.getId(), this.tblModelVersions);
+			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+				DBGuiExportModel.this.tblModelVersions.removeAll();
+				
+               	// if the first line, then we add the "latest version"
+				TableItem tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
+				tableItem.setText(1, "Now");
+				tableItem.setData("name", this.exportedModel.getName());
+				tableItem.setData("note", "");
+				tableItem.setData("purpose", this.exportedModel.getPurpose());
+				DBGuiExportModel.this.tblModelVersions.setSelection(tableItem);
+				DBGuiExportModel.this.tblModelVersions.notifyListeners(SWT.Selection, new Event());		// activates the name, note and purpose texts
+            	
+				for (Hashtable<String, Object> version : DBGuiExportModel.this.connection.getModelVersions(this.exportedModel.getId()) ) {
+                	tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
+        			tableItem.setText(0, (String)version.get("version"));
+        			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format((Timestamp)version.get("created_on")));
+        			tableItem.setText(2, (String)version.get("created_by"));
+        			tableItem.setData("name", version.get("name"));
+        			tableItem.setData("note", version.get("note"));
+        			tableItem.setData("purpose", version.get("purpose"));
+                }
+			}
 		} catch (Exception err) {
 			closePopup();
 			popup(Level.FATAL, "Failed to check existing components in database", err);

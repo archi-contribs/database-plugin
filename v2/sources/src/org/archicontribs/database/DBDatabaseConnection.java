@@ -17,12 +17,12 @@ import java.sql.Savepoint;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.sql.Types;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -30,7 +30,6 @@ import java.util.Map;
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
-import org.archicontribs.database.data.DBNameId;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -39,10 +38,6 @@ import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IHintProvider;
@@ -1275,12 +1270,13 @@ public class DBDatabaseConnection {
 	}
 
 	/**
-	 * Gets the list of models and fills-in the tblModels table
-	 * @param filter
+	 * Gets the list of models in the current database
+	 * @param filter (use "%" as wildcard) 
 	 * @throws Exception
+	 * @return a list of Hashtables, each containing the name and the id of one model
 	 */
-	public ArrayList<DBNameId> getModels(String filter) throws Exception {
-	    ArrayList<DBNameId> listNameId = new ArrayList<DBNameId>();
+	public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
+	    ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
 	    
 		ResultSet result;
 
@@ -1292,11 +1288,14 @@ public class DBDatabaseConnection {
 
 		while ( result.next() && result.getString("id") != null ) {
 			if (logger.isTraceEnabled() ) logger.trace("found model \""+result.getString("name")+"\"");
-			listNameId.add(new DBNameId(result.getString("name"), result.getString("id")));
+			Hashtable<String, Object> table = new Hashtable<String, Object>();
+			table.put("name", result.getString("name"));
+			table.put("id", result.getString("id"));
+			list.add(table);
 		}
 		result.close();
 		
-		return listNameId;
+		return list;
 	}
 	
 	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
@@ -1318,46 +1317,32 @@ public class DBDatabaseConnection {
 	}
 
 	/**
-	 * Gets the versions of the selected model and fills-in the tblVersions table
-	 * @param filter
-	 * @param tblModels
+	 * Gets the list of versions on a model in the current database
+	 * @param id the id of the model 
 	 * @throws Exception
+	 * @return a list of Hashtables, each containing the version, created_on, created_by, name, note and purpose of one version of the model
 	 */
-	public void getModelVersions(String id, Table tblModelVersions) throws Exception {
-		//TODO: separate the data and GUI functions : do not fill in the tblVersions table in this method
+	public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
+	    ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+	    
 		ResultSet result = select("SELECT version, created_by, created_on, name, note, purpose FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id);
-		TableItem tableItem = null;
 
-		tblModelVersions.removeAll();
 		while ( result.next() ) {
 			if (logger.isTraceEnabled() ) logger.trace("found version \""+result.getString("version")+"\"");
 			
-			if ( tableItem == null ) {
-				// if the first line, then we add the "latest version"
-				tableItem = new TableItem(tblModelVersions, SWT.NULL);
-				tableItem.setText(0, "");
-				tableItem.setText(1, "Now");
-				tableItem.setText(2, "");
-				tableItem.setData("name", result.getString("name"));
-				tableItem.setData("note", result.getString("note")!=null ? result.getString("note") : "");
-				tableItem.setData("purpose", result.getString("purpose")!=null ? result.getString("purpose") : "");
-			}
-			tableItem = new TableItem(tblModelVersions, SWT.NULL);
-			tableItem.setText(0, result.getString("version"));
-			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(result.getTimestamp("created_on")));
-			tableItem.setText(2, result.getString("created_by"));
-			tableItem.setData("name", result.getString("name"));
-			tableItem.setData("note", result.getString("note")!=null ? result.getString("note") : "");
-			tableItem.setData("purpose", result.getString("purpose")!=null ? result.getString("purpose") : "");
+			if (logger.isTraceEnabled() ) logger.trace("found model \""+result.getString("name")+"\"");
+			Hashtable<String, Object> table = new Hashtable<String, Object>();
+			table.put("version", result.getString("version"));
+			table.put("created_by", result.getString("created_by"));
+			table.put("created_on", result.getTimestamp("created_on"));
+			table.put("name", result.getString("name"));
+			table.put("note", result.getString("note"));
+			table.put("purpose", result.getString("purpose"));
+			list.add(table);
 		}
-
 		result.close();
-		result=null;
-
-		if ( tblModelVersions.getItemCount() != 0 ) {
-			tblModelVersions.setSelection(0);
-			tblModelVersions.notifyListeners(SWT.Selection, new Event());       // calls database.getModelVersions()
-		}
+		
+		return list;
 	}
 
 

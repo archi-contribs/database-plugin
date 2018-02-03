@@ -7,13 +7,15 @@
 package org.archicontribs.database.GUI;
 
 import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.data.DBNameId;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
@@ -159,15 +161,7 @@ public class DBGuiImportModel extends DBGui {
         
         this.tblModels.removeAll();
         
-        try {
-            for (DBNameId nameId : this.connection.getModels(this.txtFilterModels.getText())) {
-                TableItem tableItem = new TableItem(this.tblModels, SWT.BORDER);
-                tableItem.setText(nameId.getName());
-                tableItem.setData("id", nameId.getId());
-            }
-        } catch (Exception err) {
-            DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
-        }
+        this.txtFilterModels.notifyListeners(SWT.Modify, new Event());		// refreshes the list of models in the database
         
         this.tblModels.layout();
         this.tblModels.setVisible(true);
@@ -210,8 +204,11 @@ public class DBGuiImportModel extends DBGui {
                 DBGuiImportModel.this.tblModels.removeAll();
                 DBGuiImportModel.this.tblModelVersions.removeAll();
                 try {
-                    if ( DBGuiImportModel.this.connection.isConnected() )
-                        DBGuiImportModel.this.connection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%", DBGuiImportModel.this.tblModels);
+                    for (Hashtable<String, Object> model : DBGuiImportModel.this.connection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%")) {
+                        TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.BORDER);
+                        tableItem.setText((String)model.get("name"));
+                        tableItem.setData("id", model.get("id"));
+                    }
                 } catch (Exception err) {
                     DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
                 } 
@@ -231,14 +228,35 @@ public class DBGuiImportModel extends DBGui {
         this.tblModels.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
-                try {
-                    if ( (DBGuiImportModel.this.tblModels.getSelection() != null) && (DBGuiImportModel.this.tblModels.getSelection().length > 0) && (DBGuiImportModel.this.tblModels.getSelection()[0] != null) )
-                        DBGuiImportModel.this.connection.getModelVersions((String) DBGuiImportModel.this.tblModels.getSelection()[0].getData("id"), DBGuiImportModel.this.tblModelVersions);
-                    else
-                        DBGuiImportModel.this.tblModelVersions.removeAll();
+               	DBGuiImportModel.this.tblModelVersions.removeAll();
+                	
+            	try {
+                    for (Hashtable<String, Object> version : DBGuiImportModel.this.connection.getModelVersions((String) DBGuiImportModel.this.tblModels.getSelection()[0].getData("id")) ) {
+                    	if ( DBGuiImportModel.this.tblModelVersions.getItemCount() == 0 ) {
+	                    	// if the first line, then we add the "latest version"
+	        				TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModelVersions, SWT.NULL);
+	        				tableItem.setText(1, "(latest version)");
+	        				tableItem.setData("name", version.get("name"));
+	        				tableItem.setData("note", version.get("note"));
+	        				tableItem.setData("purpose", version.get("purpose"));
+        				}
+        				
+                    	TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModelVersions, SWT.NULL);
+            			tableItem.setText(0, (String)version.get("version"));
+            			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format((Timestamp)version.get("created_on")));
+            			tableItem.setText(2, (String)version.get("created_by"));
+            			tableItem.setData("name", version.get("name"));
+            			tableItem.setData("note", version.get("note"));
+            			tableItem.setData("purpose", version.get("purpose"));
+                    }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get models from the database", err);
-                } 
+                    DBGui.popup(Level.ERROR, "Failed to get model's versions from the database", err);
+                }
+            	
+	    		if ( DBGuiImportModel.this.tblModelVersions.getItemCount() != 0 ) {
+	    			DBGuiImportModel.this.tblModelVersions.setSelection(0);
+	    			DBGuiImportModel.this.tblModelVersions.notifyListeners(SWT.Selection, new Event());       // calls database.getModelVersions()
+	    		}
             }
         });
         this.tblModels.addListener(SWT.MouseDoubleClick, new Listener() {
