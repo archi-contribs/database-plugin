@@ -2592,7 +2592,7 @@ public class DBDatabaseConnection {
     /**
      * Gets the versions and checksum of one model's components from the database and fills elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel.<br>
      * <br>
-     * This method is meant to be called during the import process.
+     * This method is meant to be called during the export process.
      * @param modelId the id of the model
      * @param modelVersion the version of the model (0 to get the latest version of all the components)
      * @throws SQLException
@@ -2625,27 +2625,27 @@ public class DBDatabaseConnection {
     	if ( latestVersionOfComponents ) {
     		ResultSet result;
     		
-    		result = select("SELECT e2.id, max(e2version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
+    		result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
         	while ( result.next() )
               	this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
         	result.close();
         	
-    		result = select("SELECT e2.id, max(e2version) FROM "+this.schema+"relationships e1 JOIN "+this.schema+"relationships e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN relationships_in_model m ON e2.id = m.relationship_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
+    		result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"relationships e1 JOIN "+this.schema+"relationships e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN relationships_in_model m ON e2.id = m.relationship_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
         	while ( result.next() )
         		this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
         	result.close();
         	
-    		result = select("SELECT e2.id, max(e2version) FROM "+this.schema+"folders e1 JOIN "+this.schema+"folders e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN folders_in_model m ON e2.id = m.folder_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
+    		result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"folders e1 JOIN "+this.schema+"folders e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN folders_in_model m ON e2.id = m.folder_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
         	while ( result.next() )
         		this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
         	result.close();
         	
-    		result = select("SELECT e2.id, max(e2version) FROM "+this.schema+"views e1 JOIN "+this.schema+"views e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN views_in_model m ON e2.id = m.view_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
+    		result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"views e1 JOIN "+this.schema+"views e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN views_in_model m ON e2.id = m.view_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
         	while ( result.next() )
         		this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
         	result.close();
         	
-    		result = select("SELECT e2.id, max(e2version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
+    		result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion);
         	while ( result.next() )
               	this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
         	result.close();
@@ -2730,118 +2730,111 @@ public class DBDatabaseConnection {
             while (itv.hasNext()) ((IDBMetadata)itv.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
             
             // we get the components versions from the database.
-            // the big joint request allows to get in one go the version of the components as they are in the current model, plus the latest version of those components
-            if ( model.getDatabaseVersion().getVersion() != 0 ) {
-    	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
-    	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"elements t1 "+
-    	        		"JOIN "+this.schema+"elements t2 ON t2.id = t1.id AND t2.version >= t1.version "+
-    	                "JOIN "+this.schema+"elements_in_model m ON t1.id = m.element_id AND t1.version = m.element_version "+
-    	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-    	                "HAVING  m.model_id = ? AND m.model_version = ? "+
-    	        		") as t "+
-    	        		"JOIN elements AS tt on tt.id = t.id AND tt.version = t.latest_version",
-    	                model.getId(),
-    	                model.getDatabaseVersion().getVersion());
-    	        while ( result.next() ) {
-    	        	IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
-    	            if ( element != null ) {
-    	            	element.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-    	            	element.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-    	            	element.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-    	            	element.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
-    	            	element.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
-    	            	element.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
-    	            	
-    	            	element.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
-    	            } else
-    	            	this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
-    	        }
-    	        result.close();
-            }
-
-            if ( model.getDatabaseVersion().getVersion() != 0 ) {
-    	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
-    	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"relationships t1 "+
-    	        		"JOIN "+this.schema+"relationships t2 ON t2.id = t1.id AND t2.version >= t1.version "+
-    	                "JOIN "+this.schema+"relationships_in_model m ON t1.id = m.relationship_id AND t1.version = m.relationship_version "+
-    	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-    	                "HAVING  m.model_id = ? AND m.model_version = ? "+
-    	        		") AS t "+
-    	        		"JOIN relationships AS tt ON tt.id = t.id AND tt.version = t.latest_version",
-    	                model.getId(),
-    	                model.getDatabaseVersion().getVersion());
-    	        while ( result.next() ) {
-    	            IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
-    	            if ( relationship != null ) {
-    	            	relationship.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-    	            	relationship.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-    	            	relationship.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-    	            	relationship.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
-    	            	relationship.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
-    	            	relationship.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
-    	            	
-    	            	relationship.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
-    	            } else
-    	            	this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
-    	        }
-    	        result.close();
-            }
             
-            if ( model.getDatabaseVersion().getVersion() != 0 ) {
-    	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
-    	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"folders t1 "+
-    	        		"JOIN "+this.schema+"folders t2 ON t2.id = t1.id AND t2.version >= t1.version "+
-    	                "JOIN "+this.schema+"folders_in_model m ON t1.id = m.folder_id AND t1.version = m.folder_version "+
-    	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-    	                "HAVING  m.model_id = ? AND m.model_version = ? "+
-    	        		") AS t "+
-    	        		"JOIN folders AS tt ON tt.id = t.id AND tt.version = t.latest_version",
-    	                model.getId(),
-    	                model.getDatabaseVersion().getVersion());
-    	        while ( result.next() ) {
-    	            IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
-    	            if ( folder != null ) {
-    	            	folder.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-    	            	folder.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-    	            	folder.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-    	            	folder.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
-    	            	folder.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
-    	            	folder.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
-    	            	
-    	            	folder.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
-    	            } else
-    	            	this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
-    	        }
-    	        result.close();
-            }
+            // the big joint request allows to get in one go the version of the components as they are in the current model, plus the latest version of those components
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"elements t1 "+
+	        		"JOIN "+this.schema+"elements t2 ON t2.id = t1.id AND t2.version >= t1.version "+
+	                "JOIN "+this.schema+"elements_in_model m ON t1.id = m.element_id AND t1.version = m.element_version "+
+	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") as t "+
+	        		"JOIN elements AS tt on tt.id = t.id AND tt.version = t.latest_version",
+	                model.getId(),
+	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	        while ( result.next() ) {
+	        	IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
+	            if ( element != null ) {
+	            	element.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+	            	element.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+	            	element.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+	            	element.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
+	            	element.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
+	            	element.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
+	            	
+	            	element.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            } else
+	            	this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	        }
+	        result.close();
 
-            if ( model.getDatabaseVersion().getVersion() != 0 ) {
-    	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
-    	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"views t1 "+
-    	        		"JOIN "+this.schema+"views t2 ON t2.id = t1.id AND t2.version >= t1.version "+
-    	                "JOIN "+this.schema+"views_in_model m ON t1.id = m.view_id AND t1.version = m.view_version "+
-    	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
-    	                "HAVING  m.model_id = ? AND m.model_version = ? "+
-    	        		") AS t "+
-    	        		"JOIN views AS tt ON tt.id = t.id AND tt.version = t.latest_version",
-    	                model.getId(),
-    	                model.getDatabaseVersion().getVersion());
-    	        while ( result.next() ) {
-    	            IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
-    	            if ( view != null ) {
-    	            	view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-    	            	view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-    	            	view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-    	            	view.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
-    	            	view.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
-    	            	view.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
-    	            	
-    	            	view.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
-    	            } else
-    	            	this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
-    	        }
-    	        result.close();
-            }
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"relationships t1 "+
+	        		"JOIN "+this.schema+"relationships t2 ON t2.id = t1.id AND t2.version >= t1.version "+
+	                "JOIN "+this.schema+"relationships_in_model m ON t1.id = m.relationship_id AND t1.version = m.relationship_version "+
+	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN relationships AS tt ON tt.id = t.id AND tt.version = t.latest_version",
+	                model.getId(),
+	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	        while ( result.next() ) {
+	            IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
+	            if ( relationship != null ) {
+	            	relationship.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+	            	relationship.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+	            	relationship.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+	            	relationship.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
+	            	relationship.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
+	            	relationship.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
+	            	
+	            	relationship.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            } else
+	            	this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	        }
+	        result.close();
+        
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"folders t1 "+
+	        		"JOIN "+this.schema+"folders t2 ON t2.id = t1.id AND t2.version >= t1.version "+
+	                "JOIN "+this.schema+"folders_in_model m ON t1.id = m.folder_id AND t1.version = m.folder_version "+
+	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN folders AS tt ON tt.id = t.id AND tt.version = t.latest_version",
+	                model.getId(),
+	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	        while ( result.next() ) {
+	            IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
+	            if ( folder != null ) {
+	            	folder.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+	            	folder.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+	            	folder.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+	            	folder.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
+	            	folder.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
+	            	folder.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
+	            	
+	            	folder.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            } else
+	            	this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	        }
+	        result.close();
+
+	        result = select("SELECT t.id AS id, t.version AS version, t.checksum AS checksum, t.created_on AS created_on, tt.version AS latest_version, tt.checksum AS latest_checksum, tt.created_on AS latest_created_on FROM ("+
+	                "SELECT t1.id, t1.version, t1.checksum, t1.created_on, max(t2.version) AS latest_version FROM "+this.schema+"views t1 "+
+	        		"JOIN "+this.schema+"views t2 ON t2.id = t1.id AND t2.version >= t1.version "+
+	                "JOIN "+this.schema+"views_in_model m ON t1.id = m.view_id AND t1.version = m.view_version "+
+	        		"GROUP BY t1.id, t1.version, t1.checksum, t1.created_on, m.model_id, m.model_version "+
+	                "HAVING  m.model_id = ? AND m.model_version = ? "+
+	        		") AS t "+
+	        		"JOIN views AS tt ON tt.id = t.id AND tt.version = t.latest_version",
+	                model.getId(),
+	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	        while ( result.next() ) {
+	            IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
+	            if ( view != null ) {
+	            	view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+	            	view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+	            	view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+	            	view.getDBMetadata().getDatabaseVersion().setLatestVersion(result.getInt("latest_version"));
+	            	view.getDBMetadata().getDatabaseVersion().setLatestChecksum(result.getString("latest_checksum"));
+	            	view.getDBMetadata().getDatabaseVersion().setLatestTimestamp(result.getTimestamp("latest_created_on"));
+	            	
+	            	view.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
+	            } else
+	            	this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+	        }
+	        result.close();
         } else {
         	result.close();
             logger.debug("The model does not (yet) exist in the database");
