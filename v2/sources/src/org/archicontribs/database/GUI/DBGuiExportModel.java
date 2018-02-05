@@ -733,11 +733,11 @@ public class DBGuiExportModel extends DBGui {
             this.btnDoAction.setEnabled(true);
             this.btnCompareModelToDatabase.setEnabled(true);
                 
-            if ( this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-                    this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") )
-                this.btnDoAction.setText("Export");
-            else
-                this.btnDoAction.setText("Sync");
+            //if ( this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
+            //        this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") )
+            //    this.btnDoAction.setText("Export");
+            //else
+            //    this.btnDoAction.setText("Sync");
         }
 	}
 	
@@ -934,6 +934,9 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewViewsInDatabase.setText(String.valueOf(this.connection.getViewsNotInModel().size()));
         this.txtConflictingViews.setText(String.valueOf(nbConflict));
         
+        this.txtNewImagesInModel.setText(String.valueOf(this.connection.getImagesNotInDatabase().size()));
+        this.txtNewImagesInDatabase.setText(String.valueOf(this.connection.getImagesNotInModel().size()));
+        
         closePopup();
         
         if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
@@ -1016,6 +1019,7 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
         this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
         this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
+        this.txtNewImagesInModel.setText("0");			 this.txtNewImagesInDatabase.setText("0");
 
 		
 		try {
@@ -1100,24 +1104,11 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: this.exportedModel.getAllImagePaths() ) {
-					this.connection.exportImage(path, archiveMgr.getBytesFromEntry(path));
-					//TODO : the imagePath is a checksum so an image cannot be modified without changing its imagePath;
-					/*
-					switch ( connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
-						case isNew :
-							incrementText(txtIdenticalImages);
-							decrementText(txtNewImages);
-							break;
-						case isUpdated :
-							incrementText(txtIdenticalImages);
-							decrementText(txtOlderImages);
-							break;
-						case isSynced :
-							// do nothing
-							break;
-					}
-					*/
+					if ( this.connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
+						incrementText(this.txtNewImagesInModel);
 				}
+				
+				// TODO : import new images in database should be done through the import new views (that implies import new views objects therefore new images)
 			}
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);

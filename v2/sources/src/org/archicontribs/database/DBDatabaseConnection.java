@@ -2588,7 +2588,11 @@ public class DBDatabaseConnection {
 	private HashMap<String, DBVersion> relationshipsNotInModel = new HashMap<String, DBVersion>();		public HashMap<String, DBVersion> getRelationshipsNotInModel() { return this.relationshipsNotInModel; }
 	private HashMap<String, DBVersion> foldersNotInModel = new HashMap<String, DBVersion>();			public HashMap<String, DBVersion> getFoldersNotInModel() { return this.foldersNotInModel; }
 	private HashMap<String, DBVersion> viewsNotInModel = new HashMap<String, DBVersion>();				public HashMap<String, DBVersion> getViewsNotInModel() { return this.viewsNotInModel; }
-	
+	private HashMap<String, DBVersion> imagesNotInModel = new HashMap<String, DBVersion>();				public HashMap<String, DBVersion> getImagesNotInModel() { return this.imagesNotInModel; }
+	private HashMap<String, DBVersion> imagesNotInDatabase = new HashMap<String, DBVersion>();			public HashMap<String, DBVersion> getImagesNotInDatabase() { return this.imagesNotInDatabase; }
+
+	//TODO : use try with resource statements
+	//TODO :    try (ResultSet resultSet = statement.executeQuery("some query")) { ... }	
     /**
      * Gets the versions and checksum of one model's components from the database and fills elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel.<br>
      * <br>
@@ -2699,7 +2703,9 @@ public class DBDatabaseConnection {
     	this.relationshipsNotInModel = new HashMap<String, DBVersion>();
     	this.foldersNotInModel = new HashMap<String, DBVersion>();
     	this.viewsNotInModel = new HashMap<String, DBVersion>();
-        
+    	this.imagesNotInModel = new HashMap<String, DBVersion>();
+    	this.imagesNotInDatabase = new HashMap<String, DBVersion>();
+    	
         // we get the latest model version from the database
         model.getDatabaseVersion().reset();
         ResultSet result;
@@ -2835,6 +2841,20 @@ public class DBDatabaseConnection {
 	            	this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 	        }
 	        result.close();
+	        
+			// then we check if the latest version of the model has got images that are not in the model
+			result = select ("SELECT DISTINCT image_path FROM views_objects "
+					+"JOIN views_in_model ON views_in_model.view_id = views_objects.view_id AND views_in_model.view_version = views_objects.view_version " 
+					+ "WHERE views_in_model.model_id = ? AND views_in_model.model_version = ?"
+					,model.getId()
+					,model.getCurrentVersion().getVersion()
+					);
+			while ( result.next() ) {
+				if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
+					this.imagesNotInModel.put(result.getString("image_path"), new DBVersion());
+				}
+			}
+			result.close();
         } else {
         	result.close();
             logger.debug("The model does not (yet) exist in the database");
@@ -2912,7 +2932,21 @@ public class DBDatabaseConnection {
                 }
             }
         }
-        //TODO: images
+        
+        // even if the model does not exist in the database, the images can exist in the database
+        // images do not have a version as they cannot be modified. Their path is a checksum and loading a new image creates a new path.
+        
+        // fat last, we check if all the images in the model are in the database
+    	for ( String path: model.getAllImagePaths() ) {
+			result = select("SELECT path from images where path = ?", path);
+			if ( result.next() && result.getObject("path") != null ) {
+				// the image is in the database
+			} else {
+				// the image is not in the database
+				this.imagesNotInDatabase.put(path, new DBVersion());
+			}
+			result.close();
+		}
     }
     
 	/* **** Export methods  ************************************************************** */
@@ -3390,9 +3424,11 @@ public class DBDatabaseConnection {
 		}
 	}
 
-	public void exportImage(String path, byte[] image) throws SQLException, NoSuchAlgorithmException {
+	public boolean exportImage(String path, byte[] image) throws SQLException, NoSuchAlgorithmException {
+		// TODO : remove the checksum - Archi does not allow to update an image.
 		String checksum = DBChecksum.calculateChecksum(image);
 		ResultSet result = null;
+		boolean exported = false;
 
 		try {
 			result = select("SELECT checksum FROM "+this.schema+"images WHERE path = ?", path);
@@ -3405,6 +3441,7 @@ public class DBDatabaseConnection {
 							,checksum
 							,path
 							);
+					exported = true;
 				}
 			} else {
 				// if the image is not yet in the db, we insert it
@@ -3414,11 +3451,13 @@ public class DBDatabaseConnection {
 						,image
 						,checksum								
 						);
+				exported = true;
 			}
 		} finally {    
 			if ( result != null ) result.close();
 			result = null;
 		}
+		return exported;
 	}
 
 	private static String encode (EList<IDiagramModelConnection> connections) {
