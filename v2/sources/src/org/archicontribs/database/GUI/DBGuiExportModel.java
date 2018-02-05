@@ -150,6 +150,7 @@ public class DBGuiExportModel extends DBGui {
 				boolean canExport = (DBGuiExportModel.this.tblModelVersions.getSelection() != null) && (DBGuiExportModel.this.tblModelVersions.getSelection().length > 0) && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] != null);
 				
 				DBGuiExportModel.this.btnDoAction.setEnabled(canExport);
+				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(canExport);
 				
 				if ( canExport ) {
                     boolean canChangeMetaData = (DBGuiExportModel.this.connection != null && DBGuiExportModel.this.selectedDatabase.getExportWholeModel() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
@@ -158,6 +159,7 @@ public class DBGuiExportModel extends DBGui {
                     DBGuiExportModel.this.txtPurpose.setEnabled(canChangeMetaData);
                     DBGuiExportModel.this.txtModelName.setEnabled(canChangeMetaData);
                     DBGuiExportModel.this.btnDoAction.setEnabled(canChangeMetaData);
+                    DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(canChangeMetaData);
                     
 					DBGuiExportModel.this.txtReleaseNote.setText((String) DBGuiExportModel.this.tblModelVersions.getSelection()[0].getData("note"));
 					DBGuiExportModel.this.txtPurpose.setText((String) DBGuiExportModel.this.tblModelVersions.getSelection()[0].getData("purpose"));
@@ -624,6 +626,37 @@ public class DBGuiExportModel extends DBGui {
         fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
         this.txtTotalImages.setLayoutData(fd);
+        
+        this.txtNewImagesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewImagesInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelNew, 0, SWT.RIGHT);
+        this.txtNewImagesInModel.setLayoutData(fd);
+        
+        this.txtNewImagesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewImagesInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseNew, 0, SWT.RIGHT);
+        this.txtNewImagesInDatabase.setLayoutData(fd);
+        
+        /* * * * * */
+        this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.WRAP);
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+        this.btnCompareModelToDatabase.setText("Compare model to database");
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(this.txtTotalViewConnections, 15, SWT.TOP);
+        fd.left = new FormAttachment(this.lblDatabaseUpdated, 0);
+        fd.right = new FormAttachment(this.lblConflict, 10, SWT.RIGHT);
+        fd.bottom = new FormAttachment(this.txtTotalImages, 0, SWT.BOTTOM);
+        this.btnCompareModelToDatabase.setLayoutData(fd);
+        this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
+            @Override public void widgetSelected(SelectionEvent e) { DBGuiExportModel.this.compareModelToDatabase(); }
+            @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+        });
     }
 
 	/**
@@ -683,186 +716,29 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
-		// if the exportWithDefaultValues preference is set, then we automatically start the export
 		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("exportWithDefaultValues") ) {
+		    // if the exportWithDefaultValues preference is set, then we automatically start the export
 			logger.debug("Automatically start export as specified in preferences.");
 			this.btnDoAction.notifyListeners(SWT.Selection, new Event());
-		} else {
-    		// else, we check what needs to be exported to the database
-            this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
-            this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
-            this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
-            this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
-            this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
-    
-            try {
-                popup("Please wait while comparing model from the database");
-                this.connection.getVersionsFromDatabase(this.exportedModel);
-            } catch (SQLException err ) {
-                closePopup();
-                popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
-                setActiveAction(STATUS.Error);
-                doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-                return;
-            }
-            
-            // we export the components without checking for conflicts in 3 cases:
-            //    - the model is not in the database
-            //    - the current model is the latest model in the database
-            //    - we are in standalone mode
-            this.forceExport = this.exportedModel.getCurrentVersion().getVersion() == 0
-                    || this.exportedModel.getCurrentVersion().getLatestVersion() == this.exportedModel.getCurrentVersion().getVersion()
-                    || !this.selectedDatabase.getCollaborativeMode();
-    
-            int nbNews = 0;
-            int nbUpdated = 0;
-            int nbUpdatedDb = 0;
-            int nbConflict = 0;
-            Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
-            while (ite.hasNext()) {
-                DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-                if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                    // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                    ++nbNews;
-                } else {
-                    if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                        boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
-                        boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
-                        
-                        if ( modifiedInModel && modifiedInDatabase ) {
-                            if ( this.forceExport )          ++nbUpdated;
-                            else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                        } else {
-                            if ( modifiedInModel )      ++nbUpdated;
-                            if ( modifiedInDatabase )   ++nbUpdatedDb;
-                        }
-                    }
-                }
-            }
-            this.txtNewElementsInModel.setText(String.valueOf(nbNews));
-            this.txtUpdatedElementsInModel.setText(String.valueOf(nbUpdated));
-            this.txtUpdatedElementsInDatabase.setText(String.valueOf(nbUpdatedDb));
-            this.txtNewElementsInDatabase.setText(String.valueOf(this.connection.getElementsNotInModel().size()));
-            this.txtConflictingElements.setText(String.valueOf(nbConflict));
-            
-            nbNews = 0;
-            nbUpdated = 0;
-            nbUpdatedDb = 0;
-            nbConflict = 0;
-            Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
-            while (itr.hasNext()) {
-                DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-                if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                    // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                    ++nbNews;
-                } else {
-                    if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                        boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
-                        boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
-                        
-                        if ( modifiedInModel && modifiedInDatabase ) {
-                            if ( this.forceExport )          ++nbUpdated;
-                            else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                        } else {
-                            if ( modifiedInModel )      ++nbUpdated;
-                            if ( modifiedInDatabase )   ++nbUpdatedDb;
-                        }
-                    }
-                }
-            }
-            this.txtNewRelationshipsInModel.setText(String.valueOf(nbNews));
-            this.txtUpdatedRelationshipsInModel.setText(String.valueOf(nbUpdated));
-            this.txtUpdatedRelationshipsInDatabase.setText(String.valueOf(nbUpdatedDb));
-            this.txtNewRelationshipsInDatabase.setText(String.valueOf(this.connection.getRelationshipsNotInModel().size()));
-            this.txtConflictingRelationships.setText(String.valueOf(nbConflict));
-            
-            nbNews = 0;
-            nbUpdated = 0;
-            nbUpdatedDb = 0;
-            nbConflict = 0;
-            Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
-            while (itf.hasNext()) {
-                IFolder tmp = itf.next().getValue();
-                DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
-                if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                    // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                    ++nbNews;
-                } else {
-                    if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                        boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
-                        boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
-                        
-                        if ( modifiedInModel && modifiedInDatabase ) {
-                            if ( this.forceExport )          ++nbUpdated;
-                            else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                        } else {
-                            if ( modifiedInModel )      ++nbUpdated;
-                            if ( modifiedInDatabase )   ++nbUpdatedDb;
-                        }
-                    }
-                }
-            }
-            this.txtNewFoldersInModel.setText(String.valueOf(nbNews));
-            this.txtUpdatedFoldersInModel.setText(String.valueOf(nbUpdated));
-            this.txtUpdatedFoldersInDatabase.setText(String.valueOf(nbUpdatedDb));
-            this.txtNewFoldersInDatabase.setText(String.valueOf(this.connection.getFoldersNotInModel().size()));
-            this.txtConflictingFolders.setText(String.valueOf(nbConflict));
-            
-            nbNews = 0;
-            nbUpdated = 0;
-            nbUpdatedDb = 0;
-            nbConflict = 0;
-            Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
-            while (itv.hasNext()) {
-                DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-                if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                    // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                    ++nbNews;
-                } else {
-                    if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
-                        boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
-                        boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
-                        
-                        if ( modifiedInModel && modifiedInDatabase ) {
-                            if ( this.forceExport )          ++nbUpdated;
-                            else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                        } else {
-                            if ( modifiedInModel )      ++nbUpdated;
-                            if ( modifiedInDatabase )   ++nbUpdatedDb;
-                        }
-                    }
-                }
-            }
-            this.txtNewViewsInModel.setText(String.valueOf(nbNews));
-            this.txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
-            this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedDb));
-            this.txtNewViewsInDatabase.setText(String.valueOf(this.connection.getViewsNotInModel().size()));
-            this.txtConflictingViews.setText(String.valueOf(nbConflict));
-            
-            closePopup();
-    		
-            if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
-                    this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
-                    this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
-                    this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-                    this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") ) {
-                popup(Level.INFO, "Your database is already up to date.");
-                if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
-                this.btnDoAction.setEnabled(false);
+			return;
+		}
+		
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+        
+		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview") ) {
+		    // if the compareBeforeExport is set
+		    compareModelToDatabase();    		
+        } else {
+            if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
+            this.btnDoAction.setEnabled(true);
+            this.btnCompareModelToDatabase.setEnabled(true);
+                
+            if ( this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
+                    this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") )
                 this.btnDoAction.setText("Export");
-                
-                this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getDatabaseVersion().getLatestTimestamp());
-            } else {
-                if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
-                this.btnDoAction.setEnabled(true);
-                
-                if ( this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") )
-                    this.btnDoAction.setText("Export");
-                else
-                    this.btnDoAction.setText("Sync");
-            }
-	    }
+            else
+                this.btnDoAction.setText("Sync");
+        }
 	}
 	
 	/**
@@ -874,6 +750,7 @@ public class DBGuiExportModel extends DBGui {
 	protected void notConnectedToDatabase() {
 		if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
 		this.btnDoAction.setEnabled(false);
+		this.btnCompareModelToDatabase.setEnabled(false);
 		
 		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
 		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
@@ -900,6 +777,177 @@ public class DBGuiExportModel extends DBGui {
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
 		
 		this.btnDoAction.setText("Export");
+		
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+	}
+	
+	protected void compareModelToDatabase() {
+        popup("Please wait while comparing model from the database");
+       
+        try {
+            this.connection.getVersionsFromDatabase(this.exportedModel);
+        } catch (SQLException err ) {
+            closePopup();
+            popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+            setActiveAction(STATUS.Error);
+            doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+            return;
+        }
+        
+        this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
+        this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
+        this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
+        this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
+        this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
+
+        
+        // we export the components without checking for conflicts in 3 cases:
+        //    - the model is not in the database
+        //    - the current model is the latest model in the database
+        //    - we are in standalone mode
+        this.forceExport = this.exportedModel.getCurrentVersion().getVersion() == 0
+                || this.exportedModel.getCurrentVersion().getLatestVersion() == this.exportedModel.getCurrentVersion().getVersion()
+                || !this.selectedDatabase.getCollaborativeMode();
+
+        int nbNews = 0;
+        int nbUpdated = 0;
+        int nbUpdatedDb = 0;
+        int nbConflict = 0;
+        Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
+        while (ite.hasNext()) {
+            DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
+            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+                ++nbNews;
+            } else {
+                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )     ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                    }
+                }
+            }
+        }
+        this.txtNewElementsInModel.setText(String.valueOf(nbNews));
+        this.txtUpdatedElementsInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedElementsInDatabase.setText(String.valueOf(nbUpdatedDb));
+        this.txtNewElementsInDatabase.setText(String.valueOf(this.connection.getElementsNotInModel().size()));
+        this.txtConflictingElements.setText(String.valueOf(nbConflict));
+        
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
+        Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
+        while (itr.hasNext()) {
+            DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
+            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+                ++nbNews;
+            } else {
+                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )          ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                    }
+                }
+            }
+        }
+        this.txtNewRelationshipsInModel.setText(String.valueOf(nbNews));
+        this.txtUpdatedRelationshipsInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedRelationshipsInDatabase.setText(String.valueOf(nbUpdatedDb));
+        this.txtNewRelationshipsInDatabase.setText(String.valueOf(this.connection.getRelationshipsNotInModel().size()));
+        this.txtConflictingRelationships.setText(String.valueOf(nbConflict));
+        
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
+        Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
+        while (itf.hasNext()) {
+            IFolder tmp = itf.next().getValue();
+            DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
+            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+                ++nbNews;
+            } else {
+                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )          ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                    }
+                }
+            }
+        }
+        this.txtNewFoldersInModel.setText(String.valueOf(nbNews));
+        this.txtUpdatedFoldersInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedFoldersInDatabase.setText(String.valueOf(nbUpdatedDb));
+        this.txtNewFoldersInDatabase.setText(String.valueOf(this.connection.getFoldersNotInModel().size()));
+        this.txtConflictingFolders.setText(String.valueOf(nbConflict));
+        
+        nbNews = 0;
+        nbUpdated = 0;
+        nbUpdatedDb = 0;
+        nbConflict = 0;
+        Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
+        while (itv.hasNext()) {
+            DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
+            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
+                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+                ++nbNews;
+            } else {
+                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )          ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                    }
+                }
+            }
+        }
+        this.txtNewViewsInModel.setText(String.valueOf(nbNews));
+        this.txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedDb));
+        this.txtNewViewsInDatabase.setText(String.valueOf(this.connection.getViewsNotInModel().size()));
+        this.txtConflictingViews.setText(String.valueOf(nbConflict));
+        
+        closePopup();
+        
+        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
+                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
+                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
+                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
+                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") ) {
+            popup(Level.INFO, "Your database is already up to date.");
+            if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
+            this.btnDoAction.setEnabled(false);
+            this.btnDoAction.setText("Export");
+            
+            this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getDatabaseVersion().getLatestTimestamp());
+        }
 	}
 
 	/**
@@ -919,6 +967,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		// we disable the export button to avoid a second click
 		this.btnDoAction.setEnabled(false);
+		this.btnCompareModelToDatabase.setEnabled(false);
 
 		// we disable the option between an whole model export or a components only export
 		disableOption();
@@ -1598,6 +1647,7 @@ public class DBGuiExportModel extends DBGui {
 	Button btnDoNotExport;
 	Button btnExportMyVersion;
 	Button btnImportDatabaseVersion;
+	Button btnCompareModelToDatabase;
 	
 	Button checkRememberChoice;
 
@@ -1651,6 +1701,8 @@ public class DBGuiExportModel extends DBGui {
     private Text txtTotalViewConnections;
     
     private Text txtTotalImages;
+    private Text txtNewImagesInModel;
+    private Text txtNewImagesInDatabase;
 
 
 	Table tblModelVersions;

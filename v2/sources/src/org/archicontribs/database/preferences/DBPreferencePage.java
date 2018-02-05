@@ -66,7 +66,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnExportWithDefaultValues;
 	private Button btnCloseIfSuccessful;
 	private Button btnRemoveDirtyFlag;
-	private Button btnDeleteIfImportError;
+	private Button btnCompareToDatabaseBeforeExport;
+	private Button btnKeepPartiallyImportedModel;
 	private Button btnImportShared;
 	private Button btnShowIdInContextMenu;
 	
@@ -207,21 +208,30 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnRemoveDirtyFlag.setLayoutData(fd);
 		
-		this.btnDeleteIfImportError = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnDeleteIfImportError.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnDeleteIfImportError.setText("Delete model in case of import error");
-		this.btnDeleteIfImportError.setSelection(preferenceStore.getBoolean("deleteIfImportError"));
+	    this.btnCompareToDatabaseBeforeExport = new Button(grpMiscellaneous, SWT.CHECK);
+        this.btnCompareToDatabaseBeforeExport.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        this.btnCompareToDatabaseBeforeExport.setText("Compare model to the database before export");
+        this.btnCompareToDatabaseBeforeExport.setSelection(preferenceStore.getBoolean("compareBeforeExport"));
+        fd = new FormData();
+        fd.top = new FormAttachment(this.btnRemoveDirtyFlag, 5);
+        fd.left = new FormAttachment(0, 10);
+        this.btnCompareToDatabaseBeforeExport.setLayoutData(fd);
+		
+		this.btnKeepPartiallyImportedModel = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnKeepPartiallyImportedModel.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnKeepPartiallyImportedModel.setText("Keep partially imported model in case of error");
+		this.btnKeepPartiallyImportedModel.setSelection(!preferenceStore.getBoolean("deleteIfImportError"));
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnRemoveDirtyFlag, 5);
+		fd.top = new FormAttachment(this.btnCompareToDatabaseBeforeExport, 5);
 		fd.left = new FormAttachment(0, 10);
-		this.btnDeleteIfImportError.setLayoutData(fd);
+		this.btnKeepPartiallyImportedModel.setLayoutData(fd);
 		
 		this.btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.btnShowIdInContextMenu.setText("Show debuging information in context menu");
 		this.btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnDeleteIfImportError, 5);
+		fd.top = new FormAttachment(this.btnKeepPartiallyImportedModel, 5);
 		fd.left = new FormAttachment(0, 10);
 		this.btnShowIdInContextMenu.setLayoutData(fd);
 		
@@ -420,7 +430,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("closeIfSuccessful", this.btnCloseIfSuccessful.getSelection());
     	preferenceStore.setValue("checkForUpdateAtStartup", this.btnCheckForUpdateAtStartupButton.getSelection());
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
-    	preferenceStore.setValue("deleteIfImportError", this.btnDeleteIfImportError.getSelection());
+    	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
+    	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", this.btnShowIdInContextMenu.getSelection());
     	preferenceStore.setValue("importShared", this.btnImportShared.getSelection());
     	

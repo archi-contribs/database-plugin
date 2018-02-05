@@ -199,6 +199,7 @@ import org.json.simple.parser.JSONParser;
  *										allows to get history for diagrams, canvas and sketches
  *                                  Add procedures that can be called by the script plugin
  *                                  reduce memory leak
+ *                                  Compare the model to the database before exporting it to the database is now optional
  * 
  *                                  Known bugs:
  *                                  -----------
@@ -267,6 +268,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("exportWithDefaultValues", false);
 		preferenceStore.setDefault("checkForUpdateAtStartup", false);
 		preferenceStore.setDefault("closeIfSuccessful",       false);
+		preferenceStore.setDefault("compareBeforeExport",     true);
 		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);
 		preferenceStore.setDefault("removeDirtyFlag",         false);
