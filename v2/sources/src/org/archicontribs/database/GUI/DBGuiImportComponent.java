@@ -1135,6 +1135,7 @@ public class DBGuiImportComponent extends DBGui {
 		this.tblComponents.setLayoutData(fd);
 	}
 
+	@SuppressWarnings("resource")
 	void getElements() throws Exception {
 		this.compoElements.setVisible(true);
 		//compoContainers.setVisible(false);
@@ -1282,6 +1283,7 @@ public class DBGuiImportComponent extends DBGui {
 	}
 	 */
 
+	@SuppressWarnings("resource")
 	void getViews() throws Exception {
 		this.compoElements.setVisible(false);
 		//compoContainers.setVisible(false);
