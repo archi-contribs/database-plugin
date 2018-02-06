@@ -191,14 +191,15 @@ import org.json.simple.parser.JSONParser;
  * 
  * v2.1 : 28/01/2018				Solve plugin initialization failure
  * 									Import individual component:
- * 										added documentation column
- * 										added popup message during the import
+ * 										Added documentation column
+ * 										Added popup message during the import
  * 									Export model:
- *										change the export algorithm to manage standalone and collaborative modes
+ *										Create two export modes : standalone and collaborative modes
+ *                                      Mix export and import in collaborative mode
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
  *                                  Add procedures that can be called by the script plugin
- *                                  reduce memory leak
+ *                                  Reduce memory leak
  *                                  Compare the model to the database before exporting it to the database is now optional
  * 
  *                                  Known bugs:
@@ -221,9 +222,7 @@ import org.json.simple.parser.JSONParser;
  *											allow to export individual component, or update it from the database, directly from the history window
  *											allow to get the database history
  *										Miscellaneous:
- *											add a preference to show or hide the debug information on the right click menu rather than depend on the logging level
  *											add an option to check for relationships that are in the database but would not be in the in memory model
- *											add a progressbar on the "please wait while checking components to export" window
  *											find a way to manage images from the database the same way it is done on disk
  *											create a new windows that will show up detailed statistics about the model
  *											add more jdbc drivers (mongodb, odbc, etc ...)				
