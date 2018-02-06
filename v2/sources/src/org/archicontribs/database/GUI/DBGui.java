@@ -892,8 +892,12 @@ public class DBGui {
 			@Override
 			public void run() {
 				//questionResult = MessageDialog.openQuestion(display.getActiveShell(), DBPlugin.pluginTitle, msg);
-				MessageDialog dialog = new MessageDialog(display.getActiveShell(), DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
-				questionResult = dialog.open();
+				Shell shell = new Shell(display, SWT.SHELL_TRIM);
+				shell.setSize(0, 0);
+				shell.setBackground(BLACK_COLOR);
+				shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
+				MessageDialog messageDialog = new MessageDialog(shell, DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
+				questionResult = messageDialog.open();
 			}
 		});
 
