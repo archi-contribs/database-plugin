@@ -83,16 +83,10 @@ public class DBGuiExportModel extends DBGui {
 		super(title);
 		// We reference the exported model 
         this.exportedModel = model;
-		
 		this.includeNeo4j = true;
+		
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+this.exportedModel.getName()+"\" (plugin version "+DBPlugin.pluginVersion+").");
 
-		popup("Please wait while counting model's components");
-		this.exportedModel.countAllObjects();
-		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
-		closePopup();
-		
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+model.getName()+"\" (plugin version "+DBPlugin.pluginVersion+").");
-		
 		createGrpComponents();
 		createGrpModel();
 		this.compoRightBottom.setVisible(true);
@@ -105,7 +99,7 @@ public class DBGuiExportModel extends DBGui {
 		// we show an arrow in front of the first action
 		setActiveAction(ACTION.One);
 
-		// We activate the btnDoAction button : if the user select the "Export" button --> call the exportComponents() method
+		// if the user select the "Export" button --> call the exportComponents() method
 		setBtnAction("Export", new SelectionListener() {
 			@Override
             public void widgetSelected(SelectionEvent e) {
@@ -120,8 +114,39 @@ public class DBGuiExportModel extends DBGui {
 
 		// We activate the Eclipse Help framework
 		setHelpHref("exportModel.html");
-		
-	    getDatabases();
+	}
+	
+	@Override
+	public void run() {
+	    super.run();
+	    
+	    popup("Please wait while counting model's components");
+        try {
+            this.exportedModel.countAllObjects();
+        } catch (Exception err) {
+            closePopup();
+            popup(Level.ERROR, "Failed to count model's components", err);
+            return;
+        }
+        closePopup();
+        
+        
+        if ( logger.isDebugEnabled() ) logger.debug("the model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
+        
+        this.txtTotalElements.setText(String.valueOf(this.exportedModel.getAllElements().size()));
+        this.txtTotalRelationships.setText(String.valueOf(this.exportedModel.getAllRelationships().size()));
+        this.txtTotalFolders.setText(String.valueOf(this.exportedModel.getAllFolders().size()));
+        this.txtTotalViews.setText(String.valueOf(this.exportedModel.getAllViews().size()));
+        this.txtTotalViewObjects.setText(String.valueOf(this.exportedModel.getAllViewObjects().size()));
+        this.txtTotalViewConnections.setText(String.valueOf(this.exportedModel.getAllViewConnections().size()));
+        this.txtTotalImages.setText(String.valueOf(this.exportedModel.getAllImagePaths().size()));
+        
+        try {
+            getDatabases();
+        } catch (Exception err) {
+            popup(Level.ERROR, "Failed to get the databases.", err);
+            return;
+        }
 	}
 
 	/**
@@ -393,7 +418,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalElements.setText(String.valueOf(this.exportedModel.getAllElements().size()));
         this.txtTotalElements.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
@@ -444,7 +468,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalRelationships.setText(String.valueOf(this.exportedModel.getAllRelationships().size()));
         this.txtTotalRelationships.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
@@ -495,7 +518,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalFolders.setText(String.valueOf(this.exportedModel.getAllFolders().size()));
         this.txtTotalFolders.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
@@ -546,7 +568,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalViews.setText(String.valueOf(this.exportedModel.getAllViews().size()));
         this.txtTotalViews.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
@@ -597,7 +618,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalViewObjects.setText(String.valueOf(this.exportedModel.getAllViewObjects().size()));
         this.txtTotalViewObjects.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
@@ -608,7 +628,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalViewConnections.setText(String.valueOf(this.exportedModel.getAllViewConnections().size()));
         this.txtTotalViewConnections.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
@@ -619,7 +638,6 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         
         this.txtTotalImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
-        this.txtTotalImages.setText(String.valueOf(this.exportedModel.getAllImagePaths().size()));
         this.txtTotalImages.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
@@ -645,7 +663,7 @@ public class DBGuiExportModel extends DBGui {
         
         /* * * * * */
         this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.WRAP);
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
         this.btnCompareModelToDatabase.setText("Compare model to database");
         fd = new FormData(26,18);
         fd.top = new FormAttachment(this.txtTotalViewConnections, 15, SWT.TOP);
@@ -723,9 +741,9 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
         
-		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview") ) {
+		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
 		    compareModelToDatabase();    		
         } else {
@@ -778,7 +796,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.btnDoAction.setText("Export");
 		
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("preview"));
+        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
 	}
 	
 	protected void compareModelToDatabase() {
@@ -1058,14 +1076,14 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
-					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtNewFoldersInDatabase, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
+					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
 				}
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
-				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtNewElementsInDatabase, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
+				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
 			}
 			
 			if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getElementsNotInModel().size()+" elements");
@@ -1073,12 +1091,13 @@ public class DBGuiExportModel extends DBGui {
 			    DBVersion versionToImport = this.connection.getElementsNotInModel().get(id);
 			    this.connection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 			    incrementText(this.txtNewElementsInDatabase);
+			    incrementText(this.txtTotalElements);
 			}
 			    
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
-				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtNewRelationshipsInDatabase, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
+				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
 			}
 			
 	        if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getRelationshipsNotInModel().size()+" relationships");
@@ -1086,6 +1105,7 @@ public class DBGuiExportModel extends DBGui {
 	            DBVersion versionToImport = this.connection.getRelationshipsNotInModel().get(id);
 	            this.connection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 	            incrementText(this.txtNewRelationshipsInDatabase);
+	            incrementText(this.txtTotalRelationships);
 	        }
 	
 			if ( this.selectedDatabase.getExportWholeModel() ) {
@@ -1093,7 +1113,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue(); 
-					if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtNewViewsInDatabase, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
+					if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
 					    this.connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();      // we need to memorize exported connections as they can be get as sources AND as targets 
 	                    for ( IDiagramModelObject viewObject: view.getChildren() ) {
 	                        doExportViewObject(viewObject);
@@ -1227,18 +1247,18 @@ public class DBGuiExportModel extends DBGui {
 	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
 		if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
-		boolean exported = doExportEObject(viewObject, null, null, null, null, null);
+		boolean exported = doExportEObject(viewObject, null, null, null, null);
 		
 		if ( exported ) {
 			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
 				if ( this.connectionsAlreadyExported.get(source.getId()) == null ) {
-					doExportEObject(source, null, null, null, null, null);
+					doExportEObject(source, null, null, null, null);
 					this.connectionsAlreadyExported.put(source.getId(), source);
 				}
 			}
 			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
 				if ( this.connectionsAlreadyExported.get(target.getId()) == null ) {
-					doExportEObject(target, null, null, null, null, null);
+					doExportEObject(target, null, null, null, null);
 					this.connectionsAlreadyExported.put(target.getId(), target);
 				}
 			}
@@ -1258,7 +1278,7 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called by the export() method
 	 * @return true if the EObject has been exported, false if it is conflicting
 	 */
-	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtNewInDatabase, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
+	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
 		assert(eObject instanceof IDBMetadata);
 		assert(this.connection != null);
 		
@@ -1340,10 +1360,13 @@ public class DBGuiExportModel extends DBGui {
 		if ( mustImport ) {
             // For the moment, we can import elements and relationships only during an export !!!
             if ( eObjectToExport instanceof IArchimateElement ) {
-                eObjectToExport = this.connection.importElementFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
+                if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                this.connection.importElementFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
+                incrementText(txtUpdatedInDatabase);
             } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                eObjectToExport = this.connection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
-                incrementText(this.connection.getRelationshipsNotInModel().get(((IIdentifier)eObjectToExport).getId()) != null ? txtNewInDatabase : txtUpdatedInDatabase);
+                if ( logger.isDebugEnabled() ) logger.debug("relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                this.connection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getLatestVersion(), false);
+                incrementText(txtUpdatedInDatabase);
             } else
             	throw new Exception ("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
 		}

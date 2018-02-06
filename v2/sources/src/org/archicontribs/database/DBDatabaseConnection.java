@@ -2727,7 +2727,7 @@ public class DBDatabaseConnection {
                 
             }
             result.close();
-            logger.debug("The model already exists in the database (current version = "+model.getDatabaseVersion().getVersion()+", latest version = "+model.getDatabaseVersion().getLatestVersion()+")");
+            logger.debug("The model already exists in the database (current version (in memory) = "+model.getDatabaseVersion().getVersion()+", latest version (in database) = "+model.getDatabaseVersion().getLatestVersion()+")");
             
             // we reset all the versions
             while (ite.hasNext()) ((IDBMetadata)ite.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
@@ -2747,7 +2747,8 @@ public class DBDatabaseConnection {
 	        		") as t "+
 	        		"JOIN elements AS tt on tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
-	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	                model.getDatabaseVersion().getLatestVersion()
+	                );
 	        while ( result.next() ) {
 	        	IDBMetadata element = (IDBMetadata)model.getAllElements().get(result.getString("id"));
 	            if ( element != null ) {
@@ -2773,7 +2774,8 @@ public class DBDatabaseConnection {
 	        		") AS t "+
 	        		"JOIN relationships AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
-	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	                model.getDatabaseVersion().getLatestVersion()
+                    );
 	        while ( result.next() ) {
 	            IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
 	            if ( relationship != null ) {
@@ -2799,7 +2801,8 @@ public class DBDatabaseConnection {
 	        		") AS t "+
 	        		"JOIN folders AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
-	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	                model.getDatabaseVersion().getLatestVersion()
+                    );
 	        while ( result.next() ) {
 	            IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
 	            if ( folder != null ) {
@@ -2825,7 +2828,8 @@ public class DBDatabaseConnection {
 	        		") AS t "+
 	        		"JOIN views AS tt ON tt.id = t.id AND tt.version = t.latest_version",
 	                model.getId(),
-	                model.getDatabaseVersion().getVersion()==0 ? model.getDatabaseVersion().getLatestVersion() : model.getDatabaseVersion().getVersion());
+	                model.getDatabaseVersion().getLatestVersion()
+                    );
 	        while ( result.next() ) {
 	            IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
 	            if ( view != null ) {
@@ -2845,7 +2849,7 @@ public class DBDatabaseConnection {
 			// then we check if the latest version of the model has got images that are not in the model
 			result = select ("SELECT DISTINCT image_path FROM views_objects "
 					+"JOIN views_in_model ON views_in_model.view_id = views_objects.view_id AND views_in_model.view_version = views_objects.view_version " 
-					+ "WHERE views_in_model.model_id = ? AND views_in_model.model_version = ?"
+					+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
 					,model.getId()
 					,model.getCurrentVersion().getVersion()
 					);
