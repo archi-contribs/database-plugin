@@ -533,22 +533,21 @@ public class DBPlugin extends AbstractUIPlugin {
 					
 					Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setMaximum(fileLength); }});
 
-					InputStream in = conn.getInputStream();
-					FileOutputStream fos = new FileOutputStream(new File(tmpFilename));	                
-					byte[] buff = new byte[1024];
-					int n;
-					updateDownloaded = 0;
-
-					if ( logger.isDebugEnabled() ) logger.debug("downloading file ...");
-					while ((n=in.read(buff)) !=-1) {
-						fos.write(buff, 0, n);
-						updateDownloaded +=n;
-						Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setSelection(updateDownloaded); }});
-						//if ( logger.isTraceEnabled() ) logger.trace(updateDownloaded+"/"+fileLength);
+					try ( InputStream in = conn.getInputStream()) {
+						try (FileOutputStream fos = new FileOutputStream(new File(tmpFilename)) ) {                
+							byte[] buff = new byte[1024];
+							int n;
+							updateDownloaded = 0;
+		
+							if ( logger.isDebugEnabled() ) logger.debug("downloading file ...");
+							while ((n=in.read(buff)) !=-1) {
+								fos.write(buff, 0, n);
+								updateDownloaded +=n;
+								Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setSelection(updateDownloaded); }});
+								//if ( logger.isTraceEnabled() ) logger.trace(updateDownloaded+"/"+fileLength);
+							}
+						}
 					}
-					fos.flush();
-					fos.close();
-					in.close();
 
 					if ( logger.isDebugEnabled() ) logger.debug("download finished");
 
