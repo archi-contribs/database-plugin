@@ -120,6 +120,8 @@ public class DBGuiExportModel extends DBGui {
 	public void run() {
 	    super.run();
 	    
+	    refreshDisplay();
+	    
 	    popup("Please wait while counting model's components");
         try {
             this.exportedModel.countAllObjects();
