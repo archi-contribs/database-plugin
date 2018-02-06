@@ -7,8 +7,6 @@
 package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -222,23 +220,14 @@ public class DBGuiComponentHistory extends DBGui {
 		    return ;
 		}
 	
-		ResultSet result = null;
-		try {
-			result = this.connection.select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId());
-				
+		try ( ResultSet result = this.connection.select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId()) ) {
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(this.tblVersions, SWT.NULL);
 			    tableItem.setText(0, String.valueOf(result.getInt("version")));
 			    tableItem.setText(1, result.getString("created_by"));
 			    tableItem.setText(2, result.getTimestamp("created_on").toString());
 			}
-			result.close();
 		} catch (Exception err) {
-			try {
-				if ( result != null ) result.close();
-			} catch (@SuppressWarnings("unused") SQLException ign) {
-			    // ignore
-			}
 		    this.tblVersions.removeAll();
 			popup(Level.FATAL, "Failed to search component versions in the database.", err);
 		}
