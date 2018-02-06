@@ -83,7 +83,11 @@ public class DBChecksum {
 		StringBuilder checksum = new StringBuilder();
 		
 		if ( eObject instanceof IIdentifier )						append(checksum, "id", ((IIdentifier)eObject).getId());
-		if ( eObject instanceof INameable )							append(checksum, "name", ((INameable)eObject).getName());		// shall we do a setName("") in case of null ?
+		
+		if ( eObject instanceof INameable &&
+		        !(eObject instanceof IDiagramModelArchimateObject) &&
+		        !(eObject instanceof IDiagramModelConnection) )	    append(checksum, "name", ((INameable)eObject).getName());
+		
 		if ( eObject instanceof IDocumentable )						append(checksum, "documentation", ((IDocumentable)eObject).getDocumentation());
 		if ( eObject instanceof IJunction )							append(checksum, "junction type", ((IJunction)eObject).getType());
 		if ( eObject instanceof IArchimateRelationship ) {			append(checksum, "source id", ((IArchimateRelationship)eObject).getSource().getId());
