@@ -3170,9 +3170,8 @@ public class DBDatabaseConnection {
 
 		byte[] viewImage = null;
 
-		if ( this.databaseEntry.getExportViewsImages() ) {
+		if ( this.databaseEntry.getExportViewsImages() )
 			viewImage = DBGui.createImage(view, 1, 10);
-		}
 
 		insert(this.schema+"views", ViewsColumns
 				,view.getId()
@@ -3190,10 +3189,6 @@ public class DBDatabaseConnection {
 				,viewImage
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getLatestChecksum()
 				);
-
-		if ( this.databaseEntry.getExportViewsImages() ) {
-			DBGui.disposeImage();
-		}
 
 		exportProperties(view);
 	}
