@@ -812,7 +812,6 @@ public class DBGui {
 	
 	private static Stack<Map<Shell, Cursor>> cursorsStack = new Stack<Map<Shell, Cursor>>();
 	public static void setArrowCursor() {
-		if ( logger.isDebugEnabled() ) logger.debug("Setting arrow cursor");
 		Map<Shell, Cursor> cursors = new HashMap<Shell, Cursor>();
 		for ( Shell shell: display.getShells() ) {
 			cursors.put(shell,  shell.getCursor());
@@ -823,7 +822,6 @@ public class DBGui {
 	}
 	
 	public static void restoreCursors() {
-		if ( logger.isDebugEnabled() ) logger.debug("Restoring cursors");
 		Map<Shell, Cursor> cursors = cursorsStack.pop();
 		for ( Shell shell: display.getShells() ) {
 			Cursor cursor = (cursors==null) ? null : cursors.get(shell);
