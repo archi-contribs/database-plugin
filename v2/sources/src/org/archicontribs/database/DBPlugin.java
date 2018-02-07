@@ -201,6 +201,7 @@ import org.json.simple.parser.JSONParser;
  *                                      Add an option to compare the model from the database before exporting it
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
+ *									Add the ability to import an image from the database
  *                                  Add procedures that can be called by the script plugin
  *                                  Reduce memory leak
  * 
@@ -225,7 +226,6 @@ import org.json.simple.parser.JSONParser;
  *			allow to get the database history
  *		Miscellaneous:
  *			add an option to check for relationships that are in the database but would not be in the in memory model
- *			find a way to manage images from the database the same way it is done on disk
  *			create a new windows that will show up detailed statistics about the model
  *			add more jdbc drivers (mongodb, odbc, etc ...)				
  *
