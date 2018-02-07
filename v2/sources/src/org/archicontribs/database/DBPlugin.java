@@ -184,8 +184,8 @@ import org.json.simple.parser.JSONParser;
  *                                      Change the filter request to be case insensitive
  *                                  Export model:
  *                                      Use of a Tree rather than a Table to show up conflicts
- *                                      show up more information about conflicting components
- *                                      The conflict detection and resolution is now more reliable
+ *                                      Show up more information about conflicting components
+ *                                      Increase the conflict detection and resolution
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
@@ -196,41 +196,43 @@ import org.json.simple.parser.JSONParser;
  * 									Export model:
  *										Create two export modes : standalone and collaborative modes
  *                                      Mix export and import in collaborative mode
+ *                                      Rewrite version management
+ *                                      Remove the name from view objects and connections checksums --> renaming a an element or a relationships does not change their checksum anymore
+ *                                      Add an option to compare the model from the database before exporting it
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
  *                                  Add procedures that can be called by the script plugin
  *                                  Reduce memory leak
- *                                  Compare the model to the database before exporting it to the database is now optional
  * 
- *                                  Known bugs:
- *                                  -----------
- *										Import individual component:
- *											images are not imported
- *											view references are not imported correctly
- *											importing elements "in a view" create all the corresponding objects in the top left corner of the view
- *											clicking on the "cancel" button during the export or the import of a model is not well managed
+ * Known bugs:
+ * -----------
+ *		Import individual component:
+ *		images are not imported
+ *		view references are not imported correctly
+ *		importing elements "in a view" create all the corresponding objects in the top left corner of the view
+ *		clicking on the "cancel" button during the export or the import of a model is not well managed
  *
- *									TODO list:
- *									----------
- *										Import model:
- *											Add an indication when a component has been updated after the last export, through another model 
- *										Import individual component:
- *											allow to import elements recursively
- *											allow to select all the classes of one group in a single click
- *											when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
- *										Get component history:
- *											allow to export individual component, or update it from the database, directly from the history window
- *											allow to get the database history
- *										Miscellaneous:
- *											add an option to check for relationships that are in the database but would not be in the in memory model
- *											find a way to manage images from the database the same way it is done on disk
- *											create a new windows that will show up detailed statistics about the model
- *											add more jdbc drivers (mongodb, odbc, etc ...)				
+ * TODO list:
+ * ----------
+ *		Import model:
+ *			Add an indication when a component has been updated after the last export, through another model 
+ *		Import individual component:
+ *			allow to import elements recursively
+ *			allow to select all the classes of one group in a single click
+ *			when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
+ *		Get component history:
+ *			allow to export individual component, or update it from the database, directly from the history window
+ *			allow to get the database history
+ *		Miscellaneous:
+ *			add an option to check for relationships that are in the database but would not be in the in memory model
+ *			find a way to manage images from the database the same way it is done on disk
+ *			create a new windows that will show up detailed statistics about the model
+ *			add more jdbc drivers (mongodb, odbc, etc ...)				
  *
- * 									technical TODOs :
- *                                  	// TODO : update component get history to search for history of folders and views
- * 										// TODO : do not calculate checksums on images anymore (the path is a checksum)
- *                                  	// TODO : check if it is really useful to export the diagram_ref_id of views objects
+ * technical TODOs :
+ *      // TODO : update component get history to search for history of folders and views
+ * 		// TODO : do not calculate checksums on images anymore (the path is a checksum)
+ *      // TODO : check if it is really useful to export the diagram_ref_id of views objects
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
