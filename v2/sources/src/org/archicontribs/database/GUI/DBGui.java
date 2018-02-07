@@ -763,7 +763,7 @@ public class DBGui {
 					dialogShell = new Shell(display, SWT.APPLICATION_MODAL);
 					dialogShell.setSize(500, 70);
 					dialogShell.setBackground(BLACK_COLOR);
-					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 2);
+					dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 4);
 					
 					int borderWidth = (dialogShell.getBorderWidth()+1)*2;
                     dialogComposite = new Composite(dialogShell, SWT.NONE);
@@ -779,7 +779,7 @@ public class DBGui {
 				} else {
 					restoreCursors();
 				}
-				
+
 				dialogLabel.setText(msg);
 				dialogShell.layout(true);
 				dialogShell.open();

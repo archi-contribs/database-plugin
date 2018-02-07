@@ -122,16 +122,15 @@ public class DBGuiExportModel extends DBGui {
 	    
 	    refreshDisplay();
 	    
-	    popup("Please wait while counting model's components");
         try {
+    	    popup("Please wait while counting model's components");
             this.exportedModel.countAllObjects();
+            closePopup();
         } catch (Exception err) {
             closePopup();
             popup(Level.ERROR, "Failed to count model's components", err);
             return;
         }
-        closePopup();
-        
         
         if ( logger.isDebugEnabled() ) logger.debug("the model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
         
@@ -674,7 +673,13 @@ public class DBGuiExportModel extends DBGui {
         fd.bottom = new FormAttachment(this.txtTotalImages, 0, SWT.BOTTOM);
         this.btnCompareModelToDatabase.setLayoutData(fd);
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
-            @Override public void widgetSelected(SelectionEvent e) { DBGuiExportModel.this.compareModelToDatabase(); }
+            @Override public void widgetSelected(SelectionEvent e) {
+                popup("Please wait while comparing model from the database...");
+            	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
+            	closePopup();
+            	if ( upToDate )
+            		popup(Level.INFO, "Your database is already up to date.");
+            }
             @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
         });
     }
@@ -730,7 +735,6 @@ public class DBGuiExportModel extends DBGui {
                 }
 			}
 		} catch (Exception err) {
-			closePopup();
 			popup(Level.FATAL, "Failed to check existing components in database", err);
 			setActiveAction(STATUS.Error);
 			return;
@@ -747,7 +751,11 @@ public class DBGuiExportModel extends DBGui {
         
 		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
-		    compareModelToDatabase();    		
+            popup("Please wait while comparing model from the database...");
+        	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
+        	closePopup();
+        	if ( upToDate )
+        		popup(Level.INFO, "Your database is already up to date."); 		
         } else {
             if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
             this.btnDoAction.setEnabled(true);
@@ -801,17 +809,18 @@ public class DBGuiExportModel extends DBGui {
         this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
 	}
 	
-	protected void compareModelToDatabase() {
-        popup("Please wait while comparing model from the database");
-       
+	/**
+	 * 
+	 * @return true is the database is up to date, false if the model needs to be exported
+	 */
+	protected boolean compareModelToDatabase() {
         try {
             this.connection.getVersionsFromDatabase(this.exportedModel);
         } catch (SQLException err ) {
-            closePopup();
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
             doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-            return;
+            return false;
         }
         
         this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
@@ -876,7 +885,7 @@ public class DBGuiExportModel extends DBGui {
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )          ++nbUpdated;
+                        if ( this.forceExport )     ++nbUpdated;
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
@@ -908,7 +917,7 @@ public class DBGuiExportModel extends DBGui {
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )          ++nbUpdated;
+                        if ( this.forceExport )     ++nbUpdated;
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
@@ -939,7 +948,7 @@ public class DBGuiExportModel extends DBGui {
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )          ++nbUpdated;
+                        if ( this.forceExport )     ++nbUpdated;
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
@@ -957,20 +966,20 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewImagesInModel.setText(String.valueOf(this.connection.getImagesNotInDatabase().size()));
         this.txtNewImagesInDatabase.setText(String.valueOf(this.connection.getImagesNotInModel().size()));
         
-        closePopup();
-        
         if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
                 this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
                 this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
                 this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
                 this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") ) {
-            popup(Level.INFO, "Your database is already up to date.");
-            if ( logger.isDebugEnabled() ) logger.debug("Disabling the \"Export\" button.");
             this.btnDoAction.setEnabled(false);
             this.btnDoAction.setText("Export");
             
             this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getDatabaseVersion().getLatestTimestamp());
+            
+            return true;
         }
+        
+        return false;
 	}
 
 	/**
@@ -1044,9 +1053,13 @@ public class DBGuiExportModel extends DBGui {
 		
 		try {
 			// we need to recalculate the latest versions in the database in case someone updated the database since the last check
-			// TODO : add a transaction number that will speed up the export process in case nobody updated the database 
+			
+			// TODO : Manage a kind of transaction id in the database because it may not be necessary to check another time
+			popup("Please wait while comparing model from the database...");
 			this.connection.getVersionsFromDatabase(this.exportedModel);
+			closePopup();
 		} catch (SQLException err ) {
+			closePopup();
 			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -1072,7 +1085,6 @@ public class DBGuiExportModel extends DBGui {
 				if ( !DBPlugin.areEqual(this.exportedModel.getPurpose(), this.txtPurpose.getText()) )
 					this.exportedModel.setPurpose(this.txtPurpose.getText());
 
-				if ( logger.isDebugEnabled() ) logger.debug("Exporting version "+this.exportedModel.getCurrentVersion().getLatestVersion()+" of the model ("+this.exportedModel.getCurrentVersion().getTimestamp().toString()+")");
 				this.connection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
@@ -1080,6 +1092,8 @@ public class DBGuiExportModel extends DBGui {
 				while ( foldersIterator.hasNext() ) {
 					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
 				}
+				
+				//TODO: importing missing folder is not yet done
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
@@ -1122,6 +1136,8 @@ public class DBGuiExportModel extends DBGui {
 	                    }
 					}
 				}
+				
+				//TODO: importing missing view is not yet done
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
@@ -1134,7 +1150,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
-			popup(Level.FATAL, "An error occured while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
+			popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
 			try  {
 			    this.connection.rollback();
 				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -1248,7 +1264,6 @@ public class DBGuiExportModel extends DBGui {
 
 	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("exporting view object "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
 		boolean exported = doExportEObject(viewObject, null, null, null, null);
 		
 		if ( exported ) {
