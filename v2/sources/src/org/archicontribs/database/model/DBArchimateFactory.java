@@ -7,6 +7,9 @@
 package org.archicontribs.database.model;
 
 import org.archicontribs.database.DBLogger;
+import org.eclipse.emf.common.notify.Adapter;
+import org.eclipse.emf.common.notify.Notification;
+import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.graphics.Image;
 
@@ -127,6 +130,17 @@ public class DBArchimateFactory extends ArchimateFactory {
 	public DBArchimateFactory() {
 		super();
 	}
+	
+    /*
+     * Adapter to listen to changes made elsewhere (including Undo/Redo commands)
+     */
+    private Adapter adapter = new AdapterImpl() {
+        @Override
+        public void notifyChanged(Notification notification) {
+            super.notifyChanged(notification);
+            logger.debug("     ***** Notfication received : "+notification);
+        }
+    };
 	
 	/**
 	 * Creates a component by its class name
@@ -318,7 +332,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IArchimateDiagramModel createArchimateDiagramModel() {
-        return new org.archicontribs.database.model.impl.ArchimateDiagramModel();
+        IArchimateDiagramModel obj = new org.archicontribs.database.model.impl.ArchimateDiagramModel();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
 	
 	/**
@@ -327,7 +343,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IArchimateModel createArchimateModel() {
-        return new org.archicontribs.database.model.ArchimateModel();
+        IArchimateModel model = new org.archicontribs.database.model.ArchimateModel();
+        model.eAdapters().add(this.adapter);
+        return model;
     }
     
 	/**
@@ -336,7 +354,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public INode createNode() {
-        return new org.archicontribs.database.model.impl.Node();
+        INode obj = new org.archicontribs.database.model.impl.Node();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -345,7 +365,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IAccessRelationship createAccessRelationship() {
-        return new org.archicontribs.database.model.impl.AccessRelationship();
+        IAccessRelationship aggregationRelationship = new org.archicontribs.database.model.impl.AccessRelationship();
+        aggregationRelationship.eAdapters().add(this.adapter);
+        return aggregationRelationship;
     }
     
 	/**
@@ -354,7 +376,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IAggregationRelationship createAggregationRelationship() {
-        return new org.archicontribs.database.model.impl.AggregationRelationship();
+        IAggregationRelationship aggregationRelationship = new org.archicontribs.database.model.impl.AggregationRelationship();
+        aggregationRelationship.eAdapters().add(this.adapter);
+        return aggregationRelationship;
     }
     
 	/**
@@ -363,7 +387,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationCollaboration createApplicationCollaboration() {
-        return new org.archicontribs.database.model.impl.ApplicationCollaboration();
+        IApplicationCollaboration obj = new org.archicontribs.database.model.impl.ApplicationCollaboration();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -372,7 +398,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationComponent createApplicationComponent() {
-        return new org.archicontribs.database.model.impl.ApplicationComponent();
+        IApplicationComponent obj = new org.archicontribs.database.model.impl.ApplicationComponent();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -381,7 +409,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationEvent createApplicationEvent() {
-        return new org.archicontribs.database.model.impl.ApplicationEvent();
+        IApplicationEvent obj = new org.archicontribs.database.model.impl.ApplicationEvent();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -390,7 +420,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationFunction createApplicationFunction() {
-        return new org.archicontribs.database.model.impl.ApplicationFunction();
+        IApplicationFunction obj = new org.archicontribs.database.model.impl.ApplicationFunction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -399,7 +431,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationInteraction createApplicationInteraction() {
-        return new org.archicontribs.database.model.impl.ApplicationInteraction();
+        IApplicationInteraction obj = new org.archicontribs.database.model.impl.ApplicationInteraction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -408,7 +442,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationInterface createApplicationInterface() {
-        return new org.archicontribs.database.model.impl.ApplicationInterface();
+        IApplicationInterface obj = new org.archicontribs.database.model.impl.ApplicationInterface();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -417,7 +453,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationProcess createApplicationProcess() {
-        return new org.archicontribs.database.model.impl.ApplicationProcess();
+        IApplicationProcess obj = new org.archicontribs.database.model.impl.ApplicationProcess();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -426,7 +464,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IApplicationService createApplicationService() {
-        return new org.archicontribs.database.model.impl.ApplicationService();
+        IApplicationService obj = new org.archicontribs.database.model.impl.ApplicationService();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -435,7 +475,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IArtifact createArtifact() {
-        return new org.archicontribs.database.model.impl.Artifact();
+        IArtifact obj = new org.archicontribs.database.model.impl.Artifact();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -444,7 +486,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IAssessment createAssessment() {
-        return new org.archicontribs.database.model.impl.Assessment();
+        IAssessment obj = new org.archicontribs.database.model.impl.Assessment();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -453,7 +497,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IAssignmentRelationship createAssignmentRelationship() {
-        return new org.archicontribs.database.model.impl.AssignmentRelationship();
+        IAssignmentRelationship obj = new org.archicontribs.database.model.impl.AssignmentRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -462,7 +508,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IAssociationRelationship createAssociationRelationship() {
-        return new org.archicontribs.database.model.impl.AssociationRelationship();
+        IAssociationRelationship obj = new org.archicontribs.database.model.impl.AssociationRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -471,7 +519,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessActor createBusinessActor() {
-        return new org.archicontribs.database.model.impl.BusinessActor();
+        IBusinessActor obj = new org.archicontribs.database.model.impl.BusinessActor();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -480,7 +530,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessCollaboration createBusinessCollaboration() {
-        return new org.archicontribs.database.model.impl.BusinessCollaboration();
+        IBusinessCollaboration obj = new org.archicontribs.database.model.impl.BusinessCollaboration();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -489,7 +541,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessEvent createBusinessEvent() {
-        return new org.archicontribs.database.model.impl.BusinessEvent();
+        IBusinessEvent obj = new org.archicontribs.database.model.impl.BusinessEvent();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -498,7 +552,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessRole createBusinessRole() {
-        return new org.archicontribs.database.model.impl.BusinessRole();
+        IBusinessRole obj = new org.archicontribs.database.model.impl.BusinessRole();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -507,7 +563,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessProcess createBusinessProcess() {
-        return new org.archicontribs.database.model.impl.BusinessProcess();
+        IBusinessProcess obj = new org.archicontribs.database.model.impl.BusinessProcess();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -516,7 +574,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessObject createBusinessObject() {
-        return new org.archicontribs.database.model.impl.BusinessObject();
+        IBusinessObject obj = new org.archicontribs.database.model.impl.BusinessObject();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -525,7 +585,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessInterface createBusinessInterface() {
-        return new org.archicontribs.database.model.impl.BusinessInterface();
+        IBusinessInterface obj = new org.archicontribs.database.model.impl.BusinessInterface();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -534,7 +596,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessInteraction createBusinessInteraction() {
-        return new org.archicontribs.database.model.impl.BusinessInteraction();
+        IBusinessInteraction obj = new org.archicontribs.database.model.impl.BusinessInteraction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -543,7 +607,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessFunction createBusinessFunction() {
-        return new org.archicontribs.database.model.impl.BusinessFunction();
+        IBusinessFunction obj = new org.archicontribs.database.model.impl.BusinessFunction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -552,7 +618,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDataObject createDataObject() {
-        return new org.archicontribs.database.model.impl.DataObject();
+        IDataObject obj = new org.archicontribs.database.model.impl.DataObject();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -561,7 +629,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ICourseOfAction createCourseOfAction() {
-        return new org.archicontribs.database.model.impl.CourseOfAction();
+        ICourseOfAction obj = new org.archicontribs.database.model.impl.CourseOfAction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -570,7 +640,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IContract createContract() {
-        return new org.archicontribs.database.model.impl.Contract();
+        IContract obj = new org.archicontribs.database.model.impl.Contract();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -579,7 +651,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IConstraint createConstraint() {
-        return new org.archicontribs.database.model.impl.Constraint();
+        IConstraint obj = new org.archicontribs.database.model.impl.Constraint();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -588,7 +662,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ICompositionRelationship createCompositionRelationship() {
-        return new org.archicontribs.database.model.impl.CompositionRelationship();
+        ICompositionRelationship obj = new org.archicontribs.database.model.impl.CompositionRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -597,7 +673,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ICapability createCapability() {
-        return new org.archicontribs.database.model.impl.Capability();
+        ICapability obj = new org.archicontribs.database.model.impl.Capability();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -606,7 +684,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ICommunicationNetwork createCommunicationNetwork() {
-        return new org.archicontribs.database.model.impl.CommunicationNetwork();
+        ICommunicationNetwork obj = new org.archicontribs.database.model.impl.CommunicationNetwork();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -615,7 +695,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IBusinessService createBusinessService() {
-        return new org.archicontribs.database.model.impl.BusinessService();
+        IBusinessService obj = new org.archicontribs.database.model.impl.BusinessService();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -624,7 +706,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDeliverable createDeliverable() {
-        return new org.archicontribs.database.model.impl.Deliverable();
+        IDeliverable obj = new org.archicontribs.database.model.impl.Deliverable();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -633,7 +717,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDevice createDevice() {
-        return new org.archicontribs.database.model.impl.Device();
+        IDevice obj = new org.archicontribs.database.model.impl.Device();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -642,7 +728,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelArchimateConnection createDiagramModelArchimateConnection() {
-        return new org.archicontribs.database.model.impl.DiagramModelArchimateConnection();
+        IDiagramModelArchimateConnection obj = new org.archicontribs.database.model.impl.DiagramModelArchimateConnection();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -651,7 +739,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelArchimateObject createDiagramModelArchimateObject() {
-        return new org.archicontribs.database.model.impl.DiagramModelArchimateObject();
+        IDiagramModelArchimateObject obj = new org.archicontribs.database.model.impl.DiagramModelArchimateObject();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -660,7 +750,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelConnection createDiagramModelConnection() {
-        return new org.archicontribs.database.model.impl.DiagramModelConnection();
+        IDiagramModelConnection obj = new org.archicontribs.database.model.impl.DiagramModelConnection();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -669,7 +761,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelGroup createDiagramModelGroup() {
-        return new org.archicontribs.database.model.impl.DiagramModelGroup();
+        IDiagramModelGroup obj = new org.archicontribs.database.model.impl.DiagramModelGroup();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -678,7 +772,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelImage createDiagramModelImage() {
-        return new org.archicontribs.database.model.impl.DiagramModelImage();
+        IDiagramModelImage obj = new org.archicontribs.database.model.impl.DiagramModelImage();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -687,7 +783,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelNote createDiagramModelNote() {
-        return new org.archicontribs.database.model.impl.DiagramModelNote();
+        IDiagramModelNote obj = new org.archicontribs.database.model.impl.DiagramModelNote();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -696,7 +794,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDiagramModelReference createDiagramModelReference() {
-        return new org.archicontribs.database.model.impl.DiagramModelReference();
+        IDiagramModelReference obj = new org.archicontribs.database.model.impl.DiagramModelReference();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -705,7 +805,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDistributionNetwork createDistributionNetwork() {
-        return new org.archicontribs.database.model.impl.DistributionNetwork();
+        IDistributionNetwork obj = new org.archicontribs.database.model.impl.DistributionNetwork();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -714,7 +816,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IDriver createDriver() {
-        return new org.archicontribs.database.model.impl.Driver();
+        IDriver obj = new org.archicontribs.database.model.impl.Driver();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -723,7 +827,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IEquipment createEquipment() {
-        return new org.archicontribs.database.model.impl.Equipment();
+        IEquipment obj = new org.archicontribs.database.model.impl.Equipment();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -732,7 +838,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IFacility createFacility() {
-        return new org.archicontribs.database.model.impl.Facility();
+        IFacility obj = new org.archicontribs.database.model.impl.Facility();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -741,7 +849,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IFolder createFolder() {
-        return new org.archicontribs.database.model.impl.Folder();
+        IFolder obj = new org.archicontribs.database.model.impl.Folder();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -750,7 +860,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IFlowRelationship createFlowRelationship() {
-        return new org.archicontribs.database.model.impl.FlowRelationship();
+        IFlowRelationship obj = new org.archicontribs.database.model.impl.FlowRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -759,7 +871,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IGap createGap() {
-        return new org.archicontribs.database.model.impl.Gap();
+        IGap obj = new org.archicontribs.database.model.impl.Gap();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -768,7 +882,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IGoal createGoal() {
-        return new org.archicontribs.database.model.impl.Goal();
+        IGoal obj = new org.archicontribs.database.model.impl.Goal();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -777,7 +893,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IGrouping createGrouping() {
-        return new org.archicontribs.database.model.impl.Grouping();
+        IGrouping obj = new org.archicontribs.database.model.impl.Grouping();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -786,7 +904,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IImplementationEvent createImplementationEvent() {
-        return new org.archicontribs.database.model.impl.ImplementationEvent();
+        IImplementationEvent obj = new org.archicontribs.database.model.impl.ImplementationEvent();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -795,7 +915,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IInfluenceRelationship createInfluenceRelationship() {
-        return new org.archicontribs.database.model.impl.InfluenceRelationship();
+        IInfluenceRelationship obj = new org.archicontribs.database.model.impl.InfluenceRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -804,7 +926,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IJunction createJunction() {
-        return new org.archicontribs.database.model.impl.Junction();
+        IJunction obj = new org.archicontribs.database.model.impl.Junction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -813,7 +937,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ILocation createLocation() {
-        return new org.archicontribs.database.model.impl.Location();
+        ILocation obj = new org.archicontribs.database.model.impl.Location();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -822,7 +948,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IMaterial createMaterial() {
-        return new org.archicontribs.database.model.impl.Material();
+        IMaterial obj = new org.archicontribs.database.model.impl.Material();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -831,7 +959,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IMeaning createMeaning() {
-        return new org.archicontribs.database.model.impl.Meaning();
+        IMeaning obj = new org.archicontribs.database.model.impl.Meaning();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -840,7 +970,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IOutcome createOutcome() {
-        return new org.archicontribs.database.model.impl.Outcome();
+        IOutcome obj = new org.archicontribs.database.model.impl.Outcome();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -849,7 +981,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IPath createPath() {
-        return new org.archicontribs.database.model.impl.Path();
+        IPath obj = new org.archicontribs.database.model.impl.Path();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -858,7 +992,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IPlateau createPlateau() {
-        return new org.archicontribs.database.model.impl.Plateau();
+        IPlateau obj = new org.archicontribs.database.model.impl.Plateau();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -867,7 +1003,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IPrinciple createPrinciple() {
-        return new org.archicontribs.database.model.impl.Principle();
+        IPrinciple obj = new org.archicontribs.database.model.impl.Principle();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -876,7 +1014,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IProduct createProduct() {
-        return new org.archicontribs.database.model.impl.Product();
+        IProduct obj = new org.archicontribs.database.model.impl.Product();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -885,7 +1025,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IRealizationRelationship createRealizationRelationship() {
-        return new org.archicontribs.database.model.impl.RealizationRelationship();
+        IRealizationRelationship obj = new org.archicontribs.database.model.impl.RealizationRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -894,7 +1036,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IRepresentation createRepresentation() {
-        return new org.archicontribs.database.model.impl.Representation();
+        IRepresentation obj = new org.archicontribs.database.model.impl.Representation();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -903,7 +1047,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IRequirement createRequirement() {
-        return new org.archicontribs.database.model.impl.Requirement();
+        IRequirement obj = new org.archicontribs.database.model.impl.Requirement();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -912,7 +1058,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IResource createResource() {
-        return new org.archicontribs.database.model.impl.Resource();
+        IResource obj = new org.archicontribs.database.model.impl.Resource();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -921,7 +1069,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IServingRelationship createServingRelationship() {
-        return new org.archicontribs.database.model.impl.ServingRelationship();
+        IServingRelationship obj = new org.archicontribs.database.model.impl.ServingRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -930,7 +1080,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ISketchModel createSketchModel() {
-        return new org.archicontribs.database.model.impl.SketchModel();
+        ISketchModel obj = new org.archicontribs.database.model.impl.SketchModel();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -939,7 +1091,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ISketchModelActor createSketchModelActor() {
-        return new org.archicontribs.database.model.impl.SketchModelActor();
+        ISketchModelActor obj = new org.archicontribs.database.model.impl.SketchModelActor();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -948,7 +1102,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ISketchModelSticky createSketchModelSticky() {
-        return new org.archicontribs.database.model.impl.SketchModelSticky();
+        ISketchModelSticky obj = new org.archicontribs.database.model.impl.SketchModelSticky();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -957,7 +1113,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ISpecializationRelationship createSpecializationRelationship() {
-        return new org.archicontribs.database.model.impl.SpecializationRelationship();
+        ISpecializationRelationship obj = new org.archicontribs.database.model.impl.SpecializationRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
     
@@ -967,7 +1125,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IStakeholder createStakeholder() {
-        return new org.archicontribs.database.model.impl.Stakeholder();
+        IStakeholder obj = new org.archicontribs.database.model.impl.Stakeholder();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -976,7 +1136,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ISystemSoftware createSystemSoftware() {
-        return new org.archicontribs.database.model.impl.SystemSoftware();
+        ISystemSoftware obj = new org.archicontribs.database.model.impl.SystemSoftware();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -985,7 +1147,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyCollaboration createTechnologyCollaboration() {
-        return new org.archicontribs.database.model.impl.TechnologyCollaboration();
+        ITechnologyCollaboration obj = new org.archicontribs.database.model.impl.TechnologyCollaboration();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -994,7 +1158,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyEvent createTechnologyEvent() {
-        return new org.archicontribs.database.model.impl.TechnologyEvent();
+        ITechnologyEvent obj = new org.archicontribs.database.model.impl.TechnologyEvent();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1003,7 +1169,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyFunction createTechnologyFunction() {
-        return new org.archicontribs.database.model.impl.TechnologyFunction();
+        ITechnologyFunction obj = new org.archicontribs.database.model.impl.TechnologyFunction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1012,7 +1180,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyInteraction createTechnologyInteraction() {
-        return new org.archicontribs.database.model.impl.TechnologyInteraction();
+        ITechnologyInteraction obj = new org.archicontribs.database.model.impl.TechnologyInteraction();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1021,7 +1191,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyInterface createTechnologyInterface() {
-        return new org.archicontribs.database.model.impl.TechnologyInterface();
+        ITechnologyInterface obj = new org.archicontribs.database.model.impl.TechnologyInterface();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1030,7 +1202,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyProcess createTechnologyProcess() {
-        return new org.archicontribs.database.model.impl.TechnologyProcess();
+        ITechnologyProcess obj = new org.archicontribs.database.model.impl.TechnologyProcess();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1039,7 +1213,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITechnologyService createTechnologyService() {
-        return new org.archicontribs.database.model.impl.TechnologyService();
+        ITechnologyService obj = new org.archicontribs.database.model.impl.TechnologyService();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1048,7 +1224,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public ITriggeringRelationship createTriggeringRelationship() {
-        return new org.archicontribs.database.model.impl.TriggeringRelationship();
+        ITriggeringRelationship obj = new org.archicontribs.database.model.impl.TriggeringRelationship();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1057,7 +1235,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IValue createValue() {
-        return new org.archicontribs.database.model.impl.Value();
+        IValue obj = new org.archicontribs.database.model.impl.Value();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
     
 	/**
@@ -1066,6 +1246,8 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IWorkPackage createWorkPackage() {
-        return new org.archicontribs.database.model.impl.WorkPackage();
+        IWorkPackage obj = new org.archicontribs.database.model.impl.WorkPackage();
+        obj.eAdapters().add(this.adapter);
+        return obj;
     }
 }
