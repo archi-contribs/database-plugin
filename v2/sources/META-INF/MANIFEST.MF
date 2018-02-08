@@ -26,3 +26,4 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.ecore,
  org.eclipse.help
 Export-Package: org.archicontribs.database
+Import-Package: org.eclipse.nebula.widgets.gallery

@@ -27,6 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.ImageIcon;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
@@ -38,6 +40,9 @@ import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.widgets.Display;
 
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IHintProvider;
@@ -2045,6 +2050,33 @@ public class DBDatabaseConnection {
 			throw new Exception("Import of image failed : unkwnown image path "+path);
 		}
 	}
+	
+	/**
+     * import an image from the database
+     */
+    public Image getImageFromDatabase(String path) throws Exception {
+        try ( ResultSet result = select("SELECT image FROM "+this.schema+"images WHERE path = ?", path) ) {
+            if ( result.next() ) {
+                byte[] imageContent = this.currentResultSet.getBytes("image");
+                if ( logger.isDebugEnabled() ) logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
+                return new Image(Display.getDefault(), new ImageData(new ByteArrayInputStream(imageContent)));
+            }
+        }
+        return null;
+    }
+    
+    /**
+     * gets the list of all images in the database
+     */
+    public List<String> getImageListFromDatabase() throws Exception {
+        List<String> list = new ArrayList<String>();
+        try ( ResultSet result = select("SELECT path FROM "+this.schema+"images") ) {
+            while ( result.next() ) {
+                list.add(result.getString("path"));
+            }
+        }
+        return list;
+    }
 
 	/**
 	 * check if the number of imported images is equals to what is expected

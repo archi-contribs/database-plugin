@@ -118,8 +118,8 @@ public class DiagramModelImageSection extends AbstractArchimatePropertySection {
             while ( !guiImportImage.isDisposed() )
                 DBGui.refreshDisplay();
             
-            if ( guiImportImage.getImportedImagePath() != null )
-                setImage(guiImportImage.getImportedImagePath());
+            if ( guiImportImage.getImagePath() != null )
+                setImage(guiImportImage.getImagePath());
 
             guiImportImage.close();
         } catch (Exception e) {
