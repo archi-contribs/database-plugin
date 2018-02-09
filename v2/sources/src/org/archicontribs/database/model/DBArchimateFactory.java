@@ -807,7 +807,6 @@ public class DBArchimateFactory extends ArchimateFactory {
                     break;
                     
                 default:    // do nothing
-                    logger.debug("     ----- unknown event = "+notification);
             }
         }
     };
