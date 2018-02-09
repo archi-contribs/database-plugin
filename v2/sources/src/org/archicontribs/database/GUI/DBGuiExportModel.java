@@ -350,7 +350,7 @@ public class DBGuiExportModel extends DBGui {
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
         fd.left = new FormAttachment(20, 0);
-        fd.right = new FormAttachment(30, 0);
+        fd.right = new FormAttachment(28, 0);
         this.lblTotal.setLayoutData(fd);
         
         this.lblModel = new Label(this.grpComponents, SWT.CENTER);
@@ -358,8 +358,8 @@ public class DBGuiExportModel extends DBGui {
         this.lblModel.setText("Model");
         fd = new FormData();
         fd.top = new FormAttachment(0, -8);
-        fd.left = new FormAttachment(35, 0);
-        fd.right = new FormAttachment(55, 0);
+        fd.left = new FormAttachment(33, 0);
+        fd.right = new FormAttachment(57, 0);
         this.lblModel.setLayoutData(fd);
         
         this.lblModelNew = new Label(this.grpComponents, SWT.CENTER);
@@ -367,8 +367,8 @@ public class DBGuiExportModel extends DBGui {
         this.lblModelNew.setText("New");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(35, 0);
-        fd.right = new FormAttachment(45, -3);
+        fd.left = new FormAttachment(33, 0);
+        fd.right = new FormAttachment(41, -2);
         this.lblModelNew.setLayoutData(fd);
         
         this.lblModelUpdated = new Label(this.grpComponents, SWT.CENTER);
@@ -376,17 +376,26 @@ public class DBGuiExportModel extends DBGui {
         this.lblModelUpdated.setText("Updated");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(45, 2);
-        fd.right = new FormAttachment(55, 0);
+        fd.left = new FormAttachment(41, 1);
+        fd.right = new FormAttachment(49, -1);
         this.lblModelUpdated.setLayoutData(fd);
+        
+        this.lblModelDeleted = new Label(this.grpComponents, SWT.CENTER);
+        this.lblModelDeleted.setBackground(GROUP_BACKGROUND_COLOR);
+        this.lblModelDeleted.setText("Deleted");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(49, 2);
+        fd.right = new FormAttachment(57, 0);
+        this.lblModelDeleted.setLayoutData(fd);
         
         this.lblDatabase = new Label(this.grpComponents, SWT.CENTER);
         this.lblDatabase.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblDatabase.setText("Database");
         fd = new FormData();
         fd.top = new FormAttachment(0, -8);
-        fd.left = new FormAttachment(60, 0);
-        fd.right = new FormAttachment(80, 0);
+        fd.left = new FormAttachment(62, 0);
+        fd.right = new FormAttachment(86, 0);
         this.lblDatabase.setLayoutData(fd);
         
         this.lblDatabaseNew = new Label(this.grpComponents, SWT.CENTER);
@@ -394,8 +403,8 @@ public class DBGuiExportModel extends DBGui {
         this.lblDatabaseNew.setText("New");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(60, 0);
-        fd.right = new FormAttachment(70, -3);
+        fd.left = new FormAttachment(62, 0);
+        fd.right = new FormAttachment(70, -2);
         this.lblDatabaseNew.setLayoutData(fd);
         
         this.lblDatabaseUpdated = new Label(this.grpComponents, SWT.CENTER);
@@ -403,18 +412,27 @@ public class DBGuiExportModel extends DBGui {
         this.lblDatabaseUpdated.setText("Updated");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(70, 2);
-        fd.right = new FormAttachment(80, 0);
+        fd.left = new FormAttachment(70, 1);
+        fd.right = new FormAttachment(78, -2);
         this.lblDatabaseUpdated.setLayoutData(fd);
         
-        this.lblConflict = new Label(this.grpComponents, SWT.CENTER);
-        this.lblConflict.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblConflict.setText("Conflict");
+        this.lblDatabaseDeleted = new Label(this.grpComponents, SWT.CENTER);
+        this.lblDatabaseDeleted.setBackground(GROUP_BACKGROUND_COLOR);
+        this.lblDatabaseDeleted.setText("Deleted");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(85, 0);
-        fd.right = new FormAttachment(95, 0);
-        this.lblConflict.setLayoutData(fd);
+        fd.left = new FormAttachment(78, 1);
+        fd.right = new FormAttachment(86, 0);
+        this.lblDatabaseDeleted.setLayoutData(fd);
+        
+        this.lblConflicts = new Label(this.grpComponents, SWT.CENTER);
+        this.lblConflicts.setBackground(GROUP_BACKGROUND_COLOR);
+        this.lblConflicts.setText("Conflicts");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(91, 0);
+        fd.right = new FormAttachment(99, 0);
+        this.lblConflicts.setLayoutData(fd);
         
         /* * * * * */
         
@@ -442,6 +460,14 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
         this.txtUpdatedElementsInModel.setLayoutData(fd);
         
+        this.txtDeletedElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedElementsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedElementsInModel.setLayoutData(fd);
+        
         this.txtNewElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtNewElementsInDatabase.setEditable(false);
         fd = new FormData(26,18);
@@ -458,12 +484,20 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
         this.txtUpdatedElementsInDatabase.setLayoutData(fd);
         
+        this.txtDeletedElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedElementsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedElementsInDatabase.setLayoutData(fd);
+        
         this.txtConflictingElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtConflictingElements.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblConflict, 0, SWT.LEFT);
-        fd.right = new FormAttachment(this.lblConflict, 0, SWT.RIGHT);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
         this.txtConflictingElements.setLayoutData(fd);
 
         /* * * * * */
@@ -492,6 +526,14 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
         this.txtUpdatedRelationshipsInModel.setLayoutData(fd);
         
+        this.txtDeletedRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedRelationshipsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedRelationshipsInModel.setLayoutData(fd);
+        
         this.txtNewRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtNewRelationshipsInDatabase.setEditable(false);
         fd = new FormData(26,18);
@@ -508,12 +550,20 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
         this.txtUpdatedRelationshipsInDatabase.setLayoutData(fd);
         
+        this.txtDeletedRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedRelationshipsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedRelationshipsInDatabase.setLayoutData(fd);
+        
         this.txtConflictingRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtConflictingRelationships.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblConflict, 0, SWT.LEFT);
-        fd.right = new FormAttachment(this.lblConflict, 0, SWT.RIGHT);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
         this.txtConflictingRelationships.setLayoutData(fd);
         
         /* * * * * */
@@ -542,6 +592,14 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
         this.txtUpdatedFoldersInModel.setLayoutData(fd);
         
+        this.txtDeletedFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedFoldersInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedFoldersInModel.setLayoutData(fd);
+        
         this.txtNewFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtNewFoldersInDatabase.setEditable(false);
         fd = new FormData(26,18);
@@ -558,12 +616,20 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
         this.txtUpdatedFoldersInDatabase.setLayoutData(fd);
         
+        this.txtDeletedFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedFoldersInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedFoldersInDatabase.setLayoutData(fd);
+        
         this.txtConflictingFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtConflictingFolders.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblConflict, 0, SWT.LEFT);
-        fd.right = new FormAttachment(this.lblConflict, 0, SWT.RIGHT);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
         this.txtConflictingFolders.setLayoutData(fd);
         
         /* * * * * */
@@ -592,6 +658,14 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
         this.txtUpdatedViewsInModel.setLayoutData(fd);
         
+        this.txtDeletedViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewsInModel.setLayoutData(fd);
+        
         this.txtNewViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtNewViewsInDatabase.setEditable(false);
         fd = new FormData(26,18);
@@ -608,12 +682,20 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
         this.txtUpdatedViewsInDatabase.setLayoutData(fd);
         
+        this.txtDeletedViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewsInDatabase.setLayoutData(fd);
+        
         this.txtConflictingViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtConflictingViews.setEditable(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblConflict, 0, SWT.LEFT);
-        fd.right = new FormAttachment(this.lblConflict, 0, SWT.RIGHT);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
         this.txtConflictingViews.setLayoutData(fd);
         
         /* * * * * */
@@ -669,7 +751,7 @@ public class DBGuiExportModel extends DBGui {
         fd = new FormData(26,18);
         fd.top = new FormAttachment(this.txtTotalViewConnections, 15, SWT.TOP);
         fd.left = new FormAttachment(this.lblDatabaseUpdated, 0);
-        fd.right = new FormAttachment(this.lblConflict, 10, SWT.RIGHT);
+        fd.right = new FormAttachment(this.lblConflicts, 10, SWT.RIGHT);
         fd.bottom = new FormAttachment(this.txtTotalImages, 0, SWT.BOTTOM);
         this.btnCompareModelToDatabase.setLayoutData(fd);
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
@@ -695,7 +777,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblConflict.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
@@ -784,7 +866,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblConflict.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
@@ -1694,37 +1776,47 @@ public class DBGuiExportModel extends DBGui {
 	private Label lblModel;
 	private Label lblModelNew;
 	private Label lblModelUpdated;
+	private Label lblModelDeleted;
 	private Label lblDatabase;
 	private Label lblDatabaseNew;
 	private Label lblDatabaseUpdated;
-	private Label lblConflict;
+	private Label lblDatabaseDeleted;
+	private Label lblConflicts;
 
     private Text txtTotalElements;
     private Text txtNewElementsInModel;
     private Text txtUpdatedElementsInModel;
+    private Text txtDeletedElementsInModel;
     private Text txtNewElementsInDatabase;
     private Text txtUpdatedElementsInDatabase;
+    private Text txtDeletedElementsInDatabase;
     private Text txtConflictingElements;
 
     private Text txtTotalRelationships;
     private Text txtNewRelationshipsInModel;
     private Text txtUpdatedRelationshipsInModel;
+    private Text txtDeletedRelationshipsInModel;
     private Text txtNewRelationshipsInDatabase;
     private Text txtUpdatedRelationshipsInDatabase;
+    private Text txtDeletedRelationshipsInDatabase;
     private Text txtConflictingRelationships;
 
     private Text txtTotalFolders;
     private Text txtNewFoldersInModel;
     private Text txtUpdatedFoldersInModel;
+    private Text txtDeletedFoldersInModel;
     private Text txtNewFoldersInDatabase;
     private Text txtUpdatedFoldersInDatabase;
+    private Text txtDeletedFoldersInDatabase;
     private Text txtConflictingFolders;
 
     private Text txtTotalViews;
     private Text txtNewViewsInModel;
     private Text txtUpdatedViewsInModel;
+    private Text txtDeletedViewsInModel;
     private Text txtNewViewsInDatabase;
     private Text txtUpdatedViewsInDatabase;
+    private Text txtDeletedViewsInDatabase;
     private Text txtConflictingViews;
 
     private Text txtTotalViewObjects;
