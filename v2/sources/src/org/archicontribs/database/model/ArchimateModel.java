@@ -12,6 +12,7 @@ import java.util.Map;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
+import java.util.HashSet;
 import java.util.Map.Entry;
 
 import org.archicontribs.database.DBLogger;
@@ -392,4 +393,59 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
         this.allSourceObjectsConnections.clear();
         this.allTargetConnectionsConnections.clear();
 	}
+    
+    //*******************************************
+    // Deleted objects counters
+    //
+    
+    private HashSet<String> deletedElements = new HashSet<String>();
+    private HashSet<String> deletedRelationships = new HashSet<String>();
+    private HashSet<String> deletedFolders = new HashSet<String>();
+    private HashSet<String> deletedViews = new HashSet<String>();
+    
+    public void delete(IIdentifier deletedEObject) {
+        if ( deletedEObject instanceof IArchimateElement )
+            this.deletedElements.add(deletedEObject.getId());
+        else if ( deletedEObject instanceof IArchimateRelationship )
+            this.deletedRelationships.add(deletedEObject.getId());
+        else if ( deletedEObject instanceof IFolder )
+            this.deletedFolders.add(deletedEObject.getId());
+        else
+            this.deletedViews.add(deletedEObject.getId());
+    }
+    
+    public void undelete(IIdentifier undeletedEObject) {
+        if ( undeletedEObject instanceof IArchimateElement )
+            this.deletedElements.remove(undeletedEObject.getId());
+        else if ( undeletedEObject instanceof IArchimateRelationship )
+            this.deletedRelationships.remove(undeletedEObject.getId());
+        else if ( undeletedEObject instanceof IFolder )
+            this.deletedFolders.remove(undeletedEObject.getId());
+        else
+            this.deletedViews.remove(undeletedEObject.getId());
+    }
+    
+    public void resetDeleted() {
+           this.deletedElements.clear();
+           this.deletedRelationships.clear();
+           this.deletedFolders.clear();
+           this.deletedViews.clear();
+    }
+    
+    public HashSet<String> getdeletedElements() {
+        return this.deletedElements;
+    }
+    
+    public HashSet<String> getdeletedRelationships() {
+        return this.deletedRelationships;
+    }
+    
+    public HashSet<String> getDeletedFolders() {
+        return this.deletedFolders;
+    }
+    
+    public HashSet<String> getDeletedViews() {
+        return this.deletedViews;
+    }
+    
 }
