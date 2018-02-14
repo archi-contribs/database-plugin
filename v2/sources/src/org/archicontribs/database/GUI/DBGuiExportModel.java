@@ -21,7 +21,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBChecksum;
-import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
@@ -71,7 +71,7 @@ public class DBGuiExportModel extends DBGui {
 	Group grpComponents;
 	Group grpModelVersions;
 	
-	HashMap<String, DBVersion> newDatabaseComponents;
+	HashMap<String, DBVersionPair> newDatabaseComponents;
 	
 	private boolean forceExport; 
 	
@@ -1186,7 +1186,7 @@ public class DBGuiExportModel extends DBGui {
 			
 			if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getElementsNotInModel().size()+" elements");
 			for (String id : this.connection.getElementsNotInModel().keySet() ) {
-			    DBVersion versionToImport = this.connection.getElementsNotInModel().get(id);
+			    DBVersionPair versionToImport = this.connection.getElementsNotInModel().get(id);
 			    this.connection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 			    incrementText(this.txtNewElementsInDatabase);
 			    incrementText(this.txtTotalElements);
@@ -1200,7 +1200,7 @@ public class DBGuiExportModel extends DBGui {
 			
 	        if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getRelationshipsNotInModel().size()+" relationships");
 	        for (String id : this.connection.getRelationshipsNotInModel().keySet() ) {
-	            DBVersion versionToImport = this.connection.getRelationshipsNotInModel().get(id);
+	            DBVersionPair versionToImport = this.connection.getRelationshipsNotInModel().get(id);
 	            this.connection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 	            incrementText(this.txtNewRelationshipsInDatabase);
 	            incrementText(this.txtTotalRelationships);
@@ -1313,7 +1313,7 @@ public class DBGuiExportModel extends DBGui {
 	    
 	    Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
-            DBVersion version = ((IDBMetadata)ite.next().getValue()).getDBMetadata().getCurrentVersion();
+            DBVersionPair version = ((IDBMetadata)ite.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
             version.setTimestamp(this.exportedModel.getCurrentVersion().getLatestTimestamp());
@@ -1321,7 +1321,7 @@ public class DBGuiExportModel extends DBGui {
         
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
-            DBVersion version = ((IDBMetadata)itr.next().getValue()).getDBMetadata().getCurrentVersion();
+            DBVersionPair version = ((IDBMetadata)itr.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
             version.setTimestamp(this.exportedModel.getCurrentVersion().getLatestTimestamp());
@@ -1329,7 +1329,7 @@ public class DBGuiExportModel extends DBGui {
         
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
-            DBVersion version = ((IDBMetadata)itf.next().getValue()).getDBMetadata().getCurrentVersion();
+            DBVersionPair version = ((IDBMetadata)itf.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
             version.setTimestamp(this.exportedModel.getCurrentVersion().getLatestTimestamp());
@@ -1337,7 +1337,7 @@ public class DBGuiExportModel extends DBGui {
         
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
-            DBVersion version = ((IDBMetadata)itv.next().getValue()).getDBMetadata().getCurrentVersion();
+            DBVersionPair version = ((IDBMetadata)itv.next().getValue()).getDBMetadata().getCurrentVersion();
             version.setVersion(version.getLatestVersion());
             version.setChecksum(version.getLatestChecksum());
             version.setTimestamp(this.exportedModel.getCurrentVersion().getLatestTimestamp());

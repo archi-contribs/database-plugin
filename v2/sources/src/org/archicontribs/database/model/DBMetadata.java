@@ -9,7 +9,7 @@ package org.archicontribs.database.model;
 import java.sql.Timestamp;
 import java.time.Instant;
 
-import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.data.DBVersionPair;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModel;
@@ -25,8 +25,8 @@ import com.archimatetool.model.INameable;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBMetadata  {
-	DBVersion currentVersion = new DBVersion(Timestamp.from(Instant.now()));
-	DBVersion databaseVersion = new DBVersion(Timestamp.from(Instant.EPOCH));
+	DBVersionPair currentVersion = new DBVersionPair(Timestamp.from(Instant.now()));
+	DBVersionPair databaseVersion = new DBVersionPair(Timestamp.from(Instant.EPOCH));
 	
 	/**
 	 * diagram 
@@ -53,7 +53,7 @@ public class DBMetadata  {
 		this.component = component;
 	}
 	
-	public DBVersion getCurrentVersion() {
+	public DBVersionPair getCurrentVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
@@ -62,7 +62,7 @@ public class DBMetadata  {
 	    return this.currentVersion;
 	}
 	
-	public DBVersion getDatabaseVersion() {
+	public DBVersionPair getDatabaseVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getDatabaseVersion();

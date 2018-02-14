@@ -17,7 +17,7 @@ import java.util.Map.Entry;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.data.DBChecksum;
-import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.data.DBVersionPair;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
@@ -52,8 +52,8 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
-	private DBVersion currentVersion = new DBVersion(Timestamp.from(Instant.now()));
-	private DBVersion databaseVersion = new DBVersion(Timestamp.from(Instant.EPOCH));
+	private DBVersionPair currentVersion = new DBVersionPair(Timestamp.from(Instant.now()));
+	private DBVersionPair databaseVersion = new DBVersionPair(Timestamp.from(Instant.EPOCH));
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
@@ -79,14 +79,14 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	/**
 	 * @return the current version of the model 
 	 */
-	public DBVersion getCurrentVersion() {
+	public DBVersionPair getCurrentVersion() {
 		return this.currentVersion;
 	}
 	
 	/**
 	 * @return the version of the model as it is in the database 
 	 */
-	public DBVersion getDatabaseVersion() {
+	public DBVersionPair getDatabaseVersion() {
 		return this.databaseVersion;
 	}
 	

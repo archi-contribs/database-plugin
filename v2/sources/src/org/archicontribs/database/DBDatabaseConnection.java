@@ -32,7 +32,7 @@ import javax.swing.ImageIcon;
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
-import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
@@ -2572,12 +2572,12 @@ public class DBDatabaseConnection {
 	//                                                                               //
 	///////////////////////////////////////////////////////////////////////////////////
 
-	private HashMap<String, DBVersion> elementsNotInModel = new HashMap<String, DBVersion>();			public HashMap<String, DBVersion> getElementsNotInModel() { return this.elementsNotInModel; }
-	private HashMap<String, DBVersion> relationshipsNotInModel = new HashMap<String, DBVersion>();		public HashMap<String, DBVersion> getRelationshipsNotInModel() { return this.relationshipsNotInModel; }
-	private HashMap<String, DBVersion> foldersNotInModel = new HashMap<String, DBVersion>();			public HashMap<String, DBVersion> getFoldersNotInModel() { return this.foldersNotInModel; }
-	private HashMap<String, DBVersion> viewsNotInModel = new HashMap<String, DBVersion>();				public HashMap<String, DBVersion> getViewsNotInModel() { return this.viewsNotInModel; }
-	private HashMap<String, DBVersion> imagesNotInModel = new HashMap<String, DBVersion>();				public HashMap<String, DBVersion> getImagesNotInModel() { return this.imagesNotInModel; }
-	private HashMap<String, DBVersion> imagesNotInDatabase = new HashMap<String, DBVersion>();			public HashMap<String, DBVersion> getImagesNotInDatabase() { return this.imagesNotInDatabase; }
+	private HashMap<String, DBVersionPair> elementsNotInModel = new HashMap<String, DBVersionPair>();			public HashMap<String, DBVersionPair> getElementsNotInModel() { return this.elementsNotInModel; }
+	private HashMap<String, DBVersionPair> relationshipsNotInModel = new HashMap<String, DBVersionPair>();		public HashMap<String, DBVersionPair> getRelationshipsNotInModel() { return this.relationshipsNotInModel; }
+	private HashMap<String, DBVersionPair> foldersNotInModel = new HashMap<String, DBVersionPair>();			public HashMap<String, DBVersionPair> getFoldersNotInModel() { return this.foldersNotInModel; }
+	private HashMap<String, DBVersionPair> viewsNotInModel = new HashMap<String, DBVersionPair>();				public HashMap<String, DBVersionPair> getViewsNotInModel() { return this.viewsNotInModel; }
+	private HashMap<String, DBVersionPair> imagesNotInModel = new HashMap<String, DBVersionPair>();				public HashMap<String, DBVersionPair> getImagesNotInModel() { return this.imagesNotInModel; }
+	private HashMap<String, DBVersionPair> imagesNotInDatabase = new HashMap<String, DBVersionPair>();			public HashMap<String, DBVersionPair> getImagesNotInDatabase() { return this.imagesNotInDatabase; }
 
 	//TODO : use try with resource statements
 	//TODO :    try (ResultSet resultSet = statement.executeQuery("some query")) { ... }	
@@ -2607,56 +2607,56 @@ public class DBDatabaseConnection {
         }
         
         // we reset the variables
-    	this.elementsNotInModel = new HashMap<String, DBVersion>();
-    	this.relationshipsNotInModel = new HashMap<String, DBVersion>();
-    	this.foldersNotInModel = new HashMap<String, DBVersion>();
-    	this.viewsNotInModel = new HashMap<String, DBVersion>();
+    	this.elementsNotInModel = new HashMap<String, DBVersionPair>();
+    	this.relationshipsNotInModel = new HashMap<String, DBVersionPair>();
+    	this.foldersNotInModel = new HashMap<String, DBVersionPair>();
+    	this.viewsNotInModel = new HashMap<String, DBVersionPair>();
         
         // we get the components
     	if ( latestVersionOfComponents ) {
     		try ( ResultSet result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
     			while ( result.next() )
-    				this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.elementsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
         	
     		try ( ResultSet result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"relationships e1 JOIN "+this.schema+"relationships e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN relationships_in_model m ON e2.id = m.relationship_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion)) {
     			while ( result.next() )
-    				this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.relationshipsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
         	
     		try ( ResultSet result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"folders e1 JOIN "+this.schema+"folders e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN folders_in_model m ON e2.id = m.folder_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
     			while ( result.next() )
-    				this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.foldersNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
         	
     		try ( ResultSet result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"views e1 JOIN "+this.schema+"views e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN views_in_model m ON e2.id = m.view_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
     			while ( result.next() )
-    				this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.viewsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
         	
     		try ( ResultSet result = select("SELECT e2.id, max(e2.version) FROM "+this.schema+"elements e1 JOIN "+this.schema+"elements e2 ON e2.id = e1.id AND e2.version >= e1.version JOIN elements_in_model m ON e2.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
     			while ( result.next() )
-    				this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.elementsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
     	} else {
     		try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"elements e JOIN "+this.schema+"elements_in_model m ON e.id = m.element_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
     			while ( result.next() )
-    				this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+    				this.elementsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
 	    	
     		try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"relationships e JOIN "+this.schema+"relationships_in_model m ON e.id = m.relationship_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
 		    	while ( result.next() )
-		    		this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+		    		this.relationshipsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
 	    	}
 	    	
     		try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"folders e JOIN "+this.schema+"folders_in_model m ON e.id = m.folder_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
 		    	while ( result.next() )
-		    		this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+		    		this.foldersNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
 	    	}
 	    	
     		try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views e JOIN "+this.schema+"views_in_model m ON e.id = m.view_id HAVING m.id = ? AND m.version = ?", modelId, modelVersion) ) {
 		    	while ( result.next() )
-		    		this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version")));
+		    		this.viewsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version")));
     		}
     	}
     }
@@ -2676,12 +2676,12 @@ public class DBDatabaseConnection {
         assert(!this.databaseEntry.getExportWholeModel());
         
         // we reset the variables
-    	this.elementsNotInModel = new HashMap<String, DBVersion>();
-    	this.relationshipsNotInModel = new HashMap<String, DBVersion>();
-    	this.foldersNotInModel = new HashMap<String, DBVersion>();
-    	this.viewsNotInModel = new HashMap<String, DBVersion>();
-    	this.imagesNotInModel = new HashMap<String, DBVersion>();
-    	this.imagesNotInDatabase = new HashMap<String, DBVersion>();
+    	this.elementsNotInModel = new HashMap<String, DBVersionPair>();
+    	this.relationshipsNotInModel = new HashMap<String, DBVersionPair>();
+    	this.foldersNotInModel = new HashMap<String, DBVersionPair>();
+    	this.viewsNotInModel = new HashMap<String, DBVersionPair>();
+    	this.imagesNotInModel = new HashMap<String, DBVersionPair>();
+    	this.imagesNotInDatabase = new HashMap<String, DBVersionPair>();
     	
         // we get the latest model version from the database
         model.getDatabaseVersion().reset();
@@ -2746,7 +2746,7 @@ public class DBDatabaseConnection {
 			            	element.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 			            } else {
 			            	// TODO : we need to determine if the component has been deleted from the model or if it is really a new component
-			            	this.elementsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+			            	this.elementsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 			            }
 			        }
 		        }
@@ -2774,7 +2774,7 @@ public class DBDatabaseConnection {
 			            	
 			            	relationship.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 			            } else
-			            	this.relationshipsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+			            	this.relationshipsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 			        }
 		        }
 	        
@@ -2801,7 +2801,7 @@ public class DBDatabaseConnection {
 			            	
 			            	folder.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 			            } else
-			            	this.foldersNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+			            	this.foldersNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 			        }
 		        }
 	
@@ -2828,7 +2828,7 @@ public class DBDatabaseConnection {
 			            	
 			            	view.getDBMetadata().getCurrentVersion().setLatestVersion(result.getInt("latest_version"));
 			            } else
-			            	this.viewsNotInModel.put(result.getString("id"), new DBVersion(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
+			            	this.viewsNotInModel.put(result.getString("id"), new DBVersionPair(result.getInt("version"), result.getString("checksum"),result.getTimestamp("created_on"), result.getInt("latest_version"), result.getString("latest_checksum"),result.getTimestamp("latest_created_on")));
 			        }
 		        }
 		        
@@ -2841,7 +2841,7 @@ public class DBDatabaseConnection {
 						) ) {
 					while ( result.next() ) {
 						if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
-							this.imagesNotInModel.put(result.getString("image_path"), new DBVersion());
+							this.imagesNotInModel.put(result.getString("image_path"), new DBVersionPair());
 						}
 					}
 		        }
@@ -2935,7 +2935,7 @@ public class DBDatabaseConnection {
 					// the image is in the database
 				} else {
 					// the image is not in the database
-					this.imagesNotInDatabase.put(path, new DBVersion());
+					this.imagesNotInDatabase.put(path, new DBVersionPair());
 				}
     		}
 		}
