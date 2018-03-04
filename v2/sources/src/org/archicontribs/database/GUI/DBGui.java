@@ -66,6 +66,7 @@ import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
+import com.archimatetool.editor.ui.ImageFactory;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
@@ -1347,8 +1348,10 @@ public class DBGui {
 		try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
 			ImageLoader saver = new ImageLoader();
 			Image image = DiagramUtils.createImage(view, scale, margin);
-			saver.data = new ImageData[] { image.getImageData() };
+			
+			saver.data = new ImageData[] { image.getImageData(ImageFactory.getDeviceZoom()) };
 			saver.save(writeOut, SWT.IMAGE_PNG);
+            
 			image.dispose();
 		} catch (IOException err) {
 			logger.error("Failed to close DataOutputStream", err);
