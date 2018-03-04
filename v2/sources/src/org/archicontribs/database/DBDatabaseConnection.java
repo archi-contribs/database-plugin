@@ -3215,7 +3215,7 @@ public class DBDatabaseConnection {
 		byte[] viewImage = null;
 
 		if ( this.databaseEntry.getExportViewsImages() )
-			viewImage = DBGui.createImage(view, 1, 10);
+			viewImage = DBGui.createImage(view, this.databaseEntry.getViewsImagesScaleFactor()/100.0, this.databaseEntry.getViewsImagesBorderWidth());
 
 		insert(this.schema+"views", ViewsColumns
 				,view.getId()

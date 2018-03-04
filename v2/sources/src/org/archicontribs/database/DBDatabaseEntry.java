@@ -23,6 +23,8 @@ public class DBDatabaseEntry {
 	private String password = "";
 	private boolean exportWholeModel = false;
 	private boolean exportViewImages = false;
+	private int viewsImagesBorderWidth = 10;
+	private int viewsImagesScaleFactor = 100;
 	private boolean neo4jNativeMode = false;
 	private boolean collaborativeMode = false;
 
@@ -153,6 +155,23 @@ public class DBDatabaseEntry {
 	public void setExportViewImages(boolean exportViewImages) {
 		this.exportViewImages = exportViewImages;
 	}
+	
+	public int getViewsImagesBorderWidth() {
+		return this.viewsImagesBorderWidth;
+	}
+	
+	public void setViewsImagesBorderWidth(int viewsImagesBorderWidth) {
+		this.viewsImagesBorderWidth = viewsImagesBorderWidth;
+	}
+	
+	public int getViewsImagesScaleFactor() {
+		return this.viewsImagesScaleFactor;
+	}
+	
+	public void setViewsImagesScaleFactor(int viewsImagesScaleFactor) {
+		this.viewsImagesScaleFactor = viewsImagesScaleFactor;
+	}
+	
 
 	public boolean getNeo4jNativeMode()  {
 		return this.neo4jNativeMode;
@@ -209,11 +228,14 @@ public class DBDatabaseEntry {
 						databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
 					}
 					databaseEntry.setExportWholeModel(store.getBoolean(preferenceName+"_export-whole-model_"+String.valueOf(line)));
+					
 					databaseEntry.setExportViewImages(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
-
-					if ( DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
-						databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
-					}
+					store.setDefault(preferenceName+"_views-images-border-width_"+String.valueOf(line), 10);
+					databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
+					store.setDefault(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), 100);
+					databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
+					
+					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 					
 					databaseEntry.setCollaborativeMode(store.getBoolean(preferenceName+"_collaborative-mode_"+String.valueOf(line)));
 
@@ -245,6 +267,8 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_password_"+String.valueOf(line), databaseEntry.getPassword());
 			store.setValue(preferenceName+"_export-whole-model_"+String.valueOf(line), databaseEntry.getExportWholeModel());
 			store.setValue(preferenceName+"_export-views-images_"+String.valueOf(line), databaseEntry.getExportViewsImages());
+			store.setValue(preferenceName+"_views-images-border-width_"+String.valueOf(line), databaseEntry.getViewsImagesBorderWidth());
+			store.setValue(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), databaseEntry.getViewsImagesScaleFactor());
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.getNeo4jNativeMode());
 			store.setValue(preferenceName+"_collaborative-mode_"+String.valueOf(line), databaseEntry.getCollaborativeMode());
 		}
