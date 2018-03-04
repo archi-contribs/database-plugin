@@ -5,53 +5,32 @@
  */
 package org.archicontribs.database.GUI;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Map.Entry;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui.ACTION;
 import org.archicontribs.database.model.ArchimateModel;
-import org.eclipse.jface.layout.TableColumnLayout;
-import org.eclipse.jface.viewers.ISelectionChangedListener;
-import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.jface.viewers.SelectionChangedEvent;
-import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.nebula.widgets.gallery.DefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
 import org.eclipse.nebula.widgets.gallery.NoGroupRenderer;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.CLabel;
-import org.eclipse.swt.custom.SashForm;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.events.MouseAdapter;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Scale;
 
-import com.archimatetool.editor.model.IArchiveManager;
-import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.editor.propertysections.Messages;
 import com.archimatetool.editor.utils.PlatformUtils;
-import com.archimatetool.model.IArchimateModel;
 
 /**
  * This class holds the methods requires to import an image from the database
