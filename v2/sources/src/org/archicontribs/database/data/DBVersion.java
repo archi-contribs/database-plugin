@@ -10,7 +10,7 @@ import java.sql.Timestamp;
 import java.time.Instant;
 
 /**
- * This class holds the table name, version, checksum and a timestamp
+ * This class holds a version, a checksum and a timestamp
  * 
  * @author Herve Jouin
  */
