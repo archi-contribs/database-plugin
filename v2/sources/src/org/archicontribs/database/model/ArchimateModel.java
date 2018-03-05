@@ -163,14 +163,10 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		int len = 0;
 
 		if ( mustCalculateChecksum ) {
-			//TODO: find a way to avoid to calculate the checksum twice for connections (are they are counted twice : as sources and targets) 
+			//TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice : as sources and targets) 
 			checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
 			len = checksumBuilder.length();
 		}
-		
-		//if ( ((IIdentifier)eObject).getId().equals("03366f6e-e1ab-46dd-b91a-4ac4a8453377") ) {
-		//	System.out.println("got you in parent "+parentDiagram.getId());
-		//}
 		
 		switch ( eObject.eClass().getName() ) {
 			case "ArchimateDiagramModel" :
@@ -218,7 +214,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 													
 			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
-													// WARNING : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
+													// TODO : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 													// so we do not use sub folders or elements in the checksum calculation anymore
 													// at the moment, this is not important as we do not allow to share folders between models
 													// but a solution needs to be found !!!
