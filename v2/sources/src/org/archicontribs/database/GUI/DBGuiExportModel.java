@@ -881,9 +881,9 @@ public class DBGuiExportModel extends DBGui {
 		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
 		
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
-		this.txtNewRelationshipsInModel.setText("");		this.txtUpdatedRelationshipsInModel.setText("");		this.txtNewRelationshipsInDatabase.setText("");		this.txtUpdatedRelationshipsInDatabase.setText("");		this.txtConflictingRelationships.setText("");
+		this.txtNewRelationshipsInModel.setText("");	this.txtUpdatedRelationshipsInModel.setText("");	this.txtNewRelationshipsInDatabase.setText("");		this.txtUpdatedRelationshipsInDatabase.setText("");		this.txtConflictingRelationships.setText("");
 		this.txtNewFoldersInModel.setText("");			this.txtUpdatedFoldersInModel.setText("");			this.txtNewFoldersInDatabase.setText("");			this.txtUpdatedFoldersInDatabase.setText("");			this.txtConflictingFolders.setText("");
-		this.txtNewViewsInModel.setText("");				this.txtUpdatedViewsInModel.setText("");				this.txtNewViewsInDatabase.setText("");				this.txtUpdatedViewsInDatabase.setText("");				this.txtConflictingViews.setText("");
+		this.txtNewViewsInModel.setText("");			this.txtUpdatedViewsInModel.setText("");			this.txtNewViewsInDatabase.setText("");				this.txtUpdatedViewsInDatabase.setText("");				this.txtConflictingViews.setText("");
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
 		
 		this.btnDoAction.setText("Export");
@@ -905,13 +905,6 @@ public class DBGuiExportModel extends DBGui {
             return false;
         }
         
-        this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
-        this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
-        this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
-        this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
-        this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
-
-        
         // we export the components without checking for conflicts in 3 cases:
         //    - the model is not in the database
         //    - the current model is the latest model in the database
@@ -920,18 +913,22 @@ public class DBGuiExportModel extends DBGui {
                 || this.exportedModel.getCurrentVersion().getLatestVersion() == this.exportedModel.getCurrentVersion().getVersion()
                 || !this.selectedDatabase.getCollaborativeMode();
 
-        int nbNews = 0;
+        int nbNew = 0;
+        int nbNewInDb = 0;
         int nbUpdated = 0;
-        int nbUpdatedDb = 0;
+        int nbUpdatedInDb = 0;
         int nbConflict = 0;
+        int nbDeleted = 0;
+        int nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNews;
-            } else {
-                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+            if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                ++nbNew;                // if the component does not exist in the database model, then it is a new component
+            else {
+                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
@@ -940,29 +937,45 @@ public class DBGuiExportModel extends DBGui {
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
                     }
                 }
+                // else the component does not need to be exported
             }
         }
-        this.txtNewElementsInModel.setText(String.valueOf(nbNews));
+        // we distinguish the elements new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+            if ( versionPair.getVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewElementsInModel.setText(String.valueOf(nbNew));
+        this.txtNewElementsInDatabase.setText(String.valueOf(nbNewInDb));
         this.txtUpdatedElementsInModel.setText(String.valueOf(nbUpdated));
-        this.txtUpdatedElementsInDatabase.setText(String.valueOf(nbUpdatedDb));
-        this.txtNewElementsInDatabase.setText(String.valueOf(this.connection.getElementsNotInModel().size()));
+        this.txtUpdatedElementsInDatabase.setText(String.valueOf(nbUpdatedInDb));
         this.txtConflictingElements.setText(String.valueOf(nbConflict));
+        this.txtDeletedElementsInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedElementsInDatabase.setText(String.valueOf(nbDeletedInDb));
         
-        nbNews = 0;
+        
+        nbNew = 0;
+        nbNewInDb = 0;
         nbUpdated = 0;
-        nbUpdatedDb = 0;
+        nbUpdatedInDb = 0;
         nbConflict = 0;
+        nbDeleted = 0;
+        nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
             if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
                 // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNews;
+                ++nbNew;
             } else {
-                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
@@ -971,30 +984,44 @@ public class DBGuiExportModel extends DBGui {
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
                     }
                 }
             }
         }
-        this.txtNewRelationshipsInModel.setText(String.valueOf(nbNews));
+        // we distinguish the elements new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+            if ( versionPair.getVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewRelationshipsInModel.setText(String.valueOf(nbNew));
+        this.txtNewRelationshipsInDatabase.setText(String.valueOf(nbNewInDb));
         this.txtUpdatedRelationshipsInModel.setText(String.valueOf(nbUpdated));
-        this.txtUpdatedRelationshipsInDatabase.setText(String.valueOf(nbUpdatedDb));
-        this.txtNewRelationshipsInDatabase.setText(String.valueOf(this.connection.getRelationshipsNotInModel().size()));
+        this.txtUpdatedRelationshipsInDatabase.setText(String.valueOf(nbUpdatedInDb));
         this.txtConflictingRelationships.setText(String.valueOf(nbConflict));
+        this.txtDeletedRelationshipsInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedRelationshipsInDatabase.setText(String.valueOf(nbDeletedInDb));
         
-        nbNews = 0;
+        nbNew = 0;
+        nbNewInDb = 0;
         nbUpdated = 0;
-        nbUpdatedDb = 0;
+        nbUpdatedInDb = 0;
         nbConflict = 0;
+        nbDeleted = 0;
+        nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
             IFolder tmp = itf.next().getValue();
             DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
             if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
                 // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNews;
+                ++nbNew;
             } else {
-                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
@@ -1003,29 +1030,43 @@ public class DBGuiExportModel extends DBGui {
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
                     }
                 }
             }
         }
-        this.txtNewFoldersInModel.setText(String.valueOf(nbNews));
+        // we distinguish the elements new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+            if ( versionPair.getVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewFoldersInModel.setText(String.valueOf(nbNew));
+        this.txtNewFoldersInDatabase.setText(String.valueOf(nbNewInDb));
         this.txtUpdatedFoldersInModel.setText(String.valueOf(nbUpdated));
-        this.txtUpdatedFoldersInDatabase.setText(String.valueOf(nbUpdatedDb));
-        this.txtNewFoldersInDatabase.setText(String.valueOf(this.connection.getFoldersNotInModel().size()));
+        this.txtUpdatedFoldersInDatabase.setText(String.valueOf(nbUpdatedInDb));
         this.txtConflictingFolders.setText(String.valueOf(nbConflict));
+        this.txtDeletedFoldersInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedFoldersInDatabase.setText(String.valueOf(nbDeletedInDb));
         
-        nbNews = 0;
+        nbNew = 0;
+        nbNewInDb = 0;
         nbUpdated = 0;
-        nbUpdatedDb = 0;
+        nbUpdatedInDb = 0;
         nbConflict = 0;
+        nbDeleted = 0;
+        nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
             if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
                 // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNews;
+                ++nbNew;
             } else {
-                if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
+                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getDatabaseVersion().getLatestChecksum(), metadata.getCurrentVersion().getLatestChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getCurrentVersion().getLatestChecksum());
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getDatabaseVersion().getLatestChecksum());
                     
@@ -1034,16 +1075,27 @@ public class DBGuiExportModel extends DBGui {
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedDb;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
                     }
                 }
             }
         }
-        this.txtNewViewsInModel.setText(String.valueOf(nbNews));
+        // we distinguish the elements new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+            if ( versionPair.getVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewViewsInModel.setText(String.valueOf(nbNew));
+        this.txtNewViewsInDatabase.setText(String.valueOf(nbNewInDb));
         this.txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
-        this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedDb));
-        this.txtNewViewsInDatabase.setText(String.valueOf(this.connection.getViewsNotInModel().size()));
+        this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedInDb));
         this.txtConflictingViews.setText(String.valueOf(nbConflict));
+        this.txtDeletedViewsInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedViewsInDatabase.setText(String.valueOf(nbDeletedInDb));
+        
+        
         
         this.txtNewImagesInModel.setText(String.valueOf(this.connection.getImagesNotInDatabase().size()));
         this.txtNewImagesInDatabase.setText(String.valueOf(this.connection.getImagesNotInModel().size()));
