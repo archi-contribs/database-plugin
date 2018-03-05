@@ -786,31 +786,6 @@ public class DBArchimateFactory extends ArchimateFactory {
         return obj;
     }
     
-    /**
-     * Adapter to listen to changes made on folders, especially when components are added or removed.<br>
-     * <br>
-     * The objective is to keep a trace of all deleted objects
-     */
-    private Adapter folderAdapter = new AdapterImpl() {
-        @Override
-        public void notifyChanged(Notification notification) {
-            super.notifyChanged(notification);
-
-            ArchimateModel model = (ArchimateModel)((IFolder)notification.getNotifier()).getArchimateModel();
-            switch ( notification.getEventType() ) {
-                case Notification.ADD:     // element or relationship added to a folder
-                    model.delete(((IIdentifier)notification.getNewValue()));
-                    break;
-                    
-                case Notification.REMOVE:     // element or relationship removed from a folder
-                    model.undelete(((IIdentifier)notification.getOldValue()));
-                    break;
-                    
-                default:    // do nothing
-            }
-        }
-    };
-    
 	/**
 	 * Override of the original createFolder<br>
 	 * Creates a DBFolder instead of a Folder
@@ -818,7 +793,6 @@ public class DBArchimateFactory extends ArchimateFactory {
     @Override
     public IFolder createFolder() {
         IFolder obj = new org.archicontribs.database.model.impl.Folder();
-        obj.eAdapters().add(this.folderAdapter);
         return obj;
     }
     
