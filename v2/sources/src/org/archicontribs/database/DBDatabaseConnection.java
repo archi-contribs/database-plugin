@@ -2865,7 +2865,7 @@ public class DBDatabaseConnection {
                             ,model.getId()
                             ) ) {
                     while ( result.next() ) {
-                        IDBMetadata relationship = (IDBMetadata)model.getAllElements().get(result.getString("id"));
+                        IDBMetadata relationship = (IDBMetadata)model.getAllRelationships().get(result.getString("id"));
                         if ( relationship != null ) {
                             // if the relationship exists in memory
                             relationship.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
@@ -2941,7 +2941,7 @@ public class DBDatabaseConnection {
                           ,model.getId()
                           ) ) {
                     while ( result.next() ) {
-                        IDBMetadata folder = (IDBMetadata)model.getAllElements().get(result.getString("id"));
+                        IDBMetadata folder = (IDBMetadata)model.getAllFolders().get(result.getString("id"));
                         if ( folder != null ) {
                             // if the folder exists in memory
                             folder.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
@@ -3017,7 +3017,7 @@ public class DBDatabaseConnection {
                           ,model.getId()
                           ) ) {
                     while ( result.next() ) {
-                        IDBMetadata view = (IDBMetadata)model.getAllElements().get(result.getString("id"));
+                        IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
                         if ( view != null ) {
                             // if the view exists in memory
                             view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));

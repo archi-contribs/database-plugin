@@ -759,8 +759,10 @@ public class DBGuiExportModel extends DBGui {
                 popup("Please wait while comparing model from the database...");
             	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
             	closePopup();
-            	if ( upToDate )
+            	if ( upToDate ) {
             		popup(Level.INFO, "Your database is already up to date.");
+                    DBGuiExportModel.this.btnClose.setText("Close");
+            	}
             }
             @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
         });
@@ -836,8 +838,10 @@ public class DBGuiExportModel extends DBGui {
             popup("Please wait while comparing model from the database...");
         	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
         	closePopup();
-        	if ( upToDate )
-        		popup(Level.INFO, "Your database is already up to date."); 		
+        	if ( upToDate ) {
+        		popup(Level.INFO, "Your database is already up to date.");
+        		this.btnClose.setText("Close");
+        	}
         } else {
             if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
             this.btnDoAction.setEnabled(true);
@@ -990,7 +994,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.connection.getRelationshipsNotInModel().values() ) {
             if ( versionPair.getVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1016,8 +1020,7 @@ public class DBGuiExportModel extends DBGui {
             IFolder tmp = itf.next().getValue();
             DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
             if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNew;
+                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
             } else {
                 if (  metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
@@ -1036,7 +1039,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.connection.getFoldersNotInModel().values() ) {
             if ( versionPair.getVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1061,8 +1064,7 @@ public class DBGuiExportModel extends DBGui {
         while (itv.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
             if (  metadata.getDatabaseVersion().getLatestVersion() == 0 ) {
-                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                ++nbNew;
+                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
             } else {
                 if (  metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
@@ -1081,7 +1083,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.connection.getViewsNotInModel().values() ) {
             if ( versionPair.getVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1181,7 +1183,6 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
         this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
         this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
-        this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
         this.txtNewImagesInModel.setText("0");			 this.txtNewImagesInDatabase.setText("0");
 
 		
