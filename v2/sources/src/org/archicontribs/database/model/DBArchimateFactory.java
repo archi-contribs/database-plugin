@@ -7,9 +7,6 @@
 package org.archicontribs.database.model;
 
 import org.archicontribs.database.DBLogger;
-import org.eclipse.emf.common.notify.Adapter;
-import org.eclipse.emf.common.notify.Notification;
-import org.eclipse.emf.common.notify.impl.AdapterImpl;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.graphics.Image;
 
@@ -67,7 +64,6 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IGap;
 import com.archimatetool.model.IGoal;
 import com.archimatetool.model.IGrouping;
-import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IImplementationEvent;
 import com.archimatetool.model.IInfluenceRelationship;
 import com.archimatetool.model.IJunction;
