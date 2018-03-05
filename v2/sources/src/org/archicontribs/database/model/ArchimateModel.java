@@ -6,19 +6,19 @@
 
 package org.archicontribs.database.model;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.sql.Timestamp;
 import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
-import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
 import org.eclipse.emf.ecore.EObject;
+
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
