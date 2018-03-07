@@ -3163,7 +3163,7 @@ public class DBDatabaseConnection {
 		// As we export the model, we increase its versions
 		model.getCurrentVersion().setLatestVersion(model.getCurrentVersion().getLatestVersion()+1);
 		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (current version = "+model.getCurrentVersion().getVersion()+", exported version = "+model.getCurrentVersion().getLatestVersion());
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (current version = "+model.getCurrentVersion().getVersion()+", exported version = "+model.getCurrentVersion().getLatestVersion()+")");
 		
         if ( this.connection.getAutoCommit() )
             model.getCurrentVersion().setLatestTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -3217,7 +3217,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the element, we increase its versions
 		((IDBMetadata)element).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)element).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getLatestVersion());
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getLatestVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
 			// USE MERGE instead to replace existing nodes
@@ -3281,7 +3281,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the relationship, we increase its versions
 		((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getLatestVersion());
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getLatestVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
 			// USE MERGE instead to replace existing nodes
@@ -3370,7 +3370,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the folder, we increase its versions
 		((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getLatestVersion());
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getLatestVersion()+")");
 
 		insert(this.schema+"folders", foldersColumns
 				,folder.getId()
@@ -3420,7 +3420,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the view, we increase its versions
 		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setLatestVersion(((IDBMetadata)view).getDBMetadata().getCurrentVersion().getLatestVersion()+1);
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getLatestVersion());
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getLatestVersion()+")");
 
 		byte[] viewImage = null;
 
