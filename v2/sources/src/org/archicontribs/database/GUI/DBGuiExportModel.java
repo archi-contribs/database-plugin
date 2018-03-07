@@ -896,7 +896,6 @@ public class DBGuiExportModel extends DBGui {
 		this.txtNewRelationshipsInModel.setText("");	this.txtUpdatedRelationshipsInModel.setText("");	this.txtNewRelationshipsInDatabase.setText("");		this.txtUpdatedRelationshipsInDatabase.setText("");		this.txtConflictingRelationships.setText("");
 		this.txtNewFoldersInModel.setText("");			this.txtUpdatedFoldersInModel.setText("");			this.txtNewFoldersInDatabase.setText("");			this.txtUpdatedFoldersInDatabase.setText("");			this.txtConflictingFolders.setText("");
 		this.txtNewViewsInModel.setText("");			this.txtUpdatedViewsInModel.setText("");			this.txtNewViewsInDatabase.setText("");				this.txtUpdatedViewsInDatabase.setText("");				this.txtConflictingViews.setText("");
-		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
 		
 		this.btnDoAction.setText("Export");
 		
@@ -935,10 +934,10 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            if (  metadata.getDatabaseVersion().getVersion() == 0 )
+            if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                 ++nbNew;                // if the component does not exist in the database model, then it is a new component
             else {
-                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                if ( metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
                 else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
@@ -957,7 +956,7 @@ public class DBGuiExportModel extends DBGui {
         }
         // we distinguish the elements new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
-            if ( versionPair.getVersion() == 0 )
+            if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
                 ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
@@ -981,11 +980,11 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            if (  metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
+            if ( metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
                 // if the database version is zero, then the component is not in the database (therefore, new in the model)
                 ++nbNew;
             } else {
-                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                if ( metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
                 else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
@@ -1003,7 +1002,7 @@ public class DBGuiExportModel extends DBGui {
         }
         // we distinguish the elements new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.connection.getRelationshipsNotInModel().values() ) {
-            if ( versionPair.getVersion() == 0 )
+            if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
                 ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
@@ -1027,10 +1026,10 @@ public class DBGuiExportModel extends DBGui {
         while (itf.hasNext()) {
             IFolder tmp = itf.next().getValue();
             DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
-            if (  metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
+            if ( metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
                 ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
             } else {
-                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                if ( metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
                 else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
@@ -1048,7 +1047,7 @@ public class DBGuiExportModel extends DBGui {
         }
         // we distinguish the elements new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.connection.getFoldersNotInModel().values() ) {
-            if ( versionPair.getVersion() == 0 )
+            if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
                 ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
@@ -1071,10 +1070,10 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            if (  metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
+            if ( metadata.getLatestDatabaseVersion().getVersion() == 0 ) {
                 ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
             } else {
-                if (  metadata.getDatabaseVersion().getVersion() == 0 )
+                if ( metadata.getDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
                 else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
@@ -1092,7 +1091,7 @@ public class DBGuiExportModel extends DBGui {
         }
         // we distinguish the elements new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.connection.getViewsNotInModel().values() ) {
-            if ( versionPair.getVersion() == 0 )
+            if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
                 ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
@@ -1236,7 +1235,7 @@ public class DBGuiExportModel extends DBGui {
 					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
 				}
 				
-				//TODO: importing missing folder is not yet done
+				//TODO: importing missing folder
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
@@ -1245,12 +1244,16 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
 			}
 			
-			if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getElementsNotInModel().size()+" elements");
 			for (String id : this.connection.getElementsNotInModel().keySet() ) {
 			    DBVersionPair versionToImport = this.connection.getElementsNotInModel().get(id);
-			    this.connection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
-			    incrementText(this.txtNewElementsInDatabase);
-			    incrementText(this.txtTotalElements);
+		        if ( versionToImport.getCurrentVersion() == 0 ) {
+		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
+		        	// TODO : if the element has been updated in the database, then generate a conflict
+		        	logger.trace("Musr import element "+id);
+		        	this.connection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+		        	incrementText(this.txtNewElementsInDatabase);
+		        	incrementText(this.txtTotalElements);
+		         }
 			}
 			    
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
@@ -1259,12 +1262,16 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
 			}
 			
-	        if ( logger.isDebugEnabled() ) logger.debug("Must import "+this.connection.getRelationshipsNotInModel().size()+" relationships");
 	        for (String id : this.connection.getRelationshipsNotInModel().keySet() ) {
 	            DBVersionPair versionToImport = this.connection.getRelationshipsNotInModel().get(id);
-	            this.connection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
-	            incrementText(this.txtNewRelationshipsInDatabase);
-	            incrementText(this.txtTotalRelationships);
+	            if ( versionToImport.getCurrentVersion() == 0 ) {
+		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
+		        	// TODO : if the relationship has been updated in the database, then generate a conflict
+		        	logger.trace("Musr import element "+id);
+		        	this.connection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+		        	incrementText(this.txtNewRelationshipsInDatabase);
+		        	incrementText(this.txtTotalRelationships);
+	            }
 	        }
 	
 			if ( this.selectedDatabase.getExportWholeModel() ) {
@@ -1280,7 +1287,7 @@ public class DBGuiExportModel extends DBGui {
 					}
 				}
 				
-				//TODO: importing missing view is not yet done
+				//TODO: importing missing view !!!
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
@@ -1329,8 +1336,8 @@ public class DBGuiExportModel extends DBGui {
 				setActiveAction(STATUS.Ok);
 				
 				// Once the export is finished, we copy the exportedVersion to the currentVersion
-		        this.exportedModel.getCurrentVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
 		        this.exportedModel.getCurrentVersion().setVersion(this.exportedModel.getExportedVersion().getVersion());
+		        this.exportedModel.getCurrentVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
 		        this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
 		        
 		        Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
