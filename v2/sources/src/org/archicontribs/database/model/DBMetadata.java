@@ -6,10 +6,7 @@
 
 package org.archicontribs.database.model;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-
-import org.archicontribs.database.data.DBVersionPair;
+import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModel;
@@ -25,8 +22,10 @@ import com.archimatetool.model.INameable;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBMetadata  {
-	DBVersionPair currentVersion = new DBVersionPair(Timestamp.from(Instant.now()));
-	DBVersionPair databaseVersion = new DBVersionPair(Timestamp.from(Instant.EPOCH));
+	DBVersion currentVersion = new DBVersion();
+	DBVersion exportedVersion = new DBVersion();
+	DBVersion databaseVersion = new DBVersion();
+	DBVersion latestDatabaseVersion = new DBVersion();
 	
 	/**
 	 * diagram 
@@ -53,7 +52,7 @@ public class DBMetadata  {
 		this.component = component;
 	}
 	
-	public DBVersionPair getCurrentVersion() {
+	public DBVersion getCurrentVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
@@ -62,7 +61,16 @@ public class DBMetadata  {
 	    return this.currentVersion;
 	}
 	
-	public DBVersionPair getDatabaseVersion() {
+    public DBVersion getExportedVersion() {
+        // Version of viewObject and viewConnections is the version of their parent view
+        if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
+            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getExportedVersion();
+        }
+    
+        return this.exportedVersion;
+    }
+	
+	public DBVersion getDatabaseVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getDatabaseVersion();
@@ -70,6 +78,15 @@ public class DBMetadata  {
     
 	    return this.databaseVersion;
 	}
+	
+    public DBVersion getLatestDatabaseVersion() {
+        // Version of viewObject and viewConnections is the version of their parent view
+        if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
+            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getLatestDatabaseVersion();
+        }
+    
+        return this.latestDatabaseVersion;
+    }
 	
 	/**
 	 * Choices available when a conflict is detected in the database<br>

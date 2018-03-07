@@ -6,8 +6,6 @@
 
 package org.archicontribs.database.model;
 
-import java.sql.Timestamp;
-import java.time.Instant;
 import java.util.AbstractMap.SimpleEntry;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -16,7 +14,7 @@ import java.util.Map.Entry;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.data.DBChecksum;
-import org.archicontribs.database.data.DBVersionPair;
+import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.editor.model.IArchiveManager;
@@ -52,8 +50,10 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	}
 	
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
-	private DBVersionPair currentVersion = new DBVersionPair(Timestamp.from(Instant.now()));
-	private DBVersionPair databaseVersion = new DBVersionPair(Timestamp.from(Instant.EPOCH));
+	private DBVersion currentVersion = new DBVersion();
+	private DBVersion exportedVersion = new DBVersion();
+	private DBVersion databaseVersion = new DBVersion();
+	private DBVersion latestDatabaseVersion = new DBVersion();
 	
     // we use LinkedHashMap as order is important
 	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
@@ -79,16 +79,30 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 	/**
 	 * @return the current version of the model 
 	 */
-	public DBVersionPair getCurrentVersion() {
+	public DBVersion getCurrentVersion() {
 		return this.currentVersion;
 	}
+	
+	   /**
+     * @return the version of the model that must be set in the database during the export process 
+     */
+    public DBVersion getExportedVersion() {
+        return this.exportedVersion;
+    }
 	
 	/**
 	 * @return the version of the model as it is in the database 
 	 */
-	public DBVersionPair getDatabaseVersion() {
+	public DBVersion getDatabaseVersion() {
 		return this.databaseVersion;
 	}
+	
+	   /**
+     * @return the latest version of the model in the database 
+     */
+    public DBVersion getLatestDatabaseVersion() {
+        return this.latestDatabaseVersion;
+    }
 	
 	/**
 	 * Resets the counters of components in the model
@@ -248,7 +262,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		
 		if ( mustCalculateChecksum ) {
 			String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
-			((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setLatestChecksum(checksum);
+			((IDBMetadata)eObject).getDBMetadata().getExportedVersion().setChecksum(checksum);
 			return checksum;
 		}
 		
