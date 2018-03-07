@@ -48,42 +48,42 @@ public class DBVersionPair {
     /**
      * @return the version of the component
      */
-    public int getVersion() {
+    public int getCurrentVersion() {
         return this.currentVersion.getVersion();
     }
 
     /**
      * @param the version of the component
      */
-    public void setVersion(int version) {
+    public void setCurrentVersion(int version) {
         this.currentVersion.setVersion(version);
     }
 
     /**
      * @return the checksum of the component
      */
-    public String getChecksum() {
+    public String getCurrentChecksum() {
         return this.currentVersion.getChecksum();
     }
 
     /**
      * @param the checksum of the component
      */
-    public void setChecksum(String checksum) {
+    public void setCurrentChecksum(String checksum) {
         this.currentVersion.setChecksum(checksum);
     }
     
     /**
      * @return the timestamp of the component
      */
-    public Timestamp getTimestamp() {
+    public Timestamp getCurrentTimestamp() {
         return this.currentVersion.getTimestamp();
     }
 
     /**
      * @param the timestamp of the component
      */
-    public void setTimestamp(Timestamp timestamp) {
+    public void setCurrentTimestamp(Timestamp timestamp) {
         this.currentVersion.setTimestamp(timestamp);
     }
     
