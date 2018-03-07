@@ -52,6 +52,11 @@ public class DBMetadata  {
 		this.component = component;
 	}
 	
+	/**
+	 * Version of the current element, as it is in the memory<br>
+	 * 0 if the model has been loaded from an archimate file<br>
+	 * != 0 if the model has been imported from a database 
+	 */
 	public DBVersion getCurrentVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
@@ -61,6 +66,10 @@ public class DBMetadata  {
 	    return this.currentVersion;
 	}
 	
+	/**
+	 * Version of element, as calculated during the export process.<br>
+	 * Will be copied to currentVersion if the export process succeeds.
+	 */
     public DBVersion getExportedVersion() {
         // Version of viewObject and viewConnections is the version of their parent view
         if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
@@ -70,6 +79,10 @@ public class DBMetadata  {
         return this.exportedVersion;
     }
 	
+	/**
+	 * Version of element, as it is in the database version.
+	 * 0 if the element is new and not present in the database model.
+	 */
 	public DBVersion getDatabaseVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
@@ -79,6 +92,10 @@ public class DBMetadata  {
 	    return this.databaseVersion;
 	}
 	
+	/**
+	 * latest version of the element in the database.<br>
+	 * != databaseVersion if the element has been updated in the database by another user.
+	 */
     public DBVersion getLatestDatabaseVersion() {
         // Version of viewObject and viewConnections is the version of their parent view
         if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
