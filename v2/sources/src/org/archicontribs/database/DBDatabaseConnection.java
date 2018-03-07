@@ -2664,7 +2664,7 @@ public class DBDatabaseConnection {
      * <br>
      * Components that are not in the current model are set in elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel.<br>
      * <br>
-     * This method is meant to be called during the export process.
+     * This method is meant to be called during the export process, before the export of the components as it sets the DBVersion variables used during the export process.
      * @throws SQLException
      */
     public void getVersionsFromDatabase(ArchimateModel model) throws SQLException, RuntimeException {
@@ -2719,7 +2719,7 @@ public class DBDatabaseConnection {
 	            
 	            // we get the components versions from the database.
 	            
-	            // the big request allows to get in one go all the versions needed of the components :
+	            // the big requests allow to get in one go all the versions needed of the components :
 	            //      - version_in_current_model     contains the version of the component as it in the database model
 	            //                                             . as it was when the model was imported, or as it is in the latest database version if the model has been loaded from an archimate file
 	            //                                             . or null if it is a new component
@@ -3064,6 +3064,7 @@ public class DBDatabaseConnection {
 	            	IArchimateElement element = ite.next().getValue();
 	            	try ( ResultSet result = select("SELECT version, checksum, created_on FROM "+this.schema+"elements WHERE id = ? AND version = (SELECT MAX(version) FROM elements WHERE id = ?)", element.getId(), element.getId()) ) {
 		            	if ( result.next() ) {
+		            	    // if the component does exist in the database
 			            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 			            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 			            	((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
@@ -3073,8 +3074,10 @@ public class DBDatabaseConnection {
 			            	
 			            	((IDBMetadata)element).getDBMetadata().getExportedVersion().setVersion(result.getInt("version"));
 		            	}
-		            	 else
+		            	 else {
+		            	  // if the component does not exist in the database
 		                     ((IDBMetadata)element).getDBMetadata().getExportedVersion().setVersion(0);
+		            	 }
 	            	}
 	            }
 	            
@@ -3217,6 +3220,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the element, we increase its versions
 		((IDBMetadata)element).getDBMetadata().getExportedVersion().setVersion(((IDBMetadata)element).getDBMetadata().getExportedVersion().getVersion()+1);
+		
         if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getExportedVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
@@ -3281,6 +3285,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the relationship, we increase its versions
 		((IDBMetadata)relationship).getDBMetadata().getExportedVersion().setVersion(((IDBMetadata)relationship).getDBMetadata().getExportedVersion().getVersion()+1);
+		
         if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getExportedVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
@@ -3370,6 +3375,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the folder, we increase its versions
 		((IDBMetadata)folder).getDBMetadata().getExportedVersion().setVersion(((IDBMetadata)folder).getDBMetadata().getExportedVersion().getVersion()+1);
+		
         if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getExportedVersion().getVersion()+")");
 
 		insert(this.schema+"folders", foldersColumns
@@ -3420,6 +3426,7 @@ public class DBDatabaseConnection {
 		
 		// As we export the view, we increase its versions
 		((IDBMetadata)view).getDBMetadata().getExportedVersion().setVersion(((IDBMetadata)view).getDBMetadata().getExportedVersion().getVersion()+1);
+		
         if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getExportedVersion().getVersion()+")");
 
 		byte[] viewImage = null;
