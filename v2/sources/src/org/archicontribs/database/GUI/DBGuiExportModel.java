@@ -782,15 +782,19 @@ public class DBGuiExportModel extends DBGui {
 		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingRelationships.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingFolders.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
 
 		
@@ -873,15 +877,19 @@ public class DBGuiExportModel extends DBGui {
 		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingRelationships.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingFolders.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
 		
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
