@@ -1316,7 +1316,7 @@ public class DBDatabaseConnection {
 	    
 		try ( ResultSet result = select("SELECT version, created_by, created_on, name, note, purpose FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
 			while ( result.next() ) {
-				if (logger.isTraceEnabled() ) logger.trace("found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\"");
+				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\"");
 				Hashtable<String, Object> table = new Hashtable<String, Object>();
 				table.put("version", result.getString("version"));
 				table.put("created_by", result.getString("created_by"));
@@ -2577,7 +2577,10 @@ public class DBDatabaseConnection {
 		            }
 	            }
 
-	            logger.debug("The model already exists in the database (current version (in memory) = "+model.getCurrentVersion().getVersion()+", latest version (in database) = "+model.getLatestDatabaseVersion().getVersion()+")");
+	            logger.debug("The model already exists in the database:");
+	            logger.debug("   - current version = "+model.getCurrentVersion().getVersion());
+	            logger.debug("   - exported version = "+model.getExportedVersion().getVersion());
+	            logger.debug("   - latest database version = "+model.getLatestDatabaseVersion().getVersion());
 	            
 	            // we reset all the versions
 	        	Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
@@ -2659,7 +2662,7 @@ public class DBDatabaseConnection {
                         + " GROUP BY id, name"
                         + " ORDER BY name"
                         ,model.getId()
-                        ,model.getDatabaseVersion().getVersion()
+                        ,model.getExportedVersion().getVersion()
                         ,model.getId()
                         ,model.getId()
 	                    ) ) {
@@ -2735,7 +2738,7 @@ public class DBDatabaseConnection {
                             + " GROUP BY id, name"
                             + " ORDER BY name"
                             ,model.getId()
-                            ,model.getDatabaseVersion().getVersion()
+                            ,model.getExportedVersion().getVersion()
                             ,model.getId()
                             ,model.getId()
                             ) ) {
@@ -2811,7 +2814,7 @@ public class DBDatabaseConnection {
                           + " GROUP BY id, name"
                           + " ORDER BY name"
                           ,model.getId()
-                          ,model.getDatabaseVersion().getVersion()
+                          ,model.getExportedVersion().getVersion()
                           ,model.getId()
                           ,model.getId()
                           ) ) {
@@ -2887,7 +2890,7 @@ public class DBDatabaseConnection {
                           + " GROUP BY id, name"
                           + " ORDER BY name"
                           ,model.getId()
-                          ,model.getDatabaseVersion().getVersion()
+                          ,model.getExportedVersion().getVersion()
                           ,model.getId()
                           ,model.getId()
                           ) ) {
