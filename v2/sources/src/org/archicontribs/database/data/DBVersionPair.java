@@ -20,8 +20,8 @@ public class DBVersionPair {
     
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
-    public DBVersionPair(int version, String checksum, Timestamp timestamp, int latestVersion, String latestChecksum, Timestamp latestTimestamp) {
-        this.currentVersion= new DBVersion(version, checksum, timestamp);
+    public DBVersionPair(int currentVersion, String currentChecksum, Timestamp currentTimestamp, int latestVersion, String latestChecksum, Timestamp latestTimestamp) {
+        this.currentVersion= new DBVersion(currentVersion, currentChecksum, currentTimestamp);
         this.latestVersion = new DBVersion(latestVersion, latestChecksum, latestTimestamp);
     }
     
