@@ -47,6 +47,8 @@ import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.editor.model.commands.DeleteArchimateElementCommand;
+import com.archimatetool.editor.model.commands.DeleteArchimateRelationshipCommand;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
@@ -1451,6 +1453,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		boolean mustExport = false;
 		boolean mustImport = false;
+		boolean mustDelete = false;
 		boolean exported = false;
 		
 		EObject eObjectToExport = eObject;
@@ -1462,8 +1465,14 @@ public class DBGuiExportModel extends DBGui {
 		    // but in SQL databases, we need to calculate the component version and check if there is no conflict in the database
 
 		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
-                // if the database version is zero then the component is not in the database, therefore, it is new in the model and we must export it
-                mustExport = true;
+                // if the component is not present in the latest version of the model in thedatabase
+		        if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
+		            // but was present in the current database model, the the element has been deleted in the database
+		            mustDelete = true;
+		        } else {
+		            // else, is is a nex component that needs to be exported
+	                mustExport = true;
+		        }
             } else {
                 if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getExportedVersion().getChecksum()) ) {
                     // if the checksum of the latest version in the database equals the latest checksum
@@ -1549,12 +1558,32 @@ public class DBGuiExportModel extends DBGui {
                 incrementText(txtUpdatedInDatabase);
             } else
             	throw new Exception ("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
+            exported = true;
 		}
 		
-		
-		// even if the eObject is not exported, it has to be referenced as being part of the model
-		if ( this.selectedDatabase.getExportWholeModel() )
-			this.connection.assignEObjectToModel(eObjectToExport);
+		if ( mustDelete ) {
+		    // Please be aware that deleting an element or a relationship does not remove the corresponding graphical objects or connections
+		    if ( eObjectToExport instanceof IArchimateElement ) {
+		        if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		        DeleteArchimateElementCommand deleteCommand = new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport);
+		        deleteCommand.execute();
+		        // TODO: group the delete commands in one compound command to allow the reverse using one single ctrl-Z
+		        TODO: remove all view object related to element
+		    } else if ( eObjectToExport instanceof IArchimateRelationship ) {
+                if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+                DeleteArchimateRelationshipCommand deleteCommand = new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport);
+                deleteCommand.execute();
+                // TODO: group the delete commands in one compound command to allow the reverse using one single ctrl-Z
+                TODO : remove all view connection related to relationship
+            }
+		    // TODO : manage complete views
+		    // TODO : manage folders (managing fact that elements, relationships and views might have simply be moved from one folder to another and not removed from the model 
+            exported = true;
+		} else {
+		    // even if the eObject is not exported, it has to be referenced as being part of the model
+		    if ( this.selectedDatabase.getExportWholeModel() )
+		        this.connection.assignEObjectToModel(eObjectToExport);
+		}
 		
 		increaseProgressBar();
 		return exported;
@@ -1830,12 +1859,6 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		this.btnClose.setText("close");
-		try {
-			this.connection.close();
-		} catch (SQLException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
 	}
 
 	Button btnDoNotExport;
