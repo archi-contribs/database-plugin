@@ -23,11 +23,14 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBDeleteDiagramConnectionCommand;
+import org.archicontribs.database.model.DBDeleteDiagramObjectCommand;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
+import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -53,6 +56,8 @@ import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelArchimateConnection;
+import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -74,6 +79,8 @@ public class DBGuiExportModel extends DBGui {
 	Group grpModelVersions;
 	
 	HashMap<String, DBVersionPair> newDatabaseComponents;
+	
+	private CompoundCommand delayedCommands;
 	
 	private boolean forceExport; 
 	
@@ -1212,6 +1219,9 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
+		// we initialize the deleteCommand
+		this.delayedCommands = new CompoundCommand();
+		
 	    // we export the components without checking for conflicts in 3 cases:
         //    - the model is not in the database
         //    - the current model is the latest model in the database
@@ -1248,6 +1258,7 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
 			}
 			
+			//TODO : put the imported components in a compound Command to allow rollback
 			for (String id : this.connection.getElementsNotInModel().keySet() ) {
 			    DBVersionPair versionToImport = this.connection.getElementsNotInModel().get(id);
 		        if ( versionToImport.getCurrentVersion() == 0 ) {
@@ -1336,6 +1347,11 @@ public class DBGuiExportModel extends DBGui {
 						return;
 					}
 				}
+				
+				// we remove the objects that must be removed
+				CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
+				stack.execute(this.delayedCommands);
+				
 			    this.connection.commit();
 			    this.connection.setAutoCommit(true);
 				setActiveAction(STATUS.Ok);
@@ -1557,24 +1573,21 @@ public class DBGuiExportModel extends DBGui {
                 this.connection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
             } else
-            	throw new Exception ("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
+            	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
             exported = true;
 		}
 		
 		if ( mustDelete ) {
-		    // Please be aware that deleting an element or a relationship does not remove the corresponding graphical objects or connections
 		    if ( eObjectToExport instanceof IArchimateElement ) {
 		        if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-		        DeleteArchimateElementCommand deleteCommand = new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport);
-		        deleteCommand.execute();
-		        // TODO: group the delete commands in one compound command to allow the reverse using one single ctrl-Z
-		        TODO: remove all view object related to element
+		        for ( IDiagramModelArchimateObject obj : ((IArchimateElement)eObjectToExport).getReferencingDiagramObjects() )
+		            this.delayedCommands.add(new DBDeleteDiagramObjectCommand(obj));
+		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
 		    } else if ( eObjectToExport instanceof IArchimateRelationship ) {
                 if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-                DeleteArchimateRelationshipCommand deleteCommand = new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport);
-                deleteCommand.execute();
-                // TODO: group the delete commands in one compound command to allow the reverse using one single ctrl-Z
-                TODO : remove all view connection related to relationship
+                for ( IDiagramModelArchimateConnection obj : ((IArchimateRelationship)eObjectToExport).getReferencingDiagramConnections() )
+                    this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(obj));
+                this.delayedCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
             }
 		    // TODO : manage complete views
 		    // TODO : manage folders (managing fact that elements, relationships and views might have simply be moved from one folder to another and not removed from the model 
