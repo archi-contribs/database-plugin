@@ -26,12 +26,13 @@ public class DBDatabaseEntry {
 	private int viewsImagesBorderWidth = 10;
 	private int viewsImagesScaleFactor = 100;
 	private boolean neo4jNativeMode = false;
+	private boolean neo4jEmptyDB = false;
 	private boolean collaborativeMode = false;
 
 	public DBDatabaseEntry() {
 	}
 
-	public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean collaborativeMode) throws Exception {
+	public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean neo4jEmptyDB, boolean collaborativeMode) throws Exception {
 		setName(name);
 		setDriver(driver);
 		setServer(server);
@@ -45,6 +46,8 @@ public class DBDatabaseEntry {
 		setExportViewImages(exportViewImages);
 
 		setNeo4jNativeMode(neo4jNativeMode);
+		setNeo4jEmptyDB(neo4jEmptyDB);
+		
 		setCollaborativeMode(collaborativeMode);
 	}
 
@@ -172,13 +175,20 @@ public class DBDatabaseEntry {
 		this.viewsImagesScaleFactor = viewsImagesScaleFactor;
 	}
 	
-
 	public boolean getNeo4jNativeMode()  {
 		return this.neo4jNativeMode;
 	}
 
 	public void setNeo4jNativeMode(boolean neo4jNativeMode) {
 		this.neo4jNativeMode = neo4jNativeMode;
+	}
+
+	public boolean getNeo4jEmptyDB()  {
+		return this.neo4jEmptyDB;
+	}
+
+	public void setNeo4jEmptyDB(boolean neo4jEmptyDB) {
+		this.neo4jEmptyDB = neo4jEmptyDB;
 	}
 	
 	public boolean getCollaborativeMode()  {
@@ -188,7 +198,7 @@ public class DBDatabaseEntry {
 	public void setCollaborativeMode(boolean collaborativeMode) {
 		this.collaborativeMode = collaborativeMode;
 	}
-
+	
 	public String getLanguage() {
 		if ( DBPlugin.areEqual(this.driver, "neo4j") )
 			return "CQL";
@@ -236,6 +246,7 @@ public class DBDatabaseEntry {
 					databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
 					
 					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
+					databaseEntry.setNeo4jEmptyDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
 					
 					databaseEntry.setCollaborativeMode(store.getBoolean(preferenceName+"_collaborative-mode_"+String.valueOf(line)));
 
@@ -270,6 +281,7 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_views-images-border-width_"+String.valueOf(line), databaseEntry.getViewsImagesBorderWidth());
 			store.setValue(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), databaseEntry.getViewsImagesScaleFactor());
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.getNeo4jNativeMode());
+			store.setValue(preferenceName+"_neo4j-empty-database_"+String.valueOf(line), databaseEntry.getNeo4jEmptyDB());
 			store.setValue(preferenceName+"_collaborative-mode_"+String.valueOf(line), databaseEntry.getCollaborativeMode());
 		}
 	}

@@ -86,6 +86,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Composite compoNeo4jMode;
 	private Button btnNeo4jNativeMode;
 	private Button btnNeo4jExtendedMode;
+	private Label lblNeo4jEmpty;
+	private Composite compoNeo4jEmpty;
+	private Button btnNeo4jEmptyDB;
+	private Button btnNeo4jDoNotEmptyDB;
 	private Label lblExportMode;
 	private Composite compoExportMode;
 	private Button btnStandaloneMode;
@@ -538,6 +542,38 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jExtendedMode = new Button(this.compoNeo4jMode, SWT.RADIO);
 		this.btnNeo4jExtendedMode.setText("Extended");
 		this.btnNeo4jExtendedMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		
+		this.lblNeo4jEmpty = new Label(this.grpDatabases, SWT.NONE);
+		this.lblNeo4jEmpty.setText("Empty database:");
+		this.lblNeo4jEmpty.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblNeo4jMode, 4);
+		fd.left = new FormAttachment(this.lblNeo4jMode, 0 , SWT.LEFT);
+		this.lblNeo4jEmpty.setLayoutData(fd);
+		this.lblNeo4jEmpty.setVisible(false);
+		
+		this.compoNeo4jEmpty = new Composite(this.grpDatabases, SWT.NONE);
+		this.compoNeo4jEmpty.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.compoNeo4jEmpty.setVisible(false);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
+		this.compoNeo4jEmpty.setLayoutData(fd);
+		rl = new RowLayout();
+		rl.marginTop = 0;
+		rl.marginLeft = 0;
+		rl.spacing = 10;
+		this.compoNeo4jEmpty.setLayout(rl);
+
+		this.btnNeo4jEmptyDB = new Button(this.compoNeo4jEmpty, SWT.RADIO);
+		this.btnNeo4jEmptyDB.setText("Empty database before every export");
+		this.btnNeo4jEmptyDB.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+
+		this.btnNeo4jDoNotEmptyDB = new Button(this.compoNeo4jEmpty, SWT.RADIO);
+		this.btnNeo4jDoNotEmptyDB.setText("Leave database content");
+		this.btnNeo4jDoNotEmptyDB.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 
 		this.lblExportMode = new Label(this.grpDatabases, SWT.NONE);
 		this.lblExportMode.setText("Export mode:");
@@ -833,6 +869,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	protected void driverChanged() {
 		boolean isFile = this.comboDriver.getText().equalsIgnoreCase("sqlite");
 		boolean isNeo4j = this.comboDriver.getText().equalsIgnoreCase("neo4j");
+		boolean hasDatabaseName = !isFile && !isNeo4j;
 		boolean hasSchema = DBDatabase.get(this.comboDriver.getText()).hasSchema();
 		
 		this.lblFile.setVisible(isFile);
@@ -843,6 +880,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.lblNeo4jMode.setVisible(isNeo4j);
 		this.compoNeo4jMode.setVisible(isNeo4j);
+		this.lblNeo4jEmpty.setVisible(isNeo4j);
+		this.compoNeo4jEmpty.setVisible(isNeo4j);
 		
 		this.lblExportMode.setVisible(!isNeo4j);
 		this.compoExportMode.setVisible(!isNeo4j);
@@ -855,8 +894,20 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtServer.setVisible(!isFile);
 		this.lblPort.setVisible(!isFile);
 		this.txtPort.setVisible(!isFile);
-		this.lblDatabase.setVisible(!isFile);
-		this.txtDatabase.setVisible(!isFile);
+		this.lblDatabase.setVisible(hasDatabaseName);
+		this.txtDatabase.setVisible(hasDatabaseName);
+		if ( hasDatabaseName ) {
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(this.lblDatabase, 8);
+			fd.left = new FormAttachment(this.lblDatabase, 0 , SWT.LEFT);
+			this.lblUsername.setLayoutData(fd);
+		} else {
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(this.lblServer, 8);
+			fd.left = new FormAttachment(this.lblServer, 0 , SWT.LEFT);
+			this.lblUsername.setLayoutData(fd);
+		}
+		this.grpDatabases.layout();
 		this.lblSchema.setVisible(hasSchema);
 		this.txtSchema.setVisible(hasSchema);
 		this.lblUsername.setVisible(!isFile);
@@ -968,6 +1019,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
 		databaseEntry.setCollaborativeMode(this.btnCollaborativeMode.getSelection());
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
+		databaseEntry.setNeo4jEmptyDB(this.btnNeo4jEmptyDB.getSelection());
 
 		return databaseEntry;
 	}
@@ -990,6 +1042,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.btnComponentsType.setSelection(false);
 	        this.btnNeo4jNativeMode.setSelection(false);
 	        this.btnNeo4jExtendedMode.setSelection(false);
+	        this.btnNeo4jEmptyDB.setSelection(false);
+	        this.btnNeo4jDoNotEmptyDB.setSelection(false);
 	        this.btnCollaborativeMode.setSelection(false);
 	        this.btnStandaloneMode.setSelection(false);
 	        this.btnExportViewImages.setSelection(false);
@@ -1012,6 +1066,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.btnComponentsType.setSelection(!databaseEntry.getExportWholeModel());
             this.btnNeo4jNativeMode.setSelection(databaseEntry.getNeo4jNativeMode());
             this.btnNeo4jExtendedMode.setSelection(!databaseEntry.getNeo4jNativeMode());
+            this.btnNeo4jEmptyDB.setSelection(databaseEntry.getNeo4jEmptyDB());
+            this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.getNeo4jEmptyDB());
             this.btnCollaborativeMode.setSelection(databaseEntry.getCollaborativeMode());
             this.btnStandaloneMode.setSelection(!databaseEntry.getCollaborativeMode());
             this.btnExportViewImages.setSelection(databaseEntry.getExportViewsImages());
@@ -1047,6 +1103,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 		this.btnNeo4jNativeMode.setEnabled(editMode);
 		this.btnNeo4jExtendedMode.setEnabled(editMode);
+		this.btnNeo4jEmptyDB.setEnabled(editMode);
+		this.btnNeo4jDoNotEmptyDB.setEnabled(editMode);
 		
 	    this.btnCollaborativeMode.setEnabled(editMode);
 	    this.btnStandaloneMode.setEnabled(editMode);
@@ -1137,6 +1195,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.compoExportType.setVisible(false);System.out.println("***************** compoExportType.setvisible(false) ********************");
 			this.lblNeo4jMode.setVisible(false);
 			this.compoNeo4jMode.setVisible(false);
+			this.lblNeo4jEmpty.setVisible(false);
+			this.compoNeo4jEmpty.setVisible(false);
 			this.lblServer.setVisible(false);
 			this.txtServer.setVisible(false);
 			this.lblPort.setVisible(false);
