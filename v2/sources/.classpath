@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry exported="true" kind="lib" path="lib/postgresql-42.2.1.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/sqlite-jdbc-3.21.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/neo4j-jdbc-driver-3.1.0.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/json-simple-1.1.1.jar"/>
@@ -12,7 +13,6 @@
 	</classpathentry>
 	<classpathentry exported="true" kind="lib" path="lib/mysql-connector-java-5.1.40-bin.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/ojdbc7.jar"/>
-	<classpathentry exported="true" kind="lib" path="lib/postgresql-9.4.1212.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/sqljdbc42.jar"/>
 	<classpathentry exported="true" kind="lib" path="lib/log4j-1.2.17.jar"/>
 	<classpathentry kind="output" path="bin"/>
