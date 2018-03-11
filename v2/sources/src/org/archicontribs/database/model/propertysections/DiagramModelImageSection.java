@@ -5,10 +5,8 @@
  */
 package org.archicontribs.database.model.propertysections;
 
-import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
-import java.awt.image.DirectColorModel;
 import java.awt.image.IndexColorModel;
 import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
