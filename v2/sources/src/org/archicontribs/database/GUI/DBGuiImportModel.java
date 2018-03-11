@@ -137,7 +137,7 @@ public class DBGuiImportModel extends DBGui {
 
         // We connect to the database and call the databaseSelected() method
         this.includeNeo4j = false;
-        getDatabases();
+        getDatabases(false);
     }
 
     @Override

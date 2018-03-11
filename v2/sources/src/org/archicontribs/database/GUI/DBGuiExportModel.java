@@ -152,7 +152,7 @@ public class DBGuiExportModel extends DBGui {
         this.txtTotalImages.setText(String.valueOf(this.exportedModel.getAllImagePaths().size()));
         
         try {
-            getDatabases();
+            getDatabases(true);
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to get the databases.", err);
             return;
@@ -788,6 +788,7 @@ public class DBGuiExportModel extends DBGui {
 		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
 		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.lblDatabaseDeleted.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
@@ -806,11 +807,31 @@ public class DBGuiExportModel extends DBGui {
 		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 
+		// we hide the comparison between the model and the database in case of a neo4j database
+		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		this.lblModel.setVisible(!isNeo4j);
+		this.lblModelNew.setVisible(!isNeo4j);
+		this.lblModelDeleted.setVisible(!isNeo4j);
+		this.lblModelUpdated.setVisible(!isNeo4j);
+		this.txtNewElementsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
+		this.txtDeletedElementsInModel.setVisible(!isNeo4j);
+		this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtNewFoldersInModel.setVisible(!isNeo4j);
+		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
+		this.txtDeletedFoldersInModel.setVisible(!isNeo4j);
+		this.txtNewViewsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);
+		this.txtDeletedViewsInModel.setVisible(!isNeo4j);
+		this.txtNewImagesInModel.setVisible(!isNeo4j);
 		
 		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
 		try {
-			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+			if ( !isNeo4j ) {
 				DBGuiExportModel.this.tblModelVersions.removeAll();
 				
                	// if the first line, then we add the "latest version"
@@ -845,9 +866,9 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
+        this.btnCompareModelToDatabase.setVisible(!isNeo4j && !DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
         
-		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
+		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
             popup("Please wait while comparing model from the database...");
         	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
@@ -861,12 +882,6 @@ public class DBGuiExportModel extends DBGui {
             if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
             this.btnDoAction.setEnabled(true);
             this.btnCompareModelToDatabase.setEnabled(true);
-                
-            //if ( this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-            //        this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") )
-            //    this.btnDoAction.setText("Export");
-            //else
-            //    this.btnDoAction.setText("Sync");
         }
 	}
 	
@@ -903,6 +918,26 @@ public class DBGuiExportModel extends DBGui {
 		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
 		
+		// we hide the comparison between the model and the database in case of a neo4j database
+		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		this.lblModel.setVisible(!isNeo4j);
+		this.lblModelNew.setVisible(!isNeo4j);
+		this.lblModelDeleted.setVisible(!isNeo4j);
+		this.lblModelUpdated.setVisible(!isNeo4j);
+		this.txtNewElementsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
+		this.txtDeletedElementsInModel.setVisible(!isNeo4j);
+		this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtNewFoldersInModel.setVisible(!isNeo4j);
+		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
+		this.txtDeletedFoldersInModel.setVisible(!isNeo4j);
+		this.txtNewViewsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);
+		this.txtDeletedViewsInModel.setVisible(!isNeo4j);
+		this.txtNewImagesInModel.setVisible(!isNeo4j);
+		
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
 		this.txtNewRelationshipsInModel.setText("");	this.txtUpdatedRelationshipsInModel.setText("");	this.txtNewRelationshipsInDatabase.setText("");		this.txtUpdatedRelationshipsInDatabase.setText("");		this.txtConflictingRelationships.setText("");
 		this.txtNewFoldersInModel.setText("");			this.txtUpdatedFoldersInModel.setText("");			this.txtNewFoldersInDatabase.setText("");			this.txtUpdatedFoldersInDatabase.setText("");			this.txtConflictingFolders.setText("");
@@ -910,7 +945,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.btnDoAction.setText("Export");
 		
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
+        this.btnCompareModelToDatabase.setVisible(!isNeo4j && !DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
 	}
 	
 	/**
@@ -918,8 +953,12 @@ public class DBGuiExportModel extends DBGui {
 	 * @return true is the database is up to date, false if the model needs to be exported
 	 */
 	protected boolean compareModelToDatabase() {
+		// We do not verify the content of neo4j database, we just export the components
+		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
+			return true;
+		
         try {
-            this.connection.getVersionsFromDatabase(this.exportedModel);
+        	 this.connection.getVersionsFromDatabase(this.exportedModel);
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
@@ -1195,40 +1234,44 @@ public class DBGuiExportModel extends DBGui {
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 			return;
 		}
-
-		// we reset the counters as they will be updated by the doExportEObject method
-	    this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
-        this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
-        this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
-        this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
-        this.txtNewImagesInModel.setText("0");			 this.txtNewImagesInDatabase.setText("0");
-
 		
-		try {
-			// we need to recalculate the latest versions in the database in case someone updated the database since the last check
+		if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+			// we reset the counters as they will be updated by the doExportEObject method
+		    this.txtNewElementsInModel.setText("0");         this.txtUpdatedElementsInModel.setText("0");         this.txtNewElementsInDatabase.setText("0");          this.txtUpdatedElementsInDatabase.setText("0");          this.txtConflictingElements.setText("0");
+	        this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
+	        this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
+	        this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
+	        this.txtNewImagesInModel.setText("0");			 this.txtNewImagesInDatabase.setText("0");
+	
 			
-			// TODO : Manage a kind of transaction id in the database because it may not be necessary to check another time
-			popup("Please wait while comparing model from the database...");
-			this.connection.getVersionsFromDatabase(this.exportedModel);
-			closePopup();
-		} catch (SQLException err ) {
-			closePopup();
-			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
-			setActiveAction(STATUS.Error);
-			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-			return;
+			try {
+				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
+				
+				// TODO : Manage a kind of transaction id in the database because it may not be necessary to check another time
+				popup("Please wait while comparing model from the database...");
+				this.connection.getVersionsFromDatabase(this.exportedModel);
+				closePopup();
+			} catch (SQLException err ) {
+				closePopup();
+				popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+				setActiveAction(STATUS.Error);
+				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+				return;
+			}
 		}
 		
 		// we initialize the deleteCommand
 		this.delayedCommands = new CompoundCommand();
 		
-	    // we export the components without checking for conflicts in 3 cases:
+	    // we export the components without checking for conflicts in 4 cases:
         //    - the model is not in the database
         //    - the current model is the latest model in the database
         //    - we are in standalone mode
+		//	  - we export to a Neo4j database
         this.forceExport = this.exportedModel.getCurrentVersion().getVersion() == 0
                 || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getCurrentVersion().getVersion()
-                || !this.selectedDatabase.getCollaborativeMode();
+                || !this.selectedDatabase.getCollaborativeMode()
+                || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 		
 		// we export the components
 		try {

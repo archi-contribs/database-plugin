@@ -69,7 +69,7 @@ public class DBGuiImportImage extends DBGui {
         setActiveAction(ACTION.One);
         
         // if the user select the "Import" button --> import the image, set the importedImagePath variable and close the window
-        setBtnAction("Export", new SelectionListener() {
+        setBtnAction("Import image", new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 //importImage();
@@ -80,12 +80,23 @@ public class DBGuiImportImage extends DBGui {
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
         });
         
-        // We rename the "close" button to "Import"
-        this.btnClose.setText("Import");
+        // We rename the "close" button to "Cancel"
+        this.btnClose.setText("Cancel");
         
         // We activate the Eclipse Help framework
         setHelpHref("importImage.html");
     }
+    
+	@Override
+	public void run() {
+	    super.run();
+	    try {
+	        getDatabases(false);
+	    } catch (Exception err) {
+	        popup(Level.ERROR, "Failed to get the databases.", err);
+	        return;
+	    }
+	}
     
     /**
      * Creates a group displaying the images from the database

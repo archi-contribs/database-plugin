@@ -77,7 +77,7 @@ public class DBGuiComponentHistory extends DBGui {
 		createAction(ACTION.One, "Component history");
 		setActiveAction(ACTION.One);
 
-		getDatabases();
+		getDatabases(false);
 	}
 	
 	/**

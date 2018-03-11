@@ -195,7 +195,7 @@ public class DBGuiImportComponent extends DBGui {
 		// We activate the Eclipse Help framework
 		setHelpHref("importComponent.html");
 
-		getDatabases();
+		getDatabases(false);
 	}
 
 	/**
