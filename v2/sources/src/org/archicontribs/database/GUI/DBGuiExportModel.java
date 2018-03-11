@@ -1294,6 +1294,10 @@ public class DBGuiExportModel extends DBGui {
 				
 				//TODO: importing missing folder
 			}
+			
+			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.getNeo4jEmptyDB() ) {
+				this.connection.neo4jemptyDB();
+			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();

@@ -3018,7 +3018,14 @@ public class DBDatabaseConnection {
     }
     
 	/* **** Export methods  ************************************************************** */
-
+	/**
+	 * Empty a Neo4J database
+	 */
+	public void neo4jemptyDB() throws Exception {
+		request("MATCH (n) DETACH DELETE n");
+	}
+    
+    
 	/**
 	 * Exports the model metadata into the database
 	 */
