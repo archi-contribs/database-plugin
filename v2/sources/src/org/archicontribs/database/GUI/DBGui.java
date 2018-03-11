@@ -513,8 +513,8 @@ public class DBGui {
 	 * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
 	 * @throws Exception 
 	 */
-	protected void getDatabases() throws Exception {
-		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(this.includeNeo4j);
+	protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
+		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(mustIncludeNeo4j);
 		if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
 		} else {
@@ -1039,7 +1039,7 @@ public class DBGui {
 	}
 	
 	public boolean isDisposed() {
-	    return this.dialog.isDisposed();
+	    return this.dialog==null ? true : this.dialog.isDisposed();
 	}
 	
 	protected void fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion) {
