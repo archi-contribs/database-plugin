@@ -189,13 +189,13 @@ import org.json.simple.parser.JSONParser;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 28/01/2018				Solve plugin initialization failure
+ * v2.1 : 11/03/2018				Solve plugin initialization failure
  * 									Import individual component:
  * 										Added documentation column
  * 										Added popup message during the import
  * 									Export model:
- *										Create two export modes : standalone and collaborative modes
- *                                      Mix export and import in collaborative mode
+ *										Create two export modes for relational databases: standalone and collaborative modes
+ *										Create two export modes for Neo4j databases : native and extended
  *                                      Rewrite version management
  *                                      Remove the name from view objects and connections checksums --> renaming a an element or a relationships does not change their checksum anymore
  *                                      Add an option to compare the model from the database before exporting it
