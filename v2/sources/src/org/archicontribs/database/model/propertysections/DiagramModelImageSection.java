@@ -5,7 +5,19 @@
  */
 package org.archicontribs.database.model.propertysections;
 
+import java.awt.Graphics2D;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.DirectColorModel;
+import java.awt.image.IndexColorModel;
+import java.awt.image.WritableRaster;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+
+import javax.imageio.ImageIO;
+
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiImportImage;
 import org.archicontribs.database.model.ArchimateModel;
@@ -16,13 +28,18 @@ import org.eclipse.jface.action.MenuManager;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.PaletteData;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.PlatformUI;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
 import com.archimatetool.editor.propertysections.AbstractArchimatePropertySection;
 import com.archimatetool.editor.propertysections.ITabbedLayoutConstants;
@@ -38,6 +55,8 @@ import com.archimatetool.model.IDiagramModelObject;
  * @author Herve Jouin
  */
 public class DiagramModelImageSection extends AbstractArchimatePropertySection {
+	private static final DBLogger logger = new DBLogger(DiagramModelImageSection.class);
+	
 	protected static final String HELP_ID = "com.archimatetool.help.elementPropertySection"; //$NON-NLS-1$
 	private IDiagramModelImage fDiagramModelImage;
 	Button btnImportImage;
@@ -113,25 +132,75 @@ public class DiagramModelImageSection extends AbstractArchimatePropertySection {
         
         DBGuiImportImage guiImportImage;
         try {
-            guiImportImage = new DBGuiImportImage((ArchimateModel)getEObject().getDiagramModel(), "Import image");
+            guiImportImage = new DBGuiImportImage((ArchimateModel)getEObject().getDiagramModel().getArchimateModel(), "Import image");
             guiImportImage.run();
             while ( !guiImportImage.isDisposed() )
                 DBGui.refreshDisplay();
             
-            if ( guiImportImage.getImagePath() != null )
-                setImage(guiImportImage.getImagePath());
-
-            guiImportImage.close();
+            if ( guiImportImage.getImage() != null )
+                setImage(guiImportImage.getImage(), guiImportImage.getImagePath());
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot import image", e);
         }
     }
     
-    protected void setImage(String path) {
+    protected void setImage(Image image, String path) {
         this.fIsExecutingCommand = true;
-        getCommandStack().execute(new EObjectFeatureCommand("Set image", getEObject(), IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, path));
+        try {
+        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        	ImageIO.write(getBufferedImage(image), "PNG", baos);
+            ((IArchiveManager)getEObject().getAdapter(IArchiveManager.class)).addByteContentEntry(path, baos.toByteArray());
+	        getCommandStack().execute(new EObjectFeatureCommand("Set image", getEObject(), IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, path));
+	        logger.debug("Image path set to " + path);
+		} catch (IOException e) {
+			logger.error("Failed to set image", e);
+		}
         this.fIsExecutingCommand = false;
     }
+
+	static BufferedImage getBufferedImage(Image image) {
+		// code from https://m4tx.pl/en/2013/01/java-swt-to-awt-and-vice-versa-image-conversion-with-transparency-support/
+        ColorModel colorModel = null;
+        ImageData data = image.getImageData();
+        PaletteData palette = data.palette;
+        BufferedImage bufferedImage = null;
+        if (palette.isDirect) {
+            bufferedImage = new BufferedImage(data.width, data.height, BufferedImage.TYPE_INT_ARGB);
+            for (int y = 0; y < data.height; y++) {
+                for (int x = 0; x < data.width; x++) {
+                    int pixel = data.getPixel(x, y);
+                    RGB rgb = palette.getRGB(pixel);
+                    bufferedImage.setRGB(x, y, data.getAlpha(x, y) << 24 | rgb.red << 16 | rgb.green << 8 | rgb.blue);
+                }
+            }
+        } else {
+            RGB[] rgbs = palette.getRGBs();
+            byte[] red = new byte[rgbs.length];
+            byte[] green = new byte[rgbs.length];
+            byte[] blue = new byte[rgbs.length];
+            for (int i = 0; i < rgbs.length; i++) {
+                RGB rgb = rgbs[i];
+                red[i] = (byte) rgb.red;
+                green[i] = (byte) rgb.green;
+                blue[i] = (byte) rgb.blue;
+            }
+            if (data.transparentPixel != -1)
+                colorModel = new IndexColorModel(data.depth, rgbs.length, red, green, blue, data.transparentPixel);
+            else
+                colorModel = new IndexColorModel(data.depth, rgbs.length, red, green, blue);
+            bufferedImage = new BufferedImage(colorModel, colorModel.createCompatibleWritableRaster(data.width, data.height), false, null);
+            WritableRaster raster = bufferedImage.getRaster();
+            int[] pixelArray = new int[1];
+            for (int y = 0; y < data.height; y++) {
+                for (int x = 0; x < data.width; x++) {
+                    int pixel = data.getPixel(x, y);
+                    pixelArray[0] = pixel;
+                    raster.setPixel(x, y, pixelArray);
+                }
+            }
+        }
+        return bufferedImage;
+	}
     
     protected void clearImage() {
         if(isAlive()) {

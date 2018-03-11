@@ -19,6 +19,7 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -46,6 +47,7 @@ public class DBGuiImportImage extends DBGui {
     private int MAX_GALLERY_ITEM_SIZE = 256;
     
     String imagePath = null;
+    Image image = null;
     
     private Group grpImages;
     Gallery gallery;
@@ -70,14 +72,18 @@ public class DBGuiImportImage extends DBGui {
         
         // if the user select the "Import" button --> import the image, set the importedImagePath variable and close the window
         setBtnAction("Import image", new SelectionListener() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                //importImage();
-                //DBGuiImportImage.this.importedImagePath = "xxx";
-                close();
+            @Override public void widgetSelected(SelectionEvent e) {
+            	GalleryItem[] selectedItems = DBGuiImportImage.this.gallery.getSelection();
+            	if ( selectedItems != null && selectedItems.length != 0 ) {
+            		Image selectedImage = selectedItems[0].getImage();
+	                if ( selectedImage != null ) {
+	                	DBGuiImportImage.this.imagePath = (String)selectedItems[0].getData("imagePath");
+	                	DBGuiImportImage.this.image = new Image(display, selectedImage, SWT.IMAGE_COPY);
+	                    close();
+	                }
+            	}
             }
-            @Override
-            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+            @Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
         });
         
         // We rename the "close" button to "Cancel"
@@ -114,13 +120,14 @@ public class DBGuiImportImage extends DBGui {
         this.grpImages.setLayoutData(fd);
         this.grpImages.setLayout(new GridLayout(2, false));
         
-        Composite galleryComposite = new Composite(this.grpImages, SWT.NULL);
+        Composite galleryComposite = new Composite(this.grpImages, SWT.FILL);
+        galleryComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
         layout.marginHeight = 0;
         galleryComposite.setLayout(layout);
         
-        this.gallery = new Gallery(galleryComposite, SWT.V_SCROLL | SWT.BORDER);
+        this.gallery = new Gallery(galleryComposite, SWT.V_SCROLL | SWT.BORDER | SWT.FILL);
         this.gallery.setLayoutData(new GridData(GridData.FILL_BOTH));
         
         // Renderers
@@ -152,10 +159,8 @@ public class DBGuiImportImage extends DBGui {
         this.scale.setIncrement(8);
         this.scale.setPageIncrement(32);
         this.scale.setSelection(this.DEFAULT_GALLERY_ITEM_SIZE);
-        this.scale.setEnabled(false);
         this.scale.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
+            @Override public void widgetSelected(SelectionEvent e) {
                 int inc = DBGuiImportImage.this.scale.getSelection();
                 itemRenderer.setDropShadows(inc >= 96);
                 groupRenderer.setItemSize(inc, inc);
@@ -164,21 +169,18 @@ public class DBGuiImportImage extends DBGui {
 
         // Gallery selections
         this.gallery.addSelectionListener(new SelectionAdapter() {
-            @Override
-            public void widgetSelected(SelectionEvent e) {
-                if(e.item instanceof GalleryItem)
-                    DBGuiImportImage.this.imagePath = (String)((GalleryItem)e.item).getData("imagePath");
-                else
-                    DBGuiImportImage.this.imagePath = null;
+            @Override public void widgetSelected(SelectionEvent e) {
+                DBGuiImportImage.this.btnDoAction.setEnabled(e.item instanceof GalleryItem);
              }
         });
         
         // Double-clicks
         this.gallery.addListener(SWT.MouseDoubleClick, new Listener() {
-            @Override
-            public void handleEvent(Event event) {
-                GalleryItem item = DBGuiImportImage.this.gallery.getItem(new Point(event.x, event.y));
-                if(item != null) {
+            @Override public void handleEvent(Event event) {
+                Image selectedImage = DBGuiImportImage.this.gallery.getItem(new Point(event.x, event.y)).getImage();
+                if ( selectedImage != null ) {
+                	DBGuiImportImage.this.imagePath = (String)DBGuiImportImage.this.gallery.getItem(new Point(event.x, event.y)).getData("imagePath");
+                	DBGuiImportImage.this.image = new Image(display, selectedImage, SWT.IMAGE_COPY);
                     close();
                 }
             }
@@ -231,5 +233,9 @@ public class DBGuiImportImage extends DBGui {
     
     public String getImagePath() {
         return this.imagePath;
+    }
+    
+    public Image getImage() {
+        return this.image;
     }
 }

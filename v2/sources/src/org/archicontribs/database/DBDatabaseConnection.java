@@ -2013,7 +2013,7 @@ public class DBDatabaseConnection {
     public Image getImageFromDatabase(String path) throws Exception {
         try ( ResultSet result = select("SELECT image FROM "+this.schema+"images WHERE path = ?", path) ) {
             if ( result.next() ) {
-                byte[] imageContent = this.currentResultSet.getBytes("image");
+                byte[] imageContent = result.getBytes("image");
                 if ( logger.isDebugEnabled() ) logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
                 return new Image(Display.getDefault(), new ImageData(new ByteArrayInputStream(imageContent)));
             }
