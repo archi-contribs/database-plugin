@@ -118,6 +118,13 @@
                id="databaseImageSection"
                tab="main.tab">
          </propertySection>
+         <propertySection
+               afterSection="iconSection"
+               class="org.archicontribs.database.model.propertysections.CanvasModelBlockSection"
+               filter="org.archicontribs.database.model.propertysections.CanvasModelBlockSection$Filter"
+               id="databaseImageSection"
+               tab="image.tab">
+         </propertySection>
       </propertySections>
    </extension>
 </plugin>
