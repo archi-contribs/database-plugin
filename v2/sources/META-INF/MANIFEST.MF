@@ -13,8 +13,8 @@ Bundle-ClassPath: .,
  lib/postgresql-9.4.1212.jar,
  lib/sqljdbc42.jar,
  lib/json-simple-1.1.1.jar,
- lib/sqlite-jdbc-3.18.0.jar,
- lib/neo4j-jdbc-driver-3.1.0.jar
+ lib/neo4j-jdbc-driver-3.1.0.jar,
+ lib/sqlite-jdbc-3.21.0.jar
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.archicontribs.database.DBPlugin
 Require-Bundle: org.eclipse.core.runtime,
