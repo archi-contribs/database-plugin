@@ -7,43 +7,19 @@
 package org.archicontribs.database;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.net.Authenticator;
-import java.net.PasswordAuthentication;
-import java.net.URL;
-import java.net.URLConnection;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.text.Collator;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.Map;
-import java.util.Map.Entry;
-import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
-import javax.net.ssl.HttpsURLConnection;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPreferenceStore;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.ProgressBar;
-import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 
 
 /**
@@ -194,16 +170,21 @@ import org.json.simple.parser.JSONParser;
  * 										Added documentation column
  * 										Added popup message during the import
  * 									Export model:
- *										Create two export modes for relational databases: standalone and collaborative modes
- *										Create two export modes for Neo4j databases : native and extended
+ *										For relational databases :
+ *											Create two export modes: standalone and collaborative modes
+ *										For Neo4J databases:
+ *											Create two export modes: native and extended
+ *											Add an option to empty the database before the export
+ *											TODO : Add an option to specialize relationships
  *                                      Rewrite version management
  *                                      Remove the name from view objects and connections checksums --> renaming a an element or a relationships does not change their checksum anymore
  *                                      Add an option to compare the model from the database before exporting it
  *									Get history from database:
  *										allows to get history for diagrams, canvas and sketches
- *									Add the ability to import an image from the database
+ *									Add the ability to import an image from the database on the Image and Block objects in Canvas
  *                                  Add procedures that can be called by the script plugin
  *                                  Reduce memory leak
+ *                                  Fix progress bar during download new version of the plugin from GitHub
  * 
  * Known bugs:
  * -----------
@@ -321,7 +302,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				if ( logger.isDebugEnabled() ) logger.debug("found file \""+pluginsFolder+File.separator+"databasePlugin.new\"");
 				
 				try {
-					String installedPluginsFilename = Files.readAllBytes(Paths.get(pluginsFolder+File.separator+"databasePlugin.new")).toString();
+					String installedPluginsFilename = new String(Files.readAllBytes(Paths.get(pluginsFolder+File.separator+"databasePlugin.new")));
 					
 					if ( areEqual(pluginsFilename, installedPluginsFilename) ) 
 						DBGui.popup(Level.INFO, "The database plugin has been correctly updated to version "+pluginVersion);
@@ -374,230 +355,13 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static boolean isEmpty(String str) {
 		return (str==null) || str.isEmpty();
 	}
-
-	static ProgressBar updateProgressbar = null;
-	static int updateDownloaded = 0;
+	
 	public static void checkForUpdate(boolean verbose) {
-		new Thread("checkForUpdate") {
-			@Override
-			public void run() {
-				if ( verbose )
-					DBGui.popup("Please wait while checking for new database plugin ...");
-				else
-					logger.debug("Checking for a new plugin version on GitHub");
-				
-				// We connect to GitHub and get the latest plugin file version
-				// Do not forget the "-Djdk.http.auth.tunneling.disabledSchemes=" in the ini file if you connect through a proxy
-				String PLUGIN_API_URL = "https://api.github.com/repos/archi-contribs/database-plugin/contents/v2";
-				String RELEASENOTE_URL = "https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md";
-
-				Map<String, String> versions = new TreeMap<String, String>(Collections.reverseOrder());
-
-				try {
-					JSONParser parser = new JSONParser();
-					Authenticator.setDefault(new Authenticator() {
-						@Override
-						protected PasswordAuthentication getPasswordAuthentication() {
-						    logger.debug("requestor type = "+getRequestorType());
-							if (getRequestorType() == RequestorType.PROXY) {
-								String prot = getRequestingProtocol().toLowerCase();
-								String host = System.getProperty(prot + ".proxyHost", "");
-								String port = System.getProperty(prot + ".proxyPort", "80");
-								String user = System.getProperty(prot + ".proxyUser", "");
-								String pass = System.getProperty(prot + ".proxyPassword", "");
-								
-								if ( logger.isDebugEnabled() ) {
-								    logger.debug("proxy request from "+getRequestingHost()+":"+getRequestingPort());
-								    logger.debug("proxy configuration:");
-								    logger.debug("   prot : "+prot);
-								    logger.debug("   host : "+host);
-								    logger.debug("   port : "+port);
-								    logger.debug("   user : "+user);
-								    logger.debug("   pass : xxxxx");
-								}
-
-								// we check if the request comes from the proxy, else we do not send the password (for security reason)
-								// TODO: check IP address in addition of the FQDN
-								if ( getRequestingHost().equalsIgnoreCase(host) && (Integer.parseInt(port) == getRequestingPort()) ) {
-									// Seems to be OK.
-									logger.debug("Setting PasswordAuthenticator");
-									return new PasswordAuthentication(user, pass.toCharArray());
-								}
-								logger.debug("Not setting PasswordAuthenticator as the request does not come from the proxy (host + port)");
-							}
-							return null;
-						}  
-					});
-					
-					
-                    if ( logger.isDebugEnabled() ) logger.debug("connecting to "+PLUGIN_API_URL);
-                    HttpsURLConnection conn = (HttpsURLConnection)new URL(PLUGIN_API_URL).openConnection();
-
-					if ( logger.isDebugEnabled() ) logger.debug("getting file list");
-					JSONArray result = (JSONArray)parser.parse(new InputStreamReader(conn.getInputStream()));
-
-					if ( result == null ) {
-						if ( verbose ) {
-							DBGui.closePopup();
-							DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nParsing error.");
-						} else
-							logger.error("Failed to check for new database plugin version.\n\nParsing error.");
-						return;
-					}
-
-					if ( logger.isDebugEnabled() ) logger.debug("searching for plugins jar files");
-					Pattern p = Pattern.compile(pluginsPackage+"_v(.*).jar") ;
-
-					@SuppressWarnings("unchecked")
-					Iterator<JSONObject> iterator = result.iterator();
-					while (iterator.hasNext()) {
-						JSONObject file = iterator.next();
-						Matcher m = p.matcher((String)file.get("name")) ;
-						if ( m.matches() ) {
-							if ( logger.isDebugEnabled() ) logger.debug("found version "+m.group(1)+" ("+(String)file.get("download_url")+")");
-							versions.put(m.group(1), (String)file.get("download_url"));
-						}
-					}
-
-					if ( verbose ) DBGui.closePopup();
-
-					if ( versions.isEmpty() ) {
-						if ( verbose )
-							DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nDid not find any "+pluginsPackage+" JAR file.");
-						else
-							logger.error("Failed to check for new database plugin version.\n\nDid not find any "+pluginsPackage+" JAR file.");
-						return;
-					}
-				} catch (Exception e) {
-					if ( verbose ) {
-						DBGui.closePopup();
-						DBGui.popup(Level.ERROR, "Failed to check for new version on GitHub.", e);
-					} else {
-						logger.error("Failed to check for new version on GitHub.", e);
-					}
-					return;
-				}
-
-				String newPluginFilename = null;
-				String tmpFilename = null;
-				try {
-					// treemap is sorted in descending order, so first entry should have the "bigger" key value, i.e. the latest version
-					Entry<String, String> entry = versions.entrySet().iterator().next();
-
-					if ( pluginVersion.compareTo(entry.getKey()) >= 0 ) {
-						if ( verbose )
-							DBGui.popup(Level.INFO, "You already have got the latest version : "+pluginVersion);
-						else
-							logger.info("You already have got the latest version : "+pluginVersion);
-						return;
-					}
-					
-					if ( !pluginsFilename.endsWith(".jar") ) {
-						if ( verbose )
-							DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
-						else
-							logger.error("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
-						return;
-					}
-
-					boolean ask = true;
-					while ( ask ) {
-					    switch ( DBGui.question("A new version of the database plugin is available:\n     actual version: "+pluginVersion+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}) ) {
-					        case 0 : ask = false ; break;  // Yes
-					        case 1 : return ;              // No
-					        case 2 : ask = true ;          // release note
-        					         Program.launch(RELEASENOTE_URL);
-        					         break;
-							default:
-								break;
-					    }
-					}
-
-					Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar = DBGui.progressbarPopup("Downloading new version of database plugin ..."); }});
-
-					URLConnection conn = new URL(entry.getValue()).openConnection();
-					String FileType = conn.getContentType();
-					int fileLength = conn.getContentLength();
-
-					newPluginFilename = pluginsFolder+File.separator+entry.getValue().substring(entry.getValue().lastIndexOf('/')+1, entry.getValue().length());
-					tmpFilename = newPluginFilename+".tmp";
-
-					if ( logger.isTraceEnabled() ) {
-						logger.trace("   File URL : " + entry.getValue());
-						logger.trace("   File type : " + FileType);
-						logger.trace("   File length : "+fileLength);
-						logger.trace("   Tmp download file path : " + tmpFilename);
-						logger.trace("   New Plugin file path : " + newPluginFilename);
-					}
-
-					if (fileLength == -1)
-						throw new IOException("Failed to get file size.");
-					
-					Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setMaximum(fileLength); }});
-
-					try ( InputStream in = conn.getInputStream()) {
-						try (FileOutputStream fos = new FileOutputStream(new File(tmpFilename)) ) {                
-							byte[] buff = new byte[1024];
-							int n;
-							updateDownloaded = 0;
-		
-							if ( logger.isDebugEnabled() ) logger.debug("downloading file ...");
-							while ((n=in.read(buff)) !=-1) {
-								fos.write(buff, 0, n);
-								updateDownloaded +=n;
-								Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.setSelection(updateDownloaded); }});
-								//if ( logger.isTraceEnabled() ) logger.trace(updateDownloaded+"/"+fileLength);
-							}
-						}
-					}
-
-					if ( logger.isDebugEnabled() ) logger.debug("download finished");
-
-				} catch (Exception e) {
-					logger.info("here");
-					if( updateProgressbar != null ) Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.getShell().dispose(); updateProgressbar = null; }});
-					try {
-						if ( tmpFilename != null ) Files.deleteIfExists(FileSystems.getDefault().getPath(tmpFilename));
-					} catch (IOException e1) {
-						logger.error("cannot delete file \""+tmpFilename+"\"", e1);
-					}
-					if ( verbose )
-						DBGui.popup(Level.ERROR, "Failed to download new version of database plugin.", e);
-					else
-						logger.error("Failed to download new version of database plugin.",e);
-					return;
-				}
-
-				if( updateProgressbar != null ) Display.getDefault().syncExec(new Runnable() { @Override public void run() { updateProgressbar.getShell().dispose(); updateProgressbar = null;}});
-
-				//install new plugin
-
-				// we rename the tmpFilename to its definitive filename
-				if ( logger.isDebugEnabled() ) logger.debug("renaming \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
-				try {
-					Files.move(FileSystems.getDefault().getPath(tmpFilename), FileSystems.getDefault().getPath(newPluginFilename), StandardCopyOption.REPLACE_EXISTING);
-				} catch (IOException e) {
-					if ( verbose )
-						DBGui.popup(Level.ERROR, "Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"",e);
-					else
-						logger.error("Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"",e);
-					return;
-				}
-
-				try {
-					Files.write(Paths.get(pluginsFolder+File.separator+"databasePlugin.new"), newPluginFilename.getBytes());
-				} catch(IOException ign) {
-					// not a big deal, just that there will be no message after Archi is restarted
-					logger.error("Cannot create file \""+pluginsFolder+File.separator+"databasePlugin.new\"", ign);
-				}
-
-				// we delete the actual plugin file on Archi exit (can't do it here because the plugin is in use).
-				(new File(pluginsFilename)).deleteOnExit();
-
-				if( DBGui.question("A new version on the database plugin has been downloaded. Archi needs to be restarted to install it.\n\nDo you wish to restart Archi now ?") ) {
-					Display.getDefault().syncExec(new Runnable() { @Override public void run() { PlatformUI.getWorkbench().restart(); }});
-				}
-			}
-		}.start();
+		@SuppressWarnings("unused")
+		DBCheckForUpdate dbCheckForUpdate = new DBCheckForUpdate(
+				verbose,
+				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
+				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md"
+				);
 	}
 }

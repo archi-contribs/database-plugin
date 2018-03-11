@@ -104,7 +104,7 @@ public class DBGui {
 	protected DBDatabaseEntry selectedDatabase;
 	protected DBDatabaseConnection connection;
 	
-	protected static final Display display = Display.getCurrent();
+	protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
 	protected Shell dialog;
 	
 	protected boolean includeNeo4j = true;
@@ -905,42 +905,6 @@ public class DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("answer : "+buttonLabels[questionResult]);
 		return questionResult;
 	}
-	
-	/**
-	 * shows up an on screen popup with a progressbar<br>
-	 * it is the responsibility of the caller to dismiss the popup 
-	 */
-	public static ProgressBar progressbarPopup(String msg) {
-		if ( logger.isDebugEnabled() ) logger.debug("new progressbarPopup(\""+msg+"\")");
-		Shell shell = new Shell(display, SWT.SHELL_TRIM);
-		shell.setSize(600, 100);
-		shell.setBackground(BLACK_COLOR);
-		shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
-		
-		Composite composite = new Composite(shell, SWT.NONE);
-		composite.setBackground(COMPO_LEFT_COLOR);
-		composite.setLayout(new GridLayout(2, false));
-		composite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		
-		Label label = new Label(composite, SWT.NONE);
-		label.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
-		label.setBackground(COMPO_LEFT_COLOR);
-		label.setFont(TITLE_FONT);
-		label.setText(msg);
-		
-		ProgressBar progressBar = new ProgressBar(composite, SWT.SMOOTH);
-		progressBar.setLayoutData(new GridData(SWT.FILL, SWT.END, true, false));
-    	progressBar.setMinimum(0);
-    	progressBar.setMaximum(100);
-    	
-    	shell.layout();
-    	shell.open();
-    	
-    	refreshDisplay();
-    	
-    	return progressBar;
-	}
-	
 	
 	protected void hideGrpDatabase() {
 		this.grpDatabase.setVisible(false);
