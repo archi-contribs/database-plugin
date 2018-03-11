@@ -165,26 +165,32 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 11/03/2018				Solve plugin initialization failure
+ * v2.1 : 11/03/2018				Bug fixes:
+ * 										Solve plugin initialization failure that occured some times
+ *                                      Fix progress bar during download new version of the plugin from GitHub
+ *                                      Reduce memory leak
  * 									Import individual component:
  * 										Added documentation column
  * 										Added popup message during the import
  * 									Export model:
  *										For relational databases :
  *											Create two export modes: standalone and collaborative modes
+ *											Allow to specify the generated view screenshots border width and scale factor
  *										For Neo4J databases:
  *											Create two export modes: native and extended
- *											Add an option to empty the database before the export
- *											TODO : Add an option to specialize relationships
- *                                      Rewrite version management
- *                                      Remove the name from view objects and connections checksums --> renaming a an element or a relationships does not change their checksum anymore
+ *											New option to empty the database before the export
+ *											New option to specialize relationships
+ *                                      Rewrite version management (check timestamps in addition of the version number)
+ *                                      Remove the name from view objects and connections checksums
  *                                      Add an option to compare the model from the database before exporting it
  *									Get history from database:
- *										allows to get history for diagrams, canvas and sketches
- *									Add the ability to import an image from the database on the Image and Block objects in Canvas
+ *										Allows to get history for diagrams, canvas and sketches
+ *									Add the ability to import an image from the database (on the Image and Block objects in Canvas)
  *                                  Add procedures that can be called by the script plugin
- *                                  Reduce memory leak
- *                                  Fix progress bar during download new version of the plugin from GitHub
+ *                                  Update JDBC drivers
+ *                                  	Neo4J to 3.1.0
+ *                                  	SQLite to 3.21.0
+ *                                  	PostGreSQL to 42.2.1
  * 
  * Known bugs:
  * -----------
