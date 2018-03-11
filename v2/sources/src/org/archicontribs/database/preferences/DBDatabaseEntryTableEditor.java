@@ -90,6 +90,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Composite compoNeo4jEmpty;
 	private Button btnNeo4jEmptyDB;
 	private Button btnNeo4jDoNotEmptyDB;
+	private Label lblNeo4jRelationships;
+	private Composite compoNeo4jRelationships;
+	private Button btnNeo4jStandardRelationships;
+	private Button btnNeo4jTypedRelationships;
 	private Label lblExportMode;
 	private Composite compoExportMode;
 	private Button btnStandaloneMode;
@@ -574,7 +578,41 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jDoNotEmptyDB = new Button(this.compoNeo4jEmpty, SWT.RADIO);
 		this.btnNeo4jDoNotEmptyDB.setText("Leave database content");
 		this.btnNeo4jDoNotEmptyDB.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		
+		this.lblNeo4jRelationships = new Label(this.grpDatabases, SWT.NONE);
+		this.lblNeo4jRelationships.setText("Relationships type:");
+		this.lblNeo4jRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblNeo4jEmpty, 4);
+		fd.left = new FormAttachment(this.lblNeo4jEmpty, 0 , SWT.LEFT);
+		this.lblNeo4jRelationships.setLayoutData(fd);
+		this.lblNeo4jRelationships.setVisible(false);
+		
+		this.compoNeo4jRelationships = new Composite(this.grpDatabases, SWT.NONE);
+		this.compoNeo4jRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.compoNeo4jRelationships.setVisible(false);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
+		this.compoNeo4jRelationships.setLayoutData(fd);
+		rl = new RowLayout();
+		rl.marginTop = 0;
+		rl.marginLeft = 0;
+		rl.spacing = 10;
+		this.compoNeo4jRelationships.setLayout(rl);
 
+		this.btnNeo4jStandardRelationships = new Button(this.compoNeo4jRelationships, SWT.RADIO);
+		this.btnNeo4jStandardRelationships.setText("Use unique \"relationships\" type");
+		this.btnNeo4jStandardRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+
+		this.btnNeo4jTypedRelationships = new Button(this.compoNeo4jRelationships, SWT.RADIO);
+		this.btnNeo4jTypedRelationships.setText("Use typed relationships");
+		this.btnNeo4jTypedRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		
+
+		
 		this.lblExportMode = new Label(this.grpDatabases, SWT.NONE);
 		this.lblExportMode.setText("Export mode:");
 		this.lblExportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -882,6 +920,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.compoNeo4jMode.setVisible(isNeo4j);
 		this.lblNeo4jEmpty.setVisible(isNeo4j);
 		this.compoNeo4jEmpty.setVisible(isNeo4j);
+		this.lblNeo4jRelationships.setVisible(isNeo4j);
+		this.compoNeo4jRelationships.setVisible(isNeo4j);
 		
 		this.lblExportMode.setVisible(!isNeo4j);
 		this.compoExportMode.setVisible(!isNeo4j);
@@ -1020,6 +1060,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setCollaborativeMode(this.btnCollaborativeMode.getSelection());
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
 		databaseEntry.setNeo4jEmptyDB(this.btnNeo4jEmptyDB.getSelection());
+		databaseEntry.setNeo4jTypedRelationships(this.btnNeo4jTypedRelationships.getSelection());
 
 		return databaseEntry;
 	}
@@ -1044,6 +1085,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.btnNeo4jExtendedMode.setSelection(false);
 	        this.btnNeo4jEmptyDB.setSelection(false);
 	        this.btnNeo4jDoNotEmptyDB.setSelection(false);
+	        this.btnNeo4jStandardRelationships.setSelection(false);
+	        this.btnNeo4jTypedRelationships.setSelection(false);
 	        this.btnCollaborativeMode.setSelection(false);
 	        this.btnStandaloneMode.setSelection(false);
 	        this.btnExportViewImages.setSelection(false);
@@ -1069,6 +1112,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.btnNeo4jEmptyDB.setSelection(databaseEntry.getNeo4jEmptyDB());
             this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.getNeo4jEmptyDB());
             this.btnCollaborativeMode.setSelection(databaseEntry.getCollaborativeMode());
+            this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.getNeo4jTypedRelationships());
+            this.btnNeo4jTypedRelationships.setSelection(databaseEntry.getNeo4jTypedRelationships());
             this.btnStandaloneMode.setSelection(!databaseEntry.getCollaborativeMode());
             this.btnExportViewImages.setSelection(databaseEntry.getExportViewsImages());
             this.btnDoNotExportViewImages.setSelection(!databaseEntry.getExportViewsImages());
@@ -1105,6 +1150,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jExtendedMode.setEnabled(editMode);
 		this.btnNeo4jEmptyDB.setEnabled(editMode);
 		this.btnNeo4jDoNotEmptyDB.setEnabled(editMode);
+		this.btnNeo4jStandardRelationships.setEnabled(editMode);
+		this.btnNeo4jTypedRelationships.setEnabled(editMode);
 		
 	    this.btnCollaborativeMode.setEnabled(editMode);
 	    this.btnStandaloneMode.setEnabled(editMode);
@@ -1197,6 +1244,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.compoNeo4jMode.setVisible(false);
 			this.lblNeo4jEmpty.setVisible(false);
 			this.compoNeo4jEmpty.setVisible(false);
+			this.lblNeo4jRelationships.setVisible(false);
+			this.compoNeo4jRelationships.setVisible(false);
 			this.lblServer.setVisible(false);
 			this.txtServer.setVisible(false);
 			this.lblPort.setVisible(false);

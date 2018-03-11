@@ -3161,10 +3161,11 @@ public class DBDatabaseConnection {
         if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getExportedVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
+			String relationshipType = (this.databaseEntry.getNeo4jTypedRelationships() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
 			// TODO : USE MERGE instead to replace existing nodes
 			if ( this.databaseEntry.getNeo4jNativeMode() ) {
 				if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
-					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
+					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
 							,((IArchimateRelationship)relationship).getSource().getId()
 							,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getExportedVersion().getVersion()
 							,((IArchimateRelationship)relationship).getTarget().getId()
@@ -3180,7 +3181,7 @@ public class DBDatabaseConnection {
 							);
 				}
 			} else {
-				request("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:relationships {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
+				request("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
 						,((IArchimateRelationship)relationship).getSource().getId()
 						,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getExportedVersion().getVersion()
 						,((IArchimateRelationship)relationship).getTarget().getId()

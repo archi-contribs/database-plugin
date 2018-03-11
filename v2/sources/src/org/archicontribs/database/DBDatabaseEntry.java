@@ -27,6 +27,7 @@ public class DBDatabaseEntry {
 	private int viewsImagesScaleFactor = 100;
 	private boolean neo4jNativeMode = false;
 	private boolean neo4jEmptyDB = false;
+	private boolean neo4jTypedRelationships = false;
 	private boolean collaborativeMode = false;
 
 	public DBDatabaseEntry() {
@@ -191,6 +192,14 @@ public class DBDatabaseEntry {
 		this.neo4jEmptyDB = neo4jEmptyDB;
 	}
 	
+	public boolean getNeo4jTypedRelationships()  {
+		return this.neo4jTypedRelationships;
+	}
+
+	public void setNeo4jTypedRelationships(boolean neo4jTypedRelationships) {
+		this.neo4jTypedRelationships = neo4jTypedRelationships;
+	}
+	
 	public boolean getCollaborativeMode()  {
 		return this.collaborativeMode;
 	}
@@ -247,6 +256,7 @@ public class DBDatabaseEntry {
 					
 					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 					databaseEntry.setNeo4jEmptyDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
+					databaseEntry.setNeo4jTypedRelationships(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
 					
 					databaseEntry.setCollaborativeMode(store.getBoolean(preferenceName+"_collaborative-mode_"+String.valueOf(line)));
 
@@ -282,6 +292,7 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), databaseEntry.getViewsImagesScaleFactor());
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.getNeo4jNativeMode());
 			store.setValue(preferenceName+"_neo4j-empty-database_"+String.valueOf(line), databaseEntry.getNeo4jEmptyDB());
+			store.setValue(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line), databaseEntry.getNeo4jTypedRelationships());
 			store.setValue(preferenceName+"_collaborative-mode_"+String.valueOf(line), databaseEntry.getCollaborativeMode());
 		}
 	}
