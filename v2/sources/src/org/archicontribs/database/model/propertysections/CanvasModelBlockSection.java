@@ -100,7 +100,7 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
                 
                 menuManager.add(actionChoose);
                 
-                IAction actionClear = new Action(Messages.DiagramModelImageSection_2) {
+                IAction actionClear = new Action(Messages.DiagramModelImageSection_3) {
                     @Override
                     public void run() {
                         clearImage();
