@@ -507,7 +507,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnWholeType.setToolTipText("The plugin will export the whole model content : elements, relationships, folders, views and images.\n   --> It will therefore be possible to import back your models from the database.");
 
 		this.btnComponentsType = new Button(this.compoExportType, SWT.RADIO);
-		this.btnComponentsType.setText("Components only");
+		this.btnComponentsType.setText("Elements and relationships only");
 		this.btnComponentsType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.btnComponentsType.addSelectionListener(new SelectionListener() {
 			@Override public void widgetSelected(SelectionEvent e) { driverChanged(); }
