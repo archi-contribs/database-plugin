@@ -165,7 +165,8 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 11/03/2018				Bug fixes:
+ * v2.1 : 11/03/2018				Fill in the online help
+ *                                      Bug fixes:
  * 										Solve plugin initialization failure that occured some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
  *                                      Reduce memory leak
