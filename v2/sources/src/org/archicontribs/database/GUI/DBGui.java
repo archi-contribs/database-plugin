@@ -848,12 +848,14 @@ public class DBGui {
 		String popupMessage = msg;
 		logger.log(DBGui.class, level, msg, e);
 		
-		if ( e != null ) {
-			if ( (e.getMessage()!=null) && !DBPlugin.areEqual(e.getMessage(), msg)) {
-				popupMessage += "\n\n" + e.getMessage();
-			} else {
-				popupMessage += "\n\n" + e.getClass().getName();
-			}
+		Throwable cause = e;
+		while ( cause != null ) {
+		    if ( cause.getMessage() != null ) {
+		        if ( !popupMessage.endsWith(cause.getMessage()) )
+		            popupMessage += "\n\n" + cause.getClass().getSimpleName() + ": " + cause.getMessage();
+		    } else 
+	            popupMessage += "\n\n" + cause.getClass().getSimpleName();
+		    cause = cause.getCause();
 		}
 
 		switch ( level.toInt() ) {
@@ -1037,7 +1039,7 @@ public class DBGui {
         
             if ( databaseObject.get("created_on") != null ) {
                 if ( ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp() != null )
-                    addItemToCompareTable(tree, treeItem, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
+                    addItemToCompareTable(tree, treeItem, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getCurrentVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
                 else
                     addItemToCompareTable(tree, treeItem, "Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
             }
