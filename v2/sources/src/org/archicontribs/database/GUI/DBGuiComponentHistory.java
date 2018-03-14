@@ -153,15 +153,15 @@ public class DBGuiComponentHistory extends DBGui {
 		this.tblContent.setLayoutData(fd);
 		
 		TreeColumn colItem = new TreeColumn(this.tblContent, SWT.NONE);
-		colItem.setWidth(100);
+		colItem.setWidth(120);
 		colItem.setText("Items");
 		
 		TreeColumn colYourVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colYourVersion.setWidth(150);
+		colYourVersion.setWidth(220);
 		colYourVersion.setText("Your version");
 		
 		TreeColumn colDatabaseVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colDatabaseVersion.setWidth(150);
+		colDatabaseVersion.setWidth(220);
 		colDatabaseVersion.setText("Database version");
 		
 		this.btnImportDatabaseVersion = new Button(grpComponents, SWT.NONE);
