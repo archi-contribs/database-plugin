@@ -228,7 +228,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
 		this.btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnShowIdInContextMenu.setText("Show debuging information in context menu");
+		this.btnShowIdInContextMenu.setText("Show debugging information in context menu");
 		this.btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnKeepPartiallyImportedModel, 5);
