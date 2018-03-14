@@ -9,60 +9,204 @@
 <body>
 <h1>Database plugin</h1>
 <h2>Release notes</h2>
-<h3>v 2.0.0 (30/04/2017)</h3>
-<h4>Export Model :</h4>
-   <ul>
-   <li>Solve bug where properties were not exported correctly
-   <li>Solve bug where connections could be exported twice
-   <li>Rewrite the conflict detection when exporting to make it more accurate
-   <li>Create the status page on the export model window
-   <li> Add a popup when nothing needs to be exported
-   </ul>
-<h4>Import Model :</h4>
-   <ul>
-   <li>Import individual component :
-   <li>Add the ability to hide existing components in the import component module
-   </ul>
-<h4>Get component history :</h4>
-    <ul>
-    <li>Solve bug where the plugin could not find the component in the database
-    </ul>
- <h4>Preferences :</h4>
-    <ul>
-   <li>Add a preference entry to automatically close import and export windows on success
-   <li>Add a preference entry to automatically start to export the model to the default database
-   <li>Add a preference entry to automatically download and install the plugin updates
-   <li>Add a preference entry to import individual components in shared or copy mode by default
-   </ul>
-<h4>Miscellaneous :</h4>
-   <ul>
-   <li>Solve bug in the logger where some multi-lines messages were not printed correctly
-   <li>From now on, folders and views have got their own version number
-   <li>Increase performance by reusing compiled SQL requests
-   <li>Check database version before using it
-   <li>Automatically create database tables if they do not exist
-   <li>Stop replacing the folders type
-   <li>Replaced database table "archi_plugin" by new table "database_version"
-   <li>Opens the model in the tree after import
-   </ul>
+<br> 										
+<h3 style="color: blue; text-decoration: underline;">v 2.1 (14/03/2018)</h3>
+<ul>
+   <li>Fill in the online help</li>
+   <li>Bug fixes:<ul>
+      <li>Solve plugin initialization failure that occured some times</li>
+      <li>Fix progress bar during download new version of the plugin from GitHub</li>
+      <li>Reduce memory leak</li>
+   </ul></li>
+   <li>Import individual component:<ul>
+      <li>Added documentation column</li>
+      <li>Added popup message during the import</li>
+   </ul></li>
+   <li>Export model:<ul>
+      <li>For relational databases :<ul>
+         <li>Create two export modes: standalone and collaborative modes</li>
+         <li>Allow to specify the generated view screenshots border width and scale factor</li>
+      </ul></li>
+      <li>For Neo4J databases:<ul>
+         <li>Create two export modes: native and extended</li>
+         <li>New option to empty the database before the export</li>
+         <li>New option to specialize relationships</li>
+      </ul></li>
+      <li>Rewrite version management (check timestamps in addition of the version number)</li>
+      <li>Remove the name from view objects and connections checksums</li>
+      <li>Add an option to compare the model from the database before exporting it<ul>
+         <li>Get history from database:</li>
+      </ul></li>
+      <li>Allows to get history for diagrams, canvas and sketches<ul>
+         <li>Add the ability to import an image from the database (on the Image and Block objects in Canvas)</li>
+         <li>Add procedures that can be called by the script plugin</li>
+         <li>Update JDBC drivers</li>
+      </ul></li>
+      <li>Neo4J to 3.1.0</li>
+      <li>SQLite to 3.21.0</li>
+      <li>PostGreSQL to 42.2.1</li>
+    </ul></li>
+</ul>
 
-<h3>v 2.0.0.beta4 (29/03/2017)</h3>
-   <ul>
+<h3 style="color: blue; text-decoration: underline;">v 2.0.7b (01/07/2017)</h3>
+<ul>
+   <li>Solve Neo4J errors</li>
+</ul>
+
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.7 (30/06/2017)</h3>
+<ul>
+   <li>Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected</li>
+   <li>Improve checksum mechanism</li>
+   <li>Add an option to show up ID and checksum in context menu rather than relying on the logger mode</li>
+   <li>Import model:<ul>
+      <li>Solve bug where the filter field was not working as expected</li>
+      <li>Change the filter request to be case insensitive</li>
+   </ul></li>
+   <li>Export model:<ul>
+      <li>Use of a Tree rather than a Table to show up conflicts</li>
+      <li>Show up more information about conflicting components</li>
+      <li>Increase the conflict detection and resolution</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.6 (30/05/2017)</h3>
+<ul>
+   <li>Import model:<ul>
+      <li>Solve bug when importing a model which has got a shared view which has been updated by another model</li>
+      <li>The import SQL request have been rewritten because of Oracle specificity</li>
+      <li>A double click on a model's version now launches the import</li>
+   </ul></li>
+   <li>Import individual components:<ul>
+      <li>Solve bug where all the views versions were added in the table, resulting in several entries with the same name</li>
+   </ul></li>
+   <li>Database model:<ul>
+      <li>Added column "element_version" to table "views_objects"</li>
+      <li>Added column "relationship_version" to table "views_connections"</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.5 (17/05/2017)</h3>
+<ul>
+   <li>Export model:<ul>
+      <li>Change order of folders export (exporting all the root folders first)</li>
+   </ul></li>
+   <li>Import model:<ul>
+      <li>Solve bug in counting components to import prior the import itself which can cause false error messages even when the import is successful</li>
+      <li>Solve bug in folder import where the parent folder was not created yet before its content</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.4 (11/05/2017)</h3>
+<ul>
+   <li>Export model:<ul>
+      <li>Solve bug where export conflicts were not detected correctly on MySQL databases</li>
+   </ul></li>
+   <li>Import individual component:<ul>
+      <li>The import type (shared or copy) can now be changed directly on the import window</li>
+   </ul></li>
+   <li>Preference page:<ul>
+      <li>Correct traversal order of fields on preference page</li>
+      <li>The default database port is automatically filled-in when port field is empty or equals 0</li>
+      <li>The default for new databases is to not export view images</li>
+      <li>When saving preferences while editing database properties, the plugin now asks if the updates need to be saved or discarded</li>
+   </ul></li>
+   <li>Miscellaneous:<ul>
+      <li>Rewrite of the checksum calculation procedure to ensure it is always the same length</li>
+      <li>Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model</li>
+      <li>This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.3 (07/05/2017)</h3>
+<ul>
+   <li>Export model:<ul>
+      <li>Make conflict management more reliable on PostGreSQL databases</li>
+      <li>Added a preference to remove the dirty flag on the model after a successful export</li>
+      <li>Solve bug where count of exported components could be erroneous</li>
+      </ul></li>
+   <li>Import individual component:<ul>
+      <li>Added missing "location" in individual component import window</li>
+      <li>Add the ability to import several individual components at the same time</li>
+      <li>The component list in the individual component import window are now sorted alphabetically</li>
+      <li>Solve bug where the same component could be imported several times</li>
+      </ul></li>
+   <li>Miscellaneous:<ul>
+      <li>Allow to specify a database schema in the database configuration</li>
+      <li>It is now possible to check a database connection without the need to edit their details</li>
+      <li>Reduce memory consumption</li>
+      <li>Remove the NOT NULL constraints on some columns because Oracle does not do any difference between an empty string and a null value</li>
+      <li>Renamed mssql driver to ms-sql to be visually more distinctive from mysql</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.2 (02/05/2017)</h3>
+<ul>
+   <li>Solve errors during table creation in PostGreSQL database</li>
+   <li>Solve "Operation not allowed after ResultSet closed" error message on model export</li>
+   <li>Add a menu entry to replace old fashion IDs to Archi 4 IDs (to ensure uniqueness of all components)</li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.1 (01/05/2017)</h3>
+<ul>
+   <li>Add the ability to export images of views in the database</li>
+   <li>Add a preference to keep the imported model even in case of error</li>
+   <li>Reduce memory leak</li>
+   <li>Added back Neo4J support (elements and relationships export only)</li>
+   <li>Solve NullPointerException while checking database</li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.0 (30/04/2017)</h3>
+<ul>
+   <li>Export Model<ul>
+      <li>Solve bug where properties were not exported correctly
+      <li>Solve bug where connections could be exported twice
+      <li>Rewrite the conflict detection when exporting to make it more accurate
+      <li>Create the status page on the export model window
+      <li> Add a popup when nothing needs to be exported
+   </ul></li>
+   <li>Import Model:<ul>
+      <li>Import individual component :
+      <li>Add the ability to hide existing components in the import component module
+   </ul></li>
+   <li>Get component history :<ul>
+      <li>Solve bug where the plugin could not find the component in the database</li>
+   </ul></li>
+   <li>Preferences :<ul>
+      <li>Add a preference entry to automatically close import and export windows on success</li>
+      <li>Add a preference entry to automatically start to export the model to the default database</li>
+      <li>Add a preference entry to automatically download and install the plugin updates</li>
+      <li>Add a preference entry to import individual components in shared or copy mode by default</li>
+   </ul></li>
+   <li>Miscellaneous :<ul>
+      <li>Solve bug in the logger where some multi-lines messages were not printed correctly</li>
+      <li>From now on, folders and views have got their own version number</li>
+      <li>Increase performance by reusing compiled SQL requests</li>
+      <li>Check database version before using it</li>
+      <li>Automatically create database tables if they do not exist</li>
+      <li>Stop replacing the folders type</li>
+      <li>Replaced database table "archi_plugin" by new table "database_version"</li>
+      <li>Opens the model in the tree after import</li>
+   </ul></li>
+</ul>
+
+<h3 style="color: blue; text-decoration: underline;">v 2.0.0.beta4 (29/03/2017)</h3>
+<ul>
    <li>Correct import folders properties</li>
    <li>Add version numbers of imported objects in debug mode</li>
    <li>Solve MySQL compatibility issue on elements import SQL request</li>
    <li>Detect folders and views changes using checksum</li>
-   </ul>
+</ul>
 
-<h3>v 2.0.0.beta3 (21/03/2017)</h3>
-   <ul>
+<h3 style="color: blue; text-decoration: underline;">v 2.0.0.beta3 (21/03/2017)</h3>
+<ul>
    <li>Correct preference page where some options are outside the window on some displays</li>
    <li>Solve SQL duplicate key error message on model export</li>
    <li>Solve bug where save button does not show up in preferences page</li>
-   </ul>
+</ul>
 
-<h3>v 2.0.0.beta2 (19/03/2017)</h3>
-   <ul>
+<h3 style="color: blue; text-decoration: underline;">v 2.0.0.beta2 (19/03/2017)</h3>
+<ul>
    <li>Importing an element now imports its relationships as well</li>
    <li>Add import folder functionality</li>
    <li>Add import view functionality</li>
@@ -74,10 +218,10 @@
    <li>Few java optimizations</li>
    <li>Improve exceptions catching between threads</li>
    <li>Replace boolean database columns by integer columns for better compatibility</li>
-   </ul>
+</ul>
 
-<h3>v 2.0.0.beta1 (26/02/2017) - from v1 plugin :</h3>
-   <ul>
+<h3 style="color: blue; text-decoration: underline;">v 2.0.0.beta1 (26/02/2017) - from v1 plugin :</h3>
+<ul>
    <li>Added log4j support</li>
    <li>Version all the elements and relationships</li>
    <li>Reduce the quantity of data exported by exporting only updated components (use of checksums)</li>
@@ -90,7 +234,7 @@
    <li>Complete rework of the graphical interface</li>
    <li>Add the ability to import components from other models</li>
    <li>Add inline help</li>
-   </ul>
+</ul>
 
 </body>
 </html>

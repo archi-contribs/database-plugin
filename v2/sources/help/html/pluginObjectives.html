@@ -7,16 +7,21 @@
 </head>
 
 <body>
-<h1>Database plugin</h1>
-<h2>Plugin objectives</h2>
-The database plugin extends the Archi behavior with the following functionalities :
+<h1 style="color: blue; text-decoration: underline;">Plugin's objectives</h1>
+The main objective of the database plugin, as its name states, is to use a <b>database</b> as a central <b>model repository</b>.<br>
+<br>
+The key functionalities are: 
 <ul>
-   <li>Implements a central repository (database)
-   <ul>
-      <li style="circle">Store and retrieve models in a database
-      <li style="circle">Maintain a history on all stored versions
-   </ul>
-   <li>Allow to share components between models
+   <li>Version all the models components<ul>
+      <li style="circle">Keeps a trace of who does what</li>
+      <li style="circle">Allows to roll back any component to any version</li>
+   </ul></li>
+   <li>Allows several people to work on the dame model at the same time<ul>
+      <li style="circle">During export, the updates done by other people are imported</li>
+      <li style="circle">All the conflicts are detected and presented to the used for resolution</li>
+   </ul></li>
+   <li>Export elements and relationships to a graph database (Neo4j) to ease impact analysis</li>
+   <li>Allow to share components between models. All the updates done on those componennts through one model will be visible in all the models.</li>
 </ul>  
 </body>
 </html>
