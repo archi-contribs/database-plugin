@@ -1529,11 +1529,11 @@ public class DBGuiExportModel extends DBGui {
 
 		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
                 // if the component is not present in the latest version of the model in thedatabase
-		        if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
+		        if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion() != 0 ) {
 		            // but was present in the current database model, the the element has been deleted in the database
 		            mustDelete = true;
 		        } else {
-		            // else, is is a nex component that needs to be exported
+		            // else, is is a new component that needs to be exported
 	                mustExport = true;
 		        }
             } else {
