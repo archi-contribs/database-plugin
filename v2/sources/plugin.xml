@@ -23,7 +23,7 @@
       <page
             class="org.archicontribs.database.preferences.DBPreferencePage"
             id="org.archicontribs.database.DBPreferencePage"
-            name="database plugin">
+            name="Database plugin">
       </page>
    </extension>
    <extension
