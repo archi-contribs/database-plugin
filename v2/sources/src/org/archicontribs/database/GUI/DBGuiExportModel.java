@@ -1528,7 +1528,7 @@ public class DBGuiExportModel extends DBGui {
 		    // but in SQL databases, we need to calculate the component version and check if there is no conflict in the database
 
 		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
-                // if the component is not present in the latest version of the model in thedatabase
+                // if the component is not present in the latest version of the model in the database
 		        if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion() != 0 ) {
 		            // but was present in the current database model, the the element has been deleted in the database
 		            mustDelete = true;

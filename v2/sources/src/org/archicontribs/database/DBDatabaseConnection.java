@@ -203,7 +203,7 @@ public class DBDatabaseConnection {
 				this.connection = DriverManager.getConnection(connectionString, this.databaseEntry.getUsername(), this.databaseEntry.getPassword());
 			}
 		} catch (SQLException e) {
-			// if the JDBC driver fails to connect to the database using the specified driver, the it tries with all the other drivers
+			// if the JDBC driver fails to connect to the database using the specified driver, then it tries with all the other drivers
 			// and the exception is raised by the latest driver (log4j in our case)
 			// so we need to trap this exception and change the error message
 			// For JDBC people, this is not a bug but a functionality :( 
