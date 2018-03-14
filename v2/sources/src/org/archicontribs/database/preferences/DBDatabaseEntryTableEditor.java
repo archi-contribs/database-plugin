@@ -656,7 +656,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblExportViewImages.setText("Export View Images:");
 		this.lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportMode, 4);
+		fd.top = new FormAttachment(this.lblExportMode, 5);
 		fd.left = new FormAttachment(this.lblExportMode, 0 , SWT.LEFT);
 		this.lblExportViewImages.setLayoutData(fd);
 		this.lblExportViewImages.setVisible(false);
@@ -666,7 +666,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.compoExportViewImages.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportViewImages, 0, SWT.TOP);
+		fd.top = new FormAttachment(this.lblExportViewImages, -1, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblExportViewImages, 5, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
@@ -677,7 +677,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnExportViewImages.setText("Yes");
 		this.btnExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(0);
 		this.btnExportViewImages.setLayoutData(fd);
 		this.btnExportViewImages.setToolTipText("The plugin will create views screenshots (jpg) and export them to the database.");
@@ -702,7 +702,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDoNotExportViewImages.setText("No");
 		this.btnDoNotExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(this.btnExportViewImages, 10);
 		this.btnDoNotExportViewImages.setLayoutData(fd);
 		this.btnDoNotExportViewImages.setToolTipText("The plugin won't create any view screenshot.");
@@ -727,7 +727,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblBorderWidth.setText("Border width:");
 		this.lblBorderWidth.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(this.btnDoNotExportViewImages, 40);
 		this.lblBorderWidth.setLayoutData(fd);
 		this.lblBorderWidth.setToolTipText("Please select the border width, in pixels, to add around the exported views images.");
@@ -763,7 +763,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblBorderWidthPixels.setText("px");
 		this.lblBorderWidthPixels.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(this.txtBorderWidth, 3);
 		this.lblBorderWidthPixels.setLayoutData(fd);
 		this.lblBorderWidthPixels.setToolTipText("Please choose the scale factor to resize the views images.");
@@ -772,7 +772,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactor.setText("Scale factor:");
 		this.lblScaleFactor.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(this.lblBorderWidthPixels, 40);
 		this.lblScaleFactor.setLayoutData(fd);
 		this.lblScaleFactor.setToolTipText("Please choose the scale factor to resize the views images.");
@@ -808,7 +808,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactorPercent.setText("%");
 		this.lblScaleFactorPercent.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(this.txtScaleFactor, 3);
 		this.lblScaleFactorPercent.setLayoutData(fd);
 		this.lblScaleFactorPercent.setToolTipText("Please choose the scale factor to resize the views images.");
@@ -928,8 +928,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnCollaborativeMode.setVisible(!isNeo4j);
 		this.btnStandaloneMode.setVisible(!isNeo4j);
 		
-		this.compoExportViewImages.setVisible(!isNeo4j);
-
 		this.lblServer.setVisible(!isFile);
 		this.txtServer.setVisible(!isFile);
 		this.lblPort.setVisible(!isFile);
@@ -956,8 +954,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPassword.setVisible(!isFile);
 		this.btnShowPassword.setVisible(!isFile);
 		
-		this.lblExportViewImages.setVisible(this.btnWholeType.getSelection());
-		this.compoExportViewImages.setVisible(this.btnWholeType.getSelection());
+		this.lblExportViewImages.setVisible(this.btnWholeType.getSelection() && !isNeo4j);
+		this.compoExportViewImages.setVisible(this.btnWholeType.getSelection() && !isNeo4j);
 
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(isFile ? this.lblFile: this.lblUsername, 8);
@@ -1079,20 +1077,20 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.txtSchema.setText("");
 	        this.txtUsername.setText("");
 	        this.txtPassword.setText("");
-	        this.btnWholeType.setSelection(false);
+	        this.btnWholeType.setSelection(true);
 	        this.btnComponentsType.setSelection(false);
 	        this.btnNeo4jNativeMode.setSelection(false);
-	        this.btnNeo4jExtendedMode.setSelection(false);
+	        this.btnNeo4jExtendedMode.setSelection(true);
 	        this.btnNeo4jEmptyDB.setSelection(false);
-	        this.btnNeo4jDoNotEmptyDB.setSelection(false);
-	        this.btnNeo4jStandardRelationships.setSelection(false);
+	        this.btnNeo4jDoNotEmptyDB.setSelection(true);
+	        this.btnNeo4jStandardRelationships.setSelection(true);
 	        this.btnNeo4jTypedRelationships.setSelection(false);
-	        this.btnCollaborativeMode.setSelection(false);
+	        this.btnCollaborativeMode.setSelection(true);
 	        this.btnStandaloneMode.setSelection(false);
 	        this.btnExportViewImages.setSelection(false);
 			this.txtBorderWidth.setText("10");
 			this.txtScaleFactor.setText("100");
-	        this.btnDoNotExportViewImages.setSelection(false);
+	        this.btnDoNotExportViewImages.setSelection(true);
 		} else {
 			databaseEntry = (DBDatabaseEntry)this.tblDatabases.getItem(this.tblDatabases.getSelectionIndex()).getData();
 
