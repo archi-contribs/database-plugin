@@ -58,17 +58,17 @@
       <li><a href="#1.2">1.2. models</a><li>
       <li><a href="#1.3">1.3. folders</a></li>
       <li><a href="#1.4">1.4. elements</a></li>
-      <li><a href="#2.1">1.5. relationships</a></li>
-      <li><a href="#2.1">1.6. views</a></li>
-      <li><a href="#2.1">1.7. views_objects</a></li>
-      <li><a href="#2.1">1.8. views_connections</a></li>
-      <li><a href="#2.1">1.9. folders_in_model</a></li>
-      <li><a href="#2.1">1.10. elements_in_model</a></li>
-      <li><a href="#2.1">1.11. relationships_in_model</a></li>
-      <li><a href="#2.1">1.12. views_in_model</a></li>
-      <li><a href="#2.1">1.13. images</a></li>
-      <li><a href="#2.1">1.14. bendpoints</a></li>
-      <li><a href="#2.1">1.15. properties</a></li>
+      <li><a href="#1.5">1.5. relationships</a></li>
+      <li><a href="#1.6">1.6. views</a></li>
+      <li><a href="#1.7">1.7. views_objects</a></li>
+      <li><a href="#1.8">1.8. views_connections</a></li>
+      <li><a href="#1.9">1.9. folders_in_model</a></li>
+      <li><a href="#1.10">1.10. elements_in_model</a></li>
+      <li><a href="#1.11">1.11. relationships_in_model</a></li>
+      <li><a href="#1.12">1.12. views_in_model</a></li>
+      <li><a href="#1.13">1.13. images</a></li>
+      <li><a href="#1.14">1.14. bendpoints</a></li>
+      <li><a href="#1.15">1.15. properties</a></li>
    </ul></li>
 </ul>
 </div>
@@ -81,31 +81,108 @@ This document describes the structure of the tables needed by the database plugi
 This table allows the plugin to quickly check that the database has got the requested tables without checking all of them one by one.
 It contains one line per plugin that has got tables in this database (this will allow several plugins to share the same database in the future):
 <ul>
-   <li>archi_plugin : the name of the database plugin
-   <li>version : the version of the database model
+   <li><b>archi_plugin</b> [varchar not null]: the name of the plugin ("DatabasePlugin" for instance)</li>
+   <li><b>version</b> [int not null]: the version of the database model</li>
 </ul>
 Each time the plugin connects to a database, it checks the existence and the content of this table.
 <ul>
-   <li>if the table does not exist, then it considers that all the other tables are missing and propose to create them,
-   <li>if the table does exist but the plugin name is not listed, then the plugin refuses to work with the database,
-   <li>if the plugin name is listed but the version is an old version, then the plugin updates the database to the newer version,
-   <li>if the version is unknown, then the plugin refuses to work with the database.
+   <li>if the table does not exist, then it considers that all the other tables are missing and propose to create them,</li>
+   <li>if the table does exist but the plugin name is not listed, then the plugin refuses to work with the database,</li>
+   <li>if the plugin name is listed but the version is an old version, then the plugin updates the database to the newer version,</li>
+   <li>if the version is unknown, then the plugin refuses to work with the database.</li>
 </ul>
 
-<h4 id="1.2" style="color: blue; text-decoration: underline;">1.1. models</h4>
-This table contains the models metadata that are stored in the database. There is one line per model and per version.
+<h4 id="1.2" style="color: blue; text-decoration: underline;">1.2. models</h4>
+This table contains the models metadata that are stored in the database. There is one line per model and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: the id of the model</li>
+   <li><b>version</b> [int not null]: the version of the model</li>
+   <li><b>name</b> [varchar not null]: the name of the model. Please note that the model name may change between one version to another, so you must not rely on the name to distinguish models but rely on the id instead.</li>
+   <li><b>note</b> [clob]: the release note of the version of the model</li>
+   <li><b>purpose</b> [clob]: the purpose of this version of the model</li>
+   <li><b>created_by</b> [varchar not null]: the name of the user who exported this version of the model to the database</li>
+   <li><b>created_on</b> [timestamp not null]: the date and time when the version of the model has been exported to the database</li>
+   <li><b>checkedin_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>checkedin_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the model's id, name, release note, purpose and <a href="#1.15">properties</a>.</li> 
+</ul>
 
 <h4 id="1.3" style="color: blue; text-decoration: underline;">1.3. folders</h4>
-This table contains the folders that are stored in the database. There is one line per folder and per version.
-
+This table contains the folders that are stored in the database. There is one row per folder and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: the id of the folder</li>
+   <li><b>version</b> [int not null]: the version of the folder</li>
+   <li><b>type</b> [int not null]: the type of the folder (strategy, business, application, ... or user)</li>
+   <li><b>root_type</b> [int not null]: the type of the root folder that holds this folder (as a folder may have a "user" type, we must know the root folder type to determine which kind of elements or relationships can be stored in this folder)</li>
+   <li><b>name</b> [varchar]: the name of the folder Please note that the folder may be renamed from one version to another, so you must not rely on the name to distinguish folders but rely on the id instead.</li>
+   <li><b>documentation</b> [clob]: the documentation of the folder</li>
+   <li><b>created_by</b> [varchar not null]: the name of the user who exported this version of the folder to the database</li>
+   <li><b>created_on</b> [timestamp not null]: the date and time when the version of the folder has been exported to the database</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the folder's id, name, type, root_type, name, documentation, and <a href="#1.15">properties</a>.</li>
+</ul>
+This table does not link the folders to any model (c.f. <a href="#1.9">1.9. folders_in_model</a>)
+   
 <h4 id="1.4" style="color: blue; text-decoration: underline;">1.4. elements</h4>
-This table contains the elements that are stored in the database. There is one line per element and per version.
+This table contains the elements that are stored in the database. There is one row per element and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: the id of the element</li>
+   <li><b>version</b> [int not null]: the version of the element</li>
+   <li><b>class</b> [varchar not null]: the class of the element ("Node", "BusinessActor", "ApplicationInterface", ...)</li>
+   <li><b>name</b> [varchar]: the name of the element. Please note that the element may be renamed from one version to another, so you must not rely on the name to distinguish elements but rely on the id instead.</li>
+   <li><b>documentation</b> [clob]: the documentation of the element</li>
+   <li><b>type</b> [varchar]: The type of the element (used to distinguish AND from OR junctions)</li>
+   <li><b>created_by</b> [varchar not null]: the name of the user who exported this version of the element to the database</li>
+   <li><b>created_on</b> [timestamp not null]: the date and time when the version of the element has been exported to the database</li>
+   <li><b>checkedin_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>checkedin_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, type and <a href="#1.15">properties</a>.</li>
+</ul>
+This table does not link the elements to any model (c.f. <a href="#1.10">1.10. elements_in_model</a>)
 
 <h4 id="1.5" style="color: blue; text-decoration: underline;">1.5. relationships</h4>
-This table contains the relationships that are stored in the database. There is one line per relationship and per version.
+This table contains the relationships that are stored in the database. There is one row per relationship and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: the id of the relationship</li>
+   <li><b>version</b> [int not null]: the version of the relationship</li>
+   <li><b>class</b> [varchar not null]: the class of the relationship ("CompositionRelationship", "ServingRelationship", ...)</li>
+   <li><b>name</b> [varchar]: the name of the relationship. Please note that the relationship may be renamed from one version to another, so you must not rely on the name to distinguish elements but rely on the id instead.</li>
+   <li><b>documentation</b> [clob]: the documentation of the relationship</li>
+   <li><b>source_id></b> [varchar]: the id of the source of the relationship (may be the id of an element or a relationship)</li>
+   <li><b>target_id></b> [varchar]: the id of the target of the relationship (may be the id of an element or a relationship)</li>
+   <li><b>strength</b> [varchar]: The strength of the relationship (relevant when class is "InfluenceRelationship")</li>
+   <li><b>access_type</b> [varchar]: The access type of the relationship (relevant when class is "AccessRelationship")</li>
+   <li><b>created_by</b> [varchar not null]: the name of the user who exported this version of the relationship to the database</li>
+   <li><b>created_on</b> [timestamp not null]: the date and time when the version of the relationship has been exported to the database</li>
+   <li><b>checkedin_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>checkedin_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_by</b> [varchar not null]: not used (yet)</li>
+   <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, source_id, target_id, strength, access_type, and <a href="#1.15">properties</a>.</li>
+</ul>
+This table does not link the relationships to any model (c.f. <a href="#1.11">1.11. relationships_in_model</a>)
 
 <h4 id="1.6" style="color: blue; text-decoration: underline;">1.6. views</h4>
-This table contains the views (diagrams, canvas and sketchs) that are stored in the database. There is one line per view and per version.
+This table contains the views (diagrams, canvas and sketchs) that are stored in the database. There is one row per view and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: the id of the view</li>
+   <li><b>version</b> [int not null]: the version of the view</li>
+   <li><b>class</b> [varchar not null]: the class of the view ("ArchimateDiagramModel", "SketchModel" or "CanvasModel")</li>
+   <li><b>name</b> [varchar]: the name of the view. Please note that the view may be renamed from one version to another, so you must not rely on the name to distinguish elements but rely on the id instead.</li>
+   <li><b>documentation</b> [clob]: the documentation of the view</li>
+   <li><b>hint_content</b> [clob]: the hint content of the view</li>
+   <li><b>hint_title</b> [varchar]: the hint title of the view</li>
+   <li><b>created_by</b> [varchar not null]: the name of the user who exported this version of the view to the database</li>
+   <li><b>created_on</b> [timestamp not null]: the date and time when the version of the view has been exported to the database</li>
+   <li><b>background</b> [int]: the background ofthe view (relevant if class is "SketchModel").</li>
+   <li><b>connection_router_type</b> [int not null]: the connection router type of the view</li>
+   <li><b>viewpoint</b> [varchar]: the viewpoint of the view (relevant if class is "ArchimateDiagramModel").</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, source_id, target_id, strength, access_type, and <a href="#1.15">properties</a>.</li>
+</ul>
+This table does not link the views to any model (c.f. <a href="#1.12">1.12. views_in_model</a>)
 
 <h4 id="1.7" style="color: blue; text-decoration: underline;">1.7. views_objects</h4>
 This table contains the graphical objects (representation of elements, notes, ...) that are stored in the database. There is one line per graphical object and per version.<br>
