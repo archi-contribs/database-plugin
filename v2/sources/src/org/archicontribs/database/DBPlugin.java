@@ -166,7 +166,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
  * v2.1 : 11/03/2018				Fill in the online help
- *                                      Bug fixes:
+ *                                  Bug fixes:
  * 										Solve plugin initialization failure that occured some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
  *                                      Reduce memory leak
@@ -182,7 +182,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *											New option to empty the database before the export
  *											New option to specialize relationships
  *                                      Rewrite version management (check timestamps in addition of the version number)
- *                                      Remove the name from view objects and connections checksums
+ *                                      Remove the name, the documentation and the properties from view objects and connections checksums
  *                                      Add an option to compare the model from the database before exporting it
  *									Get history from database:
  *										Allows to get history for diagrams, canvas and sketches

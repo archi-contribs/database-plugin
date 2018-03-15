@@ -88,7 +88,10 @@ public class DBChecksum {
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
 		        !(eObject instanceof IDiagramModelConnection) )	    append(checksum, "name", ((INameable)eObject).getName());
 		
-		if ( eObject instanceof IDocumentable )						append(checksum, "documentation", ((IDocumentable)eObject).getDocumentation());
+		if ( eObject instanceof IDocumentable  &&
+		        !(eObject instanceof IDiagramModelArchimateObject) &&
+		        !(eObject instanceof IDiagramModelConnection) )		append(checksum, "documentation", ((IDocumentable)eObject).getDocumentation());
+		
 		if ( eObject instanceof IJunction )							append(checksum, "junction type", ((IJunction)eObject).getType());
 		if ( eObject instanceof IArchimateRelationship ) {			append(checksum, "source id", ((IArchimateRelationship)eObject).getSource().getId());
 																	append(checksum, "target id", ((IArchimateRelationship)eObject).getTarget().getId());
@@ -144,10 +147,12 @@ public class DBChecksum {
 		}
 		if ( eObject instanceof IIconic )							append(checksum, "image position", ((IIconic)eObject).getImagePosition());
 		if ( eObject instanceof INotesContent )						append(checksum, "notes", ((INotesContent)eObject).getNotes());
-		if ( eObject instanceof IProperties ) {						for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
+		if ( eObject instanceof IProperties &&
+		        !(eObject instanceof IDiagramModelArchimateObject) &&
+		        !(eObject instanceof IDiagramModelConnection) )	{	for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
 																		append(checksum, "property key", prop.getKey());
 																		append(checksum, "property value", prop.getValue());
-																	}
+		        													}
 		}
 		
 		return calculateChecksum(checksum);
