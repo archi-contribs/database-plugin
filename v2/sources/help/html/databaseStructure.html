@@ -57,17 +57,17 @@
       <li><a href="#1.1">1.1. database_version</a></li>
       <li><a href="#1.2">1.2. models</a><li>
       <li><a href="#1.3">1.3. folders</a></li>
-      <li><a href="#1.4">1.4. elements</a></li>
-      <li><a href="#1.5">1.5. relationships</a></li>
-      <li><a href="#1.6">1.6. views</a></li>
-      <li><a href="#1.7">1.7. views_objects</a></li>
-      <li><a href="#1.8">1.8. views_connections</a></li>
-      <li><a href="#1.9">1.9. folders_in_model</a></li>
-      <li><a href="#1.10">1.10. elements_in_model</a></li>
-      <li><a href="#1.11">1.11. relationships_in_model</a></li>
-      <li><a href="#1.12">1.12. views_in_model</a></li>
-      <li><a href="#1.13">1.13. images</a></li>
-      <li><a href="#1.14">1.14. bendpoints</a></li>
+      <li><a href="#1.4">1.4. folders_in_model</a></li>
+      <li><a href="#1.5">1.5. elements</a></li>
+      <li><a href="#1.6">1.6. elements_in_model</a></li>
+      <li><a href="#1.7">1.7. relationships</a></li>
+      <li><a href="#1.8">1.8. relationships_in_model</a></li>
+      <li><a href="#1.9">1.9. views</a></li>
+      <li><a href="#1.10">1.10. views_in_model</a></li>
+      <li><a href="#1.11">1.11. views_objects</a></li>
+      <li><a href="#1.12">1.12. views_connections</a></li>
+      <li><a href="#1.13">1.13. bendpoints</a></li>
+      <li><a href="#1.14">1.14. images</a></li>
       <li><a href="#1.15">1.15. properties</a></li>
    </ul></li>
 </ul>
@@ -82,7 +82,7 @@ This table allows the plugin to quickly check that the database has got the requ
 It contains one line per plugin that has got tables in this database (this will allow several plugins to share the same database in the future):
 <ul>
    <li><b>archi_plugin</b> [varchar not null]: the name of the plugin ("DatabasePlugin" for instance)</li>
-   <li><b>version</b> [int not null]: the version of the database model</li>
+   <li><b>version</b> [int not null]: the version of the database model. So far, the datamodel version must be <b>204</b></li>
 </ul>
 Each time the plugin connects to a database, it checks the existence and the content of this table.
 <ul>
@@ -108,6 +108,7 @@ This table contains the models metadata that are stored in the database. There i
    <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
    <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the model's id, name, release note, purpose and <a href="#1.15">properties</a>.</li> 
 </ul>
+Models may have <a href="#1.15">properties</a>.
 
 <h4 id="1.3" style="color: blue; text-decoration: underline;">1.3. folders</h4>
 This table contains the folders that are stored in the database. There is one row per folder and per version:
@@ -122,9 +123,22 @@ This table contains the folders that are stored in the database. There is one ro
    <li><b>created_on</b> [timestamp not null]: the date and time when the version of the folder has been exported to the database</li>
    <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the folder's id, name, type, root_type, name, documentation, and <a href="#1.15">properties</a>.</li>
 </ul>
-This table does not link the folders to any model (c.f. <a href="#1.9">1.9. folders_in_model</a>)
+This table does not link the folders to any model (c.f. <a href="#1.4">1.4. folders_in_model</a>).<br>
+Folders may have <a href="#1.15">properties</a>.
+
+<h4 id="1.4" style="color: blue; text-decoration: underline;">1.4. folders_in_model</h4>
+This is a relation table that permits to know which folders is included in which model (a folder may be shared between several models). There is one row per folder and per model:
+<ul>
+   <li><b>fim_id</b> [int autoincrement]: The id of the row</li>
+   <li><b>folder_id</b> [varchar not null]: the id of the folder</li>
+   <li><b>folder_version</b> [int not null]: the version of the folder</li>
+   <li><b>parent_folder_id</b> [varchar]: the id of the folder's parent in that model (null if the folder is a root folder)</li>
+   <li><b>model_id</b> [varchar not null]: the id of the model that contains the folder</li>
+   <li><b>model_version</b> [int not null]: the version of the model that contains the folder</li>
+   <li><b>rank</b> [int not null]: allows to import the folders in the same order than they've been exported</li>
+</ul> 
    
-<h4 id="1.4" style="color: blue; text-decoration: underline;">1.4. elements</h4>
+<h4 id="1.5" style="color: blue; text-decoration: underline;">1.5. elements</h4>
 This table contains the elements that are stored in the database. There is one row per element and per version:
 <ul>
    <li><b>id</b> [varchar not null]: the id of the element</li>
@@ -141,9 +155,22 @@ This table contains the elements that are stored in the database. There is one r
    <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
    <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, type and <a href="#1.15">properties</a>.</li>
 </ul>
-This table does not link the elements to any model (c.f. <a href="#1.10">1.10. elements_in_model</a>)
+This table does not link the elements to any model (c.f. <a href="#1.6">1.6. elements_in_model</a>).<br>
+Elements may have <a href="#1.15">properties</a>.
 
-<h4 id="1.5" style="color: blue; text-decoration: underline;">1.5. relationships</h4>
+<h4 id="1.6" style="color: blue; text-decoration: underline;">1.6. elements_in_model</h4>
+This is a relation table that permits to know which elements is included in which model (an element may be shared between several models)). There is one row per element and per model:
+<ul>
+   <li><b>eim_id</b> [int autoincrement]: The id of the row</li>
+   <li><b>element_id</b> [varchar not null]: the id of the element</li>
+   <li><b>element_version</b> [int not null]: the version of the element</li>
+   <li><b>parent_folder_id</b> [varchar not null]: the id of the folder where the element sits in this model</li>
+   <li><b>model_id</b> [varchar not null]: the id of the model that contains the element</li>
+   <li><b>model_version</b> [int not null]: the version of the model that contains the element</li>
+   <li><b>rank</b> [int not null]: allows to import the elements in the same order than they've been exported</li>
+</ul> 
+
+<h4 id="1.7" style="color: blue; text-decoration: underline;">1.7. relationships</h4>
 This table contains the relationships that are stored in the database. There is one row per relationship and per version:
 <ul>
    <li><b>id</b> [varchar not null]: the id of the relationship</li>
@@ -163,9 +190,22 @@ This table contains the relationships that are stored in the database. There is 
    <li><b>deleted_on</b> [varchar not null]: not used (yet)</li>
    <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, source_id, target_id, strength, access_type, and <a href="#1.15">properties</a>.</li>
 </ul>
-This table does not link the relationships to any model (c.f. <a href="#1.11">1.11. relationships_in_model</a>)
+This table does not link the relationships to any model (c.f. <a href="#1.8">1.8. relationships_in_model</a>)<br>
+Relationships may have <a href="#1.15">properties</a>.
 
-<h4 id="1.6" style="color: blue; text-decoration: underline;">1.6. views</h4>
+<h4 id="1.8" style="color: blue; text-decoration: underline;">1.8. relationships_in_model</h4>
+This is a relation table that permits to know which relationships is included in which model (a relationship may be shared between several models)). There is one row per relationship and per model:
+<ul>
+   <li><b>rim_id</b> [int autoincrement]: The id of the row</li>
+   <li><b>relationship_id</b> [varchar not null]: the id of the relationship</li>
+   <li><b>relationship_version</b> [int not null]: the version of the relationship</li>
+   <li><b>parent_folder_id</b> [varchar not null]: the id of the folder where the relationship sits in this model</li>
+   <li><b>model_id</b> [varchar not null]: the id of the model that contains the relationship</li>
+   <li><b>model_version</b> [int not null]: the version of the model that contains the relationship</li>
+   <li><b>rank</b> [int not null]: allows to import the relationships in the same order than they've been exported</li>
+</ul> 
+
+<h4 id="1.9" style="color: blue; text-decoration: underline;">1.9. views</h4>
 This table contains the views (diagrams, canvas and sketchs) that are stored in the database. There is one row per view and per version:
 <ul>
    <li><b>id</b> [varchar not null]: the id of the view</li>
@@ -182,40 +222,117 @@ This table contains the views (diagrams, canvas and sketchs) that are stored in 
    <li><b>viewpoint</b> [varchar]: the viewpoint of the view (relevant if class is "ArchimateDiagramModel").</li>
    <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with element's id, class, name, documentation, source_id, target_id, strength, access_type, and <a href="#1.15">properties</a>.</li>
 </ul>
-This table does not link the views to any model (c.f. <a href="#1.12">1.12. views_in_model</a>)
+This table does not link the views to any model (c.f. <a href="#1.10">1.10. views_in_model</a>)/<br>
+Views may have <a href="#1.15">properties</a>.
 
-<h4 id="1.7" style="color: blue; text-decoration: underline;">1.7. views_objects</h4>
-This table contains the graphical objects (representation of elements, notes, ...) that are stored in the database. There is one line per graphical object and per version.<br>
-View objects can therefore be linked to their corresponding elements (column element_id) or to an image (column image_path).<br>
-A view object cannot exist outside a container which can be a view or another view object (column container_id).<br>
-They are sorted (column rank) to guarantee they are imported in the same order as they are exported (to maintain which one is above which one).
+<h4 id="1.10" style="color: blue; text-decoration: underline;">1.10. views_in_model</h4>
+This is a relation table that permits to know which views is included in which model (a view may be shared between several models)). There is one row per view and per model:
+<ul>
+   <li><b>vim_id</b> [int autoincrement]: The id of the row</li>
+   <li><b>view_id</b> [varchar not null]: the id of the view</li>
+   <li><b>view_version</b> [int not null]: the version of the view</li>
+   <li><b>parent_folder_id</b> [varchar not null]: the id of the folder where the view sits in this model</li>
+   <li><b>model_id</b> [varchar not null]: the id of the model that contains the view</li>
+   <li><b>model_version</b> [int not null]: the version of the model that contains the view</li>
+   <li><b>rank</b> [int not null]: allows to import the views in the same order than they've been exported</li>
+</ul> 
 
-<h4 id="1.8" style="color: blue; text-decoration: underline;">1.8. views_connections</h4>
-This table contains the graphical connections (representation of relationships) that are stored in the database. There is one line per graphical connection and per version.<br>
-View connections can therefore be linked to their corresponding relationship (column relationship_id), to their source and target that can be either elements or relationships (columns source_object_id and target_object_id) and of course to bendpoints.<br>
-A view connections cannot exist outside a container which can be a view or a view object (column container_id).<br>
-They are sorted (column rank) to guarantee they are imported in the same order as they are exported (to maintain which one is above which one).  
+<h4 id="1.11" style="color: blue; text-decoration: underline;">1.11. views_objects</h4>
+This table contains the graphical objects (representation of elements, notes, ...) that are present in the model views. There is one line per graphical object and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: id of the view object</li>
+   <li><b>version</b> [int not null]: version of the view object</li>
+   <li><b>class</b> [varchar not null]: class of the view object</li>
+   <li><b>view_id</b> [varchar not null]: id of the view that contains the view object</li>
+   <li><b>view_version</b> [int not null]: version of the view that contains the view object</li>
+   <li><b>container_id</b> [varchar not null]: id of the container that directly contains the view object (view objects can contain other view objects)</li>
+   <li><b>element_id</b> [varchar]: id of the element that the view object refers to (null if the view object does not refer to any element)</li>
+   <li><b>element_version</b> [int]: version of the element that the view object refers to (null if the view object does not refer to any element)</li>
+   <li><b>diagram_ref_id</b> [varchar]: Id of the diagram reference (if class is DiagramReference)</li>
+   <li><b>border_color</b> [varchar]: color of the view object border</li>
+   <li><b>border_type</b> [int]: type of the view object border</li>
+   <li><b>content</b> [clob]: text content of the view object (if class is CanvasModelBlock or CanvasModelSticky))</li>
+   <li><b>documentation</b> [clob]: documentation of the view object (in reality, this is the documentation of the element the object refers to, it is present in this table to ease human beings to know which object it is)</li>
+   <li><b>hint_content</b> [clob]: the hint content of the view object</li>
+   <li><b>hint_title</b> [varchar]: the hint title of the view object</li>
+   <li><b>is_locked</b> [boolean]: the lock status of the view object</li>
+   <li><b>image_path</b> [varchar]: the path of the image displayed inside the view object</li>
+   <li><b>image_position</b> [int]: the path of the image in the view object</li>
+   <li><b>line_color</b> [varchar]: the line color of the view object</li>
+   <li><b>line_width</b> [int]: the line width of the view object</li>
+   <li><b>fill_color</b> [varchar]: the background color of the view object</li>
+   <li><b>font</b> [varchar]: the font used to display the view object label</li>
+   <li><b>font_color</b> [varchar]: the font color used to display the view object label</li>
+   <li><b>name</b> [varchar]: the name of the view object (in reality, this is the name of the element the object refers to, it is present in this table to ease human beings to know which object it is)</li>
+   <li><b>notes</b> [clob]: the notes of the view object</li>
+   <li><b>source_connection</b> [clob]: the comma separated list of <a href="#1.12">1.12. views_connections</a> that source this view object</li>
+   <li><b>target_connection</b> [clob]: the comma separated list of <a href="#1.12">1.12. views_connections</a> that target this view object</li>
+   <li><b>text_alignment</b> [int]: Alignment of the text in the view object</li>
+   <li><b>text_position</b> [int]: Position of the text in the view object</li>
+   <li><b>type</b> [int]: type of the view object</li>
+   <li><b>x</b> [int]: x location of the view object in its container</li>
+   <li><b>y</b> [int]: y location of the view object in its container</li>
+   <li><b>width</b> [int]: width of the view object</li>
+   <li><b>height</b> [int]: height og the view object</li>
+   <li><b>rank</b> [int]: allows to import the view objects in the same order than they've been exported</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the view object fields (excluding the name and the documentation that is related to the referred element)</li>
+</ul>
 
-<h4 id="1.9" style="color: blue; text-decoration: underline;">1.9. folders_in_model</h4>
-This is a relation table that permits to know which folders is included in which model. At this stage, a folder can be included in a unique model.
+<h4 id="1.12" style="color: blue; text-decoration: underline;">1.12. views_connections</h4>
+This table contains the graphical connections (representation of relationships) that are present in the model views. There is one line per graphical connection and per version:
+<ul>
+   <li><b>id</b> [varchar not null]: id of the view connection</li>
+   <li><b>version</b> [int not null]: version of the view connection</li>
+   <li><b>class</b> [varchar not null]: class of the view connection</li>
+   <li><b>view_id</b> [varchar not null]: id of the view that contains the view connection</li>
+   <li><b>view_version</b> [int not null]: version of the view that contains the view connection</li>
+   <li><b>container_id</b> [varchar not null]: id of the container that directly contains the view connection (view connections can be contained by a view, but also by <a href="#1.11">1.11. views_objects</a>)</li>
+   <li><b>relationship_id</b> [varchar]: id of the element that the view connection refers to</li>
+   <li><b>relationship_version</b> [int]: version of the relationship that the view connection refers to</li>
+   <li><b>documentation</b> [clob]: documentation of the view connection (in reality, this is the name of the relationship the object refers to, it is present in this table to ease human beings to know which object it is)</li>
+   <li><b>is_locked</b> [boolean]: the lock status of the view connection</li>
+   <li><b>line_color</b> [varchar]: the line color of the view connection</li>
+   <li><b>line_width</b> [int]: the line width of the view connection</li>
+   <li><b>font</b> [varchar]: the font used to display the view connection label</li>
+   <li><b>font_color</b> [varchar]: the font color used to display the view connection label</li>
+   <li><b>name</b> [varchar]: the name of the view object (in reality, this is the name of the relationship the object refers to, it is present in this table to ease human beings to know which object it is)</li>
+   <li><b>source_connection</b> [clob]: the comma separated list of views connections that source this view connection</li>
+   <li><b>target_connection</b> [clob]: the comma separated list of views connections that target this view connection</li>
+   <li><b>text_position</b> [int]: Position of the text in the view connection</li>
+   <li><b>type</b> [int]: type of the view object</li>
+   <li><b>rank</b> [int]: allows to import the view connections in the same order than they've been exported</li>
+   <li><b>checksum</b> [varchar not null]: a md5 checksum calculated with the view connection fields (excluding the name and the documentation that are related to the referred relationship)</li>
+</ul>
+View connections are compound of <a href="#1.13">1.13. bendpoints</a>.
 
-<h4 id="1.10" style="color: blue; text-decoration: underline;">1.10. elements_in_model</h4>
-This is a relation table that permits to know which elements is included in which model. An element can be included in several models.
+<h4 id="1.13" style="color: blue; text-decoration: underline;">1.13. bendpoints</h4>
+<a href="#1.12">Views connections</a> are compound of bendpoints. There is one row per bendpoint and per view connection:
+<ul>
+   <li><b>parent_id</b> [varchar not null]: id of the <a href="#1.12">View connection</a></li>
+   <li><b>parent_version</b> [int not null]: version of the <a href="#1.12">View connection</a></li>
+   <li><b>rank</b> [int]: allows to import the bendpoints in the same order than they've been exported</li>
+   <li><b>start_x</b> [int]: x location of the point starting the segment</li>
+   <li><b>start_y</b> [int]: y location of the point starting the segment</li>
+   <li><b>end_x</b> [int]: x location of the point ending the segment</li>
+   <li><b>end_y</b> [int]: y location of the point ending the segment</li>
+</ul>
 
-<h4 id="1.11" style="color: blue; text-decoration: underline;">1.11. relationships_in_model</h4>
-This is a relation table that permits to know which relationships is included in which model. A relationship can be included in several models.
-
-<h4 id="1.12" style="color: blue; text-decoration: underline;">1.12. views_in_model</h4>
-This is a relation table that permits to know which views is included in which model. A view can be included in several models.
-
-<h4 id="1.13" style="color: blue; text-decoration: underline;">1.13. images</h4>
-This table contains the images stored in the database. There is one line per image. 
-
-<h4 id="1.14" style="color: blue; text-decoration: underline;">1.14. bendpoints</h4>
-This table contains the bendpoints stored in the database. 
+<h4 id="1.14" style="color: blue; text-decoration: underline;">1.14. images</h4>
+This table contains the images stored in the database. There is one line per image:
+<ul>
+   <li><b>path</b> [varchar]: path of the image</li>
+   <li><b>image</b> [blob]: image itself (format jpg, png, bmp, gif, tiff, ... depending on the image)</li>
+   <li><b>checksum</b> [varchar]: checksum of the image (not used at the moment as the path is unique for a given image)</li> 
+</ul>
 
 <h4 id="1.15" style="color: blue; text-decoration: underline;">1.15. properties</h4>
-This table maintains the properties of the models and their components. 
-
+Models, folders, elements, relationships and views may have properties. There is one row per property and per parent:
+<ul>
+   <li><b>parent_id</b> [varchar not null]: id of the model component that owns the property (may be the model, a folder, an element, a relationship or a view)</li>
+   <li><b>parent_version</b> [int not null]: version of the component that owns the property</li>
+   <li><b>rank</b> [int]: allows to import the properties in the same order than they've been exported</li>
+   <li><b>name</b> [varchar]: name of the property</li>
+   <li><b>value</b> [varchar]: value of the property</li>
+</ul>
 </body>
 </html>
