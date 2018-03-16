@@ -4,11 +4,84 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
 	<title>Model export</title>
+	<style>
+		.image {
+			border: 1px solid #0;
+			display: block;
+			margin-left: auto;
+			margin-right: auto;
+			box-shadow: 10px 10px 5px #ccc;
+			-moz-box-shadow: 10px 10px 5px #ccc;
+			-webkit-box-shadow: 10px 10px 5px #ccc;
+			-khtml-box-shadow: 10px 10px 5px #ccc;
+		}
+		li.selected {
+			background: url('../img/selected.png') no-repeat left top;
+			padding-left: 20px;
+			display: block;
+		}
+		li.not_selected {
+			background: url('../img/not_selected.png') no-repeat left top;
+			padding-left: 20px;
+			display: block;
+		}
+		#toc {
+		    background: #f9f9f9 none repeat scroll 0 0;
+		    border: 1px solid #aaa;
+		    display: table;
+		    font-size: 95%;
+		    margin-bottom: 1em;
+		    padding: 20px;
+		    width: auto;
+		    margin-left: 10%;
+		}
+		.toc_title {
+		    font-weight: 700;
+		    text-align: center;
+		    color: blue;
+		    text-decoration: underline;
+		}
+		#toc li, #toc ul, #toc ul li {
+		    list-style: outside none none !important;
+		}
+	</style>
 </head>
 
 <body>
-<h1>Database plugin</h1>
-<h2>Model export</h2>
-Please enter your text here.
+<h1 style="color: blue; text-decoration: underline;">Database structure</h1>
+<br>
+<div id="toc">
+<p class="toc_title">Table of contents</p>
+<ul class="toc_list">
+   <li><a href="#1">1. The graphical interface</a><ul>
+      <li><a href="#1.1">1.1. The database selection</a></li>
+      <li><a href="#1.2">1.2. The versions of the model</a><li>
+      <li><a href="#1.3">1.3. The model's components</a></li>
+   </ul></li>
+   <li><a href="#2">2. The export process</a><ul>
+      <li><a href="#2.1">2.1. The standalone mode</a></li>
+      <li><a href="#2.2">1.2. The collaborative mode</a><li>
+   </ul></li>
+</ul>
+</div>
+<br>
+This page describes the export of a model in a database.<br>
+<img class="image" src="../img/export-gui.jpg"><br>
+<br>
+<h3 id="1" style="color: blue; text-decoration: underline;">1. The graphical interface</h3>
+The right hand-side of the export window is split in 3 zones:
+<ul>
+   <li>The database selection</li>
+   <li>The versions of the model</li>
+   <li>The model's components</li>
+</ul>
+<br>
+<h4 id="1.1" style="color: blue; text-decoration: underline;">1.1 The database selection</h4>
+
+
+<h4 id="1.2" style="color: blue; text-decoration: underline;">1.2 The versions of the model</h4>
+
+
+<h4 id="1.3" style="color: blue; text-decoration: underline;">1.3 The model's components</h4>
 </body>
 </html>
