@@ -1150,7 +1150,7 @@ public class DBGuiImportComponent extends DBGui {
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
 		for (ComponentLabel label: this.allElementLabels) {
-			if ( label.isSelected ) {
+			if ( (boolean)label.getLabel().getData("isSelected") ) {
 				inList.append(inList.length()==0 ? "?" : ", ?");
 				classList.add(label.getElementClassname());
 			}
@@ -1411,40 +1411,45 @@ public class DBGuiImportComponent extends DBGui {
 		this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
 	}
 
-	private class ComponentLabel extends Label {
-		public boolean isSelected = false;
+	private class ComponentLabel {
+	    private Label label;
 
 		ComponentLabel(Composite parent, String toolTip) {
-			super(parent, SWT.NONE);
-			setSize(100,  100);
-			setToolTipText(toolTip);
-			setImage(DBArchimateFactory.getImage(getElementClassname()));
-			addPaintListener(this.redraw);
-			addListener(SWT.MouseUp, DBGuiImportComponent.this.getElementsListener); 
+			this.label = new Label(parent, SWT.NONE);
+			this.label.setSize(100,  100);
+			this.label.setToolTipText(toolTip);
+			this.label.setImage(DBArchimateFactory.getImage(getElementClassname()));
+			this.label.addPaintListener(this.redraw);
+			this.label.addListener(SWT.MouseUp, DBGuiImportComponent.this.getElementsListener);
+			this.label.setData("isSelected", false);
 		}
 
 		private PaintListener redraw = new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent event)
 			{
-				if ( ComponentLabel.this.isSelected )
-					setBackground(GREY_COLOR);
+				if ( (boolean)ComponentLabel.this.getLabel().getData("isSelected") )
+				    ComponentLabel.this.getLabel().setBackground(GREY_COLOR);
 				//event.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
 				else
-					setBackground(null);
+				    ComponentLabel.this.getLabel().setBackground(null);
 			}
 		};
 
 		public String getElementClassname() {
-			return getToolTipText().replaceAll(" ",  "");
+			return this.label.getToolTipText().replaceAll(" ",  "");
+		}
+		
+		public Label getLabel() {
+		    return this.label;
 		}
 	}
 
 	Listener getElementsListener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
-			ComponentLabel label = (ComponentLabel)event.widget;
-			label.isSelected = !label.isSelected;
+			Label label = (Label)event.widget;
+			label.setData("isSelected", !(boolean)label.getData("isSelected"));
 			label.redraw();
 			try {
 				getElements();
