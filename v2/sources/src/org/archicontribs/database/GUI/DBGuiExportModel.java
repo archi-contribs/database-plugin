@@ -364,7 +364,7 @@ public class DBGuiExportModel extends DBGui {
         
         this.lblModel = new Label(this.grpComponents, SWT.CENTER);
         this.lblModel.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblModel.setText("Model");
+        this.lblModel.setText("Archi");
         fd = new FormData();
         fd.top = new FormAttachment(0, -8);
         fd.left = new FormAttachment(33, 0);
@@ -755,8 +755,7 @@ public class DBGuiExportModel extends DBGui {
         
         /* * * * * */
         this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.WRAP);
-        this.btnCompareModelToDatabase.setVisible(!DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
-        this.btnCompareModelToDatabase.setText("Compare model to database");
+        this.btnCompareModelToDatabase.setText("Compare model to\nthe database");
         fd = new FormData(26,18);
         fd.top = new FormAttachment(this.txtTotalViewConnections, 15, SWT.TOP);
         fd.left = new FormAttachment(this.lblDatabaseUpdated, 0);
@@ -866,7 +865,7 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
-        this.btnCompareModelToDatabase.setVisible(!isNeo4j && !DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
+        this.btnCompareModelToDatabase.setVisible(!isNeo4j);
         
 		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
@@ -944,8 +943,6 @@ public class DBGuiExportModel extends DBGui {
 		this.txtNewViewsInModel.setText("");			this.txtUpdatedViewsInModel.setText("");			this.txtNewViewsInDatabase.setText("");				this.txtUpdatedViewsInDatabase.setText("");				this.txtConflictingViews.setText("");
 		
 		this.btnDoAction.setText("Export");
-		
-        this.btnCompareModelToDatabase.setVisible(!isNeo4j && !DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport"));
 	}
 	
 	/**

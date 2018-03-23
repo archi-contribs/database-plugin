@@ -29,6 +29,9 @@ import org.archicontribs.database.GUI.DBGui;
  */
 public class DBLogger {
 	static private boolean initialised = false;
+	private String topCornerString = (char)0x250c+" ";
+	private String verticalString = (char)0x2502+" ";
+	private String bottomCornerString = (char)0x2514+" ";
 	private Logger logger;
 
 	public <T> DBLogger(Class<T> clazz) {
@@ -94,11 +97,11 @@ public class DBLogger {
 			if ( lines.length == 1 ) {
 				this.logger.log(className, level, "- "+message.replace("\r",""), t);
 			} else {
-				this.logger.log(className, level, "┌ "+lines[0].replace("\r",""), null);
+				this.logger.log(className, level, this.topCornerString+lines[0].replace("\r",""), null);
 				for ( int i=1 ; i < lines.length-1 ; ++i) {
-					this.logger.log(className, level, "│ "+lines[i].replace("\r",""), null);
+					this.logger.log(className, level, this.verticalString+lines[i].replace("\r",""), null);
 				}
-				this.logger.log(className, level, "└ "+lines[lines.length-1].replace("\r",""), t);
+				this.logger.log(className, level, this.bottomCornerString+lines[lines.length-1].replace("\r",""), t);
 			}
 		}
 	}
