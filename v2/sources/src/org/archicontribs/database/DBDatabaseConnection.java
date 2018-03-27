@@ -3507,7 +3507,11 @@ public class DBDatabaseConnection {
 	}
 
 	public boolean exportImage(String path, byte[] image) throws SQLException, NoSuchAlgorithmException {
-		// TODO : remove the checksum - Archi does not allow to update an image.
+	    // we do not export null images (should never happen, but it sometimes does)
+	    if ( image == null ) 
+	        return true;
+	    
+	    // TODO : remove the checksum - Archi does not allow to update an image.
 		String checksum = DBChecksum.calculateChecksum(image);
 		boolean exported = false;
 
