@@ -18,10 +18,10 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBDatabaseExportConnection;
-import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.connection.DBDatabaseExportConnection;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.ArchimateModel;

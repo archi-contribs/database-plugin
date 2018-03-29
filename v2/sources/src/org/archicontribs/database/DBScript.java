@@ -2,6 +2,8 @@ package org.archicontribs.database;
 
 import java.util.List;
 
+import org.archicontribs.database.connection.DBDatabaseConnection;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;

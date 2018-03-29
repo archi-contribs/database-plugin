@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database;
+package org.archicontribs.database.connection;
 
 import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
@@ -15,6 +15,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;

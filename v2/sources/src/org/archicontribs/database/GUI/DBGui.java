@@ -21,11 +21,11 @@ import java.util.Stack;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.Priority;
-import org.archicontribs.database.DBDatabaseConnection;
 import org.archicontribs.database.DBDatabaseEntry;
-import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.connection.DBDatabaseConnection;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;

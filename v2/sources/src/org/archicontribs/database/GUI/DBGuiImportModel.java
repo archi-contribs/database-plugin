@@ -14,9 +14,9 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;

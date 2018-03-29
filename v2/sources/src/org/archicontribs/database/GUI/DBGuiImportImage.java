@@ -6,9 +6,9 @@
 package org.archicontribs.database.GUI;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.model.ArchimateModel;
 import org.eclipse.nebula.widgets.gallery.DefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;

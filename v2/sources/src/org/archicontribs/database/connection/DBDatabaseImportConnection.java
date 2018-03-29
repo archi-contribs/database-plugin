@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database;
+package org.archicontribs.database.connection;
 
 import java.io.ByteArrayInputStream;
 import java.sql.ResultSet;
@@ -16,6 +16,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+
+import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
