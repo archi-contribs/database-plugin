@@ -103,7 +103,7 @@ public class DBGui {
 	
 	protected List<DBDatabaseEntry> databaseEntries;
 	protected DBDatabaseEntry selectedDatabase;
-	private DBDatabaseConnection connection;
+	private DBDatabaseImportConnection connection;
 	
 	protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
 	protected Shell dialog;
@@ -577,7 +577,7 @@ public class DBGui {
 		
 			// then we connect to the database.
 		try {
-			this.connection = new DBDatabaseConnection(this.selectedDatabase);
+			this.connection = new DBDatabaseImportConnection(this.selectedDatabase);
 			//if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
 			if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
 		} catch (Exception err) {
@@ -1021,8 +1021,7 @@ public class DBGui {
 		// we get the database version of the component
         HashMap<String, Object> databaseObject;
 		try {
-		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.connection);
-			databaseObject = importConnection.getObjectFromDatabase(memoryObject, memoryObjectversion);
+			databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
 			//TODO: shall we exit to the status page with status=error ???

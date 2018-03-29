@@ -70,7 +70,7 @@ public class DBDatabaseConnection {
 	/**
 	 * Opens a connection to a JDBC database using all the connection details
 	 */
-	public DBDatabaseConnection(DBDatabaseEntry databaseEntry) throws ClassNotFoundException, SQLException {
+	protected DBDatabaseConnection(DBDatabaseEntry databaseEntry) throws ClassNotFoundException, SQLException {
 		assert(databaseEntry != null);
 		this.databaseEntry = databaseEntry;
 		this.schema = databaseEntry.getSchemaPrefix();
