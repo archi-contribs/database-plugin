@@ -36,7 +36,7 @@ public class DBScript {
             throw new RuntimeException("Cannot find database \""+databaseName+"\"");
         
         // we connect to the database
-        DBDatabaseConnection connection = new DBDatabaseConnection(databaseEntry);
+        DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry);
         
         // we check if we are connected to the database
         if ( !connection.isConnected() )

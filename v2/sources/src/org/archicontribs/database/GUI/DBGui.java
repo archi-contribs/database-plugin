@@ -23,6 +23,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Priority;
 import org.archicontribs.database.DBDatabaseConnection;
 import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.IDBMetadata;
@@ -102,7 +103,7 @@ public class DBGui {
 	
 	protected List<DBDatabaseEntry> databaseEntries;
 	protected DBDatabaseEntry selectedDatabase;
-	protected DBDatabaseConnection connection;
+	private DBDatabaseConnection connection;
 	
 	protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
 	protected Shell dialog;
@@ -481,7 +482,7 @@ public class DBGui {
 		fd.right = new FormAttachment(this.btnDoAction, -20);
 		this.radioOption2.setLayoutData(fd);
 		this.radioOption2.addListener(SWT.Selection, new Listener() { @Override
-        public void handleEvent(Event event) { if ( DBGui.this.connection.isConnected() && DBGui.this.radioOption1.getSelection() ) connectedToDatabase(false); } });
+        public void handleEvent(Event event) { if ( getDatabaseConnection().isConnected() && DBGui.this.radioOption1.getSelection() ) connectedToDatabase(false); } });
 		
 		this.radioOption1 = new Button(this.compoBottom, SWT.RADIO);
 		this.radioOption1.setBackground(COMPO_BACKGROUND_COLOR);
@@ -491,7 +492,7 @@ public class DBGui {
 		fd.right = new FormAttachment(this.radioOption2, -10);
 		this.radioOption1.setLayoutData(fd);
 		this.radioOption1.addListener(SWT.Selection, new Listener() { @Override
-        public void handleEvent(Event event) { if ( DBGui.this.connection.isConnected() && DBGui.this.radioOption2.getSelection() ) connectedToDatabase(false); } });
+        public void handleEvent(Event event) { if ( getDatabaseConnection().isConnected() && DBGui.this.radioOption2.getSelection() ) connectedToDatabase(false); } });
 		
 		this.lblOption = new Label(this.compoBottom, SWT.NONE);
 		this.lblOption.setBackground(COMPO_BACKGROUND_COLOR);
@@ -1020,7 +1021,8 @@ public class DBGui {
 		// we get the database version of the component
         HashMap<String, Object> databaseObject;
 		try {
-			databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
+		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.connection);
+			databaseObject = importConnection.getObjectFromDatabase(memoryObject, memoryObjectversion);
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
 			//TODO: shall we exit to the status page with status=error ???
@@ -1344,13 +1346,17 @@ public class DBGui {
 	    }
 	}
 	
-	   public static void decrementText(Text txt) {
-	        if ( txt != null ) {
-	            try {
-	                txt.setText(String.valueOf(Integer.valueOf(txt.getText()) - 1));
-	            } catch (@SuppressWarnings("unused") Exception ign) {
-	                // ignore
-	            }
-	        }
-	    }
+    public static void decrementText(Text txt) {
+        if ( txt != null ) {
+            try {
+                txt.setText(String.valueOf(Integer.valueOf(txt.getText()) - 1));
+            } catch (@SuppressWarnings("unused") Exception ign) {
+                // ignore
+            }
+        }
+    }
+    
+    protected DBDatabaseConnection getDatabaseConnection() {
+        return this.connection;
+    }
 }

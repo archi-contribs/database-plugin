@@ -220,7 +220,7 @@ public class DBGuiComponentHistory extends DBGui {
 		    return ;
 		}
 	
-		try ( ResultSet result = this.connection.select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId()) ) {
+		try ( ResultSet result = getDatabaseConnection().select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId()) ) {
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(this.tblVersions, SWT.NULL);
 			    tableItem.setText(0, String.valueOf(result.getInt("version")));

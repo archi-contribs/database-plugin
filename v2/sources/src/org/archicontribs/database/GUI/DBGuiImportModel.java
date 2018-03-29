@@ -14,6 +14,7 @@ import java.util.Hashtable;
 import java.util.List;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
@@ -50,6 +51,9 @@ public class DBGuiImportModel extends DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
 
     private ArchimateModel modelToImport;
+    
+    DBDatabaseImportConnection importConnection;
+    
     Table tblModels;
     Table tblModelVersions;
     Text txtFilterModels;
@@ -155,7 +159,9 @@ public class DBGuiImportModel extends DBGui {
      * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
      */
     @Override
-    protected void connectedToDatabase(boolean ignore) {	
+    protected void connectedToDatabase(boolean ignore) {
+        this.importConnection = new DBDatabaseImportConnection(getDatabaseConnection());
+        
         this.compoRightBottom.setVisible(true);
         this.compoRightBottom.layout();
         
@@ -204,7 +210,7 @@ public class DBGuiImportModel extends DBGui {
                 DBGuiImportModel.this.tblModels.removeAll();
                 DBGuiImportModel.this.tblModelVersions.removeAll();
                 try {
-                    for (Hashtable<String, Object> model : DBGuiImportModel.this.connection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%")) {
+                    for (Hashtable<String, Object> model : DBGuiImportModel.this.importConnection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%")) {
                         TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.BORDER);
                         tableItem.setText((String)model.get("name"));
                         tableItem.setData("id", model.get("id"));
@@ -231,7 +237,7 @@ public class DBGuiImportModel extends DBGui {
                	DBGuiImportModel.this.tblModelVersions.removeAll();
                 	
             	try {
-                    for (Hashtable<String, Object> version : DBGuiImportModel.this.connection.getModelVersions((String) DBGuiImportModel.this.tblModels.getSelection()[0].getData("id")) ) {
+                    for (Hashtable<String, Object> version : DBGuiImportModel.this.importConnection.getModelVersions((String) DBGuiImportModel.this.tblModels.getSelection()[0].getData("id")) ) {
                     	if ( DBGuiImportModel.this.tblModelVersions.getItemCount() == 0 ) {
 	                    	// if the first line, then we add the "latest version"
 	        				TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModelVersions, SWT.NULL);
@@ -687,44 +693,44 @@ public class DBGuiImportModel extends DBGui {
         try {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
             popup("Please wait while getting the model metadata ...");
-            int importSize = this.connection.importModelMetadata(this.modelToImport);
+            int importSize = this.importConnection.importModelMetadata(this.modelToImport);
             closePopup();
             setProgressBarMinAndMax(0, importSize);
 
-            this.txtTotalElements.setText(String.valueOf(this.connection.countElementsToImport()));
-            this.txtTotalRelationships.setText(String.valueOf(this.connection.countRelationshipsToImport()));
-            this.txtTotalFolders.setText(String.valueOf(this.connection.countFoldersToImport()));
-            this.txtTotalViews.setText(String.valueOf(this.connection.countViewsToImport()));
-            this.txtTotalViewObjects.setText(String.valueOf(this.connection.countViewObjectsToImport()));
-            this.txtTotalViewConnections.setText(String.valueOf(this.connection.countViewConnectionsToImport()));
-            this.txtTotalImages.setText(String.valueOf(this.connection.countImagesToImport()));
+            this.txtTotalElements.setText(String.valueOf(this.importConnection.countElementsToImport()));
+            this.txtTotalRelationships.setText(String.valueOf(this.importConnection.countRelationshipsToImport()));
+            this.txtTotalFolders.setText(String.valueOf(this.importConnection.countFoldersToImport()));
+            this.txtTotalViews.setText(String.valueOf(this.importConnection.countViewsToImport()));
+            this.txtTotalViewObjects.setText(String.valueOf(this.importConnection.countViewObjectsToImport()));
+            this.txtTotalViewConnections.setText(String.valueOf(this.importConnection.countViewConnectionsToImport()));
+            this.txtTotalImages.setText(String.valueOf(this.importConnection.countImagesToImport()));
 
-            this.txtImportedElements.setText(String.valueOf(this.connection.countElementsImported()));
-            this.txtImportedRelationships.setText(String.valueOf(this.connection.countRelationshipsImported()));
-            this.txtImportedFolders.setText(String.valueOf(this.connection.countFoldersImported()));
-            this.txtImportedViews.setText(String.valueOf(this.connection.countViewsImported()));
-            this.txtImportedViewObjects.setText(String.valueOf(this.connection.countViewObjectsImported()));
-            this.txtImportedViewConnections.setText(String.valueOf(this.connection.countViewConnectionsImported()));
-            this.txtImportedImages.setText(String.valueOf(this.connection.countImagesImported()));
+            this.txtImportedElements.setText(String.valueOf(this.importConnection.countElementsImported()));
+            this.txtImportedRelationships.setText(String.valueOf(this.importConnection.countRelationshipsImported()));
+            this.txtImportedFolders.setText(String.valueOf(this.importConnection.countFoldersImported()));
+            this.txtImportedViews.setText(String.valueOf(this.importConnection.countViewsImported()));
+            this.txtImportedViewObjects.setText(String.valueOf(this.importConnection.countViewObjectsImported()));
+            this.txtImportedViewConnections.setText(String.valueOf(this.importConnection.countViewConnectionsImported()));
+            this.txtImportedImages.setText(String.valueOf(this.importConnection.countImagesImported()));
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
-            this.connection.prepareImportFolders(this.modelToImport);
-            while ( this.connection.importFolders(this.modelToImport) ) {
-            	this.txtImportedFolders.setText(String.valueOf(this.connection.countFoldersImported()));
+            this.importConnection.prepareImportFolders(this.modelToImport);
+            while ( this.importConnection.importFolders(this.modelToImport) ) {
+            	this.txtImportedFolders.setText(String.valueOf(this.importConnection.countFoldersImported()));
                 increaseProgressBar();
             }
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
-            this.connection.prepareImportElements(this.modelToImport);
-            while ( this.connection.importElements(this.modelToImport) ) {
-            	this.txtImportedElements.setText(String.valueOf(this.connection.countElementsImported()));
+            this.importConnection.prepareImportElements(this.modelToImport);
+            while ( this.importConnection.importElements(this.modelToImport) ) {
+            	this.txtImportedElements.setText(String.valueOf(this.importConnection.countElementsImported()));
                 increaseProgressBar();
             }
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
-            this.connection.prepareImportRelationships(this.modelToImport);
-            while ( this.connection.importRelationships(this.modelToImport) ) {
-            	this.txtImportedRelationships.setText(String.valueOf(this.connection.countRelationshipsImported()));
+            this.importConnection.prepareImportRelationships(this.modelToImport);
+            while ( this.importConnection.importRelationships(this.modelToImport) ) {
+            	this.txtImportedRelationships.setText(String.valueOf(this.importConnection.countRelationshipsImported()));
                 increaseProgressBar();
             }
 
@@ -733,39 +739,39 @@ public class DBGuiImportModel extends DBGui {
 
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
-            this.connection.prepareImportViews(this.modelToImport);
-            while ( this.connection.importViews(this.modelToImport) ) {
-            	this.txtImportedViews.setText(String.valueOf(this.connection.countViewsImported()));
+            this.importConnection.prepareImportViews(this.modelToImport);
+            while ( this.importConnection.importViews(this.modelToImport) ) {
+            	this.txtImportedViews.setText(String.valueOf(this.importConnection.countViewsImported()));
                 increaseProgressBar();
             }
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
-                this.connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( this.connection.importViewsObjects(this.modelToImport, view) ) {
-                	this.txtImportedViewObjects.setText(String.valueOf(this.connection.countViewObjectsImported()));
+                this.importConnection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
+                while ( this.importConnection.importViewsObjects(this.modelToImport, view) ) {
+                	this.txtImportedViewObjects.setText(String.valueOf(this.importConnection.countViewObjectsImported()));
                     increaseProgressBar();
                 }
             }
-            this.txtImportedElements.setText(String.valueOf(this.connection.countElementsImported()));
+            this.txtImportedElements.setText(String.valueOf(this.importConnection.countElementsImported()));
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
-                this.connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
-                while ( this.connection.importViewsConnections(this.modelToImport) ) {
-                	this.txtImportedViewConnections.setText(String.valueOf(this.connection.countViewConnectionsImported()));
+                this.importConnection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
+                while ( this.importConnection.importViewsConnections(this.modelToImport) ) {
+                	this.txtImportedViewConnections.setText(String.valueOf(this.importConnection.countViewConnectionsImported()));
                     increaseProgressBar();
                 }
             }
-            this.txtImportedRelationships.setText(String.valueOf(this.connection.countRelationshipsImported()));
+            this.txtImportedRelationships.setText(String.valueOf(this.importConnection.countRelationshipsImported()));
 
             if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
             this.modelToImport.resolveConnectionsSourcesAndTargets();
 
             if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
-            for (String path: this.connection.getAllImagePaths()) {
-                this.connection.importImage(this.modelToImport, path);
-                this.txtImportedImages.setText(String.valueOf(this.connection.countImagesImported()));
+            for (String path: this.importConnection.getAllImagePaths()) {
+                this.importConnection.importImage(this.modelToImport, path);
+                this.txtImportedImages.setText(String.valueOf(this.importConnection.countImagesImported()));
                 increaseProgressBar();
             }
         } catch (Exception err) {
@@ -791,22 +797,22 @@ public class DBGuiImportModel extends DBGui {
         Color statusColor = GREEN_COLOR;
         
 		if ( logger.isTraceEnabled() ) {
-		    logger.trace(this.connection.countElementsImported()+"/"+this.connection.countElementsToImport()+" elements imported");
-		    logger.trace(this.connection.countRelationshipsImported()+"/"+this.connection.countRelationshipsToImport()+" relationships imported");
-		    logger.trace(this.connection.countFoldersImported()+"/"+this.connection.countFoldersToImport()+" folders imported");
-		    logger.trace(this.connection.countViewsImported()+"/"+this.connection.countViewsToImport()+" views imported");
-		    logger.trace(this.connection.countViewObjectsImported()+"/"+this.connection.countViewObjectsToImport()+" views objects imported");
-		    logger.trace(this.connection.countViewConnectionsImported()+"/"+this.connection.countViewConnectionsToImport()+" views connections imported");
-		    logger.trace(this.connection.countImagesImported()+"/"+this.connection.countImagesToImport()+" images imported");
+		    logger.trace(this.importConnection.countElementsImported()+"/"+this.importConnection.countElementsToImport()+" elements imported");
+		    logger.trace(this.importConnection.countRelationshipsImported()+"/"+this.importConnection.countRelationshipsToImport()+" relationships imported");
+		    logger.trace(this.importConnection.countFoldersImported()+"/"+this.importConnection.countFoldersToImport()+" folders imported");
+		    logger.trace(this.importConnection.countViewsImported()+"/"+this.importConnection.countViewsToImport()+" views imported");
+		    logger.trace(this.importConnection.countViewObjectsImported()+"/"+this.importConnection.countViewObjectsToImport()+" views objects imported");
+		    logger.trace(this.importConnection.countViewConnectionsImported()+"/"+this.importConnection.countViewConnectionsToImport()+" views connections imported");
+		    logger.trace(this.importConnection.countImagesImported()+"/"+this.importConnection.countImagesToImport()+" images imported");
 		}
 
-        this.txtImportedElements.setForeground( (this.connection.countElementsImported() == this.connection.countElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedRelationships.setForeground( (this.connection.countRelationshipsImported() == this.connection.countRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedFolders.setForeground( (this.connection.countFoldersImported() == this.connection.countFoldersToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedViews.setForeground( (this.connection.countViewsImported() == this.connection.countViewsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedViewObjects.setForeground( (this.connection.countViewObjectsImported() == this.connection.countViewObjectsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedViewConnections.setForeground( (this.connection.countViewConnectionsImported() == this.connection.countViewConnectionsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
-        this.txtImportedImages.setForeground( (this.connection.countImagesImported() == this.connection.countImagesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedElements.setForeground( (this.importConnection.countElementsImported() == this.importConnection.countElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedRelationships.setForeground( (this.importConnection.countRelationshipsImported() == this.importConnection.countRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedFolders.setForeground( (this.importConnection.countFoldersImported() == this.importConnection.countFoldersToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedViews.setForeground( (this.importConnection.countViewsImported() == this.importConnection.countViewsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedViewObjects.setForeground( (this.importConnection.countViewObjectsImported() == this.importConnection.countViewObjectsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedViewConnections.setForeground( (this.importConnection.countViewConnectionsImported() == this.importConnection.countViewConnectionsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
+        this.txtImportedImages.setForeground( (this.importConnection.countImagesImported() == this.importConnection.countImagesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
 
         if ( err == null ) {
         	// if all the counters are equals to the expected values

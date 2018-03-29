@@ -18,6 +18,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseExportConnection;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBChecksum;
@@ -81,7 +83,7 @@ public class DBGuiExportModel extends DBGui {
 	HashMap<String, DBVersionPair> newDatabaseComponents;
 	
 	private CompoundCommand delayedCommands;
-	
+	DBDatabaseExportConnection exportConnection;
 	private boolean forceExport; 
 	
 	/**
@@ -188,7 +190,7 @@ public class DBGuiExportModel extends DBGui {
 				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(canExport);
 				
 				if ( canExport ) {
-                    boolean canChangeMetaData = (DBGuiExportModel.this.connection != null && DBGuiExportModel.this.selectedDatabase.getExportWholeModel() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
+                    boolean canChangeMetaData = (DBGuiExportModel.this.exportConnection != null && DBGuiExportModel.this.selectedDatabase.getExportWholeModel() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
                     
                     DBGuiExportModel.this.txtReleaseNote.setEnabled(canChangeMetaData);
                     DBGuiExportModel.this.txtPurpose.setEnabled(canChangeMetaData);
@@ -784,6 +786,8 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	@Override
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
+	    this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
+	    
 		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
 		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
 		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
@@ -842,7 +846,7 @@ public class DBGuiExportModel extends DBGui {
 				DBGuiExportModel.this.tblModelVersions.setSelection(tableItem);
 				DBGuiExportModel.this.tblModelVersions.notifyListeners(SWT.Selection, new Event());		// activates the name, note and purpose texts
             	
-				for (Hashtable<String, Object> version : DBGuiExportModel.this.connection.getModelVersions(this.exportedModel.getId()) ) {
+				for (Hashtable<String, Object> version : DBGuiExportModel.this.exportConnection.getModelVersions(this.exportedModel.getId()) ) {
                 	tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
         			tableItem.setText(0, (String)version.get("version"));
         			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format((Timestamp)version.get("created_on")));
@@ -955,7 +959,7 @@ public class DBGuiExportModel extends DBGui {
 			return true;
 		
         try {
-        	 this.connection.getVersionsFromDatabase(this.exportedModel);
+        	 this.exportConnection.getVersionsFromDatabase(this.exportedModel);
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
@@ -1003,7 +1007,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getElementsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.exportConnection.getElementsNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1048,7 +1052,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getRelationshipsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.exportConnection.getRelationshipsNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1093,7 +1097,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getFoldersNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.exportConnection.getFoldersNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1137,7 +1141,7 @@ public class DBGuiExportModel extends DBGui {
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
-        for ( DBVersionPair versionPair: this.connection.getViewsNotInModel().values() ) {
+        for ( DBVersionPair versionPair: this.exportConnection.getViewsNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
             else
@@ -1153,8 +1157,8 @@ public class DBGuiExportModel extends DBGui {
         
         
         
-        this.txtNewImagesInModel.setText(String.valueOf(this.connection.getImagesNotInDatabase().size()));
-        this.txtNewImagesInDatabase.setText(String.valueOf(this.connection.getImagesNotInModel().size()));
+        this.txtNewImagesInModel.setText(String.valueOf(this.exportConnection.getImagesNotInDatabase().size()));
+        this.txtNewImagesInDatabase.setText(String.valueOf(this.exportConnection.getImagesNotInModel().size()));
         
         if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
                 this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
@@ -1224,7 +1228,7 @@ public class DBGuiExportModel extends DBGui {
 
 		// then, we start a new database transaction
 		try {
-		    this.connection.setAutoCommit(false);
+		    this.exportConnection.setAutoCommit(false);
 		} catch (SQLException err ) {
 			popup(Level.FATAL, "Failed to create a transaction in the database.", err);
 			setActiveAction(STATUS.Error);
@@ -1246,7 +1250,7 @@ public class DBGuiExportModel extends DBGui {
 				
 				// TODO : Manage a kind of transaction id in the database because it may not be necessary to check another time
 				popup("Please wait while comparing model from the database...");
-				this.connection.getVersionsFromDatabase(this.exportedModel);
+				this.exportConnection.getVersionsFromDatabase(this.exportedModel);
 				closePopup();
 			} catch (SQLException err ) {
 				closePopup();
@@ -1281,7 +1285,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( !DBPlugin.areEqual(this.exportedModel.getPurpose(), this.txtPurpose.getText()) )
 					this.exportedModel.setPurpose(this.txtPurpose.getText());
 
-				this.connection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
+				this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
@@ -1293,7 +1297,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 			
 			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.getNeo4jEmptyDB() ) {
-				this.connection.neo4jemptyDB();
+				this.exportConnection.neo4jemptyDB();
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
@@ -1303,13 +1307,14 @@ public class DBGuiExportModel extends DBGui {
 			}
 			
 			//TODO : put the imported components in a compound Command to allow rollback
-			for (String id : this.connection.getElementsNotInModel().keySet() ) {
-			    DBVersionPair versionToImport = this.connection.getElementsNotInModel().get(id);
+			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
+			    DBVersionPair versionToImport = this.exportConnection.getElementsNotInModel().get(id);
 		        if ( versionToImport.getCurrentVersion() == 0 ) {
 		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the element has been updated in the database, then generate a conflict
 		        	logger.trace("Musr import element "+id);
-		        	this.connection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		        	importConnection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewElementsInDatabase);
 		        	incrementText(this.txtTotalElements);
 		         }
@@ -1321,13 +1326,14 @@ public class DBGuiExportModel extends DBGui {
 				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
 			}
 			
-	        for (String id : this.connection.getRelationshipsNotInModel().keySet() ) {
-	            DBVersionPair versionToImport = this.connection.getRelationshipsNotInModel().get(id);
+	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
+	            DBVersionPair versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
 	            if ( versionToImport.getCurrentVersion() == 0 ) {
 		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the relationship has been updated in the database, then generate a conflict
 		        	logger.trace("Musr import element "+id);
-		        	this.connection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewRelationshipsInDatabase);
 		        	incrementText(this.txtTotalRelationships);
 	            }
@@ -1351,7 +1357,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: this.exportedModel.getAllImagePaths() ) {
-					if ( this.connection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
+					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
 						incrementText(this.txtNewImagesInModel);
 				}
 				
@@ -1361,7 +1367,7 @@ public class DBGuiExportModel extends DBGui {
 			setActiveAction(STATUS.Error);
 			popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
 			try  {
-			    this.connection.rollback();
+			    this.exportConnection.rollback();
 				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 				return;
 			} catch (SQLException err2) {
@@ -1383,8 +1389,8 @@ public class DBGuiExportModel extends DBGui {
 			                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
 			                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") &&   
 							this.exportedModel.getExportedVersion().getChecksum().equals(this.exportedModel.getCurrentVersion().getChecksum()) ) {
-						this.connection.rollback();
-					    this.connection.setAutoCommit(true);
+						this.exportConnection.rollback();
+					    this.exportConnection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
 		                copyExportedVersionToCurrentVersion();
 						doShowResult(STATUS.Ok, "The database is already up to date.");
@@ -1396,8 +1402,8 @@ public class DBGuiExportModel extends DBGui {
 				CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
 				stack.execute(this.delayedCommands);
 				
-			    this.connection.commit();
-			    this.connection.setAutoCommit(true);
+			    this.exportConnection.commit();
+			    this.exportConnection.setAutoCommit(true);
 				setActiveAction(STATUS.Ok);
 				
 				// Once the export is finished, we copy the exportedVersion to the currentVersion
@@ -1417,7 +1423,7 @@ public class DBGuiExportModel extends DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("Export of components incomplete. Conflicts need to be manually resolved.");
 		resetProgressBar();
 		try  {
-		    this.connection.rollback();
+		    this.exportConnection.rollback();
 		} catch (Exception err) {
 			popup(Level.FATAL, "Failed to rollback the transaction. Please check carrefully your database !", err);
 			setActiveAction(STATUS.Error);
@@ -1509,7 +1515,7 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
 		assert(eObject instanceof IDBMetadata);
-		assert(this.connection != null);
+		assert(this.exportConnection != null);
 		
 		boolean mustExport = false;
 		boolean mustImport = false;
@@ -1598,7 +1604,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 	            
 		if ( mustExport ) {
-			this.connection.exportEObject(eObjectToExport);
+			this.exportConnection.exportEObject(eObjectToExport);
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
             	incrementText(txtNewInModel);
             else
@@ -1608,13 +1614,14 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( mustImport ) {
             // For the moment, we can import elements and relationships only during an export !!!
+		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
             if ( eObjectToExport instanceof IArchimateElement ) {
                 if ( logger.isDebugEnabled() ) logger.debug("element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                this.connection.importElementFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                importConnection.importElementFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
             } else if ( eObjectToExport instanceof IArchimateRelationship ) {
                 if ( logger.isDebugEnabled() ) logger.debug("relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                this.connection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
             } else
             	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
@@ -1639,7 +1646,7 @@ public class DBGuiExportModel extends DBGui {
 		} else {
 		    // even if the eObject is not exported, it has to be referenced as being part of the model
 		    if ( this.selectedDatabase.getExportWholeModel() )
-		        this.connection.assignEObjectToModel(eObjectToExport);
+		        this.exportConnection.assignEObjectToModel(eObjectToExport);
 		}
 		
 		increaseProgressBar();

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import com.archimatetool.model.IDiagramModel;
@@ -64,6 +65,8 @@ public class DBGuiImportComponent extends DBGui {
 	private Button ignoreCase;
 	private Button hideOption;             // to hide empty names for elements and relationships, top level folders and default views
 	private Button hideAlreadyInModel;
+	
+	DBDatabaseImportConnection importConnection;
 
 	//private Composite compoContainers;
 
@@ -203,6 +206,8 @@ public class DBGuiImportComponent extends DBGui {
 	 */
 	@Override
 	protected void connectedToDatabase(boolean ignore) {
+	    this.importConnection = new DBDatabaseImportConnection(getDatabaseConnection());
+	    
 		enableOption();
 		createGrpFilter();
 		createGrpComponents();
@@ -287,7 +292,7 @@ public class DBGuiImportComponent extends DBGui {
 			@Override
             public void modifyText(ModifyEvent event) {
 				try {
-					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+					if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
 						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
@@ -315,7 +320,7 @@ public class DBGuiImportComponent extends DBGui {
 			@Override
 			public void handleEvent(Event event) {
 				try {
-					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+					if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
 						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
@@ -1046,7 +1051,7 @@ public class DBGuiImportComponent extends DBGui {
 			@Override
 			public void widgetSelected(SelectionEvent event) {
 				try {
-					if ( DBGuiImportComponent.this.connection.isConnected() ) {
+					if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
 						if ( DBGuiImportComponent.this.compoElements.isVisible() )
 							getElements();
 						//else if ( compoContainers.isVisible() )
@@ -1173,12 +1178,12 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result;
 
 			if ( this.filterName.getText().length() == 0 )
-				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else {
 				if ( this.ignoreCase.getSelection() )
-					result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
+					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
 				else
-					result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 			}
 
 			while (result.next()) {
@@ -1322,9 +1327,9 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result;
 
 			if ( this.filterName.getText().length() == 0 )
-				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
 			else
-				result = this.connection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 
 			while (result.next()) {
 				if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null))
@@ -1381,12 +1386,12 @@ public class DBGuiImportComponent extends DBGui {
 				popup("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
 				
 				if ( this.compoElements.getVisible() )
-					imported.add(this.connection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue()));
+					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue()));
 				//else if ( compoContainers.getVisible() )
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());
 				else if ( this.compoViews.getVisible() ) {
-					IDiagramModel view = this.connection.importViewFromId(this.importedModel, this.selectedFolder, id, !getOptionValue());
+					IDiagramModel view = this.importConnection.importViewFromId(this.importedModel, this.selectedFolder, id, !getOptionValue());
 					if ( view != null )
 						imported.add(view);
 				}

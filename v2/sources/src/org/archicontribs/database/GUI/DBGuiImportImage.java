@@ -6,6 +6,7 @@
 package org.archicontribs.database.GUI;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.ArchimateModel;
@@ -48,6 +49,8 @@ public class DBGuiImportImage extends DBGui {
     
     String imagePath = null;
     Image image = null;
+    
+    DBDatabaseImportConnection importConnection;
     
     private Group grpImages;
     Gallery gallery;
@@ -203,10 +206,12 @@ public class DBGuiImportImage extends DBGui {
     protected void connectedToDatabase(boolean forceCheckDatabase) {
         notConnectedToDatabase();       // we dispose the images
         
+        this.importConnection = new DBDatabaseImportConnection(getDatabaseConnection());
+        
         try {
-            for ( String path: this.connection.getImageListFromDatabase() ) {
+            for ( String path: this.importConnection.getImageListFromDatabase() ) {
                 GalleryItem item = new GalleryItem(this.rootGalleryItem, SWT.NONE);
-                item.setImage(this.connection.getImageFromDatabase(path));
+                item.setImage(this.importConnection.getImageFromDatabase(path));
                 item.setData("imagePath", path);
             }
         } catch (Exception err) {
