@@ -13,8 +13,8 @@ import java.util.List;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabase;
-import org.archicontribs.database.DBDatabaseConnection;
 import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBDatabaseImportConnection;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
@@ -1192,9 +1192,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			return;
 		}
 
-		DBDatabaseConnection connection = null;
+		DBDatabaseImportConnection connection = null;
 		try {
-			connection = new DBDatabaseConnection(databaseEntry);
+			connection = new DBDatabaseImportConnection(databaseEntry);
 			connection.checkDatabase();
 			DBGui.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
