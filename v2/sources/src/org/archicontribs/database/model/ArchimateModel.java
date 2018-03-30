@@ -15,9 +15,11 @@ import java.util.Map.Entry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
@@ -110,11 +112,7 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 		this.allViewsConnections.clear();
 		this.allFolders.clear();
 		
-		this.allRelationsSourceAndTarget.clear();
-		this.allSourceObjectsConnections.clear();
-		this.allTargetObjectsConnections.clear();
-	    this.allSourceConnectionsConnections.clear();
-	    this.allTargetConnectionsConnections.clear();
+		resetSourceAndTargetCounters();
 	}
 	
 	/**
@@ -156,6 +154,24 @@ public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel 
 			countObject(folder, true, null);
 		}
 	}
+	
+	/**
+     * Counts the number of objects in the model.<br>
+     * At the same time, we calculate the current checksums
+     */
+    public void resetViewsChecksums() throws Exception {
+        this.allViews.clear();
+        this.allViewsObjects.clear();
+        this.allViewsConnections.clear();
+        
+        if ( logger.isTraceEnabled() ) logger.trace("Re-counting views in selected model.");
+        
+        for (IFolder folder: getFolders() ) {
+            if ( ((Folder)folder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE )
+                for ( EObject view: folder.getElements() )
+                    countObject(view, true, null);
+        }
+    }
 	
 	/**
 	 * Adds a specific object in the corresponding counter<br>

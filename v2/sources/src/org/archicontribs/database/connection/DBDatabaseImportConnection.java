@@ -1253,6 +1253,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		boolean newRelationship = false;
 		IArchimateRelationship relationship;
 
+        @SuppressWarnings("resource")
         ResultSet resultRelationship = null;
         try {
 	        if ( relationshipVersion == 0 )

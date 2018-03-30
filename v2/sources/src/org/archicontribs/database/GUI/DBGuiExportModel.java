@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -1312,7 +1313,7 @@ public class DBGuiExportModel extends DBGui {
 		        if ( versionToImport.getCurrentVersion() == 0 ) {
 		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the element has been updated in the database, then generate a conflict
-		        	logger.trace("Musr import element "+id);
+		        	logger.trace("Must import element "+id);
 		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewElementsInDatabase);
@@ -1331,28 +1332,112 @@ public class DBGuiExportModel extends DBGui {
 	            if ( versionToImport.getCurrentVersion() == 0 ) {
 		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the relationship has been updated in the database, then generate a conflict
-		        	logger.trace("Musr import element "+id);
+		        	logger.trace("Must import element "+id);
 		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewRelationshipsInDatabase);
 		        	incrementText(this.txtTotalRelationships);
 	            }
 	        }
+	        
+            // we remove the objects that have been removed by other users in the database
+            if ( !this.delayedCommands.isEmpty() ) {
+                popup("Please wait while recalculating views checksums");
+                CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
+                stack.execute(this.delayedCommands);
+                
+                // we recalculate the checksums on the views as they may have been modified by the components removal
+                this.exportedModel.resetViewsChecksums();
+                
+                // we compare again the views from the databases to determine if they need to be exported or not  
+                this.exportConnection.getViewsVersionsFromDatabase(this.exportedModel);
+                
+                int nbNew = 0;
+                int nbNewInDb = 0;
+                int nbUpdated = 0;
+                int nbUpdatedInDb = 0;
+                int nbConflict = 0;
+                int nbDeleted = 0;
+                int nbDeletedInDb = 0;
+                Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
+                while (itv.hasNext()) {
+                    DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
+                    if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
+                        ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+                    } else {
+                        if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
+                            ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                        else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
+                            boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
+                            boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                            
+                            if ( modifiedInModel && modifiedInDatabase ) {
+                                if ( this.forceExport )     ++nbUpdated;
+                                else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                            } else {
+                                if ( modifiedInModel )      ++nbUpdated;
+                                if ( modifiedInDatabase )   ++nbUpdatedInDb;
+                            }
+                        }
+                    }
+                }
+                // we distinguish the elements new in the database from those deleted from memory
+                for ( DBVersionPair versionPair: this.exportConnection.getViewsNotInModel().values() ) {
+                    if ( versionPair.getCurrentVersion() == 0 )
+                        ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+                    else
+                        ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+                }
+                this.txtNewViewsInModel.setText(String.valueOf(nbNew));
+                this.txtNewViewsInDatabase.setText(String.valueOf(nbNewInDb));
+                this.txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
+                this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedInDb));
+                this.txtConflictingViews.setText(String.valueOf(nbConflict));
+                this.txtDeletedViewsInModel.setText(String.valueOf(nbDeleted));
+                this.txtDeletedViewsInDatabase.setText(String.valueOf(nbDeletedInDb));
+                
+                closePopup();
+            }
 	
 			if ( this.selectedDatabase.getExportWholeModel() ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
-					IDiagramModel view = viewsIterator.next().getValue(); 
+					IDiagramModel view = viewsIterator.next().getValue();
+					this.viewContent.clear();
 					if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
-					    this.connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();      // we need to memorize exported connections as they can be get as sources AND as targets 
+					    this.connectionsAlreadyExported.clear();      // we need to memorize exported connections as they can be get as sources AND as targets 
 	                    for ( IDiagramModelObject viewObject: view.getChildren() ) {
 	                        doExportViewObject(viewObject);
 	                    }
 					}
+					
+					// we check if the view contains new objects that need to be imported
+					HashSet<String> objectSet = this.exportConnection.getObjectsInView().get(view.getId());
+					// we check for null as this can happen if the view does not exist in the database
+					if( objectSet != null ) {
+    					for ( String viewObjectId: objectSet) {
+    					    if ( !this.viewContent.contains(viewObjectId) ) {
+    					        //TODO: import view object
+    					        logger.error("********** SHOULD IMPORT VIEW OBJECT "+viewObjectId);
+    					    }
+    					}
+					}
+					
+	                // we check if the view contains new connections that need to be imported
+                    HashSet<String> connectionSet = this.exportConnection.getConnectionsInView().get(view.getId());
+                    // we check for null as this can happen if the view does not exist in the database
+                    if( connectionSet != null ) {
+                        for ( String viewObjectId: connectionSet) {
+                            if ( !this.viewContent.contains(viewObjectId) ) {
+                                //TODO: import view object
+                                logger.error("********** SHOULD IMPORT VIEW CONNECTION "+viewObjectId);
+                            }
+                        }
+                    }
 				}
 				
-				//TODO: importing missing view !!!
+				//TODO: importing missing views !!!
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
@@ -1397,10 +1482,6 @@ public class DBGuiExportModel extends DBGui {
 						return;
 					}
 				}
-				
-				// we remove the objects that must be removed
-				CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
-				stack.execute(this.delayedCommands);
 				
 			    this.exportConnection.commit();
 			    this.exportConnection.setAutoCommit(true);
@@ -1480,8 +1561,12 @@ public class DBGuiExportModel extends DBGui {
         }
 	}
 	
-	Map<String, IDiagramModelConnection> connectionsAlreadyExported;
+	
+	HashSet<String> viewContent = new HashSet<String>();
+	Map<String, IDiagramModelConnection> connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();
+	
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
+	    this.viewContent.add(viewObject.getId());
 		boolean exported = doExportEObject(viewObject, null, null, null, null);
 		
 		if ( exported ) {

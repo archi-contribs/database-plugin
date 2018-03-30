@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -587,7 +588,113 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
     }
     
-	/* **** Export methods  ************************************************************** */
+    private HashMap<String, HashSet<String>> objectsInView = new HashMap<String, HashSet<String>>();
+    public HashMap<String, HashSet<String>> getObjectsInView() {
+        return this.objectsInView;
+    }
+    private HashMap<String, HashSet<String>> connectionsInView = new HashMap<String, HashSet<String>>();
+    public HashMap<String, HashSet<String>> getConnectionsInView() {
+        return this.connectionsInView;
+    }
+    
+    public void getViewsVersionsFromDatabase(ArchimateModel model) throws SQLException, RuntimeException {
+        if ( logger.isDebugEnabled() ) logger.debug("Getting views versions from the database");
+        
+        this.viewsNotInModel.clear();
+        this.objectsInView.clear();
+        this.connectionsInView.clear();
+
+        // if we're here, this means that the export procedure removed some elements or relationships, so we need to re-compare the views checksums from the database
+        try ( ResultSet result = select(
+                "SELECT id,"
+                        + "  MAX(version_in_current_model) AS version_in_current_model,"
+                        + "  MAX(checksum_in_current_model) AS checksum_in_current_model,"
+                        + "  MAX(timestamp_in_current_model) AS timestamp_in_current_model,"
+                        + "  MAX(version_in_latest_model) AS version_in_latest_model,"
+                        + "  MAX(checksum_in_latest_model) AS checksum_in_latest_model,"
+                        + "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
+                        + "  MAX(latest_version) AS latest_version,"
+                        + "  MAX(latest_checksum) AS latest_checksum,"
+                        + "  MAX(latest_timestamp) AS latest_timestamp "
+                        + "FROM ("
+                        + "  SELECT e.id AS id,"
+                        + "    e.version AS version_in_current_model,"
+                        + "    e.checksum AS checksum_in_current_model,"
+                        + "    e.created_on AS timestamp_in_current_model,"
+                        + "    null AS version_in_latest_model,"
+                        + "    null AS checksum_in_latest_model,"
+                        + "    null AS timestamp_in_latest_model,"
+                        + "    e_max.version AS latest_version,"
+                        + "    e_max.checksum AS latest_checksum,"
+                        + "    e_max.created_on AS latest_timestamp"
+                        + "  FROM views e"
+                        + "  JOIN views e_max ON e_max.id = e.id AND e_max.version >= e.version"
+                        + "  JOIN views_in_model m ON m.view_id = e.id AND m.view_version = e.version"
+                        + "  WHERE m.model_id = ? AND m.model_version = ? "
+                        + "UNION"
+                        + "  SELECT e.id AS id,"
+                        + "    null AS version_in_current_model,"
+                        + "    null AS checksum_in_current_model,"
+                        + "    null AS timestamp_in_current_model,"
+                        + "    e.version AS version_in_latest_model,"
+                        + "    e.checksum AS checksum_in_latest_model,"
+                        + "    e.created_on AS timestamp_in_latest_model,"
+                        + "    e_max.version AS latest_version,"
+                        + "    e_max.checksum AS latest_checksum,"
+                        + "    e_max.created_on AS latest_timestamp"
+                        + "  FROM views e"
+                        + "  JOIN views e_max ON e_max.id = e.id AND e_max.version >= e.version"
+                        + "  JOIN views_in_model m ON m.view_id = e.id AND m.view_version = e.version"
+                        + "  WHERE m.model_id = ? AND m.model_version = (SELECT MAX(version) FROM models WHERE id = ?)"
+                        + ") e "
+                        + "GROUP BY id"
+                        ,model.getId()
+                        ,model.getExportedVersion().getVersion()
+                        ,model.getId()
+                        ,model.getId()
+                ) ) {
+            while ( result.next() ) {
+                String id = result.getString("id");
+                int version = result.getInt("version_in_latest_model");
+                
+                IDBMetadata view = (IDBMetadata)model.getAllViews().get(id);
+                if ( view != null ) {
+                    // if the view exists in memory
+                    view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+                    view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                    view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
+                    view.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
+                    view.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
+                    view.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
+
+                    view.getDBMetadata().getExportedVersion().setVersion(result.getInt("latest_version"));
+                } else {
+                    this.viewsNotInModel.put(
+                            id,
+                            new DBVersionPair(
+                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),result.getTimestamp("timestamp_in_current_model"),
+                                    result.getInt("version_in_latest_model"), result.getString("checksum_in_latest_model"),result.getTimestamp("timestamp_in_latest_model")
+                                    )
+                            );
+                }
+                
+                // get list of objects in the view
+                HashSet<String> viewObjectsSet = new HashSet<String>();
+                try ( ResultSet resultViewsObjects = select("SELECT id FROM "+this.schema+"views_objects WHERE view_id = ? AND view_version = ?", id, version) ) {
+                    viewObjectsSet.add(resultViewsObjects.getString("id"));
+                }
+                this.objectsInView.put(id, viewObjectsSet);
+                
+                // get list of connections in the view
+                HashSet<String> viewConnectionsSet = new HashSet<String>();
+                try ( ResultSet resultViewsConnections = select("SELECT id FROM "+this.schema+"views_Connections WHERE view_id = ? AND view_version = ?", id, version) ) {
+                    viewConnectionsSet.add(resultViewsConnections.getString("id"));
+                }
+                this.connectionsInView.put(id, viewConnectionsSet);
+            }
+        }
+    }
+    
 	/**
 	 * Empty a Neo4J database
 	 */
