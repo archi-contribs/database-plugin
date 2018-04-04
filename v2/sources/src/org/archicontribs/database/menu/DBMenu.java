@@ -9,7 +9,7 @@ package org.archicontribs.database.menu;
 import java.util.Iterator;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
@@ -73,7 +73,7 @@ public class DBMenu extends ExtensionContributionFactory {
                     case "ArchimateModel" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("model", (ArchimateModel)obj), null);
+                            additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
                             additions.addContributionItem(new Separator(), null);
                         }
                         additions.addContributionItem(convertIds(), null);
@@ -278,7 +278,7 @@ public class DBMenu extends ExtensionContributionFactory {
                 boolean oneArchimateModel = false;
                 boolean allArchimateModels = true;
                 while ( itr.hasNext() ) {
-                    if ( (itr.next() instanceof ArchimateModel) ) {
+                    if ( (itr.next() instanceof DBArchimateModel) ) {
                         oneArchimateModel = true;
                     } else {
                         allArchimateModels = false;

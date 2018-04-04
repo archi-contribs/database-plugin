@@ -6,7 +6,7 @@
 
 package org.archicontribs.database.menu;
 
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

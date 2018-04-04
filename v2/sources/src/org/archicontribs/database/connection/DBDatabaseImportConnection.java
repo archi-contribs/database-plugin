@@ -20,7 +20,7 @@ import java.util.List;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
@@ -305,7 +305,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Import the model metadata from the database
 	 */
-	public int importModelMetadata(ArchimateModel model) throws Exception {
+	public int importModelMetadata(DBArchimateModel model) throws Exception {
 		// reseting the model's counters
 		model.resetCounters();
 
@@ -472,7 +472,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the folders from the database
 	 */
-	public void prepareImportFolders(ArchimateModel model) throws Exception {
+	public void prepareImportFolders(DBArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importFoldersRequest
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
@@ -482,7 +482,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Import the folders from the database
 	 */
-	public boolean importFolders(ArchimateModel model) throws Exception {
+	public boolean importFolders(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
@@ -530,7 +530,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the elements from the database
 	 */
 	// it is complex because we need to retrieve the elements that have been added in views by other models
-	public void prepareImportElements(ArchimateModel model) throws Exception {
+	public void prepareImportElements(DBArchimateModel model) throws Exception {
 //		if ( model.getImportLatestVersion() ) {
 //			this.currentResultSet = select(this.importElementsRequest
 //					,model.getId()
@@ -552,7 +552,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the elements from the database
 	 */
-	public boolean importElements(ArchimateModel model) throws Exception {
+	public boolean importElements(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
@@ -591,7 +591,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the relationships from the database
 	 */
-	public void prepareImportRelationships(ArchimateModel model) throws Exception {
+	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
 //		if ( model.getImportLatestVersion() ) {
 //			this.currentResultSet = select(this.importRelationshipsRequest
 //					,model.getId()
@@ -612,7 +612,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the relationships from the database
 	 */
-	public boolean importRelationships(ArchimateModel model) throws Exception {
+	public boolean importRelationships(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
@@ -654,7 +654,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the views from the database
 	 */
-	public void prepareImportViews(ArchimateModel model) throws Exception {
+	public void prepareImportViews(DBArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importViewsRequest,
 				model.getId(),
 				model.getCurrentVersion().getVersion()
@@ -664,7 +664,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the views from the database
 	 */
-	public boolean importViews(ArchimateModel model) throws Exception {
+	public boolean importViews(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IDiagramModel view;
@@ -716,7 +716,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the views objects from the database
 	 */
-	public boolean importViewsObjects(ArchimateModel model, IDiagramModel view) throws Exception {
+	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				EObject eObject;
@@ -809,7 +809,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the views connections from the database
 	 */
-	public boolean importViewsConnections(ArchimateModel model) throws Exception {
+	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				EObject eObject;
@@ -890,7 +890,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * import the views from the database
 	 */
-	public void importImage(ArchimateModel model, String path) throws Exception {
+	public void importImage(DBArchimateModel model, String path) throws Exception {
 		this.currentResultSet = select("SELECT image FROM "+this.schema+"images WHERE path = ?", path);
 
 		if (this.currentResultSet.next() ) {
@@ -974,7 +974,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		int i = 0;
 		
 		if ( parent instanceof IArchimateModel )
-			currentVersion = ((ArchimateModel)parent).getCurrentVersion().getVersion();
+			currentVersion = ((DBArchimateModel)parent).getCurrentVersion().getVersion();
 		else
 			currentVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
 
@@ -1097,7 +1097,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return the imported element
 	 * @throws Exception
 	 */
-	public IArchimateElement importElementFromId(ArchimateModel model, IArchimateDiagramModel view, String elementId, int elementVersion, boolean mustCreateCopy) throws Exception {
+	public IArchimateElement importElementFromId(DBArchimateModel model, IArchimateDiagramModel view, String elementId, int elementVersion, boolean mustCreateCopy) throws Exception {
 		IArchimateElement element;
 		List<Object> imported = new ArrayList<Object>();
 		boolean newElement = false;
@@ -1249,7 +1249,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return the imported relationship
 	 * @throws Exception
 	 */
-	public IArchimateRelationship importRelationshipFromId(ArchimateModel model, IArchimateDiagramModel view, String relationshipId, int relationshipVersion, boolean mustCreateCopy) throws Exception {
+	public IArchimateRelationship importRelationshipFromId(DBArchimateModel model, IArchimateDiagramModel view, String relationshipId, int relationshipVersion, boolean mustCreateCopy) throws Exception {
 		boolean newRelationship = false;
 		IArchimateRelationship relationship;
 
@@ -1352,7 +1352,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * This method imports a view with all its components (graphical objects and connections) and requirements (elements and relationships)<br>
 	 * elements and relationships that needed to be imported are located in a folder named by the view
 	 */
-	public IDiagramModel importViewFromId(ArchimateModel model, IFolder parentFolder, String id, boolean mustCreateCopy) throws Exception {
+	public IDiagramModel importViewFromId(DBArchimateModel model, IFolder parentFolder, String id, boolean mustCreateCopy) throws Exception {
 		if ( model.getAllViews().get(id) != null ) {
 			if ( mustCreateCopy )
 				throw new RuntimeException("Re-importing a view is not supported.\n\nIf you wish to create a copy of an existing table, you may use a copy-paste operation.");
@@ -1433,7 +1433,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * gets the latest model version in the database (0 if the model does not exist in the database)
 	 */
-	public int getLatestModelVersion(ArchimateModel model) throws Exception {
+	public int getLatestModelVersion(DBArchimateModel model) throws Exception {
 		// we use COALESCE to guarantee that a value is returned, even if the model does not exist in the database
 		try ( ResultSet result = select("SELECT COALESCE(MAX(version),0) as version FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
 			result.next();

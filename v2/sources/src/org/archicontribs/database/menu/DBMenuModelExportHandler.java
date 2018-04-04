@@ -10,7 +10,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiExportModel;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -23,7 +23,7 @@ public class DBMenuModelExportHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
-		ArchimateModel model = (ArchimateModel)selection;
+		DBArchimateModel model = (DBArchimateModel)selection;
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
 

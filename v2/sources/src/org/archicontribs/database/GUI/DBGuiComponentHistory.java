@@ -27,7 +27,7 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.model.IArchimateDiagramModel;
@@ -60,7 +60,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.includeNeo4j = false;
 		
-		((ArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
+		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
 		/*
 		popup("Please wait while counting model's components");
 		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();

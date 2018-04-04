@@ -16,7 +16,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 
 import com.archimatetool.model.IDiagramModel;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -52,7 +52,7 @@ public class DBGuiImportComponent extends DBGui {
 	@SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiImportComponent.class);
 
-	protected ArchimateModel importedModel;
+	protected DBArchimateModel importedModel;
 	protected IArchimateDiagramModel selectedView;
 	protected IFolder selectedFolder;
 
@@ -154,7 +154,7 @@ public class DBGuiImportComponent extends DBGui {
 	 * Creates the GUI to import components
 	 * @throws Exception 
 	 */
-	public DBGuiImportComponent(ArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
+	public DBGuiImportComponent(DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
 		super(title);
 
 		this.includeNeo4j = false;

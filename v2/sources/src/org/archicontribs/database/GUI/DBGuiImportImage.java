@@ -9,7 +9,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.nebula.widgets.gallery.DefaultGalleryItemRenderer;
 import org.eclipse.nebula.widgets.gallery.Gallery;
 import org.eclipse.nebula.widgets.gallery.GalleryItem;
@@ -57,7 +57,7 @@ public class DBGuiImportImage extends DBGui {
     GalleryItem rootGalleryItem;
     Scale scale;
     
-    public DBGuiImportImage(ArchimateModel model, String title) throws Exception {
+    public DBGuiImportImage(DBArchimateModel model, String title) throws Exception {
         // We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
         super(title);
         

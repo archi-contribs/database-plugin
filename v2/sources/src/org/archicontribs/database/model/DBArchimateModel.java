@@ -41,10 +41,10 @@ import com.archimatetool.model.ModelVersion;
  * @see com.archimatetool.model.impl.ArchimateModel
  * @see org.archicontribs.database.model.IDBMetadata
  */
-public class ArchimateModel extends com.archimatetool.model.impl.ArchimateModel {
-	private static final DBLogger logger = new DBLogger(ArchimateModel.class);
+public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateModel {
+	private static final DBLogger logger = new DBLogger(DBArchimateModel.class);
 		
-	public ArchimateModel() {
+	public DBArchimateModel() {
 		super();
 		if ( logger.isTraceEnabled() ) logger.trace("Creating new ArchimateModel");
 		super.setVersion(ModelVersion.VERSION);

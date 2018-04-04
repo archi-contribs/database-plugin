@@ -4,7 +4,7 @@ import java.util.List;
 
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
 
@@ -60,7 +60,7 @@ public class DBScript {
         }
 
         // at last, we import the model
-        ArchimateModel modelToImport = (ArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
+        DBArchimateModel modelToImport = (DBArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
         modelToImport.setId(modelId);
         modelToImport.setName(modelName);
         

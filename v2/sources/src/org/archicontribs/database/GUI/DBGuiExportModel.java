@@ -25,7 +25,7 @@ import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.DBDeleteDiagramObjectCommand;
 import org.archicontribs.database.model.DBMetadata;
@@ -76,7 +76,7 @@ public class DBGuiExportModel extends DBGui {
 	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 
-	ArchimateModel exportedModel = null;
+	DBArchimateModel exportedModel = null;
 
 	Group grpComponents;
 	Group grpModelVersions;
@@ -90,7 +90,7 @@ public class DBGuiExportModel extends DBGui {
 	/**
 	 * Creates the GUI to export components and model
 	 */
-	public DBGuiExportModel(ArchimateModel model, String title) throws Exception {
+	public DBGuiExportModel(DBArchimateModel model, String title) throws Exception {
 		// We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
 		super(title);
 		// We reference the exported model 

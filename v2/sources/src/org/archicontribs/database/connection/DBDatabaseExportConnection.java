@@ -22,7 +22,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
@@ -114,7 +114,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * This method is meant to be called during the export process, before the export of the components as it sets the DBVersion variables used during the export process.
      * @throws SQLException
      */
-    public void getVersionsFromDatabase(ArchimateModel model) throws SQLException, RuntimeException {
+    public void getVersionsFromDatabase(DBArchimateModel model) throws SQLException, RuntimeException {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions from the database");
 
         // This method can retrieve versions only if the database contains the whole model tables
@@ -597,7 +597,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         return this.connectionsInView;
     }
     
-    public void getViewsVersionsFromDatabase(ArchimateModel model) throws SQLException, RuntimeException {
+    public void getViewsVersionsFromDatabase(DBArchimateModel model) throws SQLException, RuntimeException {
         if ( logger.isDebugEnabled() ) logger.debug("Getting views versions from the database");
         
         this.viewsNotInModel.clear();
@@ -706,7 +706,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Exports the model metadata into the database
 	 */
-	public void exportModel(ArchimateModel model, String releaseNote) throws Exception {
+	public void exportModel(DBArchimateModel model, String releaseNote) throws Exception {
 		final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checksum"};
 		
 		if ( (model.getName() == null) || (model.getName().equals("")) )
@@ -792,7 +792,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
 					,element.getDocumentation()
 					,System.getProperty("user.name")
-					,((ArchimateModel)element.getArchimateModel()).getExportedVersion().getTimestamp()
+					,((DBArchimateModel)element.getArchimateModel()).getExportedVersion().getTimestamp()
 					,((IDBMetadata)element).getDBMetadata().getExportedVersion().getChecksum()
 					);
 		}
@@ -814,7 +814,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private void assignElementToModel(IArchimateConcept element) throws Exception {
 		final String[] elementsInModelColumns = {"element_id", "element_version", "parent_folder_id", "model_id", "model_version", "rank"};
-		ArchimateModel model = (ArchimateModel)element.getArchimateModel();
+		DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
 
 		insert(this.schema+"elements_in_model", elementsInModelColumns
 				,element.getId()
@@ -885,7 +885,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 					,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
 					,System.getProperty("user.name")
-					,((ArchimateModel)relationship.getArchimateModel()).getExportedVersion().getTimestamp()
+					,((DBArchimateModel)relationship.getArchimateModel()).getExportedVersion().getTimestamp()
 					,((IDBMetadata)relationship).getDBMetadata().getExportedVersion().getChecksum()
 					);
 		}
@@ -905,7 +905,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignRelationshipToModel(IArchimateConcept relationship) throws Exception {
 		final String[] relationshipsInModelColumns = {"relationship_id", "relationship_version", "parent_folder_id", "model_id", "model_version", "rank"};
 
-		ArchimateModel model = (ArchimateModel)relationship.getArchimateModel();
+		DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
 
 		insert(this.schema+"relationships_in_model", relationshipsInModelColumns
 				,relationship.getId()
@@ -936,7 +936,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,folder.getName()
 				,folder.getDocumentation()
 				,System.getProperty("user.name")
-				,((ArchimateModel)folder.getArchimateModel()).getExportedVersion().getTimestamp()
+				,((DBArchimateModel)folder.getArchimateModel()).getExportedVersion().getTimestamp()
 				,((Folder)folder).getDBMetadata().getExportedVersion().getChecksum()
 				);
 
@@ -956,7 +956,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignFolderToModel(IFolder folder) throws Exception {
 		final String[] foldersInModelColumns = {"folder_id", "folder_version", "parent_folder_id", "model_id", "model_version", "rank"};
 
-		ArchimateModel model = (ArchimateModel)folder.getArchimateModel();
+		DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
 
 		insert(this.schema+"folders_in_model", foldersInModelColumns
 				,folder.getId()
@@ -1016,7 +1016,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignViewToModel(IDiagramModel view) throws Exception {
 		final String[] viewsInModelColumns = {"view_id", "view_version", "parent_folder_id", "model_id", "model_version", "rank"};
 
-		ArchimateModel model = (ArchimateModel)view.getArchimateModel();
+		DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
 
 		insert(this.schema+"views_in_model", viewsInModelColumns
 				,view.getId()
@@ -1157,8 +1157,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		final String[] propertiesColumns = {"parent_id", "parent_version", "rank", "name", "value"};
 
 		int exportedVersion;
-		if ( parent instanceof ArchimateModel ) {
-			exportedVersion = ((ArchimateModel)parent).getExportedVersion().getVersion();
+		if ( parent instanceof DBArchimateModel ) {
+			exportedVersion = ((DBArchimateModel)parent).getExportedVersion().getVersion();
 		} else 
 			exportedVersion = ((IDBMetadata)parent).getDBMetadata().getExportedVersion().getVersion();
 

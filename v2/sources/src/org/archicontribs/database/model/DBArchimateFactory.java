@@ -328,7 +328,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IArchimateModel createArchimateModel() {
-        IArchimateModel model = new org.archicontribs.database.model.ArchimateModel();
+        IArchimateModel model = new org.archicontribs.database.model.DBArchimateModel();
         return model;
     }
     

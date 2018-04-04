@@ -11,7 +11,7 @@ import java.util.Iterator;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -28,7 +28,7 @@ public class DBMenuMergeModelsHandler extends AbstractHandler {
 		
 		while ( itr.hasNext() ) {
 			modelNames.append("+");
-			modelNames.append(((ArchimateModel)itr.next()).getName());
+			modelNames.append(((DBArchimateModel)itr.next()).getName());
 		}
 
 		if ( logger.isDebugEnabled() ) logger.debug("Merging models "+modelNames);

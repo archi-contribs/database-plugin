@@ -18,7 +18,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiImportImage;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.emf.common.notify.Adapter;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -130,7 +130,7 @@ public class DiagramModelImageSection extends AbstractArchimatePropertySection {
         
         DBGuiImportImage guiImportImage;
         try {
-            guiImportImage = new DBGuiImportImage((ArchimateModel)getEObject().getDiagramModel().getArchimateModel(), "Import image");
+            guiImportImage = new DBGuiImportImage((DBArchimateModel)getEObject().getDiagramModel().getArchimateModel(), "Import image");
             guiImportImage.run();
             while ( !guiImportImage.isDisposed() )
                 DBGui.refreshDisplay();

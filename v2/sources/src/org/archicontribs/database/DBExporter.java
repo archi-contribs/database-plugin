@@ -11,7 +11,7 @@ import java.io.IOException;
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiExportModel;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import com.archimatetool.editor.model.IModelExporter;
 import com.archimatetool.model.IArchimateModel;
 
@@ -31,7 +31,7 @@ public class DBExporter implements IModelExporter {
         logger.info("Exporting model "+archimateModel.getName());
 
         try {
-        	DBGuiExportModel exportModel = new DBGuiExportModel((ArchimateModel)archimateModel, "Export model");
+        	DBGuiExportModel exportModel = new DBGuiExportModel((DBArchimateModel)archimateModel, "Export model");
         	exportModel.run();
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot export model", e);

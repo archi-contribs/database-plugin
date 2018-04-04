@@ -17,7 +17,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -50,7 +50,7 @@ public class DBGuiImportModel extends DBGui {
     @SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
 
-    private ArchimateModel modelToImport;
+    private DBArchimateModel modelToImport;
     
     DBDatabaseImportConnection importConnection;
     
@@ -671,7 +671,7 @@ public class DBGuiImportModel extends DBGui {
         setActiveAction(ACTION.Two);
         
         // we create the model (but do not create standard folder as they will be imported from the database)
-        this.modelToImport = (ArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
+        this.modelToImport = (DBArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
         this.modelToImport.setId(modelId);
         this.modelToImport.setName(modelName);
         this.modelToImport.setPurpose((String)this.tblModels.getSelection()[0].getData("purpose"));

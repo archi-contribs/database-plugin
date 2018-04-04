@@ -8,7 +8,7 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -52,7 +52,7 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
      */
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
-        ArchimateModel model = (ArchimateModel) ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
+        DBArchimateModel model = (DBArchimateModel) ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
         IDAdapter adapter = new IDAdapter();
         int idsReplaced = 0;
 

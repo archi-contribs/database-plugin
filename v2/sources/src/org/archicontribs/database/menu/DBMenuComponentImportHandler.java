@@ -10,7 +10,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiImportComponent;
-import org.archicontribs.database.model.ArchimateModel;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -29,22 +29,22 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
-		ArchimateModel model;
+		DBArchimateModel model;
 		IArchimateDiagramModel view = null;
 		IFolder folder = null;
 		
 		if ( selection instanceof IFolder ) {											// if the user clicked on a folder in the tree
-			model = (ArchimateModel) ((IFolder)selection).getArchimateModel();
+			model = (DBArchimateModel) ((IFolder)selection).getArchimateModel();
 			folder = (IFolder)selection;
 		} else if ( selection instanceof IArchimateConcept ) {							// if the user clicked on an element or a relationship in the tree
-			model = (ArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
+			model = (DBArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
-			model = (ArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
+			model = (DBArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
 		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
-			model = (ArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
+			model = (DBArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
 			view = ((IArchimateDiagramModel)selection);
 	    } else if ( selection instanceof ArchimateDiagramPart ) {                     // if the user clicked on a view background
-	        model = (ArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
+	        model = (DBArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
 			view = ((ArchimateDiagramPart)selection).getModel();
 		} else {
 			DBGui.popup(Level.ERROR, "Do not know which component you selected : "+selection.getClass().getSimpleName());
