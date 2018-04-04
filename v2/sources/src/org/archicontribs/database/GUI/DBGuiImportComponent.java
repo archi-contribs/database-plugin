@@ -1387,7 +1387,7 @@ public class DBGuiImportComponent extends DBGui {
 				popup("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
 				
 				if ( this.compoElements.getVisible() )
-					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue()));
+					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
 				//else if ( compoContainers.getVisible() )
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());

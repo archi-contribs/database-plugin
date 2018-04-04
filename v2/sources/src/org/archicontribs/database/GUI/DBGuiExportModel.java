@@ -1315,7 +1315,7 @@ public class DBGuiExportModel extends DBGui {
 		        	// TODO : if the element has been updated in the database, then generate a conflict
 		        	logger.trace("Must import element "+id);
 		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
-		        	importConnection.importElementFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+		        	importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
 		        	incrementText(this.txtNewElementsInDatabase);
 		        	incrementText(this.txtTotalElements);
 		         }
@@ -1712,7 +1712,7 @@ public class DBGuiExportModel extends DBGui {
 		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
             if ( eObjectToExport instanceof IArchimateElement ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importElementFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
                 incrementText(txtUpdatedInDatabase);
             } else if ( eObjectToExport instanceof IArchimateRelationship ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");

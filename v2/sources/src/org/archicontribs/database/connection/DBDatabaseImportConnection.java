@@ -709,7 +709,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					IArchimateElement element = model.getAllElements().get(this.currentResultSet.getString("element_id"));
 					if ( element == null ) {
 						if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
-						importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false);
+						importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
 					}
 				}
 
@@ -1061,6 +1061,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		return "?";
 	}
+	
+	/**
+     * Imports an element into the model<br>
+     * @param model model into which the element will be imported
+     * @param view if a view is provided, then an ArchimateObject will be automatically created
+     * @param elementId id of the element to import
+     * @param elementVersion version of the element to import (0 if the latest version should be imported)
+     * @return the imported element
+     * @throws Exception
+     */
+    public IArchimateElement importElementFromId(DBArchimateModel model, String elementId, int elementVersion) throws Exception {
+        return this.importElementFromId(model, null, elementId, elementVersion, false, false);
+    }
 
 	/**
 	 * Imports an element into the model<br>
@@ -1068,11 +1081,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
 	 * @param elementId id of the element to import
 	 * @param elementVersion version of the element to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should kee its original id 
+	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
+	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
 	 * @return the imported element
 	 * @throws Exception
 	 */
-	public IArchimateElement importElementFromId(DBArchimateModel model, IArchimateDiagramModel view, String elementId, int elementVersion, boolean mustCreateCopy) throws Exception {
+	public IArchimateElement importElementFromId(DBArchimateModel model, IArchimateDiagramModel view, String elementId, int elementVersion, boolean mustCreateCopy, boolean mustImportRelationships) throws Exception {
 		IArchimateElement element;
 		List<Object> imported = new ArrayList<Object>();
 		boolean newElement = false;
@@ -1151,22 +1165,24 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 
-		// We import the relationships that source or target the element
-		try ( ResultSet resultrelationship = select("SELECT id, source_id, target_id FROM "+this.schema+"relationships WHERE source_id = ? OR target_id = ?", elementId, elementId) ) {
-			while ( resultrelationship.next() && resultrelationship.getString("id") != null ) {
-				// we import only relationships that do not exist
-				if ( model.getAllRelationships().get(resultrelationship.getString("id")) == null ) {
-					IArchimateElement sourceElement = model.getAllElements().get(resultrelationship.getString("source_id"));
-					IArchimateRelationship sourceRelationship = model.getAllRelationships().get(resultrelationship.getString("source_id"));
-					IArchimateElement targetElement = model.getAllElements().get(resultrelationship.getString("target_id"));
-					IArchimateRelationship targetRelationship = model.getAllRelationships().get(resultrelationship.getString("target_id"));
-	
-					// we import only relations when both source and target are in the model
-					if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
-						imported.add(importRelationshipFromId(model, view, resultrelationship.getString("id"), 0, false));
-					}
-				}
-			}
+		if ( mustImportRelationships ) {
+    		// We import the relationships that source or target the element
+    		try ( ResultSet resultrelationship = select("SELECT id, source_id, target_id FROM "+this.schema+"relationships WHERE source_id = ? OR target_id = ?", elementId, elementId) ) {
+    			while ( resultrelationship.next() && resultrelationship.getString("id") != null ) {
+    				// we import only relationships that do not exist
+    				if ( model.getAllRelationships().get(resultrelationship.getString("id")) == null ) {
+    					IArchimateElement sourceElement = model.getAllElements().get(resultrelationship.getString("source_id"));
+    					IArchimateRelationship sourceRelationship = model.getAllRelationships().get(resultrelationship.getString("source_id"));
+    					IArchimateElement targetElement = model.getAllElements().get(resultrelationship.getString("target_id"));
+    					IArchimateRelationship targetRelationship = model.getAllRelationships().get(resultrelationship.getString("target_id"));
+    	
+    					// we import only relations when both source and target are in the model
+    					if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
+    						imported.add(importRelationshipFromId(model, view, resultrelationship.getString("id"), 0, false));
+    					}
+    				}
+    			}
+    		}
 		}
 
 		if ( !imported.isEmpty() )
