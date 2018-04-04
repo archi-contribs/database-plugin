@@ -70,7 +70,7 @@ public class DBMenu extends ExtensionContributionFactory {
                 switch ( obj.getClass().getSimpleName() ) {
                 	
                     // when a user right clicks on a model
-                    case "ArchimateModel" :
+                    case "DBArchimateModel" :
                         additions.addContributionItem(new Separator(), null);
                         if ( showIdInContextMenu ) {
                             additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
