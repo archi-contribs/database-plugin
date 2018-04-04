@@ -972,8 +972,8 @@ public class DBGuiExportModel extends DBGui {
         //    - the model is not in the database
         //    - the current model is the latest model in the database
         //    - we are in standalone mode
-        this.forceExport = this.exportedModel.getCurrentVersion().getVersion() == 0
-                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getCurrentVersion().getVersion()
+        this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
+                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
                 || !this.selectedDatabase.getCollaborativeMode();
 
         int nbNew = 0;
@@ -1169,7 +1169,7 @@ public class DBGuiExportModel extends DBGui {
             this.btnDoAction.setEnabled(false);
             this.btnDoAction.setText("Export");
             
-            this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getLatestDatabaseVersion().getTimestamp());
+            this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getLatestDatabaseVersion().getTimestamp());
             
             return true;
         }
@@ -1270,8 +1270,8 @@ public class DBGuiExportModel extends DBGui {
         //    - the current model is the latest model in the database
         //    - we are in standalone mode
 		//	  - we export to a Neo4j database
-        this.forceExport = this.exportedModel.getCurrentVersion().getVersion() == 0
-                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getCurrentVersion().getVersion()
+        this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
+                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
                 || !this.selectedDatabase.getCollaborativeMode()
                 || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 		
@@ -1473,7 +1473,7 @@ public class DBGuiExportModel extends DBGui {
 			                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
 			                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
 			                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") &&   
-							this.exportedModel.getExportedVersion().getChecksum().equals(this.exportedModel.getCurrentVersion().getChecksum()) ) {
+							this.exportedModel.getExportedVersion().getChecksum().equals(this.exportedModel.getInitialVersion().getChecksum()) ) {
 						this.exportConnection.rollback();
 					    this.exportConnection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
@@ -1524,9 +1524,9 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	void copyExportedVersionToCurrentVersion() {
-	    this.exportedModel.getCurrentVersion().setVersion(this.exportedModel.getExportedVersion().getVersion());
-        this.exportedModel.getCurrentVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
-        this.exportedModel.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+	    this.exportedModel.getInitialVersion().setVersion(this.exportedModel.getExportedVersion().getVersion());
+        this.exportedModel.getInitialVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
+        this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {

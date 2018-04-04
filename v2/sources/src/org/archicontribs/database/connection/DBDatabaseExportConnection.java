@@ -138,7 +138,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            model.getLatestDatabaseVersion().setTimestamp(resultLatestVersion.getTimestamp("created_on"));
 	            
 	            // we check if the model has been imported from (or last exported to) this database
-	            try ( ResultSet resultCurrentVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND created_on = ?", model.getId(), model.getCurrentVersion().getTimestamp()) ) {
+	            try ( ResultSet resultCurrentVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND created_on = ?", model.getId(), model.getInitialVersion().getTimestamp()) ) {
 		            if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
 		                // if the version is found, then the model has been imported from or last exported to the database 
 		                model.getExportedVersion().setVersion(resultCurrentVersion.getInt("version"));
@@ -152,7 +152,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            }
 
 	            logger.debug("The model already exists in the database:");
-	            logger.debug("   - current version = "+model.getCurrentVersion().getVersion());
+	            logger.debug("   - current version = "+model.getInitialVersion().getVersion());
 	            logger.debug("   - exported version = "+model.getExportedVersion().getVersion());
 	            logger.debug("   - latest database version = "+model.getLatestDatabaseVersion().getVersion());
 	            
@@ -715,7 +715,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		// As we export the model, we increase its versions
 		model.getExportedVersion().setVersion(model.getLatestDatabaseVersion().getVersion()+1);
 		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (current version = "+model.getCurrentVersion().getVersion()+", exported version = "+model.getExportedVersion().getVersion()+")");
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (current version = "+model.getInitialVersion().getVersion()+", exported version = "+model.getExportedVersion().getVersion()+")");
 		
         if ( this.connection.getAutoCommit() )
             model.getExportedVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));

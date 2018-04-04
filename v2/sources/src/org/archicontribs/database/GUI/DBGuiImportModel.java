@@ -679,10 +679,10 @@ public class DBGuiImportModel extends DBGui {
         // we get the selected model version to import
         // if the value is empty, this means that the user selected the "Now" line, so we must load the latest version of the views
         if ( !this.tblModelVersions.getSelection()[0].getText(0).isEmpty() ) {
-        	this.modelToImport.getCurrentVersion().setVersion(Integer.valueOf(this.tblModelVersions.getSelection()[0].getText(0)));
+        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getSelection()[0].getText(0)));
         	this.modelToImport.setImportLatestVersion(false);
         } else {
-        	this.modelToImport.getCurrentVersion().setVersion(Integer.valueOf(this.tblModelVersions.getItem(1).getText(0)));
+        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getItem(1).getText(0)));
         	this.modelToImport.setImportLatestVersion(true);
         }
 

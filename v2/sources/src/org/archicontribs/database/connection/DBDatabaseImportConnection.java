@@ -309,20 +309,20 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// reseting the model's counters
 		model.resetCounters();
 
-		if ( model.getCurrentVersion().getVersion() == 0 ) {
+		if ( model.getInitialVersion().getVersion() == 0 ) {
 		    try ( ResultSet result = select("SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
 			    if ( result.next() ) {
-			        model.getCurrentVersion().setVersion(result.getInt("version"));
+			        model.getInitialVersion().setVersion(result.getInt("version"));
 			    }
 		    }
 		}
 
 		//TODO : manage the "real" model metadata :-)
-		try ( ResultSet result = select("SELECT name, purpose, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = ?", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try ( ResultSet result = select("SELECT name, purpose, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
 			model.setPurpose(result.getString("purpose"));
-	        model.getCurrentVersion().setChecksum(result.getString("checksum"));
-	        model.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+	        model.getInitialVersion().setChecksum(result.getString("checksum"));
+	        model.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
 		}
 
 		importProperties(model);
@@ -343,7 +343,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 									" WHERE model_id = ? AND model_version = ?"+
 									" GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on";
 		}
-		try (ResultSet resultElements = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try (ResultSet resultElements = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
 			this.countElementsImported = 0;
@@ -364,7 +364,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 		try ( ResultSet resultRelationships = select("SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 				,model.getId()
-				,model.getCurrentVersion().getVersion()
+				,model.getInitialVersion().getVersion()
 				) ) {
 			resultRelationships.next();
 			this.countRelationshipsToImport = resultRelationships.getInt("countRelationships");
@@ -382,7 +382,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 									" JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = folders_in_model.folder_version"+
 									" WHERE model_id = ? AND model_version = ?";
 		}
-		try ( ResultSet resultFolders = select("SELECT COUNT(*) AS countFolders FROM ("+this.importFoldersRequest+") fldrs", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try ( ResultSet resultFolders = select("SELECT COUNT(*) AS countFolders FROM ("+this.importFoldersRequest+") fldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultFolders.next();
 			this.countFoldersToImport = resultFolders.getInt("countFolders");
 			this.countFoldersImported = 0;
@@ -401,7 +401,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = views_in_model.view_version"+
 								 " WHERE model_id = ? AND model_version = ?";
 		}
-		try ( ResultSet resultViews = select("SELECT COUNT(*) AS countViews FROM ("+this.importViewsRequest+") vws", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try ( ResultSet resultViews = select("SELECT COUNT(*) AS countViews FROM ("+this.importViewsRequest+") vws", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViews.next();
 			this.countViewsToImport = resultViews.getInt("countViews");
 			this.countViewsImported = 0;
@@ -420,7 +420,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 										" JOIN "+this.schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = views_in_model.view_version"+
 										" WHERE model_id = ? AND model_version = ?";
 		}
-		try ( ResultSet resultViewObjects = select("SELECT COUNT(*) AS countViewsObjects FROM ("+this.importViewsObjectsRequest+") vobjs", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try ( ResultSet resultViewObjects = select("SELECT COUNT(*) AS countViewsObjects FROM ("+this.importViewsObjectsRequest+") vobjs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewObjects.next();
 			this.countViewObjectsToImport = resultViewObjects.getInt("countViewsObjects");
 			this.countViewObjectsImported = 0;
@@ -439,7 +439,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 										" JOIN "+this.schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = views_in_model.view_version"+
 										" WHERE model_id = ? AND model_version = ?";
 		}
-		try ( ResultSet resultViewConnections = select("SELECT COUNT(*) AS countViewsConnections FROM ("+this.importViewsConnectionsRequest+") vcons", model.getId(), model.getCurrentVersion().getVersion()) ) {
+		try ( ResultSet resultViewConnections = select("SELECT COUNT(*) AS countViewsConnections FROM ("+this.importViewsConnectionsRequest+") vcons", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewConnections.next();
 			this.countViewConnectionsToImport = resultViewConnections.getInt("countViewsConnections");
 			this.countViewConnectionsImported = 0;
@@ -453,7 +453,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						" INNER JOIN "+this.schema+"images ON "+this.schema+"views_objects.image_path = images.path"+
 						" WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
 				,model.getId()
-				,model.getCurrentVersion().getVersion()
+				,model.getInitialVersion().getVersion()
 				))
 		{
 			resultImages.next();
@@ -475,7 +475,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public void prepareImportFolders(DBArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importFoldersRequest
 				,model.getId()
-				,model.getCurrentVersion().getVersion()
+				,model.getInitialVersion().getVersion()
 				);
 	}
 
@@ -543,7 +543,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 //		} else {
 			this.currentResultSet = select(this.importElementsRequest
 					,model.getId()
-					,model.getCurrentVersion().getVersion()
+					,model.getInitialVersion().getVersion()
 					);
 //		}
 			
@@ -604,7 +604,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 //		} else {
 			this.currentResultSet = select(this.importRelationshipsRequest
 					,model.getId()
-					,model.getCurrentVersion().getVersion()
+					,model.getInitialVersion().getVersion()
 					);
 //		}
 	}
@@ -657,7 +657,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public void prepareImportViews(DBArchimateModel model) throws Exception {
 		this.currentResultSet = select(this.importViewsRequest,
 				model.getId(),
-				model.getCurrentVersion().getVersion()
+				model.getInitialVersion().getVersion()
 				);
 	}
 
@@ -974,7 +974,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		int i = 0;
 		
 		if ( parent instanceof IArchimateModel )
-			currentVersion = ((DBArchimateModel)parent).getCurrentVersion().getVersion();
+			currentVersion = ((DBArchimateModel)parent).getInitialVersion().getVersion();
 		else
 			currentVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
 

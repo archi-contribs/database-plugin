@@ -52,7 +52,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	}
 	
 	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
-	private DBVersion currentVersion = new DBVersion();
+	private DBVersion initialVersion = new DBVersion();
 	private DBVersion exportedVersion = new DBVersion();
 	private DBVersion latestDatabaseVersion = new DBVersion();
 	
@@ -80,8 +80,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	/**
 	 * @return the current version of the model 
 	 */
-	public DBVersion getCurrentVersion() {
-		return this.currentVersion;
+	public DBVersion getInitialVersion() {
+		return this.initialVersion;
 	}
 	
 	   /**
