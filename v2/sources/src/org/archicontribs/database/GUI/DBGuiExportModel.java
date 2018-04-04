@@ -1689,15 +1689,15 @@ public class DBGuiExportModel extends DBGui {
 		}
 	            
 		if ( mustExport ) {
-		    if ( logger.isDebugEnabled() ) {
+		    if ( logger.isTraceEnabled() ) {
 		        if ( eObjectToExport instanceof IArchimateElement )
-		            logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		            logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IArchimateRelationship )
-		            logger.debug("Relationship id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		            logger.trace("Relationship id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IFolder )
-                    logger.debug("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+                    logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IDiagramModel )
-                    logger.debug("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+                    logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		    }
 			this.exportConnection.exportEObject(eObjectToExport);
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
@@ -1711,11 +1711,11 @@ public class DBGuiExportModel extends DBGui {
             // For the moment, we can import elements and relationships only during an export !!!
 		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
             if ( eObjectToExport instanceof IArchimateElement ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
                 incrementText(txtUpdatedInDatabase);
             } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
             } else
@@ -1727,12 +1727,12 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( mustDelete ) {
 		    if ( eObjectToExport instanceof IArchimateElement ) {
-		        if ( logger.isDebugEnabled() ) logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		        if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
 		        for ( IDiagramModelArchimateObject obj : ((IArchimateElement)eObjectToExport).getReferencingDiagramObjects() )
 		            this.delayedCommands.add(new DBDeleteDiagramObjectCommand(obj));
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
 		    } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+                if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
                 for ( IDiagramModelArchimateConnection obj : ((IArchimateRelationship)eObjectToExport).getReferencingDiagramConnections() )
                     this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(obj));
                 this.delayedCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
