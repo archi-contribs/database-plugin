@@ -747,7 +747,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	}
 	
 	public void assignEObjectToModel(EObject eObject) throws Exception {
-		if ( logger.isDebugEnabled() ) logger.debug("assigning component to model");
+		if ( logger.isTraceEnabled() ) logger.trace("assigning component to model");
 		
 		if ( eObject instanceof IArchimateElement )				assignElementToModel((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship )	assignRelationshipToModel((IArchimateRelationship)eObject);
