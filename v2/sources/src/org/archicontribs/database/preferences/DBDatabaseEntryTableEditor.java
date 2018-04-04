@@ -1050,22 +1050,21 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setSchema(this.txtSchema.getText());
 		databaseEntry.setUsername(this.txtUsername.getText());
 		databaseEntry.setPassword(this.txtPassword.getText());
-		databaseEntry.setExportWholeModel(this.btnWholeType.getSelection());
-		databaseEntry.setExportViewImages(this.btnExportViewImages.getSelection());
-		databaseEntry.setExportViewImages(this.btnExportViewImages.getSelection());
+		databaseEntry.setWholeModelExported(this.btnWholeType.getSelection());
+		databaseEntry.setViewSnapshotRequired(this.btnExportViewImages.getSelection());
 		databaseEntry.setViewsImagesBorderWidth(Integer.valueOf(this.txtBorderWidth.getText()));
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
 		databaseEntry.setCollaborativeMode(this.btnCollaborativeMode.getSelection());
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
-		databaseEntry.setNeo4jEmptyDB(this.btnNeo4jEmptyDB.getSelection());
-		databaseEntry.setNeo4jTypedRelationships(this.btnNeo4jTypedRelationships.getSelection());
+		databaseEntry.setShouldEmptyNeo4jDB(this.btnNeo4jEmptyDB.getSelection());
+		databaseEntry.setNeo4jTypedRelationship(this.btnNeo4jTypedRelationships.getSelection());
 
 		return databaseEntry;
 	}
 
 	void setDatabaseDetails(boolean editMode) {
 		DBDatabaseEntry databaseEntry = null;
-		boolean shouldExportImages = false;
+		boolean shouldExportViewSnapshots = false;
 
 		if ( this.tblDatabases.getSelectionIndex() == -1 ) {
 		    this.txtName.setText("");
@@ -1103,22 +1102,22 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.txtSchema.setText(databaseEntry.getSchema());
             this.txtUsername.setText(databaseEntry.getUsername());
             this.txtPassword.setText(databaseEntry.getPassword());
-            this.btnWholeType.setSelection(databaseEntry.getExportWholeModel());
-            this.btnComponentsType.setSelection(!databaseEntry.getExportWholeModel());
-            this.btnNeo4jNativeMode.setSelection(databaseEntry.getNeo4jNativeMode());
-            this.btnNeo4jExtendedMode.setSelection(!databaseEntry.getNeo4jNativeMode());
-            this.btnNeo4jEmptyDB.setSelection(databaseEntry.getNeo4jEmptyDB());
-            this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.getNeo4jEmptyDB());
-            this.btnCollaborativeMode.setSelection(databaseEntry.getCollaborativeMode());
-            this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.getNeo4jTypedRelationships());
-            this.btnNeo4jTypedRelationships.setSelection(databaseEntry.getNeo4jTypedRelationships());
-            this.btnStandaloneMode.setSelection(!databaseEntry.getCollaborativeMode());
-            this.btnExportViewImages.setSelection(databaseEntry.getExportViewsImages());
-            this.btnDoNotExportViewImages.setSelection(!databaseEntry.getExportViewsImages());
+            this.btnWholeType.setSelection(databaseEntry.isWholeModelExported());
+            this.btnComponentsType.setSelection(!databaseEntry.isWholeModelExported());
+            this.btnNeo4jNativeMode.setSelection(databaseEntry.isNeo4jNativeMode());
+            this.btnNeo4jExtendedMode.setSelection(!databaseEntry.isNeo4jNativeMode());
+            this.btnNeo4jEmptyDB.setSelection(databaseEntry.shouldEmptyNeo4jDB());
+            this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.shouldEmptyNeo4jDB());
+            this.btnCollaborativeMode.setSelection(databaseEntry.isCollaborativeMode());
+            this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.isNeo4jTypedRelationship());
+            this.btnNeo4jTypedRelationships.setSelection(databaseEntry.isNeo4jTypedRelationship());
+            this.btnStandaloneMode.setSelection(!databaseEntry.isCollaborativeMode());
+            this.btnExportViewImages.setSelection(databaseEntry.isViewSnapshotRequired());
+            this.btnDoNotExportViewImages.setSelection(!databaseEntry.isViewSnapshotRequired());
             this.txtBorderWidth.setText(String.valueOf(databaseEntry.getViewsImagesBorderWidth()));
             this.txtScaleFactor.setText(String.valueOf(databaseEntry.getViewsImagesScaleFactor()));
             
-            shouldExportImages = databaseEntry.getExportViewsImages();
+            shouldExportViewSnapshots = databaseEntry.isViewSnapshotRequired();
 		}
 		
 		this.btnShowPassword.setSelection(!editMode);
@@ -1156,12 +1155,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	    
 	    this.btnExportViewImages.setEnabled(editMode);
 	    this.btnDoNotExportViewImages.setEnabled(editMode);
-	    this.lblBorderWidth.setEnabled(editMode && shouldExportImages);
-	    this.txtBorderWidth.setEnabled(editMode && shouldExportImages);
-	    this.lblBorderWidthPixels.setEnabled(editMode && shouldExportImages);
-	    this.lblScaleFactor.setEnabled(editMode && shouldExportImages);
-	    this.txtScaleFactor.setEnabled(editMode && shouldExportImages);
-	    this.lblScaleFactorPercent.setEnabled(editMode && shouldExportImages);
+	    this.lblBorderWidth.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.txtBorderWidth.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.lblBorderWidthPixels.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.lblScaleFactor.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.txtScaleFactor.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.lblScaleFactorPercent.setEnabled(editMode && shouldExportViewSnapshots);
 
 		driverChanged();
 

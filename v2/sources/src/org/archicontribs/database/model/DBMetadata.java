@@ -15,6 +15,9 @@ import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * This class defines the metadata attached to every model components.
  * 
@@ -22,30 +25,43 @@ import com.archimatetool.model.INameable;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBMetadata  {
+    /**
+     * Component that contains the DBMetadata<br>
+     * This property is set during the component initialization and is used to calculate the component checksum
+     */
+    private EObject component;
+    
+    /**
+     * Version of the component as it was during last import/export, or zero if it was loaded from an archimate file
+     */
+	DBVersion initialVersion = new DBVersion();
+	
+	/**
+	 * Version of the component as it is now (recalculated on every import/export procedure)
+	 */
 	DBVersion currentVersion = new DBVersion();
-	DBVersion exportedVersion = new DBVersion();
+	
+	/**
+	 * Version of the component as it is in the database version of the model
+	 */
 	DBVersion databaseVersion = new DBVersion();
+	
+	/**
+	 * Latest version of the component in the database whichever the model that modified the component 
+	 */
 	DBVersion latestDatabaseVersion = new DBVersion();
 	
 	/**
-	 * diagram 
+	 * Parent diagram 
 	 */
-	private IDiagramModelComponent parentDiagram = null;
-	
-	/**
-	 * Component that contains the DBMetadata<br>
-	 * This property is set during the component initialization and is used to calculate the component checksum
-	 */
-	private EObject component;
+	@Getter @Setter private IDiagramModelComponent parentDiagram = null;
 	
 	/**
 	 * If the component is a folder, stores the type of its root folder<br>
 	 * This is needed to determine what class of eObjects it is able to store<br>
 	 * Folders created by the user have got a type of 0 (zero) but the root folder they are in limit the kind of objects they can store   
 	 */
-	private int rootFolderType;
-	
-	
+	@Getter @Setter private int rootFolderType;
 	
 	public DBMetadata(EObject component) {
 		assert ( component instanceof IIdentifier );
@@ -57,26 +73,26 @@ public class DBMetadata  {
 	 * 0 if the model has been loaded from an archimate file<br>
 	 * != 0 if the model has been imported from a database 
 	 */
-	public DBVersion getCurrentVersion() {
+	public DBVersion getInitialVersion() {
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
+	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getInitialVersion();
 	    }
     
-	    return this.currentVersion;
+	    return this.initialVersion;
 	}
 	
 	/**
 	 * Version of element, as calculated during the export process.<br>
-	 * Will be copied to currentVersion if the export process succeeds.
+	 * Will be copied to initialVersion if the export process succeeds.
 	 */
-    public DBVersion getExportedVersion() {
+    public DBVersion getCurrentVersion() {
         // Version of viewObject and viewConnections is the version of their parent view
         if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getExportedVersion();
+            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
         }
     
-        return this.exportedVersion;
+        return this.currentVersion;
     }
 	
 	/**
@@ -117,31 +133,7 @@ public class DBMetadata  {
 	 * Stores the action that need to be done in case of a database conflict
 	 * @see CONFLICT_CHOICE
 	 */
-	private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
-	
-	public CONFLICT_CHOICE getConflictChoice() {
-		return this.conflictChoice;
-	}
-	
-	public void setConflictChoice(CONFLICT_CHOICE choice) {
-		this.conflictChoice = choice;
-	}
-	
-	public IDiagramModelComponent getParentDiagram() {
-	    return this.parentDiagram;
-	}
-	
-	public void setParentdiagram(IDiagramModelComponent parent) {
-	    this.parentDiagram = parent;
-	}
-	
-	public int getRootFolderType() {
-		return this.rootFolderType;
-	}
-	
-	public void setRootFolderType(int type) {
-		this.rootFolderType = type;
-	}
+	@Getter @Setter private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
 	
 	/**
 	 * Calculates the full name of the component 

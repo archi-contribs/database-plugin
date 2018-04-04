@@ -22,6 +22,8 @@ import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 import org.archicontribs.database.GUI.DBGui;
 
+import lombok.Getter;
+
 /**
  * The BDLogger class is a proxy for the log4j Logger class.
  * 
@@ -32,7 +34,11 @@ public class DBLogger {
 	private String topCornerString = (char)0x250c+" ";
 	private String verticalString = (char)0x2502+" ";
 	private String bottomCornerString = (char)0x2514+" ";
-	private Logger logger;
+	
+	/**
+	 * Gets the logger
+	 */
+	@Getter private Logger logger;
 
 	public <T> DBLogger(Class<T> clazz) {
 		if ( ! initialised ) {
@@ -44,13 +50,6 @@ public class DBLogger {
 			}
 		}
 		this.logger = Logger.getLogger(clazz);
-	}
-	
-	/**
-	 * Gets the logger
-	 */
-	public Logger getLogger() {
-		return this.logger;
 	}
 	
 	/**

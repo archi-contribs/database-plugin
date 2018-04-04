@@ -4,6 +4,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
+import lombok.Getter;
+
 public enum DBDatabase {
 	MSSQL(0, "ms-sql", 1433, true),
 	MYSQL(1, "mysql", 3306, false),
@@ -25,14 +27,18 @@ public enum DBDatabase {
     
     public static final String[] DRIVER_NAMES = new String[] {MSSQL.getDriverName(), MYSQL.getDriverName(), NEO4J.getDriverName(), ORACLE.getDriverName(), POSTGRESQL.getDriverName(), SQLITE.getDriverName()};
     
-	private final int value;
-	private final String driverName;
-	private final int defaultPort;
+	@Getter private final int value;
+	@Getter private final String driverName;
+	@Getter private final int defaultPort;
+	
 	private final boolean hasSchema;
+    public boolean hasSchema() {
+        return this.hasSchema;
+    }
 	
     private DBDatabase(int value, String driverName, int defaultPort, boolean hasSchema) {
         this.value = value;
-        this.driverName = driverName;
+        this.driverName = driverName.toLowerCase();
         this.defaultPort = defaultPort;
         this.hasSchema = hasSchema;
     }
@@ -57,22 +63,6 @@ public enum DBDatabase {
         return null;
     }
 
-	public String getDriverName() {
-		return this.driverName.toLowerCase();		// just in case
-	}
-
-	public int getDefaultPort() {
-		return this.defaultPort;
-	}
-
-	public boolean hasSchema() {
-		return this.hasSchema;
-	}
-
-	public int getValue() {
-		return this.value;
-	}
-	
     @Override
     public String toString() {
         return this.driverName;

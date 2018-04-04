@@ -70,6 +70,8 @@ import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
+import lombok.Getter;
+
 /**
  * This class holds the information required to connect to, to import from and export to a database
  * 
@@ -253,48 +255,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 	private HashSet<String> allImagePaths;
 
-	private int countElementsToImport = 0;
-	public int countElementsToImport() { return this.countElementsToImport; }
+	@Getter private int countElementsToImport = 0;
+	@Getter private int countElementsImported = 0;
+	@Getter private int countRelationshipsToImport = 0;
+	@Getter private int countRelationshipsImported = 0;
+	@Getter private int countFoldersToImport = 0;
+	@Getter private int countFoldersImported = 0;
+	@Getter private int countViewsToImport = 0;
+	@Getter private int countViewsImported = 0;
+	@Getter private int countViewObjectsToImport = 0;
+	@Getter private int countViewObjectsImported = 0;
+	@Getter private int countViewConnectionsToImport = 0;
+	@Getter private int countViewConnectionsImported = 0;
+	@Getter private int countImagesToImport = 0;
+	@Getter private int countImagesImported = 0;
 
-	private int countElementsImported = 0;
-	public int countElementsImported() { return this.countElementsImported; }
-
-	private int countRelationshipsToImport = 0;
-	public int countRelationshipsToImport() { return this.countRelationshipsToImport; }
-
-	private int countRelationshipsImported = 0;
-	public int countRelationshipsImported() { return this.countRelationshipsImported; }
-
-	private int countFoldersToImport = 0;
-	public int countFoldersToImport() { return this.countFoldersToImport; }
-
-	private int countFoldersImported = 0;
-	public int countFoldersImported() { return this.countFoldersImported; }
-
-	private int countViewsToImport = 0;
-	public int countViewsToImport() { return this.countViewsToImport; }
-
-	private int countViewsImported = 0;
-	public int countViewsImported() { return this.countViewsImported; }
-
-	private int countViewObjectsToImport = 0;
-	public int countViewObjectsToImport() { return this.countViewObjectsToImport; }
-
-	private int countViewObjectsImported = 0;
-	public int countViewObjectsImported() { return this.countViewObjectsImported; }
-
-	private int countViewConnectionsToImport = 0;
-	public int countViewConnectionsToImport() { return this.countViewConnectionsToImport; }
-
-	private int countViewConnectionsImported = 0;
-	public int countViewConnectionsImported() { return this.countViewConnectionsImported; }
-
-	private int countImagesToImport = 0;
-	public int countImagesToImport() { return this.countImagesToImport; }
-
-	private int countImagesImported = 0;
-	public int countImagesImported() { return this.countImagesImported; }
-	
 	private String importFoldersRequest;
 	private String importElementsRequest;
 	private String importRelationshipsRequest;
@@ -330,7 +305,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		String toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation)" : "documentation";
 		String toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation) AS documentation" : "documentation";
 		
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+toCharDocumentationAsDocumentation+", created_on, checksum"+
 					" FROM "+this.schema+"elements_in_model"+
 					" JOIN "+this.schema+"elements ON elements.id = element_id AND version = (SELECT MAX(version) FROM elements WHERE id = element_id)"+
@@ -349,7 +324,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countElementsImported = 0;
 		}
 
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importRelationshipsRequest = "SELECT relationship_id, parent_folder_id, version, class, name, "+toCharDocumentationAsDocumentation+", source_id, target_id, strength, access_type, created_on, checksum"+
 					 " FROM "+this.schema+"relationships_in_model"+
 					 " INNER JOIN "+this.schema+"relationships ON id = relationship_id AND version = (SELECT MAX(version) FROM relationships WHERE id = relationship_id)"+
@@ -371,7 +346,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countRelationshipsImported = 0;
 		}
 		
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum"+
 									" FROM "+this.schema+"folders_in_model"+
 									" JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE folders.id = folders_in_model.folder_id)"+
@@ -390,7 +365,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		this.importFoldersRequest += " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum"+
 								 " FROM "+this.schema+"views_in_model"+
 								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = (select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)"+
@@ -409,7 +384,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		this.importViewsRequest += " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
 										" FROM "+this.schema+"views_in_model"+
 										" JOIN "+this.schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
@@ -428,7 +403,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		
 		this.importViewsObjectsRequest += " ORDER BY views_objects.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.getImportLatestVersion() ) {
+		if ( model.isLatestVersionImported() ) {
 			this.importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type "+
 										" FROM "+this.schema+"views_in_model"+
 										" JOIN "+this.schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
@@ -488,9 +463,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 
 				folder.setId(this.currentResultSet.getString("folder_id"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("folder_version"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("folder_version"));
+				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				folder.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
 				folder.setDocumentation(this.currentResultSet.getString("documentation"));
@@ -513,7 +488,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				importProperties(folder);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+" of folder "+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("folder_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+" of folder "+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("folder_id")+")");
 
 				// we reference this folder for future use (storing sub-folders or components into it ...)
 				model.countObject(folder, false, null);
@@ -557,9 +532,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( this.currentResultSet.next() ) {
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				element.setId(this.currentResultSet.getString("element_id"));
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				element.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
 				element.setDocumentation(this.currentResultSet.getString("documentation"));
@@ -575,7 +550,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(element);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+" of "+this.currentResultSet.getString("class")+":"+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("element_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+" of "+this.currentResultSet.getString("class")+":"+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("element_id")+")");
 
 				// we reference the element for future use (establishing relationships, creating views objects, ...)
 				model.countObject(element, false, null);
@@ -617,9 +592,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( this.currentResultSet.next() ) {
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				relationship.setId(this.currentResultSet.getString("relationship_id"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				relationship.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
 				relationship.setDocumentation(this.currentResultSet.getString("documentation"));
@@ -637,7 +612,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(relationship);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+" of "+this.currentResultSet.getString("class")+":"+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("relationship_id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+" of "+this.currentResultSet.getString("class")+":"+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("relationship_id")+")");
 
 				// we reference the relationship for future use (establishing relationships, creating views connections, ...)
 				model.countObject(relationship, false, null);
@@ -674,9 +649,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 
 				view.setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				view.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
 				view.setDocumentation(this.currentResultSet.getString("documentation"));
@@ -690,7 +665,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(view);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+" of "+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("id")+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+this.currentResultSet.getString("name")+"("+this.currentResultSet.getString("id")+")");
 
 				// we reference the view for future use
 				model.countObject(view, false, null);
@@ -727,7 +702,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
@@ -778,7 +753,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+this.currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+this.currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -820,7 +795,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 
 				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
@@ -849,7 +824,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
 
 				if ( eObject instanceof IDiagramModelConnection ) {
-					try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank", ((IIdentifier)eObject).getId(), ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()) ) {
+					try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank", ((IIdentifier)eObject).getId(), ((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()) ) {
 						while(resultBendpoints.next()) {
 							IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
 							bendpoint.setStartX(resultBendpoints.getInt("start_x"));
@@ -870,7 +845,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().getVersion()+" of "+this.currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
+				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+this.currentResultSet.getString("class")+"("+((IIdentifier)eObject).getId()+")");
 
 				return true;
 			}
@@ -976,7 +951,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( parent instanceof IArchimateModel )
 			currentVersion = ((DBArchimateModel)parent).getInitialVersion().getVersion();
 		else
-			currentVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
+			currentVersion = ((IDBMetadata)parent).getDBMetadata().getInitialVersion().getVersion();
 
 		try ( ResultSet result = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY rank", ((IIdentifier)parent).getId(), currentVersion)) {
 			boolean shouldAdd;
@@ -1124,8 +1099,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				element.setId(model.getIDAdapter().getNewID());
 				newElement = true;
 	
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(0);
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				element = model.getAllElements().get(elementId);
 				if ( element == null ) {
@@ -1139,8 +1114,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 	
 				if ( !DBPlugin.areEqual(element.getName(), resultElement.getString("name")) ) element.setName(resultElement.getString("name")==null ? "" : resultElement.getString("name"));
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(resultElement.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(resultElement.getTimestamp("created_on"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(resultElement.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(resultElement.getTimestamp("created_on"));
 			}
 	
 			if ( !DBPlugin.areEqual(element.getDocumentation(), resultElement.getString("documentation")) ) element.setDocumentation(resultElement.getString("documentation"));
@@ -1274,8 +1249,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				relationship.setId(model.getIDAdapter().getNewID());
 				newRelationship = true;
 	
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(0);
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(0);
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				relationship = model.getAllRelationships().get(relationshipId);
 				if ( relationship == null ) {
@@ -1288,8 +1263,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					newRelationship = false;
 				}
 	
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(resultRelationship.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(resultRelationship.getInt("version"));
+				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
 			}
 	
 			if ( !DBPlugin.areEqual(relationship.getName(), resultRelationship.getString("name")) ) relationship.setName(resultRelationship.getString("name")==null ? "" : resultRelationship.getString("name"));
@@ -1381,7 +1356,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			else
 				view.setId(id);
 	
-			((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(resultView.getInt("version"));
+			((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
 	
 			view.setName(resultView.getString("name")==null ? "" : resultView.getString("name"));
 			view.setDocumentation(resultView.getString("documentation"));
@@ -1401,19 +1376,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		model.getAllViews().put(((IIdentifier)view).getId(), view);
 
-		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
+		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
 
 		model.resetSourceAndTargetCounters();
 
 		// 2 : we import the objects and create the corresponding elements if they do not exist yet
 		//        importing an element will automatically import the relationships to and from this element
-		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
+		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
 		while ( importViewsObjects(model, view) ) {
 		    // each loop imports an object
 		}
 
 		// 3 : we import the connections and create the corresponding relationships if they do not exist yet
-		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion());
+		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
 		while ( importViewsConnections(model) ) {
 		    // each loop imports a connection
 		}

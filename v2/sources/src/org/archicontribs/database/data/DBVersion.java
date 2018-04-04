@@ -9,16 +9,14 @@ package org.archicontribs.database.data;
 import java.sql.Timestamp;
 import java.time.Instant;
 
+import lombok.Getter;
+
 /**
  * This class holds a version, a checksum and a timestamp
  * 
  * @author Herve Jouin
  */
 public class DBVersion {
-    private int version;
-    private String checksum;
-    private Timestamp timestamp;
-    
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
     public DBVersion(int version, String checksum, Timestamp timestamp) {
@@ -45,44 +43,17 @@ public class DBVersion {
         setTimestamp(null);
     }
     
-    /**
-     * @return the version
-     */
-    public int getVersion() {
-        return this.version;
-    }
-
-    /**
-     * @param the version
-     */
+    @Getter private int version;
     public void setVersion(int version) {
-        this.version = version;
+        this.version = (version<0 ? 0 : version);
     }
-
-    /**
-     * @return the checksum
-     */
-    public String getChecksum() {
-        return this.checksum;
-    }
-
-    /**
-     * @param the checksum
-     */
+    
+    @Getter private String checksum;
     public void setChecksum(String checksum) {
         this.checksum = (checksum==null ? "" : checksum);
     }
-    
-    /**
-     * @return the timestamp
-     */
-    public Timestamp getTimestamp() {
-        return this.timestamp;
-    }
 
-    /**
-     * @param the timestamp
-     */
+    @Getter private Timestamp timestamp;
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = (timestamp==null ? NEVER : timestamp);
     }

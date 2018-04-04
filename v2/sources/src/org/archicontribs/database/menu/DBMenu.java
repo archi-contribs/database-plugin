@@ -443,7 +443,7 @@ public class DBMenu extends ExtensionContributionFactory {
     
     static CommandContributionItem showChecksum(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = prefix+"Checksum: Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum() + " / Exported="+((IDBMetadata)component).getDBMetadata().getExportedVersion().getChecksum()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getChecksum();
+        String label = prefix+"Checksum: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getChecksum() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getChecksum();
         
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -465,7 +465,7 @@ public class DBMenu extends ExtensionContributionFactory {
 
     static CommandContributionItem showVersion(IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = "Version: Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion() + " / Exported="+((IDBMetadata)component).getDBMetadata().getExportedVersion().getVersion()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getVersion();
+        String label = "Version: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getVersion() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getVersion();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(

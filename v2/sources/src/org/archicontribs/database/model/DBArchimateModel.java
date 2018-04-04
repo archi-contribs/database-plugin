@@ -33,6 +33,9 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ModelVersion;
 
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * This class extends the <b>ArchimateModel</b> class.<br>
  * It adds a version and various counters about the components included in the model.
@@ -51,53 +54,145 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		super.setMetadata(DBArchimateFactory.eINSTANCE.createMetadata());
 	}
 	
-	private boolean importLatestVersion = false;			// specifies if we must import the latest version of the components or the version specified in the model
-	private DBVersion initialVersion = new DBVersion();
-	private DBVersion exportedVersion = new DBVersion();
-	private DBVersion latestDatabaseVersion = new DBVersion();
-	
-    // we use LinkedHashMap as order is important
-	private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
-	private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
-	private Map<String, IDiagramModel> allViews = new LinkedHashMap<String, IDiagramModel>();
-	private Map<String, IDiagramModelComponent> allViewsObjects = new LinkedHashMap<String, IDiagramModelComponent>();
-	private Map<String, IDiagramModelConnection> allViewsConnections = new LinkedHashMap<String, IDiagramModelConnection>();
-	private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
-	private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
-	private Map<IDiagramModelObject, String> allSourceObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
-	private Map<IDiagramModelObject, String> allTargetObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
-	private Map<IDiagramModelConnection, String> allSourceConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
-	private Map<IDiagramModelConnection, String> allTargetConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
-	
-	public void setImportLatestVersion(boolean latest) {
-		this.importLatestVersion = latest;
-	}
-	
-	public boolean getImportLatestVersion() {
-		return this.importLatestVersion;
-	}
+	/**
+	 * Specifies if we must import the latest version of the components or the version specified in the model.
+	 * 
+	 * @param importLatestVersion true if the import procedure should import the latest version of all components (even if updated by other models), or false if the import procedure should import the model version as it was exported.
+	 * @return true if the import procedure should import the latest version of all components (even if updated by other models), or false if the import procedure should import the model version as it was exported.
+	 */
+	@Getter @Setter private boolean latestVersionImported = false;
 	
 	/**
-	 * @return the current version of the model 
+	 * Initial version of the model, i.e. version when it has been imported or exported, or zero if loaded from an archimate file)  
 	 */
-	public DBVersion getInitialVersion() {
-		return this.initialVersion;
-	}
+	@Getter private DBVersion initialVersion = new DBVersion();
 	
-	   /**
-     * @return the version of the model that must be set in the database during the export process 
+	/**
+	 * Version of the model as it will be exported to the database. Usually @initialVersion + 1.
+	 */
+	@Getter private DBVersion exportedVersion = new DBVersion();
+	
+	/**
+	 * Latest version of the model in the database.
+	 */
+	@Getter private DBVersion latestDatabaseVersion = new DBVersion();
+	
+	/**
+	 * List of all elements in the model.<br>
+	 * <br>
+	 * Set by the @countAllObjects method.
+	 * <br>
+	 * We use LinkedHashMap as the order is important
+	 */
+	@Getter private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
+	
+    /**
+     * List of all relationships in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
      */
-    public DBVersion getExportedVersion() {
-        return this.exportedVersion;
-    }
+	@Getter private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
 	
-	   /**
-     * @return the latest version of the model in the database 
+	/**
+     * List of all views in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
      */
-    public DBVersion getLatestDatabaseVersion() {
-        return this.latestDatabaseVersion;
-    }
+	@Getter private Map<String, IDiagramModel> allViews = new LinkedHashMap<String, IDiagramModel>();
 	
+	/**
+     * List of all objects in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<String, IDiagramModelComponent> allViewObjects = new LinkedHashMap<String, IDiagramModelComponent>();
+	
+	/**
+     * List of all connections in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<String, IDiagramModelConnection> allViewConnections = new LinkedHashMap<String, IDiagramModelConnection>();
+	
+	/**
+     * List of all folders in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
+	
+	/**
+     * List of all the relationships sources and targets in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
+	
+	/**
+     * List of all the objects that are a source for a connection in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<IDiagramModelObject, String> allSourceObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
+	
+	/**
+     * List of all the objects that are a target for a connection in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<IDiagramModelObject, String> allTargetObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
+	
+    /**
+     * List of all the connections that are a target for a connection in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<IDiagramModelConnection, String> allSourceConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
+	
+	/**
+     * List of all the connections that are a target for a connection in the model views.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+     */
+	@Getter private Map<IDiagramModelConnection, String> allTargetConnectionsConnections = new LinkedHashMap<IDiagramModelConnection, String>();
+	
+	/**
+	 * List of all the image paths in the model.
+	 */
+	public List<String> getAllImagePaths() {
+        return ((IArchiveManager)getAdapter(IArchiveManager.class)).getImagePaths();
+    }
+    
+	/**
+	 * Gets the image content.
+	 * 
+	 * @param path path of the image
+	 * @return the byte array containing the image corresponding to the provided path
+	 */
+    public byte[] getImage(String path) {
+        return ((IArchiveManager)getAdapter(IArchiveManager.class)).getBytesFromEntry(path);
+    }
+    
 	/**
 	 * Resets the counters of components in the model
 	 */
@@ -108,8 +203,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		this.allElements.clear();
 		this.allRelationships.clear();
 		this.allViews.clear();
-		this.allViewsObjects.clear();
-		this.allViewsConnections.clear();
+		this.allViewObjects.clear();
+		this.allViewConnections.clear();
 		this.allFolders.clear();
 		
 		resetSourceAndTargetCounters();
@@ -161,8 +256,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      */
     public void resetViewsChecksums() throws Exception {
         this.allViews.clear();
-        this.allViewsObjects.clear();
-        this.allViewsConnections.clear();
+        this.allViewObjects.clear();
+        this.allViewConnections.clear();
         
         if ( logger.isTraceEnabled() ) logger.trace("Re-counting views in selected model.");
         
@@ -208,8 +303,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "DiagramModelNote" :
 			case "DiagramModelReference" :
 			case "CanvasModelSticky" :
-			case "SketchModelSticky" :				this.allViewsObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
-			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
+			case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
+			                                        ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
 													if ( eObject instanceof IDiagramModelContainer ) {
 														for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
 															String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
@@ -230,8 +325,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	
 			case "CanvasModelConnection" :
 			case "DiagramModelArchimateConnection":
-			case "DiagramModelConnection" :			this.allViewsConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
-			                                        ((IDBMetadata)eObject).getDBMetadata().setParentdiagram(parentDiagram);
+			case "DiagramModelConnection" :			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
+			                                        ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
 													break;
 													
 			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
@@ -270,43 +365,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		
 		if ( mustCalculateChecksum ) {
 			String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
-			((IDBMetadata)eObject).getDBMetadata().getExportedVersion().setChecksum(checksum);
+			((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
 			return checksum;
 		}
 		
 		return null;
-	}
-	
-	public Map<String, IArchimateElement> getAllElements() {
-		return this.allElements;
-	}
-	
-	public Map<String, IArchimateRelationship> getAllRelationships() {
-		return this.allRelationships;
-	}
-	
-	public Map<String, IDiagramModel> getAllViews() {
-		return this.allViews;
-	}
-	
-	public Map<String, IDiagramModelComponent> getAllViewObjects() {
-		return this.allViewsObjects;
-	}
-	
-	public Map<String, IDiagramModelConnection> getAllViewConnections() {
-		return this.allViewsConnections;
-	}
-	
-	public Map<String, IFolder> getAllFolders() {
-		return this.allFolders;
-	}
-	
-	public List<String> getAllImagePaths() {
-		return ((IArchiveManager)getAdapter(IArchiveManager.class)).getImagePaths();
-	}
-	
-	public byte[] getImage(String path) {
-		return ((IArchiveManager)getAdapter(IArchiveManager.class)).getBytesFromEntry(path);
 	}
 	
 	public void registerSourceAndTarget(IArchimateRelationship relationship, String sourceId, String targetId) throws Exception {

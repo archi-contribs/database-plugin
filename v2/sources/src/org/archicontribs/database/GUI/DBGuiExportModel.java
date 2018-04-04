@@ -191,7 +191,7 @@ public class DBGuiExportModel extends DBGui {
 				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(canExport);
 				
 				if ( canExport ) {
-                    boolean canChangeMetaData = (DBGuiExportModel.this.exportConnection != null && DBGuiExportModel.this.selectedDatabase.getExportWholeModel() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
+                    boolean canChangeMetaData = (DBGuiExportModel.this.exportConnection != null && DBGuiExportModel.this.selectedDatabase.isWholeModelExported() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
                     
                     DBGuiExportModel.this.txtReleaseNote.setEnabled(canChangeMetaData);
                     DBGuiExportModel.this.txtPurpose.setEnabled(canChangeMetaData);
@@ -790,28 +790,28 @@ public class DBGuiExportModel extends DBGui {
 	    this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
 	    
 		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
-		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblDatabaseDeleted.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingRelationships.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingFolders.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
 
 		// we hide the comparison between the model and the database in case of a neo4j database
 		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
@@ -901,26 +901,26 @@ public class DBGuiExportModel extends DBGui {
 		this.btnCompareModelToDatabase.setEnabled(false);
 		
 		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
-		this.lblDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblDatabaseNew.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.lblConflicts.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingElements.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingRelationships.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingFolders.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.getCollaborativeMode());
-		this.txtConflictingViews.setVisible(this.selectedDatabase.getCollaborativeMode());
+		this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
+		this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode());
 		
 		// we hide the comparison between the model and the database in case of a neo4j database
 		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
@@ -974,7 +974,7 @@ public class DBGuiExportModel extends DBGui {
         //    - we are in standalone mode
         this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
                 || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || !this.selectedDatabase.getCollaborativeMode();
+                || !this.selectedDatabase.isCollaborativeMode();
 
         int nbNew = 0;
         int nbNewInDb = 0;
@@ -992,9 +992,9 @@ public class DBGuiExportModel extends DBGui {
             else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore in the latest model, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1038,9 +1038,9 @@ public class DBGuiExportModel extends DBGui {
             } else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1083,9 +1083,9 @@ public class DBGuiExportModel extends DBGui {
             } else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1127,9 +1127,9 @@ public class DBGuiExportModel extends DBGui {
             } else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1184,7 +1184,7 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	protected void export() {
 		int progressBarWidth;
-		if ( this.selectedDatabase.getExportWholeModel() ) {
+		if ( this.selectedDatabase.isWholeModelExported() ) {
 			logger.info("Exporting model : "+this.exportedModel.getAllElements().size()+" elements, "+this.exportedModel.getAllRelationships().size()+" relationships, "+this.exportedModel.getAllFolders().size()+" folders, "+this.exportedModel.getAllViews().size()+" views, "+this.exportedModel.getAllViewObjects().size()+" views objects, "+this.exportedModel.getAllViewConnections().size()+" views connections, and "+((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size()+" images.");
 			progressBarWidth = this.exportedModel.getAllFolders().size()+this.exportedModel.getAllElements().size()+this.exportedModel.getAllRelationships().size()+this.exportedModel.getAllViews().size()+this.exportedModel.getAllViewObjects().size()+this.exportedModel.getAllViewConnections().size()+((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		} else {
@@ -1272,13 +1272,13 @@ public class DBGuiExportModel extends DBGui {
 		//	  - we export to a Neo4j database
         this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
                 || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || !this.selectedDatabase.getCollaborativeMode()
+                || !this.selectedDatabase.isCollaborativeMode()
                 || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 		
 		// we export the components
 		try {
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
-			if ( this.selectedDatabase.getExportWholeModel() ) {
+			if ( this.selectedDatabase.isWholeModelExported() ) {
 				// We update the model name and purpose in case they've been changed in the export windows
 				if ( !DBPlugin.areEqual(this.exportedModel.getName(), this.txtModelName.getText()) )
 					this.exportedModel.setName(this.txtModelName.getText());
@@ -1297,7 +1297,7 @@ public class DBGuiExportModel extends DBGui {
 				//TODO: importing missing folder
 			}
 			
-			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.getNeo4jEmptyDB() ) {
+			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.shouldEmptyNeo4jDB() ) {
 				this.exportConnection.neo4jemptyDB();
 			}
 	
@@ -1367,9 +1367,9 @@ public class DBGuiExportModel extends DBGui {
                     } else {
                         if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                             ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                        else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getExportedVersion().getChecksum()) ) {
-                            boolean modifiedInModel = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getExportedVersion().getChecksum());
-                            boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getCurrentVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                        else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                            boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                            boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                             
                             if ( modifiedInModel && modifiedInDatabase ) {
                                 if ( this.forceExport )     ++nbUpdated;
@@ -1399,7 +1399,7 @@ public class DBGuiExportModel extends DBGui {
                 closePopup();
             }
 	
-			if ( this.selectedDatabase.getExportWholeModel() ) {
+			if ( this.selectedDatabase.isWholeModelExported() ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
@@ -1467,7 +1467,7 @@ public class DBGuiExportModel extends DBGui {
 			// the export is successful
 			try  {
 				// we check if something has been really exported				
-				if ( this.selectedDatabase.getExportWholeModel() ) {
+				if ( this.selectedDatabase.isWholeModelExported() ) {
 			        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
 			                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
 			                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
@@ -1531,33 +1531,33 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            dbMetadata.getCurrentVersion().setVersion(dbMetadata.getExportedVersion().getVersion());
-            dbMetadata.getCurrentVersion().setChecksum(dbMetadata.getExportedVersion().getChecksum());
-            dbMetadata.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            dbMetadata.getCurrentVersion().setVersion(dbMetadata.getExportedVersion().getVersion());
-            dbMetadata.getCurrentVersion().setChecksum(dbMetadata.getExportedVersion().getChecksum());
-            dbMetadata.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-            dbMetadata.getCurrentVersion().setVersion(dbMetadata.getExportedVersion().getVersion());
-            dbMetadata.getCurrentVersion().setChecksum(dbMetadata.getExportedVersion().getChecksum());
-            dbMetadata.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            dbMetadata.getCurrentVersion().setVersion(dbMetadata.getExportedVersion().getVersion());
-            dbMetadata.getCurrentVersion().setChecksum(dbMetadata.getExportedVersion().getChecksum());
-            dbMetadata.getCurrentVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
 	}
 	
@@ -1625,18 +1625,18 @@ public class DBGuiExportModel extends DBGui {
 	                mustExport = true;
 		        }
             } else {
-                if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getExportedVersion().getChecksum()) ) {
+                if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum()) ) {
                     // if the checksum of the latest version in the database equals the latest checksum
                     // then the database is up to date and the component does not need to be exported
                 } else {
                     // else, the component is different between the model and the database
-        			boolean modifiedInModel = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getExportedVersion().getChecksum());
-        			boolean modifiedInDatabase = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum());
+        			boolean modifiedInModel = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum());
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum());
         			
         			if ( modifiedInModel ) {
         			    if ( modifiedInDatabase ) {
             				// if the component has been updated in both the model and the database, there might be a conflict
-        			        if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getExportedVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
+        			        if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
         			            // the the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
         			            mustExport = false;
             			    } else {
@@ -1743,7 +1743,7 @@ public class DBGuiExportModel extends DBGui {
             exported = true;
 		} else {
 		    // even if the eObject is not exported, it has to be referenced as being part of the model
-		    if ( this.selectedDatabase.getExportWholeModel() )
+		    if ( this.selectedDatabase.isWholeModelExported() )
 		        this.exportConnection.assignEObjectToModel(eObjectToExport);
 		}
 		
