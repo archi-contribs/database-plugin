@@ -58,236 +58,245 @@ public class DBMenu extends ExtensionContributionFactory {
         if ( logger.isTraceEnabled() ) logger.trace("Showing menu items");
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (window != null)
-        {
+        if (window != null) {
             IStructuredSelection selection = (IStructuredSelection) window.getSelectionService().getSelection();
-            if ( selection.size() == 1 ) {
-            	boolean showIdInContextMenu = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showIdInContextMenu");
-                Object obj = selection.getFirstElement();
-
-                if ( logger.isDebugEnabled() ) logger.debug("Showing menu for class "+obj.getClass().getSimpleName());
-
-                switch ( obj.getClass().getSimpleName() ) {
-                	
-                    // when a user right clicks on a model
-                    case "DBArchimateModel" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(convertIds(), null);
-                        additions.addContributionItem(exportModel(), null);
-                        break;
-                        
-                    // when the user right clicks in a diagram background
-                    case "ArchimateDiagramPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("view ", ((ArchimateDiagramPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((ArchimateDiagramPart)obj).getModel()), null);
-                            additions.addContributionItem(showChecksum("", ((ArchimateDiagramPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory(((ArchimateDiagramPart)obj).getModel()), null);
-                        additions.addContributionItem(importComponentIntoView(), null);
-                        break;
-                        
-                    // when the user right clicks in a canvas background
-                    case "CanvasDiagramPart" :
-                    	additions.addContributionItem(getHistory(((CanvasDiagramPart)obj).getModel()), null);
-                    	// cannot import (yet) a component into a canvas, except an image ...
-                        break;
-                        
-                    // when the user right clicks in a sketch background
-                    case "SketchDiagramPart" :
-                    	additions.addContributionItem(getHistory(((SketchDiagramPart)obj).getModel()), null);
-                    	// cannot import (yet) a component into a sketch
+            if ( selection != null ) {
+                switch ( selection.size() ) {
+                    case 0:
+                        // if nothing is selected, we add an "import model" menu entry
+                        additions.addContributionItem(importModel(), null);
                         break;
 
-                    // when the user right clicks in a diagram and an element is selected
-                    case "ArchimateElementEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("object ", ((ArchimateElementEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                            additions.addContributionItem(showId("element ", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                            additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                            additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                        break;
-                        
-                    // when the user right clicks in a diagram and a relationship is selected
-                    case "ArchimateRelationshipEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("object ", ((ArchimateRelationshipEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                            additions.addContributionItem(showId("relationship ", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                            additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                            additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                        break;
-                        
-                    // when the user right clicks in a canvas' block
-                    case "CanvasBlockEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("block ", ((CanvasBlockEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((CanvasBlockEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
-                            additions.addContributionItem(showChecksum("", ((CanvasBlockEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }	    				
-                        break;
-                        
-                    // when the user right clicks in a canvas' sticky
-                    case "CanvasStickyEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) { 
-                            additions.addContributionItem(showId("sticky ", ((CanvasStickyEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((CanvasStickyEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
-                            additions.addContributionItem(showChecksum("", ((CanvasStickyEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        break;
-                        
-                    // when the user right clicks on a connection
-                    case "DiagramConnectionEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("connection ", ((DiagramConnectionEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((DiagramConnectionEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showChecksum("", ((DiagramConnectionEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory(((DiagramConnectionEditPart)obj).getModel()), null);
-                        break;
-                        
-                    // when the user right clicks on an image
-                    case "DiagramImageEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("image ", ((DiagramImageEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((DiagramImageEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
-                            additions.addContributionItem(showChecksum("", ((DiagramImageEditPart)obj).getModel()), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        break;
-                        
-                    // when the user right clicks on a group
-                    case "GroupEditPart" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("group ", ((GroupEditPart)obj).getModel()), null);
-                            additions.addContributionItem(showVersion(((GroupEditPart)obj).getModel()), null);
-                        }
-                        break;
-                        
-                    // when the user right clicks on a note
-                    case "NoteEditPart" :
-                        break;
-                        
-                    // when the user right clicks on a sketch actor
-                    case "SketchActorEditPart" :
-                        break;
-                        
-                    // when the user right clicks on a sketch group
-                    case "SketchGroupEditPart" :
-                        break;
-                        
-                    // when the user right clicks on a sticky
-                    case "StickyEditPart" :
-                        break;	
+                    case 1:
+                        boolean showIdInContextMenu = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showIdInContextMenu");
+                        Object obj = selection.getFirstElement();
 
-                    // when the user right clicks on a diagram in the model tree
-                    case "ArchimateDiagramModel" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("view ", (IArchimateDiagramModel)obj), null);
-                            additions.addContributionItem(showVersion((IArchimateDiagramModel)obj), null);
-                            additions.addContributionItem(showChecksum("", (IArchimateDiagramModel)obj), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory((IArchimateDiagramModel)obj), null);
-                        additions.addContributionItem(importComponentIntoView(), null);
-                        break;
-                        
-                    // when the user right clicks on a canvas in the model tree
-                    case "CanvasModel" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("canvas ", (ICanvasModel)obj), null);
-                            additions.addContributionItem(showVersion((ICanvasModel)obj), null);
-                            additions.addContributionItem(showChecksum("", (ICanvasModel)obj), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory((ICanvasModel)obj), null);
-                        additions.addContributionItem(importComponent(), null);
-                        break;
-                        
-                    // when the user right clicks on a sketch in the model tree
-                    case "SketchModel" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("sketch ", (ISketchModel)obj), null);
-                            additions.addContributionItem(showVersion((ISketchModel)obj), null);
-                            additions.addContributionItem(showChecksum("", (ISketchModel)obj), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(getHistory((ISketchModel)obj), null);
-                        additions.addContributionItem(importComponent(), null);
-                        break;
-                    case "Folder" :
-                        additions.addContributionItem(new Separator(), null);
-                        if ( showIdInContextMenu ) {
-                            additions.addContributionItem(showId("folder ", (IFolder)obj), null);
-                            additions.addContributionItem(showVersion((IFolder)obj), null);
-                            additions.addContributionItem(showChecksum("", (IFolder)obj), null);
-                            additions.addContributionItem(new Separator(), null);
-                        }
-                        additions.addContributionItem(importComponent(), null);
-                        break;
-                    default :
-                        if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
-                            additions.addContributionItem(new Separator(), null);
-                            if ( showIdInContextMenu ) {
-                                additions.addContributionItem(showId("", (IIdentifier)obj), null);
-                                additions.addContributionItem(showVersion((IIdentifier)obj), null);
-                                additions.addContributionItem(showChecksum("", (IIdentifier)obj), null);
+                        if ( logger.isDebugEnabled() ) logger.debug("Showing menu for class "+obj.getClass().getSimpleName());
+
+                        switch ( obj.getClass().getSimpleName() ) {
+
+                            // when a user right clicks on a model
+                            case "DBArchimateModel" :
                                 additions.addContributionItem(new Separator(), null);
-                            }
-                            additions.addContributionItem(getHistory((IArchimateConcept)obj), null);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("No specific menu to show for this class ...");
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(convertIds(), null);
+                                additions.addContributionItem(exportModel(), null);
+                                break;
+
+                                // when the user right clicks in a diagram background
+                            case "ArchimateDiagramPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("view ", ((ArchimateDiagramPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((ArchimateDiagramPart)obj).getModel()), null);
+                                    additions.addContributionItem(showChecksum("", ((ArchimateDiagramPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory(((ArchimateDiagramPart)obj).getModel()), null);
+                                additions.addContributionItem(importComponentIntoView(), null);
+                                break;
+
+                                // when the user right clicks in a canvas background
+                            case "CanvasDiagramPart" :
+                                additions.addContributionItem(getHistory(((CanvasDiagramPart)obj).getModel()), null);
+                                // cannot import (yet) a component into a canvas, except an image ...
+                                break;
+
+                                // when the user right clicks in a sketch background
+                            case "SketchDiagramPart" :
+                                additions.addContributionItem(getHistory(((SketchDiagramPart)obj).getModel()), null);
+                                // cannot import (yet) a component into a sketch
+                                break;
+
+                                // when the user right clicks in a diagram and an element is selected
+                            case "ArchimateElementEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("object ", ((ArchimateElementEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                    additions.addContributionItem(showId("element ", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                    additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                    additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                break;
+
+                                // when the user right clicks in a diagram and a relationship is selected
+                            case "ArchimateRelationshipEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("object ", ((ArchimateRelationshipEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                    additions.addContributionItem(showId("relationship ", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                    additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                    additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                break;
+
+                                // when the user right clicks in a canvas' block
+                            case "CanvasBlockEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("block ", ((CanvasBlockEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((CanvasBlockEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
+                                    additions.addContributionItem(showChecksum("", ((CanvasBlockEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }	    				
+                                break;
+
+                                // when the user right clicks in a canvas' sticky
+                            case "CanvasStickyEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) { 
+                                    additions.addContributionItem(showId("sticky ", ((CanvasStickyEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((CanvasStickyEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
+                                    additions.addContributionItem(showChecksum("", ((CanvasStickyEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                break;
+
+                                // when the user right clicks on a connection
+                            case "DiagramConnectionEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("connection ", ((DiagramConnectionEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((DiagramConnectionEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showChecksum("", ((DiagramConnectionEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory(((DiagramConnectionEditPart)obj).getModel()), null);
+                                break;
+
+                                // when the user right clicks on an image
+                            case "DiagramImageEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("image ", ((DiagramImageEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((DiagramImageEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
+                                    additions.addContributionItem(showChecksum("", ((DiagramImageEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                break;
+
+                                // when the user right clicks on a group
+                            case "GroupEditPart" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("group ", ((GroupEditPart)obj).getModel()), null);
+                                    additions.addContributionItem(showVersion(((GroupEditPart)obj).getModel()), null);
+                                }
+                                break;
+
+                                // when the user right clicks on a note
+                            case "NoteEditPart" :
+                                break;
+
+                                // when the user right clicks on a sketch actor
+                            case "SketchActorEditPart" :
+                                break;
+
+                                // when the user right clicks on a sketch group
+                            case "SketchGroupEditPart" :
+                                break;
+
+                                // when the user right clicks on a sticky
+                            case "StickyEditPart" :
+                                break;	
+
+                                // when the user right clicks on a diagram in the model tree
+                            case "ArchimateDiagramModel" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("view ", (IArchimateDiagramModel)obj), null);
+                                    additions.addContributionItem(showVersion((IArchimateDiagramModel)obj), null);
+                                    additions.addContributionItem(showChecksum("", (IArchimateDiagramModel)obj), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory((IArchimateDiagramModel)obj), null);
+                                additions.addContributionItem(importComponentIntoView(), null);
+                                break;
+
+                                // when the user right clicks on a canvas in the model tree
+                            case "CanvasModel" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("canvas ", (ICanvasModel)obj), null);
+                                    additions.addContributionItem(showVersion((ICanvasModel)obj), null);
+                                    additions.addContributionItem(showChecksum("", (ICanvasModel)obj), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory((ICanvasModel)obj), null);
+                                additions.addContributionItem(importComponent(), null);
+                                break;
+
+                                // when the user right clicks on a sketch in the model tree
+                            case "SketchModel" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("sketch ", (ISketchModel)obj), null);
+                                    additions.addContributionItem(showVersion((ISketchModel)obj), null);
+                                    additions.addContributionItem(showChecksum("", (ISketchModel)obj), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(getHistory((ISketchModel)obj), null);
+                                additions.addContributionItem(importComponent(), null);
+                                break;
+                            case "Folder" :
+                                additions.addContributionItem(new Separator(), null);
+                                if ( showIdInContextMenu ) {
+                                    additions.addContributionItem(showId("folder ", (IFolder)obj), null);
+                                    additions.addContributionItem(showVersion((IFolder)obj), null);
+                                    additions.addContributionItem(showChecksum("", (IFolder)obj), null);
+                                    additions.addContributionItem(new Separator(), null);
+                                }
+                                additions.addContributionItem(importComponent(), null);
+                                break;
+                            default :
+                                if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
+                                    additions.addContributionItem(new Separator(), null);
+                                    if ( showIdInContextMenu ) {
+                                        additions.addContributionItem(showId("", (IIdentifier)obj), null);
+                                        additions.addContributionItem(showVersion((IIdentifier)obj), null);
+                                        additions.addContributionItem(showChecksum("", (IIdentifier)obj), null);
+                                        additions.addContributionItem(new Separator(), null);
+                                    }
+                                    additions.addContributionItem(getHistory((IArchimateConcept)obj), null);
+                                } else {
+                                    if ( logger.isDebugEnabled() ) logger.debug("No specific menu to show for this class ...");
+                                }
                         }
-                }
-            } else {
-                // If all the selected objects are models, we propose to merge them
-                Iterator<?> itr = selection.iterator();
-                boolean oneArchimateModel = false;
-                boolean allArchimateModels = true;
-                while ( itr.hasNext() ) {
-                    if ( (itr.next() instanceof DBArchimateModel) ) {
-                        oneArchimateModel = true;
-                    } else {
-                        allArchimateModels = false;
                         break;
-                    }
-                }
-                if ( oneArchimateModel && allArchimateModels ) {
-                    additions.addContributionItem(new Separator(), null);
-                    additions.addContributionItem(mergeModels(), null);
+
+                    default:
+                        // If all the selected objects are models, we propose to merge them
+                        Iterator<?> itr = selection.iterator();
+                        boolean oneArchimateModel = false;
+                        boolean allArchimateModels = true;
+                        while ( itr.hasNext() ) {
+                            if ( (itr.next() instanceof DBArchimateModel) ) {
+                                oneArchimateModel = true;
+                            } else {
+                                allArchimateModels = false;
+                                break;
+                            }
+                        }
+                        if ( oneArchimateModel && allArchimateModels ) {
+                            additions.addContributionItem(new Separator(), null);
+                            additions.addContributionItem(mergeModels(), null);
+                        }
                 }
             }
         }
@@ -344,6 +353,31 @@ public class DBMenu extends ExtensionContributionFactory {
         return new CommandContributionItem(p);
     }
 
+    static CommandContributionItem importModel() {
+        ImageDescriptor menuIcon;
+        String label;
+
+        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
+        label = "Import model from database";
+
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        CommandContributionItemParameter p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.modelImportCommand",            // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        return new CommandContributionItem(p);
+    }
+
     static CommandContributionItem exportModel() {
         ImageDescriptor menuIcon;
         String label;
@@ -393,7 +427,7 @@ public class DBMenu extends ExtensionContributionFactory {
                 true);
         return new CommandContributionItem(p);
     }
-    
+
     static CommandContributionItem importComponentIntoView() {
         ImageDescriptor menuIcon;
         String label;
@@ -440,11 +474,11 @@ public class DBMenu extends ExtensionContributionFactory {
                 true);
         return new CommandContributionItem(p);
     }
-    
+
     static CommandContributionItem showChecksum(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = prefix+"Checksum: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getChecksum() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getChecksum();
-        
+
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
