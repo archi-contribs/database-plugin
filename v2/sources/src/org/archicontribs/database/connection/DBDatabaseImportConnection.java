@@ -253,7 +253,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		return map;
 	}
 
-	private HashSet<String> allImagePaths;
+	@Getter private HashSet<String> allImagePaths = new HashSet<String>();
 
 	@Getter private int countElementsToImport = 0;
 	@Getter private int countElementsImported = 0;
@@ -439,7 +439,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("Importing "+this.countElementsToImport+" elements, "+this.countRelationshipsToImport+" relationships, "+this.countFoldersToImport+" folders, "+this.countViewsToImport+" views, "+this.countViewObjectsToImport+" views objects, "+this.countViewConnectionsToImport+" views connections, and "+this.countImagesToImport+" images.");
 
 		// initializing the HashMaps that will be used to reference imported objects
-		this.allImagePaths = new HashSet<String>();
+		this.allImagePaths.clear();
 
 		return this.countElementsToImport + this.countRelationshipsToImport + this.countFoldersToImport + this.countViewsToImport + this.countViewObjectsToImport + this.countViewConnectionsToImport + this.countImagesToImport;
 	}
@@ -853,13 +853,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.currentResultSet = null;
 		}
 		return false;
-	}
-
-	/**
-	 * Prepare the import of the images from the database
-	 */
-	public HashSet<String> getAllImagePaths() {
-		return this.allImagePaths;
 	}
 
 	/**
@@ -1441,7 +1434,30 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
             this.currentResultSet = null;
         }
 
-        // we free up a bit the memory
-        this.allImagePaths = null;
+        // we reset the counters
+        this.countElementsToImport = 0;
+        this.countElementsImported = 0;
+        this.countRelationshipsToImport = 0;
+        this.countRelationshipsImported = 0;
+        this.countFoldersToImport = 0;
+        this.countFoldersImported = 0;
+        this.countViewsToImport = 0;
+        this.countViewsImported = 0;
+        this.countViewObjectsToImport = 0;
+        this.countViewObjectsImported = 0;
+        this.countViewConnectionsToImport = 0;
+        this.countViewConnectionsImported = 0;
+        this.countImagesToImport = 0;
+        this.countImagesImported = 0;
+        
+        // we empty the hashmap
+        this.allImagePaths.clear();
+	}
+	
+	@Override
+    public void close() throws SQLException {
+        reset();
+        
+        super.close();
 	}
 }

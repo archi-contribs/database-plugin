@@ -90,7 +90,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		super(databaseEntry);
 	}
 	
-	   /**
+	/**
      * duplicates a connection to a JDBC database to allow switching between importConnection and exportConnection
      */
     public DBDatabaseExportConnection(DBDatabaseConnection databaseConnection) {
@@ -1268,5 +1268,24 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         this.viewRank = 0;
         this.viewObjectRank = 0;
         this.viewConnectionRank = 0;
+        
+        // we empty the hashmaps
+        this.elementsNotInModel.clear();
+        this.relationshipsNotInModel.clear();
+        this.foldersNotInModel.clear();
+        this.viewsNotInModel.clear();
+        this.imagesNotInModel.clear();
+        this.imagesNotInDatabase.clear();
+        this.objectsInView.clear();
+        this.connectionsInView.clear();
 	}
+	
+	/**
+     * Closes connection to the database
+     */
+	@Override
+    public void close() throws SQLException {
+        reset();
+        super.close();
+    }
 }
