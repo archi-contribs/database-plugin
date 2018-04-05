@@ -6,6 +6,8 @@
 
 package org.archicontribs.database.model;
 
+import java.util.ArrayList;
+
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.model.IDiagramModelContainer;
@@ -15,18 +17,20 @@ import com.archimatetool.model.IDiagramModelObject;
  * Command for deleting an Object from its parent container.<br>
  * It puts it back at the index position from where it was removed.<br>
  * <br>
- * This class is a copy of the {@link com.archimatetool.editor.diagram.commands.DeleteDiagramObjectCommand} written by Phillip Beauvoir, but his class is not accessible.
+ * This class is inspired from {@link com.archimatetool.editor.diagram.commands.DeleteDiagramObjectCommand} written by Phillip Beauvoir, but is not recursive (deleting a view object does not delete its children)
  * 
  * @author Herve Jouin
  */
 public class DBDeleteDiagramObjectCommand extends Command {
-    private IDiagramModelContainer fParent;
-    private IDiagramModelObject fObject;
-    private int fIndex;
+    private IDiagramModelContainer viewObjectParent;
+    private IDiagramModelObject viewObject;
+    private int viewObjectIndex;
+    private ArrayList<IDiagramModelObject> viewObjectChildren;
     
     public DBDeleteDiagramObjectCommand(IDiagramModelObject object) {
-        this.fParent = (IDiagramModelContainer)object.eContainer();
-        this.fObject = object;
+        this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
+        this.viewObject = object;
+        this.viewObjectChildren = new ArrayList<IDiagramModelObject>();
     }
 
     @Override
@@ -36,30 +40,44 @@ public class DBDeleteDiagramObjectCommand extends Command {
          * to another and the Diagram Editor updates the enablement state of Actions.
          * Can also be null if already deleted as part of a Compound Command.
          */
-        return this.fParent != null && this.fParent.getChildren().contains(this.fObject);
+        return this.viewObjectParent != null && this.viewObjectParent.getChildren().contains(this.viewObject);
     }
     
     @Override
     public void execute() {
-        // Ensure fIndex is stored just before execute because if this is part of a composite delete action
-        // then the index positions will have changed
-        this.fIndex = this.fParent.getChildren().indexOf(this.fObject); 
-        if(this.fIndex != -1) { // might have already been deleted by another process
-            this.fParent.getChildren().remove(this.fObject);
+        // Ensure viewObjectIndex is stored just before execute because if this is part of a composite delete action, then the index positions will have changed
+        this.viewObjectIndex = this.viewObjectParent.getChildren().indexOf(this.viewObject); 
+        if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
+            // we move the viewObject children to the viewObjectParent
+            if ( this.viewObject instanceof IDiagramModelContainer ) {
+                for ( IDiagramModelObject child: ((IDiagramModelContainer)this.viewObject).getChildren() )
+                    this.viewObjectChildren.add(child);
+                
+                for ( IDiagramModelObject child: this.viewObjectChildren )
+                    this.viewObjectParent.getChildren().add(child);
+            }
+            this.viewObjectParent.getChildren().remove(this.viewObject);
         }
     }
     
     @Override
     public void undo() {
         // Add the Child at old index position
-        if(this.fIndex != -1) { // might have already been deleted by another process
-            this.fParent.getChildren().add(this.fIndex, this.fObject);
+        if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
+            this.viewObjectParent.getChildren().add(this.viewObjectIndex, this.viewObject);
+            
+            // we restore the children to the viewObject
+            for ( IDiagramModelObject child: this.viewObjectChildren ) {
+                this.viewObjectParent.getChildren().remove(child);
+                ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
+            }
         }
     }
 
     @Override
     public void dispose() {
-        this.fParent = null;
-        this.fObject = null;
+        this.viewObjectParent = null;
+        this.viewObject = null;
+        this.viewObjectChildren = null;
     }
 }
