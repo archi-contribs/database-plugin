@@ -1350,7 +1350,7 @@ public class DBGuiExportModel extends DBGui {
                 this.exportedModel.resetViewsChecksums();
                 
                 // we compare again the views from the databases to determine if they need to be exported or not  
-                this.exportConnection.getViewsVersionsFromDatabase(this.exportedModel);
+                this.exportConnection.refreshViewsVersionsFromDatabase(this.exportedModel);
                 
                 int nbNew = 0;
                 int nbNewInDb = 0;
@@ -1410,34 +1410,24 @@ public class DBGuiExportModel extends DBGui {
 	                    for ( IDiagramModelObject viewObject: view.getChildren() ) {
 	                        doExportViewObject(viewObject);
 	                    }
-					}
-					
-					// we check if the view contains new objects that need to be imported
-					HashSet<String> objectSet = this.exportConnection.getObjectsInView().get(view.getId());
-					// we check for null as this can happen if the view does not exist in the database
-					if( objectSet != null ) {
-    					for ( String viewObjectId: objectSet) {
-    					    if ( !this.viewContent.contains(viewObjectId) ) {
-    					        //TODO: import view object
-    					        logger.error("********** SHOULD IMPORT VIEW OBJECT "+viewObjectId);
-    					    }
-    					}
-					}
-					
-	                // we check if the view contains new connections that need to be imported
-                    HashSet<String> connectionSet = this.exportConnection.getConnectionsInView().get(view.getId());
-                    // we check for null as this can happen if the view does not exist in the database
-                    if( connectionSet != null ) {
-                        for ( String viewObjectId: connectionSet) {
-                            if ( !this.viewContent.contains(viewObjectId) ) {
-                                //TODO: import view object
-                                logger.error("********** SHOULD IMPORT VIEW CONNECTION "+viewObjectId);
-                            }
+	                    
+	                    // we check if the database contains new objects that need to be imported
+	                    for ( String objectId: this.exportConnection.getViewsObjectsVersionsFromDatabase(view) ) {
+	                        if ( this.exportedModel.getAllViewObjects().get(objectId) == null )
+	                            logger.debug("********** MUST IMPORT OBJECT "+objectId);
+	                    }
+	                    // TODO: manage conflicts
+	                    
+                        // we check if the database contains new connections that need to be imported
+                        for ( String connectionId: this.exportConnection.getViewsConnectionsVersionsFromDatabase(view) ) {
+                            if ( this.exportedModel.getAllViewConnections().get(connectionId) == null )
+                                logger.debug("********** MUST IMPORT CONNECTION "+connectionId);
                         }
-                    }
+                        // TODO: manage conflicts
+					}
 				}
 				
-				//TODO: importing missing views !!!
+				//TODO: importing missing views using exportConnection.getViewsNotInModel() !!!
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
