@@ -1679,15 +1679,15 @@ public class DBGuiExportModel extends DBGui {
 		}
 	            
 		if ( mustExport ) {
-		    if ( logger.isTraceEnabled() ) {
+		    if ( logger.isDebugEnabled() ) {
 		        if ( eObjectToExport instanceof IArchimateElement )
-		            logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		            logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IArchimateRelationship )
-		            logger.trace("Relationship id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		            logger.debug("Relationship id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IFolder )
-                    logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+                    logger.debug("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		        else if ( eObjectToExport instanceof IDiagramModel )
-                    logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+                    logger.debug("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		    }
 			this.exportConnection.exportEObject(eObjectToExport);
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
