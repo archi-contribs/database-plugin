@@ -63,14 +63,14 @@ public class DBChecksum {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String calculateChecksum(IArchimateModel model, String releaseNote) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		StringBuilder checksum = new StringBuilder();
+		StringBuilder checksumBuilder = new StringBuilder();
 		
-		append(checksum, "id", model.getId());
-		append(checksum, "name", model.getName());
-		append(checksum, "purpose", model.getPurpose());
-		append(checksum, "note", releaseNote);
+		append(checksumBuilder, "id", model.getId());
+		append(checksumBuilder, "name", model.getName());
+		append(checksumBuilder, "purpose", model.getPurpose());
+		append(checksumBuilder, "note", releaseNote);
 		
-		return calculateChecksum(checksum);
+		return calculateChecksum(checksumBuilder);
 	}
 
 	/**
@@ -80,82 +80,82 @@ public class DBChecksum {
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-		StringBuilder checksum = new StringBuilder();
+		StringBuilder checksumBuilder = new StringBuilder();
 		
-		if ( eObject instanceof IIdentifier )						append(checksum, "id", ((IIdentifier)eObject).getId());
+		if ( eObject instanceof IIdentifier )						append(checksumBuilder, "id", ((IIdentifier)eObject).getId());
 		
 		if ( eObject instanceof INameable &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
-		        !(eObject instanceof IDiagramModelConnection) )	    append(checksum, "name", ((INameable)eObject).getName());
+		        !(eObject instanceof IDiagramModelConnection) )	    append(checksumBuilder, "name", ((INameable)eObject).getName());
 		
 		if ( eObject instanceof IDocumentable  &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
-		        !(eObject instanceof IDiagramModelConnection) )		append(checksum, "documentation", ((IDocumentable)eObject).getDocumentation());
+		        !(eObject instanceof IDiagramModelConnection) )		append(checksumBuilder, "documentation", ((IDocumentable)eObject).getDocumentation());
 		
-		if ( eObject instanceof IJunction )							append(checksum, "junction type", ((IJunction)eObject).getType());
-		if ( eObject instanceof IArchimateRelationship ) {			append(checksum, "source id", ((IArchimateRelationship)eObject).getSource().getId());
-																	append(checksum, "target id", ((IArchimateRelationship)eObject).getTarget().getId());
-			if ( eObject instanceof IInfluenceRelationship )		append(checksum, "strength", ((IInfluenceRelationship)eObject).getStrength());
-			if ( eObject instanceof IAccessRelationship )			append(checksum, "access type", ((IAccessRelationship)eObject).getAccessType());
+		if ( eObject instanceof IJunction )							append(checksumBuilder, "junction type", ((IJunction)eObject).getType());
+		if ( eObject instanceof IArchimateRelationship ) {			append(checksumBuilder, "source id", ((IArchimateRelationship)eObject).getSource().getId());
+																	append(checksumBuilder, "target id", ((IArchimateRelationship)eObject).getTarget().getId());
+			if ( eObject instanceof IInfluenceRelationship )		append(checksumBuilder, "strength", ((IInfluenceRelationship)eObject).getStrength());
+			if ( eObject instanceof IAccessRelationship )			append(checksumBuilder, "access type", ((IAccessRelationship)eObject).getAccessType());
 		}
-		if ( eObject instanceof IFolder )							append(checksum, "folder type", ((IFolder)eObject).getType().getLiteral());
-		if ( eObject instanceof IArchimateDiagramModel )			append(checksum, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
-		if ( eObject instanceof IDiagramModel )						append(checksum, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
-		if ( eObject instanceof IBorderObject )						append(checksum, "border color", ((IBorderObject)eObject).getBorderColor());
-		if ( eObject instanceof IDiagramModelNote )					append(checksum, "border type", ((IDiagramModelNote)eObject).getBorderType());
+		if ( eObject instanceof IFolder )							append(checksumBuilder, "folder type", ((IFolder)eObject).getType().getLiteral());
+		if ( eObject instanceof IArchimateDiagramModel )			append(checksumBuilder, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
+		if ( eObject instanceof IDiagramModel )						append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
+		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
+		if ( eObject instanceof IDiagramModelNote )					append(checksumBuilder, "border type", ((IDiagramModelNote)eObject).getBorderType());
 		if ( eObject instanceof IConnectable ) {					for ( IDiagramModelConnection conn: ((IConnectable)eObject).getSourceConnections() )
-																		append(checksum, "source connections", conn.getId());
+																		append(checksumBuilder, "source connections", conn.getId());
 																	for ( IDiagramModelConnection conn: ((IConnectable)eObject).getTargetConnections() )
-																		append(checksum, "target connections", conn.getId());
+																		append(checksumBuilder, "target connections", conn.getId());
 		}
-		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksum, "type", ((IDiagramModelArchimateObject)eObject).getType());
-		if ( eObject instanceof IDiagramModelConnection ) {			append(checksum, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
-																	append(checksum, " text position : ", ((IDiagramModelConnection)eObject).getTextPosition());
+		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksumBuilder, "type", ((IDiagramModelArchimateObject)eObject).getType());
+		if ( eObject instanceof IDiagramModelConnection ) {			append(checksumBuilder, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
+																	append(checksumBuilder, " text position : ", ((IDiagramModelConnection)eObject).getTextPosition());
 																	for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
-																		append(checksum, "bendpoint start x", point.getStartX());
-																		append(checksum, "bendpoint start y", point.getStartY());
-																		append(checksum, "bendpoint end x", point.getEndX());
-																		append(checksum, "bendpoint end y" ,point.getEndY());
+																		append(checksumBuilder, "bendpoint start x", point.getStartX());
+																		append(checksumBuilder, "bendpoint start y", point.getStartY());
+																		append(checksumBuilder, "bendpoint end x", point.getEndX());
+																		append(checksumBuilder, "bendpoint end y" ,point.getEndY());
 																	}
 		}
-		if ( eObject instanceof IDiagramModelImageProvider )		append(checksum, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
-		if ( eObject instanceof IDiagramModelObject ) {				append(checksum, "fill color", ((IDiagramModelObject)eObject).getFillColor());
+		if ( eObject instanceof IDiagramModelImageProvider )		append(checksumBuilder, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
+		if ( eObject instanceof IDiagramModelObject ) {				append(checksumBuilder, "fill color", ((IDiagramModelObject)eObject).getFillColor());
 																	IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
-																	append(checksum, "bounds x", bounds.getX());
-																	append(checksum, "bounds y", bounds.getY());
-																	append(checksum, "bounds width" ,bounds.getWidth());
-																	append(checksum, "bounds height", bounds.getHeight());
+																	append(checksumBuilder, "bounds x", bounds.getX());
+																	append(checksumBuilder, "bounds y", bounds.getY());
+																	append(checksumBuilder, "bounds width" ,bounds.getWidth());
+																	append(checksumBuilder, "bounds height", bounds.getHeight());
 		}
-		if ( eObject instanceof IDiagramModelArchimateComponent )	append(checksum, "archimate concept", ((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
-		if ( eObject instanceof IDiagramModelArchimateConnection )	append(checksum, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
-		if ( eObject instanceof IFontAttribute ) {					append(checksum, "font", ((IFontAttribute)eObject).getFont());
-																	append(checksum, "font color", ((IFontAttribute)eObject).getFontColor());
+		if ( eObject instanceof IDiagramModelArchimateComponent )	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
+		if ( eObject instanceof IDiagramModelArchimateConnection )	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
+		if ( eObject instanceof IFontAttribute ) {					append(checksumBuilder, "font", ((IFontAttribute)eObject).getFont());
+																	append(checksumBuilder, "font color", ((IFontAttribute)eObject).getFontColor());
 		}
-		if ( eObject instanceof ILineObject ) {						append(checksum, "line width", ((ILineObject)eObject).getLineWidth());
-																	append(checksum, "line color", ((ILineObject)eObject).getLineColor());
+		if ( eObject instanceof ILineObject ) {						append(checksumBuilder, "line width", ((ILineObject)eObject).getLineWidth());
+																	append(checksumBuilder, "line color", ((ILineObject)eObject).getLineColor());
 		}
-		if ( eObject instanceof ILockable )							append(checksum, "lockable", ((ILockable)eObject).isLocked());
-		if ( eObject instanceof ISketchModel )						append(checksum, "background", ((ISketchModel)eObject).getBackground());
-		if ( eObject instanceof ITextAlignment )					append(checksum, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
-        if ( eObject instanceof ITextPosition )						append(checksum, "text position", ((ITextPosition)eObject).getTextPosition());
-		if ( eObject instanceof ITextContent )						append(checksum, "content", ((ITextContent)eObject).getContent());
-		if ( eObject instanceof IHintProvider )	{					append(checksum, "hint title", ((IHintProvider)eObject).getHintTitle());
-																	append(checksum, "hint content", ((IHintProvider)eObject).getHintContent());
+		if ( eObject instanceof ILockable )							append(checksumBuilder, "lockable", ((ILockable)eObject).isLocked());
+		if ( eObject instanceof ISketchModel )						append(checksumBuilder, "background", ((ISketchModel)eObject).getBackground());
+		if ( eObject instanceof ITextAlignment )					append(checksumBuilder, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
+        if ( eObject instanceof ITextPosition )						append(checksumBuilder, "text position", ((ITextPosition)eObject).getTextPosition());
+		if ( eObject instanceof ITextContent )						append(checksumBuilder, "content", ((ITextContent)eObject).getContent());
+		if ( eObject instanceof IHintProvider )	{					append(checksumBuilder, "hint title", ((IHintProvider)eObject).getHintTitle());
+																	append(checksumBuilder, "hint content", ((IHintProvider)eObject).getHintContent());
 		}
-		if ( eObject instanceof IHelpHintProvider ) {				append(checksum, "help hint title", ((IHelpHintProvider)eObject).getHelpHintTitle());
-																	append(checksum, "help hint content", ((IHelpHintProvider)eObject).getHelpHintContent());
+		if ( eObject instanceof IHelpHintProvider ) {				append(checksumBuilder, "help hint title", ((IHelpHintProvider)eObject).getHelpHintTitle());
+																	append(checksumBuilder, "help hint content", ((IHelpHintProvider)eObject).getHelpHintContent());
 		}
-		if ( eObject instanceof IIconic )							append(checksum, "image position", ((IIconic)eObject).getImagePosition());
-		if ( eObject instanceof INotesContent )						append(checksum, "notes", ((INotesContent)eObject).getNotes());
+		if ( eObject instanceof IIconic )							append(checksumBuilder, "image position", ((IIconic)eObject).getImagePosition());
+		if ( eObject instanceof INotesContent )						append(checksumBuilder, "notes", ((INotesContent)eObject).getNotes());
 		if ( eObject instanceof IProperties &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
 		        !(eObject instanceof IDiagramModelConnection) )	{	for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
-																		append(checksum, "property key", prop.getKey());
-																		append(checksum, "property value", prop.getValue());
+																		append(checksumBuilder, "property key", prop.getKey());
+																		append(checksumBuilder, "property value", prop.getValue());
 		        													}
 		}
 		
-		return calculateChecksum(checksum);
+		return calculateChecksum(checksumBuilder);
 	}
 	
 	/**
