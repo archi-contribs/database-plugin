@@ -1598,7 +1598,6 @@ public class DBGuiExportModel extends DBGui {
 		boolean exported = false;
 		
 		EObject eObjectToExport = eObject;
-		
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 		    // in Neo4J databases, we do not manage versions so we export all the elements and all the relationships
 		    mustExport = true;
