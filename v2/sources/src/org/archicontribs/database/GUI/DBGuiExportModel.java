@@ -1298,7 +1298,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 			
 			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.shouldEmptyNeo4jDB() ) {
-				this.exportConnection.neo4jemptyDB();
+				this.exportConnection.emptyNeo4jDB();
 			}
 	
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");

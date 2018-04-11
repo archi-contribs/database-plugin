@@ -634,7 +634,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Empty a Neo4J database
 	 */
-	public void neo4jemptyDB() throws Exception {
+	public void emptyNeo4jDB() throws Exception {
 		request("MATCH (n) DETACH DELETE n");
 	}
     
