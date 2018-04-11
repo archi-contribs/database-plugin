@@ -771,7 +771,6 @@ public class DBGuiExportModel extends DBGui {
             	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
             	closePopup();
             	if ( upToDate ) {
-                    copyExportedVersionToCurrentVersion();
             		popup(Level.INFO, "Your database is already up to date.");
                     DBGuiExportModel.this.btnClose.setText("Close");
             	}
@@ -878,7 +877,6 @@ public class DBGuiExportModel extends DBGui {
         	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
         	closePopup();
         	if ( upToDate ) {
-                copyExportedVersionToCurrentVersion();
         		popup(Level.INFO, "Your database is already up to date.");
         		this.btnClose.setText("Close");
         	}
@@ -1467,7 +1465,6 @@ public class DBGuiExportModel extends DBGui {
 						this.exportConnection.rollback();
 					    this.exportConnection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
-		                copyExportedVersionToCurrentVersion();
 						doShowResult(STATUS.Ok, "The database is already up to date.");
 						return;
 					}
