@@ -144,18 +144,18 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            try ( ResultSet resultCurrentVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND created_on = ?", model.getId(), model.getInitialVersion().getTimestamp()) ) {
 		            if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
 		                // if the version is found, then the model has been imported from or last exported to the database 
-		                model.getExportedVersion().setVersion(resultCurrentVersion.getInt("version"));
+		                model.getExportedVersion().setVersion(resultCurrentVersion.getInt("version") + 1);
 		                model.getExportedVersion().setChecksum(resultCurrentVersion.getString("checksum"));
 		                model.getExportedVersion().setTimestamp(resultCurrentVersion.getTimestamp("created_on"));
 		            } else {
-		            	model.getExportedVersion().setVersion(model.getLatestDatabaseVersion().getVersion());
+		            	model.getExportedVersion().setVersion(model.getLatestDatabaseVersion().getVersion() + 1);
 		                model.getExportedVersion().setChecksum(model.getLatestDatabaseVersion().getChecksum());
 		                model.getExportedVersion().setTimestamp(model.getLatestDatabaseVersion().getTimestamp());
 		            }
 	            }
 
 	            logger.debug("The model already exists in the database:");
-	            logger.debug("   - current version = "+model.getInitialVersion().getVersion());
+	            logger.debug("   - initial version = "+model.getInitialVersion().getVersion());
 	            logger.debug("   - exported version = "+model.getExportedVersion().getVersion());
 	            logger.debug("   - latest database version = "+model.getLatestDatabaseVersion().getVersion());
 	            
@@ -250,7 +250,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	                        element.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
 	                        element.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
-	                        element.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+	                        element.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version") + 1);
 	                    } else {
                         	this.elementsNotInModel.put(
                                 result.getString("id"),
@@ -322,7 +322,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                             relationship.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
                             relationship.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
-                            relationship.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                            relationship.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version") + 1);
                         } else {
                             this.relationshipsNotInModel.put(
                                     result.getString("id"),
@@ -394,7 +394,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                             folder.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
                             folder.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
-                            folder.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                            folder.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version") + 1);
                         } else {
                             this.foldersNotInModel.put(
                                     result.getString("id"),
@@ -442,11 +442,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			            	((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
 			            	((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			            	
-			            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+			            	((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version") + 1);
 		            	}
 		            	 else {
 		            	  // if the component does not exist in the database
-		                     ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
+		                     ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(1);
 		            	 }
 	            	}
 	            }
@@ -463,9 +463,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			            	((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
 			            	((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			            	
-			            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+			            	((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version") + 1);
 		            	} else
-		                    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(0);
+		                    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(1);
 	            	}
 	        	}
 	            
@@ -481,9 +481,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	    	            	((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
 	    	            	((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 	    	            	
-	    	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+	    	            	((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version") + 1);
 	                	} else
-	                	    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(0);
+	                	    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(1);
             		}
 	            }
 	        	Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
@@ -498,9 +498,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	    	            	((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
 	    	            	((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 	    	            	
-	    	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+	    	            	((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version") + 1);
 	                	} else
-	                        ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(0);
+	                        ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(1);
                 	}
                 }
 	        }
@@ -587,7 +587,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     view.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
                     view.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
-                    view.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                    view.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version") + 1);
                 } else {
                     this.viewsNotInModel.put(
                             result.getString("id"),
@@ -648,10 +648,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( (model.getName() == null) || (model.getName().equals("")) )
 			throw new RuntimeException("Model name cannot be empty.");
 		
-		// As we export the model, we increase its versions
-		model.getExportedVersion().setVersion(model.getLatestDatabaseVersion().getVersion()+1);
-		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (current version = "+model.getInitialVersion().getVersion()+", exported version = "+model.getExportedVersion().getVersion()+")");
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting model (initial version = "+model.getInitialVersion().getVersion()+", exported version = "+model.getExportedVersion().getVersion()+", latest database version = "+model.getLatestDatabaseVersion().getVersion()+")");
 		
         if ( this.connection.getAutoCommit() )
             model.getExportedVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -703,10 +700,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void exportElement(IArchimateConcept element) throws Exception {
 		final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "checksum"};
 		
-		// As we export the element, we increase its versions
-		((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+1);
-		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+")");
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)element).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
 			// TODO : USE MERGE instead to replace existing nodes
@@ -768,10 +762,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void exportRelationship(IArchimateConcept relationship) throws Exception {
 		final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "checksum"};
 		
-		// As we export the relationship, we increase its versions
-		((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+1);
-		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+")");
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
 			String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
@@ -859,11 +850,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void exportFolder(IFolder folder) throws Exception {
 		final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "checksum"};
 		
-		// As we export the folder, we increase its versions
-		((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+1);
-		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+")");
-
+        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        
 		insert(this.schema+"folders", foldersColumns
 				,folder.getId()
 				,((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()
@@ -910,10 +898,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void exportView(IDiagramModel view) throws Exception {
 		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum"};
 		
-		// As we export the view, we increase its versions
-		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+1);
-		
-        if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (current version = "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+")");
+		if ( logger.isTraceEnabled() ) logger.trace("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)view).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
 		byte[] viewImage = null;
 
