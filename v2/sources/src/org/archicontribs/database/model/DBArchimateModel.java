@@ -262,9 +262,12 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         if ( logger.isTraceEnabled() ) logger.trace("Re-counting views in selected model.");
         
         for (IFolder folder: getFolders() ) {
-            if ( ((Folder)folder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE )
+            if ( ((Folder)folder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE ) {
+                for ( EObject subfolder: folder.getFolders() )
+                    countObject(subfolder, true, null);
                 for ( EObject view: folder.getElements() )
                     countObject(view, true, null);
+            }
         }
     }
 	
