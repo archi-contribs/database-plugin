@@ -87,11 +87,13 @@ public class DBMetadata  {
 	 * Will be copied to initialVersion if the export process succeeds.
 	 */
     public DBVersion getCurrentVersion() {
+        /*
         // Version of viewObject and viewConnections is the version of their parent view
         if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
             return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
         }
-    
+        */
+        
         return this.currentVersion;
     }
 	
@@ -100,11 +102,12 @@ public class DBMetadata  {
 	 * 0 if the element is new and not present in the database model.
 	 */
 	public DBVersion getDatabaseVersion() {
+	    /*
 		// Version of viewObject and viewConnections is the version of their parent view
 	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
 	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getDatabaseVersion();
 	    }
-    
+        */
 	    return this.databaseVersion;
 	}
 	
@@ -113,11 +116,12 @@ public class DBMetadata  {
 	 * != databaseVersion if the element has been updated in the database by another user.
 	 */
     public DBVersion getLatestDatabaseVersion() {
+        /*
         // Version of viewObject and viewConnections is the version of their parent view
         if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
             return ((IDBMetadata)this.parentDiagram).getDBMetadata().getLatestDatabaseVersion();
         }
-    
+        */
         return this.latestDatabaseVersion;
     }
 	
