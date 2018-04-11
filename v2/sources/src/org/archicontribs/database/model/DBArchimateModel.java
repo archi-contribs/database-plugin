@@ -271,7 +271,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	/**
 	 * Adds a specific object in the corresponding counter<br>
 	 * At the same time, we calculate the current checksums
-	 * If it is a folder, we set its type that it is the same as its root parent
 	 * @return : the concatenation of the checksums of all the eObject components
 	 */
 	@SuppressWarnings("null")
