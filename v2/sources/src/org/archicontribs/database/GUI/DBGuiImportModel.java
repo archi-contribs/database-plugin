@@ -819,15 +819,22 @@ public class DBGuiImportModel extends DBGui {
         	if ( statusColor == GREEN_COLOR ) {
         	   	setMessage("Import successful", statusColor);
             	
-            	IEditorModelManager.INSTANCE.openModel(this.modelToImport);											// We open the Model in the Editor
-            	ITreeModelView view = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);		// We select the model in the tree
-	            if(view != null) {
-	                List<Object> elements = new ArrayList<Object>();
+        	   	// We open the Model in the Editor
+            	IEditorModelManager.INSTANCE.openModel(this.modelToImport);
+            	
+            	ITreeModelView treeModelView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
+	            if(treeModelView != null) {
+	                List<Object> elements;
+	                
+	                // we select the view folder in order to show the model folders in the tree
+	                elements = new ArrayList<Object>();
 	                elements.add(this.modelToImport.getDefaultFolderForObject(this.modelToImport.getAllViews().entrySet().iterator().next().getValue()));
-	                view.getViewer().setSelection(new StructuredSelection(elements), true);
+	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
+	        
+	                // We select back the model in the tree
 	                elements = new ArrayList<Object>();
 	                elements.add(this.modelToImport);
-	                view.getViewer().setSelection(new StructuredSelection(elements), true);
+	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
 	            }
             
 	            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
