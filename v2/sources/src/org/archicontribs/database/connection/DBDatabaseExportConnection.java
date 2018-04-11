@@ -426,7 +426,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		    } else {
 	            logger.debug("The model does not (yet) exist in the database");
 	            
-	            model.getExportedVersion().setVersion(0);
+	            model.getExportedVersion().setVersion(1);
 	        
 	            // the model does not exist yet, but the components may exist from other models. So we get their latest version
 	        	Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
