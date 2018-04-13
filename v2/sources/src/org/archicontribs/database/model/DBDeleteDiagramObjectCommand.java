@@ -58,6 +58,7 @@ public class DBDeleteDiagramObjectCommand extends Command {
             }
             this.viewObjectParent.getChildren().remove(this.viewObject);
         }
+        ((IDBMetadata)((IDBMetadata)this.viewObject).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
     }
     
     @Override
