@@ -649,7 +649,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     viewConnection.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
                     viewConnection.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
                     viewConnection.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
-                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_version"));
+                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
 
                     viewConnection.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
                 } else {

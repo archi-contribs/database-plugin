@@ -1727,6 +1727,20 @@ public class DBGuiExportModel extends DBGui {
             dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
             dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
+        
+        Iterator<Map.Entry<String, IDiagramModelComponent>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
+        while (ito.hasNext()) {
+            DBMetadata dbMetadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+        }
+        
+        Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
+        while (itc.hasNext()) {
+            DBMetadata dbMetadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
+            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
+            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+        }
 	}
 	
 	
@@ -1735,18 +1749,18 @@ public class DBGuiExportModel extends DBGui {
 	
 	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
 	    this.viewContent.add(viewObject.getId());
-		boolean exported = doExportEObject(viewObject, null, null, null, null);
+		boolean exported = doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtDeletedViewObjectsInModel, this.txtConflictingViewObjects);
 		
 		if ( exported ) {
 			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
 				if ( this.connectionsAlreadyExported.get(source.getId()) == null ) {
-					doExportEObject(source, null, null, null, null);
+					doExportEObject(source,	this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtDeletedViewConnectionsInModel, this.txtConflictingViewConnections);
 					this.connectionsAlreadyExported.put(source.getId(), source);
 				}
 			}
 			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
 				if ( this.connectionsAlreadyExported.get(target.getId()) == null ) {
-					doExportEObject(target, null, null, null, null);
+					doExportEObject(target, this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtDeletedViewConnectionsInModel, this.txtConflictingViewConnections);
 					this.connectionsAlreadyExported.put(target.getId(), target);
 				}
 			}
