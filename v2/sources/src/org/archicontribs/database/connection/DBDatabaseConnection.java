@@ -179,12 +179,23 @@ public class DBDatabaseConnection implements AutoCloseable {
 	}
 
 	public boolean isConnected() {
-		return this.connection != null;
+		try {
+			return this.connection != null && !this.connection.isClosed();
+		} catch ( @SuppressWarnings("unused") SQLException ign ) {
+			// nothing to do
+		}
+		return false;
 	}
 
 	public void reset() throws SQLException {
 		for ( PreparedStatement pstmt: this.preparedStatementMap.values() ) {
-			pstmt.close();
+			if ( pstmt!= null && !pstmt.isClosed() ) {
+				try {
+					pstmt.close();
+				} catch ( @SuppressWarnings("unused") SQLException ign) {
+					// nothing to do
+				}
+			}
 			pstmt=null;
 		}
 		this.preparedStatementMap = new HashMap<String, PreparedStatement>();
@@ -660,6 +671,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		String COLUMN = DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
 
 		int fromVersion = version;
+		boolean mustDropOldModelsTable = false;
+		boolean mustDropOldViewsTable = false;
 
 		// convert from version 200 to 201 :
 		//      - add a blob column into the views table
@@ -756,18 +769,82 @@ public class DBDatabaseConnection implements AutoCloseable {
 							checksum
 							);
 				}
-
-				fromVersion = 204;
 			}
+			mustDropOldModelsTable = true;
+			fromVersion = 204;
 		}
 
 		// convert from version 204 to 205 :
 		//      - add a container_checksum column in the views table
+		//
+		// unfortunately, some databases do not support to alter an existing column
+		// so we create a new table
 		if ( fromVersion == 204 ) {
 			setAutoCommit(false);
-			request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" container_checksum "+this.OBJECTID);
-			request("UPDATE "+this.schema+"views SET container_checksum = checksum");
+			
+			String[] columns = {"id", "version", "class", "name", "documentation", "hint_content", "hint_title", "created_by", "created_on", "background", "connection_router_type", "viewpoint", "screenshot", "checksum", "container_checksum"};
 
+			request("ALTER TABLE "+this.schema+"views RENAME TO "+this.schema+"views_old");
+			
+			request("CREATE TABLE "+this.schema+"views ("
+					+ "id "+ this.OBJECTID +" NOT NULL, "
+					+ "version "+ this.INTEGER +" NOT NULL, "
+					+ "class "+ this.OBJECTID +" NOT NULL, "
+					+ "name "+ this.OBJ_NAME +", "
+					+ "documentation "+ this.TEXT +" , "
+					+ "hint_content "+ this.TEXT +", "
+					+ "hint_title "+ this.OBJ_NAME +", "
+					+ "created_by "+ this.USERNAME +" NOT NULL, "
+					+ "created_on "+ this.DATETIME +" NOT NULL, "
+					+ "background "+ this.INTEGER +", "
+					+ "connection_router_type "+ this.INTEGER +" NOT NULL, "
+					+ "viewpoint "+ this.OBJECTID +", "
+					+ "screenshot "+ this.IMAGE +", "
+					+ "checksum "+ this.OBJECTID +" NOT NULL, "
+					+ "container_checksum "+ this.OBJECTID +" NOT NULL, "
+					+ this.PRIMARY_KEY+" (id, version)"
+					+ ")");
+			
+			try ( ResultSet result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, screenshot, checksum FROM views_old") ) {
+				while ( result.next() ) {
+					StringBuilder checksumBuilder = new StringBuilder();
+					DBChecksum.append(checksumBuilder, "id", result.getString("id"));
+					DBChecksum.append(checksumBuilder, "name", result.getString("name"));
+					DBChecksum.append(checksumBuilder, "documentation", result.getString("documentation"));
+					DBChecksum.append(checksumBuilder, "viewpoint", result.getString("viewpoint"));
+					DBChecksum.append(checksumBuilder, "connection_router_type", result.getInt("connection_router_type"));
+					DBChecksum.append(checksumBuilder, "background", result.getInt("background"));
+					DBChecksum.append(checksumBuilder, "hint_content", result.getString("hint_content"));
+					DBChecksum.append(checksumBuilder, "hint_title", result.getString("hint_title"));
+					String containerChecksum;
+					try {
+						containerChecksum = DBChecksum.calculateChecksum(checksumBuilder);
+					} catch (Exception err) {
+						DBGui.popup(Level.FATAL, "Failed to calculate view checksum.", err);
+						rollback();
+						return;
+					}
+					insert(this.schema+"views", columns,
+							result.getString("id"),
+							result.getInt("version"),
+							result.getString("class"),
+							result.getString("name"),
+							result.getString("documentation"),
+							result.getString("hint_content"),
+							result.getString("hint_title"),
+							result.getString("created_by"),
+							result.getTimestamp("created_on"),
+							result.getInt("background"),
+							result.getInt("connection_router_type"),
+							result.getString("viewpoint"),
+							result.getBytes("screenshot"),
+							result.getString("checksum"),
+							containerChecksum
+							);
+				}
+			}
+
+			mustDropOldViewsTable = true;
 			fromVersion = 205;
 		}
 
@@ -775,11 +852,22 @@ public class DBDatabaseConnection implements AutoCloseable {
 		commit();
 
 		// SQLite refuses to drop the table if we do not close the connection and reopen it
-		this.connection.close();
-		openConnection();
-		setAutoCommit(false);
-		request("DROP TABLE "+this.schema+"models_old");
-		commit();
+		if ( mustDropOldModelsTable ) {
+			this.connection.close();
+			openConnection();
+			setAutoCommit(false);
+			request("DROP TABLE "+this.schema+"models_old");
+			commit();
+		}
+		
+		// SQLite refuses to drop the table if we do not close the connection and reopen it
+		if ( mustDropOldViewsTable ) {
+			this.connection.close();
+			openConnection();
+			setAutoCommit(false);
+			request("DROP TABLE "+this.schema+"views_old");
+			commit();
+		}
 
 		setAutoCommit(true);
 	}
