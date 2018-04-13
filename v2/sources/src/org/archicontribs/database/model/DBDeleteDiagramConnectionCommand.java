@@ -31,6 +31,7 @@ public class DBDeleteDiagramConnectionCommand extends Command {
     @Override
     public void execute() {
         this.fConnection.disconnect();
+        ((IDBMetadata)((IDBMetadata)this.fConnection).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
     }
     
     @Override
