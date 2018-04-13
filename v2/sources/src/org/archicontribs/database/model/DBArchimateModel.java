@@ -291,7 +291,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "ArchimateDiagramModel" :
 			case "CanvasModel" :
 			case "SketchModel" :					this.allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
-			                                        if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+			                                        if ( mustCalculateChecksum ) {
+			                                            ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+			                                            ((IDBMetadata)eObject).getDBMetadata().setChecksumValid(true);
+			                                        }
 													for ( EObject child: ((IDiagramModel)eObject).getChildren() ) {
 														String subChecksum = countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
