@@ -61,6 +61,7 @@ import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -291,7 +292,7 @@ public class DBGuiExportModel extends DBGui {
         this.grpComponents.setFont(GROUP_TITLE_FONT);
         this.grpComponents.setText("Your model's components : ");
         FormData fd = new FormData();
-        fd.top = new FormAttachment(100, -220);
+        fd.top = new FormAttachment(100, -240);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
@@ -719,6 +720,62 @@ public class DBGuiExportModel extends DBGui {
         fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
         this.txtTotalViewObjects.setLayoutData(fd);
+        
+        this.txtNewViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewViewObjectsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelNew, 0, SWT.RIGHT);
+        this.txtNewViewObjectsInModel.setLayoutData(fd);
+        
+        this.txtUpdatedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtUpdatedViewObjectsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
+        this.txtUpdatedViewObjectsInModel.setLayoutData(fd);
+        
+        this.txtDeletedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewObjectsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewObjectsInModel.setLayoutData(fd);
+        
+        this.txtNewViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewViewObjectsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseNew, 0, SWT.RIGHT);
+        this.txtNewViewObjectsInDatabase.setLayoutData(fd);
+        
+        this.txtUpdatedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtUpdatedViewObjectsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
+        this.txtUpdatedViewObjectsInDatabase.setLayoutData(fd);
+        
+        this.txtDeletedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewObjectsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewObjectsInDatabase.setLayoutData(fd);
+        
+        this.txtConflictingViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtConflictingViewObjects.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
+        this.txtConflictingViewObjects.setLayoutData(fd);
   
         /* * * * * */
         
@@ -729,6 +786,62 @@ public class DBGuiExportModel extends DBGui {
         fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
         fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
         this.txtTotalViewConnections.setLayoutData(fd);
+        
+        this.txtNewViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewViewConnectionsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelNew, 0, SWT.RIGHT);
+        this.txtNewViewConnectionsInModel.setLayoutData(fd);
+        
+        this.txtUpdatedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtUpdatedViewConnectionsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelUpdated, 0, SWT.RIGHT);
+        this.txtUpdatedViewConnectionsInModel.setLayoutData(fd);
+        
+        this.txtDeletedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewConnectionsInModel.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewConnectionsInModel.setLayoutData(fd);
+        
+        this.txtNewViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtNewViewConnectionsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseNew, 0, SWT.RIGHT);
+        this.txtNewViewConnectionsInDatabase.setLayoutData(fd);
+        
+        this.txtUpdatedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtUpdatedViewConnectionsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.RIGHT);
+        this.txtUpdatedViewConnectionsInDatabase.setLayoutData(fd);
+        
+        this.txtDeletedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtDeletedViewConnectionsInDatabase.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        this.txtDeletedViewConnectionsInDatabase.setLayoutData(fd);
+        
+        this.txtConflictingViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtConflictingViewConnections.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblConflicts, 0, SWT.RIGHT);
+        this.txtConflictingViewConnections.setLayoutData(fd);
 
         /* * * * * */
         
@@ -759,11 +872,11 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.WRAP);
         this.btnCompareModelToDatabase.setText("Compare model to\nthe database");
-        fd = new FormData(26,18);
-        fd.top = new FormAttachment(this.txtTotalViewConnections, 15, SWT.TOP);
-        fd.left = new FormAttachment(this.lblDatabaseUpdated, 0);
-        fd.right = new FormAttachment(this.lblConflicts, 10, SWT.RIGHT);
-        fd.bottom = new FormAttachment(this.txtTotalImages, 0, SWT.BOTTOM);
+        fd = new FormData();
+        fd.top = new FormAttachment(100, -40);
+        fd.left = new FormAttachment(100, -120);
+        fd.right = new FormAttachment(100, -5);
+        fd.bottom = new FormAttachment(100, -5);
         this.btnCompareModelToDatabase.setLayoutData(fd);
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
             @Override public void widgetSelected(SelectionEvent e) {
@@ -787,30 +900,6 @@ public class DBGuiExportModel extends DBGui {
 	@Override
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 	    this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
-	    
-		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
-		this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
 
 		// we hide the comparison between the model and the database in case of a neo4j database
 		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
@@ -830,7 +919,46 @@ public class DBGuiExportModel extends DBGui {
 		this.txtNewViewsInModel.setVisible(!isNeo4j);
 		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);
 		this.txtDeletedViewsInModel.setVisible(!isNeo4j);
+		this.txtNewViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtDeletedViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtNewViewConnectionsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedViewConnectionsInModel.setVisible(!isNeo4j);
+        this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j);
 		this.txtNewImagesInModel.setVisible(!isNeo4j);
+
+	      
+        // we hide the database and conflict columns in standalone mode or Neo4J, and show them in collaborative mode
+        this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViewObjects.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViewConnections.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
 		
 		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
 		try {
@@ -898,52 +1026,71 @@ public class DBGuiExportModel extends DBGui {
 		this.btnDoAction.setEnabled(false);
 		this.btnCompareModelToDatabase.setEnabled(false);
 		
-		// we hide the database and conflict columns in standalone mode, and show them in collaborative mode
-		this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode());
-		this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode());
-		
 		// we hide the comparison between the model and the database in case of a neo4j database
-		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
-		this.lblModel.setVisible(!isNeo4j);
-		this.lblModelNew.setVisible(!isNeo4j);
-		this.lblModelDeleted.setVisible(!isNeo4j);
-		this.lblModelUpdated.setVisible(!isNeo4j);
-		this.txtNewElementsInModel.setVisible(!isNeo4j);
-		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
-		this.txtDeletedElementsInModel.setVisible(!isNeo4j);
-		this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
-		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
-		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
-		this.txtNewFoldersInModel.setVisible(!isNeo4j);
-		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
-		this.txtDeletedFoldersInModel.setVisible(!isNeo4j);
-		this.txtNewViewsInModel.setVisible(!isNeo4j);
-		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);
-		this.txtDeletedViewsInModel.setVisible(!isNeo4j);
-		this.txtNewImagesInModel.setVisible(!isNeo4j);
+        boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+        this.lblModel.setVisible(!isNeo4j);
+        this.lblModelNew.setVisible(!isNeo4j);
+        this.lblModelDeleted.setVisible(!isNeo4j);
+        this.lblModelUpdated.setVisible(!isNeo4j);
+        this.txtNewElementsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
+        this.txtDeletedElementsInModel.setVisible(!isNeo4j);
+        this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
+        this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
+        this.txtNewFoldersInModel.setVisible(!isNeo4j);
+        this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
+        this.txtDeletedFoldersInModel.setVisible(!isNeo4j);
+        this.txtNewViewsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedViewsInModel.setVisible(!isNeo4j);
+        this.txtDeletedViewsInModel.setVisible(!isNeo4j);
+        this.txtNewViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtDeletedViewObjectsInModel.setVisible(!isNeo4j);
+        this.txtNewViewConnectionsInModel.setVisible(!isNeo4j);
+        this.txtUpdatedViewConnectionsInModel.setVisible(!isNeo4j);
+        this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j);
+        this.txtNewImagesInModel.setVisible(!isNeo4j);
+
+          
+        // we hide the database and conflict columns in standalone mode or Neo4J, and show them in collaborative mode
+        this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViewObjects.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtUpdatedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtDeletedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtConflictingViewConnections.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
 		
 		this.txtNewElementsInModel.setText("");			this.txtUpdatedElementsInModel.setText("");			this.txtNewElementsInDatabase.setText("");			this.txtUpdatedElementsInDatabase.setText("");			this.txtConflictingElements.setText("");
 		this.txtNewRelationshipsInModel.setText("");	this.txtUpdatedRelationshipsInModel.setText("");	this.txtNewRelationshipsInDatabase.setText("");		this.txtUpdatedRelationshipsInDatabase.setText("");		this.txtConflictingRelationships.setText("");
 		this.txtNewFoldersInModel.setText("");			this.txtUpdatedFoldersInModel.setText("");			this.txtNewFoldersInDatabase.setText("");			this.txtUpdatedFoldersInDatabase.setText("");			this.txtConflictingFolders.setText("");
 		this.txtNewViewsInModel.setText("");			this.txtUpdatedViewsInModel.setText("");			this.txtNewViewsInDatabase.setText("");				this.txtUpdatedViewsInDatabase.setText("");				this.txtConflictingViews.setText("");
+		this.txtNewViewObjectsInModel.setText("");      this.txtUpdatedViewObjectsInModel.setText("");      this.txtNewViewObjectsInDatabase.setText("");       this.txtUpdatedViewObjectsInDatabase.setText("");       this.txtConflictingViewObjects.setText("");
+		this.txtNewViewConnectionsInModel.setText("");  this.txtUpdatedViewConnectionsInModel.setText("");  this.txtNewViewConnectionsInDatabase.setText("");   this.txtUpdatedViewConnectionsInDatabase.setText("");   this.txtConflictingViewConnections.setText("");
 		
 		this.btnDoAction.setText("Export");
 	}
@@ -1050,7 +1197,7 @@ public class DBGuiExportModel extends DBGui {
                 }
             }
         }
-        // we distinguish the elements new in the database from those deleted from memory
+        // we distinguish the relationships new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.exportConnection.getRelationshipsNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
@@ -1095,7 +1242,7 @@ public class DBGuiExportModel extends DBGui {
                 }
             }
         }
-        // we distinguish the elements new in the database from those deleted from memory
+        // we distinguish the folders new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.exportConnection.getFoldersNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
@@ -1125,9 +1272,10 @@ public class DBGuiExportModel extends DBGui {
             } else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getContainerChecksum()) ) {
+                    // /!\ Views must compare their containerChecksum to detect conflicts 
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getContainerChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getContainerChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1139,7 +1287,7 @@ public class DBGuiExportModel extends DBGui {
                 }
             }
         }
-        // we distinguish the elements new in the database from those deleted from memory
+        // we distinguish the views new in the database from those deleted from memory
         for ( DBVersionPair versionPair: this.exportConnection.getViewsNotInModel().values() ) {
             if ( versionPair.getCurrentVersion() == 0 )
                 ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
@@ -1154,6 +1302,93 @@ public class DBGuiExportModel extends DBGui {
         this.txtDeletedViewsInModel.setText(String.valueOf(nbDeleted));
         this.txtDeletedViewsInDatabase.setText(String.valueOf(nbDeletedInDb));
         
+        nbNew = 0;
+        nbNewInDb = 0;
+        nbUpdated = 0;
+        nbUpdatedInDb = 0;
+        nbConflict = 0;
+        nbDeleted = 0;
+        nbDeletedInDb = 0;
+        Iterator<Map.Entry<String, IDiagramModelComponent>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
+        while (ito.hasNext()) {
+            DBMetadata metadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
+            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
+                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+            } else {
+                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )     ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+                    }
+                }
+            }
+        }
+        // we distinguish the viewObjects new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.exportConnection.getViewObjectsNotInModel().values() ) {
+            if ( versionPair.getCurrentVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewViewObjectsInModel.setText(String.valueOf(nbNew));
+        this.txtNewViewObjectsInDatabase.setText(String.valueOf(nbNewInDb));
+        this.txtUpdatedViewObjectsInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedViewObjectsInDatabase.setText(String.valueOf(nbUpdatedInDb));
+        this.txtConflictingViewObjects.setText(String.valueOf(nbConflict));
+        this.txtDeletedViewObjectsInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedViewObjectsInDatabase.setText(String.valueOf(nbDeletedInDb));
+        
+        nbNew = 0;
+        nbNewInDb = 0;
+        nbUpdated = 0;
+        nbUpdatedInDb = 0;
+        nbConflict = 0;
+        nbDeleted = 0;
+        nbDeletedInDb = 0;
+        Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
+        while (itc.hasNext()) {
+            DBMetadata metadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
+            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
+                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
+            } else {
+                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
+                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                    
+                    if ( modifiedInModel && modifiedInDatabase ) {
+                        if ( this.forceExport )     ++nbUpdated;
+                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
+                    } else {
+                        if ( modifiedInModel )      ++nbUpdated;
+                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+                    }
+                }
+            }
+        }
+        // we distinguish the ViewConnections new in the database from those deleted from memory
+        for ( DBVersionPair versionPair: this.exportConnection.getViewConnectionsNotInModel().values() ) {
+            if ( versionPair.getCurrentVersion() == 0 )
+                ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
+            else
+                ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
+        }
+        this.txtNewViewConnectionsInModel.setText(String.valueOf(nbNew));
+        this.txtNewViewConnectionsInDatabase.setText(String.valueOf(nbNewInDb));
+        this.txtUpdatedViewConnectionsInModel.setText(String.valueOf(nbUpdated));
+        this.txtUpdatedViewConnectionsInDatabase.setText(String.valueOf(nbUpdatedInDb));
+        this.txtConflictingViewConnections.setText(String.valueOf(nbConflict));
+        this.txtDeletedViewConnectionsInModel.setText(String.valueOf(nbDeleted));
+        this.txtDeletedViewConnectionsInDatabase.setText(String.valueOf(nbDeletedInDb));
         
         
         this.txtNewImagesInModel.setText(String.valueOf(this.exportConnection.getImagesNotInDatabase().size()));
@@ -1241,6 +1476,8 @@ public class DBGuiExportModel extends DBGui {
 	        this.txtNewRelationshipsInModel.setText("0");    this.txtUpdatedRelationshipsInModel.setText("0");    this.txtNewRelationshipsInDatabase.setText("0");     this.txtUpdatedRelationshipsInDatabase.setText("0");     this.txtConflictingRelationships.setText("0");
 	        this.txtNewFoldersInModel.setText("0");          this.txtUpdatedFoldersInModel.setText("0");          this.txtNewFoldersInDatabase.setText("0");           this.txtUpdatedFoldersInDatabase.setText("0");           this.txtConflictingFolders.setText("0");
 	        this.txtNewViewsInModel.setText("0");            this.txtUpdatedViewsInModel.setText("0");            this.txtNewViewsInDatabase.setText("0");             this.txtUpdatedViewsInDatabase.setText("0");             this.txtConflictingViews.setText("0");
+	        this.txtNewViewObjectsInModel.setText("0");      this.txtUpdatedViewObjectsInModel.setText("0");      this.txtNewViewObjectsInDatabase.setText("0");       this.txtUpdatedViewObjectsInDatabase.setText("0");       this.txtConflictingViewObjects.setText("0");
+	        this.txtNewViewConnectionsInModel.setText("0");  this.txtUpdatedViewConnectionsInModel.setText("0");  this.txtNewViewConnectionsInDatabase.setText("0");   this.txtUpdatedViewConnectionsInDatabase.setText("0");   this.txtConflictingViewConnections.setText("0");
 	        this.txtNewImagesInModel.setText("0");			 this.txtNewImagesInDatabase.setText("0");
 	
 			
@@ -1338,63 +1575,23 @@ public class DBGuiExportModel extends DBGui {
 	            }
 	        }
 	        
-            // we remove the objects that have been removed by other users in the database
+            // we some elements or relationships must be removed from the model, we do it before exporting the views
             if ( !this.delayedCommands.isEmpty() ) {
-                popup("Please wait while recalculating views checksums");
+                // we remove the objects that have been removed by other users in the database
                 CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
                 stack.execute(this.delayedCommands);
                 
-                // we recalculate the checksums on the views as they may have been modified by the components removal
-                this.exportedModel.resetViewsChecksums();
-                
-                // we compare again the views from the databases to determine if they need to be exported or not  
-                this.exportConnection.refreshViewsVersionsFromDatabase(this.exportedModel);
-                
-                int nbNew = 0;
-                int nbNewInDb = 0;
-                int nbUpdated = 0;
-                int nbUpdatedInDb = 0;
-                int nbConflict = 0;
-                int nbDeleted = 0;
-                int nbDeletedInDb = 0;
+                // if some views are impacted by the elements and relationships removal, then we recalculate their checksum
                 Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
                 while (itv.hasNext()) {
-                    DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-                    if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                        ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-                    } else {
-                        if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                            ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                        else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                            boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                            boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                            
-                            if ( modifiedInModel && modifiedInDatabase ) {
-                                if ( this.forceExport )     ++nbUpdated;
-                                else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                            } else {
-                                if ( modifiedInModel )      ++nbUpdated;
-                                if ( modifiedInDatabase )   ++nbUpdatedInDb;
-                            }
-                        }
+                    IDiagramModel view = itv.next().getValue();
+                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
+                        this.exportedModel.countObject(view, true, view);
+                        this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
                     }
                 }
-                // we distinguish the elements new in the database from those deleted from memory
-                for ( DBVersionPair versionPair: this.exportConnection.getViewsNotInModel().values() ) {
-                    if ( versionPair.getCurrentVersion() == 0 )
-                        ++nbNewInDb;        // if the component does not exist in the database model, then it is a new one
-                    else
-                        ++nbDeleted;        // else, the component did exist in the model, but does not exist anymore, so it has been deleted
-                }
-                this.txtNewViewsInModel.setText(String.valueOf(nbNew));
-                this.txtNewViewsInDatabase.setText(String.valueOf(nbNewInDb));
-                this.txtUpdatedViewsInModel.setText(String.valueOf(nbUpdated));
-                this.txtUpdatedViewsInDatabase.setText(String.valueOf(nbUpdatedInDb));
-                this.txtConflictingViews.setText(String.valueOf(nbConflict));
-                this.txtDeletedViewsInModel.setText(String.valueOf(nbDeleted));
-                this.txtDeletedViewsInDatabase.setText(String.valueOf(nbDeletedInDb));
                 
-                closePopup();
+                compareModelToDatabase();
             }
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
@@ -1408,24 +1605,8 @@ public class DBGuiExportModel extends DBGui {
 	                    for ( IDiagramModelObject viewObject: view.getChildren() ) {
 	                        doExportViewObject(viewObject);
 	                    }
-	                    
-	                    // we check if the database contains new objects that need to be imported
-	                    for ( String objectId: this.exportConnection.getViewsObjectsVersionsFromDatabase(view) ) {
-	                        if ( this.exportedModel.getAllViewObjects().get(objectId) == null )
-	                            logger.debug("********** MUST IMPORT OBJECT "+objectId);
-	                    }
-	                    // TODO: manage conflicts
-	                    
-                        // we check if the database contains new connections that need to be imported
-                        for ( String connectionId: this.exportConnection.getViewsConnectionsVersionsFromDatabase(view) ) {
-                            if ( this.exportedModel.getAllViewConnections().get(connectionId) == null )
-                                logger.debug("********** MUST IMPORT CONNECTION "+connectionId);
-                        }
-                        // TODO: manage conflicts
 					}
 				}
-				
-				//TODO: importing missing views using exportConnection.getViewsNotInModel() !!!
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
@@ -1433,8 +1614,6 @@ public class DBGuiExportModel extends DBGui {
 					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
 						incrementText(this.txtNewImagesInModel);
 				}
-				
-				// TODO : import new images in database should be done through the import new views (that implies import new views objects therefore new images)
 			}
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
@@ -2072,8 +2251,22 @@ public class DBGuiExportModel extends DBGui {
     private Text txtConflictingViews;
 
     private Text txtTotalViewObjects;
+    private Text txtNewViewObjectsInModel;
+    private Text txtUpdatedViewObjectsInModel;
+    private Text txtDeletedViewObjectsInModel;
+    private Text txtNewViewObjectsInDatabase;
+    private Text txtUpdatedViewObjectsInDatabase;
+    private Text txtDeletedViewObjectsInDatabase;
+    private Text txtConflictingViewObjects;
 
     private Text txtTotalViewConnections;
+    private Text txtNewViewConnectionsInModel;
+    private Text txtUpdatedViewConnectionsInModel;
+    private Text txtDeletedViewConnectionsInModel;
+    private Text txtNewViewConnectionsInDatabase;
+    private Text txtUpdatedViewConnectionsInDatabase;
+    private Text txtDeletedViewConnectionsInDatabase;
+    private Text txtConflictingViewConnections;
     
     private Text txtTotalImages;
     private Text txtNewImagesInModel;

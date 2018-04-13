@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 
@@ -23,7 +22,6 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
@@ -106,6 +104,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	@Getter private HashMap<String, DBVersionPair> relationshipsNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> foldersNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> viewsNotInModel = new HashMap<String, DBVersionPair>();
+	@Getter private HashMap<String, DBVersionPair> viewObjectsNotInModel = new HashMap<String, DBVersionPair>();
+	@Getter private HashMap<String, DBVersionPair> viewConnectionsNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> imagesNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> imagesNotInDatabase = new HashMap<String, DBVersionPair>();
 	
@@ -128,6 +128,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     	this.relationshipsNotInModel.clear();
     	this.foldersNotInModel.clear();
     	this.viewsNotInModel.clear();
+    	this.viewObjectsNotInModel.clear();
+    	this.viewConnectionsNotInModel.clear();
     	this.imagesNotInModel.clear();
     	this.imagesNotInDatabase.clear();
     	
@@ -404,7 +406,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                 }
                 
-                // if we're here, this means that the export procedure removed some elements or relationships, so we need to re-compare the views checksums from the database
                 try ( ResultSet result = select(
                         "SELECT id,"
                                 + "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -454,17 +455,20 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                                 ,model.getId()
                         ) ) {
                     while ( result.next() ) {
-                        IDBMetadata view = (IDBMetadata)model.getAllViews().get(result.getString("id"));
+                        IDiagramModel view = model.getAllViews().get(result.getString("id"));
+                        IDBMetadata viewMetadata = (IDBMetadata)view;
                         if ( view != null ) {
                             // if the view exists in memory
-                            view.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
-                            view.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
-                            view.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
-                            view.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
-                            view.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
-                            view.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
+                            viewMetadata.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+                            viewMetadata.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                            viewMetadata.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
+                            viewMetadata.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
+                            viewMetadata.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
+                            viewMetadata.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
-                            view.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                            viewMetadata.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                            
+                            getViewObjectsAndConnectionsVersionsFromDatabase(model, view);
                         } else {
                             this.viewsNotInModel.put(
                                     result.getString("id"),
@@ -476,8 +480,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         }
                     }
                 }
-                
-                //TODO: get object and connections not in model
 		        
 				// then we check if the latest version of the model has got images that are not in the model
 		        try ( ResultSet result = select ("SELECT DISTINCT image_path FROM views_objects "
@@ -591,7 +593,79 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
     }
 
+    public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, IDiagramModel view) throws SQLException, RuntimeException {
+        try ( ResultSet result = select(
+                "SELECT vo.id as id,"
+                + "  MAX(vo.version) AS version_in_current_model,"
+                + "  MAX(vo.checksum) AS checksum_in_current_model,"
+                + "  MAX(vo_max.version) AS latest_version,"
+                + "  MAX(vo_max.checksum) AS latest_checksum "
+                + "FROM views_objects vo "
+                + "JOIN views_objects vo_max ON vo_max.id = vo.id AND vo_max.version >= vo.version "
+                + "WHERE vo.view_id = ? AND vo.view_version = ? "
+                + "GROUP BY vo.id"
+                ,view.getId()
+                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+         ) ) {
+            while ( result.next() ) {
+                IDBMetadata viewObject = (IDBMetadata)model.getAllViewObjects().get(result.getString("id"));
+                if ( viewObject != null ) {
+                    // if the viewObjects exists in memory
+                    viewObject.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+                    viewObject.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                    viewObject.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
+                    viewObject.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
+
+                    viewObject.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                } else {
+                    this.viewObjectsNotInModel.put(
+                            result.getString("id"),
+                            new DBVersionPair(
+                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
+                                    result.getInt("latest_version"), result.getString("latest_chacksum"),null
+                                    )
+                            );
+                }
+            }
+        }
+        
+        try ( ResultSet result = select(
+                "SELECT vc.id as id,"
+                + "  MAX(vc.version) AS version_in_current_model,"
+                + "  MAX(vc.checksum) AS checksum_in_current_model,"
+                + "  MAX(vc_max.version) AS latest_version,"
+                + "  MAX(vc_max.checksum) AS latest_checksum "
+                + "FROM views_connections vc "
+                + "JOIN views_connections vc_max ON vc_max.id = vc.id AND vc_max.version >= vc.version "
+                + "WHERE vc.view_id = ? AND vc.view_version = ? "
+                + "GROUP BY vc.id"
+                ,view.getId()
+                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+         ) ) {
+            while ( result.next() ) {
+                IDBMetadata viewConnection = (IDBMetadata)model.getAllViewConnections().get(result.getString("id"));
+                if ( viewConnection != null ) {
+                    // if the viewObjects exists in memory
+                    viewConnection.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+                    viewConnection.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
+                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_version"));
+
+                    viewConnection.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                } else {
+                    this.viewConnectionsNotInModel.put(
+                            result.getString("id"),
+                            new DBVersionPair(
+                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
+                                    result.getInt("latest_version"), result.getString("latest_checksum"),null
+                                    )
+                            );
+                }
+            }
+        }
+    }
     
+    /*
     public HashSet<String> getViewsObjectsVersionsFromDatabase(IDiagramModel view) throws SQLException, RuntimeException {
         DBMetadata viewMetadata = ((IDBMetadata)view).getDBMetadata();
         if ( logger.isDebugEnabled() ) logger.debug("Getting views objects from the database for view "+viewMetadata.getDebugName());
@@ -621,6 +695,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         
         return connectionsInView;
     }
+    */
     
 	/**
 	 * Empty a Neo4J database
@@ -965,6 +1040,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
 		final String[] ViewsObjectsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "rank", "checksum"};
+		
+	      // if the viewObject is exported, the we increase its exportedVersion
+        ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
 
 		EObject viewContainer = viewObject.eContainer();
 		while ( !(viewContainer instanceof IDiagramModel) ) {
@@ -1028,6 +1106,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		final String[] ViewsConnectionsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "rank", "checksum"};
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
+	    // if the viewConnection is exported, the we increase its exportedVersion
+        ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion() + 1);
 
 		EObject viewContainer = viewConnection.eContainer();
 		while ( !(viewContainer instanceof IDiagramModel) ) {
