@@ -1549,7 +1549,8 @@ public class DBGuiExportModel extends DBGui {
 		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the element has been updated in the database, then generate a conflict
 		        	logger.trace("Must import element "+id);
-		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		        	@SuppressWarnings("resource")
+					DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
 		        	incrementText(this.txtNewElementsInDatabase);
 		        	incrementText(this.txtTotalElements);
@@ -1568,7 +1569,8 @@ public class DBGuiExportModel extends DBGui {
 		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the relationship has been updated in the database, then generate a conflict
 		        	logger.trace("Must import element "+id);
-		        	DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		        	@SuppressWarnings("resource")
+					DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewRelationshipsInDatabase);
 		        	incrementText(this.txtTotalRelationships);
@@ -1874,7 +1876,8 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( mustImport ) {
             // For the moment, we can import elements and relationships only during an export !!!
-		    DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		    @SuppressWarnings("resource")
+			DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
             if ( eObjectToExport instanceof IArchimateElement ) {
                 if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());

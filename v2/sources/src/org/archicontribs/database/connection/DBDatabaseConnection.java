@@ -33,7 +33,7 @@ import org.archicontribs.database.data.DBChecksum;
  * 
  * @author Herve Jouin
  */
-public class DBDatabaseConnection {
+public class DBDatabaseConnection implements AutoCloseable {
 	private static final DBLogger logger = new DBLogger(DBDatabaseConnection.class);
 
 	/**
@@ -79,18 +79,18 @@ public class DBDatabaseConnection {
 		this.schema = databaseEntry.getSchemaPrefix();
 		openConnection();
 	}
-	
+
 	/**
 	 * Used to switch between ImportConnection and ExpoetConnection.
 	 */
 	protected DBDatabaseConnection() {
-	    
+
 	}
 
 	private void openConnection() throws ClassNotFoundException, SQLException {
 		if ( isConnected() )
 			close();
-		
+
 		if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+" : driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.databaseEntry.getSchema()+", username="+this.databaseEntry.getUsername());
 
 		String clazz = null;
@@ -164,6 +164,7 @@ public class DBDatabaseConnection {
 	/**
 	 * Closes connection to the database
 	 */
+	@Override
 	public void close() throws SQLException {
 		reset();
 
@@ -200,7 +201,7 @@ public class DBDatabaseConnection {
 		try {
 			if ( !isConnected() )
 				openConnection();
-			
+
 			switch ( this.databaseEntry.getDriver() ) {
 				case "neo4j" :
 					DBGui.closePopup();		// no tables to check on neo4j databases
@@ -287,7 +288,7 @@ public class DBDatabaseConnection {
 					break;
 				default:		// should never be here, but just in case
 					throw new SQLException("Unknown driver "+this.databaseEntry.getDriver());
-					
+
 			}
 
 			// checking if the database_version table exists
@@ -305,7 +306,7 @@ public class DBDatabaseConnection {
 				createTables();
 				return;
 			}
-			
+
 			if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
 				throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
 
@@ -657,9 +658,9 @@ public class DBDatabaseConnection {
 	 */
 	private void upgradeDatabase(int version) throws SQLException, ClassNotFoundException {
 		String COLUMN = DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
-		
+
 		int fromVersion = version;
-		
+
 		// convert from version 200 to 201 :
 		//      - add a blob column into the views table
 		if ( fromVersion == 200 ) {
@@ -682,7 +683,7 @@ public class DBDatabaseConnection {
 
 			fromVersion = 202;
 		}
-		
+
 		// convert from version 202 to 203 :
 		//      - add a text_position column in the views_connections table
 		//      - add source_connections and target_connections to views_objects and views_connections tables
@@ -690,13 +691,13 @@ public class DBDatabaseConnection {
 			setAutoCommit(false);
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" relationship_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_connections SET relationship_version = 1");
-			
+
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" element_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_objects SET element_version = 1");
 
 			fromVersion = 203;
 		}
-		
+
 		// convert from version 203 to 204 :
 		//      - add a checksum to the model
 		//
@@ -704,11 +705,11 @@ public class DBDatabaseConnection {
 		// so we create a new table
 		if ( fromVersion == 203 ) {
 			setAutoCommit(false);
-			
+
 			String[] columns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checkedin_by", "checkedin_on", "deleted_by", "deleted_on", "checksum"};
-			
+
 			request("ALTER TABLE "+this.schema+"models RENAME TO "+this.schema+"models_old");
-			
+
 			request("CREATE TABLE "+this.schema+"models ("
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
@@ -724,8 +725,8 @@ public class DBDatabaseConnection {
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
-			
-			try ( ResultSet result = select("SELECT id, version, name, note, purpose, created_by, created_on, checkedin_by, checkedin_on, deleted_by, deleted_on FROM models_old"); ) {
+
+			try ( ResultSet result = select("SELECT id, version, name, note, purpose, created_by, created_on, checkedin_by, checkedin_on, deleted_by, deleted_on FROM models_old") ) {
 				while ( result.next() ) {
 					StringBuilder checksumBuilder = new StringBuilder();
 					DBChecksum.append(checksumBuilder, "id", result.getString("id"));
@@ -755,32 +756,32 @@ public class DBDatabaseConnection {
 							checksum
 							);
 				}
-				
+
 				fromVersion = 204;
 			}
-			
-		    // convert from version 204 to 205 :
-	        //      - add a container_checksum column in the views table
-	        if ( fromVersion == 204 ) {
-	            setAutoCommit(false);
-	            request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" container_checksum "+this.OBJECTID);
-	            request("UPDATE "+this.schema+"container_checksum SET container_checksum = checksum");
-
-	            fromVersion = 205;
-	        }
-			
-			request("UPDATE "+this.schema+"database_version SET version = 205 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
-			commit();
-			
-			// SQLite refuses to drop the table if we do not close the connection and reopen it
-			this.connection.close();
-			openConnection();
-	        setAutoCommit(false);
-			request("DROP TABLE "+this.schema+"models_old");
-			commit();
-
-			setAutoCommit(true);
 		}
+
+		// convert from version 204 to 205 :
+		//      - add a container_checksum column in the views table
+		if ( fromVersion == 204 ) {
+			setAutoCommit(false);
+			request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" container_checksum "+this.OBJECTID);
+			request("UPDATE "+this.schema+"views SET container_checksum = checksum");
+
+			fromVersion = 205;
+		}
+
+		request("UPDATE "+this.schema+"database_version SET version = 205 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+		commit();
+
+		// SQLite refuses to drop the table if we do not close the connection and reopen it
+		this.connection.close();
+		openConnection();
+		setAutoCommit(false);
+		request("DROP TABLE "+this.schema+"models_old");
+		commit();
+
+		setAutoCommit(true);
 	}
 
 	/**
@@ -872,7 +873,7 @@ public class DBDatabaseConnection {
 				this.preparedStatementMap.put(request, pstmt);
 			} else
 				pstmt.clearParameters();
-			
+
 			constructStatement(pstmt, request, parameters);
 
 			result = pstmt.executeQuery();
@@ -961,7 +962,7 @@ public class DBDatabaseConnection {
 						if ( logger.isTraceEnabled() ) logger.trace("Rolled back to savepoint");
 					} catch (SQLException e2) { logger.error("Failed to rollback to savepoint", e2); }
 				}
-				
+
 				// on sqlite databases, the prepared statement must be closed (then re-created) after the exception else we've got "statement is not executing" error messages
 				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ) {
 					this.preparedStatementMap.remove(request);
@@ -975,87 +976,87 @@ public class DBDatabaseConnection {
 
 		return rowCount;
 	}
-	
-	   /**
-     * Gets the list of models in the current database
-     * @param filter (use "%" as wildcard) 
-     * @throws Exception
-     * @return a list of Hashtables, each containing the name and the id of one model
-     */
-    public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
-        ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
-        
-        @SuppressWarnings("resource")
-        ResultSet result = null;
-        
-        try {
-            // We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
-            if ( filter==null || filter.length()==0 )
-                result = select("SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) ORDER BY name");
-            else
-                result = select("SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
-    
-            while ( result.next() && result.getString("id") != null ) {
-                if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\"");
-                Hashtable<String, Object> table = new Hashtable<String, Object>();
-                table.put("name", result.getString("name"));
-                table.put("id", result.getString("id"));
-                list.add(table);
-            }
-        } finally {
-            if ( result != null )
-                result.close();
-        }
-        
-        return list;
-    }
-    
-    public String getModelId(String modelName, boolean ignoreCase) throws Exception {
-        @SuppressWarnings("resource")
-        ResultSet result = null;
-        String id = null;
-        
-        try {
-            // Using a GROUP BY on PostGresSQL does not give the expected result ...   
-            if ( ignoreCase )
-                result = select("SELECT id FROM "+this.schema+"models m WHERE UPPER(name) = UPPER(?)", modelName);
-            else
-                result = select("SELECT id FROM "+this.schema+"models m WHERE name = ?", modelName);
-    
-            if ( result.next() ) 
-                id = result.getString("id");
-        } finally {
-            if ( result != null )
-                result.close();
-        }
-        
-        return id;
-    }
 
-    /**
-     * Gets the list of versions on a model in the current database
-     * @param id the id of the model 
-     * @throws Exception
-     * @return a list of Hashtables, each containing the version, created_on, created_by, name, note and purpose of one version of the model
-     */
-    public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
-        ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
-        
-        try ( ResultSet result = select("SELECT version, created_by, created_on, name, note, purpose FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
-            while ( result.next() ) {
-                if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\"");
-                Hashtable<String, Object> table = new Hashtable<String, Object>();
-                table.put("version", result.getString("version"));
-                table.put("created_by", result.getString("created_by"));
-                table.put("created_on", result.getTimestamp("created_on"));
-                table.put("name", result.getString("name"));
-                table.put("note", result.getString("note"));
-                table.put("purpose", result.getString("purpose"));
-                list.add(table);
-            }
-        }       
-        return list;
-    }
+	/**
+	 * Gets the list of models in the current database
+	 * @param filter (use "%" as wildcard) 
+	 * @throws Exception
+	 * @return a list of Hashtables, each containing the name and the id of one model
+	 */
+	public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
+		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+
+		@SuppressWarnings("resource")
+		ResultSet result = null;
+
+		try {
+			// We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
+			if ( filter==null || filter.length()==0 )
+				result = select("SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) ORDER BY name");
+			else
+				result = select("SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
+
+			while ( result.next() && result.getString("id") != null ) {
+				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\"");
+				Hashtable<String, Object> table = new Hashtable<String, Object>();
+				table.put("name", result.getString("name"));
+				table.put("id", result.getString("id"));
+				list.add(table);
+			}
+		} finally {
+			if ( result != null )
+				result.close();
+		}
+
+		return list;
+	}
+
+	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
+		@SuppressWarnings("resource")
+		ResultSet result = null;
+		String id = null;
+
+		try {
+			// Using a GROUP BY on PostGresSQL does not give the expected result ...   
+			if ( ignoreCase )
+				result = select("SELECT id FROM "+this.schema+"models m WHERE UPPER(name) = UPPER(?)", modelName);
+			else
+				result = select("SELECT id FROM "+this.schema+"models m WHERE name = ?", modelName);
+
+			if ( result.next() ) 
+				id = result.getString("id");
+		} finally {
+			if ( result != null )
+				result.close();
+		}
+
+		return id;
+	}
+
+	/**
+	 * Gets the list of versions on a model in the current database
+	 * @param id the id of the model 
+	 * @throws Exception
+	 * @return a list of Hashtables, each containing the version, created_on, created_by, name, note and purpose of one version of the model
+	 */
+	public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
+		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+
+		try ( ResultSet result = select("SELECT version, created_by, created_on, name, note, purpose FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
+			while ( result.next() ) {
+				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\"");
+				Hashtable<String, Object> table = new Hashtable<String, Object>();
+				table.put("version", result.getString("version"));
+				table.put("created_by", result.getString("created_by"));
+				table.put("created_on", result.getTimestamp("created_on"));
+				table.put("name", result.getString("name"));
+				table.put("note", result.getString("note"));
+				table.put("purpose", result.getString("purpose"));
+				list.add(table);
+			}
+		}       
+		return list;
+	}
 
 
 	/**

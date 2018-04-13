@@ -7,7 +7,6 @@
 package org.archicontribs.database.preferences;
 
 import java.io.File;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -1191,21 +1190,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			return;
 		}
 
-		DBDatabaseImportConnection connection = null;
-		try {
-			connection = new DBDatabaseImportConnection(databaseEntry);
+		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
 			connection.checkDatabase();
 			DBGui.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
 			return;
-		} finally {
-			if ( connection != null ) {
-				try {
-					connection.close();
-				} catch (SQLException err) {logger.error("Error while closing connection !", err); }
-				connection = null;
-			}
 		}
 	}
 
