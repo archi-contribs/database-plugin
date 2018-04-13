@@ -40,7 +40,7 @@ public class DBDatabaseConnection {
 	 * Version of the expected database model.<br>
 	 * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
 	 */
-	public static final int databaseVersion = 204;
+	public static final int databaseVersion = 205;
 
 	/**
 	 * the databaseEntry corresponding to the connection
@@ -534,6 +534,7 @@ public class DBDatabaseConnection {
 					+ "viewpoint "+ this.OBJECTID +", "
 					+ "screenshot "+ this.IMAGE +", "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
+					+ "container_checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
 
@@ -664,10 +665,6 @@ public class DBDatabaseConnection {
 		if ( fromVersion == 200 ) {
 			setAutoCommit(false);
 			request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" screenshot "+this.IMAGE);
-			
-			request("UPDATE "+this.schema+"database_version SET version = 201 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
-			commit();
-			setAutoCommit(true);
 
 			fromVersion = 201;
 		}
@@ -682,10 +679,6 @@ public class DBDatabaseConnection {
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" target_connections "+this.TEXT);
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" source_connections "+this.TEXT);
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" target_connections "+this.TEXT);
-			
-			request("UPDATE "+this.schema+"database_version SET version = 202 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
-			commit();
-			setAutoCommit(true);
 
 			fromVersion = 202;
 		}
@@ -700,10 +693,6 @@ public class DBDatabaseConnection {
 			
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" element_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_objects SET element_version = 1");
-			
-			request("UPDATE "+this.schema+"database_version SET version = 203 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
-			commit();
-			setAutoCommit(true);
 
 			fromVersion = 203;
 		}
@@ -766,9 +755,21 @@ public class DBDatabaseConnection {
 							checksum
 							);
 				}
+				
+				fromVersion = 204;
 			}
 			
-			request("UPDATE "+this.schema+"database_version SET version = 204 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+		    // convert from version 204 to 205 :
+	        //      - add a container_checksum column in the views table
+	        if ( fromVersion == 204 ) {
+	            setAutoCommit(false);
+	            request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" container_checksum "+this.OBJECTID);
+	            request("UPDATE "+this.schema+"container_checksum SET container_checksum = checksum");
+
+	            fromVersion = 205;
+	        }
+			
+			request("UPDATE "+this.schema+"database_version SET version = 205 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 			commit();
 			
 			// SQLite refuses to drop the table if we do not close the connection and reopen it
@@ -779,8 +780,6 @@ public class DBDatabaseConnection {
 			commit();
 
 			setAutoCommit(true);
-
-			fromVersion = 204;
 		}
 	}
 

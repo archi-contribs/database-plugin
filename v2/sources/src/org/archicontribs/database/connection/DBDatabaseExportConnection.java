@@ -896,7 +896,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Export a view into the database.
 	 */
 	private void exportView(IDiagramModel view) throws Exception {
-		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum"};
+		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum", "container_checksum"};
 		
 		// if the view is exported, the we increase its exportedVersion
         ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion() + 1);
@@ -923,6 +923,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null)
 				,viewImage
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum()
+                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum()
 				);
 
 		exportProperties(view);

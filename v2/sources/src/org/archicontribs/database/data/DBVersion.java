@@ -21,6 +21,7 @@ public class DBVersion {
     
     public DBVersion(int version, String checksum, Timestamp timestamp) {
         setVersion(version);
+        setContainerChecksum(null);
         setChecksum(checksum);
         setTimestamp(timestamp);
     }
@@ -39,6 +40,7 @@ public class DBVersion {
     
     public void reset() {
         setVersion(0);
+        setContainerChecksum(null);
         setChecksum(null);
         setTimestamp(null);
     }
@@ -48,9 +50,26 @@ public class DBVersion {
         this.version = (version<0 ? 0 : version);
     }
     
+    /**
+     * For containers, the checksum calculation must take the content in account 
+     */
     @Getter private String checksum;
+    /**
+     * For containers, the checksum calculation must take the content in account 
+     */
     public void setChecksum(String checksum) {
         this.checksum = (checksum==null ? "" : checksum);
+    }
+    
+    /**
+     * For containers, the checksum calculation must take the content in account 
+     */
+    @Getter private String containerChecksum;
+    /**
+     * For containers, the checksum calculation must <b>not</b> take the content in account 
+     */
+    public void setContainerChecksum(String checksum) {
+        this.containerChecksum = (checksum==null ? "" : checksum);
     }
 
     @Getter private Timestamp timestamp;

@@ -366,12 +366,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.importFoldersRequest += " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		if ( model.isLatestVersionImported() ) {
-			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum"+
+			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"+
 								 " FROM "+this.schema+"views_in_model"+
 								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = (select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)"+
 								 " WHERE model_id = ? AND model_version = ?";
 		} else {
-			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum"+
+			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"+
 								 " FROM "+this.schema+"views_in_model"+
 								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = views_in_model.view_version"+
 								 " WHERE model_id = ? AND model_version = ?";
@@ -651,6 +651,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				view.setId(this.currentResultSet.getString("id"));
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(this.currentResultSet.getString("container_checksum"));
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				view.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
