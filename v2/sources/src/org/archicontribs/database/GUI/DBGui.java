@@ -209,8 +209,8 @@ public class DBGui {
 
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
-		this.dialog.setMinimumSize(750, 550);
-		this.dialog.setSize(800,600);
+		this.dialog.setMinimumSize(750, 600);
+		this.dialog.setSize(800,700);
 		this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 4);
 		this.dialog.setLayout(new FormLayout());
 		
