@@ -291,6 +291,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "ArchimateDiagramModel" :
 			case "CanvasModel" :
 			case "SketchModel" :					this.allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
+			                                        if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 													for ( EObject child: ((IDiagramModel)eObject).getChildren() ) {
 														String subChecksum = countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
 														if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
@@ -308,6 +309,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
 			                                        ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
 													if ( eObject instanceof IDiagramModelContainer ) {
+													    if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 														for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
 															String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
 															if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
@@ -332,7 +334,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 													break;
 													
 			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
-			
+			                                        if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+			                                        
 													// TODO : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 													// so we do not use sub folders or elements in the checksum calculation anymore
 													// at the moment, this is not important as we do not allow to share folders between models
@@ -366,6 +369,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		}
 		
 		if ( mustCalculateChecksum ) {
+		    // if the checksumBuilder contains a single checksum, then we get it
+		    // else, we calculate a new checksum from the list of chechsums
 			String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
 			((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
 			return checksum;
