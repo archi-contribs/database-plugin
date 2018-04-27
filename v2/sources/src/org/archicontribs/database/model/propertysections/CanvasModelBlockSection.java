@@ -19,7 +19,9 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiImportImage;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.eclipse.emf.common.notify.Adapter;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.action.MenuManager;
@@ -40,23 +42,22 @@ import org.eclipse.ui.PlatformUI;
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
-import com.archimatetool.editor.propertysections.AbstractArchimatePropertySection;
 import com.archimatetool.editor.propertysections.ITabbedLayoutConstants;
 import com.archimatetool.editor.propertysections.Messages;
+import com.archimatetool.editor.propertysections.ObjectFilter;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelObject;
 
 /**
- * This class extends the com.archimatetool.editor.propertysections.CanvasModelBlockSection, adding the ability to import an image from a database
+ * This class extends the com.archimatetool.editor.propertysections.AbstractECorePropertySection, adding the ability to import an image from a database
  * 
  * @author Herve Jouin
  */
-public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
+public class CanvasModelBlockSection extends com.archimatetool.editor.propertysections.AbstractECorePropertySection {
 	private static final DBLogger logger = new DBLogger(CanvasModelBlockSection.class);
 	
 	protected static final String HELP_ID = "com.archimatetool.help.elementPropertySection"; //$NON-NLS-1$
-	private ICanvasModelBlock fCanvasModelBlock;
 	Button btnImportImage;
 	
     /**
@@ -64,12 +65,12 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
      */
     public static class Filter extends ObjectFilter {
         @Override
-        protected boolean isRequiredType(Object object) {
+        public boolean isRequiredType(Object object) {
             return object instanceof ICanvasModelBlock;
         }
 
         @Override
-        protected Class<?> getAdaptableType() {
+        public Class<?> getAdaptableType() {
             return ICanvasModelBlock.class;
         }
     }
@@ -87,6 +88,7 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
         this.btnImportImage.setLayoutData(gd);
         this.btnImportImage.setAlignment(SWT.LEFT);
         this.btnImportImage.addSelectionListener(new SelectionAdapter() {
+            @SuppressWarnings("synthetic-access")
             @Override
             public void widgetSelected(SelectionEvent e) {
                 MenuManager menuManager = new MenuManager();
@@ -107,7 +109,7 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
                     }
                 };
 
-                actionClear.setEnabled(((IDiagramModelImageProvider)getEObject()).getImagePath() != null);
+                actionClear.setEnabled(((IDiagramModelImageProvider)getFirstSelectedObject()).getImagePath() != null);
                 
                 menuManager.add(actionClear);
                 
@@ -123,41 +125,75 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);
     }
     
-    protected void chooseImage() {
-        if(!isAlive()) {
-            return;
+    @Override
+    protected void update() {
+        refreshButtons();
+    }
+    
+    protected void refreshButtons() {
+        this.btnImportImage.setEnabled(!isLocked(getFirstSelectedObject()));
+    }
+    
+    protected void clearImage() {
+        CompoundCommand result = new CompoundCommand();
+
+        for(EObject dmo : getEObjects()) {
+            if(isAlive(dmo)) {
+                Command cmd = new EObjectFeatureCommand("Clear image", dmo, IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, null);
+
+                if(cmd.canExecute()) {
+                    result.add(cmd);
+                }
+            }
         }
+
+        executeCommand(result.unwrap());
+    }
+    
+    protected void chooseImage() {
+        IDiagramModelObject dmo = (IDiagramModelObject)getFirstSelectedObject();
         
-        DBGuiImportImage guiImportImage;
-        try {
-            guiImportImage = new DBGuiImportImage((DBArchimateModel)getEObject().getDiagramModel().getArchimateModel(), "Import image");
-            guiImportImage.run();
-            while ( !guiImportImage.isDisposed() )
-                DBGui.refreshDisplay();
-            
-            if ( guiImportImage.getImage() != null )
-                setImage(guiImportImage.getImage(), guiImportImage.getImagePath());
-        } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Cannot import image", e);
+        if(isAlive(dmo)) {
+            DBGuiImportImage guiImportImage;
+            try {
+                guiImportImage = new DBGuiImportImage((DBArchimateModel)dmo.getDiagramModel().getArchimateModel(), "Import image");
+                guiImportImage.run();
+                while ( !guiImportImage.isDisposed() )
+                    DBGui.refreshDisplay();
+                
+                if ( guiImportImage.getImage() != null )
+                    setImage(guiImportImage.getImage(), guiImportImage.getImagePath());
+            } catch (Exception e) {
+                DBGui.popup(Level.ERROR,"Cannot import image", e);
+            }
         }
     }
     
     protected void setImage(Image image, String path) {
-        this.fIsExecutingCommand = true;
         try {
-        	ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        	ImageIO.write(getBufferedImage(image), "PNG", baos);
-            ((IArchiveManager)getEObject().getAdapter(IArchiveManager.class)).addByteContentEntry(path, baos.toByteArray());
-	        getCommandStack().execute(new EObjectFeatureCommand("Set image", getEObject(), IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, path));
-	        logger.debug("Image path set to " + path);
-		} catch (IOException e) {
-			logger.error("Failed to set image", e);
-		}
-        this.fIsExecutingCommand = false;
+            CompoundCommand result = new CompoundCommand();
+            
+            for(EObject dmo : getEObjects()) {
+                if(isAlive(dmo)) {
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    ImageIO.write(getBufferedImage(image), "PNG", baos);
+                    ((IArchiveManager)((IDiagramModelObject)dmo).getAdapter(IArchiveManager.class)).addByteContentEntry(path, baos.toByteArray());
+                    Command cmd = new EObjectFeatureCommand("Set image", dmo, IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, path);
+                    if(cmd.canExecute()) {
+                        result.add(cmd);
+                    }
+                    logger.debug("Image path set to " + path);
+                }
+            }
+            
+            executeCommand(result.unwrap());
+        } catch (IOException e) {
+            logger.error("Failed to set image", e);
+        }
     }
 
-	static BufferedImage getBufferedImage(Image image) {
-		// code from https://m4tx.pl/en/2013/01/java-swt-to-awt-and-vice-versa-image-conversion-with-transparency-support/
+    static BufferedImage getBufferedImage(Image image) {
+        // code from https://m4tx.pl/en/2013/01/java-swt-to-awt-and-vice-versa-image-conversion-with-transparency-support/
         ColorModel colorModel = null;
         ImageData data = image.getImageData();
         PaletteData palette = data.palette;
@@ -198,32 +234,5 @@ public class CanvasModelBlockSection extends AbstractArchimatePropertySection {
             }
         }
         return bufferedImage;
-	}
-    
-    protected void clearImage() {
-        if(isAlive()) {
-            this.fIsExecutingCommand = true;
-            getCommandStack().execute(new EObjectFeatureCommand("Clear image", getEObject(), IArchimatePackage.Literals.DIAGRAM_MODEL_IMAGE_PROVIDER__IMAGE_PATH, null));
-            this.fIsExecutingCommand = false;
-        }
     }
-
-	@Override
-	protected Adapter getECoreAdapter() {
-		return null;
-	}
-
-	@Override
-	protected IDiagramModelObject getEObject() {
-		return this.fCanvasModelBlock;
-	}
-
-	@Override
-	protected void setElement(Object element) {
-        this.fCanvasModelBlock = (ICanvasModelBlock)new Filter().adaptObject(element);
-        if(this.fCanvasModelBlock == null) {
-            System.err.println(getClass() + " failed to get element for " + element); //$NON-NLS-1$
-        }
-	}
-	
 }
