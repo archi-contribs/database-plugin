@@ -40,7 +40,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Version of the expected database model.<br>
 	 * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
 	 */
-	public static final int databaseVersion = 205;
+	public static final int databaseVersion = 206;
 
 	/**
 	 * the databaseEntry corresponding to the connection
@@ -554,9 +554,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 			request("CREATE TABLE "+this.schema+"views_connections ("
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
-					+ "container_id "+ this.OBJECTID +" NOT NULL, "
-					+ "view_id "+ this.OBJECTID +" NOT NULL, "
-					+ "view_version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
 					+ "name "+ this.OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
 					+ "documentation "+ this.TEXT +", "
@@ -577,6 +574,31 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version, container_id)"
 					+ ")");
+			
+			if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
+            request("CREATE TABLE "+this.schema+"views_connections_in_view ("
+                    + "civ_id "+ this.AUTO_INCREMENT+", "
+                    + "connection_id "+ this.OBJECTID +" NOT NULL, "
+                    + "connection_version "+ this.INTEGER +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + ")");
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+
+                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_connections_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
+                        + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
+                        + "FOR EACH ROW "
+                        + "BEGIN"
+                        + "  SELECT "+this.schema+"seq_views_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+                        + "END;");
+            }
 
 			if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_in_model");
 			request("CREATE TABLE "+this.schema+"views_in_model ("
@@ -607,9 +629,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 			request("CREATE TABLE "+this.schema+"views_objects ("
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
-					+ "container_id "+ this.OBJECTID +" NOT NULL, "
-					+ "view_id "+ this.OBJECTID +" NOT NULL, "
-					+ "view_version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
 					+ "element_id "+ this.OBJECTID +", "
 					+ "element_version "+ this.INTEGER +", "
@@ -643,6 +662,31 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version, container_id)"
 					+ ")");
+			
+			if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
+            request("CREATE TABLE "+this.schema+"views_objects_in_view ("
+                    + "oiv_id "+ this.AUTO_INCREMENT+", "
+                    + "object_id "+ this.OBJECTID +" NOT NULL, "
+                    + "object_version "+ this.INTEGER +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + ")");
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+
+                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_objects_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
+                        + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
+                        + "FOR EACH ROW "
+                        + "BEGIN"
+                        + "  SELECT "+this.schema+"seq_views_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+                        + "END;");
+            }
 
 			commit();
 			setAutoCommit(true);
@@ -670,59 +714,58 @@ public class DBDatabaseConnection implements AutoCloseable {
 	private void upgradeDatabase(int version) throws SQLException, ClassNotFoundException {
 		String COLUMN = DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
 
-		int fromVersion = version;
+		int dbVersion = version;
 		boolean mustDropOldModelsTable = false;
 		boolean mustDropOldViewsTable = false;
+		boolean mustDropOldViewsObjectsTable = false;
+		
+		setAutoCommit(false);
 
 		// convert from version 200 to 201 :
 		//      - add a blob column into the views table
-		if ( fromVersion == 200 ) {
-			setAutoCommit(false);
+		if ( dbVersion == 200 ) {
 			request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" screenshot "+this.IMAGE);
 
-			fromVersion = 201;
+			dbVersion = 201;
 		}
 
 		// convert from version 201 to 202 :
 		//      - add a text_position column in the views_connections table
 		//      - add source_connections and target_connections to views_objects and views_connections tables
-		if ( fromVersion == 201 ) {
-			setAutoCommit(false);
+		if ( dbVersion == 201 ) {
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" text_position "+this.INTEGER);
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" source_connections "+this.TEXT);
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" target_connections "+this.TEXT);
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" source_connections "+this.TEXT);
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" target_connections "+this.TEXT);
 
-			fromVersion = 202;
+			dbVersion = 202;
 		}
 
 		// convert from version 202 to 203 :
 		//      - add a text_position column in the views_connections table
 		//      - add source_connections and target_connections to views_objects and views_connections tables
-		if ( fromVersion == 202 ) {
-			setAutoCommit(false);
+		if ( dbVersion == 202 ) {
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" relationship_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_connections SET relationship_version = 1");
 
 			request("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" element_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_objects SET element_version = 1");
 
-			fromVersion = 203;
+			dbVersion = 203;
 		}
 
 		// convert from version 203 to 204 :
 		//      - add a checksum to the model
 		//
-		// unfortunately, some databases do not support to alter an existing column
-		// so we create a new table
-		if ( fromVersion == 203 ) {
-			setAutoCommit(false);
-
+		// unfortunately, some databases do not support to alter an existing column, so we create a new table
+		if ( dbVersion == 203 ) {
 			String[] columns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checkedin_by", "checkedin_on", "deleted_by", "deleted_on", "checksum"};
 
+			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"models to "+this.schema+"models_old");
 			request("ALTER TABLE "+this.schema+"models RENAME TO "+this.schema+"models_old");
 
+			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"models");
 			request("CREATE TABLE "+this.schema+"models ("
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
@@ -739,6 +782,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
 
+			if ( logger.isDebugEnabled() ) logger.debug("copying data from table "+this.schema+"models_old to "+this.schema+"models");
 			try ( ResultSet result = select("SELECT id, version, name, note, purpose, created_by, created_on, checkedin_by, checkedin_on, deleted_by, deleted_on FROM models_old") ) {
 				while ( result.next() ) {
 					StringBuilder checksumBuilder = new StringBuilder();
@@ -771,21 +815,20 @@ public class DBDatabaseConnection implements AutoCloseable {
 				}
 			}
 			mustDropOldModelsTable = true;
-			fromVersion = 204;
+			dbVersion = 204;
 		}
 
 		// convert from version 204 to 205 :
 		//      - add a container_checksum column in the views table
 		//
-		// unfortunately, some databases do not support to alter an existing column
-		// so we create a new table
-		if ( fromVersion == 204 ) {
-			setAutoCommit(false);
-			
+		// unfortunately, some databases do not support to alter an existing column, so we create a new table
+		if ( dbVersion == 204 ) {
 			String[] columns = {"id", "version", "class", "name", "documentation", "hint_content", "hint_title", "created_by", "created_on", "background", "connection_router_type", "viewpoint", "screenshot", "checksum", "container_checksum"};
 
+			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views to "+this.schema+"views_old");
 			request("ALTER TABLE "+this.schema+"views RENAME TO "+this.schema+"views_old");
 			
+			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views");
 			request("CREATE TABLE "+this.schema+"views ("
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
@@ -805,6 +848,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
 			
+			if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_old to "+this.schema+"views");
 			try ( ResultSet result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, screenshot, checksum FROM views_old") ) {
 				while ( result.next() ) {
 					StringBuilder checksumBuilder = new StringBuilder();
@@ -845,10 +889,165 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 
 			mustDropOldViewsTable = true;
-			fromVersion = 205;
+			dbVersion = 205;
 		}
+		
+		// convert from version 205 to 206 :
+        //      - create tables views_connections_in_view and views_objects_in_view
+		//      - remove the view_id and view_version from the views_connections and views_objects tables
+		//
+		// unfortunately, some databases do not support to alter an existing column, so we create new tables
+        if ( dbVersion == 205 ) {
+            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
+            request("CREATE TABLE "+this.schema+"views_connections_in_view ("
+                    + "civ_id "+ this.AUTO_INCREMENT+", "
+                    + "connection_id "+ this.OBJECTID +" NOT NULL, "
+                    + "connection_version "+ this.INTEGER +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + ")");
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-		request("UPDATE "+this.schema+"database_version SET version = 205 WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_connections_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
+                        + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
+                        + "FOR EACH ROW "
+                        + "BEGIN"
+                        + "  SELECT "+this.schema+"seq_views_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+                        + "END;");
+            }
+            
+            // we fill in the views_connections_in_view table
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
+            request("INSERT INTO "+this.schema+"views_connections_in_view "
+            		+"(connection_id, connection_version, container_id, view_id, view_version, rank) "
+            		+"SELECT id, version, container_id, view_id, view_version, rank FROM "+this.schema+"views_connections"
+            		);
+            
+            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
+            request("CREATE TABLE "+this.schema+"views_objects_in_view ("
+                    + "oiv_id "+ this.AUTO_INCREMENT+", "
+                    + "object_id "+ this.OBJECTID +" NOT NULL, "
+                    + "object_version "+ this.INTEGER +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_id "+ this.OBJECTID +" NOT NULL, "
+                    + "view_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + ")");
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+
+                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_objects_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
+                        + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
+                        + "FOR EACH ROW "
+                        + "BEGIN"
+                        + "  SELECT "+this.schema+"seq_views_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+                        + "END;");
+            }
+            
+            // we fill in the views_objects_in_view table
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects table to "+this.schema+"views_objects_in_view table");
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
+            request("INSERT INTO "+this.schema+"views_objects_in_view "
+            		+"(object_id, object_version, container_id, view_id, view_version, rank) "
+            		+"SELECT id, version, container_id, view_id, view_version, rank FROM "+this.schema+"views_objects"
+            		);
+            
+            if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_connections to "+this.schema+"views_connections_old");
+            request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_connections_old");
+            
+            if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_connections");
+			request("CREATE TABLE "+this.schema+"views_connections ("
+					+ "id "+ this.OBJECTID +" NOT NULL, "
+					+ "version "+ this.INTEGER +" NOT NULL, "
+					+ "class "+ this.OBJECTID +" NOT NULL, "
+					+ "name "+ this.OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
+					+ "documentation "+ this.TEXT +", "
+					+ "is_locked "+ this.BOOLEAN +", "
+					+ "line_color "+ this.COLOR +", "
+					+ "line_width "+ this.INTEGER +", "
+					+ "font "+ this.FONT +", "
+					+ "font_color "+ this.COLOR +", "
+					+ "relationship_id "+ this.OBJECTID +", "
+					+ "relationship_version "+ this.INTEGER +", "
+					+ "source_connections "+ this.TEXT + ", "
+					+ "target_connections "+ this.TEXT + ", "
+					+ "source_object_id "+ this.OBJECTID +", "
+					+ "target_object_id "+ this.OBJECTID +", "
+					+ "text_position "+ this.INTEGER +", "
+					+ "type "+ this.INTEGER +", "
+					+ "rank "+ this.INTEGER +" NOT NULL, "
+					+ "checksum "+ this.OBJECTID +" NOT NULL, "
+					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ ")");
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
+            request("INSERT INTO "+this.schema+"views_connections "
+            		+"(id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum) "
+            		+"SELECT id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum FROM "+this.schema+"views_objects_old"
+            		);
+            
+            if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_objects to "+this.schema+"views_objects_old");
+            request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_objects_old");
+            
+            if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_objects");
+            request("CREATE TABLE "+this.schema+"views_objects ("
+					+ "id "+ this.OBJECTID +" NOT NULL, "
+					+ "version "+ this.INTEGER +" NOT NULL, "
+					+ "class "+ this.OBJECTID +" NOT NULL, "
+					+ "element_id "+ this.OBJECTID +", "
+					+ "element_version "+ this.INTEGER +", "
+					+ "diagram_ref_id "+ this.OBJECTID +", "
+					+ "border_color "+ this.COLOR +", "
+					+ "border_type "+ this.INTEGER +", "
+					+ "content "+ this.TEXT +", "
+					+ "documentation "+ this.TEXT +", "
+					+ "hint_content "+ this.TEXT +", "
+					+ "hint_title "+ this.OBJ_NAME +", "
+					+ "is_locked "+ this.BOOLEAN +", "
+					+ "image_path "+ this.OBJECTID +", "
+					+ "image_position "+ this.INTEGER +", "
+					+ "line_color "+ this.COLOR +", "
+					+ "line_width "+ this.INTEGER +", "
+					+ "fill_color "+ this.COLOR +", "
+					+ "font "+ this.FONT +", "
+					+ "font_color "+ this.COLOR +", "
+					+ "name "+ this.OBJ_NAME +", "
+					+ "notes "+ this.TEXT +", "
+					+ "source_connections "+ this.TEXT + ", "
+					+ "target_connections "+ this.TEXT + ", "
+					+ "text_alignment "+ this.INTEGER +", "
+					+ "text_position "+ this.INTEGER +", "
+					+ "type "+ this.INTEGER +", "
+					+ "x "+ this.INTEGER +", "
+					+ "y "+ this.INTEGER +", "
+					+ "width "+ this.INTEGER +", "
+					+ "height "+ this.INTEGER +", "
+					+ "rank "+ this.INTEGER +" NOT NULL, "
+					+ "checksum "+ this.OBJECTID +" NOT NULL, "
+					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ ")");
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
+            request("INSERT INTO "+this.schema+"views_objects "
+            		+"(id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum) " 
+            		+"SELECT id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum FROM "+this.schema+"views_objects_old"
+            		);
+            
+            mustDropOldViewsObjectsTable = true;
+            
+            dbVersion = 206;
+        }
+
+		request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 		commit();
 
 		// SQLite refuses to drop the table if we do not close the connection and reopen it
@@ -866,6 +1065,20 @@ public class DBDatabaseConnection implements AutoCloseable {
 			openConnection();
 			setAutoCommit(false);
 			request("DROP TABLE "+this.schema+"views_old");
+			commit();
+		}
+		
+		// SQLite refuses to drop the table if we do not close the connection and reopen it
+		if ( mustDropOldViewsObjectsTable ) {
+			this.connection.close();
+			openConnection();
+			setAutoCommit(false);
+			request("DROP TABLE "+this.schema+"views_connections_old");
+			commit();
+			this.connection.close();
+			openConnection();
+			setAutoCommit(false);
+			request("DROP TABLE "+this.schema+"views_objects_old");
 			commit();
 		}
 
