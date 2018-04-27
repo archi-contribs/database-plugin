@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Base64;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Level;
@@ -572,7 +573,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "type "+ this.INTEGER +", "
 					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
-					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
 			
 			if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
@@ -660,7 +661,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "height "+ this.INTEGER +", "
 					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
-					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
 			
 			if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
@@ -713,11 +714,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 */
 	private void upgradeDatabase(int version) throws SQLException, ClassNotFoundException {
 		String COLUMN = DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ? "COLUMN" : "";
-
+		List<String> tablesToDrop = new ArrayList<String>();
 		int dbVersion = version;
-		boolean mustDropOldModelsTable = false;
-		boolean mustDropOldViewsTable = false;
-		boolean mustDropOldViewsObjectsTable = false;
 		
 		setAutoCommit(false);
 
@@ -764,6 +762,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"models to "+this.schema+"models_old");
 			request("ALTER TABLE "+this.schema+"models RENAME TO "+this.schema+"models_old");
+			tablesToDrop.add("models_old");
 
 			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"models");
 			request("CREATE TABLE "+this.schema+"models ("
@@ -814,7 +813,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 							);
 				}
 			}
-			mustDropOldModelsTable = true;
+
 			dbVersion = 204;
 		}
 
@@ -827,6 +826,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views to "+this.schema+"views_old");
 			request("ALTER TABLE "+this.schema+"views RENAME TO "+this.schema+"views_old");
+			tablesToDrop.add("views_old");
 			
 			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views");
 			request("CREATE TABLE "+this.schema+"views ("
@@ -888,7 +888,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 				}
 			}
 
-			mustDropOldViewsTable = true;
 			dbVersion = 205;
 		}
 		
@@ -965,6 +964,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_connections to "+this.schema+"views_connections_old");
             request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_connections_old");
+            tablesToDrop.add("views_connections_old");
             
             if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_connections");
 			request("CREATE TABLE "+this.schema+"views_connections ("
@@ -988,16 +988,17 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "type "+ this.INTEGER +", "
 					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
-					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
             request("INSERT INTO "+this.schema+"views_connections "
             		+"(id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum) "
-            		+"SELECT id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum FROM "+this.schema+"views_objects_old"
+            		+"SELECT id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum FROM "+this.schema+"views_connections_old"
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_objects to "+this.schema+"views_objects_old");
-            request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_objects_old");
+            request("ALTER TABLE "+this.schema+"views_objects RENAME TO "+this.schema+"views_objects_old");
+            tablesToDrop.add("views_objects_old");
             
             if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_objects");
             request("CREATE TABLE "+this.schema+"views_objects ("
@@ -1034,15 +1035,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "height "+ this.INTEGER +", "
 					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
-					+ this.PRIMARY_KEY+" (id, version, container_id)"
+					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
-            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
+            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects_old to "+this.schema+"views_objects table");
             request("INSERT INTO "+this.schema+"views_objects "
             		+"(id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum) " 
             		+"SELECT id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum FROM "+this.schema+"views_objects_old"
             		);
-            
-            mustDropOldViewsObjectsTable = true;
             
             dbVersion = 206;
         }
@@ -1050,35 +1049,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 		commit();
 
-		// SQLite refuses to drop the table if we do not close the connection and reopen it
-		if ( mustDropOldModelsTable ) {
+		for ( String tableName: tablesToDrop ) {
+			// SQLite refuses to drop the table if we do not close the connection and reopen it
 			this.connection.close();
 			openConnection();
 			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+"models_old");
-			commit();
-		}
-		
-		// SQLite refuses to drop the table if we do not close the connection and reopen it
-		if ( mustDropOldViewsTable ) {
-			this.connection.close();
-			openConnection();
-			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+"views_old");
-			commit();
-		}
-		
-		// SQLite refuses to drop the table if we do not close the connection and reopen it
-		if ( mustDropOldViewsObjectsTable ) {
-			this.connection.close();
-			openConnection();
-			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+"views_connections_old");
-			commit();
-			this.connection.close();
-			openConnection();
-			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+"views_objects_old");
+			request("DROP TABLE "+this.schema+tableName);
 			commit();
 		}
 
