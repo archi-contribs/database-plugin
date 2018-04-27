@@ -42,6 +42,7 @@ import org.eclipse.ui.PlatformUI;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
+import com.archimatetool.editor.propertysections.IObjectFilter;
 import com.archimatetool.editor.propertysections.ITabbedLayoutConstants;
 import com.archimatetool.editor.propertysections.Messages;
 import com.archimatetool.editor.propertysections.ObjectFilter;
@@ -110,7 +111,9 @@ public class DiagramModelImageSection extends com.archimatetool.editor.propertys
                     }
                 };
                 
-                actionClear.setEnabled(((IDiagramModelImageProvider)getFirstSelectedObject()).getImagePath() != null);
+                IDiagramModelImageProvider imageProvider = (IDiagramModelImageProvider)getFirstSelectedObject();
+                if ( imageProvider != null )
+                    actionClear.setEnabled(imageProvider.getImagePath() != null);
                 
                 menuManager.add(actionClear);
                 
@@ -124,6 +127,11 @@ public class DiagramModelImageSection extends com.archimatetool.editor.propertys
         
         // Help
         PlatformUI.getWorkbench().getHelpSystem().setHelp(parent, HELP_ID);
+    }
+    
+    @Override
+    protected IObjectFilter getFilter() {
+        return new Filter();
     }
     
     @Override
