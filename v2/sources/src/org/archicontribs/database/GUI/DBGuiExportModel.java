@@ -12,7 +12,6 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Map;
@@ -57,14 +56,11 @@ import com.archimatetool.editor.model.commands.DeleteArchimateElementCommand;
 import com.archimatetool.editor.model.commands.DeleteArchimateRelationshipCommand;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
-import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
-import com.archimatetool.model.IDiagramModelContainer;
-import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 
@@ -1096,6 +1092,7 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	/**
+	 * Update the text widgets that shows up the new, updated and deleted components
 	 * 
 	 * @return true is the database is up to date, false if the model needs to be exported
 	 */
@@ -1272,10 +1269,9 @@ public class DBGuiExportModel extends DBGui {
             } else {
                 if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
                     ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getContainerChecksum()) ) {
-                    // /!\ Views must compare their containerChecksum to detect conflicts 
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getContainerChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getContainerChecksum());
+                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
+                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
+                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1593,6 +1589,7 @@ public class DBGuiExportModel extends DBGui {
                     }
                 }
                 
+                // we refresh the text widgets
                 compareModelToDatabase();
             }
 	
@@ -1601,13 +1598,28 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue();
-					this.viewContent.clear();
-					if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
+					doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews);
+					/* if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
 					    this.connectionsAlreadyExported.clear();      // we need to memorize exported connections as they can be get as sources AND as targets 
-	                    for ( IDiagramModelObject viewObject: view.getChildren() ) {
+					    for ( IDiagramModelObject viewObject: view.getChildren() ) {
 	                        doExportViewObject(viewObject);
 	                    }
 					}
+					*/
+				}
+				
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
+				Iterator<Entry<String, IDiagramModelComponent>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
+				while ( viewObjectsIterator.hasNext() ) {
+					IDiagramModelComponent viewObject = viewObjectsIterator.next().getValue();
+					doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtUpdatedViewObjectsInDatabase, this.txtConflictingViewObjects);
+				}
+				
+				if ( logger.isDebugEnabled() ) logger.debug("Exporting views connections");
+				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
+				while ( viewConnectionsIterator.hasNext() ) {
+					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
+					doExportEObject(viewConnection, this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtUpdatedViewConnectionsInDatabase, this.txtConflictingViewConnections);
 				}
 	
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
@@ -1743,7 +1755,7 @@ public class DBGuiExportModel extends DBGui {
         }
 	}
 	
-	
+	/*
 	HashSet<String> viewContent = new HashSet<String>();
 	Map<String, IDiagramModelConnection> connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();
 	
@@ -1772,6 +1784,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 		}
 	}
+	*/
 
 	/**
 	 * Effectively exports an EObject in the database<br>
