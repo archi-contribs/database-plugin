@@ -483,7 +483,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		        
 				// then we check if the latest version of the model has got images that are not in the model
 		        try ( ResultSet result = select ("SELECT DISTINCT image_path FROM views_objects "
-						+"JOIN views_in_model ON views_in_model.view_id = views_objects.view_id AND views_in_model.view_version = views_objects.view_version " 
+		        		+ "JOIN views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
+						+ "JOIN views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
 						+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
 						,model.getId()
 						,model.getLatestDatabaseVersion().getVersion()
@@ -594,41 +595,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     }
 
     public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, IDiagramModel view) throws SQLException, RuntimeException {
-        try ( ResultSet result = select(
-                "SELECT vo.id as id,"
-                + "  MAX(vo.version) AS version_in_current_model,"
-                + "  MAX(vo.checksum) AS checksum_in_current_model,"
-                + "  MAX(vo_max.version) AS latest_version,"
-                + "  MAX(vo_max.checksum) AS latest_checksum "
-                + "FROM views_objects vo "
-                + "JOIN views_objects vo_max ON vo_max.id = vo.id AND vo_max.version >= vo.version "
-                + "WHERE vo.view_id = ? AND vo.view_version = ? "
-                + "GROUP BY vo.id"
-                ,view.getId()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
-         ) ) {
-            while ( result.next() ) {
-                IDBMetadata viewObject = (IDBMetadata)model.getAllViewObjects().get(result.getString("id"));
-                if ( viewObject != null ) {
-                    // if the viewObjects exists in memory
-                    viewObject.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
-                    viewObject.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
-                    viewObject.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
-                    viewObject.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
-
-                    viewObject.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
-                } else {
-                    this.viewObjectsNotInModel.put(
-                            result.getString("id"),
-                            new DBVersionPair(
-                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
-                                    result.getInt("latest_version"), result.getString("latest_chacksum"),null
-                                    )
-                            );
-                }
-            }
-        }
-        
+        /*
         try ( ResultSet result = select(
                 "SELECT vc.id as id,"
                 + "  MAX(vc.version) AS version_in_current_model,"
@@ -663,6 +630,188 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 }
             }
         }
+        
+        
+        try ( ResultSet result = select(
+                "SELECT vo.id as id,"
+                + "  MAX(vo.version) AS version_in_current_model,"
+                + "  MAX(vo.checksum) AS checksum_in_current_model,"
+                + "  MAX(vo_max.version) AS latest_version,"
+                + "  MAX(vo_max.checksum) AS latest_checksum "
+                + "FROM views_objects vo "
+                + "JOIN views_objects vo_max ON vo_max.id = vo.id AND vo_max.version >= vo.version "
+                + "WHERE vo.view_id = ? AND vo.view_version = ? "
+                + "GROUP BY vo.id"
+                ,view.getId()
+                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+         ) ) {
+         while ( result.next() ) {
+                IDBMetadata viewObject = (IDBMetadata)model.getAllViewObjects().get(result.getString("id"));
+                if ( viewObject != null ) {
+                    // if the viewObjects exists in memory
+                    viewObject.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+                    viewObject.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                    viewObject.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
+                    viewObject.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
+
+                    viewObject.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+                } else {
+                    this.viewObjectsNotInModel.put(
+                            result.getString("id"),
+                            new DBVersionPair(
+                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
+                                    result.getInt("latest_version"), result.getString("latest_chacksum"),null
+                                    )
+                            );
+                }
+            }
+         */
+    	
+    	try ( ResultSet result = select(
+    			"SELECT id,"
+    					+ "  MAX(version_in_current_model) AS version_in_current_model,"
+    					+ "  MAX(checksum_in_current_model) AS checksum_in_current_model,"
+    					+ "  MAX(timestamp_in_current_model) AS timestamp_in_current_model,"
+    					+ "  MAX(version_in_latest_model) AS version_in_latest_model,"
+    					+ "  MAX(checksum_in_latest_model) AS checksum_in_latest_model,"
+    					+ "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
+    					+ "  MAX(latest_version) AS latest_version,"
+    					+ "  MAX(latest_checksum) AS latest_checksum,"
+    					+ "  MAX(latest_timestamp) AS latest_timestamp "
+    					+ "FROM ("
+    					+ "  SELECT e.id AS id,"
+    					+ "    e.version AS version_in_current_model,"
+    					+ "    e.checksum AS checksum_in_current_model,"
+    					+ "    e.created_on AS timestamp_in_current_model,"
+    					+ "    null AS version_in_latest_model,"
+    					+ "    null AS checksum_in_latest_model,"
+    					+ "    null AS timestamp_in_latest_model,"
+    					+ "    e_max.version AS latest_version,"
+    					+ "    e_max.checksum AS latest_checksum,"
+    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "  FROM views_connections e"
+    					+ "  JOIN views_connections e_max ON e_max.id = e.id AND e_max.version >= e.version"
+    					+ "  JOIN views_connections_in_view v ON v.connection_id = e.id AND v.connection_version = e.version"
+    					+ "  WHERE v.view_id = ? AND v.view_version = ? "
+    					+ "UNION"
+    					+ "  SELECT e.id AS id,"
+    					+ "    null AS version_in_current_model,"
+    					+ "    null AS checksum_in_current_model,"
+    					+ "    null AS timestamp_in_current_model,"
+    					+ "    e.version AS version_in_latest_model,"
+    					+ "    e.checksum AS checksum_in_latest_model,"
+    					+ "    e.created_on AS timestamp_in_latest_model,"
+    					+ "    e_max.version AS latest_version,"
+    					+ "    e_max.checksum AS latest_checksum,"
+    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "  FROM views_connections e"
+    					+ "  JOIN views_connections e_max ON e_max.id = e.id AND e_max.version >= e.version"
+    					+ "  JOIN views_connections_in_view v ON v.connection_id = e.id AND v.connection_version = e.version"
+    					+ "  WHERE v.view_id = ? AND v.view_version = (SELECT MAX(version) FROM views WHERE id = ?)"
+    					+ ") e "
+    					+ "GROUP BY id"
+    					,view.getId()
+    					,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+    					,view.getId()
+    					,view.getId()
+    			) ) {
+    		while ( result.next() ) {
+    			IDiagramModelComponent viewConnection = model.getAllViewConnections().get(result.getString("id"));
+    			IDBMetadata viewConnectionMetadata = (IDBMetadata)viewConnection;
+    			if ( viewConnection != null ) {
+    				// if the view exists in memory
+    				viewConnectionMetadata.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+    				viewConnectionMetadata.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+    				viewConnectionMetadata.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
+    				viewConnectionMetadata.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
+    				viewConnectionMetadata.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
+    				viewConnectionMetadata.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
+
+    				viewConnectionMetadata.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+    			} else {
+    				this.viewConnectionsNotInModel.put(
+    						result.getString("id"),
+    						new DBVersionPair(
+    								result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),result.getTimestamp("timestamp_in_current_model"),
+    								result.getInt("version_in_latest_model"), result.getString("checksum_in_latest_model"),result.getTimestamp("timestamp_in_latest_model")
+    								)
+    						);
+    			}
+    		}
+    	}
+
+    	try ( ResultSet result = select(
+    			"SELECT id,"
+    					+ "  MAX(version_in_current_model) AS version_in_current_model,"
+    					+ "  MAX(checksum_in_current_model) AS checksum_in_current_model,"
+    					+ "  MAX(timestamp_in_current_model) AS timestamp_in_current_model,"
+    					+ "  MAX(version_in_latest_model) AS version_in_latest_model,"
+    					+ "  MAX(checksum_in_latest_model) AS checksum_in_latest_model,"
+    					+ "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
+    					+ "  MAX(latest_version) AS latest_version,"
+    					+ "  MAX(latest_checksum) AS latest_checksum,"
+    					+ "  MAX(latest_timestamp) AS latest_timestamp "
+    					+ "FROM ("
+    					+ "  SELECT e.id AS id,"
+    					+ "    e.version AS version_in_current_model,"
+    					+ "    e.checksum AS checksum_in_current_model,"
+    					+ "    e.created_on AS timestamp_in_current_model,"
+    					+ "    null AS version_in_latest_model,"
+    					+ "    null AS checksum_in_latest_model,"
+    					+ "    null AS timestamp_in_latest_model,"
+    					+ "    e_max.version AS latest_version,"
+    					+ "    e_max.checksum AS latest_checksum,"
+    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "  FROM views_objects e"
+    					+ "  JOIN views_objects e_max ON e_max.id = e.id AND e_max.version >= e.version"
+    					+ "  JOIN views_objects_in_view v ON v.object_id = e.id AND v.object_version = e.version"
+    					+ "  WHERE v.view_id = ? AND v.view_version = ? "
+    					+ "UNION"
+    					+ "  SELECT e.id AS id,"
+    					+ "    null AS version_in_current_model,"
+    					+ "    null AS checksum_in_current_model,"
+    					+ "    null AS timestamp_in_current_model,"
+    					+ "    e.version AS version_in_latest_model,"
+    					+ "    e.checksum AS checksum_in_latest_model,"
+    					+ "    e.created_on AS timestamp_in_latest_model,"
+    					+ "    e_max.version AS latest_version,"
+    					+ "    e_max.checksum AS latest_checksum,"
+    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "  FROM views_objects e"
+    					+ "  JOIN views_objects e_max ON e_max.id = e.id AND e_max.version >= e.version"
+    					+ "  JOIN views_objects_in_view v ON v.object_id = e.id AND v.object_version = e.version"
+    					+ "  WHERE v.view_id = ? AND v.view_version = (SELECT MAX(version) FROM views WHERE id = ?)"
+    					+ ") e "
+    					+ "GROUP BY id"
+    					,view.getId()
+    					,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+    					,view.getId()
+    					,view.getId()
+    			) ) {
+    		while ( result.next() ) {
+    			IDiagramModelComponent viewObject = model.getAllViewObjects().get(result.getString("id"));
+    			IDBMetadata viewObjectMetadata = (IDBMetadata)viewObject;
+    			if ( viewObject != null ) {
+    				// if the view exists in memory
+    				viewObjectMetadata.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
+    				viewObjectMetadata.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+    				viewObjectMetadata.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
+    				viewObjectMetadata.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
+    				viewObjectMetadata.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
+    				viewObjectMetadata.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
+
+    				viewObjectMetadata.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
+    			} else {
+    				this.viewObjectsNotInModel.put(
+    						result.getString("id"),
+    						new DBVersionPair(
+    								result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),result.getTimestamp("timestamp_in_current_model"),
+    								result.getInt("version_in_latest_model"), result.getString("checksum_in_latest_model"),result.getTimestamp("timestamp_in_latest_model")
+    								)
+    						);
+    			}
+    		}
+    	}
     }
     
     /*
