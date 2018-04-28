@@ -986,14 +986,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "target_object_id "+ this.OBJECTID +", "
 					+ "text_position "+ this.INTEGER +", "
 					+ "type "+ this.INTEGER +", "
-					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
             request("INSERT INTO "+this.schema+"views_connections "
             		+"(id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum) "
-            		+"SELECT id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum FROM "+this.schema+"views_connections_old"
+            		+"SELECT DISCTINCT id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, rank, checksum FROM "+this.schema+"views_connections_old"
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_objects to "+this.schema+"views_objects_old");
@@ -1033,14 +1032,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "y "+ this.INTEGER +", "
 					+ "width "+ this.INTEGER +", "
 					+ "height "+ this.INTEGER +", "
-					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects_old to "+this.schema+"views_objects table");
             request("INSERT INTO "+this.schema+"views_objects "
-            		+"(id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum) " 
-            		+"SELECT id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, rank, checksum FROM "+this.schema+"views_objects_old"
+            		+"(id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum) " 
+            		+"SELECT DISTINCT id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects_old"
             		);
             
             dbVersion = 206;
