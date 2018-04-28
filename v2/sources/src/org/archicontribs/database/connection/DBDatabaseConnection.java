@@ -173,8 +173,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( logger.isDebugEnabled() ) logger.debug("The database connection is already closed.");
 		} else {
 			if ( logger.isDebugEnabled() ) logger.debug("Closing database connection.");
-			// if some transactions have not been commited before calling this close method, then they must be rolled back
-			this.connection.rollback();
+			// if some transactions have not been committed before calling this close method, then they must be rolled back
+			try {
+				this.connection.rollback();
+			} catch (@SuppressWarnings("unused") SQLException ign) {
+				// nothing to do
+			}
 			this.connection.close();
 		}
 		this.connection = null;
