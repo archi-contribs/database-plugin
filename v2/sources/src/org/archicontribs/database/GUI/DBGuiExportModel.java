@@ -922,7 +922,12 @@ public class DBGuiExportModel extends DBGui {
         this.txtUpdatedViewConnectionsInModel.setVisible(!isNeo4j);
         this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j);
 		this.txtNewImagesInModel.setVisible(!isNeo4j);
-
+		
+        
+        if ( this.exportedModel.getInitialVersion().getVersion() == 0 && this.selectedDatabase.isCollaborativeMode() && !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+        	popup(Level.WARN, "You selected the collaborative mode in the preferences, but the model has not been imported from a database.\n\nWe temporarily switch to standalone mode.");
+        	this.selectedDatabase.setCollaborativeMode(false);
+        }
 	      
         // we hide the database and conflict columns in standalone mode or Neo4J, and show them in collaborative mode
         this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
@@ -1110,13 +1115,15 @@ public class DBGuiExportModel extends DBGui {
             return false;
         }
         
-        // we export the components without checking for conflicts in 3 cases:
+	    // we export the components without checking for conflicts in 4 cases:
         //    - the model is not in the database
         //    - the current model is the latest model in the database
         //    - we are in standalone mode
+		//	  - we export to a Neo4j database
         this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
                 || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || !this.selectedDatabase.isCollaborativeMode();
+                || !this.selectedDatabase.isCollaborativeMode()
+                || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 
         int nbNew = 0;
         int nbNewInDb = 0;
@@ -1137,6 +1144,9 @@ public class DBGuiExportModel extends DBGui {
                 else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
                     boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
+                    
+                    //TODO if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
+		            //TODO if the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
                         if ( this.forceExport )     ++nbUpdated;
@@ -1496,16 +1506,6 @@ public class DBGuiExportModel extends DBGui {
 		// we initialize the deleteCommand
 		this.delayedCommands = new CompoundCommand();
 		
-	    // we export the components without checking for conflicts in 4 cases:
-        //    - the model is not in the database
-        //    - the current model is the latest model in the database
-        //    - we are in standalone mode
-		//	  - we export to a Neo4j database
-        this.forceExport = this.exportedModel.getInitialVersion().getVersion() == 0
-                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || !this.selectedDatabase.isCollaborativeMode()
-                || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
-		
 		// we export the components
 		try {
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
@@ -1704,6 +1704,8 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	void copyExportedVersionToCurrentVersion() {
+		if ( logger.isDebugEnabled() ) logger.debug("updating current versions from exported versions");
+		
 	    this.exportedModel.getInitialVersion().setVersion(this.exportedModel.getExportedVersion().getVersion());
         this.exportedModel.getInitialVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
         this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
@@ -1755,37 +1757,6 @@ public class DBGuiExportModel extends DBGui {
         }
 	}
 	
-	/*
-	HashSet<String> viewContent = new HashSet<String>();
-	Map<String, IDiagramModelConnection> connectionsAlreadyExported = new HashMap<String, IDiagramModelConnection>();
-	
-	private void doExportViewObject(IDiagramModelObject viewObject) throws Exception {
-	    this.viewContent.add(viewObject.getId());
-		boolean exported = doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtDeletedViewObjectsInModel, this.txtConflictingViewObjects);
-		
-		if ( exported ) {
-			for ( IDiagramModelConnection source: ((IConnectable)viewObject).getSourceConnections() ) {
-				if ( this.connectionsAlreadyExported.get(source.getId()) == null ) {
-					doExportEObject(source,	this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtDeletedViewConnectionsInModel, this.txtConflictingViewConnections);
-					this.connectionsAlreadyExported.put(source.getId(), source);
-				}
-			}
-			for ( IDiagramModelConnection target: ((IConnectable)viewObject).getTargetConnections() ) {
-				if ( this.connectionsAlreadyExported.get(target.getId()) == null ) {
-					doExportEObject(target, this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtDeletedViewConnectionsInModel, this.txtConflictingViewConnections);
-					this.connectionsAlreadyExported.put(target.getId(), target);
-				}
-			}
-			
-			if ( viewObject instanceof IDiagramModelContainer ) {
-				for ( IDiagramModelObject child: ((IDiagramModelContainer)viewObject).getChildren() ) {
-					doExportViewObject(child);
-				}
-			}
-		}
-	}
-	*/
-
 	/**
 	 * Effectively exports an EObject in the database<br>
 	 * When a conflict is detected, the component ID is added to the tblListConflicts<br>
@@ -1815,23 +1786,27 @@ public class DBGuiExportModel extends DBGui {
 		            // but was present in the current database model, the the element has been deleted in the database
 		            mustDelete = true;
 		        } else {
-		            // else, is is a new component that needs to be exported
+		            // else, it is a new component that needs to be exported
 	                mustExport = true;
 		        }
             } else {
-                if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum()) ) {
+            	String initialChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum();
+            	String currentChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum();
+            	String latestDatabaseChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum();
+
+                if ( DBPlugin.areEqual(latestDatabaseChecksum, currentChecksum) ) {
                     // if the checksum of the latest version in the database equals the latest checksum
                     // then the database is up to date and the component does not need to be exported
                 } else {
                     // else, the component is different between the model and the database
-        			boolean modifiedInModel = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum());
-        			boolean modifiedInDatabase = !DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum());
+        			boolean modifiedInModel = !DBPlugin.areEqual(initialChecksum, currentChecksum);
+        			boolean modifiedInDatabase = !DBPlugin.areEqual(initialChecksum, latestDatabaseChecksum);
         			
         			if ( modifiedInModel ) {
         			    if ( modifiedInDatabase ) {
             				// if the component has been updated in both the model and the database, there might be a conflict
-        			        if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
-        			            // the the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
+        			        if ( DBPlugin.areEqual(currentChecksum, latestDatabaseChecksum) ) {
+        			            // the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
         			            mustExport = false;
             			    } else {
                 				// We must manage the conflict, except if we are force the export

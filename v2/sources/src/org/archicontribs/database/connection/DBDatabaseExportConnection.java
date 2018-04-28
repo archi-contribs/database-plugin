@@ -190,6 +190,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            //      - if version_in_current_model != latest_version --> the component has been updated in the database
                 //                                                                  --> so we need to import the component's updates or manage a conflict
 	            
+	            // elements
 	            try ( ResultSet result = select(
 	                    "SELECT id,"
                         + "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -262,6 +263,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	                }
 	            }
 	
+	            // relationships
                 try ( ResultSet result = select(
                             "SELECT id,"
                             + "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -334,6 +336,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                 }
                 
+                // folders
                 try ( ResultSet result = select(
                           "SELECT id,"
                           + "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -406,6 +409,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                 }
                 
+                // views
                 try ( ResultSet result = select(
                         "SELECT id,"
                                 + "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -595,78 +599,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     }
 
     public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, IDiagramModel view) throws SQLException, RuntimeException {
-        /*
-        try ( ResultSet result = select(
-                "SELECT vc.id as id,"
-                + "  MAX(vc.version) AS version_in_current_model,"
-                + "  MAX(vc.checksum) AS checksum_in_current_model,"
-                + "  MAX(vc_max.version) AS latest_version,"
-                + "  MAX(vc_max.checksum) AS latest_checksum "
-                + "FROM views_connections vc "
-                + "JOIN views_connections vc_max ON vc_max.id = vc.id AND vc_max.version >= vc.version "
-                + "WHERE vc.view_id = ? AND vc.view_version = ? "
-                + "GROUP BY vc.id"
-                ,view.getId()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
-         ) ) {
-            while ( result.next() ) {
-                IDBMetadata viewConnection = (IDBMetadata)model.getAllViewConnections().get(result.getString("id"));
-                if ( viewConnection != null ) {
-                    // if the viewObjects exists in memory
-                    viewConnection.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
-                    viewConnection.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
-                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
-                    viewConnection.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
-
-                    viewConnection.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
-                } else {
-                    this.viewConnectionsNotInModel.put(
-                            result.getString("id"),
-                            new DBVersionPair(
-                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
-                                    result.getInt("latest_version"), result.getString("latest_checksum"),null
-                                    )
-                            );
-                }
-            }
-        }
-        
-        
-        try ( ResultSet result = select(
-                "SELECT vo.id as id,"
-                + "  MAX(vo.version) AS version_in_current_model,"
-                + "  MAX(vo.checksum) AS checksum_in_current_model,"
-                + "  MAX(vo_max.version) AS latest_version,"
-                + "  MAX(vo_max.checksum) AS latest_checksum "
-                + "FROM views_objects vo "
-                + "JOIN views_objects vo_max ON vo_max.id = vo.id AND vo_max.version >= vo.version "
-                + "WHERE vo.view_id = ? AND vo.view_version = ? "
-                + "GROUP BY vo.id"
-                ,view.getId()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
-         ) ) {
-         while ( result.next() ) {
-                IDBMetadata viewObject = (IDBMetadata)model.getAllViewObjects().get(result.getString("id"));
-                if ( viewObject != null ) {
-                    // if the viewObjects exists in memory
-                    viewObject.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
-                    viewObject.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
-                    viewObject.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("latest_version"));
-                    viewObject.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("latest_checksum"));
-
-                    viewObject.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
-                } else {
-                    this.viewObjectsNotInModel.put(
-                            result.getString("id"),
-                            new DBVersionPair(
-                                    result.getInt("version_in_current_model"), result.getString("checksum_in_current_model"),null,
-                                    result.getInt("latest_version"), result.getString("latest_chacksum"),null
-                                    )
-                            );
-                }
-            }
-         */
-    	
+    	// view connections
     	try ( ResultSet result = select(
     			"SELECT id,"
     					+ "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -740,6 +673,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     		}
     	}
 
+    	// view objects
     	try ( ResultSet result = select(
     			"SELECT id,"
     					+ "  MAX(version_in_current_model) AS version_in_current_model,"
@@ -813,38 +747,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     		}
     	}
     }
-    
-    /*
-    public HashSet<String> getViewsObjectsVersionsFromDatabase(IDiagramModel view) throws SQLException, RuntimeException {
-        DBMetadata viewMetadata = ((IDBMetadata)view).getDBMetadata();
-        if ( logger.isDebugEnabled() ) logger.debug("Getting views objects from the database for view "+viewMetadata.getDebugName());
-        
-        // get list of objects in the view
-        HashSet<String> objectsInView = new HashSet<String>();
-        try ( ResultSet resultViewsObjects = select("SELECT id FROM "+this.schema+"views_objects WHERE view_id = ? AND view_version = ?", view.getId(), viewMetadata.getLatestDatabaseVersion().getVersion()) ) {
-            while ( resultViewsObjects.next() ) {
-                objectsInView.add(resultViewsObjects.getString("id"));
-            }
-        }
-        
-        return objectsInView;
-    }
-    
-    public HashSet<String> getViewsConnectionsVersionsFromDatabase(IDiagramModel view) throws SQLException, RuntimeException {
-        DBMetadata viewMetadata = ((IDBMetadata)view).getDBMetadata();
-        if ( logger.isDebugEnabled() ) logger.debug("Getting views connections from the database for view "+viewMetadata.getDebugName());
-        
-        // get list of connections in the view
-        HashSet<String> connectionsInView = new HashSet<String>();
-        try ( ResultSet resultViewsConnections = select("SELECT id FROM "+this.schema+"views_Connections WHERE view_id = ? AND view_version = ?", view.getId(), viewMetadata.getLatestDatabaseVersion().getVersion()) ) {
-            while ( resultViewsConnections.next() ) {
-                connectionsInView.add(resultViewsConnections.getString("id"));
-            }
-        }
-        
-        return connectionsInView;
-    }
-    */
     
 	/**
 	 * Empty a Neo4J database
