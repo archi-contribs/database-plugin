@@ -80,6 +80,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
                                     additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
+                                    additions.addContributionItem(showChecksum("", (DBArchimateModel)obj), null);
                                     additions.addContributionItem(new Separator(), null);
                                 }
                                 additions.addContributionItem(convertIds(), null);
@@ -478,6 +479,28 @@ public class DBMenu extends ExtensionContributionFactory {
     static CommandContributionItem showChecksum(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = prefix+"Checksum: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getChecksum() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getChecksum();
+
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        CommandContributionItemParameter p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
+                "org.archicontribs.database.DBMenu",						// id
+                "org.archicontribs.database.showIdCommand",		          	// commandId
+                null,														// parameters
+                menuIcon,													// icon
+                null,														// disabledIcon
+                null,														// hoverIcon
+                label,														// label
+                null,														// mnemonic
+                null,														// tooltip 
+                CommandContributionItem.STYLE_PUSH,							// style
+                null,														// helpContextId
+                true);
+        return new CommandContributionItem(p);
+    }
+    
+    static CommandContributionItem showChecksum(String prefix, DBArchimateModel model) {
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
+        String label = prefix+"Checksum: Initial="+model.getInitialVersion().getChecksum() + " / Exported="+model.getExportedVersion().getChecksum()+ " / Database="+model.getLatestDatabaseVersion().getChecksum();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
