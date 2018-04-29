@@ -82,7 +82,7 @@ public class DBGuiExportModel extends DBGui {
 	
 	private CompoundCommand delayedCommands;
 	DBDatabaseExportConnection exportConnection;
-	private boolean forceExport; 
+	private boolean forceExport;
 	
 	/**
 	 * Creates the GUI to export components and model
@@ -1286,7 +1286,9 @@ public class DBGuiExportModel extends DBGui {
                     boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
                     
                     if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
+                    	// if only the content has changed, then there is no conflict
+                        if ( this.forceExport || DBPlugin.areEqual(metadata.getInitialVersion().getContainerChecksum(), metadata.getCurrentVersion().getContainerChecksum()) || DBPlugin.areEqual(metadata.getInitialVersion().getContainerChecksum(), metadata.getLatestDatabaseVersion().getContainerChecksum()) )
+                        		                    ++nbUpdated;
                         else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
                     } else {
                         if ( modifiedInModel )      ++nbUpdated;
@@ -1402,17 +1404,13 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewImagesInModel.setText(String.valueOf(this.exportConnection.getImagesNotInDatabase().size()));
         this.txtNewImagesInDatabase.setText(String.valueOf(this.exportConnection.getImagesNotInModel().size()));
         
-        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
-                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
-                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
-                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") ) {
+        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") && this.txtNewViewObjectsInModel.getText().equals("0") && this.txtNewViewConnectionsInModel.getText().equals("0") &&
+                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") &&  this.txtUpdatedViewObjectsInModel.getText().equals("0") && this.txtUpdatedViewConnectionsInModel.getText().equals("0") &&
+                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&  this.txtNewViewObjectsInDatabase.getText().equals("0") && this.txtNewViewConnectionsInDatabase.getText().equals("0") &&
+                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&  this.txtUpdatedViewObjectsInDatabase.getText().equals("0") && this.txtUpdatedViewConnectionsInDatabase.getText().equals("0") &&
+                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") && this.txtConflictingViewObjects.getText().equals("0") && this.txtConflictingViewConnections.getText().equals("0") ) {
             this.btnDoAction.setEnabled(false);
             this.btnDoAction.setText("Export");
-            
-            /*
-            this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getLatestDatabaseVersion().getTimestamp());
-            */
             
             return true;
         }
@@ -1646,16 +1644,16 @@ public class DBGuiExportModel extends DBGui {
 			try  {
 				// we check if something has been really exported				
 				if ( this.selectedDatabase.isWholeModelExported() ) {
-			        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") &&
-			                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && 
-			                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") &&
-			                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") &&
-			                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") &&   
+			        if ( this.txtNewElementsInModel.getText().equals("0") && this.txtNewRelationshipsInModel.getText().equals("0") && this.txtNewFoldersInModel.getText().equals("0") && this.txtNewViewsInModel.getText().equals("0") && this.txtNewViewObjectsInModel.getText().equals("0") && this.txtNewViewConnectionsInModel.getText().equals("0") &&
+			                this.txtUpdatedElementsInModel.getText().equals("0") && this.txtUpdatedRelationshipsInModel.getText().equals("0") && this.txtUpdatedFoldersInModel.getText().equals("0") && this.txtUpdatedViewsInModel.getText().equals("0") && this.txtUpdatedViewObjectsInModel.getText().equals("0") && this.txtUpdatedViewConnectionsInModel.getText().equals("0") &&
+			                this.txtNewElementsInDatabase.getText().equals("0") && this.txtNewRelationshipsInDatabase.getText().equals("0") && this.txtNewFoldersInDatabase.getText().equals("0") && this.txtNewViewsInDatabase.getText().equals("0") && this.txtNewViewObjectsInDatabase.getText().equals("0") && this.txtNewViewConnectionsInDatabase.getText().equals("0") &&
+			                this.txtUpdatedElementsInDatabase.getText().equals("0") && this.txtUpdatedRelationshipsInDatabase.getText().equals("0") && this.txtUpdatedFoldersInDatabase.getText().equals("0") && this.txtUpdatedViewsInDatabase.getText().equals("0") && this.txtUpdatedViewObjectsInDatabase.getText().equals("0") && this.txtUpdatedViewConnectionsInDatabase.getText().equals("0") &&
+			                this.txtConflictingElements.getText().equals("0") && this.txtConflictingRelationships.getText().equals("0") && this.txtConflictingFolders.getText().equals("0") && this.txtConflictingViews.getText().equals("0") && this.txtConflictingViewObjects.getText().equals("0") && this.txtConflictingViewConnections.getText().equals("0") &&
 							this.exportedModel.getExportedVersion().getChecksum().equals(this.exportedModel.getInitialVersion().getChecksum()) ) {
 						this.exportConnection.rollback();
 					    this.exportConnection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
-						doShowResult(STATUS.Ok, "The database is already up to date.");
+						doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
 						return;
 					}
 				}
@@ -1891,12 +1889,21 @@ public class DBGuiExportModel extends DBGui {
                 if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
+            } else if ( eObjectToExport instanceof IDiagramModel ) {
+                if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                importConnection.importViewFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
+                incrementText(txtUpdatedInDatabase);
+            } else if ( eObjectToExport instanceof IDiagramModelComponent ) {
+                if ( logger.isTraceEnabled() ) logger.trace("View Object id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                importConnection.importViewObjectFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                incrementText(txtUpdatedInDatabase);
+            } else if ( eObjectToExport instanceof IDiagramModelConnection ) {
+                if ( logger.isTraceEnabled() ) logger.trace("View Connection id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                incrementText(txtUpdatedInDatabase);
             } else
             	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
             //TODO: import folder
-            //TODO: import view
-            //TODO: import view Object
-            //TODO: import view Connection
             exported = true;
 		}
 		
@@ -1911,10 +1918,16 @@ public class DBGuiExportModel extends DBGui {
                 for ( IDiagramModelArchimateConnection obj : ((IArchimateRelationship)eObjectToExport).getReferencingDiagramConnections() )
                     this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(obj));
                 this.delayedCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
-            } else
+            } else if ( eObjectToExport instanceof IDiagramModelArchimateObject ) {
+		        if ( logger.isTraceEnabled() ) logger.trace("view object id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		        new DBDeleteDiagramObjectCommand((IDiagramModelArchimateObject)eObjectToExport).execute();
+            } else if ( eObjectToExport instanceof IDiagramModelArchimateConnection ) {
+		        if ( logger.isTraceEnabled() ) logger.trace("view object id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		        new DBDeleteDiagramConnectionCommand((IDiagramModelArchimateConnection)eObjectToExport).execute();
+		    } else
                 logger.error("At the moment, we cannot delete a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-		    // TODO : manage complete views
-		    // TODO : manage folders (managing fact that elements, relationships and views might have simply be moved from one folder to another and not removed from the model 
+		    // TODO : delete views (including content)
+		    // TODO : delete folders (including sub folders, but check before if they are empty) 
             exported = true;
 		} else {
 		    // even if the eObject is not exported, it has to be referenced as being part of the model
@@ -1964,6 +1977,8 @@ public class DBGuiExportModel extends DBGui {
 					if ( conflictingComponent == null ) conflictingComponent = DBGuiExportModel.this.exportedModel.getAllRelationships().get(id);
 					if ( conflictingComponent == null ) conflictingComponent = DBGuiExportModel.this.exportedModel.getAllFolders().get(id);
 					if ( conflictingComponent == null ) conflictingComponent = DBGuiExportModel.this.exportedModel.getAllViews().get(id);
+					if ( conflictingComponent == null ) conflictingComponent = DBGuiExportModel.this.exportedModel.getAllViewObjects().get(id);
+					if ( conflictingComponent == null ) conflictingComponent = DBGuiExportModel.this.exportedModel.getAllViewConnections().get(id);
 	
 					if ( conflictingComponent == null ) {
 						DBGuiExportModel.this.btnExportMyVersion.setEnabled(false);
@@ -2016,11 +2031,11 @@ public class DBGuiExportModel extends DBGui {
 	
 			TreeColumn colYourVersion = new TreeColumn(this.tblCompareComponent, SWT.NONE);
 			colYourVersion.setText("Your version");
-			colYourVersion.setWidth(170);
+			colYourVersion.setWidth(220);
 	
 			TreeColumn colDatabaseVersion = new TreeColumn(this.tblCompareComponent, SWT.NONE);
 			colDatabaseVersion.setText("Database version");
-			colDatabaseVersion.setWidth(170);
+			colDatabaseVersion.setWidth(220);
 	
 			this.btnImportDatabaseVersion = new Button(this.grpConflict, SWT.NONE);
 			this.btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
