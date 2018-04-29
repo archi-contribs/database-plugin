@@ -9,9 +9,7 @@ package org.archicontribs.database.model;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
-import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
@@ -34,22 +32,25 @@ public class DBMetadata  {
     /**
      * Version of the component as it was during last import/export, or zero if it was loaded from an archimate file
      */
-	DBVersion initialVersion = new DBVersion();
+	@Getter DBVersion initialVersion = new DBVersion();
+	
 	
 	/**
-	 * Version of the component as it is now (recalculated on every import/export procedure)
+	 * Version of the component as it is now (recalculated on every import/export procedure)<br>
+	 * Will be copied to initialVersion after a successful export
+	 * 
 	 */
-	DBVersion currentVersion = new DBVersion();
+	@Getter DBVersion currentVersion = new DBVersion();
 	
 	/**
 	 * Version of the component as it is in the database version of the model
 	 */
-	DBVersion databaseVersion = new DBVersion();
+	@Getter DBVersion databaseVersion = new DBVersion();
 	
 	/**
 	 * Latest version of the component in the database whichever the model that modified the component 
 	 */
-	DBVersion latestDatabaseVersion = new DBVersion();
+	@Getter DBVersion latestDatabaseVersion = new DBVersion();
 	
 	/**
 	 * Parent diagram 
@@ -72,63 +73,6 @@ public class DBMetadata  {
 		assert ( component instanceof IIdentifier );
 		this.component = component;
 	}
-	
-	/**
-	 * Version of the current element, as it is in the memory<br>
-	 * 0 if the model has been loaded from an archimate file<br>
-	 * != 0 if the model has been imported from a database 
-	 */
-	public DBVersion getInitialVersion() {
-		// Version of viewObject and viewConnections is the version of their parent view
-	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getInitialVersion();
-	    }
-    
-	    return this.initialVersion;
-	}
-	
-	/**
-	 * Version of element, as calculated during the export process.<br>
-	 * Will be copied to initialVersion if the export process succeeds.
-	 */
-    public DBVersion getCurrentVersion() {
-        /*
-        // Version of viewObject and viewConnections is the version of their parent view
-        if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getCurrentVersion();
-        }
-        */
-        
-        return this.currentVersion;
-    }
-	
-	/**
-	 * Version of element, as it is in the database version.
-	 * 0 if the element is new and not present in the database model.
-	 */
-	public DBVersion getDatabaseVersion() {
-	    /*
-		// Version of viewObject and viewConnections is the version of their parent view
-	    if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-	        return ((IDBMetadata)this.parentDiagram).getDBMetadata().getDatabaseVersion();
-	    }
-        */
-	    return this.databaseVersion;
-	}
-	
-	/**
-	 * latest version of the element in the database.<br>
-	 * != databaseVersion if the element has been updated in the database by another user.
-	 */
-    public DBVersion getLatestDatabaseVersion() {
-        /*
-        // Version of viewObject and viewConnections is the version of their parent view
-        if ( this.component!=null && this.parentDiagram!=null && !(this.component instanceof IDiagramModel) && (this.component instanceof IDiagramModelComponent || this.component instanceof IDiagramModelConnection) ) {
-            return ((IDBMetadata)this.parentDiagram).getDBMetadata().getLatestDatabaseVersion();
-        }
-        */
-        return this.latestDatabaseVersion;
-    }
 	
 	/**
 	 * Choices available when a conflict is detected in the database<br>
