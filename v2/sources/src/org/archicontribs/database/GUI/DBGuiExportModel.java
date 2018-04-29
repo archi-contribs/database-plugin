@@ -1124,7 +1124,9 @@ public class DBGuiExportModel extends DBGui {
                 || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
                 || !this.selectedDatabase.isCollaborativeMode()
                 || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
-
+        
+        if ( logger.isDebugEnabled() ) logger.debug("Calculating number of new, updated and deleted components (forceExport = "+this.forceExport+").");
+        
         int nbNew = 0;
         int nbNewInDb = 0;
         int nbUpdated = 0;
@@ -1408,7 +1410,9 @@ public class DBGuiExportModel extends DBGui {
             this.btnDoAction.setEnabled(false);
             this.btnDoAction.setText("Export");
             
+            /*
             this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getLatestDatabaseVersion().getTimestamp());
+            */
             
             return true;
         }
@@ -1599,13 +1603,6 @@ public class DBGuiExportModel extends DBGui {
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue();
 					doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews);
-					/* if ( doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews) ) {
-					    this.connectionsAlreadyExported.clear();      // we need to memorize exported connections as they can be get as sources AND as targets 
-					    for ( IDiagramModelObject viewObject: view.getChildren() ) {
-	                        doExportViewObject(viewObject);
-	                    }
-					}
-					*/
 				}
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
@@ -1859,14 +1856,20 @@ public class DBGuiExportModel extends DBGui {
 	            
 		if ( mustExport ) {
 		    if ( logger.isDebugEnabled() ) {
+		    	String objectClass = "Unknown";
 		        if ( eObjectToExport instanceof IArchimateElement )
-		            logger.debug("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		            objectClass = "Element";
 		        else if ( eObjectToExport instanceof IArchimateRelationship )
-		            logger.debug("Relationship id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		        	objectClass = "Relationship";
 		        else if ( eObjectToExport instanceof IFolder )
-                    logger.debug("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		        	objectClass = "Folder";
 		        else if ( eObjectToExport instanceof IDiagramModel )
-                    logger.debug("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		        	objectClass = "View";
+		        else if ( eObjectToExport instanceof IDiagramModelComponent )
+		        	objectClass = "View Object";
+		        else if ( eObjectToExport instanceof IDiagramModelConnection )
+		        	objectClass = "View Connection";
+                logger.debug(objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		    }
 			this.exportConnection.exportEObject(eObjectToExport);
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
@@ -1890,8 +1893,10 @@ public class DBGuiExportModel extends DBGui {
                 incrementText(txtUpdatedInDatabase);
             } else
             	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-            //TODO : import folder
+            //TODO: import folder
             //TODO: import view
+            //TODO: import view Object
+            //TODO: import view Connection
             exported = true;
 		}
 		

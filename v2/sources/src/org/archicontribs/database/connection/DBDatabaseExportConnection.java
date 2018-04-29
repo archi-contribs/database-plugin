@@ -20,6 +20,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
+import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
@@ -143,11 +144,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            model.getLatestDatabaseVersion().setTimestamp(resultLatestVersion.getTimestamp("created_on"));
 	            
 	            // we check if the model has been imported from (or last exported to) this database
-	            try ( ResultSet resultCurrentVersion = select("SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", model.getId(), model.getInitialVersion().getTimestamp()) ) {
-		            if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
-		                // if the version is found, then the model has been imported from or last exported to the database 
-		                model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
-		                model.getInitialVersion().setChecksum(resultCurrentVersion.getString("checksum"));
+	            if ( !model.getInitialVersion().getTimestamp().equals(DBVersion.NEVER) ) {
+		            try ( ResultSet resultCurrentVersion = select("SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", model.getId(), model.getInitialVersion().getTimestamp()) ) {
+			            if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
+			                // if the version is found, then the model has been imported from or last exported to the database 
+			                model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
+			                model.getInitialVersion().setChecksum(resultCurrentVersion.getString("checksum"));
+			            }
 		            }
 	            }
 	            
@@ -778,7 +781,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,model.getName()
 				,releaseNote
 				,model.getPurpose()
-				,System.getProperty("user.name")
+				,DBPlugin.getUserName()
 				,model.getExportedVersion().getTimestamp()
 				,model.getExportedVersion().getChecksum()
 				);
@@ -807,7 +810,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		else if ( eObject instanceof IArchimateRelationship )	assignRelationshipToModel((IArchimateRelationship)eObject);
 		else if ( eObject instanceof IFolder )					assignFolderToModel((IFolder)eObject);
 		else if ( eObject instanceof IDiagramModel )			assignViewToModel((IDiagramModel)eObject);
-		else if ( !(eObject instanceof IDiagramModelObject) && !(eObject instanceof IDiagramModelConnection) )		// IDiagramModelObject and IDiagramModelConnection are assigned to views not to models
+		else if ( eObject instanceof IDiagramModelObject )		assignViewObjectToView((IDiagramModelObject)eObject);
+		else if ( eObject instanceof IDiagramModelConnection )	assignViewConnectionToView((IDiagramModelConnection)eObject);
+		else
 			throw new Exception("Do not know how to assign to the model : "+eObject.getClass().getSimpleName());
 	}
 
@@ -841,7 +846,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,element.getName()
 					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
 					,element.getDocumentation()
-					,System.getProperty("user.name")
+					,DBPlugin.getUserName()
 					,((DBArchimateModel)element.getArchimateModel()).getExportedVersion().getTimestamp()
 					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
 					);
@@ -934,7 +939,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,((IArchimateRelationship)relationship).getTarget().getId()
 					,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 					,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-					,System.getProperty("user.name")
+					,DBPlugin.getUserName()
 					,((DBArchimateModel)relationship.getArchimateModel()).getExportedVersion().getTimestamp()
 					,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
 					);
@@ -985,7 +990,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IDBMetadata)folder).getDBMetadata().getRootFolderType()
 				,folder.getName()
 				,folder.getDocumentation()
-				,System.getProperty("user.name")
+				,DBPlugin.getUserName()
 				,((DBArchimateModel)folder.getArchimateModel()).getExportedVersion().getTimestamp()
 				,((Folder)folder).getDBMetadata().getCurrentVersion().getChecksum()
 				);
@@ -1038,8 +1043,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,view.getId()
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
-				,System.getProperty("user.name")
-				,new Timestamp(Calendar.getInstance().getTime().getTime())
+				,DBPlugin.getUserName()
+				,((DBArchimateModel)view.getArchimateModel()).getExportedVersion().getTimestamp()
 				,view.getName()
 				,view.getConnectionRouterType()
 				,view.getDocumentation()
@@ -1090,22 +1095,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "rank", "checksum"};
+		final String[] ViewsObjectsColumns = {"id", "version","class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
 		
 	      // if the viewObject is exported, the we increase its exportedVersion
         ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
 
-		EObject viewContainer = viewObject.eContainer();
-		while ( !(viewContainer instanceof IDiagramModel) ) {
-			viewContainer = viewContainer.eContainer();
-		}
-
 		insert(this.schema+"views_objects", ViewsObjectsColumns
 				,((IIdentifier)viewObject).getId()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
-				,((IIdentifier)viewObject.eContainer()).getId()
-				,((IIdentifier)viewContainer).getId()
-				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,viewObject.getClass().getSimpleName()
 				,((viewObject instanceof IDiagramModelArchimateComponent) ? ((IDiagramModelArchimateComponent)viewObject).getArchimateConcept().getId() : null)
 				,((viewObject instanceof IDiagramModelReference) ? ((IDiagramModelReference)viewObject).getReferencedModel().getId() : null)
@@ -1135,12 +1132,36 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getY() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getWidth() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
-				,++this.viewObjectRank
+				,DBPlugin.getUserName()
+				,((DBArchimateModel)viewObject.getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
 		if ( viewObject instanceof IProperties && !(viewObject instanceof IDiagramModelArchimateComponent))
 			exportProperties((IProperties)viewObject);
+	}
+	
+	/**
+	 * Assign a view Object to a view into the database
+	 */
+	private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
+		final String[] viewObjectInViewColumns = {"object_id", "object_version", "container_id", "view_id", "view_version", "rank"};
+
+		EObject viewContainer = viewObject.eContainer();
+		while ( !(viewContainer instanceof IDiagramModel) ) {
+			viewContainer = viewContainer.eContainer();
+		}
+
+		insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
+				,((IIdentifier)viewObject).getId()
+				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
+				,((IIdentifier)viewObject.eContainer()).getId()
+				,((IIdentifier)viewContainer).getId()
+				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
+				,++this.viewObjectRank
+				);
+		
+
 	}
 
 	/**
@@ -1154,7 +1175,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-		final String[] ViewsConnectionsColumns = {"id", "version", "container_id", "view_id", "view_version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "rank", "checksum"};
+		final String[] ViewsConnectionsColumns = {"id", "version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
 	    // if the viewConnection is exported, the we increase its exportedVersion
@@ -1168,9 +1189,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		insert(this.schema+"views_connections", ViewsConnectionsColumns
 				,((IIdentifier)viewConnection).getId()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
-				,((IIdentifier)viewConnection.eContainer()).getId()
-				,((IIdentifier)viewContainer).getId()
-				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,viewConnection.getClass().getSimpleName()
 				,(!(viewConnection instanceof IDiagramModelArchimateConnection) ? ((INameable)viewConnection).getName() : null)                    // if there is a relationship behind, the name is the relationship name, so no need to store it.
 				,(!(viewConnection instanceof IDiagramModelArchimateConnection) ? ((IDocumentable)viewConnection).getDocumentation() : null)       // if there is a relationship behind, the documentation is the relationship name, so no need to store it.
@@ -1186,7 +1204,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,viewConnection.getTarget().getId()
 				,viewConnection.getTextPosition()
 				,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : viewConnection.getType())
-				,++this.viewConnectionRank
+				,DBPlugin.getUserName()
+				,((DBArchimateModel)viewConnection.getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
@@ -1204,6 +1223,29 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,bendpoint.getEndY()
 					);
 		}
+	}
+	
+	/**
+	 * Assign a view Connection to a view into the database
+	 */
+	private void assignViewConnectionToView(IDiagramModelConnection viewConnection) throws Exception {
+		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "container_id", "view_id", "view_version", "rank"};
+
+		EObject viewContainer = viewConnection.eContainer();
+		while ( !(viewContainer instanceof IDiagramModel) ) {
+			viewContainer = viewContainer.eContainer();
+		}
+
+		insert(this.schema+"views_connections_in_view", viewObjectInViewColumns
+				,((IIdentifier)viewConnection).getId()
+				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
+				,((IIdentifier)viewConnection.eContainer()).getId()
+				,((IIdentifier)viewContainer).getId()
+				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
+				,++this.viewConnectionRank
+				);
+		
+
 	}
 
 	/**

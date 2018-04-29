@@ -386,13 +386,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		if ( model.isLatestVersionImported() ) {
 			this.importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
-										" FROM "+this.schema+"views_in_model"+
-										" JOIN "+this.schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
+										" FROM "+this.schema+"views_objects"+
+										" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"+
+										" JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
 										" WHERE model_id = ? AND model_version = ?";
 		} else {
 			this.importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
-										" FROM "+this.schema+"views_in_model"+
-										" JOIN "+this.schema+"views_objects ON views_objects.view_id = views_in_model.view_id AND views_objects.view_version = views_in_model.view_version"+
+										" FROM "+this.schema+"views_objects"+
+										" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"+
+										" JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = views_in_model.view_version"+
 										" WHERE model_id = ? AND model_version = ?";
 		}
 		try ( ResultSet resultViewObjects = select("SELECT COUNT(*) AS countViewsObjects FROM ("+this.importViewsObjectsRequest+") vobjs", model.getId(), model.getInitialVersion().getVersion()) ) {
@@ -405,13 +407,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		if ( model.isLatestVersionImported() ) {
 			this.importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type "+
-										" FROM "+this.schema+"views_in_model"+
-										" JOIN "+this.schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
+										" FROM "+this.schema+"views_connections"+
+										" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"+
+										" JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
 										" WHERE model_id = ? AND model_version = ?";
 		} else {
 			this.importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type"+
-										" FROM "+this.schema+"views_in_model"+
-										" JOIN "+this.schema+"views_connections ON views_connections.view_id = views_in_model.view_id AND views_connections.view_version = views_in_model.view_version"+
+										" FROM "+this.schema+"views_connections"+
+										" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.object_id = views_connections.id AND views_connections_in_view.object_version = views_connections.version"+
+										" JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = views_in_model.view_version"+
 										" WHERE model_id = ? AND model_version = ?";
 		}
 		try ( ResultSet resultViewConnections = select("SELECT COUNT(*) AS countViewsConnections FROM ("+this.importViewsConnectionsRequest+") vcons", model.getId(), model.getInitialVersion().getVersion()) ) {
@@ -422,10 +426,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		
 		this.importViewsConnectionsRequest += " ORDER BY views_connections.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		try ( ResultSet resultImages = select("SELECT COUNT(DISTINCT image_path) AS countImages FROM "+this.schema+"views_in_model"+
-						" INNER JOIN "+this.schema+"views ON "+this.schema+"views_in_model.view_id = views.id AND "+this.schema+"views_in_model.view_version = views.version"+
-						" INNER JOIN "+this.schema+"views_objects ON views.id = "+this.schema+"views_objects.view_id AND views.version = "+this.schema+"views_objects.version"+
-						" INNER JOIN "+this.schema+"images ON "+this.schema+"views_objects.image_path = images.path"+
+		try ( ResultSet resultImages = select("SELECT COUNT(DISTINCT image_path) AS countImages"+
+						" FROM "+this.schema+"views_in_model"+
+						" INNER JOIN "+this.schema+"views ON views_in_model.view_id = views.id AND views_in_model.view_version = views.version"+
+						" INNER JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views.id AND views_objects_in_view.object_version = views.version"+
+						" INNER JOIN "+this.schema+"views_objects ON views_objects.id = views_objects_in_view.object_id AND views_objects.version = views_objects_in_view.object_version"+
+						" INNER JOIN "+this.schema+"images ON views_objects.image_path = images.path"+
 						" WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -683,7 +689,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String viewId, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height FROM "+this.schema+"views_objects WHERE view_id = ? AND view_version = ? ORDER BY rank"
+		this.currentResultSet = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"
+				+" FROM "+this.schema+"views_objects"
+				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
+				+" WHERE view_id = ? AND view_version = ?"
+				+" ORDER BY rank"
 				,viewId
 				,version
 				);
@@ -776,7 +786,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 */
 	public void prepareImportViewsConnections(String viewId, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type FROM "+this.schema+"views_connections WHERE view_id = ? AND view_version = ? ORDER BY rank"
+		this.currentResultSet = select("SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type"
+				+" FROM "+this.schema+"views_connections"
+				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
+				+" WHERE view_id = ? AND view_version = ?"
+				+" ORDER BY rank"
 				,viewId
 				,version
 				);
