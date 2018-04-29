@@ -417,23 +417,29 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         "SELECT id,"
                                 + "  MAX(version_in_current_model) AS version_in_current_model,"
                                 + "  MAX(checksum_in_current_model) AS checksum_in_current_model,"
+                                + "  MAX(container_checksum_in_current_model) AS container_checksum_in_current_model,"
                                 + "  MAX(timestamp_in_current_model) AS timestamp_in_current_model,"
                                 + "  MAX(version_in_latest_model) AS version_in_latest_model,"
                                 + "  MAX(checksum_in_latest_model) AS checksum_in_latest_model,"
+                                + "  MAX(container_checksum_in_latest_model) AS container_checksum_in_latest_model,"
                                 + "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
                                 + "  MAX(latest_version) AS latest_version,"
                                 + "  MAX(latest_checksum) AS latest_checksum,"
+                                + "  MAX(latest_container_checksum) AS latest_container_checksum,"
                                 + "  MAX(latest_timestamp) AS latest_timestamp "
                                 + "FROM ("
                                 + "  SELECT e.id AS id,"
                                 + "    e.version AS version_in_current_model,"
                                 + "    e.checksum AS checksum_in_current_model,"
+                                + "    e.container_checksum AS container_checksum_in_current_model,"
                                 + "    e.created_on AS timestamp_in_current_model,"
                                 + "    null AS version_in_latest_model,"
                                 + "    null AS checksum_in_latest_model,"
+                                + "    null AS container_checksum_in_latest_model,"
                                 + "    null AS timestamp_in_latest_model,"
                                 + "    e_max.version AS latest_version,"
                                 + "    e_max.checksum AS latest_checksum,"
+                                + "    e_max.container_checksum AS latest_container_checksum,"
                                 + "    e_max.created_on AS latest_timestamp"
                                 + "  FROM views e"
                                 + "  JOIN views e_max ON e_max.id = e.id AND e_max.version >= e.version"
@@ -443,12 +449,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                                 + "  SELECT e.id AS id,"
                                 + "    null AS version_in_current_model,"
                                 + "    null AS checksum_in_current_model,"
+                                + "    null AS container_checksum_in_current_model,"
                                 + "    null AS timestamp_in_current_model,"
                                 + "    e.version AS version_in_latest_model,"
                                 + "    e.checksum AS checksum_in_latest_model,"
+                                + "    e.container_checksum AS container_checksum_in_latest_model,"
                                 + "    e.created_on AS timestamp_in_latest_model,"
                                 + "    e_max.version AS latest_version,"
                                 + "    e_max.checksum AS latest_checksum,"
+                                + "    e_max.container_checksum AS latest_container_checksum,"
                                 + "    e_max.created_on AS latest_timestamp"
                                 + "  FROM views e"
                                 + "  JOIN views e_max ON e_max.id = e.id AND e_max.version >= e.version"
@@ -468,9 +477,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                             // if the view exists in memory
                             viewMetadata.getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version_in_current_model"));
                             viewMetadata.getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum_in_current_model"));
+                            viewMetadata.getDBMetadata().getDatabaseVersion().setContainerChecksum(result.getString("container_checksum_in_current_model"));
                             viewMetadata.getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_current_model"));
                             viewMetadata.getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version_in_latest_model"));
                             viewMetadata.getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum_in_latest_model"));
+                            viewMetadata.getDBMetadata().getLatestDatabaseVersion().setContainerChecksum(result.getString("container_checksum_in_latest_model"));
                             viewMetadata.getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("timestamp_in_latest_model"));
 
                             viewMetadata.getDBMetadata().getCurrentVersion().setVersion(result.getInt("latest_version"));
@@ -1095,7 +1106,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version","class", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
+		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
 		
 	      // if the viewObject is exported, the we increase its exportedVersion
         ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
@@ -1104,6 +1115,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IIdentifier)viewObject).getId()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
 				,viewObject.getClass().getSimpleName()
+				,((IIdentifier)viewObject.eContainer()).getId()
 				,((viewObject instanceof IDiagramModelArchimateComponent) ? ((IDiagramModelArchimateComponent)viewObject).getArchimateConcept().getId() : null)
 				,((viewObject instanceof IDiagramModelReference) ? ((IDiagramModelReference)viewObject).getReferencedModel().getId() : null)
 				,((viewObject instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewObject).getType() : null)
@@ -1145,7 +1157,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Assign a view Object to a view into the database
 	 */
 	private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
-		final String[] viewObjectInViewColumns = {"object_id", "object_version", "container_id", "view_id", "view_version", "rank"};
+		final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "rank"};
 
 		EObject viewContainer = viewObject.eContainer();
 		while ( !(viewContainer instanceof IDiagramModel) ) {
@@ -1155,7 +1167,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
 				,((IIdentifier)viewObject).getId()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
-				,((IIdentifier)viewObject.eContainer()).getId()
 				,((IIdentifier)viewContainer).getId()
 				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,++this.viewObjectRank
@@ -1175,7 +1186,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-		final String[] ViewsConnectionsColumns = {"id", "version", "class", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
+		final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
 	    // if the viewConnection is exported, the we increase its exportedVersion
@@ -1190,6 +1201,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IIdentifier)viewConnection).getId()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
 				,viewConnection.getClass().getSimpleName()
+				,((IIdentifier)viewConnection.eContainer()).getId()
 				,(!(viewConnection instanceof IDiagramModelArchimateConnection) ? ((INameable)viewConnection).getName() : null)                    // if there is a relationship behind, the name is the relationship name, so no need to store it.
 				,(!(viewConnection instanceof IDiagramModelArchimateConnection) ? ((IDocumentable)viewConnection).getDocumentation() : null)       // if there is a relationship behind, the documentation is the relationship name, so no need to store it.
 				,((viewConnection instanceof ILockable) ? (((ILockable)viewConnection).isLocked()?1:0) : null)  
@@ -1229,7 +1241,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Assign a view Connection to a view into the database
 	 */
 	private void assignViewConnectionToView(IDiagramModelConnection viewConnection) throws Exception {
-		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "container_id", "view_id", "view_version", "rank"};
+		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "view_id", "view_version", "rank"};
 
 		EObject viewContainer = viewConnection.eContainer();
 		while ( !(viewContainer instanceof IDiagramModel) ) {
@@ -1239,7 +1251,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		insert(this.schema+"views_connections_in_view", viewObjectInViewColumns
 				,((IIdentifier)viewConnection).getId()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
-				,((IIdentifier)viewConnection.eContainer()).getId()
 				,((IIdentifier)viewContainer).getId()
 				,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
 				,++this.viewConnectionRank
