@@ -80,7 +80,6 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
-import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
@@ -1212,35 +1211,12 @@ public class DBGui {
 			}
 		}
 		
-	    addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
+		// for views, we compare the checksums of the views themselves without their content 
+		if ( memoryObject instanceof IDiagramModel )
+			addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getContainerChecksum(), (String)databaseObject.get("container_checksum"));
+		else
+			addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
 		
-		// we show up the children if both exist
-		if ( databaseObject.containsKey("children") ) {
-			if ( memoryObject instanceof IDiagramModelContainer ) {
-                TreeItem childrenTreeItem;
-                if ( treeItem == null )
-                    childrenTreeItem = new TreeItem(tree, SWT.NONE);
-                else
-                    childrenTreeItem = new TreeItem(treeItem, SWT.NONE);
-                childrenTreeItem.setText("Children");
-                childrenTreeItem.setExpanded(false);
-				
-				//TODO : sort the arrays, as it is done for the properties.
-				//TODO : then we can explain that if a child checksum is different, then it comes from the connections and if all the children are the same and the checksum is different, then it comes from the objects 
-				
-				int i = 0;
-				while ( (i < ((IDiagramModelContainer)memoryObject).getChildren().size()) || (i < ((HashMap[])databaseObject.get("children")).length) ) {
-					IDiagramModelObject child = (i<((IDiagramModelContainer)memoryObject).getChildren().size() ? ((IDiagramModelContainer)memoryObject).getChildren().get(i) : null);
-                    TreeItem childTreeItem = new TreeItem(childrenTreeItem, SWT.NONE);
-                    childTreeItem.setText("Child "+i+1);
-                    childTreeItem.setExpanded(false);
-					fillInCompareTable(tree, childTreeItem, child, memoryObjectversion);
-					if ( childTreeItem.getBackground().equals(DBGui.LIGHT_RED_COLOR))
-					    childrenTreeItem.setBackground(DBGui.LIGHT_RED_COLOR);
-					++i;
-				}
-			}
-		}
 	    refreshDisplay();
 	}
 	
