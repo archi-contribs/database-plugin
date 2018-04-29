@@ -48,6 +48,7 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelBendpoint;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImageProvider;
@@ -105,7 +106,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 	/**
 	 * Gets a component from the database and convert the result into a HashMap<br>
-	 * Mainly used in DBGuiExportModel to compare a component to its database version.
+	 * Mainly used in DBGui to compare a component to its database version.
 	 * @param component: component to get
 	 * @param version: version of the component to get (0 to get the latest version) 
 	 * @return HashMap containing the object data
@@ -118,7 +119,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		else if ( component instanceof IArchimateRelationship ) clazz = "IArchimateRelationship";
 		else if ( component instanceof IFolder ) clazz = "IFolder";
 		else if ( component instanceof IDiagramModel ) clazz = "IDiagramModel";
-		else if ( component instanceof IDiagramModelArchimateObject	 ) clazz = "IDiagramModelArchimateObject";		
+		else if ( component instanceof IDiagramModelArchimateObject	 ) clazz = "IDiagramModelArchimateObject";
+		else if ( component instanceof IDiagramModelArchimateConnection	 ) clazz = "IDiagramModelArchimateConnection";
 		else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
 		return getObject(id, clazz, version);
@@ -126,7 +128,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	
 	/**
 	 * Gets a component from the database and convert the result into a HashMap<br>
-	 * Mainly used in DBGuiExportModel to compare a component to its database version.
+	 * Mainly used in DBGui to compare a component to its database version.
 	 * @param id: id of component to get
 	 * @param clazz: class of component to get
 	 * @param version: version of the component to get (0 to get the latest version) 
@@ -142,18 +144,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		try {
 			if ( version == 0 ) {
 				// because of PostGreSQL, we need to split the request in two
-				if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+this.schema+"elements e WHERE version = (SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id) AND id = ?", id);
-				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships r WHERE version = (SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id) AND id = ?", id);
-				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id) AND id = ?", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+this.schema+"views v WHERE version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id) AND id = ?", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects v WHERE version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id) AND id = ?", id);		
+				if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+this.schema+"elements e WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+this.schema+"views v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)", id);
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			} else {        
 				if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+this.schema+"elements WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM "+this.schema+"folders WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+this.schema+"views WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = ?", id, version);
+				//TODO: connection
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			}
 	
@@ -176,27 +181,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						databaseProperties[i++] = new String[] { resultProperties.getString("name"), result.getString("value") };
 					}
 					hashResult.put("properties", databaseProperties);
-				}
-				
-				// gather the views objects if we are getting a view
-				if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) {
-					int countChildren;
-					
-					try ( ResultSet resultChildren = select("select count(*) AS count_children FROM "+this.schema+"views_objects WHERE view_id = ? AND view_version = ?", id, version) ) {
-						resultChildren.next();
-						countChildren = resultChildren.getInt("count_children");
-					}
-					
-					@SuppressWarnings("unchecked")
-					HashMap<String, Object>[] children = new HashMap[countChildren];
-					try ( ResultSet resultChildren = select("select id, version FROM "+this.schema+"views_objects WHERE view_id = ? AND view_version = ?", id, version) ) {
-						int i=0;
-						while ( resultChildren.next() ) {
-							children[i++] = getObject(resultChildren.getString("id"), "IDiagramModelArchimateObject", result.getInt("version"));
-						}
-						resultChildren.close();
-						hashResult.put("children", children);
-					}
 				}
 				
 				// bendpoints
@@ -305,38 +289,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		String toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation)" : "documentation";
 		String toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation) AS documentation" : "documentation";
 		
-		if ( model.isLatestVersionImported() ) {
-			this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+toCharDocumentationAsDocumentation+", created_on, checksum"+
-					" FROM "+this.schema+"elements_in_model"+
-					" JOIN "+this.schema+"elements ON elements.id = element_id AND version = (SELECT MAX(version) FROM elements WHERE id = element_id)"+
-					" WHERE model_id = ? AND model_version = ?"+
-					" GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on";
-		} else {
-			this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+toCharDocumentationAsDocumentation+", created_on, checksum"+
-									" FROM "+this.schema+"elements_in_model"+
-									" JOIN "+this.schema+"elements ON id = element_id AND version = element_version"+
-									" WHERE model_id = ? AND model_version = ?"+
-									" GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on";
-		}
+		
+		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schema+"elements WHERE id = element_id)" : "element_version";
+		this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+toCharDocumentationAsDocumentation+", created_on, checksum"
+				+ " FROM "+this.schema+"elements_in_model"
+				+ " JOIN "+this.schema+"elements ON elements.id = element_id AND version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?"
+				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on";
 		try (ResultSet resultElements = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
 			this.countElementsImported = 0;
 		}
-
-		if ( model.isLatestVersionImported() ) {
-			this.importRelationshipsRequest = "SELECT relationship_id, parent_folder_id, version, class, name, "+toCharDocumentationAsDocumentation+", source_id, target_id, strength, access_type, created_on, checksum"+
-					 " FROM "+this.schema+"relationships_in_model"+
-					 " INNER JOIN "+this.schema+"relationships ON id = relationship_id AND version = (SELECT MAX(version) FROM relationships WHERE id = relationship_id)"+
-					 " WHERE model_id = ? AND model_version = ?"+
-					 " GROUP BY relationship_id, parent_folder_id, version, class, name, "+toCharDocumentation+", source_id, target_id, strength, access_type, created_on";
-		} else {
-			this.importRelationshipsRequest = "SELECT relationship_id, parent_folder_id, version, class, name, "+toCharDocumentationAsDocumentation+", source_id, target_id, strength, access_type, created_on, checksum"+
-										 " FROM "+this.schema+"relationships_in_model"+
-										 " INNER JOIN "+this.schema+"relationships ON id = relationship_id AND version = relationship_version"+
-										 " WHERE model_id = ? AND model_version = ?"+
-										 " GROUP BY relationship_id, parent_folder_id, version, class, name, "+toCharDocumentation+", source_id, target_id, strength, access_type, created_on";
-		}
+		
+		
+		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = relationship_id)" : "relationship_version";
+		this.importRelationshipsRequest = "SELECT relationship_id, parent_folder_id, version, class, name, "+toCharDocumentationAsDocumentation+", source_id, target_id, strength, access_type, created_on, checksum"
+				+ " FROM "+this.schema+"relationships_in_model"
+				+ " INNER JOIN "+this.schema+"relationships ON id = relationship_id AND version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?"
+				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+toCharDocumentation+", source_id, target_id, strength, access_type, created_on";
 		try ( ResultSet resultRelationships = select("SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -346,84 +318,54 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countRelationshipsImported = 0;
 		}
 		
-		if ( model.isLatestVersionImported() ) {
-			this.importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum"+
-									" FROM "+this.schema+"folders_in_model"+
-									" JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE folders.id = folders_in_model.folder_id)"+
-									" WHERE model_id = ? AND model_version = ?";
-		} else {
-			this.importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum"+
-									" FROM "+this.schema+"folders_in_model"+
-									" JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = folders_in_model.folder_version"+
-									" WHERE model_id = ? AND model_version = ?";
-		}
+		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schema+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
+		this.importFoldersRequest = "SELECT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum"
+				+ " FROM "+this.schema+"folders_in_model"
+				+ " JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
 		try ( ResultSet resultFolders = select("SELECT COUNT(*) AS countFolders FROM ("+this.importFoldersRequest+") fldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultFolders.next();
 			this.countFoldersToImport = resultFolders.getInt("countFolders");
 			this.countFoldersImported = 0;
 		}
-
 		this.importFoldersRequest += " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.isLatestVersionImported() ) {
-			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"+
-								 " FROM "+this.schema+"views_in_model"+
-								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = (select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)"+
-								 " WHERE model_id = ? AND model_version = ?";
-		} else {
-			this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"+
-								 " FROM "+this.schema+"views_in_model"+
-								 " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = views_in_model.view_version"+
-								 " WHERE model_id = ? AND model_version = ?";
-		}
+		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
+		this.importViewsRequest = "SELECT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"
+				+ " FROM "+this.schema+"views_in_model"
+				+ " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
 		try ( ResultSet resultViews = select("SELECT COUNT(*) AS countViews FROM ("+this.importViewsRequest+") vws", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViews.next();
 			this.countViewsToImport = resultViews.getInt("countViews");
 			this.countViewsImported = 0;
 		}
-
 		this.importViewsRequest += " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.isLatestVersionImported() ) {
-			this.importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
-										" FROM "+this.schema+"views_objects"+
-										" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"+
-										" JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
-										" WHERE model_id = ? AND model_version = ?";
-		} else {
-			this.importViewsObjectsRequest = "SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"+
-										" FROM "+this.schema+"views_objects"+
-										" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"+
-										" JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = views_in_model.view_version"+
-										" WHERE model_id = ? AND model_version = ?";
-		}
+		// versionToImport is same as for views
+		this.importViewsObjectsRequest = "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum"
+				+ " FROM "+this.schema+"views_objects"
+				+ " JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
+				+ " JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
 		try ( ResultSet resultViewObjects = select("SELECT COUNT(*) AS countViewsObjects FROM ("+this.importViewsObjectsRequest+") vobjs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewObjects.next();
 			this.countViewObjectsToImport = resultViewObjects.getInt("countViewsObjects");
 			this.countViewObjectsImported = 0;
 		}
-		
 		this.importViewsObjectsRequest += " ORDER BY views_objects.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		if ( model.isLatestVersionImported() ) {
-			this.importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type "+
-										" FROM "+this.schema+"views_connections"+
-										" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"+
-										" JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = views_in_model.view_id)"+
-										" WHERE model_id = ? AND model_version = ?";
-		} else {
-			this.importViewsConnectionsRequest = "SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type"+
-										" FROM "+this.schema+"views_connections"+
-										" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.object_id = views_connections.id AND views_connections_in_view.object_version = views_connections.version"+
-										" JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = views_in_model.view_version"+
-										" WHERE model_id = ? AND model_version = ?";
-		}
+		// versionToImport is same as for views
+		this.importViewsConnectionsRequest = "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum "
+				+ " FROM "+this.schema+"views_connections"
+				+ " JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
+				+ " JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
 		try ( ResultSet resultViewConnections = select("SELECT COUNT(*) AS countViewsConnections FROM ("+this.importViewsConnectionsRequest+") vcons", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewConnections.next();
 			this.countViewConnectionsToImport = resultViewConnections.getInt("countViewsConnections");
 			this.countViewConnectionsImported = 0;
 		}
-		
 		this.importViewsConnectionsRequest += " ORDER BY views_connections.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		try ( ResultSet resultImages = select("SELECT COUNT(DISTINCT image_path) AS countImages"+
@@ -689,7 +631,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String viewId, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, container_id, class, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height"
+		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -714,6 +656,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
 
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
@@ -745,7 +688,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( eObject instanceof ICanvasModelSticky              && this.currentResultSet.getObject("notes")!=null )                                 ((ICanvasModelSticky)eObject).setNotes(this.currentResultSet.getString("notes"));
 				if ( eObject instanceof ITextAlignment                  && this.currentResultSet.getObject("text_alignment")!=null )                        ((ITextAlignment)eObject).setTextAlignment(this.currentResultSet.getInt("text_alignment"));
 				if ( eObject instanceof ITextPosition                   && this.currentResultSet.getObject("text_position")!=null )                         ((ITextPosition)eObject).setTextPosition(this.currentResultSet.getInt("text_position"));
-				if ( eObject instanceof IDiagramModelObject )                                                                       ((IDiagramModelObject)eObject).setBounds(this.currentResultSet.getInt("x"), this.currentResultSet.getInt("y"), this.currentResultSet.getInt("width"), this.currentResultSet.getInt("height"));
+				if ( eObject instanceof IDiagramModelObject )                                                                       						((IDiagramModelObject)eObject).setBounds(this.currentResultSet.getInt("x"), this.currentResultSet.getInt("y"), this.currentResultSet.getInt("width"), this.currentResultSet.getInt("height"));
 
 				// The container is either the view, or a container in the view
 				if ( DBPlugin.areEqual(this.currentResultSet.getString("container_id"), view.getId()) )
@@ -786,7 +729,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 */
 	public void prepareImportViewsConnections(String viewId, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, container_id, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type"
+		this.currentResultSet = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -811,6 +754,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
 
 				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
@@ -1345,19 +1289,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		return relationship;
 	}
 
-
-
 	/**
-	 * This method imports a view with all its components (graphical objects and connections) and requirements (elements and relationships)<br>
+	 * This method imports a view, optionally including all graphical objects and connections and requirements (elements and relationships)<br>
 	 * elements and relationships that needed to be imported are located in a folder named by the view
 	 */
-	public IDiagramModel importViewFromId(DBArchimateModel model, IFolder parentFolder, String id, boolean mustCreateCopy) throws Exception {
-		if ( model.getAllViews().get(id) != null ) {
-			if ( mustCreateCopy )
-				throw new RuntimeException("Re-importing a view is not supported.\n\nIf you wish to create a copy of an existing table, you may use a copy-paste operation.");
-			throw new RuntimeException("Re-importing a view is not supported.\n\nIf you wish to refresh your view from the database, you may close your model and re-import it from the database.");
-		}
-
+	public IDiagramModel importViewFromId(DBArchimateModel model, IFolder parentFolder, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) throws Exception {
 		if ( logger.isDebugEnabled() ) {
 			if ( mustCreateCopy )
 				logger.debug("Importing a copy of view id "+id);
@@ -1366,60 +1302,74 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 		}
 
-		// 1 : we create the view
+		// 1 : we create or update the view
 		IDiagramModel view;
-		try ( ResultSet resultView = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint FROM "+this.schema+"views v WHERE version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id) AND id = ?", id) ) {
+		String versionString = (version==0) ? "(SELECT MAX(version) FROM \"+this.schema+\"views WHERE id = v.id)" : String.valueOf(version);
+		
+		boolean isNewView = false;
+		try ( ResultSet resultView = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
 			resultView.next();
-			if ( DBPlugin.areEqual(resultView.getString("class"), "CanvasModel") )
-				view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
-			else
-				view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
-	
-			if ( mustCreateCopy ) 
-				view.setId(model.getIDAdapter().getNewID());
-			else
-				view.setId(id);
+			
+			view = model.getAllViews().get(id);
+			if ( view == null || mustCreateCopy ) {
+				if ( DBPlugin.areEqual(resultView.getString("class"), "CanvasModel") )
+					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
+				else
+					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
+				
+				isNewView = true;
+				
+				if ( mustCreateCopy ) 
+					view.setId(model.getIDAdapter().getNewID());
+				else
+					view.setId(id);
+			}
 	
 			((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
 	
-			view.setName(resultView.getString("name")==null ? "" : resultView.getString("name"));
-			view.setDocumentation(resultView.getString("documentation"));
-			view.setConnectionRouterType(resultView.getInt("connection_router_type"));
-			if ( view instanceof IArchimateDiagramModel && resultView.getObject("viewpoint")!=null )     ((IArchimateDiagramModel) view).setViewpoint(resultView.getString("viewpoint"));
-			if ( view instanceof ISketchModel           && resultView.getObject("background")!=null )    ((ISketchModel)view).setBackground(resultView.getInt("background"));
-			if ( view instanceof IHintProvider          && resultView.getObject("hint_content")!=null )  ((IHintProvider)view).setHintContent(resultView.getString("hint_content"));
-			if ( view instanceof IHintProvider          && resultView.getObject("hint_title")!=null )    ((IHintProvider)view).setHintTitle(resultView.getString("hint_title"));
+			if ( !DBPlugin.areEqual(view.getName(), resultView.getString("name")) )                      view.setName(resultView.getString("name")==null ? "" : resultView.getString("name"));
+			if ( !DBPlugin.areEqual(view.getDocumentation(), resultView.getString("documentation")) )    view.setDocumentation(resultView.getString("documentation"));
+			if ( view.getConnectionRouterType() != resultView.getInt("connection_router_type") )         view.setConnectionRouterType(resultView.getInt("connection_router_type"));
+			
+			if ( view instanceof IArchimateDiagramModel && !DBPlugin.areEqual(view.getName(), resultView.getString("name")) )                                   ((IArchimateDiagramModel) view).setViewpoint(resultView.getString("viewpoint")==null ? "" : resultView.getString("viewpoint"));
+			if ( view instanceof ISketchModel           && resultView.getInt("background") != ((ISketchModel) view).getBackground() )                           ((ISketchModel)view).setBackground(resultView.getInt("background"));
+			if ( view instanceof IHintProvider          && !DBPlugin.areEqual(((IHintProvider) view).getHintContent(), resultView.getString("hint_content")) )  ((IHintProvider)view).setHintContent(resultView.getString("hint_content"));
+			if ( view instanceof IHintProvider          && !DBPlugin.areEqual(((IHintProvider) view).getHintTitle(), resultView.getString("hint_title")) )      ((IHintProvider)view).setHintTitle(resultView.getString("hint_title"));
 		}
 		
-		if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
-			parentFolder.getElements().add(view);
-		else
-			model.getDefaultFolderForObject(view).getElements().add(view);
+		if ( isNewView ) {
+			if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
+				parentFolder.getElements().add(view);
+			else
+				model.getDefaultFolderForObject(view).getElements().add(view);
+			
+			model.getAllViews().put(((IIdentifier)view).getId(), view);
+		}
 
 		importProperties(view);
-
-		model.getAllViews().put(((IIdentifier)view).getId(), view);
 
 		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
 
 		model.resetSourceAndTargetCounters();
 
-		// 2 : we import the objects and create the corresponding elements if they do not exist yet
-		//        importing an element will automatically import the relationships to and from this element
-		prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
-		while ( importViewsObjects(model, view) ) {
-		    // each loop imports an object
+		if ( mustImportViewContent ) {
+			// 2 : we import the objects and create the corresponding elements if they do not exist yet
+			//        importing an element will automatically import the relationships to and from this element
+			prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+			while ( importViewsObjects(model, view) ) {
+			    // each loop imports an object
+			}
+	
+			// 3 : we import the connections and create the corresponding relationships if they do not exist yet
+			prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+			while ( importViewsConnections(model) ) {
+			    // each loop imports a connection
+			}
+			
+	
+			model.resolveRelationshipsSourcesAndTargets();
+			model.resolveConnectionsSourcesAndTargets();
 		}
-
-		// 3 : we import the connections and create the corresponding relationships if they do not exist yet
-		prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
-		while ( importViewsConnections(model) ) {
-		    // each loop imports a connection
-		}
-		
-
-		model.resolveRelationshipsSourcesAndTargets();
-		model.resolveConnectionsSourcesAndTargets();
 
 		//TODO : import missing images
 		//for (String path: getAllImagePaths()) {
@@ -1428,6 +1378,183 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		return view;
 	}
+	
+	/**
+	 * This method imports a view object<br>
+	 * if the corresponding element does not exists, it is imported
+	 */
+	public IDiagramModelComponent importViewObjectFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy) throws Exception {
+		if ( logger.isDebugEnabled() ) {
+			if ( mustCreateCopy )
+				logger.debug("Importing a copy of view object id "+id);
+			else {
+				logger.debug("Importing view object id "+id);
+			}
+		}
+
+		// 1 : we create or update the view object
+		EObject viewObject = null;
+		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)" : String.valueOf(version);
+		
+		try ( ResultSet resultView = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
+			resultView.next();
+			
+			viewObject = model.getAllViewObjects().get(id);
+			if ( viewObject == null || mustCreateCopy ) {
+				if ( resultView.getString("class").startsWith("Canvas") )
+					viewObject = DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
+				else
+					viewObject = DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
+				
+				((IIdentifier)viewObject).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
+			}
+
+			if ( viewObject instanceof IDiagramModelArchimateComponent && resultView.getString("element_id") != null) {
+				// we check that the element already exists. If not, we import it in shared mode
+				IArchimateElement element = model.getAllElements().get(resultView.getString("element_id"));
+				if ( element == null ) {
+					if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
+					importElementFromId(model, null, resultView.getString("element_id"), 0, false, true);
+				}
+			}
+			
+			//TODO: compare values before setting them
+
+			if ( viewObject instanceof IDiagramModelArchimateComponent && resultView.getObject("element_id")!=null )                           				((IDiagramModelArchimateComponent)viewObject).setArchimateConcept(model.getAllElements().get(resultView.getString("element_id")));
+			if ( viewObject instanceof IDiagramModelReference          && resultView.getObject("diagram_ref_id")!=null )                        			((IDiagramModelReference)viewObject).setReferencedModel(model.getAllViews().get(resultView.getString("diagram_ref_id")));
+			if ( viewObject instanceof IDiagramModelArchimateObject    && resultView.getObject("type")!=null )                                  			((IDiagramModelArchimateObject)viewObject).setType(resultView.getInt("type"));
+			if ( viewObject instanceof IBorderObject                   && resultView.getObject("border_color")!=null )                          			((IBorderObject)viewObject).setBorderColor(resultView.getString("border_color"));
+			if ( viewObject instanceof IDiagramModelNote               && resultView.getObject("border_type")!=null )                           			((IDiagramModelNote)viewObject).setBorderType(resultView.getInt("border_type"));
+			if ( viewObject instanceof ITextContent                    && resultView.getObject("content")!=null )                               			((ITextContent)viewObject).setContent(resultView.getString("content"));
+			if ( viewObject instanceof IDocumentable                   && resultView.getObject("documentation")!=null )                         			((IDocumentable)viewObject).setDocumentation(resultView.getString("documentation"));
+			if ( viewObject instanceof INameable                       && resultView.getObject("name")!=null && resultView.getObject("element_id")==null )  ((INameable)viewObject).setName(resultView.getString("name"));
+			if ( viewObject instanceof IHintProvider                   && resultView.getObject("hint_content")!=null )                          			((IHintProvider)viewObject).setHintContent(resultView.getString("hint_content"));
+			if ( viewObject instanceof IHintProvider                   && resultView.getObject("hint_title")!=null )                            			((IHintProvider)viewObject).setHintTitle(resultView.getString("hint_title"));
+			if ( viewObject instanceof ILockable                       && resultView.getObject("is_locked")!=null )                             			{int locked; if ( resultView.getObject("is_locked") instanceof String ) locked = Integer.valueOf(resultView.getString("is_locked")); else locked=resultView.getInt("is_locked"); ((ILockable)viewObject).setLocked(locked==0?false:true);}
+			if ( viewObject instanceof IDiagramModelImageProvider      && resultView.getObject("image_path")!=null )                            			((IDiagramModelImageProvider)viewObject).setImagePath(resultView.getString("image_path"));
+			if ( viewObject instanceof IIconic                         && resultView.getObject("image_position")!=null )                        			((IIconic)viewObject).setImagePosition(resultView.getInt("image_position"));
+			if ( viewObject instanceof ILineObject                     && resultView.getObject("line_color")!=null )                            			((ILineObject)viewObject).setLineColor(resultView.getString("line_color"));
+			if ( viewObject instanceof ILineObject                     && resultView.getObject("line_width")!=null )                            			((ILineObject)viewObject).setLineWidth(resultView.getInt("line_width"));
+			if ( viewObject instanceof IDiagramModelObject             && resultView.getObject("fill_color")!=null )                            			((IDiagramModelObject)viewObject).setFillColor(resultView.getString("fill_color"));
+			if ( viewObject instanceof IFontAttribute                  && resultView.getObject("font")!=null )                                  			((IFontAttribute)viewObject).setFont(resultView.getString("font"));
+			if ( viewObject instanceof IFontAttribute                  && resultView.getObject("font_color")!=null )                            			((IFontAttribute)viewObject).setFontColor(resultView.getString("font_color"));
+			if ( viewObject instanceof ICanvasModelSticky              && resultView.getObject("notes")!=null )                                 			((ICanvasModelSticky)viewObject).setNotes(resultView.getString("notes"));
+			if ( viewObject instanceof ITextAlignment                  && resultView.getObject("text_alignment")!=null )                        			((ITextAlignment)viewObject).setTextAlignment(resultView.getInt("text_alignment"));
+			if ( viewObject instanceof ITextPosition                   && resultView.getObject("text_position")!=null )                         			((ITextPosition)viewObject).setTextPosition(resultView.getInt("text_position"));
+			if ( viewObject instanceof IDiagramModelObject )                                                                       						   ((IDiagramModelObject)viewObject).setBounds(resultView.getInt("x"), resultView.getInt("y"), resultView.getInt("width"), resultView.getInt("height"));
+
+			// The container is either the view, or a container in the view
+			IDiagramModel viewContainer = model.getAllViews().get(resultView.getString("container_id"));
+			if ( viewContainer == null ) {
+				IDiagramModelContainer objectContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultView.getString("container_id"));
+				if ( objectContainer == null )
+					throw new Exception("Cant find container id "+resultView.getString("container_id"));
+				objectContainer.getChildren().add((IDiagramModelObject)viewObject);
+			} else
+				viewContainer.getChildren().add((IDiagramModelObject)viewObject);
+
+
+			if ( viewObject instanceof IConnectable ) {
+				//TODO: no time to register them, but import them right now !
+				model.registerSourceConnection((IDiagramModelObject)viewObject, resultView.getString("source_connections"));
+				model.registerTargetConnection((IDiagramModelObject)viewObject, resultView.getString("target_connections"));
+			}
+
+			// If the object has got properties but does not have a linked element, then it may have distinct properties
+			if ( viewObject instanceof IProperties && resultView.getString("element_id")==null ) {
+				importProperties((IProperties)viewObject);
+			}
+
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
+		}
+		
+		return (IDiagramModelComponent)viewObject;
+	}
+	
+	/**
+	 * This method imports a view Connection<br>
+	 * if the corresponding relationship does not exists, it is imported
+	 */
+	public IDiagramModelConnection importViewConnectionFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy) throws Exception {
+		if ( logger.isDebugEnabled() ) {
+			if ( mustCreateCopy )
+				logger.debug("Importing a copy of view connection id "+id);
+			else {
+				logger.debug("Importing view connection id "+id);
+			}
+		}
+
+		// 1 : we create or update the view connection
+		EObject viewConnection = null;
+		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)" : String.valueOf(version);
+		
+		try ( ResultSet resultView = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
+			resultView.next();
+			
+			viewConnection= model.getAllViewConnections().get(id);
+			if ( viewConnection == null || mustCreateCopy ) {
+				if ( resultView.getString("class").startsWith("Canvas") )
+					viewConnection = DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
+				else
+					viewConnection = DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
+				
+				((IIdentifier)viewConnection).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
+			}
+
+			if ( viewConnection instanceof IDiagramModelArchimateConnection && resultView.getString("relationship_id") != null) {
+				// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
+				IArchimateRelationship relationship = model.getAllRelationships().get(resultView.getString("relationship_id"));
+				if ( relationship == null ) {
+					importRelationshipFromId(model, null, resultView.getString("relationship_id"), 0, false);
+				}
+			}
+
+			if ( viewConnection instanceof INameable                           && resultView.getObject("name")!=null )              ((INameable)viewConnection).setName(resultView.getString("name"));
+			if ( viewConnection instanceof ILockable                           && resultView.getObject("is_locked")!=null )         {int locked; if ( resultView.getObject("is_locked") instanceof String ) locked = Integer.valueOf(resultView.getString("is_locked")); else locked=resultView.getInt("is_locked"); ((ILockable)viewConnection).setLocked(locked==0?false:true);}
+			if ( viewConnection instanceof IDocumentable                       && resultView.getObject("documentation")!=null )     ((IDocumentable)viewConnection).setDocumentation(resultView.getString("documentation"));
+			if ( viewConnection instanceof ILineObject                         && resultView.getObject("line_color")!=null )        ((ILineObject)viewConnection).setLineColor(resultView.getString("line_color"));
+			if ( viewConnection instanceof ILineObject                         && resultView.getObject("line_width")!=null )        ((ILineObject)viewConnection).setLineWidth(resultView.getInt("line_width"));
+			if ( viewConnection instanceof IFontAttribute                      && resultView.getObject("font")!=null )              ((IFontAttribute)viewConnection).setFont(resultView.getString("font"));
+			if ( viewConnection instanceof IFontAttribute                      && resultView.getObject("font_color")!=null )        ((IFontAttribute)viewConnection).setFontColor(resultView.getString("font_color"));
+			if ( viewConnection instanceof IDiagramModelConnection             && resultView.getObject("type")!=null )              ((IDiagramModelConnection)viewConnection).setType(resultView.getInt("type"));
+			if ( viewConnection instanceof IDiagramModelConnection             && resultView.getObject("text_position")!=null )     ((IDiagramModelConnection)viewConnection).setTextPosition(resultView.getInt("text_position"));
+			if ( viewConnection instanceof IDiagramModelArchimateConnection    && resultView.getObject("type")!=null )              ((IDiagramModelArchimateConnection)viewConnection).setType(resultView.getInt("type"));
+			if ( viewConnection instanceof IDiagramModelArchimateConnection    && resultView.getObject("relationship_id")!=null )   ((IDiagramModelArchimateConnection)viewConnection).setArchimateConcept(model.getAllRelationships().get(resultView.getString("relationship_id")));
+
+			if ( viewConnection instanceof IConnectable ) {
+				//TODO: no time to register them, but import them right now !
+				model.registerSourceConnection((IDiagramModelConnection)viewConnection, resultView.getString("source_connections"));
+				model.registerTargetConnection((IDiagramModelConnection)viewConnection, resultView.getString("target_connections"));
+			}
+			//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
+
+			if ( viewConnection instanceof IDiagramModelConnection ) {
+				try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = "+versionString+" ORDER BY rank", ((IIdentifier)viewConnection).getId()) ) {
+					while(resultBendpoints.next()) {
+						IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
+						bendpoint.setStartX(resultBendpoints.getInt("start_x"));
+						bendpoint.setStartY(resultBendpoints.getInt("start_y"));
+						bendpoint.setEndX(resultBendpoints.getInt("end_x"));
+						bendpoint.setEndY(resultBendpoints.getInt("end_y"));
+						((IDiagramModelConnection)viewConnection).getBendpoints().add(bendpoint);
+					}
+				}
+			}
+
+			// If the connection has got properties but does not have a linked relationship, then it may have distinct properties
+			if ( viewConnection instanceof IProperties && resultView.getString("relationship_id")==null ) {
+				importProperties((IProperties)viewConnection);
+			}
+
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewConnection).getId()+")");
+			
+		}
+		
+		return (IDiagramModelConnection)viewConnection;
+	}
+			
+			
+			
 
 	/**
 	 * gets the latest model version in the database (0 if the model does not exist in the database)
