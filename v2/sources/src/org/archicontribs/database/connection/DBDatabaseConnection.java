@@ -562,6 +562,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
+					+ "container_id "+ this.OBJECTID +" NOT NULL, "
 					+ "name "+ this.OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
 					+ "documentation "+ this.TEXT +", "
 					+ "is_locked "+ this.BOOLEAN +", "
@@ -579,7 +580,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "type "+ this.INTEGER +", "
 					+ "created_by "+ this.USERNAME +" NOT NULL, "
 					+ "created_on "+ this.DATETIME +" NOT NULL, "
-					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
@@ -589,7 +589,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "civ_id "+ this.AUTO_INCREMENT+", "
                     + "connection_id "+ this.OBJECTID +" NOT NULL, "
                     + "connection_version "+ this.INTEGER +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
@@ -639,6 +638,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
 					+ "element_id "+ this.OBJECTID +", "
 					+ "element_version "+ this.INTEGER +", "
 					+ "diagram_ref_id "+ this.OBJECTID +", "
@@ -669,7 +669,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "height "+ this.INTEGER +", "
 					+ "created_by "+ this.USERNAME +" NOT NULL, "
 					+ "created_on "+ this.DATETIME +" NOT NULL, "
-					+ "rank "+ this.INTEGER +" NOT NULL, "
 					+ "checksum "+ this.OBJECTID +" NOT NULL, "
 					+ this.PRIMARY_KEY+" (id, version)"
 					+ ")");
@@ -679,7 +678,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "oiv_id "+ this.AUTO_INCREMENT+", "
                     + "object_id "+ this.OBJECTID +" NOT NULL, "
                     + "object_version "+ this.INTEGER +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
@@ -912,7 +910,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "civ_id "+ this.AUTO_INCREMENT+", "
                     + "connection_id "+ this.OBJECTID +" NOT NULL, "
                     + "connection_version "+ this.INTEGER +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
@@ -935,8 +932,8 @@ public class DBDatabaseConnection implements AutoCloseable {
             // we fill in the views_connections_in_view table
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
             request("INSERT INTO "+this.schema+"views_connections_in_view "
-            		+"(connection_id, connection_version, container_id, view_id, view_version, rank) "
-            		+"SELECT id, version, container_id, view_id, view_version, rank FROM "+this.schema+"views_connections"
+            		+"(connection_id, connection_version, view_id, view_version, rank) "
+            		+"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_connections"
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
@@ -944,7 +941,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "oiv_id "+ this.AUTO_INCREMENT+", "
                     + "object_id "+ this.OBJECTID +" NOT NULL, "
                     + "object_version "+ this.INTEGER +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
@@ -968,8 +964,8 @@ public class DBDatabaseConnection implements AutoCloseable {
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects table to "+this.schema+"views_objects_in_view table");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
             request("INSERT INTO "+this.schema+"views_objects_in_view "
-            		+"(object_id, object_version, container_id, view_id, view_version, rank) "
-            		+"SELECT id, version, container_id, view_id, view_version, rank FROM "+this.schema+"views_objects"
+            		+"(object_id, object_version, view_id, view_version, rank) "
+            		+"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_objects"
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_connections to "+this.schema+"views_connections_old");
@@ -981,6 +977,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
+					+ "container_id "+ this.OBJECTID +" NOT NULL, "
 					+ "name "+ this.OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
 					+ "documentation "+ this.TEXT +", "
 					+ "is_locked "+ this.BOOLEAN +", "
@@ -1003,8 +1000,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ ")");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections_old to "+this.schema+"views_connections table");
             request("INSERT INTO "+this.schema+"views_connections "
-            		+"(id, version, class, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum) "
-            		+"SELECT DISTINCT o.id, o.version, o.class, o.name, o.documentation, o.is_locked, o.line_color, o.line_width, o.font, o.font_color, o.relationship_id, o.relationship_version, o.source_connections, o.target_connections, o.source_object_id, o.target_object_id, o.text_position, o.type, v.created_by, v.created_on, o.checksum FROM "+this.schema+"views_connections_old o JOIN "+this.schema+"views v ON o.view_id = v.id AND o.view_version = v.version"
+            		+"(id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum) "
+            		+"SELECT DISTINCT o.id, o.version, o.class, o.container_id, o.name, o.documentation, o.is_locked, o.line_color, o.line_width, o.font, o.font_color, o.relationship_id, o.relationship_version, o.source_connections, o.target_connections, o.source_object_id, o.target_object_id, o.text_position, o.type, v.created_by, v.created_on, o.checksum FROM "+this.schema+"views_connections_old o JOIN "+this.schema+"views v ON o.view_id = v.id AND o.view_version = v.version"
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_objects to "+this.schema+"views_objects_old");
@@ -1016,6 +1013,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "id "+ this.OBJECTID +" NOT NULL, "
 					+ "version "+ this.INTEGER +" NOT NULL, "
 					+ "class "+ this.OBJECTID +" NOT NULL, "
+                    + "container_id "+ this.OBJECTID +" NOT NULL, "
 					+ "element_id "+ this.OBJECTID +", "
 					+ "element_version "+ this.INTEGER +", "
 					+ "diagram_ref_id "+ this.OBJECTID +", "
@@ -1051,8 +1049,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ ")");
             if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects_old to "+this.schema+"views_objects table");
             request("INSERT INTO "+this.schema+"views_objects "
-            		+"(id, version, class, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum) " 
-            		+"SELECT DISTINCT o.id, o.version, o.class, o.element_id, o.element_version, o.diagram_ref_id, o.border_color, o.border_type, o.content, o.documentation, o.hint_content, o.hint_title, o.is_locked, o.image_path, o.image_position, o.line_color, o.line_width, o.fill_color, o.font, o.font_color, o.name, o.notes, o.source_connections, o.target_connections, o.text_alignment, o.text_position, o.type, o.x, o.y, o.width, o.height, v.created_by, v.created_on, o.checksum FROM "+this.schema+"views_objects_old o JOIN "+this.schema+"views v ON o.view_id = v.id AND o.view_version = v.version"
+            		+"(id, version, class, container_id, element_id, element_version, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position,	line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum) " 
+            		+"SELECT DISTINCT o.id, o.version, o.class, o.container_id, o.element_id, o.element_version, o.diagram_ref_id, o.border_color, o.border_type, o.content, o.documentation, o.hint_content, o.hint_title, o.is_locked, o.image_path, o.image_position, o.line_color, o.line_width, o.fill_color, o.font, o.font_color, o.name, o.notes, o.source_connections, o.target_connections, o.text_alignment, o.text_position, o.type, o.x, o.y, o.width, o.height, v.created_by, v.created_on, o.checksum FROM "+this.schema+"views_objects_old o JOIN "+this.schema+"views v ON o.view_id = v.id AND o.view_version = v.version"
             		);
             
             dbVersion = 206;
