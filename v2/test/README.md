@@ -1,11 +1,13 @@
 
 # beta release
-Please note that this version is for testing purpose and should not be used on a production database.
+Please note that this version is for testing purpose and **should not be used on a production database**.
 
-**Please do not forget to fill in an issue if you discover a misbehaviour.**
+It is compatible with the (future) version **4.3** of Archi.
 
+Please do not forget to fill in an issue if you discover a misbehaviour.
 
 ## Release note
+Changes from the version 2.0.7b:
 * The online help is finally beeing written. It can be accessed using the interrogation mark on every plugin window.
 * Bug fixes:
   * Fix plugin initialization failure that occured some times
@@ -17,13 +19,13 @@ Please note that this version is for testing purpose and should not be used on a
   * Add an option to compare the model from the database before exporting it
   * For relational databases:
     * Create two export modes: standalone and collaborative modes
-      * standalone mode means the export procedure only export components (it is quicker and adapted when only one person work on a model at one time)
-      * collaborative mode means the export procedure syncs the model with the database (it is slower butadapted when several people are working on the same model at one time)
+      * Standalone mode means the export procedure only export components (it is quicker and adapted when only one person work on a model at one time)
+      * Collaborative mode means the export procedure syncs the model with the database (it is slower but adapted when several people are working on the same model at the same time)
     * Allow to specify border width and scale factor for views screenshots
   * For Neo4J databases:
     * Create two export modes: native and extended
-      * native mode means that Archi relationships are exported as Neo4J relationships (but this mode does not allow to export relationships on relationships)
-      * extended mode means that Archi relationships are exported as Neo4J nodes (this mode makes Neo4J diagrams more complex but allow relationships on relationships)
+      * Native mode means that Archi relationships are exported as Neo4J relationships (but this mode does not allow to export relationships on relationships)
+      * Extended mode means that Archi relationships are exported as Neo4J nodes (this mode makes Neo4J diagrams more complex but allow relationships on relationships)
     * New option to empty the database before the export
     * New option to specialize relationships
 * Import individual component:
@@ -40,9 +42,3 @@ Please note that this version is for testing purpose and should not be used on a
     * Neo4J to 3.1.0
     * SQLite to 3.21.0
     * PostGreSQL to 42.2.1
-
-
-## Known bugs
-* Export views
-The views checksum are calculated at the begining of the export process but their content may be updated when the elements and relationships are exported.
-Specifically, elements and relationships may have new name or may be removed, so the checksum should be calculated after the elements and relationships have been exported.
