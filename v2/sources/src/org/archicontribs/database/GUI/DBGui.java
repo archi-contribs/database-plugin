@@ -1035,7 +1035,7 @@ public class DBGui {
 	        addItemToCompareTable(tree, treeItem, "Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version")));
         
             if ( (String)databaseObject.get("created_by") != null ) {
-                addItemToCompareTable(tree, treeItem, "Username", System.getProperty("user.name"), (String)databaseObject.get("created_by"));
+                addItemToCompareTable(tree, treeItem, "Username", DBPlugin.getUserName(), (String)databaseObject.get("created_by"));
             }
         
             if ( databaseObject.get("created_on") != null ) {
