@@ -726,6 +726,16 @@ public class DBDatabaseConnection implements AutoCloseable {
 		int dbVersion = version;
 		
 		setAutoCommit(false);
+		
+		// in case old tables remain from a previous unfinished upgrade ...
+		for ( String tableName: tablesToDrop ) {
+			// SQLite refuses to drop the table if we do not close the connection and reopen it
+			this.connection.close();
+			openConnection();
+			setAutoCommit(false);
+			request("DROP TABLE "+this.schema+tableName);
+			commit();
+		}
 
 		// convert from version 200 to 201 :
 		//      - add a blob column into the views table
