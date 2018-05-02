@@ -253,6 +253,13 @@ public class DBPlugin extends AbstractUIPlugin {
 
 	static DBLogger logger;
 
+	/**
+	 * The DBPlugin class is instantiated when Archi starts<b>
+	 * It:<br>
+	 *    1- configures the preference store,<br>
+	 *    2- defines default values for standard options (in case they've not be defined in the preference store)
+	 *    3- checks if a new version of the plugin is available on GitHub
+	 */
 	public DBPlugin() {
 		INSTANCE = this;
 		
