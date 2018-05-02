@@ -6,6 +6,10 @@ import java.util.List;
 
 import lombok.Getter;
 
+/**
+ * This enum stores the information required to connect to a database
+ * @author Herve Jouin
+ */
 public enum DBDatabase {
 	MSSQL(0, "ms-sql", 1433, true),
 	MYSQL(1, "mysql", 3306, false),
@@ -27,10 +31,24 @@ public enum DBDatabase {
     
     public static final String[] DRIVER_NAMES = new String[] {MSSQL.getDriverName(), MYSQL.getDriverName(), NEO4J.getDriverName(), ORACLE.getDriverName(), POSTGRESQL.getDriverName(), SQLITE.getDriverName()};
     
+    /**
+     * Numeric value of the entry
+     */
 	@Getter private final int value;
+	
+	/**
+	 * driver name of the database
+	 */
 	@Getter private final String driverName;
+	
+	/**
+	 * default port that can be used to connect to the database
+	 */
 	@Getter private final int defaultPort;
 	
+	/**
+	 * true is the database can handle schemas, false if it can't
+	 */
 	private final boolean hasSchema;
     public boolean hasSchema() {
         return this.hasSchema;
@@ -43,12 +61,22 @@ public enum DBDatabase {
         this.hasSchema = hasSchema;
     }
     
+    /**
+     * Gets the database properties from its driver-name
+     * @param driverName
+     * @return the database properties
+     */
     public static DBDatabase get(String driverName) {
     	for ( DBDatabase database: VALUES_ARRAY )
     		if ( DBPlugin.areEqual(database.getDriverName(), driverName) ) return database;
         return null;
     }
     
+    /**
+     * Gets the database properties from its numeric value
+     * @param numeric value
+     * @return the database properties
+     */
     public static DBDatabase get(int value) {
         switch (value) {
             case NEO4J_VALUE: return NEO4J;
@@ -63,6 +91,11 @@ public enum DBDatabase {
         return null;
     }
 
+    /**
+     * Gets the database driver name
+     * @param driverName
+     * @return the driver name
+     */
     @Override
     public String toString() {
         return this.driverName;
