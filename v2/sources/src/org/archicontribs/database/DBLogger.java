@@ -40,6 +40,10 @@ public class DBLogger {
 	 */
 	@Getter private Logger logger;
 
+	/**
+	 * Creates a proxy to to the Log4J logger class
+	 * @param clazz : Class that will be reported on the log lines
+	 */
 	public <T> DBLogger(Class<T> clazz) {
 		if ( ! initialised ) {
 			try {
@@ -87,6 +91,10 @@ public class DBLogger {
 
 	/**
 	 * Logs a message
+	 * @param clazz : Class that will be reported in the log line
+     * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message : Message to print on the log line
+     * @param t : Exception to add to the log file (the exception message and stacktrace will be added to the log file)
 	 */
 	public <T> void log(Class<T> clazz, Level level, String message, Throwable t) {
 		String className = clazz.getName();
@@ -107,10 +115,16 @@ public class DBLogger {
 	
 	/**
 	 * Logs a message
+	 * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message : Message to print on the log line
 	 */
 	public void log(Level level, String message)						{ log(this.getClass(), level, message, null); }
+	
 	/**
 	 * Logs a message
+     * @param clazz : Class that will be reported in the log line
+     * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message : Message to print on the log line
 	 */
 	public <T> void log(Class<T> clazz, Level level, String message)	{ log(clazz, level, message, null); }
 	
@@ -118,6 +132,7 @@ public class DBLogger {
 	 * Logs a fatal message
 	 */
 	public void fatal(String message)									{ log(this.getClass(), Level.FATAL, message, null); }
+	
 	/**
 	 * Logs a fatal message
 	 */

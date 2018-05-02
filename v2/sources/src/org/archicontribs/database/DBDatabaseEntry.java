@@ -10,7 +10,11 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import lombok.Getter;
 import lombok.Setter;
 
-
+/**
+ * This class contains all the information required to connect to to a database 
+ * 
+ * @author Herve Jouin
+ */
 public class DBDatabaseEntry {
 	private static final DBLogger logger = new DBLogger(DBDatabaseEntry.class);
 
@@ -19,6 +23,23 @@ public class DBDatabaseEntry {
     public DBDatabaseEntry() {
     }
 
+    /**
+     * Created a database entry
+     * @param name : name of the entry (just a bulk of letters, can contain spaces)
+     * @param driver : name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
+     * @param server : IP address or DNS name of the server where the database stands
+     * @param port : TCP port on which the database is listening to 
+     * @param database : name of the database
+     * @param schema : name of the schema
+     * @param username : account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
+     * @param password : password used to connect to the database
+     * @param exportWholeModel : true if the whole model (including folders, views, objects and connections) should be exported, or false if only the elements and relationships must be exported. 
+     * @param exportViewImages : true if screenshots of the views must be exported in the database, false if screenshots are not necessary
+     * @param neo4jNativeMode : true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
+     * @param neo4jEmptyDB : true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
+     * @param collaborativeMode : true if the export must be done in collaborative mode, or false if the export must be done in standalone mode
+     * @throws Exception
+     */
     public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean neo4jEmptyDB, boolean collaborativeMode) throws Exception {
         setName(name);
         setDriver(driver);
@@ -29,6 +50,7 @@ public class DBDatabaseEntry {
         setUsername(username);
         setPassword(password);
 
+        //TODO: store this parameter once for all in the database as exporting the elements and relationships only in a database where the previous models have got views is equal to removing the views from the model
         setWholeModelExported(exportWholeModel);
         setViewSnapshotRequired(exportViewImages);
 
@@ -78,6 +100,7 @@ public class DBDatabaseEntry {
 	 * port should be between 0 and 65535 
 	 */
 	@Getter private int port = 0;
+	
 	/**
      * TCP port on which the database listens to<br>
      * <br>
@@ -186,6 +209,12 @@ public class DBDatabaseEntry {
 		return "SQL";
 	}
 
+	/**
+	 * Gets all the database entries from the preference store
+	 * 
+	 * @param includeNeo4j : True if the Neo4J database must be included, false if the Neo4J databases must me excluded
+	 * @return List of the database entries
+	 */
 	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
 		if ( logger.isDebugEnabled() ) logger.debug("Getting databases preferences from preference store");
 		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();     
@@ -241,6 +270,11 @@ public class DBDatabaseEntry {
 		return databaseEntries;
 	}
 
+	/**
+	 * Persist the database entries in the preference store
+	 * 
+	 * @param databaseEntries : List of the database entries to persist in the preference store
+	 */
 	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) {
 		if ( logger.isDebugEnabled() ) logger.debug("Recording databases in preference store");
 
@@ -269,6 +303,13 @@ public class DBDatabaseEntry {
 		}
 	}
 
+	/**
+	 * Get a database entry from the database name
+	 * 
+	 * @param databaseName : database name of the database entry
+	 * @return The database entry corresponding to the database name
+	 * @throws Exception
+	 */
 	public static DBDatabaseEntry getDBDatabaseEntry(String databaseName) throws Exception {
 		List<DBDatabaseEntry> databaseEntries = getAllDatabasesFromPreferenceStore(true);
 

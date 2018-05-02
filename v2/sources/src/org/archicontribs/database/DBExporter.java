@@ -24,7 +24,8 @@ public class DBExporter implements IModelExporter {
     private static final DBLogger logger = new DBLogger(DBExporter.class);
 
     /**
-     * Exports the model into the database.
+     * Exports the model into the database.<br>
+     * This method is called when the user clicks on the "Export / Export to database" menu entry of Archi
      */
     @Override
     public void export(IArchimateModel archimateModel) throws IOException {
