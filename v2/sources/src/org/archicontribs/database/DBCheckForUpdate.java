@@ -63,6 +63,14 @@ public class DBCheckForUpdate {
 	int updateDownloaded = 0;
 	int answer;
 	
+	/**
+	 * Establishes an https connection to GitHub, get a list of available jar files and get the versions from the jar filename.<br>
+	 * If the greater version of the jar files is greater than the current plugin version, then a popup asks the user if it wishes to doanload it.<br>
+	 * If yes, then the jar file is downloaded to a temporary file and a task is created to replace the existing jar file with the new one when Archi is stopped.
+	 * @param verbose
+	 * @param pluginApiUrl
+	 * @param releaseNoteUrl
+	 */
 	public DBCheckForUpdate(boolean verbose, String pluginApiUrl, String releaseNoteUrl) {
 		if ( verbose )
 			DBGui.popup("Please wait while checking for new database plugin ...");
@@ -286,7 +294,7 @@ public class DBCheckForUpdate {
 	}
 	
     /**
-     * shows up an on screen popup with a progressbar<br>
+     * Shows up an on screen popup with a progressbar<br>
      * it is the responsibility of the caller to dismiss the popup
      */
     ProgressBar progressbarPopup(String msg) {
