@@ -178,7 +178,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				try ( ResultSet resultProperties = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
 					int i = 0;
 					while ( resultProperties.next() ) {
-						databaseProperties[i++] = new String[] { resultProperties.getString("name"), result.getString("value") };
+						databaseProperties[i++] = new String[] { resultProperties.getString("name"), resultProperties.getString("value") };
 					}
 					hashResult.put("properties", databaseProperties);
 				}
