@@ -1357,7 +1357,7 @@ public class DBGuiImportComponent extends DBGui {
 
 
 	private static void createTableItem(Table table, String id, String className, String name, String documentation) {
-		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to tblComponents");
+		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to table");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText(0, "   "+name);
@@ -1366,6 +1366,7 @@ public class DBGuiImportComponent extends DBGui {
 			item.setImage(DBCanvasFactory.getImage(className));
 		else
 			item.setImage(DBArchimateFactory.getImage(className));
+		//TODO: add the properties in a popup as several components may have the same name !!! 
 	}
 
 
