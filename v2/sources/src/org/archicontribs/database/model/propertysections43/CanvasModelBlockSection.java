@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.database.model.propertysections;
+package org.archicontribs.database.model.propertysections43;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
