@@ -1161,7 +1161,7 @@ public class DBGuiImportComponent extends DBGui {
 				classList.add(label.getElementClassname());
 			}
 		}
-
+		
 		this.hideOption.setText("Hide components with empty names");
 		String addOn = "";
 		if ( this.hideOption.getSelection() ) {
@@ -1174,6 +1174,11 @@ public class DBGuiImportComponent extends DBGui {
 			
 		addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 		addOn += " ORDER BY NAME";
+		
+		if ( logger.isTraceEnabled() ) {
+			logger.trace("   inList = "+inList.toString());
+			logger.trace("   addOn = "+addOn);
+		}
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
@@ -1357,7 +1362,7 @@ public class DBGuiImportComponent extends DBGui {
 
 
 	private static void createTableItem(Table table, String id, String className, String name, String documentation) {
-		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to table");
+		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to tblComponents");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText(0, "   "+name);
@@ -1371,7 +1376,7 @@ public class DBGuiImportComponent extends DBGui {
 
 
 	void doImport() throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+this.tblComponents.getItemCount()+" items");
+		if ( logger.isTraceEnabled() ) logger.trace("doImport: tblComponents has got "+this.tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
 			logger.info("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
 		else
