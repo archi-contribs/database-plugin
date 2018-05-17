@@ -1161,7 +1161,7 @@ public class DBGuiImportComponent extends DBGui {
 				classList.add(label.getElementClassname());
 			}
 		}
-
+		
 		this.hideOption.setText("Hide components with empty names");
 		String addOn = "";
 		if ( this.hideOption.getSelection() ) {
@@ -1174,6 +1174,11 @@ public class DBGuiImportComponent extends DBGui {
 			
 		addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 		addOn += " ORDER BY NAME";
+		
+		if ( logger.isTraceEnabled() ) {
+			logger.trace("   inList = "+inList.toString());
+			logger.trace("   addOn = "+addOn);
+		}
 
 		if ( inList.length() != 0 ) {
 			ResultSet result;
@@ -1366,11 +1371,12 @@ public class DBGuiImportComponent extends DBGui {
 			item.setImage(DBCanvasFactory.getImage(className));
 		else
 			item.setImage(DBArchimateFactory.getImage(className));
+		//TODO: add the properties in a popup as several components may have the same name !!! 
 	}
 
 
 	void doImport() throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("tblComponents has got "+this.tblComponents.getItemCount()+" items");
+		if ( logger.isTraceEnabled() ) logger.trace("doImport: tblComponents has got "+this.tblComponents.getItemCount()+" items");
 		if ( getOptionValue() )
 			logger.info("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
 		else

@@ -889,7 +889,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		if ( logger.isDebugEnabled() ) logger.debug(this.countImagesImported+" images imported.");
 	}
-
+	
 	/**
 	 * Imports the properties of an Archi component<br>
 	 * - missing properties are created
@@ -897,15 +897,25 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * - existing properties with correct values are left untouched 
 	 */
 	private void importProperties(IProperties parent) throws Exception {
-		int currentVersion;
+		int version;
+		if ( parent instanceof IArchimateModel )
+			version = ((DBArchimateModel)parent).getInitialVersion().getVersion();
+		else
+			version = ((IDBMetadata)parent).getDBMetadata().getInitialVersion().getVersion();
+		
+		importProperties(parent, ((IIdentifier)parent).getId(), version);
+	}
+
+	/**
+	 * Imports the properties of an Archi component<br>
+	 * - missing properties are created
+	 * - existing properties are updated with correct values if needed
+	 * - existing properties with correct values are left untouched 
+	 */
+	private void importProperties(IProperties parent, String id, int version) throws Exception {
 		int i = 0;
 		
-		if ( parent instanceof IArchimateModel )
-			currentVersion = ((DBArchimateModel)parent).getInitialVersion().getVersion();
-		else
-			currentVersion = ((IDBMetadata)parent).getDBMetadata().getInitialVersion().getVersion();
-
-		try ( ResultSet result = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY rank", ((IIdentifier)parent).getId(), currentVersion)) {
+		try ( ResultSet result = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY rank", id, version)) {
 			boolean shouldAdd;
 			while ( result.next() ) {
 				// if the property already exist, we update its value. If it doesn't, we create it
@@ -1065,8 +1075,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				element.setId(model.getIDAdapter().getNewID());
 				newElement = true;
 	
+				element.setName(resultElement.getString("name")==null ? "" : resultElement.getString("name"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(0);
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				
+				importProperties(element, elementId, resultElement.getInt("version"));
 			} else {
 				element = model.getAllElements().get(elementId);
 				if ( element == null ) {
@@ -1082,14 +1095,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( !DBPlugin.areEqual(element.getName(), resultElement.getString("name")) ) element.setName(resultElement.getString("name")==null ? "" : resultElement.getString("name"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(resultElement.getInt("version"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(resultElement.getTimestamp("created_on"));
+				
+				importProperties(element);
 			}
 	
 			if ( !DBPlugin.areEqual(element.getDocumentation(), resultElement.getString("documentation")) ) element.setDocumentation(resultElement.getString("documentation"));
 			if ( element instanceof IJunction ) {
 				if ( !DBPlugin.areEqual(((IJunction)element).getType(), resultElement.getString("type")) ) ((IJunction)element).setType(resultElement.getString("type"));
 			}
-	
-			importProperties(element);
 			
 			boolean createViewObject = false;
 			if( newElement ) {

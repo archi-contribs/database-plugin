@@ -681,7 +681,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
-                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
@@ -728,14 +728,24 @@ public class DBDatabaseConnection implements AutoCloseable {
 		setAutoCommit(false);
 		
 		// in case old tables remain from a previous unfinished upgrade ...
+		tablesToDrop.add("models_old");
+		tablesToDrop.add("views_old");
+		tablesToDrop.add("views_connections_old");
+		tablesToDrop.add("views_objects_old");
 		for ( String tableName: tablesToDrop ) {
 			// SQLite refuses to drop the table if we do not close the connection and reopen it
 			this.connection.close();
 			openConnection();
 			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+tableName);
+			try {
+				request("DROP TABLE "+this.schema+tableName);
+			} catch (@SuppressWarnings("unused") SQLException ign) {
+				// nothing to do
+			}
 			commit();
 		}
+		
+		tablesToDrop.clear();
 
 		// convert from version 200 to 201 :
 		//      - add a blob column into the views table
@@ -779,7 +789,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 			String[] columns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checkedin_by", "checkedin_on", "deleted_by", "deleted_on", "checksum"};
 
 			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"models to "+this.schema+"models_old");
-			request("ALTER TABLE "+this.schema+"models RENAME TO "+this.schema+"models_old");
+			
+			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql") )
+				request("EXEC sp_rename ?, ?", this.schema+"models", this.schema+"models_old");
+			else
+				request("ALTER TABLE "+this.schema+"models RENAME TO "+this.schema+"models_old");
+			
 			tablesToDrop.add("models_old");
 
 			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"models");
@@ -843,7 +858,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 			String[] columns = {"id", "version", "class", "name", "documentation", "hint_content", "hint_title", "created_by", "created_on", "background", "connection_router_type", "viewpoint", "screenshot", "checksum", "container_checksum"};
 
 			if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views to "+this.schema+"views_old");
-			request("ALTER TABLE "+this.schema+"views RENAME TO "+this.schema+"views_old");
+			
+			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql") )
+				request("EXEC sp_rename ?, ?", this.schema+"views", this.schema+"views_old");
+			else
+				request("ALTER TABLE "+this.schema+"views RENAME TO "+this.schema+"views_old");
+			
 			tablesToDrop.add("views_old");
 			
 			if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views");
@@ -954,7 +974,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "view_id "+ this.OBJECTID +" NOT NULL, "
                     + "view_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL"
-                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
+                    + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
@@ -979,7 +999,12 @@ public class DBDatabaseConnection implements AutoCloseable {
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_connections to "+this.schema+"views_connections_old");
-            request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_connections_old");
+            
+			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql") )
+				request("EXEC sp_rename ?, ?", this.schema+"views_connections", this.schema+"views_connections_old");
+			else
+				request("ALTER TABLE "+this.schema+"views_connections RENAME TO "+this.schema+"views_connections_old");
+			
             tablesToDrop.add("views_connections_old");
             
             if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_connections");
@@ -1015,7 +1040,12 @@ public class DBDatabaseConnection implements AutoCloseable {
             		);
             
             if ( logger.isDebugEnabled() ) logger.debug("renaming table "+this.schema+"views_objects to "+this.schema+"views_objects_old");
-            request("ALTER TABLE "+this.schema+"views_objects RENAME TO "+this.schema+"views_objects_old");
+            
+			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql") )
+				request("EXEC sp_rename ?, ?", this.schema+"views_objects", this.schema+"views_objects_old");
+			else
+				request("ALTER TABLE "+this.schema+"views_objects RENAME TO "+this.schema+"views_objects_old");
+			
             tablesToDrop.add("views_objects_old");
             
             if ( logger.isDebugEnabled() ) logger.debug("re-creating table "+this.schema+"views_objects");

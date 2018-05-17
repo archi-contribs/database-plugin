@@ -1145,7 +1145,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getWidth() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
 				,DBPlugin.getUserName()
-				,((DBArchimateModel)viewObject.getArchimateModel()).getExportedVersion().getTimestamp()
+				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 
@@ -1217,7 +1217,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,viewConnection.getTextPosition()
 				,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : viewConnection.getType())
 				,DBPlugin.getUserName()
-				,((DBArchimateModel)viewConnection.getArchimateModel()).getExportedVersion().getTimestamp()
+				,((DBArchimateModel)viewConnection.getDiagramModel().getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getChecksum()
 				);
 

@@ -2,7 +2,9 @@
 # beta release
 Please note that this version is for testing purpose and **should not be used on a production database**.
 
-It is compatible with the (future) version **4.3** of Archi.
+Two versions are provided:
+* for the actual version of Archi (4.2)
+* for the future version of Archi (4.3)
 
 Please do not forget to fill in an issue if you discover a misbehaviour.
 
