@@ -706,13 +706,24 @@ public class DBDatabaseConnection implements AutoCloseable {
 			rollback();
 			setAutoCommit(true);
 			// we delete the archi_plugin table because for some databases, DDL cannot be rolled back
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") )
-				request("BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+this.schema+"database_version'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-			else
-				request("DROP TABLE IF EXISTS "+this.schema+"database_version");
+			dropTableIfExists(this.schema+"database_version");
 			throw err;
 		}
 
+	}
+	
+	public void dropTableIfExists(String tableName) throws SQLException {
+	    if ( logger.isTraceEnabled() ) logger.trace("Removing table "+tableName+" if it exists");
+        switch (this.databaseEntry.getDriver() ) {
+            case "oracle":
+                request("BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+tableName+"'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                break;
+            case "ms-sql":
+                request("IF OBJECT_ID('"+tableName+"', 'U') IS NOT NULL DROP TABLE "+tableName);
+                break;
+            default:
+                request("DROP TABLE IF EXISTS "+tableName);
+        }
 	}
 
 
@@ -737,11 +748,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.connection.close();
 			openConnection();
 			setAutoCommit(false);
-			try {
-				request("DROP TABLE "+this.schema+tableName);
-			} catch (@SuppressWarnings("unused") SQLException ign) {
-				// nothing to do
-			}
+			dropTableIfExists(this.schema+tableName);
 			commit();
 		}
 		
@@ -1104,7 +1111,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.connection.close();
 			openConnection();
 			setAutoCommit(false);
-			request("DROP TABLE "+this.schema+tableName);
+			dropTableIfExists(this.schema+tableName);
 			commit();
 		}
 
