@@ -745,6 +745,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		tablesToDrop.add("views_objects_old");
 		for ( String tableName: tablesToDrop ) {
 			// SQLite refuses to drop the table if we do not close the connection and reopen it
+		    //TODO: reset() should be enough. it may be worth giving it a try
 			this.connection.close();
 			openConnection();
 			setAutoCommit(false);
