@@ -756,7 +756,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 
 		// convert from version 201 to 202 :
-		//      - add a text_position column in the views_connections table
+		//      - add text_position column in the views_connections table
 		//      - add source_connections and target_connections to views_objects and views_connections tables
 		if ( dbVersion == 201 ) {
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" text_position "+this.INTEGER);
@@ -769,8 +769,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 
 		// convert from version 202 to 203 :
-		//      - add a text_position column in the views_connections table
-		//      - add source_connections and target_connections to views_objects and views_connections tables
+		//      - add element_version column to the views_objects table
+		//      - add relationship_version column to the views_connections table
 		if ( dbVersion == 202 ) {
 			request("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" relationship_version "+this.INTEGER);
 			request("UPDATE "+this.schema+"views_connections SET relationship_version = 1");
