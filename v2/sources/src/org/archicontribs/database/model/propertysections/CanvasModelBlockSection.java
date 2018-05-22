@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.database.model.propertysections43;
+package org.archicontribs.database.model.propertysections;
 
 import java.awt.image.BufferedImage;
 import java.awt.image.ColorModel;
@@ -42,23 +42,22 @@ import org.eclipse.ui.PlatformUI;
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.commands.EObjectFeatureCommand;
-import com.archimatetool.editor.propertysections.IObjectFilter;
 import com.archimatetool.editor.propertysections.ITabbedLayoutConstants;
 import com.archimatetool.editor.propertysections.Messages;
-import com.archimatetool.editor.propertysections.ObjectFilter;
 import com.archimatetool.model.IArchimatePackage;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelObject;
 
 /**
- * This class extends the com.archimatetool.editor.propertysections.AbstractECorePropertySection, adding the ability to import an image from a database
+ * This class extends the org.eclipse.ui.views.properties.tabbed.AbstractPropertySection to be compatible with Archi 4.2 AND 4.3, adding the ability to import an image from a database
  * 
  * @author Herve Jouin
  */
-public class CanvasModelBlockSection extends com.archimatetool.editor.propertysections.AbstractECorePropertySection {
+public class CanvasModelBlockSection extends AbstractPropertySection {
 	private static final DBLogger logger = new DBLogger(CanvasModelBlockSection.class);
 	
 	protected static final String HELP_ID = "com.archimatetool.help.elementPropertySection"; //$NON-NLS-1$
+	private ICanvasModelBlock fCanvasModelBlock;   // for 4.2 and prior compatibility
 	Button btnImportImage;
 	
     /**
@@ -89,7 +88,6 @@ public class CanvasModelBlockSection extends com.archimatetool.editor.propertyse
         this.btnImportImage.setLayoutData(gd);
         this.btnImportImage.setAlignment(SWT.LEFT);
         this.btnImportImage.addSelectionListener(new SelectionAdapter() {
-            @SuppressWarnings("synthetic-access")
             @Override
             public void widgetSelected(SelectionEvent e) {
                 MenuManager menuManager = new MenuManager();
@@ -242,5 +240,22 @@ public class CanvasModelBlockSection extends com.archimatetool.editor.propertyse
             }
         }
         return bufferedImage;
+    }
+
+    /**
+     * @return The EObject for this Property Section (for 4.2 and prior compatibility)
+     */
+    protected EObject getEObject() {
+        return this.fCanvasModelBlock;
+    }
+    
+    /**
+     * sets the EObject for this Property Section (for 4.2 and prior compatibility)
+     */
+    protected void setElement(Object element) {
+        this.fCanvasModelBlock = (ICanvasModelBlock)new Filter().adaptObject(element);
+        if(this.fCanvasModelBlock == null) {
+            System.err.println(getClass() + " failed to get element for " + element); //$NON-NLS-1$
+        }
     }
 }

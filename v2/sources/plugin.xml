@@ -118,15 +118,15 @@
             contributorId="com.archimatetool.editor">
          <propertySection
                afterSection="imageSection"
-               class="org.archicontribs.database.model.propertysections42.DiagramModelImageSection"
-               filter="org.archicontribs.database.model.propertysections42.DiagramModelImageSection$Filter"
+               class="org.archicontribs.database.model.propertysections.DiagramModelImageSection"
+               filter="org.archicontribs.database.model.propertysections.DiagramModelImageSection$Filter"
                id="databaseImageSection"
                tab="main.tab">
          </propertySection>
          <propertySection
                afterSection="iconSection"
-               class="org.archicontribs.database.model.propertysections42.CanvasModelBlockSection"
-               filter="org.archicontribs.database.model.propertysections42.CanvasModelBlockSection$Filter"
+               class="org.archicontribs.database.model.propertysections.CanvasModelBlockSection"
+               filter="org.archicontribs.database.model.propertysections.CanvasModelBlockSection$Filter"
                id="databaseImageSection"
                tab="image.tab">
          </propertySection>
