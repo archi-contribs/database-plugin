@@ -2,13 +2,10 @@
 # beta release
 Please note that this version is for testing purpose and **should not be used on a production database**.
 
-Two versions are provided:
-* for the actual version of Archi (4.2)
-* for the future version of Archi (4.3)
-
 Please do not forget to fill in an issue if you discover a misbehaviour.
 
-## Release note
+The beta3b fixes SQL Server database creation and is now compatible with both Archi 4.2 and Archi 4.3.
+
 Changes from the version 2.0.7b:
 * The online help is finally beeing written. It can be accessed using the interrogation mark on every plugin window.
 * Bug fixes:
