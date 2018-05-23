@@ -1065,6 +1065,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum()
                 ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum()
 				);
+		
+		viewImage = null;		// to force memory release
 
 		exportProperties(view);
 	}

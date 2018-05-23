@@ -1290,21 +1290,30 @@ public class DBGui {
     
     
     public static byte[] createImage(IDiagramModel view, double scale, int margin) {
-    	if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Creating image from view");
+    	byte[] imageContent = null;
+    	
+    	popup("Creating screenshot of view \""+view.getName()+"\"");
 
-		ByteArrayOutputStream out = new ByteArrayOutputStream();
-		try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
-			ImageLoader saver = new ImageLoader();
-			Image image = DiagramUtils.createImage(view, scale, margin);
-			
-			saver.data = new ImageData[] { image.getImageData(ImageFactory.getDeviceZoom()) };
-			saver.save(writeOut, SWT.IMAGE_PNG);
-            
-			image.dispose();
+		try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
+			try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
+				ImageLoader saver = new ImageLoader();
+				Image image = DiagramUtils.createImage(view, scale, margin);
+				
+				saver.data = new ImageData[] { image.getImageData(ImageFactory.getDeviceZoom()) };
+				saver.save(writeOut, SWT.IMAGE_PNG);
+	            
+				image.dispose();
+				imageContent = out.toByteArray();
+			} catch (IOException err) {
+				logger.error("Failed to close DataOutputStream", err);
+			}
 		} catch (IOException err) {
-			logger.error("Failed to close DataOutputStream", err);
+			logger.error("Failed to close ByteArrayOutputStream", err);
 		}
-		return out.toByteArray();
+		
+		closePopup();
+		
+		return imageContent;
     }
 	
 	/**
