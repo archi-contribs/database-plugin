@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.connection;
 
-import java.security.NoSuchAlgorithmException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -19,7 +18,6 @@ import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -1293,34 +1291,28 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 	}
 
-	public boolean exportImage(String path, byte[] image) throws SQLException, NoSuchAlgorithmException {
+	public boolean exportImage(String path, byte[] image) throws SQLException {
 	    // we do not export null images (should never happen, but it sometimes does)
 	    if ( image == null ) 
 	        return true;
-	    
-	    // TODO : remove the checksum - Archi does not allow to update an image.
-		String checksum = DBChecksum.calculateChecksum(image);
+
 		boolean exported = false;
 
-		try ( ResultSet result = select("SELECT checksum FROM "+this.schema+"images WHERE path = ?", path) ) {
+		try ( ResultSet result = select("SELECT path FROM "+this.schema+"images WHERE path = ?", path) ) {
 
 			if ( result.next() ) {
-				// if the image exists in the database, we update it if the checkum differs
-				if ( !DBPlugin.areEqual(checksum, result.getString("checksum")) ) {
-					request("UPDATE "+this.schema+"images SET image = ?, checksum = ? WHERE path = ?"
-							,image
-							,checksum
-							,path
-							);
+				// if the image exists in the database, we update it
+			    request("UPDATE "+this.schema+"images SET image = ? WHERE path = ?"
+						,image
+						,path
+						);
 					exported = true;
-				}
 			} else {
 				// if the image is not yet in the db, we insert it
-				String[] databaseColumns = {"path", "image", "checksum"};
+				String[] databaseColumns = {"path", "image"};
 				insert(this.schema+"images", databaseColumns
 						,path
-						,image
-						,checksum								
+						,image							
 						);
 				exported = true;
 			}

@@ -166,15 +166,17 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b : 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 11/03/2018				Fill in the online help
+ * v2.1 : 23/05/2018				Fill in the online help
  *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
+ *                                  Remove checksums on images as the path is already a kind of checksum
  *                                  Bug fixes:
- * 										Solve plugin initialization failure that occured some times
+ * 										Solve plugin initialization failure that occurred some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
  *                                      Reduce memory leak
+ *                                      ignore null images during export
  * 									Import individual component:
- * 										Added documentation column
- * 										Added popup message during the import
+ * 										Added documentation column to help distinguish components having the same name
+ * 										Added popup message during the import as it may take some time
  * 									Export model:
  *										For relational databases :
  *											Create two export modes: standalone and collaborative modes
@@ -221,7 +223,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *
  * technical TODOs :
  *      // TODO : update component get history to search for history of folders and views
- * 		// TODO : do not calculate checksums on images anymore (the path is a checksum)
  *      // TODO : check if it is really useful to export the diagram_ref_id of views objects
  */
 public class DBPlugin extends AbstractUIPlugin {

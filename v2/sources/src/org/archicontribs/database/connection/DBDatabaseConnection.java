@@ -40,7 +40,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 206;
+    public static final int databaseVersion = 207;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -459,7 +459,6 @@ public class DBDatabaseConnection implements AutoCloseable {
             request("CREATE TABLE "+this.schema+"images ("
                     + "path "+ this.OBJECTID +" NOT NULL, "
                     + "image "+ this.IMAGE +" NOT NULL, "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (path)"
                     + ")");
 
@@ -1011,6 +1010,15 @@ public class DBDatabaseConnection implements AutoCloseable {
             dropColumn(this.schema+"views_objects", "view_version");
 
             dbVersion = 206;
+        }
+        
+        // convert from version 206 to 207 :
+        //      - remove the checksum column from the images table
+        //
+        if ( dbVersion == 206 ) {
+            dropColumn(this.schema+"images", "checksum");
+            
+            dbVersion = 207;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
