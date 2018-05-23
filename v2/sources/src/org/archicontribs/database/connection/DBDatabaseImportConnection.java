@@ -158,7 +158,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum FROM "+this.schema+"views WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = ?", id, version);
-				//TODO: connection
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			}
 	
@@ -838,14 +837,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 			} catch (Exception e) {
-				this.currentResultSet.close();
-				this.currentResultSet = null;
 				throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
+			} finally {
+	            this.currentResultSet.close();
+	            this.currentResultSet = null;
 			}
 			if ( logger.isDebugEnabled() ) logger.debug("   imported "+path);
 			++this.countImagesImported;
-			this.currentResultSet.close();
-			this.currentResultSet = null;
 		} else {
 			this.currentResultSet.close();
 			this.currentResultSet = null;
