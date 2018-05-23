@@ -205,7 +205,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *		importing elements "in a view" create all the corresponding objects in the top left corner of the view
  *		clicking on the "cancel" button during the export or the import of a model is not well managed
  *
- * TODO list:
+ * TO-DO list:
  * ----------
  *		Import model:
  *			Add an indication when a component has been updated after the last export, through another model 
