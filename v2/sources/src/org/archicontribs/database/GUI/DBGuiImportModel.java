@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
 import com.archimatetool.editor.model.IEditorModelManager;
+import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.editor.views.tree.ITreeModelView;
 import com.archimatetool.model.IArchimateFactory;
@@ -793,6 +794,9 @@ public class DBGuiImportModel extends DBGui {
             }
             return;
         }
+        
+        // Open Diagram Editor
+        EditorManager.openDiagramEditor(this.modelToImport.getDefaultDiagramModel());
 
         setActiveAction(STATUS.Ok);
         doShowResult(null);
