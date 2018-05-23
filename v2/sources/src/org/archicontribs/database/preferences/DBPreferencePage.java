@@ -460,7 +460,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		}
 		this.loggerLevelRadioGroupEditor.store();
 		
-		//TODO : if we are in simple mode, check that is is a valid writable filename
 		if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerFilename = "+this.filenameFileFieldEditor.getStringValue());
 		this.filenameFileFieldEditor.store();
 		
