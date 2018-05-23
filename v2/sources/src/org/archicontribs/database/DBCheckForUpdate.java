@@ -102,9 +102,8 @@ public class DBCheckForUpdate {
 							logger.debug("   pass : xxxxx");
 						}
 
-						// we check if the request comes from the proxy, else we do not send the password (for security reason)
-						// TODO: check IP address in addition of the FQDN
-						if ( getRequestingHost().equalsIgnoreCase(host) && (Integer.parseInt(port) == getRequestingPort()) ) {
+						// we check if the request comes from the proxy (IP or hostname), else we do not send the password (for security reason)
+						if ( (getRequestingSite().getHostAddress().equalsIgnoreCase(host) || getRequestingHost().equalsIgnoreCase(host)) && (getRequestingPort() == Integer.parseInt(port)) ) {
 							// Seems to be OK.
 							logger.debug("Setting PasswordAuthenticator");
 							return new PasswordAuthentication(user, pass.toCharArray());
