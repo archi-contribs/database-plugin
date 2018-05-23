@@ -1463,11 +1463,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			model.resolveConnectionsSourcesAndTargets();
 		}
 
-		//TODO : import missing images
-		//for (String path: getAllImagePaths()) {
-		//    importImage(model, path);
-		//}
-
 		return view;
 	}
 	
