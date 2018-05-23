@@ -776,9 +776,21 @@ public class DBGuiImportModel extends DBGui {
             }
         } catch (Exception err) {
         	closePopup();
-            popup(Level.ERROR, "Failed to import model from database.", err);
-            setActiveAction(STATUS.Error);
-            doShowResult(err);
+            if ( hasBeenClosed() ) {
+                // we close the partially imported model
+                CommandStack stack = (CommandStack)this.modelToImport.getAdapter(CommandStack.class);
+                stack.markSaveLocation();
+                try {
+                    IEditorModelManager.INSTANCE.closeModel(this.modelToImport);
+                } catch (@SuppressWarnings("unused") IOException ign) {
+                    // there is nothing we can do
+                }
+                popup(Level.WARN, "The import has been cancelled.");
+            } else {
+                popup(Level.ERROR, "Failed to import model from database.", err);
+                setActiveAction(STATUS.Error);
+                doShowResult(err);
+            }
             return;
         }
 

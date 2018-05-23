@@ -100,6 +100,8 @@ import com.archimatetool.model.ITextPosition;
 public class DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGui.class);
 	
+	private boolean hasBeenClosed = false;
+	
 	protected List<DBDatabaseEntry> databaseEntries;
 	protected DBDatabaseEntry selectedDatabase;
 	private DBDatabaseImportConnection connection;
@@ -218,8 +220,9 @@ public class DBGui {
 	        @Override
             public void handleEvent(Event event)
 	        {
+	            setHasBeenClosed(true);
 	            close();
-	            event.doit = true;         // TODO : manage stopping the import or export in the middle
+	            event.doit = true;
 	        }
 	    });
 		
@@ -455,7 +458,9 @@ public class DBGui {
 		this.btnClose.addSelectionListener(new SelectionListener() {
 			@Override
             public void widgetSelected(SelectionEvent event) {
+	            setHasBeenClosed(true);
 				close();
+				event.doit = true;
 			}
 			@Override
             public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
@@ -1333,5 +1338,13 @@ public class DBGui {
     
     protected DBDatabaseConnection getDatabaseConnection() {
         return this.connection;
+    }
+    
+    public synchronized boolean hasBeenClosed() {
+        return this.hasBeenClosed;
+    }
+    
+    public synchronized void setHasBeenClosed(boolean closed) {
+        this.hasBeenClosed = closed;
     }
 }

@@ -174,6 +174,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Fix progress bar during download new version of the plugin from GitHub
  *                                      Reduce memory leak
  *                                      ignore null images during export
+ *                                      better management of the cancel button during the import and export process 
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
@@ -203,7 +204,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *		images are not imported
  *		view references are not imported correctly
  *		importing elements "in a view" create all the corresponding objects in the top left corner of the view
- *		clicking on the "cancel" button during the export or the import of a model is not well managed
  *
  * TO-DO list:
  * ----------
