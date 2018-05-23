@@ -1025,8 +1025,87 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 	
 	/**
-     * Imports an element into the model<br>
+     * Imports a folder into the model<br>
+     * @param model model into which the folder will be imported
+     * @param folderId id of the folder to import
+     * @param folderVersion version of the folder to import (0 if the latest version should be imported)
+     * @return the imported folder
+     * @throws Exception
+     */
+    public IFolder importFolderFromId(DBArchimateModel model, String folderId, int folderVersion) throws Exception {
+        return this.importFolderFromId(model, folderId, folderVersion, false);
+    }
+    
+    /**
+     * Imports a folder into the model<br>
+     * The folder is imported empty. Folder content should be imported separately<br>
      * @param model model into which the element will be imported
+     * @param folderId id of the folder to import
+     * @param folderVersion version of the folder to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the folder should be its original id
+     * @return the imported folder
+     * @throws Exception
+     */
+    public IFolder importFolderFromId(DBArchimateModel model, String folderId, int folderVersion, boolean mustCreateCopy) throws Exception {
+        IFolder folder;
+        
+        @SuppressWarnings("resource")
+        ResultSet resultFolder = null;
+        try {
+            if ( folderVersion == 0 )
+                resultFolder = select("SELECT version, type, root_type, name, documentation, created_on FROM "+this.schema+"folders e WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = e.id)", folderId);
+            else
+                resultFolder = select("SELECT version, type, root_type, name, documentation, created_on FROM "+this.schema+"folders e WHERE id = ? AND version = ?", folderId, folderVersion);
+    
+            if ( !resultFolder.next() ) {
+                if ( folderVersion == 0 )
+                    throw new Exception("Element with id="+folderId+" has not been found in the database.");
+                throw new Exception("Element with id="+folderId+" and version="+folderVersion+" has not been found in the database.");
+            }
+
+            if ( mustCreateCopy ) {
+                if ( logger.isDebugEnabled() ) logger.debug("Importing a copy of folder id "+folderId+".");
+                folder = DBArchimateFactory.eINSTANCE.createFolder();
+                folder.setId(model.getIDAdapter().getNewID());
+                folder.setType(FolderType.get(resultFolder.getInt("type")));
+    
+                folder.setName(resultFolder.getString("name")==null ? "" : resultFolder.getString("name"));
+                ((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(0);
+                ((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                
+                importProperties(folder, folderId, resultFolder.getInt("version"));
+            } else {
+                folder = model.getAllFolders().get(folderId);
+                if ( folder == null ) {
+                    if ( logger.isDebugEnabled() ) logger.debug("Importing folder id "+folderId+".");
+                    folder = DBArchimateFactory.eINSTANCE.createFolder();
+                    folder.setId(folderId);
+                    folder.setType(FolderType.get(resultFolder.getInt("type")));
+                } else {
+                    if ( logger.isDebugEnabled() ) logger.debug("Updating folder id "+folderId+".");
+                }
+    
+                if ( !DBPlugin.areEqual(folder.getName(), resultFolder.getString("name")) ) folder.setName(resultFolder.getString("name")==null ? "" : resultFolder.getString("name"));
+                ((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(resultFolder.getInt("version"));
+                ((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(resultFolder.getTimestamp("created_on"));
+                
+                importProperties(folder);
+            }
+    
+            if ( !DBPlugin.areEqual(folder.getDocumentation(), resultFolder.getString("documentation")) ) folder.setDocumentation(resultFolder.getString("documentation"));
+            
+           ++this.countFoldersImported;
+            
+        } finally {
+            if ( resultFolder != null )
+                resultFolder.close();
+        }
+        
+        return folder;
+    }
+	
+	/**
+     * Imports an element into the model<br>
      * @param view if a view is provided, then an ArchimateObject will be automatically created
      * @param elementId id of the element to import
      * @param elementVersion version of the element to import (0 if the latest version should be imported)

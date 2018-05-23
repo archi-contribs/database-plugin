@@ -1491,8 +1491,6 @@ public class DBGuiExportModel extends DBGui {
 			
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
-				
-				// TODO : Manage a kind of transaction id in the database because it may not be necessary to check another time
 				popup("Please wait while comparing model from the database...");
 				this.exportConnection.getVersionsFromDatabase(this.exportedModel);
 				closePopup();
@@ -1510,6 +1508,11 @@ public class DBGuiExportModel extends DBGui {
 		
 		// we export the components
 		try {
+		    // during the export process, we may need to import some components
+		    // The importConnection cannot be closed as it will close the database connection
+		    @SuppressWarnings("resource")
+            DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
+		    
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
 			if ( this.selectedDatabase.isWholeModelExported() ) {
 				// We update the model name and purpose in case they've been changed in the export windows
@@ -1527,7 +1530,13 @@ public class DBGuiExportModel extends DBGui {
 					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
 				}
 				
-				//TODO: importing missing folder
+				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
+				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
+				    logger.trace("Must import folder "+id);
+                    importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestVersion());
+                    incrementText(this.txtNewFoldersInDatabase);
+                    incrementText(this.txtTotalFolders);
+				}
 			}
 			
 			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.shouldEmptyNeo4jDB() ) {
@@ -1547,8 +1556,6 @@ public class DBGuiExportModel extends DBGui {
 		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the element has been updated in the database, then generate a conflict
 		        	logger.trace("Must import element "+id);
-		        	@SuppressWarnings("resource")
-					DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
 		        	incrementText(this.txtNewElementsInDatabase);
 		        	incrementText(this.txtTotalElements);
@@ -1567,15 +1574,13 @@ public class DBGuiExportModel extends DBGui {
 		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
 		        	// TODO : if the relationship has been updated in the database, then generate a conflict
 		        	logger.trace("Must import element "+id);
-		        	@SuppressWarnings("resource")
-					DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
 		        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewRelationshipsInDatabase);
 		        	incrementText(this.txtTotalRelationships);
 	            }
 	        }
 	        
-            // we some elements or relationships must be removed from the model, we do it before exporting the views
+            // if some elements or relationships must be removed from the model, we do it before exporting the views
             if ( !this.delayedCommands.isEmpty() ) {
                 // we remove the objects that have been removed by other users in the database
                 CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
