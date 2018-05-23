@@ -201,9 +201,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * Known bugs:
  * -----------
  *		Import individual component:
- *		images are not imported
- *		view references are not imported correctly
- *		importing elements "in a view" create all the corresponding objects in the top left corner of the view
+ *		     images are not imported
+ *		     view references are not imported correctly
+ *		     importing elements "in a view" create all the corresponding objects in the top left corner of the view
  *
  * TO-DO list:
  * ----------
