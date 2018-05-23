@@ -178,6 +178,8 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
+ *                                  Import model:
+ *                                      Automatically open the default view of the imported models
  * 									Export model:
  *										For relational databases :
  *											Create two export modes: standalone and collaborative modes
@@ -204,6 +206,8 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *		     images are not imported
  *		     view references are not imported correctly
  *		     importing elements "in a view" create all the corresponding objects in the top left corner of the view
+ *      Miscelanous
+ *           the plugin requires too much memory !!!
  *
  * TO-DO list:
  * ----------
@@ -219,7 +223,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *		Miscellaneous:
  *			add an option to check for relationships that are in the database but would not be in the in memory model
  *			create a new windows that will show up detailed statistics about the model
- *			add more jdbc drivers (mongodb, odbc, etc ...)				
+ *			add more jdbc drivers (mongodb, odbc, etc ...)
+ *          add an option to duplicate a model
+ *          add an option to merge models
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
