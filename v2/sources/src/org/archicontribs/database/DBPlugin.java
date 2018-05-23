@@ -223,7 +223,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *
  * technical TODOs :
  *      // TODO : update component get history to search for history of folders and views
- *      // TODO : check if it is really useful to export the diagram_ref_id of views objects
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
