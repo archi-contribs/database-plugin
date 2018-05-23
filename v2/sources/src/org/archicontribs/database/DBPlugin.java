@@ -207,22 +207,19 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *
  * TO-DO list:
  * ----------
- *		Import model:
- *			Add an indication when a component has been updated after the last export, through another model 
  *		Import individual component:
  *			allow to import elements recursively
  *			allow to select all the classes of one group in a single click
  *			when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
+ *          add a popup to explain what to do with the class icons (like: click to select/unselect)
  *		Get component history:
  *			allow to export individual component, or update it from the database, directly from the history window
  *			allow to get the database history
+ *          allow to get history for folders and views
  *		Miscellaneous:
  *			add an option to check for relationships that are in the database but would not be in the in memory model
  *			create a new windows that will show up detailed statistics about the model
  *			add more jdbc drivers (mongodb, odbc, etc ...)				
- *
- * technical TODOs :
- *      // TODO : update component get history to search for history of folders and views
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
