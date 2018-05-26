@@ -807,7 +807,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         StringBuilder requestString = new StringBuilder();
         requestString.append("ALTER TABLE ");
         requestString.append(tableName);
-        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "mysql") ) 
+        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "mysql") || DBPlugin.areEqual(this.databaseEntry.getDriver(), "mssql")) 
             requestString.append(" ADD ");
         else
             requestString.append(" ADD COLUMN ");
