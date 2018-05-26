@@ -862,9 +862,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 
 		exportProperties(element);
-
-		// the element has been exported to the database
-		//TODO: --countElementsToExport;
 	}
 
 	/**
