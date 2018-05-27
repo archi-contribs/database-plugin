@@ -833,13 +833,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( logger.isDebugEnabled() ) logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
 				imagePath = archiveMgr.addByteContentEntry(path, imageContent);
 
-				if ( DBPlugin.areEqual(imagePath, path) ) {
+				if ( DBPlugin.areEqual(imagePath, path) )
 					if ( logger.isDebugEnabled() ) logger.debug( "... image imported");
-				} else {
+				else
 					if ( logger.isDebugEnabled() ) logger.debug( "... image imported but with new path "+imagePath);
-					//TODO: the image was already in the cache but with a different path
-					//TODO: we must search all the objects with "path" to replace it with "imagepath" 
-				}
 
 			} catch (Exception e) {
 				throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
