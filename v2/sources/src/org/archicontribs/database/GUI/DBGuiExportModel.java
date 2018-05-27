@@ -132,13 +132,13 @@ public class DBGuiExportModel extends DBGui {
 	    refreshDisplay();
 	    
         try {
-    	    setMessage("Please wait while counting model's components");
+    	    setMessage("Counting model's components");
             this.exportedModel.countAllObjects();
-            closeMessage();
         } catch (Exception err) {
-            closeMessage();
             popup(Level.ERROR, "Failed to count model's components", err);
             return;
+        } finally {
+            closeMessage();
         }
         
         if ( logger.isDebugEnabled() ) logger.debug("the model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
@@ -876,7 +876,7 @@ public class DBGuiExportModel extends DBGui {
         this.btnCompareModelToDatabase.setLayoutData(fd);
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
             @Override public void widgetSelected(SelectionEvent e) {
-                setMessage("Please wait while comparing model from the database...");
+                setMessage("Comparing model from the database...");
             	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
             	closeMessage();
             	if ( upToDate ) {
@@ -1002,7 +1002,7 @@ public class DBGuiExportModel extends DBGui {
         
 		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
-            setMessage("Please wait while comparing model from the database...");
+            setMessage("Comparing model from the database...");
         	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
         	closeMessage();
         	if ( upToDate ) {
@@ -1491,7 +1491,7 @@ public class DBGuiExportModel extends DBGui {
 			
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
-				setMessage("Please wait while comparing model from the database...");
+				setMessage("Comparing model from the database...");
 				this.exportConnection.getVersionsFromDatabase(this.exportedModel);
 				closeMessage();
 			} catch (SQLException err ) {

@@ -62,7 +62,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
 		/*
-		popup("Please wait while counting model's components");
+		setMessage("Counting model's components");
 		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
 		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllElements().size()+" elements and "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllRelationships().size()+" relationships.");
 		closePopup();

@@ -159,7 +159,7 @@ public class DBGuiImportComponent extends DBGui {
 
 		this.includeNeo4j = false;
 
-		setMessage("Please wait while counting model's components");
+		setMessage("Counting model's components");
 		model.countAllObjects();
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
 		closeMessage();		
@@ -1390,7 +1390,7 @@ public class DBGuiImportComponent extends DBGui {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
-				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
+				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 				
 				if ( this.compoElements.getVisible() )
 					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));

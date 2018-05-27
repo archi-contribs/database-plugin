@@ -73,7 +73,7 @@ public class DBCheckForUpdate {
 	 */
 	public DBCheckForUpdate(boolean verbose, String pluginApiUrl, String releaseNoteUrl) {
 		if ( verbose )
-			DBGui.popup("Please wait while checking for new database plugin ...");
+			DBGui.popup("Checking for a new database plugin version on GitHub ...");
 		else
 			logger.debug("Checking for a new database plugin version on GitHub");
 

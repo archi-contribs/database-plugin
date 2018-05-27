@@ -1191,7 +1191,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		}
 
 		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
-			connection.checkDatabase();
+			connection.checkDatabase(null);
 			DBGui.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to check the database.", err);

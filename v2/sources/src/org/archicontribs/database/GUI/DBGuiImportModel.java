@@ -693,7 +693,7 @@ public class DBGuiImportModel extends DBGui {
         // we import the model from the database in a separate thread
         try {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-            setMessage("Please wait while getting the model metadata ...");
+            setMessage("Getting model's metadata ...");
             int importSize = this.importConnection.importModel(this.modelToImport);
             closeMessage();
             setProgressBarMinAndMax(0, importSize);

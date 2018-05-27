@@ -31,6 +31,7 @@ import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
@@ -185,8 +186,6 @@ public class DBGui {
 	Button radioOption1;
 	Button radioOption2;
 	
-	private Label labelMessage = null;
-	
 	protected Combo comboDatabases;
 	protected Button btnSetPreferences;
 	protected Button btnClose;
@@ -198,6 +197,10 @@ public class DBGui {
 	protected Group grpProgressBar;
 	protected Label lblProgressBar;
 	private ProgressBar progressBar;
+	
+	protected Group grpMessage;
+	private CLabel lblMessage;
+	
 
 	/**
 	 * Create the dialog with minimal graphical objects : 
@@ -374,6 +377,8 @@ public class DBGui {
 		this.compoRightBottom.setLayout(new FormLayout());
 		
 		this.grpDatabase = new Group(this.compoRightTop, SWT.SHADOW_ETCHED_IN);
+		this.grpDatabase.setVisible(true);
+		this.grpDatabase.setData("visible", true);
 		this.grpDatabase.setBackground(GROUP_BACKGROUND_COLOR);
 		this.grpDatabase.setFont(GROUP_TITLE_FONT);
 		this.grpDatabase.setText("Database : ");
@@ -571,7 +576,7 @@ public class DBGui {
 	 * This method retrieve the database name from the comboDatabases and reads the preferences to get the connection details. A connection is then established to the database.
 	 */
 	protected void databaseSelected() {
-		setMessage("Please wait while connecting to the database ...");
+		setMessage("Connecting to the database ...");
 		
 		databaseSelectedCleanup();
 		
@@ -595,8 +600,7 @@ public class DBGui {
 		
 			// then, we check if the database has got the right pre-requisites
 		try {
-			setMessage("Please wait while checking the database structure...");
-			this.connection.checkDatabase();
+			this.connection.checkDatabase(this);
 		} catch (Exception err) {
 			closeMessage();
 			popup(Level.ERROR, "Cannot use this database.", err);
@@ -918,6 +922,7 @@ public class DBGui {
 	
 	protected void hideGrpDatabase() {
 		this.grpDatabase.setVisible(false);
+		this.grpDatabase.setData("visible", false);
 	}
 	
 	protected void setBtnAction(String label, SelectionListener listener) {
@@ -963,11 +968,89 @@ public class DBGui {
 			this.progressBar.setMaximum(max);
 			
 			this.compoRightTop.layout();
-		} else {
-			this.grpProgressBar.setVisible(true);
-			resetProgressBar();
 		}
+		
+		this.grpProgressBar.setVisible(true);
+		this.grpProgressBar.setData("visible", true);
+		
+		resetProgressBar();
 	}
+	
+	/**
+	 * Creates the progress bar that will allow to follow the export process
+	 */
+	protected void createMessageGrp() {
+		if ( this.grpMessage == null ) {
+			this.grpMessage = new Group(this.compoRightTop, SWT.NONE);
+			this.grpMessage.setBackground(GROUP_BACKGROUND_COLOR);
+			this.grpMessage.setFont(GROUP_TITLE_FONT);
+			this.grpMessage.setText("Please wait ... ");
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(0);
+			fd.left = new FormAttachment(0);
+			fd.right = new FormAttachment(100);
+			fd.bottom = new FormAttachment(100);
+			this.grpMessage.setLayoutData(fd);
+			this.grpMessage.setLayout(new FormLayout());
+			
+			this.lblMessage = new CLabel(this.grpMessage, SWT.CENTER);
+			this.lblMessage.setAlignment(SWT.CENTER); 
+			this.lblMessage.setBackground(GROUP_BACKGROUND_COLOR);
+			this.lblMessage.setFont(TITLE_FONT);
+			fd = new FormData();
+			fd.top = new FormAttachment(0);
+			fd.left = new FormAttachment(0);
+			fd.right = new FormAttachment(100);
+			fd.bottom = new FormAttachment(100);
+			this.lblMessage.setLayoutData(fd);
+		}
+		
+		this.grpMessage.setVisible(true);
+		
+		if (this.grpProgressBar != null )
+			this.grpProgressBar.setVisible(false);
+		
+		if ( this.grpDatabase != null )
+			this.grpDatabase.setVisible(false);
+		
+		this.compoRightTop.layout();
+	}
+    
+    public void setMessage(String message) {
+    	setMessage(message, GROUP_BACKGROUND_COLOR);
+    }
+    
+    protected void setMessage(String message, Color background) {
+		createMessageGrp();
+
+		this.lblMessage.setBackground(background);
+        
+		String msg = message.replace("\n\n", "\n");
+        if ( background == RED_COLOR )
+        	logger.error(msg);
+        else
+        	logger.info(msg);
+        
+        this.lblMessage.setText(msg);
+        
+        refreshDisplay();
+    }
+    
+	
+    public void closeMessage() {
+		if ( this.grpMessage != null ) {
+			this.grpMessage.setVisible(false);
+			
+			if (this.grpProgressBar != null && (this.grpProgressBar.getData("visible") != null) )
+				this.grpProgressBar.setVisible((boolean)this.grpProgressBar.getData("visible"));
+
+			if ( this.grpDatabase != null && (this.grpDatabase.getData("visible") != null) )
+				this.grpDatabase.setVisible((boolean)this.grpDatabase.getData("visible"));
+			
+			this.compoRightTop.layout();
+			refreshDisplay();
+		}
+    }
 	
 	/**
 	 * Sets the min and max values of the progressBar and reset its selection to zero
@@ -1264,45 +1347,6 @@ public class DBGui {
 		
 		refreshDisplay();
     }
-    
-    protected void closeMessage() {
-		if ( this.labelMessage != null ) {
-			this.labelMessage.dispose();
-			this.labelMessage = null;
-		}
-    }
-    
-    protected void setMessage(String message) {
-    	setMessage(message, COMPO_LEFT_COLOR);
-    }
-    
-    protected void setMessage(String message, Color foreground) {
-		this.labelMessage = new Label(this.compoRightTop, SWT.VERTICAL | SWT.CENTER);
-
-		this.labelMessage.setFont(GROUP_TITLE_FONT);
-		this.labelMessage.setBackground(foreground);
-        String msg = message.replace("\n\n", "\n");
-        
-        if ( foreground == GREEN_COLOR )
-        	logger.info(msg);
-        else
-        	logger.error(msg);
-        
-        if ( msg.split("\n").length == 1 )
-            msg = "\n" + msg;               // we try to vertically center it, more or less ...
-        this.labelMessage.setText(msg);
-
-        FormData fd = new FormData();
-        fd.top = new FormAttachment(0, 0);
-        fd.left = new FormAttachment(0, 0);
-        fd.right = new FormAttachment(100, 0);
-        fd.bottom = new FormAttachment(100, 0);
-        this.labelMessage.setLayoutData(fd);
-    	
-	    this.compoRightTop.layout();
-	    refreshDisplay();
-    }
-    
     
     public byte[] createImage(IDiagramModel view, double scale, int margin) {
     	byte[] imageContent = null;

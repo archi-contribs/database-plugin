@@ -56,7 +56,7 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
         IDAdapter adapter = new IDAdapter();
         int idsReplaced = 0;
 
-        DBGui.popup("Please wait while checking IDs ...");
+        DBGui.popup("Checking IDs ...");
 
         try {
             model.countAllObjects();
