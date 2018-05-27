@@ -694,7 +694,7 @@ public class DBGuiImportModel extends DBGui {
         try {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
             popup("Please wait while getting the model metadata ...");
-            int importSize = this.importConnection.importModelMetadata(this.modelToImport);
+            int importSize = this.importConnection.importModel(this.modelToImport);
             closePopup();
             setProgressBarMinAndMax(0, importSize);
 

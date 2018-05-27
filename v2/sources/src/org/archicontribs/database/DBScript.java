@@ -64,7 +64,7 @@ public class DBScript {
 	        modelToImport.setName(modelName);
 	        
 	        try {
-	            connection.importModelMetadata(modelToImport);
+	            connection.importModel(modelToImport);
 	        
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
 	            connection.prepareImportFolders(modelToImport);
