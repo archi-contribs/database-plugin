@@ -169,6 +169,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * v2.1 : 23/05/2018				Fill in the online help
  *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
  *                                  Remove checksums on images as the path is already a kind of checksum
+ *                                  Export and import back model's metadata
  *                                  Bug fixes:
  * 										Solve plugin initialization failure that occurred some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
