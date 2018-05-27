@@ -1528,8 +1528,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 			}
 
-			//TODO: compare values before setting them
-
 			setArchimateConcept(viewObject, model.getAllElements().get(resultView.getString("element_id")));
 			setReferencedModel(viewObject, model.getAllViews().get(resultView.getString("diagram_ref_id")));
 			setType(viewObject, resultView.getInt("type"));
