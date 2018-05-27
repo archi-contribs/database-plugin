@@ -81,6 +81,8 @@ import lombok.Getter;
  */
 public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	private static final DBLogger logger = new DBLogger(DBDatabaseImportConnection.class);
+	
+	private boolean isExportConnectionDuplicate = false;
 
 	/**
 	 * Opens a connection to a JDBC database using all the connection details
@@ -98,6 +100,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		super.databaseEntry = databaseConnection.databaseEntry;
 		super.schema = databaseConnection.schema;
 		super.connection = databaseConnection.connection;
+		this.isExportConnectionDuplicate = true;
 	}
 
 	/**
@@ -136,7 +139,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return HashMap containing the object data
 	 * @throws Exception
 	 */
-	@SuppressWarnings("resource")
 	public HashMap<String, Object> getObject(String id, String clazz, int objectVersion) throws Exception {
 		ResultSet result = null;
 		int version = objectVersion;
@@ -200,8 +202,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			} else
 				hashResult = new HashMap<String, Object>();
 		} finally {
-			if ( result != null )
+			if ( result != null ) {
 				result.close();
+				result = null;
+			}
 		}
 
 		return hashResult;
@@ -457,23 +461,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the elements from the database
 	 */
-	// it is complex because we need to retrieve the elements that have been added in views by other models
 	public void prepareImportElements(DBArchimateModel model) throws Exception {
-		//		if ( model.getImportLatestVersion() ) {
-		//			this.currentResultSet = select(this.importElementsRequest
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					);
-		//		} else {
 		this.currentResultSet = select(this.importElementsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				);
-		//		}
 
 	}
 
@@ -520,21 +512,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the relationships from the database
 	 */
 	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
-		//		if ( model.getImportLatestVersion() ) {
-		//			this.currentResultSet = select(this.importRelationshipsRequest
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					,model.getId()
-		//					,model.getCurrentVersion().getVersion()
-		//					);
-		//		} else {
 		this.currentResultSet = select(this.importRelationshipsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				);
-		//		}
 	}
 
 	/**
@@ -821,35 +802,35 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views from the database
 	 */
 	public void importImage(DBArchimateModel model, String path) throws Exception {
-		this.currentResultSet = select("SELECT image FROM "+this.schema+"images WHERE path = ?", path);
-
-		if (this.currentResultSet.next() ) {
-			IArchiveManager archiveMgr = (IArchiveManager)model.getAdapter(IArchiveManager.class);
-			try {
-				String imagePath;
-				byte[] imageContent = this.currentResultSet.getBytes("image");
-
-				if ( logger.isDebugEnabled() ) logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
-				imagePath = archiveMgr.addByteContentEntry(path, imageContent);
-
-				if ( DBPlugin.areEqual(imagePath, path) )
-					if ( logger.isDebugEnabled() ) logger.debug( "... image imported");
-				else
-					if ( logger.isDebugEnabled() ) logger.debug( "... image imported but with new path "+imagePath);
-
-			} catch (Exception e) {
-				throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
-			} finally {
-				this.currentResultSet.close();
-				this.currentResultSet = null;
+		try ( ResultSet result = select("SELECT image FROM "+this.schema+"images WHERE path = ?", path) ) {
+			if (result.next() ) {
+				IArchiveManager archiveMgr = (IArchiveManager)model.getAdapter(IArchiveManager.class);
+				try {
+					String imagePath;
+					byte[] imageContent = result.getBytes("image");
+	
+					if ( logger.isDebugEnabled() ) {
+						if ( (imageContent.length/1024)/2014 > 1 )
+							logger.debug( "Importing "+path+" with "+(imageContent.length/1024)/1024+" Mo of data");
+						else
+							logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
+					}
+					imagePath = archiveMgr.addByteContentEntry(path, imageContent);
+	
+					if ( DBPlugin.areEqual(imagePath, path) )
+						if ( logger.isDebugEnabled() ) logger.debug( "... image imported");
+					else
+						if ( logger.isDebugEnabled() ) logger.debug( "... image imported but with new path "+imagePath);
+	
+				} catch (Exception e) {
+					throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
+				}
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+path);
+				++this.countImagesImported;
 			}
-			if ( logger.isDebugEnabled() ) logger.debug("   imported "+path);
-			++this.countImagesImported;
-		} else {
-			this.currentResultSet.close();
-			this.currentResultSet = null;
-			throw new Exception("Import of image failed : unkwnown image path "+path);
-		}
+			else
+				throw new Exception("Import of image failed : unkwnown image path "+path);
+		} 
 	}
 
 	/**
@@ -948,86 +929,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 	}
 
-	public static String getSqlTypeName(int type) {
-		switch (type) {
-			case Types.BIT:
-				return "BIT";
-			case Types.TINYINT:
-				return "TINYINT";
-			case Types.SMALLINT:
-				return "SMALLINT";
-			case Types.INTEGER:
-				return "INTEGER";
-			case Types.BIGINT:
-				return "BIGINT";
-			case Types.FLOAT:
-				return "FLOAT";
-			case Types.REAL:
-				return "REAL";
-			case Types.DOUBLE:
-				return "DOUBLE";
-			case Types.NUMERIC:
-				return "NUMERIC";
-			case Types.DECIMAL:
-				return "DECIMAL";
-			case Types.CHAR:
-				return "CHAR";
-			case Types.VARCHAR:
-				return "VARCHAR";
-			case Types.LONGVARCHAR:
-				return "LONGVARCHAR";
-			case Types.DATE:
-				return "DATE";
-			case Types.TIME:
-				return "TIME";
-			case Types.TIMESTAMP:
-				return "TIMESTAMP";
-			case Types.BINARY:
-				return "BINARY";
-			case Types.VARBINARY:
-				return "VARBINARY";
-			case Types.LONGVARBINARY:
-				return "LONGVARBINARY";
-			case Types.NULL:
-				return "NULL";
-			case Types.OTHER:
-				return "OTHER";
-			case Types.JAVA_OBJECT:
-				return "JAVA_OBJECT";
-			case Types.DISTINCT:
-				return "DISTINCT";
-			case Types.STRUCT:
-				return "STRUCT";
-			case Types.ARRAY:
-				return "ARRAY";
-			case Types.BLOB:
-				return "BLOB";
-			case Types.CLOB:
-				return "CLOB";
-			case Types.REF:
-				return "REF";
-			case Types.DATALINK:
-				return "DATALINK";
-			case Types.BOOLEAN:
-				return "BOOLEAN";
-			case Types.ROWID:
-				return "ROWID";
-			case Types.NCHAR:
-				return "NCHAR";
-			case Types.NVARCHAR:
-				return "NVARCHAR";
-			case Types.LONGNVARCHAR:
-				return "LONGNVARCHAR";
-			case Types.NCLOB:
-				return "NCLOB";
-			case Types.SQLXML:
-				return "SQLXML";
-			default:
-		}
-
-		return "?";
-	}
-
 	/**
 	 * Imports a folder into the model<br>
 	 * @param model model into which the folder will be imported
@@ -1050,7 +951,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return the imported folder
 	 * @throws Exception
 	 */
-	@SuppressWarnings("resource")
 	public IFolder importFolderFromId(DBArchimateModel model, String folderId, int folderVersion, boolean mustCreateCopy) throws Exception {
 		IFolder folder;
 
@@ -1122,8 +1022,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			++this.countFoldersImported;
 
 		} finally {
-			if ( resultFolder != null && !resultFolder.isClosed() )
+			if ( resultFolder != null ) {
 				resultFolder.close();
+				resultFolder = null;
+			}
 		}
 
 		return folder;
@@ -1159,7 +1061,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		// TODO add an option to import elements recursively
 
-		@SuppressWarnings("resource")
 		ResultSet resultElement = null;
 		try {
 			if ( elementVersion == 0 )
@@ -1227,8 +1128,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			++this.countElementsImported;
 
 		} finally {
-			if ( resultElement != null )
+			if ( resultElement != null ) {
 				resultElement.close();
+				resultElement = null;
+			}
 		}
 
 
@@ -1311,7 +1214,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		boolean newRelationship = false;
 		IArchimateRelationship relationship;
 
-		@SuppressWarnings("resource")
 		ResultSet resultRelationship = null;
 		try {
 			if ( relationshipVersion == 0 )
@@ -1394,8 +1296,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 			}
 		} finally {
-			if ( resultRelationship != null )
+			if ( resultRelationship != null ) {
 				resultRelationship.close();
+				resultRelationship = null;
+			}
 		}
 
 		++this.countRelationshipsImported;
@@ -1674,10 +1578,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 	}
 
-	@Override
 	public void reset() throws SQLException {
-		super.reset();
-
 		if ( this.currentResultSet != null ) {
 			this.currentResultSet.close();
 			this.currentResultSet = null;
@@ -1707,7 +1608,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public void close() throws SQLException {
 		reset();
 
-		super.close();
+		if ( !this.isExportConnectionDuplicate )
+			super.close();
 	}
 
 	private static void setArchimateConcept(EObject eObject, IArchimateConcept concept) {

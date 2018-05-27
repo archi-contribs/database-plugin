@@ -71,6 +71,8 @@ import lombok.Getter;
  */
 public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private static final DBLogger logger = new DBLogger(DBDatabaseExportConnection.class);
+	
+	private boolean isImportconnectionDuplicate = false;
 
 	/**
 	 * This class variable stores the last commit transaction
@@ -97,6 +99,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         super.databaseEntry = databaseConnection.databaseEntry;
         super.schema = databaseConnection.schema;
         super.connection = databaseConnection.connection;
+        this.isImportconnectionDuplicate = true;
     }
 
 	@Getter private HashMap<String, DBVersionPair> elementsNotInModel = new HashMap<String, DBVersionPair>();
@@ -1390,10 +1393,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         this.lastTransactionTimestamp = new Timestamp(Calendar.getInstance().getTime().getTime());
     }
 	
-	@Override
-    public void reset() throws SQLException {
-	    super.reset();
-	    
+    public void reset() {
         // We reset all "ranks" to zero
         this.elementRank = 0;
         this.relationshipRank = 0;
@@ -1417,6 +1417,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	@Override
     public void close() throws SQLException {
         reset();
-        super.close();
+        
+        if ( !this.isImportconnectionDuplicate )
+        	super.close();
     }
 }

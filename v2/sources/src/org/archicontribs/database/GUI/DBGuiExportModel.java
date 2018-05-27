@@ -1507,12 +1507,7 @@ public class DBGuiExportModel extends DBGui {
 		this.delayedCommands = new CompoundCommand();
 		
 		// we export the components
-		try {
-		    // during the export process, we may need to import some components
-		    // The importConnection cannot be closed as it will close the database connection
-		    @SuppressWarnings("resource")
-            DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
-		    
+		try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 			// if we need to save the whole model (i.e. not only the elements and the relationships) 
 			if ( this.selectedDatabase.isWholeModelExported() ) {
 				// We update the model name and purpose in case they've been changed in the export windows
@@ -1887,35 +1882,35 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( mustImport ) {
             // For the moment, we can import elements and relationships only during an export !!!
-		    @SuppressWarnings("resource")
-			DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection);
-            if ( eObjectToExport instanceof IArchimateElement ) {
-                if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
-                incrementText(txtUpdatedInDatabase);
-            } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-                incrementText(txtUpdatedInDatabase);
-            } else if ( eObjectToExport instanceof IFolder ) {
-                if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-                incrementText(txtUpdatedInDatabase);
-            } else if ( eObjectToExport instanceof IDiagramModel ) {
-                if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importViewFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
-                incrementText(txtUpdatedInDatabase);
-            } else if ( eObjectToExport instanceof IDiagramModelComponent ) {
-                if ( logger.isTraceEnabled() ) logger.trace("View Object id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importViewObjectFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-                incrementText(txtUpdatedInDatabase);
-            } else if ( eObjectToExport instanceof IDiagramModelConnection ) {
-                if ( logger.isTraceEnabled() ) logger.trace("View Connection id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
-                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-                incrementText(txtUpdatedInDatabase);
-            } else
-            	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-            exported = true;
+			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
+	            if ( eObjectToExport instanceof IArchimateElement ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
+	                incrementText(txtUpdatedInDatabase);
+	            } else if ( eObjectToExport instanceof IArchimateRelationship ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+	                incrementText(txtUpdatedInDatabase);
+	            } else if ( eObjectToExport instanceof IFolder ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+	                incrementText(txtUpdatedInDatabase);
+	            } else if ( eObjectToExport instanceof IDiagramModel ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importViewFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
+	                incrementText(txtUpdatedInDatabase);
+	            } else if ( eObjectToExport instanceof IDiagramModelComponent ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("View Object id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importViewObjectFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+	                incrementText(txtUpdatedInDatabase);
+	            } else if ( eObjectToExport instanceof IDiagramModelConnection ) {
+	                if ( logger.isTraceEnabled() ) logger.trace("View Connection id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+	                incrementText(txtUpdatedInDatabase);
+	            } else
+	            	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
+	            exported = true;
+			}
 		}
 		
 		if ( mustDelete ) {

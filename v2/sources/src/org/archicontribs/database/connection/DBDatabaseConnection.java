@@ -17,10 +17,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.Hashtable;
-import java.util.Map;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
@@ -166,8 +163,6 @@ public class DBDatabaseConnection implements AutoCloseable {
      */
     @Override
     public void close() throws SQLException {
-        reset();
-
         if ( this.connection == null || this.connection.isClosed() ) {
             if ( logger.isDebugEnabled() ) logger.debug("The database connection is already closed.");
         } else {
@@ -191,20 +186,6 @@ public class DBDatabaseConnection implements AutoCloseable {
             // nothing to do
         }
         return false;
-    }
-
-    public void reset() throws SQLException {
-        for ( PreparedStatement pstmt: this.preparedStatementMap.values() ) {
-            if ( pstmt!= null && !pstmt.isClosed() ) {
-                try {
-                    pstmt.close();
-                } catch ( @SuppressWarnings("unused") SQLException ign) {
-                    // nothing to do
-                }
-            }
-            pstmt=null;
-        }
-        this.preparedStatementMap = new HashMap<String, PreparedStatement>();
     }
 
     /**
@@ -733,7 +714,6 @@ public class DBDatabaseConnection implements AutoCloseable {
     }
 
     public void dropTableIfExists(String tableName) throws SQLException {
-        reset();
         if ( logger.isDebugEnabled() ) logger.debug("Dropping table "+tableName+" if it exists");
         switch (this.databaseEntry.getDriver() ) {
             case "oracle":
@@ -1132,7 +1112,7 @@ public class DBDatabaseConnection implements AutoCloseable {
     /**
      * HashMap to store the JDBC preparedStatements
      */
-    private Map<String, PreparedStatement> preparedStatementMap = new HashMap<String, PreparedStatement>();
+    //private Map<String, PreparedStatement> preparedStatementMap = new HashMap<String, PreparedStatement>();
 
     /**
      * Wrapper to generate and execute a SELECT request in the database<br>
@@ -1141,22 +1121,13 @@ public class DBDatabaseConnection implements AutoCloseable {
      * @return the ResultSet with the data read from the database
      */
     @SafeVarargs
-    @SuppressWarnings("resource")
+
     public final <T> ResultSet select(String request, T... parameters) throws SQLException {
         assert ( isConnected() );
 
         ResultSet result = null;
-        try {
-
-            PreparedStatement pstmt = this.preparedStatementMap.get(request);
-            if ( pstmt == null ) {
-                pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                this.preparedStatementMap.put(request, pstmt);
-            } else
-                pstmt.clearParameters();
-
+        try ( PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             constructStatement(pstmt, request, parameters);
-
             result = pstmt.executeQuery();
         } catch (SQLException err) {
             // in case of an SQLException, we log the raw request to ease the debug process
@@ -1205,7 +1176,6 @@ public class DBDatabaseConnection implements AutoCloseable {
      * @return the number of lines impacted by the request
      */
     @SafeVarargs
-    @SuppressWarnings("resource")
     public final <T> int request(String request, T... parameters) throws SQLException {
         assert ( isConnected() );
         int rowCount = 0;
@@ -1213,45 +1183,29 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( parameters.length == 0 ) {		// no need to use a PreparedStatement
             if ( logger.isTraceEnabled() ) logger.trace(request);
 
-            Statement stmt = this.connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-
-            rowCount = stmt.executeUpdate(request);
-            stmt.close();
-            stmt=null;
-        } else {
-            PreparedStatement pstmt = this.preparedStatementMap.get(request);
-
-            if ( pstmt == null || pstmt.isClosed() ) {
-                pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-                this.preparedStatementMap.put(request, pstmt);
-            } else {
-                pstmt.clearParameters();
-                pstmt.clearWarnings();
+            try ( Statement stmt = this.connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY) ) {
+            	rowCount = stmt.executeUpdate(request);
             }
-
-            constructStatement(pstmt, request, parameters);
-
-            // on PostGreSQL databases, we can only send new requests if we rollback the transaction that caused the exception
-            Savepoint savepoint = null;
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "postgresql") ) savepoint = this.connection.setSavepoint();
-            try {
-                rowCount = pstmt.executeUpdate();
-            } catch (SQLException e) {
-                if ( savepoint != null ) {
-                    try {
-                        this.connection.rollback(savepoint);
-                        if ( logger.isTraceEnabled() ) logger.trace("Rolled back to savepoint");
-                    } catch (SQLException e2) { logger.error("Failed to rollback to savepoint", e2); }
-                }
-
-                // on sqlite databases, the prepared statement must be closed (then re-created) after the exception else we've got "statement is not executing" error messages
-                if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ) {
-                    this.preparedStatementMap.remove(request);
-                    pstmt.close();
-                }
-                throw e;
-            } finally {
-                if ( savepoint != null ) this.connection.releaseSavepoint(savepoint);
+        } else {
+            try ( PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY) ) {
+	            constructStatement(pstmt, request, parameters);
+	
+	            // on PostGreSQL databases, we can only send new requests if we rollback the transaction that caused the exception
+	            Savepoint savepoint = null;
+	            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "postgresql") ) savepoint = this.connection.setSavepoint();
+	            try {
+	                rowCount = pstmt.executeUpdate();
+	            } catch (SQLException err) {
+	                if ( savepoint != null ) {
+	                    try {
+	                        this.connection.rollback(savepoint);
+	                        if ( logger.isTraceEnabled() ) logger.trace("Rolled back to savepoint");
+	                    } catch (SQLException e2) { logger.error("Failed to rollback to savepoint", e2); }
+	                }
+	                throw err;
+	            } finally {
+	                if ( savepoint != null ) this.connection.releaseSavepoint(savepoint);
+	            }
             }
         }
 
@@ -1267,9 +1221,7 @@ public class DBDatabaseConnection implements AutoCloseable {
     public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
         ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
 
-        @SuppressWarnings("resource")
         ResultSet result = null;
-
         try {
             // We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
             if ( filter==null || filter.length()==0 )
@@ -1285,33 +1237,24 @@ public class DBDatabaseConnection implements AutoCloseable {
                 list.add(table);
             }
         } finally {
-            if ( result != null )
+            if ( result != null ) {
                 result.close();
+                result = null;
+            }
         }
 
         return list;
     }
 
     public String getModelId(String modelName, boolean ignoreCase) throws Exception {
-        @SuppressWarnings("resource")
-        ResultSet result = null;
-        String id = null;
-
-        try {
-            // Using a GROUP BY on PostGresSQL does not give the expected result ...   
-            if ( ignoreCase )
-                result = select("SELECT id FROM "+this.schema+"models m WHERE UPPER(name) = UPPER(?)", modelName);
-            else
-                result = select("SELECT id FROM "+this.schema+"models m WHERE name = ?", modelName);
-
+        String whereClause = ignoreCase ? "UPPER(name) = UPPER(?)" : "name = ?";
+        
+        try ( ResultSet result = select("SELECT id FROM "+this.schema+"models m WHERE "+whereClause, modelName) ) {  
             if ( result.next() ) 
-                id = result.getString("id");
-        } finally {
-            if ( result != null )
-                result.close();
+                return (result.getString("id"));
         }
-
-        return id;
+        
+        return null;
     }
 
     /**

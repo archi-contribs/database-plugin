@@ -1141,7 +1141,6 @@ public class DBGuiImportComponent extends DBGui {
 		this.tblComponents.setLayoutData(fd);
 	}
 
-	@SuppressWarnings("resource")
 	void getElements() throws Exception {
 		this.compoElements.setVisible(true);
 		//compoContainers.setVisible(false);
@@ -1181,22 +1180,28 @@ public class DBGuiImportComponent extends DBGui {
 		}
 
 		if ( inList.length() != 0 ) {
-			ResultSet result;
-
-			if ( this.filterName.getText().length() == 0 )
-				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
-			else {
-				if ( this.ignoreCase.getSelection() )
-					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
-				else
-					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+			@SuppressWarnings("resource")
+			ResultSet result = null;
+			try {
+				if ( this.filterName.getText().length() == 0 )
+					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				else {
+					if ( this.ignoreCase.getSelection() )
+						result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
+					else
+						result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+				}
+	
+				while (result.next()) {
+					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null))
+						createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+				}
+			} finally {
+				if ( result != null ) {
+					result.close();
+					result = null;
+				}
 			}
-
-			while (result.next()) {
-				if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null))
-					createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
-			}
-			result.close();
 		}
 		
 		if ( this.tblComponents.getItemCount() < 2 ) {
@@ -1294,7 +1299,6 @@ public class DBGuiImportComponent extends DBGui {
 	}
 	 */
 
-	@SuppressWarnings("resource")
 	void getViews() throws Exception {
 		this.compoElements.setVisible(false);
 		//compoContainers.setVisible(false);
@@ -1330,18 +1334,24 @@ public class DBGuiImportComponent extends DBGui {
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
-			ResultSet result;
-
-			if ( this.filterName.getText().length() == 0 )
-				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
-			else
-				result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
-
-			while (result.next()) {
-				if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null))
-					createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+			@SuppressWarnings("resource")
+			ResultSet result = null;
+			try {
+				if ( this.filterName.getText().length() == 0 )
+					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
+				else
+					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+	
+				while (result.next()) {
+					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null))
+						createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+				}
+			} finally {
+				if ( result != null ) {
+					result.close();
+					result = null;
+				}
 			}
-			result.close();
 		}
 		
 		if ( this.tblComponents.getItemCount() < 2 ) {
