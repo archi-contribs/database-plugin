@@ -802,11 +802,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Export a component to the database
 	 */
-	public void exportEObject(EObject eObject) throws Exception {
+	public void exportEObject(EObject eObject, DBGui gui) throws Exception {
 		if ( eObject instanceof IArchimateElement ) 			exportElement((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship ) 	exportRelationship((IArchimateRelationship)eObject);
 		else if ( eObject instanceof IFolder ) 					exportFolder((IFolder)eObject);
-		else if ( eObject instanceof IDiagramModel ) 			exportView((IDiagramModel)eObject);
+		else if ( eObject instanceof IDiagramModel ) 			exportView((IDiagramModel)eObject, gui);
 		else if ( eObject instanceof IDiagramModelObject )		exportViewObject((IDiagramModelComponent)eObject);
 		else if ( eObject instanceof IDiagramModelConnection )	exportViewConnection((IDiagramModelConnection)eObject);
 		else
@@ -1033,7 +1033,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Export a view into the database.
 	 */
-	private void exportView(IDiagramModel view) throws Exception {
+	private void exportView(IDiagramModel view, DBGui gui) throws Exception {
 		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum", "container_checksum"};
 		
 		// if the view is exported, the we increase its exportedVersion
@@ -1044,7 +1044,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		byte[] viewImage = null;
 
 		if ( this.databaseEntry.isViewSnapshotRequired() )
-			viewImage = DBGui.createImage(view, this.databaseEntry.getViewsImagesScaleFactor()/100.0, this.databaseEntry.getViewsImagesBorderWidth());
+			viewImage = gui.createImage(view, this.databaseEntry.getViewsImagesScaleFactor()/100.0, this.databaseEntry.getViewsImagesBorderWidth());
 
 		insert(this.schema+"views", ViewsColumns
 				,view.getId()

@@ -159,10 +159,10 @@ public class DBGuiImportComponent extends DBGui {
 
 		this.includeNeo4j = false;
 
-		popup("Please wait while counting model's components");
+		setMessage("Please wait while counting model's components");
 		model.countAllObjects();
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
-		closePopup();		
+		closeMessage();		
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion+").");
 
@@ -1390,7 +1390,7 @@ public class DBGuiImportComponent extends DBGui {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
-				popup("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
+				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Please wait while importing \""+name+"\".");
 				
 				if ( this.compoElements.getVisible() )
 					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
@@ -1407,7 +1407,7 @@ public class DBGuiImportComponent extends DBGui {
 			popup(Level.ERROR, e.getMessage());
 		} finally {
 			// we do not catch the exception if any, but we need to close the popup
-			closePopup();
+			closeMessage();
 		}
 
 		if ( !imported.isEmpty() ) {

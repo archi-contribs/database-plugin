@@ -132,11 +132,11 @@ public class DBGuiExportModel extends DBGui {
 	    refreshDisplay();
 	    
         try {
-    	    popup("Please wait while counting model's components");
+    	    setMessage("Please wait while counting model's components");
             this.exportedModel.countAllObjects();
-            closePopup();
+            closeMessage();
         } catch (Exception err) {
-            closePopup();
+            closeMessage();
             popup(Level.ERROR, "Failed to count model's components", err);
             return;
         }
@@ -876,9 +876,9 @@ public class DBGuiExportModel extends DBGui {
         this.btnCompareModelToDatabase.setLayoutData(fd);
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
             @Override public void widgetSelected(SelectionEvent e) {
-                popup("Please wait while comparing model from the database...");
+                setMessage("Please wait while comparing model from the database...");
             	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
-            	closePopup();
+            	closeMessage();
             	if ( upToDate ) {
             		popup(Level.INFO, "Your database is already up to date.");
                     DBGuiExportModel.this.btnClose.setText("Close");
@@ -1002,9 +1002,9 @@ public class DBGuiExportModel extends DBGui {
         
 		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
-            popup("Please wait while comparing model from the database...");
+            setMessage("Please wait while comparing model from the database...");
         	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
-        	closePopup();
+        	closeMessage();
         	if ( upToDate ) {
         		popup(Level.INFO, "Your database is already up to date.");
         		this.btnClose.setText("Close");
@@ -1491,11 +1491,11 @@ public class DBGuiExportModel extends DBGui {
 			
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
-				popup("Please wait while comparing model from the database...");
+				setMessage("Please wait while comparing model from the database...");
 				this.exportConnection.getVersionsFromDatabase(this.exportedModel);
-				closePopup();
+				closeMessage();
 			} catch (SQLException err ) {
-				closePopup();
+				closeMessage();
 				popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 				setActiveAction(STATUS.Error);
 				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -1877,7 +1877,7 @@ public class DBGuiExportModel extends DBGui {
 		        	objectClass = "View Connection";
                 logger.debug(objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
 		    }
-			this.exportConnection.exportEObject(eObjectToExport);
+			this.exportConnection.exportEObject(eObjectToExport, this);
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
             	incrementText(txtNewInModel);
             else

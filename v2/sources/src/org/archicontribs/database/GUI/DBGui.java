@@ -183,7 +183,9 @@ public class DBGui {
 	
 	private Label lblOption;
 	Button radioOption1;
-	Button radioOption2; 
+	Button radioOption2;
+	
+	private Label labelMessage = null;
 	
 	protected Combo comboDatabases;
 	protected Button btnSetPreferences;
@@ -569,7 +571,7 @@ public class DBGui {
 	 * This method retrieve the database name from the comboDatabases and reads the preferences to get the connection details. A connection is then established to the database.
 	 */
 	protected void databaseSelected() {
-		popup("Please wait while connecting to the database ...");
+		setMessage("Please wait while connecting to the database ...");
 		
 		databaseSelectedCleanup();
 		
@@ -585,7 +587,7 @@ public class DBGui {
 			//if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
 			if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
 		} catch (Exception err) {
-			closePopup();
+			closeMessage();
 			notConnectedToDatabase();
 			popup(Level.ERROR, "Cannot connect to the database.", err);
 			return;
@@ -593,16 +595,18 @@ public class DBGui {
 		
 			// then, we check if the database has got the right pre-requisites
 		try {
+			setMessage("Please wait while checking the database structure...");
 			this.connection.checkDatabase();
 		} catch (Exception err) {
-			closePopup();
+			closeMessage();
 			popup(Level.ERROR, "Cannot use this database.", err);
 			notConnectedToDatabase();
 			return;
+		} finally {
+			closeMessage();
 		}
 		
 		connectedToDatabase(true);
-		closePopup();
 	}
 	
 	/** 
@@ -750,7 +754,6 @@ public class DBGui {
 	protected boolean getOptionValue() {
 		return this.radioOption1.getSelection();
 	}
-	
 	
 	
 	
@@ -1262,10 +1265,22 @@ public class DBGui {
 		refreshDisplay();
     }
     
+    protected void closeMessage() {
+		if ( this.labelMessage != null ) {
+			this.labelMessage.dispose();
+			this.labelMessage = null;
+		}
+    }
+    
+    protected void setMessage(String message) {
+    	setMessage(message, COMPO_LEFT_COLOR);
+    }
+    
     protected void setMessage(String message, Color foreground) {
-    	Label label = new Label(this.compoRightTop, SWT.VERTICAL | SWT.CENTER);
-        label.setFont(GROUP_TITLE_FONT);
-        label.setBackground(foreground);
+		this.labelMessage = new Label(this.compoRightTop, SWT.VERTICAL | SWT.CENTER);
+
+		this.labelMessage.setFont(GROUP_TITLE_FONT);
+		this.labelMessage.setBackground(foreground);
         String msg = message.replace("\n\n", "\n");
         
         if ( foreground == GREEN_COLOR )
@@ -1275,24 +1290,24 @@ public class DBGui {
         
         if ( msg.split("\n").length == 1 )
             msg = "\n" + msg;               // we try to vertically center it, more or less ...
-        label.setText(msg);
+        this.labelMessage.setText(msg);
 
         FormData fd = new FormData();
         fd.top = new FormAttachment(0, 0);
         fd.left = new FormAttachment(0, 0);
         fd.right = new FormAttachment(100, 0);
         fd.bottom = new FormAttachment(100, 0);
-        label.setLayoutData(fd);
-        
-        this.compoRightTop.layout();
-        refreshDisplay();
+        this.labelMessage.setLayoutData(fd);
+    	
+	    this.compoRightTop.layout();
+	    refreshDisplay();
     }
     
     
-    public static byte[] createImage(IDiagramModel view, double scale, int margin) {
+    public byte[] createImage(IDiagramModel view, double scale, int margin) {
     	byte[] imageContent = null;
     	
-    	popup("Creating screenshot of view \""+view.getName()+"\"");
+    	setMessage("Creating screenshot of view \""+view.getName()+"\"");
 
 		try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
 			try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
@@ -1311,7 +1326,7 @@ public class DBGui {
 			logger.error("Failed to close ByteArrayOutputStream", err);
 		}
 		
-		closePopup();
+		closeMessage();
 		
 		return imageContent;
     }

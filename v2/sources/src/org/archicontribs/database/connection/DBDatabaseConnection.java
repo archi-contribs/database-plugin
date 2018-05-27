@@ -213,128 +213,120 @@ public class DBDatabaseConnection implements AutoCloseable {
      * @returns true if the database structure is correct, false if not
      */
     public void checkDatabase() throws ClassNotFoundException, SQLException {
-        DBGui.popup("Please wait while checking the "+this.databaseEntry.getDriver()+" database ...");
+        if ( !isConnected() )
+            openConnection();
 
-        try {
-            if ( !isConnected() )
-                openConnection();
-
-            switch ( this.databaseEntry.getDriver() ) {
-                case "neo4j" :
-                    DBGui.closePopup();		// no tables to check on neo4j databases
-                    return;
-                case "sqlite" :
-                    this.AUTO_INCREMENT	= "integer PRIMARY KEY";
-                    this.BOOLEAN		= "tinyint(1)";          				// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
-                    this.COLOR			= "varchar(7)";
-                    this.DATETIME		= "timestamp";
-                    this.FONT			= "varchar(150)";
-                    this.IMAGE			= "blob";
-                    this.INTEGER		= "integer(10)";
-                    this.OBJECTID		= "varchar(50)";
-                    this.OBJ_NAME		= "varchar(1024)";
-                    this.PRIMARY_KEY	= "PRIMARY KEY";
-                    this.STRENGTH		= "varchar(20)";
-                    this.TEXT			= "clob";
-                    this.TYPE			= "varchar(3)";
-                    this.USERNAME		= "varchar(30)";
-                    break;
-                case "mysql"  :
-                    this.AUTO_INCREMENT	= "int(10) NOT NULL AUTO_INCREMENT";
-                    this.BOOLEAN		= "tinyint(1)";							// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
-                    this.COLOR			= "varchar(7)";
-                    this.DATETIME		= "datetime";
-                    this.FONT			= "varchar(150)";
-                    this.IMAGE			= "longblob";
-                    this.INTEGER		= "int(10)";
-                    this.OBJECTID		= "varchar(50)";
-                    this.OBJ_NAME		= "varchar(1024)";
-                    this.PRIMARY_KEY	= "PRIMARY KEY";
-                    this.STRENGTH		= "varchar(20)";
-                    this.TEXT			= "mediumtext";
-                    this.TYPE			= "varchar(3)";
-                    this.USERNAME		= "varchar(30)";
-                    break;
-                case "ms-sql"  :
-                    this.AUTO_INCREMENT	= "int IDENTITY NOT NULL" ;
-                    this.BOOLEAN		= "tinyint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
-                    this.COLOR			= "varchar(7)";
-                    this.DATETIME		= "datetime";
-                    this.FONT			= "varchar(150)";
-                    this.IMAGE			= "image";
-                    this.INTEGER		= "int";
-                    this.OBJECTID		= "varchar(50)";
-                    this.OBJ_NAME		= "varchar(1024)";
-                    this.PRIMARY_KEY	= "PRIMARY KEY";
-                    this.STRENGTH		= "varchar(20)";
-                    this.TEXT			= "nvarchar(max)";
-                    this.TYPE			= "varchar(3)";
-                    this.USERNAME		= "varchar(30)";
-                    break;
-                case "oracle" :
-                    this.AUTO_INCREMENT	= "integer NOT NULL";
-                    this.BOOLEAN		= "char";          						// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
-                    this.COLOR			= "varchar(7)";
-                    this.DATETIME		= "date";
-                    this.FONT			= "varchar(150)";
-                    this.IMAGE			= "blob";
-                    this.INTEGER		= "integer";
-                    this.OBJECTID		= "varchar(50)";
-                    this.OBJ_NAME		= "varchar(1024)";
-                    this.PRIMARY_KEY	= "PRIMARY KEY";
-                    this.STRENGTH		= "varchar(20)";
-                    this.TEXT			= "clob";
-                    this.TYPE			= "varchar(3)";
-                    this.USERNAME		= "varchar(30)";
-                    break;
-                case "postgresql" :
-                    this.AUTO_INCREMENT	= "serial NOT NULL" ;
-                    this.BOOLEAN		= "smallint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
-                    this.COLOR			= "varchar(7)";
-                    this.DATETIME		= "timestamp";
-                    this.FONT			= "varchar(150)";
-                    this.IMAGE			= "bytea";
-                    this.INTEGER		= "integer";
-                    this.OBJECTID		= "varchar(50)";
-                    this.OBJ_NAME		= "varchar(1024)";
-                    this.PRIMARY_KEY	= "PRIMARY KEY";
-                    this.STRENGTH		= "varchar(20)";
-                    this.TEXT			= "text";
-                    this.TYPE			= "varchar(3)";
-                    this.USERNAME		= "varchar(30)";
-                    break;
-                default:		// should never be here, but just in case
-                    throw new SQLException("Unknown driver "+this.databaseEntry.getDriver());
-
-            }
-
-            // checking if the database_version table exists
-            if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schema+"database_version\" table");
-
-            int currentVersion = 0;
-            try ( ResultSet result = select("SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName);){
-                result.next();currentVersion = result.getInt("version");
-            } catch (@SuppressWarnings("unused") SQLException err) {
-                // if the table does not exist
-                DBGui.closePopup();
-                if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") )
-                    throw new SQLException("Necessary tables not found.");
-
-                createTables();
+        switch ( this.databaseEntry.getDriver() ) {
+            case "neo4j" :
                 return;
-            }
+            case "sqlite" :
+                this.AUTO_INCREMENT	= "integer PRIMARY KEY";
+                this.BOOLEAN		= "tinyint(1)";          				// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
+                this.COLOR			= "varchar(7)";
+                this.DATETIME		= "timestamp";
+                this.FONT			= "varchar(150)";
+                this.IMAGE			= "blob";
+                this.INTEGER		= "integer(10)";
+                this.OBJECTID		= "varchar(50)";
+                this.OBJ_NAME		= "varchar(1024)";
+                this.PRIMARY_KEY	= "PRIMARY KEY";
+                this.STRENGTH		= "varchar(20)";
+                this.TEXT			= "clob";
+                this.TYPE			= "varchar(3)";
+                this.USERNAME		= "varchar(30)";
+                break;
+            case "mysql"  :
+                this.AUTO_INCREMENT	= "int(10) NOT NULL AUTO_INCREMENT";
+                this.BOOLEAN		= "tinyint(1)";							// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
+                this.COLOR			= "varchar(7)";
+                this.DATETIME		= "datetime";
+                this.FONT			= "varchar(150)";
+                this.IMAGE			= "longblob";
+                this.INTEGER		= "int(10)";
+                this.OBJECTID		= "varchar(50)";
+                this.OBJ_NAME		= "varchar(1024)";
+                this.PRIMARY_KEY	= "PRIMARY KEY";
+                this.STRENGTH		= "varchar(20)";
+                this.TEXT			= "mediumtext";
+                this.TYPE			= "varchar(3)";
+                this.USERNAME		= "varchar(30)";
+                break;
+            case "ms-sql"  :
+                this.AUTO_INCREMENT	= "int IDENTITY NOT NULL" ;
+                this.BOOLEAN		= "tinyint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
+                this.COLOR			= "varchar(7)";
+                this.DATETIME		= "datetime";
+                this.FONT			= "varchar(150)";
+                this.IMAGE			= "image";
+                this.INTEGER		= "int";
+                this.OBJECTID		= "varchar(50)";
+                this.OBJ_NAME		= "varchar(1024)";
+                this.PRIMARY_KEY	= "PRIMARY KEY";
+                this.STRENGTH		= "varchar(20)";
+                this.TEXT			= "nvarchar(max)";
+                this.TYPE			= "varchar(3)";
+                this.USERNAME		= "varchar(30)";
+                break;
+            case "oracle" :
+                this.AUTO_INCREMENT	= "integer NOT NULL";
+                this.BOOLEAN		= "char";          						// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
+                this.COLOR			= "varchar(7)";
+                this.DATETIME		= "date";
+                this.FONT			= "varchar(150)";
+                this.IMAGE			= "blob";
+                this.INTEGER		= "integer";
+                this.OBJECTID		= "varchar(50)";
+                this.OBJ_NAME		= "varchar(1024)";
+                this.PRIMARY_KEY	= "PRIMARY KEY";
+                this.STRENGTH		= "varchar(20)";
+                this.TEXT			= "clob";
+                this.TYPE			= "varchar(3)";
+                this.USERNAME		= "varchar(30)";
+                break;
+            case "postgresql" :
+                this.AUTO_INCREMENT	= "serial NOT NULL" ;
+                this.BOOLEAN		= "smallint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
+                this.COLOR			= "varchar(7)";
+                this.DATETIME		= "timestamp";
+                this.FONT			= "varchar(150)";
+                this.IMAGE			= "bytea";
+                this.INTEGER		= "integer";
+                this.OBJECTID		= "varchar(50)";
+                this.OBJ_NAME		= "varchar(1024)";
+                this.PRIMARY_KEY	= "PRIMARY KEY";
+                this.STRENGTH		= "varchar(20)";
+                this.TEXT			= "text";
+                this.TYPE			= "varchar(3)";
+                this.USERNAME		= "varchar(30)";
+                break;
+            default:		// should never be here, but just in case
+                throw new SQLException("Unknown driver "+this.databaseEntry.getDriver());
 
-            if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
-                throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
+        }
 
-            if ( currentVersion != databaseVersion ) {
-                if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") )
-                    upgradeDatabase(currentVersion);
-                else
-                    throw new SQLException("The database needs to be upgraded.");
-            }
-        } finally {
-            DBGui.closePopup();
+        // checking if the database_version table exists
+        if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schema+"database_version\" table");
+
+        int currentVersion = 0;
+        try ( ResultSet result = select("SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName);){
+            result.next();currentVersion = result.getInt("version");
+        } catch (@SuppressWarnings("unused") SQLException err) {
+            // if the table does not exist
+            if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") )
+                throw new SQLException("Necessary tables not found.");
+
+            createTables();
+            return;
+        }
+
+        if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
+            throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
+
+        if ( currentVersion != databaseVersion ) {
+            if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") )
+                upgradeDatabase(currentVersion);
+            else
+                throw new SQLException("The database needs to be upgraded.");
         }
     }
 

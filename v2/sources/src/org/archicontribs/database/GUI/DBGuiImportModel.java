@@ -693,9 +693,9 @@ public class DBGuiImportModel extends DBGui {
         // we import the model from the database in a separate thread
         try {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-            popup("Please wait while getting the model metadata ...");
+            setMessage("Please wait while getting the model metadata ...");
             int importSize = this.importConnection.importModel(this.modelToImport);
-            closePopup();
+            closeMessage();
             setProgressBarMinAndMax(0, importSize);
 
             this.txtTotalElements.setText(String.valueOf(this.importConnection.getCountElementsToImport()));
@@ -776,7 +776,7 @@ public class DBGuiImportModel extends DBGui {
                 increaseProgressBar();
             }
         } catch (Exception err) {
-        	closePopup();
+        	closeMessage();
             if ( hasBeenClosed() ) {
                 // we close the partially imported model
                 CommandStack stack = (CommandStack)this.modelToImport.getAdapter(CommandStack.class);
