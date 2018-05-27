@@ -282,7 +282,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 		}
 
-		//TODO : manage the "real" model metadata :-)
 		try ( ResultSet result = select("SELECT name, purpose, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
 			model.setPurpose(result.getString("purpose"));
@@ -291,6 +290,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		importProperties(model);
+		importMetadata(model);
 
 		String toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation)" : "documentation";
 		String toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation) AS documentation" : "documentation";
@@ -928,6 +928,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				prop.setKey(result.getString("name"));
 				prop.setValue(result.getString("value"));
 				parent.getProperties().add(prop);
+			}
+		}
+	}
+	
+	/**
+	 * Imports the metadata of a model<br>
+	 * @throws SQLException 
+	 */
+	private void importMetadata(DBArchimateModel model) throws SQLException {
+		// first, we delete all existing metadata
+		model.getMetadata().getEntries().clear();
+
+		// then, we import the metadata from the database 
+		try ( ResultSet result = select("SELECT name, value FROM "+this.schema+"metadata WHERE parent_id = ? AND parent_version = ? ORDER BY rank", model.getId(), model.getInitialVersion().getVersion())) {
+			while ( result.next() ) {
+				// if the property already exist, we update its value. If it doesn't, we create it
+				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+				prop.setKey(result.getString("name"));
+				prop.setValue(result.getString("value"));
+				model.getMetadata().getEntries().add(prop);
 			}
 		}
 	}

@@ -40,7 +40,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 207;
+    public static final int databaseVersion = 208;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -481,6 +481,16 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"properties");
             request("CREATE TABLE "+this.schema+"properties ("
+                    + "parent_id "+this.OBJECTID +" NOT NULL, "
+                    + "parent_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL, "
+                    + "name "+ this.OBJ_NAME +", "
+                    + "value "+ this.TEXT +", "
+                    + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
+                    + ")");
+            
+            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
+            request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
                     + "parent_version "+ this.INTEGER +" NOT NULL, "
                     + "rank "+ this.INTEGER +" NOT NULL, "
@@ -1019,6 +1029,22 @@ public class DBDatabaseConnection implements AutoCloseable {
             dropColumn(this.schema+"images", "checksum");
             
             dbVersion = 207;
+        }
+        
+        // convert from version 207 to 208
+        //      - create metadata table
+        if ( dbVersion == 207 ) {
+            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
+            request("CREATE TABLE "+this.schema+"metadata ("
+                    + "parent_id "+this.OBJECTID +" NOT NULL, "
+                    + "parent_version "+ this.INTEGER +" NOT NULL, "
+                    + "rank "+ this.INTEGER +" NOT NULL, "
+                    + "name "+ this.OBJ_NAME +", "
+                    + "value "+ this.TEXT +", "
+                    + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
+                    + ")");
+            
+            dbVersion = 208;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");

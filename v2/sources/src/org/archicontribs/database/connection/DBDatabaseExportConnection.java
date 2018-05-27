@@ -796,6 +796,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				);
 
 		exportProperties(model);
+		exportMetadata(model);
 	}
 
 	/**
@@ -1283,6 +1284,34 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				insert(this.schema+"properties", propertiesColumns
 						,((IIdentifier)parent).getId()
 						,exportedVersion
+						,propRank
+						,prop.getKey()
+						,prop.getValue()
+						);
+		}
+	}
+	
+	/**
+	 * Export properties to the database
+	 */
+	private void exportMetadata(DBArchimateModel parent) throws Exception {
+		final String[] metadataColumns = {"parent_id", "parent_version", "rank", "name", "value"};
+
+		for ( int propRank = 0 ; propRank < parent.getMetadata().getEntries().size(); ++propRank) {
+			IProperty prop = parent.getMetadata().getEntries().get(propRank);
+			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "neo4j") ) {
+				request("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
+						,parent.getId()
+						,parent.getExportedVersion().getVersion()
+						,propRank
+						,prop.getKey()
+						,prop.getValue()
+						);
+			}
+			else
+				insert(this.schema+"metadata", metadataColumns
+						,parent.getId()
+						,parent.getExportedVersion().getVersion()
 						,propRank
 						,prop.getKey()
 						,prop.getValue()
