@@ -377,10 +377,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		try ( ResultSet resultImages = select("SELECT COUNT(DISTINCT image_path) AS countImages"+
 				" FROM "+this.schema+"views_in_model"+
 				" INNER JOIN "+this.schema+"views ON views_in_model.view_id = views.id AND views_in_model.view_version = views.version"+
-				" INNER JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views.id AND views_objects_in_view.object_version = views.version"+
+				" INNER JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.view_id = views.id AND views_objects_in_view.view_version = views.version"+
 				" INNER JOIN "+this.schema+"views_objects ON views_objects.id = views_objects_in_view.object_id AND views_objects.version = views_objects_in_view.object_version"+
-				" INNER JOIN "+this.schema+"images ON views_objects.image_path = images.path"+
-				" WHERE model_id = ? AND model_version = ? AND path IS NOT NULL" 
+				" WHERE model_id = ? AND model_version = ? AND image_path IS NOT NULL" 
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				))
