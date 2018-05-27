@@ -1897,6 +1897,10 @@ public class DBGuiExportModel extends DBGui {
                 if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
                 incrementText(txtUpdatedInDatabase);
+            } else if ( eObjectToExport instanceof IFolder ) {
+                if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                incrementText(txtUpdatedInDatabase);
             } else if ( eObjectToExport instanceof IDiagramModel ) {
                 if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
                 importConnection.importViewFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
@@ -1911,7 +1915,6 @@ public class DBGuiExportModel extends DBGui {
                 incrementText(txtUpdatedInDatabase);
             } else
             	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-            //TODO: import folder
             exported = true;
 		}
 		
