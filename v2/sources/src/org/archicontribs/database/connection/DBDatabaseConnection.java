@@ -295,8 +295,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schema+"database_version\" table");
 	
 	        int currentVersion = 0;
-	        try ( ResultSet result = select("SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName);){
-	            result.next();currentVersion = result.getInt("version");
+	        try ( ResultSet resultVersion = select("SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+	            resultVersion.next();
+	            currentVersion = resultVersion.getInt("version");
 	        } catch (@SuppressWarnings("unused") SQLException err) {
 	            // if the table does not exist
 	            if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") )
@@ -706,8 +707,6 @@ public class DBDatabaseConnection implements AutoCloseable {
             
             rollback();
             setAutoCommit(true);
-            // we delete the archi_plugin table because for some databases, DDL cannot be rolled back
-            dropTableIfExists(this.schema+"database_version");
             throw err;
         }
 
@@ -1114,19 +1113,20 @@ public class DBDatabaseConnection implements AutoCloseable {
      */
     //private Map<String, PreparedStatement> preparedStatementMap = new HashMap<String, PreparedStatement>();
 
-    /**
+	/**
      * Wrapper to generate and execute a SELECT request in the database<br>
      * One may use '?' in the request and provide the corresponding values as parameters (at the moment, only strings are accepted)<br>
      * The connection to the database should already exist 
      * @return the ResultSet with the data read from the database
      */
     @SafeVarargs
-
+    @SuppressWarnings("resource")
     public final <T> ResultSet select(String request, T... parameters) throws SQLException {
         assert ( isConnected() );
 
         ResultSet result = null;
-        try ( PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
+        try {
+        	PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
             constructStatement(pstmt, request, parameters);
             result = pstmt.executeQuery();
         } catch (SQLException err) {
