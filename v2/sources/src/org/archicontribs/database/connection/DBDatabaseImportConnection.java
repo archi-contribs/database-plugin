@@ -1002,7 +1002,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			IFolder parentFolder = null;
 			
 			resultFolder.close();
-			resultFolder = select("SELECT parent_folder_id from "+this.schema+"folders_in_model WHERE model_id = ? AND MAX(model_version) model_version AND folder_id = ? AND folder_version = ? "
+			resultFolder = select("SELECT parent_folder_id, MAX(model_version) from "+this.schema+"folders_in_model WHERE model_id = ? AND folder_id = ? AND folder_version = ? "
 					+ " GROUP BY model_id, folder_id, folder_version"
 					, model.getId()
 					, folderId
