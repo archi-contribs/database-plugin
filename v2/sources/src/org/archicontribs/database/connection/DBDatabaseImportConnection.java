@@ -1109,7 +1109,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			boolean createViewObject = false;
 			if( newElement ) {
-				model.getDefaultFolderForObject(element).getElements().add(element);
+				IFolder parentFolder = null;
+
+				// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+				if ( !mustCreateCopy )
+					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", element.getId()) ) {
+						int maxVersion = 0;
+						while ( resultParentFolder.next() ) {
+							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+								((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+							}
+							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+						}
+						((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+					}
+				if ( parentFolder == null ) {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+					model.getDefaultFolderForObject(element).getElements().add(element);
+				} else {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+					parentFolder.getElements().add(element);
+				}
 				model.getAllElements().put(element.getId(), element);
 				model.countObject(element, false, null);
 				createViewObject = view!=null;
@@ -1270,7 +1291,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			boolean createViewConnection = false;
 			if ( newRelationship ) {
-				model.getDefaultFolderForObject(relationship).getElements().add(relationship);
+				IFolder parentFolder = null;
+
+				// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+				if ( !mustCreateCopy )
+					try ( ResultSet resultParentFolder = select("SELECT parent_folder_id FROM relationships_in_model WHERE model_id = ? AND relationship_id = ? ORDER BY model_version DESC", model.getId(), relationship.getId()) ) {
+						if ( resultParentFolder.next() )
+							parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+					}
+				if ( parentFolder == null ) {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+					model.getDefaultFolderForObject(relationship).getElements().add(relationship);
+				} else {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+					parentFolder.getElements().add(relationship);
+				}
 				model.getAllRelationships().put(relationship.getId(), relationship);
 				createViewConnection = view!=null;
 			} else {
@@ -1311,7 +1346,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * This method imports a view, optionally including all graphical objects and connections and requirements (elements and relationships)<br>
 	 * elements and relationships that needed to be imported are located in a folder named by the view
 	 */
-	public IDiagramModel importViewFromId(DBArchimateModel model, IFolder parentFolder, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) throws Exception {
+	public IDiagramModel importViewFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) throws Exception {
 		if ( logger.isDebugEnabled() ) {
 			if ( mustCreateCopy )
 				logger.debug("Importing a copy of view id "+id);
@@ -1356,6 +1391,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		if ( isNewView ) {
+			IFolder parentFolder = null;
+
+			// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+			if ( !mustCreateCopy )
+				try ( ResultSet resultParentFolder = select("SELECT parent_folder_id FROM views_in_model WHERE model_id = ? AND view_id = ? ORDER BY model_version DESC", model.getId(), view.getId()) ) {
+					if ( resultParentFolder.next() )
+						parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+				}
+			if ( parentFolder == null ) {
+				if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+				model.getDefaultFolderForObject(view).getElements().add(view);
+			} else {
+				if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+				parentFolder.getElements().add(view);
+			}
 			if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
 				parentFolder.getElements().add(view);
 			else

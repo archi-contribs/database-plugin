@@ -1408,7 +1408,7 @@ public class DBGuiImportComponent extends DBGui {
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());
 				else if ( this.compoViews.getVisible() ) {
-					IDiagramModel view = this.importConnection.importViewFromId(this.importedModel, this.selectedFolder, id, 0, !getOptionValue(), true);
+					IDiagramModel view = this.importConnection.importViewFromId(this.importedModel, /*this.selectedFolder,*/ id, 0, !getOptionValue(), true);
 					if ( view != null )
 						imported.add(view);
 				}

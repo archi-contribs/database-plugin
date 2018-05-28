@@ -256,7 +256,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         + ") e "
                         + "GROUP BY id"
                         ,model.getId()
-                        ,model.getExportedVersion().getVersion()-1
+                        ,model.getInitialVersion().getVersion()
                         ,model.getId()
                         ,model.getId()
 	                    ) ) {
@@ -329,7 +329,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                             + ") e "
                             + "GROUP BY id"
                             ,model.getId()
-                            ,model.getExportedVersion().getVersion()-1
+                            ,model.getInitialVersion().getVersion()
                             ,model.getId()
                             ,model.getId()
                             ) ) {
@@ -402,7 +402,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                           + ") e "
                           + "GROUP BY id"
                           ,model.getId()
-                          ,model.getExportedVersion().getVersion()-1
+                          ,model.getInitialVersion().getVersion()
                           ,model.getId()
                           ,model.getId()
                           ) ) {
@@ -484,7 +484,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                                 + ") e "
                                 + "GROUP BY id"
                                 ,model.getId()
-                                ,model.getExportedVersion().getVersion()-1
+                                ,model.getInitialVersion().getVersion()
                                 ,model.getId()
                                 ,model.getId()
                         ) ) {
