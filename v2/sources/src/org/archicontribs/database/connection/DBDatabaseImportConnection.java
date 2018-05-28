@@ -1322,7 +1322,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		// 1 : we create or update the view
 		IDiagramModel view;
-		String versionString = (version==0) ? "(SELECT MAX(version) FROM \"+this.schema+\"views WHERE id = v.id)" : String.valueOf(version);
+		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)" : String.valueOf(version);
 
 		boolean isNewView = false;
 		try ( ResultSet resultView = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
