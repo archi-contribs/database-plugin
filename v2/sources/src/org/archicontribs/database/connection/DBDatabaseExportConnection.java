@@ -21,6 +21,7 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.data.DBVersionPair;
 import org.archicontribs.database.model.DBArchimateModel;
+import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
@@ -164,16 +165,32 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            
 	            // we reset all the versions
 	        	Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
-	            while (ite.hasNext()) ((IDBMetadata)ite.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
+	            while (ite.hasNext()) {
+	            	DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
+	            	metadata.getDatabaseVersion().reset();
+	            	metadata.getLatestDatabaseVersion().reset();
+	            }
 
 	        	Iterator<Map.Entry<String, IArchimateRelationship>> itr = model.getAllRelationships().entrySet().iterator();
-	            while (itr.hasNext()) ((IDBMetadata)itr.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
+	            while (itr.hasNext()) {
+	            	DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
+	            	metadata.getDatabaseVersion().reset();
+	            	metadata.getLatestDatabaseVersion().reset();
+	            }
 	            
 	        	Iterator<Map.Entry<String, IFolder>> itf = model.getAllFolders().entrySet().iterator();
-	            while (itf.hasNext()) ((IDBMetadata)itf.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
+	            while (itf.hasNext()) {
+	            	DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
+	            	metadata.getDatabaseVersion().reset();
+	            	metadata.getLatestDatabaseVersion().reset();
+	            }
 	            
 	        	Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
-	            while (itv.hasNext()) ((IDBMetadata)itv.next().getValue()).getDBMetadata().getDatabaseVersion().reset();
+	            while (itv.hasNext()) {
+	            	DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
+	            	metadata.getDatabaseVersion().reset();
+	            	metadata.getLatestDatabaseVersion().reset();
+	            }
 	            
 	            // we get the components versions from the database.
 	            
