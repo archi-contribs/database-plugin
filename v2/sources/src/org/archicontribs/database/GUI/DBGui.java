@@ -360,7 +360,7 @@ public class DBGui {
 		this.compoRightTop.setBackground(COMPO_BACKGROUND_COLOR);
 		FormData fd_compoRightUp = new FormData();
 		fd_compoRightUp.top = new FormAttachment(0, 10);
-		fd_compoRightUp.bottom = new FormAttachment(0, 60);
+		fd_compoRightUp.bottom = new FormAttachment(0, 70);
 		fd_compoRightUp.left = new FormAttachment(0, 10);
 		fd_compoRightUp.right = new FormAttachment(100, -10);
 		this.compoRightTop.setLayoutData(fd_compoRightUp);
