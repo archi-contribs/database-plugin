@@ -10,6 +10,7 @@ import java.util.ArrayList;
 
 import org.eclipse.gef.commands.Command;
 
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 
@@ -24,13 +25,15 @@ import com.archimatetool.model.IDiagramModelObject;
 public class DBDeleteDiagramObjectCommand extends Command {
     private IDiagramModelContainer viewObjectParent;
     private IDiagramModelObject viewObject;
+    private IArchimateModel model;
     private int viewObjectIndex;
     private ArrayList<IDiagramModelObject> viewObjectChildren;
     
-    public DBDeleteDiagramObjectCommand(IDiagramModelObject object) {
+    public DBDeleteDiagramObjectCommand(IArchimateModel model, IDiagramModelObject object) {
         this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
         this.viewObject = object;
         this.viewObjectChildren = new ArrayList<IDiagramModelObject>();
+        this.model = model;
     }
 
     @Override
@@ -56,10 +59,10 @@ public class DBDeleteDiagramObjectCommand extends Command {
                 for ( IDiagramModelObject child: this.viewObjectChildren )
                     this.viewObjectParent.getChildren().add(child);
             }
+            ((IDBMetadata)((IDBMetadata)this.viewObject).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
+            ((DBArchimateModel)this.model).getAllViewObjects().remove(this.viewObject.getId());
             this.viewObjectParent.getChildren().remove(this.viewObject);
-            ((DBArchimateModel)this.viewObject.getDiagramModel().getArchimateModel()).getAllViewObjects().remove(this.viewObject.getId());
         }
-        ((IDBMetadata)((IDBMetadata)this.viewObject).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
     }
     
     @Override
@@ -73,7 +76,7 @@ public class DBDeleteDiagramObjectCommand extends Command {
                 this.viewObjectParent.getChildren().remove(child);
                 ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
             }
-            ((DBArchimateModel)this.viewObject.getDiagramModel().getArchimateModel()).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
+            ((DBArchimateModel)this.model).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
         }
     }
 

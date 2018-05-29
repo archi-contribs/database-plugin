@@ -8,37 +8,40 @@ package org.archicontribs.database.model;
 
 import org.eclipse.gef.commands.Command;
 
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelConnection;
 
 /**
  * Delete Diagram Connection Command<br>
  * <br>
- * This class is a copy of the {@link com.archimatetool.editor.diagram.commands.DeleteDiagramConnectionCommand} written by Phillip Beauvoir, but his class is not accessible.
+ * This class is a copy of the {@link com.archimatetool.editor.diagram.commands.DeleteDiagramConnectionCommand} written by Phillip Beauvoir
  * 
  * @author Herve Jouin
  */
 public class DBDeleteDiagramConnectionCommand extends Command {
     private IDiagramModelConnection fConnection;
+    private IArchimateModel fModel;
     
     /** 
      * Create a command that will disconnect a connection from its endpoints.
      * @param connection the connection instance to disconnect (non-null)
      */
-    public DBDeleteDiagramConnectionCommand(IDiagramModelConnection connection){
+    public DBDeleteDiagramConnectionCommand(IArchimateModel model, IDiagramModelConnection connection){
         this.fConnection = connection;
+        this.fModel = model;
     }
     
     @Override
     public void execute() {
-        this.fConnection.disconnect();
-        ((DBArchimateModel)this.fConnection.getDiagramModel().getArchimateModel()).getAllViewObjects().remove(this.fConnection.getId());
+        ((DBArchimateModel)this.fModel).getAllViewObjects().remove(this.fConnection.getId());
         ((IDBMetadata)((IDBMetadata)this.fConnection).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
+        this.fConnection.disconnect();
     }
     
     @Override
     public void undo() {
         this.fConnection.reconnect();
-        ((DBArchimateModel)this.fConnection.getDiagramModel().getArchimateModel()).getAllViewObjects().put(this.fConnection.getId(), this.fConnection);
+        ((DBArchimateModel)this.fModel).getAllViewObjects().put(this.fConnection.getId(), this.fConnection);
     }
 
 
