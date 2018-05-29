@@ -57,6 +57,7 @@ public class DBDeleteDiagramObjectCommand extends Command {
                     this.viewObjectParent.getChildren().add(child);
             }
             this.viewObjectParent.getChildren().remove(this.viewObject);
+            ((DBArchimateModel)this.viewObject.getDiagramModel().getArchimateModel()).getAllViewObjects().remove(this.viewObject.getId());
         }
         ((IDBMetadata)((IDBMetadata)this.viewObject).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
     }
@@ -72,6 +73,7 @@ public class DBDeleteDiagramObjectCommand extends Command {
                 this.viewObjectParent.getChildren().remove(child);
                 ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
             }
+            ((DBArchimateModel)this.viewObject.getDiagramModel().getArchimateModel()).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
         }
     }
 
