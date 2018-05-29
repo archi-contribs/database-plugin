@@ -251,27 +251,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	}
 	
 	/**
-     * Counts the number of objects in the model.<br>
-     * At the same time, we calculate the current checksums
-     */
-    public void resetViewsChecksums() throws Exception {
-        this.allViews.clear();
-        this.allViewObjects.clear();
-        this.allViewConnections.clear();
-        
-        if ( logger.isTraceEnabled() ) logger.trace("Re-counting views in selected model.");
-        
-        for (IFolder folder: getFolders() ) {
-            if ( ((Folder)folder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE ) {
-                for ( EObject subfolder: folder.getFolders() )
-                    countObject(subfolder, true, null);
-                for ( EObject view: folder.getElements() )
-                    countObject(view, true, null);
-            }
-        }
-    }
-	
-	/**
 	 * Adds a specific object in the corresponding counter<br>
 	 * At the same time, we calculate the current checksums
 	 * @return : the concatenation of the checksums of all the eObject components
