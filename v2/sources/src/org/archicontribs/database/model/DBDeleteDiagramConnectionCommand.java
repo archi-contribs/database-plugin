@@ -31,12 +31,14 @@ public class DBDeleteDiagramConnectionCommand extends Command {
     @Override
     public void execute() {
         this.fConnection.disconnect();
+        ((DBArchimateModel)this.fConnection.getDiagramModel().getArchimateModel()).getAllViewObjects().remove(this.fConnection.getId());
         ((IDBMetadata)((IDBMetadata)this.fConnection).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
     }
     
     @Override
     public void undo() {
         this.fConnection.reconnect();
+        ((DBArchimateModel)this.fConnection.getDiagramModel().getArchimateModel()).getAllViewObjects().put(this.fConnection.getId(), this.fConnection);
     }
 
 
