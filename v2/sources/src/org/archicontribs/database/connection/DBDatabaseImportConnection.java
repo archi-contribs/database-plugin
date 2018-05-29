@@ -953,6 +953,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public IFolder importFolderFromId(DBArchimateModel model, String folderId, int folderVersion, boolean mustCreateCopy) throws Exception {
 		IFolder folder;
+		boolean newFolder = false;
 
 		ResultSet resultFolder = null;
 		try {
@@ -971,6 +972,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			if ( mustCreateCopy ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Importing a copy of folder id "+folderId+".");
+				newFolder = true;
 				folder = DBArchimateFactory.eINSTANCE.createFolder();
 				folder.setId(model.getIDAdapter().getNewID());
 				folder.setType(FolderType.get(resultFolder.getInt("type")));
@@ -984,6 +986,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				folder = model.getAllFolders().get(folderId);
 				if ( folder == null ) {
 					if ( logger.isDebugEnabled() ) logger.debug("Importing folder id "+folderId+".");
+					newFolder = true;
 					folder = DBArchimateFactory.eINSTANCE.createFolder();
 					folder.setId(folderId);
 					folder.setType(FolderType.get(resultFolder.getInt("type")));
@@ -998,26 +1001,32 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			setDocumentation(folder, resultFolder.getString("documentation"));
 
-			// we calculate the parent folder
-			IFolder parentFolder = null;
-			
-			resultFolder.close();
-			resultFolder = select("SELECT parent_folder_id, MAX(model_version) from "+this.schema+"folders_in_model WHERE model_id = ? AND folder_id = ? AND folder_version = ? "
-					+ " GROUP BY model_id, folder_id, folder_version"
-					, model.getId()
-					, folderId
-					, version
-					);
-			
-			// if the folder is part (or has been part) of the model, we get the latest parent folder in that model
-			if ( resultFolder.next() )
-				parentFolder = model.getAllFolders().get(resultFolder.getString("parent_folder_id"));
+			if ( newFolder ) {
+				IFolder parentFolder = null;
 
-			// else, we set the parent folder to its default folder
-			if ( parentFolder == null )
-				parentFolder = model.getFolder(FolderType.get(rootType));
-
-			parentFolder.getFolders().add(folder);
+				// if the folder is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+				if ( !mustCreateCopy )
+					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", folder.getId()) ) {
+						int maxVersion = 0;
+						while ( resultParentFolder.next() ) {
+							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+								((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
+							}
+							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("folder_version"));
+						}
+						((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+					}
+				if ( parentFolder == null ) {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+					model.getFolder(FolderType.get(rootType)).getFolders().add(folder);
+				} else {
+					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+					parentFolder.getFolders().add(folder);
+				}
+				//model.getAllFolders().put(folder.getId(), folder);
+				model.countObject(folder, false, null);
+			}
 			
 			++this.countFoldersImported;
 
@@ -1108,7 +1117,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setType(element, resultElement.getString("type"));
 
 			boolean createViewObject = false;
-			if( newElement ) {
+			if ( newElement ) {
 				IFolder parentFolder = null;
 
 				// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
@@ -1131,7 +1140,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
 					parentFolder.getElements().add(element);
 				}
-				model.getAllElements().put(element.getId(), element);
+				//model.getAllElements().put(element.getId(), element);
 				model.countObject(element, false, null);
 				createViewObject = view!=null;
 			} else {
@@ -1181,7 +1190,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		imported.add(0, element);
 		//ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-		//if(treeView != null) {
+		//if (treeView != null) {
 		//	logger.trace("selecting newly imported components");
 		//	treeView.getViewer().setSelection(new StructuredSelection(element), true);
 		//}
@@ -1293,11 +1302,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( newRelationship ) {
 				IFolder parentFolder = null;
 
-				// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+				// if the relationship is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
 				if ( !mustCreateCopy )
-					try ( ResultSet resultParentFolder = select("SELECT parent_folder_id FROM relationships_in_model WHERE model_id = ? AND relationship_id = ? ORDER BY model_version DESC", model.getId(), relationship.getId()) ) {
-						if ( resultParentFolder.next() )
-							parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", relationship.getId()) ) {
+						int maxVersion = 0;
+						while ( resultParentFolder.next() ) {
+							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+								((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+							}
+							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+						}
+						((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
 					}
 				if ( parentFolder == null ) {
 					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
@@ -1306,7 +1322,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
 					parentFolder.getElements().add(relationship);
 				}
-				model.getAllRelationships().put(relationship.getId(), relationship);
+				//model.getAllRelationships().put(relationship.getId(), relationship);
+				model.countObject(relationship, false, null);
 				createViewConnection = view!=null;
 			} else {
 				if ( view == null ) {
@@ -1393,11 +1410,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( isNewView ) {
 			IFolder parentFolder = null;
 
-			// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
+			// if the view is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
 			if ( !mustCreateCopy )
-				try ( ResultSet resultParentFolder = select("SELECT parent_folder_id FROM views_in_model WHERE model_id = ? AND view_id = ? ORDER BY model_version DESC", model.getId(), view.getId()) ) {
-					if ( resultParentFolder.next() )
-						parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+				try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", view.getId()) ) {
+					int maxVersion = 0;
+					while ( resultParentFolder.next() ) {
+						if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+							parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+							((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+						}
+						maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+					}
+					((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
 				}
 			if ( parentFolder == null ) {
 				if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
@@ -1406,12 +1430,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
 				parentFolder.getElements().add(view);
 			}
-			if ( (parentFolder!=null) && (((IDBMetadata)parentFolder).getDBMetadata().getRootFolderType() == FolderType.DIAGRAMS_VALUE) )
-				parentFolder.getElements().add(view);
-			else
-				model.getDefaultFolderForObject(view).getElements().add(view);
 
-			model.getAllViews().put(((IIdentifier)view).getId(), view);
+			//model.getAllViews().put(((IIdentifier)view).getId(), view);
+			model.countObject(view, false, null);
 		}
 
 		importProperties(view);
@@ -1525,6 +1546,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( viewObject instanceof IProperties && resultView.getString("element_id")==null ) {
 				importProperties((IProperties)viewObject);
 			}
+			
+			model.countObject(viewObject, false, null);
 
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
 		}
@@ -1606,6 +1629,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( viewConnection instanceof IProperties && resultView.getString("relationship_id")==null ) {
 				importProperties((IProperties)viewConnection);
 			}
+			
+			model.countObject(viewConnection, false, null);
 
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewConnection).getId()+")");
 
