@@ -1140,27 +1140,32 @@ public class DBGuiExportModel extends DBGui {
         while (ite.hasNext()) {
             IArchimateElement element = ite.next().getValue();
             DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 )
-                ++nbNew;                // if the component does not exist in the current database model, then it is a new component
-            else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore in the latest model, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    //TODO if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
-		            //TODO if the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
-                // else the component does not need to be exported
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
@@ -1189,23 +1194,32 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                ++nbNew;                // if the component does not exist in the current database model, then it is a new component
-            } else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the relationships new in the database from those deleted from memory
@@ -1234,23 +1248,32 @@ public class DBGuiExportModel extends DBGui {
         while (itf.hasNext()) {
             IFolder tmp = itf.next().getValue();
             DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-            } else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the folders new in the database from those deleted from memory
@@ -1278,25 +1301,32 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-            } else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                    	// if only the content has changed, then there is no conflict
-                        if ( this.forceExport || DBPlugin.areEqual(metadata.getInitialVersion().getContainerChecksum(), metadata.getCurrentVersion().getContainerChecksum()) || DBPlugin.areEqual(metadata.getInitialVersion().getContainerChecksum(), metadata.getLatestDatabaseVersion().getContainerChecksum()) )
-                        		                    ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the views new in the database from those deleted from memory
@@ -1324,23 +1354,32 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IDiagramModelComponent>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
         while (ito.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-            } else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the viewObjects new in the database from those deleted from memory
@@ -1368,23 +1407,32 @@ public class DBGuiExportModel extends DBGui {
         Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
         while (itc.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
-            if ( metadata.getDatabaseVersion().getVersion() == 0 ) {
-                ++nbNew;                // if the database version is zero, then the component is not in the database (therefore, new in the model)
-            } else {
-                if ( metadata.getLatestDatabaseVersion().getVersion() == 0 )
-                    ++nbDeletedInDb;    // if the component did exist, but does not exist anymore, then it has been deleted by another user
-                else if ( !DBPlugin.areEqual(metadata.getLatestDatabaseVersion().getChecksum(), metadata.getCurrentVersion().getChecksum()) ) {
-                    boolean modifiedInModel = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getCurrentVersion().getChecksum());
-                    boolean modifiedInDatabase = !DBPlugin.areEqual(metadata.getInitialVersion().getChecksum(), metadata.getLatestDatabaseVersion().getChecksum());
-                    
-                    if ( modifiedInModel && modifiedInDatabase ) {
-                        if ( this.forceExport )     ++nbUpdated;
-                        else {                      ++nbConflict; metadata.setConflictChoice(CONFLICT_CHOICE.askUser); }
-                    } else {
-                        if ( modifiedInModel )      ++nbUpdated;
-                        if ( modifiedInDatabase )   ++nbUpdatedInDb;
+            switch ( metadata.getDatabaseStatus() ) {
+                case isNewInModel:
+                    ++nbNew;
+                    break;
+                case isUpadtedInDatabase:
+                    ++nbUpdatedInDb;
+                    break;
+                case isUpdatedInModel:
+                    ++nbUpdated;
+                    break;
+                case isDeletedInDatabase:
+                    ++nbDeletedInDb;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        ++nbUpdated;
+                    else {
+                        ++nbConflict;
+                        metadata.setConflictChoice(CONFLICT_CHOICE.askUser);
                     }
-                }
+                    break;
+                case isSynced:
+                    // nothing to do //
+                    break;
+                default:
+                    // should never be here //
             }
         }
         // we distinguish the ViewConnections new in the database from those deleted from memory
@@ -1717,22 +1765,11 @@ public class DBGuiExportModel extends DBGui {
 					doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtDeletedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews);
 				}
 				
-	            // if some views must be removed from the model, we do it before exporting the views
-				// as it will remove the view objects and connections at the same time
+	            // if some views must be removed from the model, we do it before exporting the folders
 	            if ( !this.delayedCommands.isEmpty() ) {
 	                // we remove the objects that have been removed by other users in the database
 	                CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
 	                stack.execute(this.delayedCommands);
-	                
-	                // if some views are impacted by the elements and relationships removal, then we recalculate their checksum
-	                Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
-	                while (itv.hasNext()) {
-	                    IDiagramModel view = itv.next().getValue();
-	                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-	                        this.exportedModel.countObject(view, true, view);
-	                        this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-	                    }
-	                }
 	                
 	                // we refresh the text widgets
 	                compareModelToDatabase();

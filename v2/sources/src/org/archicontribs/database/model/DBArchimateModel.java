@@ -15,11 +15,9 @@ import java.util.Map.Entry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.editor.model.IArchiveManager;
-import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;

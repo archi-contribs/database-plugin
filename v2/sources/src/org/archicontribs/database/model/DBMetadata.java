@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.model;
 
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
@@ -76,10 +77,10 @@ public class DBMetadata  {
 	
 	/**
 	 * Choices available when a conflict is detected in the database<br>
-	 * <li><b>askUser</b> ask the user what he wishes to do</li>
-	 * <li><b>doNotExport</b> do not export to the database</li>
-	 * <li><b>exportToDatabase</b> export to the database</li>
-	 * <li><b>importFromDatabase</b> replace the component with the version in the database</li>
+	 * <li><b>askUser</b> Ask the user what he wishes to do</li>
+	 * <li><b>doNotExport</b> Do not export to the database</li>
+	 * <li><b>exportToDatabase</b> Export to the database</li>
+	 * <li><b>importFromDatabase</b> Replace the component with the version in the database</li>
 	 */
 	public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase}
 	/**
@@ -87,6 +88,70 @@ public class DBMetadata  {
 	 * @see CONFLICT_CHOICE
 	 */
 	@Getter @Setter private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
+	
+	/**
+     * Gives a status of the component regarding it's database version:<br>
+     * <li><b>isSynced</b></li> The component exists in both the database and the model, and they are in sync
+     * <li><b>isNewInModel</b></li> The component exists in the model but not in the database<br>
+     * <li><b>isUpdatedInDatabase</b></li> The component exists in both the model and the database but the database version has been updated since it has been imported
+     * <li><b>isUpdatedInModel</b></li> The component exists in both the model and the database but the model version has been updated since it has been imported
+     * <li><b>isDeletedInDatabase</b></li> The component exists in the database but is not associated to the model anymore
+     * <li><b>isConflicting</b></li> The component has been updated in both the model and the database
+     * <br><br>
+     * <b><u>Limits:</u></b><br>
+     * This status requires that the component exists in the model. Thus, it is not possible to calculate this way  
+     * <li><b><strike>isNewInDatabase</strike></b></li> The component does not exist in the model but has been created in the database<br>
+     * <li><b><strike>isDeletedInModel</strike></b></li> The component does not exist in the model because it has been deleted from the model
+     */
+    public enum DATABASE_STATUS {isSynced, isNewInModel, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, IsConflicting}
+    
+    /**
+     * Gets the status of the component<br>
+     * - if the database version is zero --> isNewInModel (the component does not exist in the database so it is new in the model)<br>
+     * @see COMPONENT_STATUS
+     */
+    public DATABASE_STATUS getDatabaseStatus() {
+        // if database version is zero, it means that the component does not exist in the database version of the model
+        // so it is a new component in the model
+        if ( this.databaseVersion.getVersion() == 0 )
+            return DATABASE_STATUS.isNewInModel;
+        
+        // if latest database version is zero, it means that the component did exist in the database version of the model,
+        // but it does not exist anymore in the latest version of the database model,
+        // so it means that it has been deleted from the database version of the model by another user
+        if ( this.latestDatabaseVersion.getVersion() == 0 )
+            return DATABASE_STATUS.isDeletedInDatabase;
+        
+        // if the latest database checksum equals the current checksum,
+        // this means that the component is synced between the model and the database
+        if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
+            return DATABASE_STATUS.isSynced;
+        
+        // if the components checksum in the model has been modified since the component has been imported
+        // this means that the component has been updated in the model
+        boolean modifiedInModel = !DBPlugin.areEqual(this.initialVersion.getChecksum(), this.currentVersion.getChecksum());
+        
+        // if the components checksum in the database has been modified since the component has been imported
+        // this means that the component has been updated in the database 
+        boolean modifiedInDatabase = !DBPlugin.areEqual(this.initialVersion.getChecksum(), this.latestDatabaseVersion.getChecksum());
+            
+        // if both versions of the component (in the model and in the database) have been updated
+        // then they are conflicting ...
+        // ... except if the modifications are the same
+        if ( modifiedInModel && modifiedInDatabase ) {
+            if ( DBPlugin.areEqual(this.currentVersion.getChecksum(), this.latestDatabaseVersion.getChecksum()) )
+                return DATABASE_STATUS.isSynced;
+
+            return DATABASE_STATUS.IsConflicting;
+        }
+        
+        // if we're here, it means that the componant has been upadted either in the model, either in the database
+        if ( modifiedInModel )
+            return DATABASE_STATUS.isUpdatedInModel;
+        
+        return DATABASE_STATUS.isUpadtedInDatabase;
+    }
+    
 	
 	/**
 	 * Calculates the full name of the component 
