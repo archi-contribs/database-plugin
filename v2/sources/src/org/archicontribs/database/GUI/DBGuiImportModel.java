@@ -735,9 +735,9 @@ public class DBGuiImportModel extends DBGui {
                 increaseProgressBar();
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("Resolving relationships' sources and targets ...");
+            setMessage("Resolving relationships' sources and targets ...");
             this.modelToImport.resolveRelationshipsSourcesAndTargets();
-
+            closeMessage();
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
             this.importConnection.prepareImportViews(this.modelToImport);
@@ -766,8 +766,9 @@ public class DBGuiImportModel extends DBGui {
             }
             this.txtImportedRelationships.setText(String.valueOf(this.importConnection.getCountRelationshipsImported()));
 
-            if ( logger.isDebugEnabled() ) logger.debug("Resolving connections' sources and targets ...");
+            setMessage("Resolving connections' sources and targets ...");
             this.modelToImport.resolveConnectionsSourcesAndTargets();
+            closeMessage();
 
             if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
             for (String path: this.importConnection.getAllImagePaths()) {
