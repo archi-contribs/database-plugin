@@ -1521,6 +1521,31 @@ public class DBGuiExportModel extends DBGui {
 					this.exportedModel.setPurpose(this.txtPurpose.getText());
 
 				this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
+				
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO : put the imported components in a compound Command to allow rollback
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO :
+				//TODO :
+				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
+				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders");
+				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
+				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
+				    logger.trace("Must import folder "+id);
+                    IFolder newFolder = importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestVersion());
+                    ((IDBMetadata)newFolder).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
+                    ((IDBMetadata)newFolder).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
+                    ((IDBMetadata)newFolder).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
+                    incrementText(this.txtNewFoldersInDatabase);
+                    incrementText(this.txtTotalFolders);
+				}
 			}
 			
 			if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") && this.selectedDatabase.shouldEmptyNeo4jDB() ) {
@@ -1542,19 +1567,18 @@ public class DBGuiExportModel extends DBGui {
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing elements");
 			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
 			    DBVersionPair versionToImport = this.exportConnection.getElementsNotInModel().get(id);
-		        if ( versionToImport.getCurrentVersion() == 0 ) {
-		        	// if the element does not exist in the database model, then it is a new one, else, it has been deleted
-		        	// TODO : if the element has been updated in the database, then generate a conflict
-		        	logger.trace("Must import element "+id);
-		        	importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
-		        	incrementText(this.txtNewElementsInDatabase);
-		        	incrementText(this.txtTotalElements);
-		         }
+	        	logger.trace("Must import element "+id);
+	        	IArchimateElement newElement = importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
+                ((IDBMetadata)newElement).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
+                ((IDBMetadata)newElement).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
+                ((IDBMetadata)newElement).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
+	        	incrementText(this.txtNewElementsInDatabase);
+	        	incrementText(this.txtTotalElements);
 			}
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
-				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
+				doExportEObject(elementsIterator.next().getValue(), this.txtNewElementsInModel, this.txtUpdatedElementsInModel, this.txtDeletedElementsInModel, this.txtUpdatedElementsInDatabase, this.txtConflictingElements);
 			}
 
 			
@@ -1573,19 +1597,18 @@ public class DBGuiExportModel extends DBGui {
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing relationships");
 	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
 	            DBVersionPair versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
-	            if ( versionToImport.getCurrentVersion() == 0 ) {
-		        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
-		        	// TODO : if the relationship has been updated in the database, then generate a conflict
-		        	logger.trace("Must import element "+id);
-		        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
-		        	incrementText(this.txtNewRelationshipsInDatabase);
-		        	incrementText(this.txtTotalRelationships);
-	            }
+	        	logger.trace("Must import element "+id);
+	        	IArchimateRelationship newRelationship = importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
+                ((IDBMetadata)newRelationship).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
+                ((IDBMetadata)newRelationship).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
+                ((IDBMetadata)newRelationship).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
+	        	incrementText(this.txtNewRelationshipsInDatabase);
+	        	incrementText(this.txtTotalRelationships);
 	        }
 			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
-				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
+				doExportEObject(relationshipsIterator.next().getValue(), this.txtNewRelationshipsInModel, this.txtUpdatedRelationshipsInModel, this.txtDeletedRelationshipsInModel, this.txtUpdatedRelationshipsInDatabase, this.txtConflictingRelationships);
 			}
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
@@ -1604,20 +1627,19 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views objects");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
 		            DBVersionPair versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-		            if ( versionToImport.getCurrentVersion() == 0 ) {
-			        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
-			        	// TODO : if the relationship has been updated in the database, then generate a conflict
-			        	logger.trace("Must import view object "+id);
-			        	importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
-			        	incrementText(this.txtNewViewObjectsInDatabase);
-			        	incrementText(this.txtTotalViewObjects);
-		            }
+		        	logger.trace("Must import view object "+id);
+		        	IDiagramModelComponent newViewObject = importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
+	                ((IDBMetadata)newViewObject).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
+	                ((IDBMetadata)newViewObject).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
+	                ((IDBMetadata)newViewObject).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
+		        	incrementText(this.txtNewViewObjectsInDatabase);
+		        	incrementText(this.txtTotalViewObjects);
 		        }
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
 				Iterator<Entry<String, IDiagramModelComponent>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 				while ( viewObjectsIterator.hasNext() ) {
 					IDiagramModelComponent viewObject = viewObjectsIterator.next().getValue();
-					doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtUpdatedViewObjectsInDatabase, this.txtConflictingViewObjects);
+					doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtDeletedViewObjectsInModel,this.txtUpdatedViewObjectsInDatabase, this.txtConflictingViewObjects);
 				}
 				
 				//TODO :
@@ -1635,20 +1657,19 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views connections");
 		        for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
 		            DBVersionPair versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
-		            if ( versionToImport.getCurrentVersion() == 0 ) {
-			        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
-			        	// TODO : if the relationship has been updated in the database, then generate a conflict
-			        	logger.trace("Must import view connection "+id);
-			        	importConnection.importViewConnectionFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
-			        	incrementText(this.txtNewViewConnectionsInDatabase);
-			        	incrementText(this.txtTotalViewConnections);
-		            }
+		        	logger.trace("Must import view connection "+id);
+		        	IDiagramModelConnection newViewConnection = importConnection.importViewConnectionFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
+	                ((IDBMetadata)newViewConnection).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
+	                ((IDBMetadata)newViewConnection).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
+	                ((IDBMetadata)newViewConnection).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
+		        	incrementText(this.txtNewViewConnectionsInDatabase);
+		        	incrementText(this.txtTotalViewConnections);
 		        }
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views connections");
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
-					doExportEObject(viewConnection, this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtUpdatedViewConnectionsInDatabase, this.txtConflictingViewConnections);
+					doExportEObject(viewConnection, this.txtNewViewConnectionsInModel, this.txtUpdatedViewConnectionsInModel, this.txtDeletedViewConnectionsInModel, this.txtUpdatedViewConnectionsInDatabase, this.txtConflictingViewConnections);
 				}
 				
 	            // if some views objects and connections must be removed from the model, we do it before exporting the views
@@ -1699,7 +1720,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue();
-					doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews);
+					doExportEObject(view, this.txtNewViewsInModel, this.txtUpdatedViewsInModel, this.txtDeletedViewsInModel, this.txtUpdatedViewsInDatabase, this.txtConflictingViews);
 				}
 				
 	            // if some views must be removed from the model, we do it before exporting the views
@@ -1722,7 +1743,7 @@ public class DBGuiExportModel extends DBGui {
 	                // we refresh the text widgets
 	                compareModelToDatabase();
 	            }
-				
+	            
 				//TODO :
 				//TODO :
 				//TODO :
@@ -1747,7 +1768,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
-					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
+					doExportEObject(foldersIterator.next().getValue(), this.txtNewFoldersInModel, this.txtUpdatedFoldersInModel, this.txtDeletedFoldersInModel, this.txtUpdatedFoldersInDatabase, this.txtConflictingFolders);
 				}
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
@@ -1896,7 +1917,7 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called by the export() method
 	 * @return true if the EObject has been exported, false if it is conflicting
 	 */
-	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
+	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtDeletedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
 		assert(eObject instanceof IDBMetadata);
 		assert(this.exportConnection != null);
 		
@@ -2053,40 +2074,28 @@ public class DBGuiExportModel extends DBGui {
 		    if ( eObjectToExport instanceof IArchimateElement ) {
 		    	// we delay the execution of the element deletion because we need to 
 		        if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-		        /*
-		        for ( IDiagramModelArchimateObject obj : ((IArchimateElement)eObjectToExport).getReferencingDiagramObjects() ) {
-		            this.delayedCommands.add(new DBDeleteDiagramObjectCommand(obj));
-		            incrementText(this.txtDeletedViewObjectsInModel);
-		        }
-		        */
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
-		        incrementText(this.txtDeletedElementsInModel);
+		        incrementText(txtDeletedInModel);
 		    } else if ( eObjectToExport instanceof IArchimateRelationship ) {
                 if ( logger.isTraceEnabled() ) logger.trace("Relaationship id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-                /*
-                for ( IDiagramModelArchimateConnection obj : ((IArchimateRelationship)eObjectToExport).getReferencingDiagramConnections() ) {
-                    this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(obj));
-                    incrementText(this.txtDeletedViewConnectionsInModel);
-                }
-                */
                 this.delayedCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
-                incrementText(this.txtDeletedRelationshipsInModel);
+                incrementText(txtDeletedInModel);
 		    } else if ( eObjectToExport instanceof IFolder ) {
 		        if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
 		        new DeleteFolderCommand((IFolder)eObjectToExport).execute();
-		        incrementText(this.txtDeletedFoldersInModel);
+		        incrementText(txtDeletedInModel);
 		    } else if ( eObjectToExport instanceof IDiagramModel ) {
 		        if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
 		        new DeleteDiagramModelCommand((IDiagramModel)eObjectToExport).execute();
-		        incrementText(this.txtDeletedViewsInModel);
+		        incrementText(txtDeletedInModel);
             } else if ( eObjectToExport instanceof IDiagramModelArchimateObject ) {
 		        if ( logger.isTraceEnabled() ) logger.trace("View object id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-		        this.delayedCommands.add(new DBDeleteDiagramObjectCommand((IDiagramModelArchimateObject)eObjectToExport));
-		        incrementText(this.txtDeletedViewObjectsInModel);
+		        this.delayedCommands.add(new DBDeleteDiagramObjectCommand(this.exportedModel, (IDiagramModelArchimateObject)eObjectToExport));
+		        incrementText(txtDeletedInModel);
             } else if ( eObjectToExport instanceof IDiagramModelArchimateConnection ) {
 		        if ( logger.isTraceEnabled() ) logger.trace("View connection id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
-		        this.delayedCommands.add(new DBDeleteDiagramConnectionCommand((IDiagramModelArchimateConnection)eObjectToExport));
-		        incrementText(this.txtDeletedViewConnectionsInModel);
+		        this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(this.exportedModel, (IDiagramModelArchimateConnection)eObjectToExport));
+		        incrementText(txtDeletedInModel);
 		    } else {
 		    	// we shouldn't be here !
                 logger.error("At the moment, we cannot delete a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
