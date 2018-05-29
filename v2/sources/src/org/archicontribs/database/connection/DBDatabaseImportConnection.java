@@ -1309,9 +1309,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						while ( resultParentFolder.next() ) {
 							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
 								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-								((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+								((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("relationship_version"));
 							}
-							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("relationship_version"));
 						}
 						((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
 					}
@@ -1417,9 +1417,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					while ( resultParentFolder.next() ) {
 						if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
 							parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-							((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+							((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
 						}
-						maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+						maxVersion = Math.max(maxVersion, resultParentFolder.getInt("folder_version"));
 					}
 					((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
 				}
