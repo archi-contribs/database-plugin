@@ -12,6 +12,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 import org.archicontribs.database.DBDatabaseEntry;
@@ -105,10 +106,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 	@Getter private HashMap<String, DBVersionPair> elementsNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> relationshipsNotInModel = new HashMap<String, DBVersionPair>();
-	@Getter private HashMap<String, DBVersionPair> foldersNotInModel = new HashMap<String, DBVersionPair>();
+	@Getter private HashMap<String, DBVersionPair> foldersNotInModel = new LinkedHashMap<String, DBVersionPair>();			// must keep the order
 	@Getter private HashMap<String, DBVersionPair> viewsNotInModel = new HashMap<String, DBVersionPair>();
-	@Getter private HashMap<String, DBVersionPair> viewObjectsNotInModel = new HashMap<String, DBVersionPair>();
-	@Getter private HashMap<String, DBVersionPair> viewConnectionsNotInModel = new HashMap<String, DBVersionPair>();
+	@Getter private HashMap<String, DBVersionPair> viewObjectsNotInModel = new LinkedHashMap<String, DBVersionPair>();		// must keep the order
+	@Getter private HashMap<String, DBVersionPair> viewConnectionsNotInModel = new LinkedHashMap<String, DBVersionPair>();	// must keep the order
 	@Getter private HashMap<String, DBVersionPair> imagesNotInModel = new HashMap<String, DBVersionPair>();
 	@Getter private HashMap<String, DBVersionPair> imagesNotInDatabase = new HashMap<String, DBVersionPair>();
 	
@@ -368,7 +369,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                           + "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
                           + "  MAX(latest_version) AS latest_version,"
                           + "  MAX(latest_checksum) AS latest_checksum,"
-                          + "  MAX(latest_timestamp) AS latest_timestamp "
+                          + "  MAX(latest_timestamp) AS latest_timestamp,"
+                          + "  rank "
                           + "FROM ("
                           + "  SELECT e.id AS id,"
                           + "    e.version AS version_in_current_model,"
@@ -379,7 +381,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                           + "    null AS timestamp_in_latest_model,"
                           + "    e_max.version AS latest_version,"
                           + "    e_max.checksum AS latest_checksum,"
-                          + "    e_max.created_on AS latest_timestamp"
+                          + "    e_max.created_on AS latest_timestamp,"
+                          + "    rank"
                           + "  FROM folders e"
                           + "  JOIN folders e_max ON e_max.id = e.id AND e_max.version >= e.version"
                           + "  JOIN folders_in_model m ON m.folder_id = e.id AND m.folder_version = e.version"
@@ -394,13 +397,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                           + "    e.created_on AS timestamp_in_latest_model,"
                           + "    e_max.version AS latest_version,"
                           + "    e_max.checksum AS latest_checksum,"
-                          + "    e_max.created_on AS latest_timestamp"
+                          + "    e_max.created_on AS latest_timestamp,"
+                          + "    rank"
                           + "  FROM folders e"
                           + "  JOIN folders e_max ON e_max.id = e.id AND e_max.version >= e.version"
                           + "  JOIN folders_in_model m ON m.folder_id = e.id AND m.folder_version = e.version"
                           + "  WHERE m.model_id = ? AND m.model_version = (SELECT MAX(version) FROM models WHERE id = ?)"
                           + ") e "
-                          + "GROUP BY id"
+                          + "GROUP BY id "
+                          + "ORDER BY rank"
                           ,model.getId()
                           ,model.getInitialVersion().getVersion()
                           ,model.getId()
@@ -642,7 +647,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
     					+ "  MAX(latest_version) AS latest_version,"
     					+ "  MAX(latest_checksum) AS latest_checksum,"
-    					+ "  MAX(latest_timestamp) AS latest_timestamp "
+    					+ "  MAX(latest_timestamp) AS latest_timestamp,"
+    					+ "  rank "
     					+ "FROM ("
     					+ "  SELECT e.id AS id,"
     					+ "    e.version AS version_in_current_model,"
@@ -653,7 +659,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "    null AS timestamp_in_latest_model,"
     					+ "    e_max.version AS latest_version,"
     					+ "    e_max.checksum AS latest_checksum,"
-    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "    e_max.created_on AS latest_timestamp,"
+    					+ "    rank"
     					+ "  FROM views_connections e"
     					+ "  JOIN views_connections e_max ON e_max.id = e.id AND e_max.version >= e.version"
     					+ "  JOIN views_connections_in_view v ON v.connection_id = e.id AND v.connection_version = e.version"
@@ -668,13 +675,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "    e.created_on AS timestamp_in_latest_model,"
     					+ "    e_max.version AS latest_version,"
     					+ "    e_max.checksum AS latest_checksum,"
-    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "    e_max.created_on AS latest_timestamp,"
+    					+ "    rank"
     					+ "  FROM views_connections e"
     					+ "  JOIN views_connections e_max ON e_max.id = e.id AND e_max.version >= e.version"
     					+ "  JOIN views_connections_in_view v ON v.connection_id = e.id AND v.connection_version = e.version"
     					+ "  WHERE v.view_id = ? AND v.view_version = (SELECT MAX(version) FROM views WHERE id = ?)"
     					+ ") e "
-    					+ "GROUP BY id"
+    					+ "GROUP BY id "
+    					+ "ORDER BY rank"
     					,view.getId()
     					,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
     					,view.getId()
@@ -716,7 +725,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "  MAX(timestamp_in_latest_model) AS timestamp_in_latest_model,"
     					+ "  MAX(latest_version) AS latest_version,"
     					+ "  MAX(latest_checksum) AS latest_checksum,"
-    					+ "  MAX(latest_timestamp) AS latest_timestamp "
+    					+ "  MAX(latest_timestamp) AS latest_timestamp,"
+    					+ "  rank "
     					+ "FROM ("
     					+ "  SELECT e.id AS id,"
     					+ "    e.version AS version_in_current_model,"
@@ -727,7 +737,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "    null AS timestamp_in_latest_model,"
     					+ "    e_max.version AS latest_version,"
     					+ "    e_max.checksum AS latest_checksum,"
-    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "    e_max.created_on AS latest_timestamp,"
+    					+ "    rank"
     					+ "  FROM views_objects e"
     					+ "  JOIN views_objects e_max ON e_max.id = e.id AND e_max.version >= e.version"
     					+ "  JOIN views_objects_in_view v ON v.object_id = e.id AND v.object_version = e.version"
@@ -742,13 +753,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     					+ "    e.created_on AS timestamp_in_latest_model,"
     					+ "    e_max.version AS latest_version,"
     					+ "    e_max.checksum AS latest_checksum,"
-    					+ "    e_max.created_on AS latest_timestamp"
+    					+ "    e_max.created_on AS latest_timestamp,"
+    					+ "    rank"
     					+ "  FROM views_objects e"
     					+ "  JOIN views_objects e_max ON e_max.id = e.id AND e_max.version >= e.version"
     					+ "  JOIN views_objects_in_view v ON v.object_id = e.id AND v.object_version = e.version"
     					+ "  WHERE v.view_id = ? AND v.view_version = (SELECT MAX(version) FROM views WHERE id = ?)"
     					+ ") e "
-    					+ "GROUP BY id"
+    					+ "GROUP BY id "
+    					+ "ORDER BY rank"
     					,view.getId()
     					,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
     					,view.getId()
