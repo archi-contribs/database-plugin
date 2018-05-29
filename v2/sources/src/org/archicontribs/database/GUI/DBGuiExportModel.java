@@ -1538,7 +1538,6 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders");
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
 				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-				    logger.trace("Must import folder "+id);
                     IFolder newFolder = importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestVersion());
                     ((IDBMetadata)newFolder).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
                     ((IDBMetadata)newFolder).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
@@ -1567,7 +1566,6 @@ public class DBGuiExportModel extends DBGui {
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing elements");
 			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
 			    DBVersionPair versionToImport = this.exportConnection.getElementsNotInModel().get(id);
-	        	logger.trace("Must import element "+id);
 	        	IArchimateElement newElement = importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
                 ((IDBMetadata)newElement).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
                 ((IDBMetadata)newElement).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
@@ -1597,7 +1595,6 @@ public class DBGuiExportModel extends DBGui {
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing relationships");
 	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
 	            DBVersionPair versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
-	        	logger.trace("Must import element "+id);
 	        	IArchimateRelationship newRelationship = importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
                 ((IDBMetadata)newRelationship).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
                 ((IDBMetadata)newRelationship).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
@@ -1627,7 +1624,6 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views objects");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
 		            DBVersionPair versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-		        	logger.trace("Must import view object "+id);
 		        	IDiagramModelComponent newViewObject = importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
 	                ((IDBMetadata)newViewObject).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
 	                ((IDBMetadata)newViewObject).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
@@ -1657,7 +1653,6 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views connections");
 		        for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
 		            DBVersionPair versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
-		        	logger.trace("Must import view connection "+id);
 		        	IDiagramModelConnection newViewConnection = importConnection.importViewConnectionFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
 	                ((IDBMetadata)newViewConnection).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
 	                ((IDBMetadata)newViewConnection).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
@@ -1710,7 +1705,6 @@ public class DBGuiExportModel extends DBGui {
 		            if ( versionToImport.getCurrentVersion() == 0 ) {
 			        	// if the relationship does not exist in the database model, then it is a new one, else, it has been deleted
 			        	// TODO : if the relationship has been updated in the database, then generate a conflict
-			        	logger.trace("Must import view "+id);
 			        	importConnection.importViewFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false, false);
 			        	incrementText(this.txtNewViewsInDatabase);
 			        	incrementText(this.txtTotalViews);
@@ -1760,7 +1754,6 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders");
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
 				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-				    logger.trace("Must import folder "+id);
                     importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestVersion());
                     incrementText(this.txtNewFoldersInDatabase);
                     incrementText(this.txtTotalFolders);
