@@ -795,9 +795,6 @@ public class DBGuiImportModel extends DBGui {
             }
             return;
         }
-        
-        // Open Diagram Editor
-        EditorManager.openDiagramEditor(this.modelToImport.getDefaultDiagramModel());
 
         setActiveAction(STATUS.Ok);
         doShowResult(null);
@@ -853,6 +850,16 @@ public class DBGuiImportModel extends DBGui {
 	                elements.add(this.modelToImport);
 	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
 	            }
+	            
+	            
+	            // If the model contains a view called "default view", we open it.
+	            for ( IDiagramModel view: this.modelToImport.getDiagramModels() ) {
+	            	if ( DBPlugin.areEqual(view.getName().toLowerCase(), "default view") ) {
+	            		EditorManager.openDiagramEditor(view);
+	            		break;
+	            	}
+	            }
+	            
             
 	            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
 	                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
