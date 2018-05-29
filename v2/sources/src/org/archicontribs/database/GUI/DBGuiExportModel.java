@@ -2019,8 +2019,10 @@ public class DBGuiExportModel extends DBGui {
 	                if ( logger.isTraceEnabled() ) logger.trace("View Connection id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
 	                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	                incrementText(txtUpdatedInDatabase);
-	            } else
-	            	logger.error("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
+	            } else {
+	            	// should not be here !
+	            	throw new Exception("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
+	            }
 	            exported = true;
 			}
 		}
