@@ -1070,13 +1070,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		// TODO add an option to import elements recursively
 
-		ResultSet resultElement = null;
-		try {
-			if ( elementVersion == 0 )
-				resultElement = select("SELECT version, class, name, documentation, type, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id)", elementId);
-			else
-				resultElement = select("SELECT version, class, name, documentation, type, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = ?", elementId, elementVersion);
-
+        String versionString = (elementVersion==0) ? "(SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id)" : String.valueOf(elementVersion);
+        
+        try ( ResultSet resultElement = select("SELECT version, class, name, documentation, type, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = "+versionString, elementId) ) {
 			if ( !resultElement.next() ) {
 				if ( elementVersion == 0 )
 					throw new Exception("Element with id="+elementId+" has not been found in the database.");
@@ -1157,13 +1153,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			++this.countElementsImported;
 
-		} finally {
-			if ( resultElement != null ) {
-				resultElement.close();
-				resultElement = null;
-			}
 		}
-
 
 		if ( mustImportRelationships ) {
 			// We import the relationships that source or target the element
@@ -1244,13 +1234,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		boolean newRelationship = false;
 		IArchimateRelationship relationship;
 
-		ResultSet resultRelationship = null;
-		try {
-			if ( relationshipVersion == 0 )
-				resultRelationship = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)", relationshipId);
-			else
-				resultRelationship = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = ?", relationshipId, relationshipVersion);
-
+		String versionString = (relationshipVersion==0) ? "(SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)" : String.valueOf(relationshipVersion);
+		
+		try ( ResultSet resultRelationship = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = "+versionString, relationshipId) ) {
 			if ( !resultRelationship.next() ) {
 				if ( relationshipVersion == 0 )
 					throw new Exception("Relationship with id="+relationshipId+" has not been found in the database.");
@@ -1346,11 +1332,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						targetConnection.getTargetConnections().add(cnct);
 					}
 				}
-			}
-		} finally {
-			if ( resultRelationship != null ) {
-				resultRelationship.close();
-				resultRelationship = null;
 			}
 		}
 
