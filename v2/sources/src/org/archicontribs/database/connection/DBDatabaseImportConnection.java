@@ -1882,7 +1882,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder"+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getElements().add(eObject);
 		}
 	}
@@ -1899,7 +1899,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder"+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getFolders().add(folder);
 		}
 	}
