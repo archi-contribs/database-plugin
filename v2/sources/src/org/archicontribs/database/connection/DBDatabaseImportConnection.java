@@ -279,9 +279,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		if ( model.getInitialVersion().getVersion() == 0 ) {
 			try ( ResultSet result = select("SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
-				if ( result.next() ) {
+				if ( result.next() )
 					model.getInitialVersion().setVersion(result.getInt("version"));
-				}
 			}
 		}
 
@@ -953,18 +952,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public IFolder importFolderFromId(DBArchimateModel model, String folderId, int folderVersion, boolean mustCreateCopy) throws Exception {
 		IFolder folder;
 		boolean newFolder = false;
-
-		ResultSet resultFolder = null;
-		try {
-			if ( folderVersion == 0 ) {
-				resultFolder = select("SELECT version, type, root_type, name, documentation, created_on FROM "+this.schema+"folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)", folderId);
-				if ( !resultFolder.next() )
-					throw new Exception("Folder with id="+folderId+" has not been found in the database.");
-			} else {
-				resultFolder = select("SELECT version, type, root_type, name, documentation, created_on FROM "+this.schema+"folders f WHERE id = ? AND version = ?", folderId, folderVersion);
-				if ( !resultFolder.next() )
-					throw new Exception("Folder with id="+folderId+" and version="+folderVersion+" has not been found in the database.");
-			}
+		
+        String versionString = (folderVersion==0) ? "(SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)" : String.valueOf(folderVersion);
+        
+        try ( ResultSet resultFolder = select("SELECT version, type, root_type, name, documentation, checksum, created_on FROM "+this.schema+"folders f WHERE id = ? AND version = "+versionString, folderId) ) {
+            if ( !resultFolder.next() ) {
+                if ( folderVersion == 0 )
+                    throw new Exception("Element with id="+folderId+" has not been found in the database.");
+                throw new Exception("Element with id="+folderId+" and version="+folderVersion+" has not been found in the database.");
+            }
 
 			int version = resultFolder.getInt("version");
 			int rootType = resultFolder.getInt("root_type");
@@ -995,7 +991,17 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				setName(folder, resultFolder.getString("name"));
 				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(resultFolder.getInt("version"));
+				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setChecksum(resultFolder.getString("checksum"));
 				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(resultFolder.getTimestamp("created_on"));
+                ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(resultFolder.getInt("version"));
+                ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setChecksum(resultFolder.getString("checksum"));
+                ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setTimestamp(resultFolder.getTimestamp("created_on"));
+				((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(resultFolder.getInt("version"));
+				((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setChecksum(resultFolder.getString("checksum"));
+                ((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setTimestamp(resultFolder.getTimestamp("created_on"));
+                ((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(resultFolder.getInt("version"));
+                ((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultFolder.getString("checksum"));
+                ((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultFolder.getTimestamp("created_on"));
 			}
 
 			setDocumentation(folder, resultFolder.getString("documentation"));
@@ -1028,12 +1034,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 			
 			++this.countFoldersImported;
-
-		} finally {
-			if ( resultFolder != null ) {
-				resultFolder.close();
-				resultFolder = null;
-			}
 		}
 
 		return folder;
@@ -1071,7 +1071,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
         String versionString = (elementVersion==0) ? "(SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id)" : String.valueOf(elementVersion);
         
-        try ( ResultSet resultElement = select("SELECT version, class, name, documentation, type, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = "+versionString, elementId) ) {
+        try ( ResultSet resultElement = select("SELECT version, class, name, documentation, type, checksum, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = "+versionString, elementId) ) {
 			if ( !resultElement.next() ) {
 				if ( elementVersion == 0 )
 					throw new Exception("Element with id="+elementId+" has not been found in the database.");
@@ -1104,6 +1104,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				setName(element, resultElement.getString("name"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(resultElement.getInt("version"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(resultElement.getTimestamp("created_on"));
+                ((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(resultElement.getInt("version"));
+                ((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setTimestamp(resultElement.getTimestamp("created_on"));
+                ((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(resultElement.getInt("version"));
+                ((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultElement.getTimestamp("created_on"));
 
 				importProperties(element);
 			}
@@ -1235,7 +1239,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		String versionString = (relationshipVersion==0) ? "(SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)" : String.valueOf(relationshipVersion);
 		
-		try ( ResultSet resultRelationship = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = "+versionString, relationshipId) ) {
+		try ( ResultSet resultRelationship = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, checksum, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = "+versionString, relationshipId) ) {
 			if ( !resultRelationship.next() ) {
 				if ( relationshipVersion == 0 )
 					throw new Exception("Relationship with id="+relationshipId+" has not been found in the database.");
@@ -1264,7 +1268,17 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(resultRelationship.getInt("version"));
+                ((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setChecksum(resultRelationship.getString("checksum"));
 				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
+                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(resultRelationship.getInt("version"));
+                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setChecksum(resultRelationship.getString("checksum"));
+                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
+                ((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultRelationship.getInt("version"));
+                ((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setChecksum(resultRelationship.getString("checksum"));
+                ((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
+                ((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(resultRelationship.getInt("version"));
+                ((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultRelationship.getString("checksum"));
+                ((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultRelationship.getTimestamp("created_on"));
 			}
 
 			setName(relationship, resultRelationship.getString("name"));
@@ -1357,7 +1371,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)" : String.valueOf(version);
 
 		boolean isNewView = false;
-		try ( ResultSet resultView = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
+		try ( ResultSet resultView = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, created_on FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
 			resultView.next();
 
 			view = model.getAllViews().get(id);
@@ -1385,6 +1399,17 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setHintTitle(view, resultView.getString("hint_title"));
 			
 	         ((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
+             ((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(resultView.getString("checksum"));
+             ((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(resultView.getTimestamp("created_on"));
+             ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(resultView.getInt("version"));
+             ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(resultView.getString("checksum"));
+             ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(resultView.getTimestamp("created_on"));
+             ((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultView.getInt("version"));
+             ((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setChecksum(resultView.getString("checksum"));
+             ((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setTimestamp(resultView.getTimestamp("created_on"));
+             ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(resultView.getInt("version"));
+             ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultView.getString("checksum"));
+             ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultView.getTimestamp("created_on"));
 		}
 
 		if ( isNewView ) {
@@ -1460,59 +1485,70 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		EObject viewObject = null;
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet resultView = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
-			resultView.next();
+		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
+			resultViewObject.next();
 
 			viewObject = model.getAllViewObjects().get(id);
 			if ( viewObject == null || mustCreateCopy ) {
-				if ( resultView.getString("class").startsWith("Canvas") )
-					viewObject = DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
+				if ( resultViewObject.getString("class").startsWith("Canvas") )
+					viewObject = DBCanvasFactory.eINSTANCE.create(resultViewObject.getString("class"));
 				else
-					viewObject = DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
+					viewObject = DBArchimateFactory.eINSTANCE.create(resultViewObject.getString("class"));
 
 				((IIdentifier)viewObject).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
 			}
 
-			if ( viewObject instanceof IDiagramModelArchimateComponent && resultView.getString("element_id") != null) {
+			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
 				// we check that the element already exists. If not, we import it in shared mode
-				IArchimateElement element = model.getAllElements().get(resultView.getString("element_id"));
+				IArchimateElement element = model.getAllElements().get(resultViewObject.getString("element_id"));
 				if ( element == null ) {
 					if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
-					importElementFromId(model, null, resultView.getString("element_id"), 0, false, true);
+					importElementFromId(model, null, resultViewObject.getString("element_id"), 0, false, true);
 				}
 			}
 
-			setArchimateConcept(viewObject, model.getAllElements().get(resultView.getString("element_id")));
-			setReferencedModel(viewObject, model.getAllViews().get(resultView.getString("diagram_ref_id")));
-			setType(viewObject, resultView.getInt("type"));
-			setBorderColor(viewObject, resultView.getString("border_color"));
-			setBorderType(viewObject, resultView.getInt("border_type"));
-			setContent(viewObject, resultView.getString("content"));
-			setDocumentation(viewObject, resultView.getString("documentation"));
-			if ( resultView.getObject("element_id") == null ) setName(viewObject, resultView.getString("name"));
-			setHintContent(viewObject, resultView.getString("hint_content"));
-			setHintTitle(viewObject, resultView.getString("hint_title"));
-			setLocked(viewObject, resultView.getObject("is_locked"));
-			setImagePath(viewObject, resultView.getString("image_path"));
-			setImagePosition(viewObject, resultView.getInt("image_position"));
-			setLineColor(viewObject, resultView.getString("line_color"));
-			setLineWidth(viewObject, resultView.getInt("line_width"));
-			setFillColor(viewObject, resultView.getString("fill_color"));
-			setFont(viewObject, resultView.getString("font"));
-			setFontColor(viewObject, resultView.getString("font_color"));
-			setNotes(viewObject, resultView.getString("notes"));
-			setTextAlignment(viewObject, resultView.getInt("text_alignment"));
-			setTextPosition(viewObject, resultView.getInt("text_position"));
-			setBounds(viewObject, resultView.getInt("x"), resultView.getInt("y"), resultView.getInt("width"), resultView.getInt("height"));
+			setArchimateConcept(viewObject, model.getAllElements().get(resultViewObject.getString("element_id")));
+			setReferencedModel(viewObject, model.getAllViews().get(resultViewObject.getString("diagram_ref_id")));
+			setType(viewObject, resultViewObject.getInt("type"));
+			setBorderColor(viewObject, resultViewObject.getString("border_color"));
+			setBorderType(viewObject, resultViewObject.getInt("border_type"));
+			setContent(viewObject, resultViewObject.getString("content"));
+			setDocumentation(viewObject, resultViewObject.getString("documentation"));
+			if ( resultViewObject.getObject("element_id") == null ) setName(viewObject, resultViewObject.getString("name"));
+			setHintContent(viewObject, resultViewObject.getString("hint_content"));
+			setHintTitle(viewObject, resultViewObject.getString("hint_title"));
+			setLocked(viewObject, resultViewObject.getObject("is_locked"));
+			setImagePath(viewObject, resultViewObject.getString("image_path"));
+			setImagePosition(viewObject, resultViewObject.getInt("image_position"));
+			setLineColor(viewObject, resultViewObject.getString("line_color"));
+			setLineWidth(viewObject, resultViewObject.getInt("line_width"));
+			setFillColor(viewObject, resultViewObject.getString("fill_color"));
+			setFont(viewObject, resultViewObject.getString("font"));
+			setFontColor(viewObject, resultViewObject.getString("font_color"));
+			setNotes(viewObject, resultViewObject.getString("notes"));
+			setTextAlignment(viewObject, resultViewObject.getInt("text_alignment"));
+			setTextPosition(viewObject, resultViewObject.getInt("text_position"));
+			setBounds(viewObject, resultViewObject.getInt("x"), resultViewObject.getInt("y"), resultViewObject.getInt("width"), resultViewObject.getInt("height"));
 			
-			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
+			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultViewObject.getInt("version"));
+            ((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
+            ((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+            ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(resultViewObject.getInt("version"));
+            ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
+            ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+            ((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+            ((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+            ((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+            ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+            ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+            ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 
 			// The container is either the view, or a container in the view
-			IDiagramModel viewContainer = model.getAllViews().get(resultView.getString("container_id"));
+			IDiagramModel viewContainer = model.getAllViews().get(resultViewObject.getString("container_id"));
 			if ( viewContainer == null ) {
-				IDiagramModelContainer objectContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultView.getString("container_id"));
+				IDiagramModelContainer objectContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultViewObject.getString("container_id"));
 				if ( objectContainer == null )
-					throw new Exception("Cant find container id "+resultView.getString("container_id"));
+					throw new Exception("Cant find container id "+resultViewObject.getString("container_id"));
 				objectContainer.getChildren().add((IDiagramModelObject)viewObject);
 			} else
 				viewContainer.getChildren().add((IDiagramModelObject)viewObject);
@@ -1520,18 +1556,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			if ( viewObject instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
-				model.registerSourceConnection((IDiagramModelObject)viewObject, resultView.getString("source_connections"));
-				model.registerTargetConnection((IDiagramModelObject)viewObject, resultView.getString("target_connections"));
+				model.registerSourceConnection((IDiagramModelObject)viewObject, resultViewObject.getString("source_connections"));
+				model.registerTargetConnection((IDiagramModelObject)viewObject, resultViewObject.getString("target_connections"));
 			}
 
 			// If the object has got properties but does not have a linked element, then it may have distinct properties
-			if ( viewObject instanceof IProperties && resultView.getString("element_id")==null ) {
+			if ( viewObject instanceof IProperties && resultViewObject.getString("element_id")==null ) {
 				importProperties((IProperties)viewObject);
 			}
 			
 			model.countObject(viewObject, false, null);
 
-			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultViewObject.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
 		}
 
 		return (IDiagramModelObject)viewObject;
@@ -1554,45 +1590,56 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		EObject viewConnection = null;
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet resultView = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
-			resultView.next();
+		try ( ResultSet resultViewConnection = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
+			resultViewConnection.next();
 
 			viewConnection= model.getAllViewConnections().get(id);
 			if ( viewConnection == null || mustCreateCopy ) {
-				if ( resultView.getString("class").startsWith("Canvas") )
-					viewConnection = DBCanvasFactory.eINSTANCE.create(resultView.getString("class"));
+				if ( resultViewConnection.getString("class").startsWith("Canvas") )
+					viewConnection = DBCanvasFactory.eINSTANCE.create(resultViewConnection.getString("class"));
 				else
-					viewConnection = DBArchimateFactory.eINSTANCE.create(resultView.getString("class"));
+					viewConnection = DBArchimateFactory.eINSTANCE.create(resultViewConnection.getString("class"));
 
 				((IIdentifier)viewConnection).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
 			}
 
-			if ( viewConnection instanceof IDiagramModelArchimateConnection && resultView.getString("relationship_id") != null) {
+			if ( viewConnection instanceof IDiagramModelArchimateConnection && resultViewConnection.getString("relationship_id") != null) {
 				// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
-				IArchimateRelationship relationship = model.getAllRelationships().get(resultView.getString("relationship_id"));
+				IArchimateRelationship relationship = model.getAllRelationships().get(resultViewConnection.getString("relationship_id"));
 				if ( relationship == null ) {
-					importRelationshipFromId(model, null, resultView.getString("relationship_id"), 0, false);
+					importRelationshipFromId(model, null, resultViewConnection.getString("relationship_id"), 0, false);
 				}
 			}
 
-			setName(viewConnection, resultView.getString("name"));
-			setLocked(viewConnection, resultView.getObject("is_locked"));
-			setDocumentation(viewConnection, resultView.getString("documentation"));
-			setLineColor(viewConnection, resultView.getString("line_color"));
-			setLineWidth(viewConnection, resultView.getInt("line_width"));
-			setFont(viewConnection, resultView.getString("font"));
-			setFontColor(viewConnection, resultView.getString("font_color"));
-			setType(viewConnection, resultView.getInt("type"));
-			setTextPosition(viewConnection, resultView.getInt("text_position"));
-			setType(viewConnection, resultView.getInt("type"));
-			setArchimateConcept(viewConnection, model.getAllRelationships().get(resultView.getString("relationship_id")));
+			setName(viewConnection, resultViewConnection.getString("name"));
+			setLocked(viewConnection, resultViewConnection.getObject("is_locked"));
+			setDocumentation(viewConnection, resultViewConnection.getString("documentation"));
+			setLineColor(viewConnection, resultViewConnection.getString("line_color"));
+			setLineWidth(viewConnection, resultViewConnection.getInt("line_width"));
+			setFont(viewConnection, resultViewConnection.getString("font"));
+			setFontColor(viewConnection, resultViewConnection.getString("font_color"));
+			setType(viewConnection, resultViewConnection.getInt("type"));
+			setTextPosition(viewConnection, resultViewConnection.getInt("text_position"));
+			setType(viewConnection, resultViewConnection.getInt("type"));
+			setArchimateConcept(viewConnection, model.getAllRelationships().get(resultViewConnection.getString("relationship_id")));
 			
-			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
+			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setVersion(resultViewConnection.getInt("version"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setChecksum(resultViewConnection.getString("checksum"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(resultViewConnection.getInt("version"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setChecksum(resultViewConnection.getString("checksum"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
+            ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
 
 			if ( viewConnection instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
-				model.registerSourceConnection((IDiagramModelConnection)viewConnection, resultView.getString("source_connections"));
-				model.registerTargetConnection((IDiagramModelConnection)viewConnection, resultView.getString("target_connections"));
+				model.registerSourceConnection((IDiagramModelConnection)viewConnection, resultViewConnection.getString("source_connections"));
+				model.registerTargetConnection((IDiagramModelConnection)viewConnection, resultViewConnection.getString("target_connections"));
 			}
 			//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
 
@@ -1610,13 +1657,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 
 			// If the connection has got properties but does not have a linked relationship, then it may have distinct properties
-			if ( viewConnection instanceof IProperties && resultView.getString("relationship_id")==null ) {
+			if ( viewConnection instanceof IProperties && resultViewConnection.getString("relationship_id")==null ) {
 				importProperties((IProperties)viewConnection);
 			}
 			
 			model.countObject(viewConnection, false, null);
 
-			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewConnection).getId()+")");
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+resultViewConnection.getString("class")+"("+((IIdentifier)viewConnection).getId()+")");
 
 		}
 
