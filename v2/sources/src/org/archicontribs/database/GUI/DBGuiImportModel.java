@@ -776,6 +776,16 @@ public class DBGuiImportModel extends DBGui {
                 this.txtImportedImages.setText(String.valueOf(this.importConnection.getCountImagesImported()));
                 increaseProgressBar();
             }
+            
+            // If the model contains a view called "default view", we open it.
+            for ( IDiagramModel view: this.modelToImport.getDiagramModels() ) {
+                if ( DBPlugin.areEqual(view.getName().toLowerCase(), "default view") ) {
+                    setMessage("Opening default view");
+                    EditorManager.openDiagramEditor(view);
+                    closeMessage();
+                    break;
+                }
+            }
         } catch (Exception err) {
         	closeMessage();
             if ( hasBeenClosed() ) {
@@ -850,18 +860,6 @@ public class DBGuiImportModel extends DBGui {
 	                elements.add(this.modelToImport);
 	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
 	            }
-	            
-	            
-	            // If the model contains a view called "default view", we open it.
-	            for ( IDiagramModel view: this.modelToImport.getDiagramModels() ) {
-	            	if ( DBPlugin.areEqual(view.getName().toLowerCase(), "default view") ) {
-	            	    setMessage("Opening default view");
-	            		EditorManager.openDiagramEditor(view);
-	            		closeMessage();
-	            		break;
-	            	}
-	            }
-	            
             
 	            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
 	                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
