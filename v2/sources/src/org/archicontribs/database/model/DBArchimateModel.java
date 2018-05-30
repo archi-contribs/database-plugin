@@ -220,6 +220,33 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allSourceConnectionsConnections.clear();
         this.allTargetConnectionsConnections.clear();
     }
+    
+    /**
+     * Gets the folder that contains the component
+     * @return the folder that contains the component, null if no folder contains it.
+     */
+    public IFolder getFolder(EObject eObject) {
+        return getFolder(eObject, getDefaultFolderForObject(eObject));
+    }
+    
+    /**
+     * check if the eObject is part of the folder, on calls itself recursively for every sub-folder
+     * @return the folder that contains the component, null if no folder contains it.
+     */
+    private IFolder getFolder(EObject eObject, IFolder folder) {
+        if ( eObject == folder )
+            return folder;
+        
+        for ( EObject folderElement: folder.getElements() )
+            if ( eObject == folderElement ) return folder;
+        
+        for ( IFolder subFolder: folder.getFolders() ) {
+            IFolder folderThatcontainsEObject = getFolder(eObject, subFolder);
+            if ( folderThatcontainsEObject != null ) return folderThatcontainsEObject;
+        }
+        
+        return null;
+    }
 	
 	/**
 	 * Counts the number of objects in the model.<br>

@@ -1017,7 +1017,7 @@ public class DBGui {
 	}
     
     public void setMessage(String message) {
-    	setMessage(message, GROUP_BACKGROUND_COLOR);
+    	setMessage(message, COMPO_LEFT_COLOR);
     }
     
     protected void setMessage(String message, Color background) {

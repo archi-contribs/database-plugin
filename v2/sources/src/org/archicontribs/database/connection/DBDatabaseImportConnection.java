@@ -963,7 +963,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
             }
 
 			int version = resultFolder.getInt("version");
-			int rootType = resultFolder.getInt("root_type");
 
 			if ( mustCreateCopy ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Importing a copy of folder id "+folderId+".");
@@ -1006,32 +1005,44 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			setDocumentation(folder, resultFolder.getString("documentation"));
 
-			if ( newFolder ) {
-				IFolder parentFolder = null;
+	        try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", folder.getId()) ) {
+	            IFolder parentFolder = null;
 
-				// if the folder is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
-				if ( !mustCreateCopy )
-					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", folder.getId()) ) {
-						int maxVersion = 0;
-						while ( resultParentFolder.next() ) {
-							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-								((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
-							}
-							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("folder_version"));
-						}
-						((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
-					}
-				if ( parentFolder == null ) {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
-					model.getFolder(FolderType.get(rootType)).getFolders().add(folder);
-				} else {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
-					parentFolder.getFolders().add(folder);
-				}
-				//model.getAllFolders().put(folder.getId(), folder);
+	            // if the folder has been part of the model, even in a previous version of the model, we restore the folder in that folder
+	            int maxVersion = 0;
+	            while ( resultParentFolder.next() ) {
+	                if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+	                    parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+	                    ((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
+	                }
+	                maxVersion = Math.max(maxVersion, resultParentFolder.getInt("folder_version"));
+	            }
+	            ((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+	            
+	            if ( parentFolder == null ) {
+	                if ( newFolder ) {
+	                    if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+	                    model.getFolder(FolderType.get(resultParentFolder.getInt("root_type"))).getFolders().add(folder);
+	                }
+	                // else, we keep the folder in its current folder, but this case should never happen
+	            } else {
+	                if ( newFolder ) {
+	                    if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+	                    parentFolder.getFolders().add(folder);
+	                } else {
+	                    // we check if the folder should migrate to a new folder
+	                    IFolder currentFolder = model.getFolder(folder);
+	                    if ( currentFolder != parentFolder ) {
+	                        if ( logger.isTraceEnabled() ) logger.trace("Moving to folder "+parentFolder.getId());
+	                        currentFolder.getFolders().remove(folder);
+	                        parentFolder.getFolders().add(folder);
+	                    }
+	                }
+	            }
+	        }
+			
+			if ( newFolder )
 				model.countObject(folder, false, null);
-			}
 			
 			++this.countFoldersImported;
 		}
@@ -1115,44 +1126,48 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setDocumentation(element, resultElement.getString("documentation"));
 			setType(element, resultElement.getString("type"));
 
-			boolean createViewObject = false;
-			if ( newElement ) {
-				IFolder parentFolder = null;
+			try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", element.getId()) ) {
+			    IFolder parentFolder = null;
 
-				// if the element is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
-				if ( !mustCreateCopy )
-					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", element.getId()) ) {
-						int maxVersion = 0;
-						while ( resultParentFolder.next() ) {
-							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-								((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
-							}
-							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
-						}
-						((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
-					}
-				if ( parentFolder == null ) {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
-					model.getDefaultFolderForObject(element).getElements().add(element);
-				} else {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
-					parentFolder.getElements().add(element);
-				}
-				//model.getAllElements().put(element.getId(), element);
-				model.countObject(element, false, null);
-				createViewObject = view!=null;
-			} else {
-				if ( view == null ) {
-					createViewObject = false;
-				} else {
-					createViewObject = componentToConnectable(view, element).isEmpty();
-				}
+			    // if the element has been part of the model, even in a previous version of the model, we restore the element in that folder
+                int maxVersion = 0;
+                while ( resultParentFolder.next() ) {
+                    if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+                        parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+                        ((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
+                    }
+                    maxVersion = Math.max(maxVersion, resultParentFolder.getInt("element_version"));
+                }
+                ((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+                
+                if ( parentFolder == null ) {
+                    if ( newElement ) {
+                        if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+                        model.getDefaultFolderForObject(element).getElements().add(element);
+                    }
+                    // else, we keep the element in its current folder, but this case should never happen
+                } else {
+                    if ( newElement ) {
+                        if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+                        parentFolder.getElements().add(element);
+                    } else {
+                        // we check if the element should migrate to a new folder
+                        IFolder currentFolder = model.getFolder(element);
+                        if ( currentFolder != parentFolder ) {
+                            if ( logger.isTraceEnabled() ) logger.trace("Moving to folder "+parentFolder.getId());
+                            currentFolder.getElements().remove(element);
+                            parentFolder.getElements().add(element);
+                        }
+                    }
+                }
 			}
-
-			if ( view != null && createViewObject ) {
+            
+			if ( view != null && componentToConnectable(view, element).isEmpty() ) {
 				view.getChildren().add(ArchimateDiagramModelFactory.createDiagramModelArchimateObject(element));
 			}
+			
+	         if ( newElement )
+	                model.countObject(element, false, null);
 
 			++this.countElementsImported;
 
@@ -1296,43 +1311,44 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 
 			importProperties(relationship);
+			
+			try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", relationship.getId()) ) {
+                IFolder parentFolder = null;
 
-			boolean createViewConnection = false;
-			if ( newRelationship ) {
-				IFolder parentFolder = null;
-
-				// if the relationship is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
-				if ( !mustCreateCopy )
-					try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", relationship.getId()) ) {
-						int maxVersion = 0;
-						while ( resultParentFolder.next() ) {
-							if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-								parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-								((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("relationship_version"));
-							}
-							maxVersion = Math.max(maxVersion, resultParentFolder.getInt("relationship_version"));
-						}
-						((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
-					}
-				if ( parentFolder == null ) {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
-					model.getDefaultFolderForObject(relationship).getElements().add(relationship);
-				} else {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
-					parentFolder.getElements().add(relationship);
-				}
-				//model.getAllRelationships().put(relationship.getId(), relationship);
-				model.countObject(relationship, false, null);
-				createViewConnection = view!=null;
-			} else {
-				if ( view == null ) {
-					createViewConnection = false;
-				} else {
-					createViewConnection = componentToConnectable(view, relationship).isEmpty();
-				}
-			}
-
-			if ( view != null && createViewConnection ) {
+                // if the relationship has been part of the model, even in a previous version of the model, we restore the relationship in that folder
+                int maxVersion = 0;
+                while ( resultParentFolder.next() ) {
+                    if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+                        parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+                        ((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("relationship_version"));
+                    }
+                    maxVersion = Math.max(maxVersion, resultParentFolder.getInt("relationship_version"));
+                }
+                ((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+                
+                if ( parentFolder == null ) {
+                    if ( newRelationship ) {
+                        if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+                        model.getDefaultFolderForObject(relationship).getElements().add(relationship);
+                    }
+                    // else, we keep the relationship in its current folder, but this case should never happen
+                } else {
+                    if ( newRelationship ) {
+                        if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+                        parentFolder.getElements().add(relationship);
+                    } else {
+                        // we check if the relationship should migrate to a new folder
+                        IFolder currentFolder = model.getFolder(relationship);
+                        if ( currentFolder != parentFolder ) {
+                            if ( logger.isTraceEnabled() ) logger.trace("Moving to folder "+parentFolder.getId());
+                            currentFolder.getElements().remove(relationship);
+                            parentFolder.getElements().add(relationship);
+                        }
+                    }
+                }
+            }
+			
+			if ( view != null && componentToConnectable(view, relationship).isEmpty() ) {
 				List<IConnectable> sourceConnections = componentToConnectable(view, relationship.getSource());
 				List<IConnectable> targetConnections = componentToConnectable(view, relationship.getTarget());
 
@@ -1347,6 +1363,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 			}
 		}
+		
+        if ( newRelationship )
+            model.countObject(relationship, false, null);
 
 		++this.countRelationshipsImported;
 
@@ -1411,34 +1430,42 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
              ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultView.getString("checksum"));
              ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultView.getTimestamp("created_on"));
 		}
+		
+        try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", view.getId()) ) {
+            IFolder parentFolder = null;
 
-		if ( isNewView ) {
-			IFolder parentFolder = null;
-
-			// if the view is part (or has been part) of the model, we try to set it in the same folder (it it still exists)
-			if ( !mustCreateCopy )
-				try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", view.getId()) ) {
-					int maxVersion = 0;
-					while ( resultParentFolder.next() ) {
-						if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-							parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-							((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
-						}
-						maxVersion = Math.max(maxVersion, resultParentFolder.getInt("folder_version"));
-					}
-					((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
-				}
-			if ( parentFolder == null ) {
-				if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
-				model.getDefaultFolderForObject(view).getElements().add(view);
-			} else {
-				if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
-				parentFolder.getElements().add(view);
-			}
-
-			//model.getAllViews().put(((IIdentifier)view).getId(), view);
-			model.countObject(view, false, null);
-		}
+            // if the view has been part of the model, even in a previous version of the model, we restore the view in that folder
+            int maxVersion = 0;
+            while ( resultParentFolder.next() ) {
+                if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+                    parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+                    ((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("view_version"));
+                }
+                maxVersion = Math.max(maxVersion, resultParentFolder.getInt("view_version"));
+            }
+            ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(maxVersion);
+            
+            if ( parentFolder == null ) {
+                if ( isNewView ) {
+                    if ( logger.isTraceEnabled() ) logger.trace("Assigning to default folder");
+                    model.getDefaultFolderForObject(view).getElements().add(view);
+                }
+                // else, we keep the view in its current folder, but this case should never happen
+            } else {
+                if ( isNewView ) {
+                    if ( logger.isTraceEnabled() ) logger.trace("Assigning to folder "+parentFolder.getId());
+                    parentFolder.getElements().add(view);
+                } else {
+                    // we check if the view should migrate to a new folder
+                    IFolder currentFolder = model.getFolder(view);
+                    if ( currentFolder != parentFolder ) {
+                        if ( logger.isTraceEnabled() ) logger.trace("Moving to folder "+parentFolder.getId());
+                        currentFolder.getElements().remove(view);
+                        parentFolder.getElements().add(view);
+                    }
+                }
+            }
+        }
 
 		importProperties(view);
 
@@ -1464,6 +1491,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			model.resolveRelationshipsSourcesAndTargets();
 			model.resolveConnectionsSourcesAndTargets();
 		}
+		
+        if ( isNewView )
+            model.countObject(view, false, null);
 
 		return view;
 	}
@@ -1543,16 +1573,22 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
             ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
             ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 
-			// The container is either the view, or a container in the view
-			IDiagramModel viewContainer = model.getAllViews().get(resultViewObject.getString("container_id"));
-			if ( viewContainer == null ) {
-				IDiagramModelContainer objectContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultViewObject.getString("container_id"));
-				if ( objectContainer == null )
-					throw new Exception("Cant find container id "+resultViewObject.getString("container_id"));
-				objectContainer.getChildren().add((IDiagramModelObject)viewObject);
-			} else
-				viewContainer.getChildren().add((IDiagramModelObject)viewObject);
-
+			// we check if the view object must be changed from container
+            if ( viewObject instanceof IDiagramModelObject ) {
+                IDiagramModelContainer newContainer = model.getAllViews().get(resultViewObject.getString("container_id"));
+    			if ( newContainer == null )
+    			    newContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultViewObject.getString("container_id"));
+    			IDiagramModelContainer currentContainer = (IDiagramModelContainer) ((IDiagramModelObject)viewObject).eContainer();		
+    
+                if ( currentContainer == null ) {
+                    if ( logger.isTraceEnabled() ) logger.trace("Assigning to container "+newContainer.getId());
+                    newContainer.getChildren().add((IDiagramModelObject)viewObject);
+                } else if ( newContainer != currentContainer ) {
+                    if ( logger.isTraceEnabled() ) logger.trace("Changing to new container "+newContainer.getId());
+                    currentContainer.getChildren().remove(viewObject);
+                    newContainer.getChildren().add((IDiagramModelObject)viewObject);
+                }
+            }
 
 			if ( viewObject instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
@@ -1644,6 +1680,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
 
 			if ( viewConnection instanceof IDiagramModelConnection ) {
+			    ((IDiagramModelConnection)viewConnection).getBendpoints().clear();
 				try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = "+versionString+" ORDER BY rank", ((IIdentifier)viewConnection).getId()) ) {
 					while(resultBendpoints.next()) {
 						IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
