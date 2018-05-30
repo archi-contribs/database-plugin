@@ -41,7 +41,7 @@ public class DBDeleteDiagramConnectionCommand extends Command {
     @Override
     public void undo() {
         this.fConnection.reconnect();
-        ((DBArchimateModel)this.fModel).getAllViewObjects().put(this.fConnection.getId(), this.fConnection);
+        ((DBArchimateModel)this.fModel).getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
     }
 
 
