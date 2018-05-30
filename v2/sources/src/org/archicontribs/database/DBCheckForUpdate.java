@@ -84,7 +84,7 @@ public class DBCheckForUpdate {
 			Authenticator.setDefault(new Authenticator() {
 				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
-					logger.debug("requestor type = "+getRequestorType());
+					if ( logger.isTraceEnabled() ) logger.trace("   Requestor type = "+getRequestorType());
 					if (getRequestorType() == RequestorType.PROXY) {
 						String prot = getRequestingProtocol().toLowerCase();
 						String host = System.getProperty(prot + ".proxyHost", "");
@@ -92,33 +92,33 @@ public class DBCheckForUpdate {
 						String user = System.getProperty(prot + ".proxyUser", "");
 						String pass = System.getProperty(prot + ".proxyPassword", "");
 
-						if ( logger.isDebugEnabled() ) {
-							logger.debug("proxy request from "+getRequestingHost()+":"+getRequestingPort());
-							logger.debug("proxy configuration:");
-							logger.debug("   prot : "+prot);
-							logger.debug("   host : "+host);
-							logger.debug("   port : "+port);
-							logger.debug("   user : "+user);
-							logger.debug("   pass : xxxxx");
+						if ( logger.isDebugEnabled() )
+							logger.debug("Proxy request from "+getRequestingHost()+":"+getRequestingPort());
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("   Proxy configuration:");
+							logger.trace("   prot : "+prot);
+							logger.trace("   host : "+host);
+							logger.trace("   port : "+port);
+							logger.trace("   user : "+user);
+							logger.trace("   pass : (xxxxx)");
 						}
 
 						// we check if the request comes from the proxy (IP or hostname), else we do not send the password (for security reason)
 						if ( (getRequestingSite().getHostAddress().equalsIgnoreCase(host) || getRequestingHost().equalsIgnoreCase(host)) && (getRequestingPort() == Integer.parseInt(port)) ) {
 							// Seems to be OK.
-							logger.debug("Setting PasswordAuthenticator");
+							if ( logger.isDebugEnabled() ) logger.debug("Setting PasswordAuthenticator");
 							return new PasswordAuthentication(user, pass.toCharArray());
 						}
-						logger.debug("Not setting PasswordAuthenticator as the request does not come from the proxy (host + port)");
 					}
 					return null;
 				}  
 			});
 
 
-			if ( logger.isDebugEnabled() ) logger.debug("connecting to "+pluginApiUrl);
+			if ( logger.isDebugEnabled() ) logger.debug("Connecting to "+pluginApiUrl);
 			HttpsURLConnection conn = (HttpsURLConnection)new URL(pluginApiUrl).openConnection();
 
-			if ( logger.isDebugEnabled() ) logger.debug("getting file list");
+			if ( logger.isDebugEnabled() ) logger.debug("Getting file list");
 			JSONArray result = (JSONArray)parser.parse(new InputStreamReader(conn.getInputStream()));
 
 			if ( result == null ) {
@@ -130,7 +130,7 @@ public class DBCheckForUpdate {
 				return;
 			}
 
-			if ( logger.isDebugEnabled() ) logger.debug("searching for plugins jar files");
+			if ( logger.isDebugEnabled() ) logger.debug("Searching for plugins jar files");
 			Pattern p = Pattern.compile(DBPlugin.pluginsPackage+"_v(.*).jar") ;
 
 			Iterator<JSONObject> iterator = result.iterator();
@@ -138,7 +138,7 @@ public class DBCheckForUpdate {
 				JSONObject file = iterator.next();
 				Matcher m = p.matcher((String)file.get("name")) ;
 				if ( m.matches() ) {
-					if ( logger.isDebugEnabled() ) logger.debug("found version "+m.group(1)+" ("+(String)file.get("download_url")+")");
+					if ( logger.isDebugEnabled() ) logger.debug("Found version "+m.group(1)+" ("+(String)file.get("download_url")+")");
 					versions.put(m.group(1), (String)file.get("download_url"));
 				}
 			}
@@ -232,7 +232,7 @@ public class DBCheckForUpdate {
 					int n;
 					this.updateDownloaded = 0;
 
-					if ( logger.isDebugEnabled() ) logger.debug("downloading file ...");
+					if ( logger.isDebugEnabled() ) logger.debug("Downloading file ...");
 					while ((n=in.read(buff)) !=-1) {
 						fos.write(buff, 0, n);
 						this.updateDownloaded +=n;
@@ -243,7 +243,7 @@ public class DBCheckForUpdate {
 				}
 			}
 
-			if ( logger.isDebugEnabled() ) logger.debug("download finished");
+			if ( logger.isDebugEnabled() ) logger.debug("Download finished");
 
 		} catch (Exception e) {
 			logger.info("here");

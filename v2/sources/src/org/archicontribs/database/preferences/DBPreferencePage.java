@@ -424,7 +424,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	if ( this.table != null )
     	    this.table.close();
     	
-    	if ( this.logger.isTraceEnabled() ) this.logger.trace("Saving preferences in preference store");
+    	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving preferences in preference store");
     	
     	preferenceStore.setValue("exportWithDefaultValues", this.btnExportWithDefaultValues.getSelection());
     	preferenceStore.setValue("closeIfSuccessful", this.btnCloseIfSuccessful.getSelection());
@@ -442,7 +442,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		try {
 			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
 			field.setAccessible(true);
-			if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerMode = "+(String)field.get(this.loggerModeRadioGroupEditor));
+			if ( this.logger.isTraceEnabled() ) this.logger.trace("   loggerMode = "+(String)field.get(this.loggerModeRadioGroupEditor));
 			field.setAccessible(false);
 		} catch (Exception err) {
 			this.logger.error("Failed to retrieve the \"loggerMode\" value from the preference page", err);
@@ -453,17 +453,17 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		try {
 			Field field = RadioGroupFieldEditor.class.getDeclaredField("value");
 			field.setAccessible(true);
-			if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerLevel = "+(String)field.get(this.loggerLevelRadioGroupEditor));
+			if ( this.logger.isTraceEnabled() ) this.logger.trace("   loggerLevel = "+(String)field.get(this.loggerLevelRadioGroupEditor));
 			field.setAccessible(false);
 		} catch (Exception err) {
 			this.logger.error("Failed to retrieve the \"loggerLevel\" value from the preference page", err);
 		}
 		this.loggerLevelRadioGroupEditor.store();
 		
-		if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerFilename = "+this.filenameFileFieldEditor.getStringValue());
+		if ( this.logger.isTraceEnabled() ) this.logger.trace("   loggerFilename = "+this.filenameFileFieldEditor.getStringValue());
 		this.filenameFileFieldEditor.store();
 		
-		if ( this.logger.isTraceEnabled() ) this.logger.trace("loggerExpert = "+this.expertTextFieldEditor.getStringValue());
+		if ( this.logger.isTraceEnabled() ) this.logger.trace("   loggerExpert = "+this.expertTextFieldEditor.getStringValue());
 		this.expertTextFieldEditor.store();
 		
         try {

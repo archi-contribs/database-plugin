@@ -645,10 +645,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSet.getString("element_id"));
-					if ( element == null ) {
-						if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
+					if ( element == null )
 						importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
-					}
 				}
 
 				setArchimateConcept(eObject, model.getAllElements().get(this.currentResultSet.getString("element_id")));
@@ -1424,7 +1422,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		importProperties(view);
 
-		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((INameable)view).getName()+"("+((IIdentifier)view).getId()+")");
+		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
 
 		model.resetSourceAndTargetCounters();
 
@@ -1485,10 +1483,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
 				// we check that the element already exists. If not, we import it in shared mode
 				IArchimateElement element = model.getAllElements().get(resultViewObject.getString("element_id"));
-				if ( element == null ) {
-					if (logger.isTraceEnabled() ) logger.trace("importing individual element ...");
+				if ( element == null )
 					importElementFromId(model, null, resultViewObject.getString("element_id"), 0, false, true);
-				}
 			}
 
 			setArchimateConcept(viewObject, model.getAllElements().get(resultViewObject.getString("element_id")));
@@ -1535,11 +1531,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				IDiagramModelContainer currentContainer = (IDiagramModelContainer) ((IDiagramModelObject)viewObject).eContainer();		
 
 				if ( currentContainer == null ) {
-					if ( logger.isTraceEnabled() ) logger.trace("Assigning to container "+newContainer.getId());
+					if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
 					newContainer.getChildren().add((IDiagramModelObject)viewObject);
 				} else if ( newContainer != currentContainer ) {
-					if ( logger.isTraceEnabled() ) logger.trace("Changing to new container "+newContainer.getId());
+					if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)currentContainer).getDBMetadata().getDebugName());
 					currentContainer.getChildren().remove(viewObject);
+					if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
 					newContainer.getChildren().add((IDiagramModelObject)viewObject);
 				}
 			}
@@ -1557,7 +1554,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			model.countObject(viewObject, false, null);
 
-			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultViewObject.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
 		}
 
 		return (IDiagramModelObject)viewObject;
@@ -1656,7 +1653,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			model.countObject(viewConnection, false, null);
 
-			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+resultViewConnection.getString("class")+"("+((IIdentifier)viewConnection).getId()+")");
+			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)viewConnection).getDBMetadata().getDebugName());
 
 		}
 
@@ -1876,13 +1873,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		IFolder currentFolder = (model != null) ? model.getFolder(eObject) : null;
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Romoving "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
 			currentFolder.getElements().remove(eObject);
 
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("   Adding "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getElements().add(eObject);
 		}
 	}
@@ -1893,13 +1890,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		IFolder currentFolder = (model != null) ? model.getFolder(folder) : null;
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Romoving "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
 			currentFolder.getFolders().remove(folder);
 
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("   Adding "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getFolders().add(folder);
 		}
 	}

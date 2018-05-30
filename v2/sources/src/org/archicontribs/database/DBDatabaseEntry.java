@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.data.DBDatabase;
 import org.eclipse.jface.preference.IPreferenceStore;
 
 import lombok.Getter;

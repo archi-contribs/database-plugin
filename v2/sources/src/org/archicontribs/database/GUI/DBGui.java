@@ -1057,7 +1057,6 @@ public class DBGui {
 	 * Sets the min and max values of the progressBar and reset its selection to zero
 	 */
 	protected void setProgressBarMinAndMax(int min, int max) {
-	    if ( logger.isTraceEnabled() ) logger.trace("Setting progressbar from "+min+" to "+max);
 		this.progressBar.setMinimum(min); this.progressBar.setMaximum(max);
 		resetProgressBar();
 	}
@@ -1075,7 +1074,6 @@ public class DBGui {
 	 */
 	protected void increaseProgressBar() {
 		this.progressBar.setSelection(this.progressBar.getSelection()+1);
-		if ( logger.isTraceEnabled() ) logger.trace("progressBar : "+(this.progressBar.getSelection()+1)+"/"+this.progressBar.getMaximum());
 		refreshDisplay();
 	}
 	

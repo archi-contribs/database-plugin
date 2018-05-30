@@ -147,7 +147,6 @@ public class DBGuiImportModel extends DBGui {
 
     @Override
     protected void databaseSelectedCleanup() {
-        if ( logger.isTraceEnabled() ) logger.trace("Removing all lignes in model table");
         if ( this.tblModels != null ) {
             this.tblModels.removeAll();
         }
@@ -174,7 +173,7 @@ public class DBGuiImportModel extends DBGui {
         this.tblModels.setVisible(true);
         this.tblModels.setLinesVisible(true);
         this.tblModels.setRedraw(true);
-        if (logger.isTraceEnabled() ) logger.trace("found "+this.tblModels.getItemCount()+" model"+(this.tblModels.getItemCount()>1?"s":"")+" in total");
+        if (logger.isTraceEnabled() ) logger.trace("   found "+this.tblModels.getItemCount()+" model"+(this.tblModels.getItemCount()>1?"s":"")+" in total");
         
         if ( this.tblModels.getItemCount() != 0 ) {
             this.tblModels.setSelection(0);
@@ -820,14 +819,14 @@ public class DBGuiImportModel extends DBGui {
         
         Color statusColor = GREEN_COLOR;
         
-		if ( logger.isTraceEnabled() ) {
-		    logger.trace(this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
-		    logger.trace(this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
-		    logger.trace(this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
-		    logger.trace(this.importConnection.getCountViewsImported()+"/"+this.importConnection.getCountViewsToImport()+" views imported");
-		    logger.trace(this.importConnection.getCountViewObjectsImported()+"/"+this.importConnection.getCountViewObjectsToImport()+" views objects imported");
-		    logger.trace(this.importConnection.getCountViewConnectionsImported()+"/"+this.importConnection.getCountViewConnectionsToImport()+" views connections imported");
-		    logger.trace(this.importConnection.getCountImagesImported()+"/"+this.importConnection.getCountImagesToImport()+" images imported");
+		if ( logger.isDebugEnabled() ) {
+		    logger.debug(this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
+		    logger.debug(this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
+		    logger.debug(this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
+		    logger.debug(this.importConnection.getCountViewsImported()+"/"+this.importConnection.getCountViewsToImport()+" views imported");
+		    logger.debug(this.importConnection.getCountViewObjectsImported()+"/"+this.importConnection.getCountViewObjectsToImport()+" views objects imported");
+		    logger.debug(this.importConnection.getCountViewConnectionsImported()+"/"+this.importConnection.getCountViewConnectionsToImport()+" views connections imported");
+		    logger.debug(this.importConnection.getCountImagesImported()+"/"+this.importConnection.getCountImagesToImport()+" images imported");
 		}
 
         this.txtImportedElements.setForeground( (this.importConnection.getCountElementsImported() == this.importConnection.getCountElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );

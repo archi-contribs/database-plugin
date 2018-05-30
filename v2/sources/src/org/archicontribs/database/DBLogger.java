@@ -79,7 +79,7 @@ public class DBLogger {
 				String eol = "";
 				if ( properties!= null ) {
 					for ( Object oKey: properties.orderedKeys() ) {
-						param.append((String)oKey+" = "+properties.getProperty((String)oKey)+eol);
+						param.append("   "+(String)oKey+" = "+properties.getProperty((String)oKey)+eol);
 						eol = "\n";
 					}
 					trace(param.toString());

@@ -46,7 +46,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		
 	public DBArchimateModel() {
 		super();
-		if ( logger.isTraceEnabled() ) logger.trace("Creating new ArchimateModel");
+		if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
 		super.setVersion(ModelVersion.VERSION);
 		super.setMetadata(DBArchimateFactory.eINSTANCE.createMetadata());
 	}
@@ -194,7 +194,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	 * Resets the counters of components in the model
 	 */
 	public void resetCounters() {
-		if ( logger.isTraceEnabled() ) logger.trace("Reseting model's counters.");
+		if ( logger.isDebugEnabled() ) logger.debug("Reseting model's counters.");
 		
 
 		this.allElements.clear();
@@ -212,7 +212,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Used when importing unitary relationship or connection
      */
     public void resetSourceAndTargetCounters() {
-        if ( logger.isTraceEnabled() ) logger.trace("Reseting source and target counters.");
+        if ( logger.isDebugEnabled() ) logger.debug("Reseting source and target counters.");
         
         this.allRelationsSourceAndTarget.clear();
         this.allSourceObjectsConnections.clear();
@@ -255,7 +255,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	public void countAllObjects() throws Exception {
 		resetCounters();
 		
-		if ( logger.isTraceEnabled() ) logger.trace("Counting objects in selected model.");
+		if ( logger.isDebugEnabled() ) logger.debug("Counting objects in selected model.");
 			// we iterate over the model components and store them in hash tables in order to count them and retrieve them more easily
 			// In addition, we calculate the current checksum on elements and relationships
 		
@@ -392,7 +392,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	}
 	
 	public void resolveRelationshipsSourcesAndTargets() {
-	    if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for relationships");
+	    if ( logger.isDebugEnabled() ) logger.debug("Resolving sources and targets for relationships");
 		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: this.allRelationsSourceAndTarget.entrySet() ) {
 			IArchimateRelationship relationship = entry.getKey();
 			Entry<String, String> rel = entry.getValue();
@@ -403,7 +403,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			IArchimateConcept target = getAllElements().get(rel.getValue());
 			if ( target == null) target = getAllRelationships().get(rel.getValue());
 			
-			if ( logger.isTraceEnabled() ) logger.trace("   resolving relationship for "+relationship.getId()+"   (source="+source.getId()+"    target= "+target.getId()+")");
+			if ( logger.isTraceEnabled() ) logger.trace("   "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+"   *** source="+((IDBMetadata)source).getDBMetadata().getDebugName()+"   *** target= "+((IDBMetadata)target).getDBMetadata().getDebugName());
 	        relationship.setSource(source);
 			relationship.setTarget(target);
 		}
@@ -428,18 +428,18 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
 	
     public void resolveConnectionsSourcesAndTargets() throws Exception {
-        if ( logger.isTraceEnabled() ) logger.trace("resolving sources and targets for connections");
+        if ( logger.isDebugEnabled() ) logger.debug("Resolving sources and targets for connections");
 
         for ( Map.Entry<IDiagramModelObject, String> entry: this.allSourceObjectsConnections.entrySet() ) {
             IDiagramModelObject object = entry.getKey();
             
-            if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            if ( logger.isTraceEnabled() ) logger.trace("   Resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
             for ( String val: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setSource(object);
                 object.getSourceConnections().add(connection);
+                if ( logger.isTraceEnabled() ) logger.trace("      Source = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
             }
         }
         
@@ -448,11 +448,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
             for ( String val: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setSource(object);
                 object.getSourceConnections().add(connection);
+                if ( logger.isTraceEnabled() ) logger.trace("      Source = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
             }
         }
         
@@ -461,11 +461,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
             for ( String val: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setTarget(object);
                 object.getTargetConnections().add(connection);
+                if ( logger.isTraceEnabled() ) logger.trace("      Target = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
             }
         }
         
@@ -474,11 +474,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
             for ( String val: entry.getValue().split(",") ) {
-                if ( logger.isTraceEnabled() ) logger.trace("      source = "+val);
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
                 connection.setTarget(object);
                 object.getTargetConnections().add(connection);
+                if ( logger.isTraceEnabled() ) logger.trace("      Target = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
             }
         }
 

@@ -116,7 +116,7 @@ public class DBArchimateFactory extends ArchimateFactory {
 	public static DBArchimateFactory eINSTANCE = init();
 	
     public static DBArchimateFactory init() {
-    	if ( logger.isDebugEnabled() ) logger.debug("initializing DBArchimateFactory");
+    	if ( logger.isDebugEnabled() ) logger.debug("Initializing DBArchimateFactory");
         return eINSTANCE==null ? new DBArchimateFactory() : eINSTANCE;
     }
 	

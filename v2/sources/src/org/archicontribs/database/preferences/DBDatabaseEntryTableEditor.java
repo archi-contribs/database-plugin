@@ -11,12 +11,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.DBDatabase;
 import org.archicontribs.database.DBDatabaseEntry;
-import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBDatabase;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -51,8 +50,6 @@ import org.eclipse.swt.widgets.Text;
  * @author Herve jouin
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
-	private static DBLogger logger = new DBLogger(DBDatabaseEntryTableEditor.class);
-
 	private Group grpDatabases;
 
 	Table tblDatabases;
@@ -126,7 +123,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	public DBDatabaseEntryTableEditor(String name, String labelText, Composite parent) {
 		init(name, labelText);
-		if ( logger.isTraceEnabled() ) logger.trace("new DBDatabaseEntryTableEditor(\""+name+"\",\""+labelText+"\")");
 		createControl(parent);		// calls doFillIntoGrid
 	}
 
@@ -138,8 +134,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	@Override
     @SuppressWarnings("unused")
 	protected void doFillIntoGrid(Composite parent, int numColumns) {
-		if ( logger.isTraceEnabled() ) logger.trace("doFillIntoGrid()");
-
 		// we create a composite with layout as FormLayout
 		this.grpDatabases = new Group(parent, SWT.NONE);
 		this.grpDatabases.setFont(parent.getFont());
@@ -861,7 +855,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	@Override
     protected void doLoad() {
-		if ( logger.isTraceEnabled() ) logger.trace("doLoad()");
 
 		this.tblDatabases.removeAll();
 
@@ -882,8 +875,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	@Override
     protected void doStore() {
-		if ( logger.isTraceEnabled() ) logger.trace("doStore()");
-
 		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();
 
 		for ( TableItem tableItem : this.tblDatabases.getItems() )
@@ -993,8 +984,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Called when the "new" button has been pressed
 	 */
 	void newCallback() {
-		if ( logger.isTraceEnabled() ) logger.trace("newCallback()");
-
 		// we unselect all the lines of the tblDatabases table
 		this.tblDatabases.deselectAll();
 		
@@ -1006,8 +995,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Called when the "save" button has been pressed
 	 */
 	void saveCallback() {
-		if ( logger.isTraceEnabled() ) logger.trace("saveCallback()");
-
 		if ( this.txtName.getText().isEmpty() ) {
 		    DBGui.popup(Level.ERROR, "Please provide a name for your configuration.");
 			return;
@@ -1181,7 +1168,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Called when the "check" button has been pressed
 	 */
 	void checkCallback() {
-		if ( logger.isTraceEnabled() ) logger.trace("checkCallback()");
 		DBDatabaseEntry databaseEntry;
 		try {
 			databaseEntry = getDatabaseDetails(null);
@@ -1203,7 +1189,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Called when the "remove" button has been pressed
 	 */
 	void removeCallback() {
-		if ( logger.isTraceEnabled() ) logger.trace("removeCallback()");
 		// setPresentsDefaultValue(false);
 		int index = this.tblDatabases.getSelectionIndex();
 
@@ -1290,12 +1275,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 *            <code>false</code> if it should move down
 	 */
 	void swapDatabaseEntries(int direction) {
-		if ( logger.isTraceEnabled() ) logger.trace("swap("+direction+")");
-
 		int source = this.tblDatabases.getSelectionIndex();
 		int target = this.tblDatabases.getSelectionIndex()+direction;
 
-		if ( logger.isTraceEnabled() ) logger.trace("swapping entrie "+source+" and "+target+".");
 		TableItem sourceItem = this.tblDatabases.getItem(source);
 		String sourceText = sourceItem.getText();
 		DBDatabaseEntry sourceData = (DBDatabaseEntry)sourceItem.getData();

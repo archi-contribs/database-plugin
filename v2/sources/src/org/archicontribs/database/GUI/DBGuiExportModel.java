@@ -1582,7 +1582,7 @@ public class DBGuiExportModel extends DBGui {
 				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders");
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
-                    if ( logger.isTraceEnabled() ) logger.trace("The folder id "+id+" has been created in the database. We import it in the model.");
+                    if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
 				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
                     importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestVersion());
                     incrementText(this.txtNewFoldersInDatabase);
@@ -1595,7 +1595,7 @@ public class DBGuiExportModel extends DBGui {
 			//TODO :
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing elements");
 			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
-			    if ( logger.isTraceEnabled() ) logger.trace("The element id "+id+" has been created in the database. We import it in the model.");
+			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
 			    DBVersionPair versionToImport = this.exportConnection.getElementsNotInModel().get(id);
 	        	importConnection.importElementFromId(this.exportedModel, id, versionToImport.getLatestVersion());
 	        	incrementText(this.txtNewElementsInDatabase);
@@ -1607,15 +1607,13 @@ public class DBGuiExportModel extends DBGui {
 			//TODO :
 			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing relationships");
 	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
-	            if ( logger.isTraceEnabled() ) logger.trace("The relationship id "+id+" has been created in the database. We import it in the model.");
+	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
 	            DBVersionPair versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
 	        	importConnection.importRelationshipFromId(this.exportedModel, null, id, versionToImport.getLatestVersion(), false);
 	        	incrementText(this.txtNewRelationshipsInDatabase);
 	        	incrementText(this.txtTotalRelationships);
 	        }
-            setMessage("Resolving relationships' sources and targets ...");
             this.exportedModel.resolveRelationshipsSourcesAndTargets();
-            closeMessage();
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
                 //TODO : put the imported components in a compound Command to allow rollback
@@ -1623,7 +1621,7 @@ public class DBGuiExportModel extends DBGui {
                 //TODO :
 			    if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views");
 			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
-			        if ( logger.isTraceEnabled() ) logger.trace("The view id "+id+" has been created in the database. We import it in the model.");
+			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
 			        DBVersionPair versionToImport = this.exportConnection.getViewsNotInModel().get(id);
 			        importConnection.importViewFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false, false);
 			        incrementText(this.txtNewViewsInDatabase);
@@ -1635,7 +1633,7 @@ public class DBGuiExportModel extends DBGui {
 				//TODO :
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views objects");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
-		            if ( logger.isTraceEnabled() ) logger.trace("The view object id "+id+" has been created in the database. We import it in the model.");
+		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
 		            DBVersionPair versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
 		        	importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
 		        	incrementText(this.txtNewViewObjectsInDatabase);
@@ -1647,15 +1645,13 @@ public class DBGuiExportModel extends DBGui {
                 //TODO :
                 if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views connections");
                 for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
-                    if ( logger.isTraceEnabled() ) logger.trace("The view connection id "+id+" has been created in the database. We import it in the model.");
+                    if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
                     DBVersionPair versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                     importConnection.importViewConnectionFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
                     incrementText(this.txtNewViewConnectionsInDatabase);
                     incrementText(this.txtTotalViewConnections);
                 }
-	            setMessage("Resolving connections' sources and targets ...");
 	            this.exportedModel.resolveConnectionsSourcesAndTargets();
-	            closeMessage();
 	            
 	               // if some components must be removed from the model, we do it before the export
                 if ( !this.delayedCommands.isEmpty() ) {
@@ -1690,6 +1686,8 @@ public class DBGuiExportModel extends DBGui {
 			    doExportEObject(relationshipsIterator.next().getValue());
 			}
 			
+            this.exportedModel.resolveRelationshipsSourcesAndTargets();
+			
 			if ( this.selectedDatabase.isWholeModelExported() ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
@@ -1717,6 +1715,7 @@ public class DBGuiExportModel extends DBGui {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 					doExportEObject(viewConnection);
 				}
+	            this.exportedModel.resolveConnectionsSourcesAndTargets();
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
 				// no need to use imagesNotInModel as the requested images have been imported at the same time as their view object
@@ -1976,7 +1975,7 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                	if ( logger.isTraceEnabled() )  logger.trace("The "+objectClass+" is in sync with the database.");
+                	if ( logger.isDebugEnabled() )  logger.debug("The "+objectClass+" is in sync with the database.");
                     break;
                 default:
                 	throw new Exception("That's weird, we shoudn't be here ...");
@@ -1984,7 +1983,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 
 		if ( mustExport ) {
-		    if ( logger.isTraceEnabled() )  logger.trace("The "+objectClass+" has been updated in Archi, we must export it");
+		    if ( logger.isDebugEnabled() )  logger.debug("The "+objectClass+" has been updated in Archi, we must export it");
 		    
 			this.exportConnection.exportEObject(eObjectToExport, this);
 			
@@ -1997,7 +1996,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustImport ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" has been updated in the database, we must import it");
+		    if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" has been updated in the database, we must import it");
 		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 	            if ( eObjectToExport instanceof IArchimateElement )
@@ -2019,7 +2018,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustDelete ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" has been deleted in the database. We delete it in the model.");
+		    if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" has been deleted in the database. We delete it in the model.");
 		                  
 		    if ( eObjectToExport instanceof IArchimateElement )
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
@@ -2301,7 +2300,7 @@ public class DBGuiExportModel extends DBGui {
 
 		setActiveAction(ACTION.Three);
 		
-		if ( logger.isTraceEnabled() ) logger.trace("Model : "+this.txtTotalElements.getText()+" elements, "+this.txtTotalRelationships.getText()+" relationships, "+this.txtTotalFolders.getText()+" folders, "+this.txtTotalViews.getText()+" views, "+this.txtTotalViewObjects.getText()+" view objects, "+this.txtTotalViewConnections.getText()+" view connections.");
+		if ( logger.isDebugEnabled() ) logger.debug("Model : "+this.txtTotalElements.getText()+" elements, "+this.txtTotalRelationships.getText()+" relationships, "+this.txtTotalFolders.getText()+" folders, "+this.txtTotalViews.getText()+" views, "+this.txtTotalViewObjects.getText()+" view objects, "+this.txtTotalViewConnections.getText()+" view connections.");
 		
 		if ( status == STATUS.Ok ) {
 			setMessage(message, GREEN_COLOR);

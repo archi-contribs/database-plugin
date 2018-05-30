@@ -40,7 +40,7 @@ public class DBCanvasFactory extends CanvasFactory {
 	public static DBCanvasFactory eINSTANCE = init();
 	
     public static DBCanvasFactory init() {
-    	if ( logger.isDebugEnabled() ) logger.debug("initializing DBCanvasFactory");
+    	if ( logger.isDebugEnabled() ) logger.debug("Initializing DBCanvasFactory");
         try {
         	DBCanvasFactory theCanvasFactory = (DBCanvasFactory)EPackage.Registry.INSTANCE.getEFactory(ICanvasPackage.eNS_URI);
             if (theCanvasFactory != null) {

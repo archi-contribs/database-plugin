@@ -1147,10 +1147,9 @@ public class DBGuiImportComponent extends DBGui {
 		//compoFolders.setVisible(false);
 		this.compoViews.setVisible(false);
 
-		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
 		this.tblComponents.removeAll();
 
-		if ( logger.isTraceEnabled() ) logger.trace("getting elements");
+		if ( logger.isDebugEnabled() ) logger.debug("Getting elements");
 
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
@@ -1305,10 +1304,9 @@ public class DBGuiImportComponent extends DBGui {
 		//compoFolders.setVisible(false);
 		this.compoViews.setVisible(true);
 
-		if ( logger.isTraceEnabled() ) logger.trace("emptying tblComponents");
 		this.tblComponents.removeAll();
 
-		if ( logger.isTraceEnabled() ) logger.trace("getting views");
+		if ( logger.isDebugEnabled() ) logger.debug("Getting views");
 
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
@@ -1372,7 +1370,6 @@ public class DBGuiImportComponent extends DBGui {
 
 
 	private static void createTableItem(Table table, String id, String className, String name, String documentation) {
-		if ( logger.isTraceEnabled() ) logger.trace("adding "+name+"("+className+") to tblComponents");
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText(0, "   "+name);
@@ -1386,11 +1383,12 @@ public class DBGuiImportComponent extends DBGui {
 
 
 	void doImport() throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("doImport: tblComponents has got "+this.tblComponents.getItemCount()+" items");
-		if ( getOptionValue() )
-			logger.info("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
-		else
-			logger.info("Importing a copy of "+this.tblComponents.getSelectionCount()+" component(s).");
+		if ( logger.isDebugEnabled() ) {
+			if ( getOptionValue() )
+				logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
+			else
+				logger.debug("Importing a copy of "+this.tblComponents.getSelectionCount()+" component(s).");
+		}
 
 		List<Object> imported = new ArrayList<Object>();
 		int done = 0;
@@ -1423,10 +1421,8 @@ public class DBGuiImportComponent extends DBGui {
 		if ( !imported.isEmpty() ) {
 			// We select the element in the model tree
 			ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-			if(treeView != null) {
-				logger.trace("selecting newly imported components");
+			if(treeView != null)
 				treeView.getViewer().setSelection(new StructuredSelection(imported));
-			}
 		}
 
 		// we redraw the tblComponents to unselect the items (and hide the newly imported components if the option is selected)

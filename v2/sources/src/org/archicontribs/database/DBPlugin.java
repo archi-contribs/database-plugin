@@ -322,32 +322,34 @@ public class DBPlugin extends AbstractUIPlugin {
 				logger.debug("plugin's package  = "+pluginsPackage);
 				logger.debug("plugin's folder   = "+pluginsFolder);
 				logger.debug("plugin's filename = "+pluginsFilename);
-				if ( !pluginsFilename.endsWith(".jar") )
-					logger.debug("(the plugin's filename is not a jar file, so Archi is running inside Eclipse)");
 			}
 
-			if ( Files.exists(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"), LinkOption.NOFOLLOW_LINKS) ) {
-				if ( logger.isDebugEnabled() ) logger.debug("found file \""+pluginsFolder+File.separator+"databasePlugin.new\"");
-				
-				try {
-					String installedPluginsFilename = new String(Files.readAllBytes(Paths.get(pluginsFolder+File.separator+"databasePlugin.new")));
+			if ( !pluginsFilename.endsWith(".jar") ) {
+				if ( logger.isTraceEnabled() ) logger.trace("   The plugin's filename is not a jar file, so we do not check for new plugin version on GitHub.");
+			} else {
+				if ( Files.exists(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"), LinkOption.NOFOLLOW_LINKS) ) {
+					if ( logger.isDebugEnabled() ) logger.debug("Found file \""+pluginsFolder+File.separator+"databasePlugin.new\"");
 					
-					if ( areEqual(pluginsFilename, installedPluginsFilename) ) 
-						DBGui.popup(Level.INFO, "The database plugin has been correctly updated to version "+pluginVersion);
-					else
-						DBGui.popup(Level.ERROR, "The database plugin has been correctly downloaded to \""+installedPluginsFilename+"\" but you are still using the database plugin version "+pluginVersion+".\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
-				} catch (@SuppressWarnings("unused") IOException e) {
-					DBGui.popup(Level.WARN, "A new version of the database plugin has been downloaded but we failed to check if you are using the latest version.\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
+					try {
+						String installedPluginsFilename = new String(Files.readAllBytes(Paths.get(pluginsFolder+File.separator+"databasePlugin.new")));
+						
+						if ( areEqual(pluginsFilename, installedPluginsFilename) ) 
+							DBGui.popup(Level.INFO, "The database plugin has been correctly updated to version "+pluginVersion);
+						else
+							DBGui.popup(Level.ERROR, "The database plugin has been correctly downloaded to \""+installedPluginsFilename+"\" but you are still using the database plugin version "+pluginVersion+".\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
+					} catch (@SuppressWarnings("unused") IOException e) {
+						DBGui.popup(Level.WARN, "A new version of the database plugin has been downloaded but we failed to check if you are using the latest version.\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
+					}
+					
+					try {
+						if ( logger.isDebugEnabled() ) logger.debug("deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
+						Files.delete(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"));
+					} catch ( @SuppressWarnings("unused") IOException e ) {
+						DBGui.popup(Level.ERROR, "Failed to delete file \""+pluginsFolder+File.separator+"databasePlugin.new\"\n\nYou need to delete it manually.");
+					}
+				} else if ( preferenceStore.getBoolean("checkForUpdateAtStartup") ) {
+					checkForUpdate(false);
 				}
-				
-				try {
-					if ( logger.isDebugEnabled() ) logger.debug("deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
-					Files.delete(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"));
-				} catch ( @SuppressWarnings("unused") IOException e ) {
-					DBGui.popup(Level.ERROR, "Failed to delete file \""+pluginsFolder+File.separator+"databasePlugin.new\"\n\nYou need to delete it manually.");
-				}
-			} else if ( preferenceStore.getBoolean("checkForUpdateAtStartup") ) {
-				checkForUpdate(false);
 			}
 		} catch ( IOException e ) {
 			DBGui.popup(Level.ERROR, "Failed to get database plugin's folder.", e);

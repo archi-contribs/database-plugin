@@ -1,8 +1,10 @@
-package org.archicontribs.database;
+package org.archicontribs.database.data;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+
+import org.archicontribs.database.DBPlugin;
 
 import lombok.Getter;
 
