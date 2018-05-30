@@ -49,7 +49,6 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelBendpoint;
-import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImageProvider;
@@ -1448,7 +1447,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * This method imports a view object<br>
 	 * if the corresponding element does not exists, it is imported
 	 */
-	public IDiagramModelComponent importViewObjectFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy) throws Exception {
+	public IDiagramModelObject importViewObjectFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy) throws Exception {
 		if ( logger.isDebugEnabled() ) {
 			if ( mustCreateCopy )
 				logger.debug("Importing a copy of view object id "+id);
@@ -1535,7 +1534,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+resultView.getString("class")+"("+((IIdentifier)viewObject).getId()+")");
 		}
 
-		return (IDiagramModelComponent)viewObject;
+		return (IDiagramModelObject)viewObject;
 	}
 
 	/**

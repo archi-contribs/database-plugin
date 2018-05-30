@@ -23,7 +23,6 @@ import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -109,7 +108,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-	@Getter private Map<String, IDiagramModelComponent> allViewObjects = new LinkedHashMap<String, IDiagramModelComponent>();
+	@Getter private Map<String, IDiagramModelObject> allViewObjects = new LinkedHashMap<String, IDiagramModelObject>();
 	
 	/**
      * List of all connections in the model views.<br>
@@ -286,7 +285,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "DiagramModelNote" :
 			case "DiagramModelReference" :
 			case "CanvasModelSticky" :
-			case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelComponent)eObject);
+			case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelObject)eObject);
 			                                        ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
 													if ( eObject instanceof IDiagramModelContainer ) {
 													    if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());

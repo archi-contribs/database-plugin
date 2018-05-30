@@ -61,8 +61,8 @@ import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
-import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 
@@ -1351,7 +1351,7 @@ public class DBGuiExportModel extends DBGui {
         nbConflict = 0;
         nbDeleted = 0;
         nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IDiagramModelComponent>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
+        Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
         while (ito.hasNext()) {
             DBMetadata metadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
             switch ( metadata.getDatabaseStatus() ) {
@@ -1672,7 +1672,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views objects");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
 		            DBVersionPair versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-		        	IDiagramModelComponent newViewObject = importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
+		        	IDiagramModelObject newViewObject = importConnection.importViewObjectFromId(this.exportedModel, id, versionToImport.getLatestVersion(), false);
 	                ((IDBMetadata)newViewObject).getDBMetadata().getInitialVersion().setVersion(versionToImport.getLatestVersion());
 	                ((IDBMetadata)newViewObject).getDBMetadata().getCurrentVersion().setVersion(versionToImport.getLatestVersion());
 	                ((IDBMetadata)newViewObject).getDBMetadata().getDatabaseVersion().setVersion(versionToImport.getLatestVersion());
@@ -1680,9 +1680,9 @@ public class DBGuiExportModel extends DBGui {
 		        	incrementText(this.txtTotalViewObjects);
 		        }
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
-				Iterator<Entry<String, IDiagramModelComponent>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
+				Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 				while ( viewObjectsIterator.hasNext() ) {
-					IDiagramModelComponent viewObject = viewObjectsIterator.next().getValue();
+					IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
 					doExportEObject(viewObject, this.txtNewViewObjectsInModel, this.txtUpdatedViewObjectsInModel, this.txtDeletedViewObjectsInModel,this.txtUpdatedViewObjectsInDatabase, this.txtConflictingViewObjects);
 				}
 				
@@ -1925,7 +1925,7 @@ public class DBGuiExportModel extends DBGui {
             dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
         }
         
-        Iterator<Map.Entry<String, IDiagramModelComponent>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
+        Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
         while (ito.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
             dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
@@ -1965,7 +1965,7 @@ public class DBGuiExportModel extends DBGui {
             objectClass = "Folder";
         else if ( eObjectToExport instanceof IDiagramModel )
             objectClass = "View";
-        else if ( eObjectToExport instanceof IDiagramModelComponent )
+        else if ( eObjectToExport instanceof IDiagramModelObject )
             objectClass = "View Object";
         else if ( eObjectToExport instanceof IDiagramModelConnection )
             objectClass = "View Connection";
@@ -2053,7 +2053,7 @@ public class DBGuiExportModel extends DBGui {
 	                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	            else if ( eObjectToExport instanceof IDiagramModel )
 	                importConnection.importViewFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
-	            else if ( eObjectToExport instanceof IDiagramModelComponent )
+	            else if ( eObjectToExport instanceof IDiagramModelObject )
 	                importConnection.importViewObjectFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
 	                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
