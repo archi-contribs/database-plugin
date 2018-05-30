@@ -1395,8 +1395,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					view.setId(id);
 			}
 
-			((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
-
 			setName(view, resultView.getString("name"));
 			setDocumentation(view, resultView.getString("documentation"));
 			setConnectionRouterType(view, resultView.getInt("connection_router_type"));
@@ -1405,6 +1403,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setBackground(view, resultView.getInt("background"));
 			setHintContent(view, resultView.getString("hint_content"));
 			setHintTitle(view, resultView.getString("hint_title"));
+			
+	         ((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
 		}
 
 		if ( isNewView ) {
@@ -1524,6 +1524,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setTextAlignment(viewObject, resultView.getInt("text_alignment"));
 			setTextPosition(viewObject, resultView.getInt("text_position"));
 			setBounds(viewObject, resultView.getInt("x"), resultView.getInt("y"), resultView.getInt("width"), resultView.getInt("height"));
+			
+			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
 
 			// The container is either the view, or a container in the view
 			IDiagramModel viewContainer = model.getAllViews().get(resultView.getString("container_id"));
@@ -1604,6 +1606,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setTextPosition(viewConnection, resultView.getInt("text_position"));
 			setType(viewConnection, resultView.getInt("type"));
 			setArchimateConcept(viewConnection, model.getAllRelationships().get(resultView.getString("relationship_id")));
+			
+			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setVersion(resultView.getInt("version"));
 
 			if ( viewConnection instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
