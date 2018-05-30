@@ -1686,8 +1686,6 @@ public class DBGuiExportModel extends DBGui {
 			    doExportEObject(relationshipsIterator.next().getValue());
 			}
 			
-            this.exportedModel.resolveRelationshipsSourcesAndTargets();
-			
 			if ( this.selectedDatabase.isWholeModelExported() ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
@@ -1701,8 +1699,10 @@ public class DBGuiExportModel extends DBGui {
                     IDiagramModel view = viewsIterator.next().getValue();
                     doExportEObject(view);
                 }
-	            
+
+                this.exportedModel.resolveRelationshipsSourcesAndTargets();
 	            if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
+	            
 	            Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 	            while ( viewObjectsIterator.hasNext() ) {
 	                IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
@@ -1715,6 +1715,7 @@ public class DBGuiExportModel extends DBGui {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 					doExportEObject(viewConnection);
 				}
+				
 	            this.exportedModel.resolveConnectionsSourcesAndTargets();
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");

@@ -434,6 +434,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   Resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            object.getSourceConnections().clear();
             for ( String val: entry.getValue().split(",") ) {
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
@@ -447,6 +448,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            object.getSourceConnections().clear();
             for ( String val: entry.getValue().split(",") ) {
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
@@ -460,6 +462,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IDiagramModelObject object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            object.getTargetConnections().clear();
             for ( String val: entry.getValue().split(",") ) {
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
@@ -473,6 +476,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IDiagramModelConnection object = entry.getKey();
             
             if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
+            object.getTargetConnections().clear();
             for ( String val: entry.getValue().split(",") ) {
                 IDiagramModelConnection connection = getAllViewConnections().get(val);
                 if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());

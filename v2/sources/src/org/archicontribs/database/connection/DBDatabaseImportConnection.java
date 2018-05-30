@@ -1837,7 +1837,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	private static void setBounds(EObject eObject, Integer x, Integer y, Integer width, Integer height) {
 		if ( eObject instanceof IDiagramModelObject && (x != null) && (y != null) && (width != null) && (height != null) ) {
 			IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
-			if ( (bounds == null) || (bounds.getX() != x.intValue()) && (bounds.getY() != y.intValue()) && (bounds.getWidth() != width.intValue()) && (bounds.getHeight() != height.intValue()) )
+			if ( (bounds == null) || (bounds.getX() != x.intValue()) || (bounds.getY() != y.intValue()) || (bounds.getWidth() != width.intValue()) || (bounds.getHeight() != height.intValue()) )
 				((IDiagramModelObject)eObject).setBounds(x, y, width, height);
 		}
 	}
