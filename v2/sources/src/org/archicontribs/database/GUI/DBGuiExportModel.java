@@ -2003,7 +2003,7 @@ public class DBGuiExportModel extends DBGui {
                                 else
                                     this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
                                 incrementText(txtConflicting);
-                                break;
+                                return false;
                             case exportToDatabase :
                                 if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged to force export to the database. ");
                                 mustExport = true;
@@ -2081,8 +2081,14 @@ public class DBGuiExportModel extends DBGui {
 		    
 		    incrementText(txtDeletedInModel);
             exported = true;
-		} else {
-		    // even if the eObject is not exported, it has to be referenced as being part of the model
+		}
+		
+		if ( !mustExport && !mustImport && !mustDelete) {
+		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" in in sync with the database. It does not need to be exported.");
+		}
+		
+		if ( !mustDelete ) {
+		    // we reference the object as being part of the model
 		    if ( this.selectedDatabase.isWholeModelExported() )
 		        this.exportConnection.assignEObjectToModel(eObjectToExport);
 		}
