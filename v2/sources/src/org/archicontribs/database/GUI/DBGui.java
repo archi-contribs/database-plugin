@@ -217,7 +217,8 @@ public class DBGui {
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
 		this.dialog.setMinimumSize(750, 600);
 		this.dialog.setSize(800,700);
-		this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 4);
+		int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
+		this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
 		this.dialog.setLayout(new FormLayout());
 		
 	    this.dialog.addListener(SWT.Close, new Listener()

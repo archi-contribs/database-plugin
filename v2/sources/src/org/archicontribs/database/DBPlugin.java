@@ -178,6 +178,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      better management of the cancel button during the import and export process
  *                                      cleanup properties before import rather than update existing values as several properties can have the same name
  *                                      fix number of images to import
+ *                                      fix centering of GUI windows
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
