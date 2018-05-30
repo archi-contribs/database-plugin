@@ -777,7 +777,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					}
 				}
 
-				// we reference the view for future use
+				// we reference the connection for future use
 				model.countObject(eObject, false, null);
 				++this.countViewConnectionsImported;
 
@@ -1635,7 +1635,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
             ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
             ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
             ((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
-
+            
 			if ( viewConnection instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
 				model.registerSourceConnection((IDiagramModelConnection)viewConnection, resultViewConnection.getString("source_connections"));
