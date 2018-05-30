@@ -1162,10 +1162,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the elements new in the database from those deleted from memory
@@ -1216,10 +1216,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the relationships new in the database from those deleted from memory
@@ -1270,10 +1270,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the folders new in the database from those deleted from memory
@@ -1323,10 +1323,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the views new in the database from those deleted from memory
@@ -1376,10 +1376,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the viewObjects new in the database from those deleted from memory
@@ -1429,10 +1429,10 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do //
+                    // nothing to do
                     break;
                 default:
-                    // should never be here //
+                    // should never be here
             }
         }
         // we distinguish the ViewConnections new in the database from those deleted from memory
@@ -1947,8 +1947,8 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called by the export() method
 	 * @return true if the EObject has been exported, false if it is conflicting
 	 */
-	private boolean doExportEObject(EObject eObject, Text txtNewInModel, Text txtUpdatedInModel, Text txtDeletedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
-		assert(eObject instanceof IDBMetadata);
+	private boolean doExportEObject(EObject eObjectToExport, Text txtNewInModel, Text txtUpdatedInModel, Text txtDeletedInModel, Text txtUpdatedInDatabase, Text txtConflicting) throws Exception {
+		assert(eObjectToExport instanceof IDBMetadata);
 		assert(this.exportConnection != null);
 		
 		boolean mustExport = false;
@@ -1956,180 +1956,130 @@ public class DBGuiExportModel extends DBGui {
 		boolean mustDelete = false;
 		boolean exported = false;
 		
-		EObject eObjectToExport = eObject;
+		String objectClass = "Unknown";
+        if ( eObjectToExport instanceof IArchimateElement )
+            objectClass = "Element";
+        else if ( eObjectToExport instanceof IArchimateRelationship )
+            objectClass = "Relationship";
+        else if ( eObjectToExport instanceof IFolder )
+            objectClass = "Folder";
+        else if ( eObjectToExport instanceof IDiagramModel )
+            objectClass = "View";
+        else if ( eObjectToExport instanceof IDiagramModelComponent )
+            objectClass = "View Object";
+        else if ( eObjectToExport instanceof IDiagramModelConnection )
+            objectClass = "View Connection";
+        else
+            throw new Exception("At the moment, we cannot export a "+eObjectToExport.getClass().getSimpleName()+" :(");
+		
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 		    // in Neo4J databases, we do not manage versions so we export all the elements and all the relationships
 		    mustExport = true;
 		} else {
-		    // but in SQL databases, we need to calculate the component version and check if there is no conflict in the database
-
-		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 ) {
-                // if the component is not present in the latest version of the model in the database
-		        if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion() != 0 ) {
-		            // but was present in the current database model, the the element has been deleted in the database
-		            mustDelete = true;
-		        } else {
-		            // else, it is a new component that needs to be exported
-	                mustExport = true;
-		        }
-            } else {
-            	String initialChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getInitialVersion().getChecksum();
-            	String currentChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum();
-            	String latestDatabaseChecksum = ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum();
-
-                if ( DBPlugin.areEqual(latestDatabaseChecksum, currentChecksum) ) {
-                    // if the checksum of the latest version in the database equals the latest checksum
-                    // then the database is up to date and the component does not need to be exported
-                } else {
-                    // else, the component is different between the model and the database
-        			boolean modifiedInModel = !DBPlugin.areEqual(initialChecksum, currentChecksum);
-        			boolean modifiedInDatabase = !DBPlugin.areEqual(initialChecksum, latestDatabaseChecksum);
-        			
-        			if ( modifiedInModel ) {
-        			    if ( modifiedInDatabase ) {
-            				// if the component has been updated in both the model and the database, there might be a conflict
-        			        if ( DBPlugin.areEqual(currentChecksum, latestDatabaseChecksum) ) {
-        			            // the modifications done on the component are the same between the model and the database, then we do not generate a conflict and simply ignore it
-        			            mustExport = false;
-            			    } else {
-                				// We must manage the conflict, except if we are force the export
-                				if ( this.forceExport )
-                    		        mustExport = true;
-                				else {
-                					if ( logger.isDebugEnabled() ) logger.debug("The component conflicts with the version in the database.");
-                					switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
-                						case askUser :
-                							if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
-                	                    	new TableItem(this.tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
-                	                    	if ( this.tblListConflicts.getItemCount() < 2 )
-                	                    		this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
-                	                    	else
-                	                    		this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
-                	                    	incrementText(txtConflicting);
-                	                    	break;
-                						case exportToDatabase :
-                		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged to force export to the database. ");
-                		                    mustExport = true;
-                		                    break;
-                						case importFromDatabase :
-                		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"import the database version\".");
-                		                    mustImport = true;
-                		                    break;
-                						case doNotExport :
-                		                    if ( logger.isDebugEnabled() ) logger.debug("The component is tagged \"do not export\", so we keep it as it is.");
-                		                    break;
-        								default:
-        									break;
-                					}
-                				}
-            			    }
-        			    } else {
-        			        // if the component has been modified in the model but not in the database, then we must export it
-                            mustExport = true;
-        			    }
-        			} else {
-        			    if ( modifiedInDatabase ) {
-        			        // if the component has been modified in the database but not in the model, then we must import it
-        			        mustImport = true;
-                        } else {
-                            // if the component has not been modified in the model nor in the database, then we do not export nor import it
-                            mustExport = false;
+		    switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() ) {
+                case isNewInModel:
+                    mustExport = true;
+                    break;
+                case isUpadtedInDatabase:
+                    mustImport = true;
+                    break;
+                case isUpdatedInModel:
+                    mustExport = true;
+                    break;
+                case isDeletedInDatabase:
+                    mustDelete = true;
+                    break;
+                case IsConflicting:
+                    if ( this.forceExport )
+                        mustExport = true;
+                    else {
+                        if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" conflicts with the version in the database.");
+                        switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
+                            case askUser :
+                                if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
+                                new TableItem(this.tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
+                                if ( this.tblListConflicts.getItemCount() < 2 )
+                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+                                else
+                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
+                                incrementText(txtConflicting);
+                                break;
+                            case exportToDatabase :
+                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged to force export to the database. ");
+                                mustExport = true;
+                                break;
+                            case importFromDatabase :
+                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"import the database version\".");
+                                mustImport = true;
+                                break;
+                            case doNotExport :
+                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"do not export\", so we keep it as it is.");
+                                break;
+                            default:
+                                break;
                         }
-        			}
-                }
+                    }
+                    break;
+                case isSynced:
+                    // nothing to do
+                    break;
+                default:
+                    // should never be here
             }
 		}
-	            
+
 		if ( mustExport ) {
-		    if ( logger.isDebugEnabled() ) {
-		    	String objectClass = "Unknown";
-		        if ( eObjectToExport instanceof IArchimateElement )
-		            objectClass = "Element";
-		        else if ( eObjectToExport instanceof IArchimateRelationship )
-		        	objectClass = "Relationship";
-		        else if ( eObjectToExport instanceof IFolder )
-		        	objectClass = "Folder";
-		        else if ( eObjectToExport instanceof IDiagramModel )
-		        	objectClass = "View";
-		        else if ( eObjectToExport instanceof IDiagramModelComponent )
-		        	objectClass = "View Object";
-		        else if ( eObjectToExport instanceof IDiagramModelConnection )
-		        	objectClass = "View Connection";
-                logger.debug(objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
-		    }
+		    if ( logger.isDebugEnabled() )  logger.debug(objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		    
 			this.exportConnection.exportEObject(eObjectToExport, this);
+			
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
             	incrementText(txtNewInModel);
             else
                 incrementText(txtUpdatedInModel);
+            
             exported = true;
 		}
 		
 		if ( mustImport ) {
-            // For the moment, we can import elements and relationships only during an export !!!
+		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
-	            if ( eObjectToExport instanceof IArchimateElement ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            if ( eObjectToExport instanceof IArchimateElement )
 	                importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
-	                incrementText(txtUpdatedInDatabase);
-	            } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("Relationshipd id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            else if ( eObjectToExport instanceof IArchimateRelationship )
 	                importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-	                incrementText(txtUpdatedInDatabase);
-	            } else if ( eObjectToExport instanceof IFolder ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            else if ( eObjectToExport instanceof IFolder )
 	                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-	                incrementText(txtUpdatedInDatabase);
-	            } else if ( eObjectToExport instanceof IDiagramModel ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            else if ( eObjectToExport instanceof IDiagramModel )
 	                importConnection.importViewFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
-	                incrementText(txtUpdatedInDatabase);
-	            } else if ( eObjectToExport instanceof IDiagramModelComponent ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("View Object id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            else if ( eObjectToExport instanceof IDiagramModelComponent )
 	                importConnection.importViewObjectFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-	                incrementText(txtUpdatedInDatabase);
-	            } else if ( eObjectToExport instanceof IDiagramModelConnection ) {
-	                if ( logger.isTraceEnabled() ) logger.trace("View Connection id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+	            else if ( eObjectToExport instanceof IDiagramModelConnection )
 	                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
-	                incrementText(txtUpdatedInDatabase);
-	            } else {
-	            	// should not be here !
-	            	throw new Exception("At the moment, we cannot import a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-	            }
+	            
+	            incrementText(txtUpdatedInDatabase);
 	            exported = true;
 			}
 		}
 		
 		if ( mustDelete ) {
-		    if ( eObjectToExport instanceof IArchimateElement ) {
-		    	// we delay the execution of the element deletion because we need to 
-		        if ( logger.isTraceEnabled() ) logger.trace("Element id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		                  
+		    if ( eObjectToExport instanceof IArchimateElement )
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
-		        incrementText(txtDeletedInModel);
-		    } else if ( eObjectToExport instanceof IArchimateRelationship ) {
-                if ( logger.isTraceEnabled() ) logger.trace("Relaationship id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    else if ( eObjectToExport instanceof IArchimateRelationship )
                 this.delayedCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
-                incrementText(txtDeletedInModel);
-		    } else if ( eObjectToExport instanceof IFolder ) {
-		        if ( logger.isTraceEnabled() ) logger.trace("Folder id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    else if ( eObjectToExport instanceof IFolder )
 		        new DeleteFolderCommand((IFolder)eObjectToExport).execute();
-		        incrementText(txtDeletedInModel);
-		    } else if ( eObjectToExport instanceof IDiagramModel ) {
-		        if ( logger.isTraceEnabled() ) logger.trace("View id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    else if ( eObjectToExport instanceof IDiagramModel )
 		        new DeleteDiagramModelCommand((IDiagramModel)eObjectToExport).execute();
-		        incrementText(txtDeletedInModel);
-            } else if ( eObjectToExport instanceof IDiagramModelArchimateObject ) {
-		        if ( logger.isTraceEnabled() ) logger.trace("View object id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+            else if ( eObjectToExport instanceof IDiagramModelArchimateObject )
 		        this.delayedCommands.add(new DBDeleteDiagramObjectCommand(this.exportedModel, (IDiagramModelArchimateObject)eObjectToExport));
-		        incrementText(txtDeletedInModel);
-            } else if ( eObjectToExport instanceof IDiagramModelArchimateConnection ) {
-		        if ( logger.isTraceEnabled() ) logger.trace("View connection id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    else if ( eObjectToExport instanceof IDiagramModelArchimateConnection )
 		        this.delayedCommands.add(new DBDeleteDiagramConnectionCommand(this.exportedModel, (IDiagramModelArchimateConnection)eObjectToExport));
-		        incrementText(txtDeletedInModel);
-		    } else {
-		    	// we shouldn't be here !
-                logger.error("At the moment, we cannot delete a "+eObjectToExport.getClass().getSimpleName()+" during the export process :(");
-		    }
+		    
+		    incrementText(txtDeletedInModel);
             exported = true;
 		} else {
 		    // even if the eObject is not exported, it has to be referenced as being part of the model
