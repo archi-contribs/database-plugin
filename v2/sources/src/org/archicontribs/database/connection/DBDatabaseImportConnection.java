@@ -1876,13 +1876,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		IFolder currentFolder = (model != null) ? model.getFolder(eObject) : null;
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Romoving from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Romoving "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
 			currentFolder.getElements().remove(eObject);
 
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Adding "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getElements().add(eObject);
 		}
 	}
@@ -1893,13 +1893,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		IFolder currentFolder = (model != null) ? model.getFolder(folder) : null;
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Romoving from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Romoving "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
 			currentFolder.getFolders().remove(folder);
 
 		}
 
 		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("Adding to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
+			if ( logger.isTraceEnabled() ) logger.trace("Adding "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getFolders().add(folder);
 		}
 	}
