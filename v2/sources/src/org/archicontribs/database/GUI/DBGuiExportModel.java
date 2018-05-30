@@ -1868,6 +1868,8 @@ public class DBGuiExportModel extends DBGui {
 		assert(eObjectToExport instanceof IDBMetadata);
 		assert(this.exportConnection != null);
 		
+		if ( logger.isDebugEnabled() ) logger.debug("Do Export "+((IDBMetadata)eObjectToExport).getDBMetadata().getDebugName());
+		
 		boolean mustExport = false;
 		boolean mustImport = false;
 		boolean mustDelete = false;
@@ -1879,7 +1881,7 @@ public class DBGuiExportModel extends DBGui {
 		Text txtDeletedInDatabase;
 		Text txtConflicting;
 		
-		String objectClass = "Unknown";
+		String objectClass;
         if ( eObjectToExport instanceof IArchimateElement ) {
             objectClass = "Element";
             txtNewInModel = this.txtNewElementsInModel;
@@ -1974,15 +1976,15 @@ public class DBGuiExportModel extends DBGui {
                     }
                     break;
                 case isSynced:
-                    // nothing to do
+                	if ( logger.isTraceEnabled() )  logger.trace("The "+objectClass+" is in sync with the database.");
                     break;
                 default:
-                    // should never be here
+                	throw new Exception("That's weird, we shoudn't be here ...");
             }
 		}
 
 		if ( mustExport ) {
-		    if ( logger.isDebugEnabled() )  logger.debug(objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in Archi, we must export it");
+		    if ( logger.isTraceEnabled() )  logger.trace("The "+objectClass+" has been updated in Archi, we must export it");
 		    
 			this.exportConnection.exportEObject(eObjectToExport, this);
 			
@@ -1995,7 +1997,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustImport ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been updated in the database, we must import it");
+		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" has been updated in the database, we must import it");
 		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 	            if ( eObjectToExport instanceof IArchimateElement )
@@ -2017,7 +2019,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustDelete ) {
-		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" has been deleted in the database. We delete it in the model.");
+		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" has been deleted in the database. We delete it in the model.");
 		                  
 		    if ( eObjectToExport instanceof IArchimateElement )
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
@@ -2034,10 +2036,6 @@ public class DBGuiExportModel extends DBGui {
 		    
 		    incrementText(txtDeletedInDatabase);
             exported = true;
-		}
-		
-		if ( !mustExport && !mustImport && !mustDelete) {
-		    if ( logger.isTraceEnabled() ) logger.trace("The "+objectClass+" id "+((IIdentifier)eObjectToExport).getId()+" in in sync with the database. It does not need to be exported.");
 		}
 		
 		if ( !mustDelete ) {
