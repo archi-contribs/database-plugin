@@ -855,7 +855,9 @@ public class DBGuiImportModel extends DBGui {
 	            // If the model contains a view called "default view", we open it.
 	            for ( IDiagramModel view: this.modelToImport.getDiagramModels() ) {
 	            	if ( DBPlugin.areEqual(view.getName().toLowerCase(), "default view") ) {
+	            	    setMessage("Opening default view");
 	            		EditorManager.openDiagramEditor(view);
+	            		closeMessage();
 	            		break;
 	            	}
 	            }
