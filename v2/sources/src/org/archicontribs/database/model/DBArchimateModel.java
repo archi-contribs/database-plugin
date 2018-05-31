@@ -244,8 +244,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             if ( eObject == folderElement ) return folder;
         
         for ( IFolder subFolder: folder.getFolders() ) {
-            IFolder folderThatcontainsEObject = getFolder(eObject, subFolder);
-            if ( folderThatcontainsEObject != null ) return folderThatcontainsEObject;
+            IFolder folderThatContainsEObject = getFolder(eObject, subFolder);
+            if ( folderThatContainsEObject != null ) return folderThatContainsEObject;
         }
         
         return null;
