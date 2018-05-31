@@ -1386,7 +1386,7 @@ public class DBGui {
 	public static void incrementText(Text txt) {
 	    if ( txt != null ) {
 	        try {
-	            txt.setText(String.valueOf(Integer.valueOf(txt.getText()) + 1));
+	        	txt.setText(toString(toInt(txt.getText())+1));
 	        } catch (@SuppressWarnings("unused") Exception ign) {
 	            // ignore
 	        }
@@ -1396,12 +1396,24 @@ public class DBGui {
     public static void decrementText(Text txt) {
         if ( txt != null ) {
             try {
-                txt.setText(String.valueOf(Integer.valueOf(txt.getText()) - 1));
+            	txt.setText(toString(toInt(txt.getText())-1));
             } catch (@SuppressWarnings("unused") Exception ign) {
                 // ignore
             }
         }
     }
+    
+	public static String toString(int value) {
+		if ( (value == 0) && !DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showZeroValues") )
+			return "";
+		return String.valueOf(value);
+	}
+	
+	public static int toInt(String value) {
+		if ( DBPlugin.isEmpty(value) )
+			return 0;
+		return Integer.valueOf(value);
+	}
     
     protected DBDatabaseConnection getDatabaseConnection() {
         return this.connection;

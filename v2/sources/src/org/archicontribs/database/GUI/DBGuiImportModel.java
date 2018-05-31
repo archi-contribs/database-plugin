@@ -697,40 +697,40 @@ public class DBGuiImportModel extends DBGui {
             closeMessage();
             setProgressBarMinAndMax(0, importSize);
 
-            this.txtTotalElements.setText(String.valueOf(this.importConnection.getCountElementsToImport()));
-            this.txtTotalRelationships.setText(String.valueOf(this.importConnection.getCountRelationshipsToImport()));
-            this.txtTotalFolders.setText(String.valueOf(this.importConnection.getCountFoldersToImport()));
-            this.txtTotalViews.setText(String.valueOf(this.importConnection.getCountViewsToImport()));
-            this.txtTotalViewObjects.setText(String.valueOf(this.importConnection.getCountViewObjectsToImport()));
-            this.txtTotalViewConnections.setText(String.valueOf(this.importConnection.getCountViewConnectionsToImport()));
-            this.txtTotalImages.setText(String.valueOf(this.importConnection.getCountImagesToImport()));
+            this.txtTotalElements.setText(toString(this.importConnection.getCountElementsToImport()));
+            this.txtTotalRelationships.setText(toString(this.importConnection.getCountRelationshipsToImport()));
+            this.txtTotalFolders.setText(toString(this.importConnection.getCountFoldersToImport()));
+            this.txtTotalViews.setText(toString(this.importConnection.getCountViewsToImport()));
+            this.txtTotalViewObjects.setText(toString(this.importConnection.getCountViewObjectsToImport()));
+            this.txtTotalViewConnections.setText(toString(this.importConnection.getCountViewConnectionsToImport()));
+            this.txtTotalImages.setText(toString(this.importConnection.getCountImagesToImport()));
 
-            this.txtImportedElements.setText(String.valueOf(this.importConnection.getCountElementsImported()));
-            this.txtImportedRelationships.setText(String.valueOf(this.importConnection.getCountRelationshipsImported()));
-            this.txtImportedFolders.setText(String.valueOf(this.importConnection.getCountFoldersImported()));
-            this.txtImportedViews.setText(String.valueOf(this.importConnection.getCountViewsImported()));
-            this.txtImportedViewObjects.setText(String.valueOf(this.importConnection.getCountViewObjectsImported()));
-            this.txtImportedViewConnections.setText(String.valueOf(this.importConnection.getCountViewConnectionsImported()));
-            this.txtImportedImages.setText(String.valueOf(this.importConnection.getCountImagesImported()));
+            this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
+            this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
+            this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
+            this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
+            this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
+            this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
+            this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
             this.importConnection.prepareImportFolders(this.modelToImport);
             while ( this.importConnection.importFolders(this.modelToImport) ) {
-            	this.txtImportedFolders.setText(String.valueOf(this.importConnection.getCountFoldersImported()));
+            	this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
                 increaseProgressBar();
             }
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
             this.importConnection.prepareImportElements(this.modelToImport);
             while ( this.importConnection.importElements(this.modelToImport) ) {
-            	this.txtImportedElements.setText(String.valueOf(this.importConnection.getCountElementsImported()));
+            	this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
                 increaseProgressBar();
             }
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
             this.importConnection.prepareImportRelationships(this.modelToImport);
             while ( this.importConnection.importRelationships(this.modelToImport) ) {
-            	this.txtImportedRelationships.setText(String.valueOf(this.importConnection.getCountRelationshipsImported()));
+            	this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
                 increaseProgressBar();
             }
 
@@ -741,7 +741,7 @@ public class DBGuiImportModel extends DBGui {
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
             this.importConnection.prepareImportViews(this.modelToImport);
             while ( this.importConnection.importViews(this.modelToImport) ) {
-            	this.txtImportedViews.setText(String.valueOf(this.importConnection.getCountViewsImported()));
+            	this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
                 increaseProgressBar();
             }
 
@@ -749,21 +749,21 @@ public class DBGuiImportModel extends DBGui {
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsObjects(this.modelToImport, view) ) {
-                	this.txtImportedViewObjects.setText(String.valueOf(this.importConnection.getCountViewObjectsImported()));
+                	this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
                     increaseProgressBar();
                 }
             }
-            this.txtImportedElements.setText(String.valueOf(this.importConnection.getCountElementsImported()));
+            this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
 
             if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsConnections(this.modelToImport) ) {
-                	this.txtImportedViewConnections.setText(String.valueOf(this.importConnection.getCountViewConnectionsImported()));
+                	this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
                     increaseProgressBar();
                 }
             }
-            this.txtImportedRelationships.setText(String.valueOf(this.importConnection.getCountRelationshipsImported()));
+            this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
 
             setMessage("Resolving connections' sources and targets ...");
             this.modelToImport.resolveConnectionsSourcesAndTargets();
@@ -772,7 +772,7 @@ public class DBGuiImportModel extends DBGui {
             if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
             for (String path: this.importConnection.getAllImagePaths()) {
                 this.importConnection.importImage(this.modelToImport, path);
-                this.txtImportedImages.setText(String.valueOf(this.importConnection.getCountImagesImported()));
+                this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
                 increaseProgressBar();
             }
             

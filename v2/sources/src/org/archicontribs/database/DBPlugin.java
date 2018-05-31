@@ -170,6 +170,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
  *                                  Remove checksums on images as the path is already a kind of checksum
  *                                  Export and import back model's metadata
+ *                                  Add option to show or hide zero values on export and import windows
  *                                  Bug fixes:
  * 										Solve plugin initialization failure that occurred some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
@@ -278,6 +279,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("exportWithDefaultValues", false);
 		preferenceStore.setDefault("checkForUpdateAtStartup", false);
 		preferenceStore.setDefault("closeIfSuccessful",       false);
+		preferenceStore.setDefault("showZeroValues",          true);
 		preferenceStore.setDefault("compareBeforeExport",     true);
 		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);

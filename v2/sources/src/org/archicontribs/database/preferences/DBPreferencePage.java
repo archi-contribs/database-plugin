@@ -66,6 +66,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnCheckForUpdateAtStartupButton;
 	private Button btnExportWithDefaultValues;
 	private Button btnCloseIfSuccessful;
+	private Button btnShowZeroValues;
 	private Button btnRemoveDirtyFlag;
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
@@ -200,12 +201,21 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnCloseIfSuccessful.setLayoutData(fd);
 		
+		this.btnShowZeroValues = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShowZeroValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnShowZeroValues.setText("Show zero values on import and export windows");
+		this.btnShowZeroValues.setSelection(preferenceStore.getBoolean("showZeroValues"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCloseIfSuccessful, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnShowZeroValues.setLayoutData(fd);
+		
 		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
 		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCloseIfSuccessful, 5);
+		fd.top = new FormAttachment(this.btnShowZeroValues, 5);
 		fd.left = new FormAttachment(0, 10);
 		this.btnRemoveDirtyFlag.setLayoutData(fd);
 		
@@ -433,6 +443,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("exportWithDefaultValues", this.btnExportWithDefaultValues.getSelection());
     	preferenceStore.setValue("closeIfSuccessful", this.btnCloseIfSuccessful.getSelection());
     	preferenceStore.setValue("checkForUpdateAtStartup", this.btnCheckForUpdateAtStartupButton.getSelection());
+    	preferenceStore.setValue("showZeroValues", this.btnShowZeroValues.getSelection());
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
