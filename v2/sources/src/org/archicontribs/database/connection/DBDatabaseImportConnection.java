@@ -1474,6 +1474,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					viewObject = DBArchimateFactory.eINSTANCE.create(resultViewObject.getString("class"));
 
 				((IIdentifier)viewObject).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
+				
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(1);
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			}
 
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
