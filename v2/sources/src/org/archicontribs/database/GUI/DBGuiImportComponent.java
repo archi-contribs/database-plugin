@@ -1412,7 +1412,7 @@ public class DBGuiImportComponent extends DBGui {
 				}
 			}
 		} catch(RuntimeException e) {
-			popup(Level.ERROR, e.getMessage());
+			popup(Level.ERROR, "Couldn't import component.", e);
 		} finally {
 			// we do not catch the exception if any, but we need to close the popup
 			closeMessage();
