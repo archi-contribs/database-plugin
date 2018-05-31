@@ -234,6 +234,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @return the folder that contains the component, null if no folder contains it.
      */
     private IFolder getFolder(EObject eObject, IFolder folder) {
+        if( folder == null )
+            return null;
+        
         if ( eObject == folder )
             return folder;
         
