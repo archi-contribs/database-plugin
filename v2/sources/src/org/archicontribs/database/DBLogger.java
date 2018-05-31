@@ -336,4 +336,12 @@ public class DBLogger {
 	public boolean isDebugEnabled() {
 		return initialised && this.logger.isDebugEnabled();
 	}
+	
+	/**
+     * Returns true if the logger is configured to print SQL requests
+     */
+	@SuppressWarnings("static-method")
+    public boolean isTraceSQLEnabled() {
+	    return DBPlugin.INSTANCE.getPreferenceStore().getBoolean("traceSQL");
+	}
 }

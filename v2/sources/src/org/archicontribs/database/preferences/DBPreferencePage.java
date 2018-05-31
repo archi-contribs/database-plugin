@@ -57,6 +57,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private DBDatabaseEntryTableEditor table = null;
 	
 	private RadioGroupFieldEditor loggerModeRadioGroupEditor;
+	private BooleanFieldEditor traceSQLFieldEditor;
 	private FileFieldEditor filenameFileFieldEditor;
 	private RadioGroupFieldEditor loggerLevelRadioGroupEditor;
 	private DBTextFieldEditor expertTextFieldEditor;
@@ -331,6 +332,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         
     	this.loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, this.loggerComposite, true);
       	addField(this.loggerModeRadioGroupEditor);
+      	
+      	this.traceSQLFieldEditor = new BooleanFieldEditor("traceSQL", "Include SQL requests in trace mode", this.loggerComposite);
+      	addField(this.traceSQLFieldEditor);
     	
     	this.simpleModeGroup = new Group(this.loggerComposite, SWT.NONE);
     	this.simpleModeGroup.setLayout(new GridLayout());
@@ -459,6 +463,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 			this.logger.error("Failed to retrieve the \"loggerLevel\" value from the preference page", err);
 		}
 		this.loggerLevelRadioGroupEditor.store();
+		
+		this.traceSQLFieldEditor.store();
 		
 		if ( this.logger.isTraceEnabled() ) this.logger.trace("   loggerFilename = "+this.filenameFileFieldEditor.getStringValue());
 		this.filenameFileFieldEditor.store();

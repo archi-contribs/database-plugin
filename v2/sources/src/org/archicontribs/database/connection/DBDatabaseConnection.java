@@ -751,7 +751,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             String tableInfoRequest = "PRAGMA TABLE_INFO("+tableName+")";
             try (PreparedStatement pstmt = this.connection.prepareStatement(tableInfoRequest, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY) ) {
-                if ( logger.isTraceEnabled() ) logger.trace("   > "+tableInfoRequest);
+                if ( logger.isTraceSQLEnabled() ) logger.trace("   --> "+tableInfoRequest);
                 try (ResultSet result = pstmt.executeQuery() ) {
                     createTableRequest.append("CREATE TABLE "+tableName+" (");
                     boolean columnsNeedComma = false;
@@ -1101,10 +1101,10 @@ public class DBDatabaseConnection implements AutoCloseable {
             }
             ++parameterRank;
         }
-        if ( logger.isTraceEnabled() ) {
+        if ( logger.isTraceSQLEnabled() ) {
             if ( requestRank < splittedRequest.length )
                 debugRequest.append(splittedRequest[requestRank]);
-            logger.trace("   > "+debugRequest.toString());
+            logger.trace("   --> "+debugRequest.toString());
         }
     }
 
@@ -1181,7 +1181,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         int rowCount = 0;
 
         if ( parameters.length == 0 ) {		// no need to use a PreparedStatement
-            if ( logger.isTraceEnabled() ) logger.trace("   > "+request);
+            if ( logger.isTraceSQLEnabled() ) logger.trace("   --> "+request);
 
             try ( Statement stmt = this.connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY) ) {
             	rowCount = stmt.executeUpdate(request);
