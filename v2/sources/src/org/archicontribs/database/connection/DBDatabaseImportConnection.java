@@ -691,6 +691,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
+				
+				if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)eObject).getId())) {
+					logger.trace("--------------------------- importViewsObjects");
+					logger.trace(Dumper.dump(eObject));
+				}
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -1568,6 +1573,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			// If the object has got properties but does not have a linked element, then it may have distinct properties
 			if ( viewObject instanceof IProperties && resultViewObject.getString("element_id")==null ) {
 				importProperties((IProperties)viewObject);
+			}
+			
+			if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)viewObject).getId())) {
+				logger.trace("------------------------------- importViewObjectFromId");
+				Dumper.dump(viewObject);
 			}
 
 			model.countObject(viewObject, false, null);

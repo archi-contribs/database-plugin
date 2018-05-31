@@ -1180,6 +1180,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
 				);
+		
+		if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)viewObject).getId())) {
+			logger.trace("----------------------- exportViewObject");
+			Dumper.dump(viewObject);
+		}
 
 		if ( viewObject instanceof IProperties && !(viewObject instanceof IDiagramModelArchimateComponent))
 			exportProperties((IProperties)viewObject);

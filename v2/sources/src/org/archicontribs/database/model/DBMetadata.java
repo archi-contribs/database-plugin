@@ -10,8 +10,8 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
+import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
@@ -128,9 +128,9 @@ public class DBMetadata  {
         if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
             return DATABASE_STATUS.isSynced;
         
-        String initialChecksum = (this.component instanceof IDiagramModel ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
-        String currentChecksum = (this.component instanceof IDiagramModel ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
-        String databaseChecksum = (this.component instanceof IDiagramModel ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
+        String initialChecksum = (this.component instanceof IDiagramModelContainer ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
+        String currentChecksum = (this.component instanceof IDiagramModelContainer ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
+        String databaseChecksum = (this.component instanceof IDiagramModelContainer ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
         
         // if the components checksum in the model has been modified since the component has been imported
         // this means that the component has been updated in the model

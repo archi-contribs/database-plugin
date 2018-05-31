@@ -1689,7 +1689,7 @@ public class DBGuiExportModel extends DBGui {
                     IDiagramModel view = viewsIterator.next().getValue();
                     // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
                     if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-                    	this.exportedModel.countObject(view, true, null);
+                    	this.exportedModel.countObject(view, true, view);
                     	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
                     }
                     doExportEObject(view);
