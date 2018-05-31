@@ -1345,7 +1345,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// 1 : we create or update the view
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet result = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, created_on FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
+		try ( ResultSet result = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, container_checksum, created_on FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
 			if ( !result.next() ) {
 				if ( version == 0 )
 					throw new Exception("View with id="+id+" has not been found in the database.");
@@ -1378,15 +1378,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
 				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
 				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
 				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
 				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
 				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
+				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
 				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			}
 
@@ -1548,6 +1552,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					newContainer.getChildren().add((IDiagramModelObject)viewObject);
 				}
 			}
+			
+			EObject viewContainer = viewObject.eContainer();
+			while ( !(viewContainer instanceof IDiagramModel) ) {
+				viewContainer = viewContainer.eContainer();
+			}
+			((IDBMetadata)viewContainer).getDBMetadata().setChecksumValid(false);
 
 			if ( viewObject instanceof IConnectable ) {
 				//TODO: no time to register them, but import them right now !
@@ -1563,8 +1573,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			model.countObject(viewObject, false, null);
 			
 			// if the object contains an image, we store its path to import it later
-			if ( this.currentResultSet.getString("image_path") != null )
-				this.allImagePaths.add(this.currentResultSet.getString("image_path"));
+			if ( resultViewObject.getString("image_path") != null )
+				this.allImagePaths.add(resultViewObject.getString("image_path"));
 
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
 		}

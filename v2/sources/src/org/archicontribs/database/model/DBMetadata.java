@@ -10,6 +10,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
@@ -127,19 +128,23 @@ public class DBMetadata  {
         if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
             return DATABASE_STATUS.isSynced;
         
+        String initialChecksum = (this.component instanceof IDiagramModel ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
+        String currentChecksum = (this.component instanceof IDiagramModel ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
+        String databaseChecksum = (this.component instanceof IDiagramModel ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
+        
         // if the components checksum in the model has been modified since the component has been imported
         // this means that the component has been updated in the model
-        boolean modifiedInModel = !DBPlugin.areEqual(this.initialVersion.getChecksum(), this.currentVersion.getChecksum());
+        boolean modifiedInModel = !DBPlugin.areEqual(initialChecksum, currentChecksum);
         
         // if the components checksum in the database has been modified since the component has been imported
         // this means that the component has been updated in the database 
-        boolean modifiedInDatabase = !DBPlugin.areEqual(this.initialVersion.getChecksum(), this.latestDatabaseVersion.getChecksum());
+        boolean modifiedInDatabase = !DBPlugin.areEqual(initialChecksum, databaseChecksum);
             
         // if both versions of the component (in the model and in the database) have been updated
         // then they are conflicting ...
         // ... except if the modifications are the same
         if ( modifiedInModel && modifiedInDatabase ) {
-            if ( DBPlugin.areEqual(this.currentVersion.getChecksum(), this.latestDatabaseVersion.getChecksum()) )
+            if ( DBPlugin.areEqual(currentChecksum, databaseChecksum) )
                 return DATABASE_STATUS.isSynced;
 
             return DATABASE_STATUS.IsConflicting;

@@ -1659,16 +1659,6 @@ public class DBGuiExportModel extends DBGui {
                     CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
                     stack.execute(this.delayedCommands);
                     
-                    // if some views are impacted by the elements and relationships removal, then we recalculate their checksum
-                    Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
-                    while (itv.hasNext()) {
-                        IDiagramModel view = itv.next().getValue();
-                        if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-                            this.exportedModel.countObject(view, true, view);
-                            this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-                        }
-                    }
-                    
                     // we refresh the text widgets
                     compareModelToDatabase();
                 }
@@ -1697,6 +1687,11 @@ public class DBGuiExportModel extends DBGui {
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
                 while ( viewsIterator.hasNext() ) {
                     IDiagramModel view = viewsIterator.next().getValue();
+                    // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
+                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
+                    	this.exportedModel.countObject(view, true, null);
+                    	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
+                    }
                     doExportEObject(view);
                 }
 
