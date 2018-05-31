@@ -1479,7 +1479,24 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(1);
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(1);
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+			} else {
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultViewObject.getInt("version"));
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
+				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(resultViewObject.getInt("version"));
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
+				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			}
+			
+			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
 				// we check that the element already exists. If not, we import it in shared mode
@@ -1511,19 +1528,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setTextPosition(viewObject, resultViewObject.getInt("text_position"));
 			setBounds(viewObject, resultViewObject.getInt("x"), resultViewObject.getInt("y"), resultViewObject.getInt("width"), resultViewObject.getInt("height"));
 
-			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-			((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-
 			// we check if the view object must be changed from container
 			if ( viewObject instanceof IDiagramModelObject ) {
 				IDiagramModelContainer newContainer = model.getAllViews().get(resultViewObject.getString("container_id"));
@@ -1531,12 +1535,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					newContainer = (IDiagramModelContainer) model.getAllViewObjects().get(resultViewObject.getString("container_id"));
 				IDiagramModelContainer currentContainer = (IDiagramModelContainer) ((IDiagramModelObject)viewObject).eContainer();		
 
-				if ( currentContainer == null ) {
-					if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
-					newContainer.getChildren().add((IDiagramModelObject)viewObject);
-				} else if ( newContainer != currentContainer ) {
-					if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)currentContainer).getDBMetadata().getDebugName());
-					currentContainer.getChildren().remove(viewObject);
+				if ( currentContainer != null ) {
+					if ( newContainer != currentContainer ) {
+						if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)currentContainer).getDBMetadata().getDebugName());
+						currentContainer.getChildren().remove(viewObject);
+					} else
+						newContainer = null;		// no need to assign it again to the same container
+				}
+				
+				if ( newContainer != null ) {
 					if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
 					newContainer.getChildren().add((IDiagramModelObject)viewObject);
 				}
@@ -1554,6 +1561,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 
 			model.countObject(viewObject, false, null);
+			
+			// if the object contains an image, we store its path to import it later
+			if ( this.currentResultSet.getString("image_path") != null )
+				this.allImagePaths.add(this.currentResultSet.getString("image_path"));
 
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)viewObject).getDBMetadata().getDebugName());
 		}
