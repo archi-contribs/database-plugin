@@ -814,15 +814,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					}
 					imagePath = archiveMgr.addByteContentEntry(path, imageContent);
 
-					if ( DBPlugin.areEqual(imagePath, path) )
-						if ( logger.isDebugEnabled() ) logger.debug( "... image imported");
-						else
-							if ( logger.isDebugEnabled() ) logger.debug( "... image imported but with new path "+imagePath);
+                    if ( logger.isDebugEnabled() && !DBPlugin.areEqual(imagePath, path) )
+                        logger.debug( "... image imported but with new path "+imagePath);
 
 				} catch (Exception e) {
 					throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
 				}
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+path);
 				++this.countImagesImported;
 			}
 			else
@@ -1019,7 +1016,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 				((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
 
-				assignToFolder(folder, parentFolder, result.getInt("root_type"));
+				assignToFolder(model, folder, parentFolder, result.getInt("root_type"));
 			}
 
 			if ( hasJustBeenCreated )
@@ -1123,7 +1120,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
 
-				assignToFolder(element, parentFolder);
+				assignToFolder(model, element, parentFolder);
 			}
 
 			if ( view != null && componentToConnectable(view, element).isEmpty() ) {
@@ -1291,7 +1288,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 				((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
 
-				assignToFolder(relationship, parentFolder);
+				assignToFolder(model, relationship, parentFolder);
 			}
 
 			if ( view != null && componentToConnectable(view, relationship).isEmpty() ) {
@@ -1417,16 +1414,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 			((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
 
-			assignToFolder(view, parentFolder);
+			assignToFolder(model, view, parentFolder);
 		}
 
 		importProperties(view);
 
 		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
 
-		model.resetSourceAndTargetCounters();
-
 		if ( mustImportViewContent ) {
+		    model.resetSourceAndTargetCounters();
+		    
 			// 2 : we import the objects and create the corresponding elements if they do not exist yet
 			//        importing an element will automatically import the relationships to and from this element
 			prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
@@ -1867,10 +1864,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			((IDiagramModel)eObject).setConnectionRouterType(routerType);
 	}
 
-	private static void assignToFolder(IArchimateModelObject eObject, IFolder parentFolder) {
-		IFolder newFolder = (parentFolder != null) ? parentFolder : eObject.getArchimateModel().getDefaultFolderForObject(eObject);
-		DBArchimateModel model = (DBArchimateModel)eObject.getArchimateModel();
-		IFolder currentFolder = (model != null) ? model.getFolder(eObject) : null;
+	private static void assignToFolder(DBArchimateModel model, IArchimateModelObject eObject, IFolder parentFolder) {
+		IFolder newFolder = (parentFolder != null) ? parentFolder : model.getDefaultFolderForObject(eObject);
+		IFolder currentFolder = model.getFolder(eObject);
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
 			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
@@ -1884,10 +1880,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 	}
 
-	private static void assignToFolder(IFolder folder, IFolder parentFolder, int folderType) {
-		IFolder newFolder = (parentFolder != null) ? parentFolder : folder.getArchimateModel().getFolder(FolderType.get(folderType));
-		DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
-		IFolder currentFolder = (model != null) ? model.getFolder(folder) : null;
+	private static void assignToFolder(DBArchimateModel model, IFolder folder, IFolder parentFolder, int folderType) {
+		IFolder newFolder = (parentFolder != null) ? parentFolder : model.getFolder(FolderType.get(folderType));
+		IFolder currentFolder = model.getFolder(folder);
 
 		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
 			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
