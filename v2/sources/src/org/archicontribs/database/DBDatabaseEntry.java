@@ -233,7 +233,7 @@ public class DBDatabaseEntry {
 				try {
 					// we have to manage the old name of MS SQL driver :-(
 					if ( store.getString(preferenceName+"_driver_"+String.valueOf(line)).equalsIgnoreCase("mssql") )
-						databaseEntry.setDriver("ms-sql");
+						databaseEntry.setDriver(DBDatabase.MSSQL.getDriverName());
 					else
 						databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
 					

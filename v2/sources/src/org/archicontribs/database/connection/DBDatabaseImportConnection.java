@@ -20,6 +20,7 @@ import java.util.List;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
@@ -295,8 +296,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		importProperties(model);
 		importMetadata(model);
 
-		String toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation)" : "documentation";
-		String toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ? "TO_CHAR(documentation) AS documentation" : "documentation";
+		String toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
+		String toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
 
 
 		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schema+"elements WHERE id = element_id)" : "element_version";

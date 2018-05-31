@@ -24,6 +24,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
+import org.archicontribs.database.data.DBDatabase;
 
 /**
  * This class holds the information required to connect to, to import from and export to a database
@@ -129,7 +130,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
         if ( logger.isDebugEnabled() ) logger.debug("JDBC connection string = " + connectionString);
         try {
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql") && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Connecting with Windows integrated security");
                 this.connection = DriverManager.getConnection(connectionString);
             } else {
@@ -142,7 +143,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             // so we need to trap this exception and change the error message
             // For JDBC people, this is not a bug but a functionality :( 
             if ( DBPlugin.areEqual(e.getMessage(), "JDBC URL is not correct.\nA valid URL format is: 'jdbc:neo4j:http://<host>:<port>'") ) {
-                if ( this.databaseEntry.getDriver().equals("ms-sql") && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) )	// integrated authentication
+                if ( this.databaseEntry.getDriver().equals(DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) )	// integrated authentication
                     throw new SQLException("Please verify the database configuration in the preferences.\n\nPlease also check that you installed the \"sqljdbc_auth.dll\" file in the JRE bin folder to enable the SQL Server integrated security mode.");
                 throw new SQLException("Please verify the database configuration in the preferences.");
             }
@@ -203,10 +204,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        if ( !isConnected() )
 	            openConnection();
 	
-	        switch ( this.databaseEntry.getDriver() ) {
-	            case "neo4j" :
-	                return;
-	            case "sqlite" :
+	        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+	        	// do not need to create tables
+	            return;
+	        }
+
+	        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
 	                this.AUTO_INCREMENT	= "integer PRIMARY KEY";
 	                this.BOOLEAN		= "tinyint(1)";          				// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
@@ -221,8 +224,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.TEXT			= "clob";
 	                this.TYPE			= "varchar(3)";
 	                this.USERNAME		= "varchar(30)";
-	                break;
-	            case "mysql"  :
+	        } else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) ) {
 	                this.AUTO_INCREMENT	= "int(10) NOT NULL AUTO_INCREMENT";
 	                this.BOOLEAN		= "tinyint(1)";							// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
@@ -237,8 +239,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.TEXT			= "mediumtext";
 	                this.TYPE			= "varchar(3)";
 	                this.USERNAME		= "varchar(30)";
-	                break;
-	            case "ms-sql"  :
+	        } else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) ) {
 	                this.AUTO_INCREMENT	= "int IDENTITY NOT NULL" ;
 	                this.BOOLEAN		= "tinyint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
@@ -253,8 +254,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.TEXT			= "nvarchar(max)";
 	                this.TYPE			= "varchar(3)";
 	                this.USERNAME		= "varchar(30)";
-	                break;
-	            case "oracle" :
+	        } else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
 	                this.AUTO_INCREMENT	= "integer NOT NULL";
 	                this.BOOLEAN		= "char";          						// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
@@ -269,8 +269,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.TEXT			= "clob";
 	                this.TYPE			= "varchar(3)";
 	                this.USERNAME		= "varchar(30)";
-	                break;
-	            case "postgresql" :
+	        } else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) ) {
 	                this.AUTO_INCREMENT	= "serial NOT NULL" ;
 	                this.BOOLEAN		= "smallint";          					// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
@@ -285,9 +284,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.TEXT			= "text";
 	                this.TYPE			= "varchar(3)";
 	                this.USERNAME		= "varchar(30)";
-	                break;
-	            default:		// should never be here, but just in case
-	                throw new SQLException("Unknown driver "+this.databaseEntry.getDriver());
+	        } else {
+	        	// should never be here
+	            throw new SQLException("Unknown driver "+this.databaseEntry.getDriver());
 	
 	        }
 	
@@ -391,7 +390,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (eim_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_elements");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_elements_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_elements_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -430,7 +429,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (fim_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_folders_in_model");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_folders_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_folders_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -520,7 +519,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+this.INTEGER +" NOT NULL "
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (rim_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_relationships");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_relationships_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_relationships_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -591,7 +590,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -616,7 +615,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (vim_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -680,7 +679,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -714,27 +713,24 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     public void dropTableIfExists(String tableName) throws SQLException {
         if ( logger.isDebugEnabled() ) logger.debug("Dropping table "+tableName+" if it exists");
-        switch (this.databaseEntry.getDriver() ) {
-            case "oracle":
-                request("BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+tableName+"'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-                break;
-            case "ms-sql":
-                request("IF OBJECT_ID('"+tableName+"', 'U') IS NOT NULL DROP TABLE "+tableName);
-                break;
-            default:
-                request("DROP TABLE IF EXISTS "+tableName);
-        }
+        
+        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+            request("BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+tableName+"'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+        else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
+            request("IF OBJECT_ID('"+tableName+"', 'U') IS NOT NULL DROP TABLE "+tableName);
+        else
+            request("DROP TABLE IF EXISTS "+tableName);
     }
 
     public void dropColumn(String tableName, String columnName) throws SQLException {
         if ( logger.isDebugEnabled() ) logger.debug("Altering table "+tableName+", dropping column "+columnName);
 
         // sqlite has got very limited alter table support. Especially, it does not allow to drop a column
-        if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), "sqlite") ) {
+        if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
             StringBuilder requestString = new StringBuilder();
             requestString.append("ALTER TABLE ");
             requestString.append(tableName);
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "mysql") ) 
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
                 requestString.append(" DROP ");
             else
                 requestString.append(" DROP COLUMN ");
@@ -808,7 +804,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         StringBuilder requestString = new StringBuilder();
         requestString.append("ALTER TABLE ");
         requestString.append(tableName);
-        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "mysql") || DBPlugin.areEqual(this.databaseEntry.getDriver(), "ms-sql")) 
+        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) || DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) ) 
             requestString.append(" ADD ");
         else
             requestString.append(" ADD COLUMN ");
@@ -951,7 +947,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -982,7 +978,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "rank "+ this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "oracle") ) {
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -1192,7 +1188,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	
 	            // on PostGreSQL databases, we can only send new requests if we rollback the transaction that caused the exception
 	            Savepoint savepoint = null;
-	            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), "postgresql") ) savepoint = this.connection.setSavepoint();
+	            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) ) savepoint = this.connection.setSavepoint();
 	            try {
 	                rowCount = pstmt.executeUpdate();
 	            } catch (SQLException err) {
