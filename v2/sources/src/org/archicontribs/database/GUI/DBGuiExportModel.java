@@ -1770,7 +1770,7 @@ public class DBGuiExportModel extends DBGui {
 				// Once the export is finished, we copy the exportedVersion to the currentVersion
 				copyExportedVersionToCurrentVersion();
 				
-				doShowResult(STATUS.Ok, "Export successful");
+				doShowResult(STATUS.Ok, "*** Export successful ***");
 				
 				return;
 			} catch (Exception err) {
