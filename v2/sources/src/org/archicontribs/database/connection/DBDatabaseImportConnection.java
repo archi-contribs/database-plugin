@@ -1082,6 +1082,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				setName(element, result.getString("name"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(0);
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
+                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
 				importProperties(element, id, result.getInt("version"));
 			} else {
@@ -1094,10 +1096,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				setName(element, result.getString("name"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
 				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
+                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
+                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
+                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
 				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
 				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
+				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
 				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 
 				importProperties(element);
@@ -1236,6 +1244,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(0);
 				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(0);
+                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				relationship = model.getAllRelationships().get(id);
 				if ( relationship == null ) {
@@ -1352,6 +1362,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(0);
 				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+                ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(0);
+                ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				view = model.getAllViews().get(id);
 				if ( view == null ) {
@@ -1385,19 +1397,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setBackground(view, result.getInt("background"));
 			setHintContent(view, result.getString("hint_content"));
 			setHintTitle(view, result.getString("hint_title"));
-
-			((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
-			((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
-			((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-			((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
-			((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
-			((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-			((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-			((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-			((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-			((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
-			((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-			((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 		}
 
 		try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", view.getId()) ) {
