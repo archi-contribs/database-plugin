@@ -820,13 +820,13 @@ public class DBGuiImportModel extends DBGui {
         Color statusColor = GREEN_COLOR;
         
 		if ( logger.isDebugEnabled() ) {
-		    logger.debug(this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
-		    logger.debug(this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
-		    logger.debug(this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
-		    logger.debug(this.importConnection.getCountViewsImported()+"/"+this.importConnection.getCountViewsToImport()+" views imported");
-		    logger.debug(this.importConnection.getCountViewObjectsImported()+"/"+this.importConnection.getCountViewObjectsToImport()+" views objects imported");
-		    logger.debug(this.importConnection.getCountViewConnectionsImported()+"/"+this.importConnection.getCountViewConnectionsToImport()+" views connections imported");
-		    logger.debug(this.importConnection.getCountImagesImported()+"/"+this.importConnection.getCountImagesToImport()+" images imported");
+		    logger.debug("   "+this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
+		    logger.debug("   "+this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
+		    logger.debug("   "+this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
+		    logger.debug("   "+this.importConnection.getCountViewsImported()+"/"+this.importConnection.getCountViewsToImport()+" views imported");
+		    logger.debug("   "+this.importConnection.getCountViewObjectsImported()+"/"+this.importConnection.getCountViewObjectsToImport()+" views objects imported");
+		    logger.debug("   "+this.importConnection.getCountViewConnectionsImported()+"/"+this.importConnection.getCountViewConnectionsToImport()+" views connections imported");
+		    logger.debug("   "+this.importConnection.getCountImagesImported()+"/"+this.importConnection.getCountImagesToImport()+" images imported");
 		}
 
         this.txtImportedElements.setForeground( (this.importConnection.getCountElementsImported() == this.importConnection.getCountElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
@@ -840,7 +840,7 @@ public class DBGuiImportModel extends DBGui {
         if ( err == null ) {
         	// if all the counters are equals to the expected values
         	if ( statusColor == GREEN_COLOR ) {
-        	   	setMessage("Import successful", statusColor);
+        	   	setMessage("*** Import successful ***", statusColor);
             	
         	   	// We open the Model in the Editor
             	IEditorModelManager.INSTANCE.openModel(this.modelToImport);
