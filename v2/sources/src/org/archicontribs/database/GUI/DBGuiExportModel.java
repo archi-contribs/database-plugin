@@ -1729,16 +1729,22 @@ public class DBGuiExportModel extends DBGui {
 		} catch (Exception err) {
             if ( hasBeenClosed() )
                 popup(Level.WARN, "The export has been cancelled.");
-            else { 
+            else {
     			setActiveAction(STATUS.Error);
-    			popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction will be rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
+    			SQLException SQLError = null;
     			try  {
     			    this.exportConnection.rollback();
-    				doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+    			    doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+    			    popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
     			} catch (SQLException err2) {
-    				popup(Level.FATAL, "The transaction failed to rollback and the database is left in an inconsistent state.\n\nPlease check carrefully your database !", err2);
-    				doShowResult(STATUS.Error, "Error while exporting model.\n"+err2.getMessage());
+    			    SQLError = err2;
     			}
+                doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+                popup(Level.FATAL, "An error occurred while exporting the components.", err);
+                if ( SQLError != null ) {
+                    doShowResult(STATUS.Error, "Error while exporting model.\n"+SQLError.getMessage());
+                    popup(Level.FATAL, "The transaction failed to rollback and the database is left in an unknown state.\n\nPlease check carrefully your database !", SQLError);
+                }
             }
             return;
 		}
