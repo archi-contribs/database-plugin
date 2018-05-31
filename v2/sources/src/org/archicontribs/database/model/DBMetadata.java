@@ -154,7 +154,10 @@ public class DBMetadata  {
         if ( modifiedInModel )
             return DATABASE_STATUS.isUpdatedInModel;
         
-        return DATABASE_STATUS.isUpadtedInDatabase;
+        if ( modifiedInDatabase )
+        	return DATABASE_STATUS.isUpadtedInDatabase;
+        
+        return DATABASE_STATUS.isSynced;
     }
     
 	
