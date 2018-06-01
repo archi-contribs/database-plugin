@@ -45,6 +45,7 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelBendpoint;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
@@ -1138,7 +1139,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
+		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum", "container_checksum"};
 		
 	      // if the viewObject is exported, the we increase its exportedVersion
         ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
@@ -1179,6 +1180,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,DBPlugin.getUserName()
 				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getExportedVersion().getTimestamp()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
+                ,((viewObject instanceof IDiagramModelContainer) ? ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getContainerChecksum() : null)
 				);
 		
 		if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)viewObject).getId())) {

@@ -25,6 +25,11 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.model.DBArchimateModel;
+
+import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelObject;
 
 /**
  * This class holds the information required to connect to, to import from and export to a database
@@ -38,7 +43,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 208;
+    public static final int databaseVersion = 209;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -194,7 +199,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * @throws SQLExcetion if the connection to the database failed
      * @returns true if the database structure is correct, false if not
      */
-    public void checkDatabase(DBGui dbGui) throws ClassNotFoundException, SQLException {
+    public void checkDatabase(DBGui dbGui) throws Exception {
     	try {
 			if ( dbGui != null )
 				dbGui.setMessage("Checking the database structure...");
@@ -666,6 +671,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "created_by "+ this.USERNAME +" NOT NULL, "
                     + "created_on "+ this.DATETIME +" NOT NULL, "
                     + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "container_checksum "+ this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
@@ -832,9 +838,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     /**
      * Upgrades the database
-     * @throws ClassNotFoundException 
+     * @throws Exception 
      */
-    private void upgradeDatabase(int version) throws SQLException, ClassNotFoundException {
+    private void upgradeDatabase(int version) throws Exception {
         int dbVersion = version;
 
         setAutoCommit(false);
@@ -904,30 +910,20 @@ public class DBDatabaseConnection implements AutoCloseable {
         //
         if ( dbVersion == 204 ) {
             addColumn(this.schema+"views", "container_checksum", this.OBJECTID, false, "");
-
-            if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
-            try ( ResultSet result = select("SELECT id, version, name, documentation, hint_content, hint_title, background, connection_router_type, viewpoint FROM views") ) {
-                while ( result.next() ) {
-                    StringBuilder checksumBuilder = new StringBuilder();
-                    DBChecksum.append(checksumBuilder, "id", result.getString("id"));
-                    DBChecksum.append(checksumBuilder, "name", result.getString("name"));
-                    DBChecksum.append(checksumBuilder, "documentation", result.getString("documentation"));
-                    DBChecksum.append(checksumBuilder, "viewpoint", result.getString("viewpoint"));
-                    DBChecksum.append(checksumBuilder, "connection_router_type", result.getInt("connection_router_type"));
-                    DBChecksum.append(checksumBuilder, "background", result.getInt("background"));
-                    DBChecksum.append(checksumBuilder, "hint_content", result.getString("hint_content"));
-                    DBChecksum.append(checksumBuilder, "hint_title", result.getString("hint_title"));
-                    String containerChecksum;
-                    try {
-                        containerChecksum = DBChecksum.calculateChecksum(checksumBuilder);
-                    } catch (Exception err) {
-                        DBGui.popup(Level.FATAL, "Failed to calculate view checksum.", err);
-                        rollback();
-                        return;
+            
+            DBArchimateModel tempModel = new DBArchimateModel();
+            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
+                if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
+                try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views") ) {
+                    while ( result.next() ) {
+                        IDiagramModel view;
+                        view = importConnection.importViewFromId(tempModel, result.getString("id"), result.getInt("version"), false, false);
+                        
+                        request("UPDATE "+this.schema+"views SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(view), result.getString("id"), result.getInt("version"));
                     }
-                    request("UPDATE "+this.schema+"views SET container_checksum = ? WHERE id = ? AND version = ?", containerChecksum, result.getString("id"), result.getInt("version"));
                 }
             }
+            tempModel = null;
 
             dbVersion = 205;
         }
@@ -1032,6 +1028,29 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + ")");
             
             dbVersion = 208;
+        }
+        
+        // convert from version 208 to 209
+        //      - create container_checksum column in views_objects table
+        if ( dbVersion == 208 ) {
+            addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, false, "");
+            
+            DBArchimateModel tempModel = new DBArchimateModel();
+            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
+                if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
+                try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views_objects") ) {
+                    while ( result.next() ) {
+                        IDiagramModelObject viewObject;
+                        viewObject = importConnection.importViewObjectFromId(tempModel, result.getString("id"), result.getInt("version"), false);
+                        
+                        if ( viewObject instanceof IDiagramModelContainer ) 
+                            request("UPDATE "+this.schema+"views_objects SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(viewObject), result.getString("id"), result.getInt("version"));
+                    }
+                }
+            }
+            tempModel = null;
+            
+            dbVersion = 209;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
