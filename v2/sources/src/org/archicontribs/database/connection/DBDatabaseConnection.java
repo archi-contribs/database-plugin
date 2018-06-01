@@ -667,7 +667,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "created_by "+ this.USERNAME +" NOT NULL, "
                     + "created_on "+ this.DATETIME +" NOT NULL, "
                     + "checksum "+ this.OBJECTID +" NOT NULL, "
-                    + "container_checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "container_checksum "+ this.OBJECTID +", "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
@@ -1031,7 +1031,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
             
-            addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, false, "");
+            addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, true, "");
             
             DBArchimateModel tempModel = new DBArchimateModel();
             try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
