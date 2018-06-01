@@ -340,8 +340,7 @@ public class DBLogger {
 	/**
      * Returns true if the logger is configured to print SQL requests
      */
-	@SuppressWarnings("static-method")
     public boolean isTraceSQLEnabled() {
-	    return DBPlugin.INSTANCE.getPreferenceStore().getBoolean("traceSQL");
+	    return isTraceEnabled() && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("traceSQL");
 	}
 }
