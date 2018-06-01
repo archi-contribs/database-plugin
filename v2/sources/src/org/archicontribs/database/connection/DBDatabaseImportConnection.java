@@ -152,16 +152,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)", id);
 				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)", id);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum, container_checksum FROM "+this.schema+"views v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum, container_checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum, container_checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)", id);
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			} else {        
 				if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) result = select("SELECT id, version, class, name, documentation, type, created_by, created_on, checksum FROM "+this.schema+"elements WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM "+this.schema+"folders WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum, container_checksum FROM "+this.schema+"views WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_connections, target_connections, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = ?", id, version);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = ?", id, version);
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			}
 
@@ -345,7 +345,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.importViewsRequest = selectViewsRequest + " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
-		String selectViewsObjectsRequest = "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
+		String selectViewsObjectsRequest = "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
 				+ " FROM "+this.schema+"views_objects"
 				+ " JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+ " JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = "+versionToImport
@@ -358,7 +358,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// (unused) this.importViewsObjectsRequest = this.selectViewsObjectsRequest + " ORDER BY views_objects.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
-		String selectViewsConnectionsRequest = "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum "
+		String selectViewsConnectionsRequest = "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum "
 				+ " FROM "+this.schema+"views_connections"
 				+ " JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+ " JOIN "+this.schema+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = "+versionToImport
@@ -628,7 +628,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
+		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -724,7 +724,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum"
+		this.currentResultSet = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -780,7 +780,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                         source.addConnection((IDiagramModelConnection)eObject);
 				    } else {
 				        // source is another connection and may not be already loaded. So we register it for future resolution
-				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("source_connections"));
+				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("source_object_id"));
 				    }
 				    
                     if ( target != null ) {
@@ -789,7 +789,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                         target.addConnection((IDiagramModelConnection)eObject);
                     } else {
                         // target is another connection and may not be already loaded. So we register it for future resolution
-                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("target_connections"));
+                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("target_object_id"));
                     }
 				}
 
@@ -1502,7 +1502,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		EObject viewObject = null;
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, source_connections, target_connections, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
+		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
 			resultViewObject.next();
 
 			viewObject = model.getAllViewObjects().get(id);
@@ -1638,7 +1638,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		EObject viewConnection = null;
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet resultViewConnection = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_connections, target_connections, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
+		try ( ResultSet resultViewConnection = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
 			resultViewConnection.next();
 
 			viewConnection= model.getAllViewConnections().get(id);
@@ -1694,7 +1694,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                     source.addConnection((IDiagramModelConnection)viewConnection);
                 } else {
                     // source is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerSourceConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("source_connections"));
+                    model.registerSourceConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("source_object_id"));
                 }
                 
                 if ( target != null ) {
@@ -1703,7 +1703,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                     target.addConnection((IDiagramModelConnection)viewConnection);
                 } else {
                     // target is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerTargetConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("target_connections"));
+                    model.registerTargetConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("target_object_id"));
                 }
             }
 

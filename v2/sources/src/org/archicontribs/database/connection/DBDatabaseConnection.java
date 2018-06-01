@@ -43,7 +43,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 209;
+    public static final int databaseVersion = 208;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -573,8 +573,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "font_color "+ this.COLOR +", "
                     + "relationship_id "+ this.OBJECTID +", "
                     + "relationship_version "+ this.INTEGER +", "
-                    + "source_connections "+ this.TEXT + ", "
-                    + "target_connections "+ this.TEXT + ", "
                     + "source_object_id "+ this.OBJECTID +", "
                     + "target_object_id "+ this.OBJECTID +", "
                     + "text_position "+ this.INTEGER +", "
@@ -659,8 +657,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "font_color "+ this.COLOR +", "
                     + "name "+ this.OBJ_NAME +", "
                     + "notes "+ this.TEXT +", "
-                    + "source_connections "+ this.TEXT + ", "
-                    + "target_connections "+ this.TEXT + ", "
                     + "text_alignment "+ this.INTEGER +", "
                     + "text_position "+ this.INTEGER +", "
                     + "type "+ this.INTEGER +", "
@@ -1020,7 +1016,11 @@ public class DBDatabaseConnection implements AutoCloseable {
         
         // convert from version 207 to 208
         //      - create metadata table
+        //      - create container_checksum column in views_objects table
+        //      - drop columns source_connections and target_connections from views_objects and views_connections tables
         if ( dbVersion == 207 ) {
+            DBGui.popup("Please wait while converting data.");
+            
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
             request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
@@ -1031,15 +1031,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
             
-            dbVersion = 208;
-        }
-        
-        // convert from version 208 to 209
-        //      - create container_checksum column in views_objects table
-        if ( dbVersion == 208 ) {
             addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, false, "");
-            
-            DBGui.popup("Please wait while calculating new checksum on views_objects table.");
             
             DBArchimateModel tempModel = new DBArchimateModel();
             try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
@@ -1056,9 +1048,15 @@ public class DBDatabaseConnection implements AutoCloseable {
             }
             tempModel = null;
             
+            dropColumn(this.schema+"views_objects", "source_connections");
+            dropColumn(this.schema+"views_objects", "target_connections");
+            
+            dropColumn(this.schema+"views_connections", "source_connections");
+            dropColumn(this.schema+"views_connections", "target_connections");
+            
             DBGui.closePopup();
             
-            dbVersion = 209;
+            dbVersion = 208;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");

@@ -37,7 +37,6 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
-import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -1139,7 +1138,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "source_connections", "target_connections", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum", "container_checksum"};
+		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum", "container_checksum"};
 		
 	      // if the viewObject is exported, the we increase its exportedVersion
         ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
@@ -1169,8 +1168,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFontColor() : null)
 				,viewObject.getName()																						// we export the name because it will be used in case of conflict
 				,((viewObject instanceof ICanvasModelSticky) ? ((ICanvasModelSticky)viewObject).getNotes() : null)
-				,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getSourceConnections()) : null)
-				,((viewObject instanceof IConnectable) ? encode(((IConnectable)viewObject).getTargetConnections()) : null)
 				,((viewObject instanceof ITextAlignment) ? ((ITextAlignment)viewObject).getTextAlignment() : null)
 				,((viewObject instanceof ITextPosition) ? ((ITextPosition)viewObject).getTextPosition() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getX() : null)
@@ -1225,7 +1222,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-		final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_connections", "target_connections", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
+		final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
 	    // if the viewConnection is exported, the we increase its exportedVersion
@@ -1249,8 +1246,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,viewConnection.getFont()
 				,viewConnection.getFontColor()
 				,((viewConnection instanceof IDiagramModelArchimateConnection) ? ((IDiagramModelArchimateConnection)viewConnection).getArchimateConcept().getId() : null)
-				,encode(viewConnection.getSourceConnections())
-				,encode(viewConnection.getTargetConnections())
 				,viewConnection.getSource().getId()
 				,viewConnection.getTarget().getId()
 				,viewConnection.getTextPosition()
@@ -1387,16 +1382,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 		}
 		return exported;
-	}
-
-	private static String encode (EList<IDiagramModelConnection> connections) {
-		StringBuilder result = new StringBuilder();
-		for ( IDiagramModelConnection cnct: connections ) {
-			if ( result.length() > 0 )
-				result.append(",");
-			result.append(cnct.getId());
-		}
-		return result.toString();
 	}
 
 	public static String getTargetConnectionsString(EList<IDiagramModelConnection> connections) {
