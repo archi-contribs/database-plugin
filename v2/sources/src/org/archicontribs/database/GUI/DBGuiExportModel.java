@@ -1580,7 +1580,7 @@ public class DBGuiExportModel extends DBGui {
 				//TODO :
 				//TODO :
 				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
-				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders");
+				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing folders ...");
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
                     if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
 				    DBVersionPair versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
@@ -1593,7 +1593,7 @@ public class DBGuiExportModel extends DBGui {
 			//TODO : put the imported components in a compound Command to allow rollback
 			//TODO :
 			//TODO :
-			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing elements");
+			logger.info("Importing/updating elements ...");
 			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
 			    DBVersionPair versionToImport = this.exportConnection.getElementsNotInModel().get(id);
@@ -1605,7 +1605,7 @@ public class DBGuiExportModel extends DBGui {
 			//TODO : put the imported components in a compound Command to allow rollback
 			//TODO :
 			//TODO :
-			if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing relationships");
+			logger.info("Importing/updating relationships ...");
 	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
 	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
 	            DBVersionPair versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
@@ -1613,13 +1613,14 @@ public class DBGuiExportModel extends DBGui {
 	        	incrementText(this.txtNewRelationshipsInDatabase);
 	        	incrementText(this.txtTotalRelationships);
 	        }
-            this.exportedModel.resolveRelationshipsSourcesAndTargets();
+	        this.exportedModel.resolveSourceRelationships();
+	        this.exportedModel.resolveTargetRelationships();
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
                 //TODO : put the imported components in a compound Command to allow rollback
                 //TODO :
                 //TODO :
-			    if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views");
+			    logger.info("Importing/updating views ...");
 			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
 			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
 			        DBVersionPair versionToImport = this.exportConnection.getViewsNotInModel().get(id);
@@ -1631,7 +1632,7 @@ public class DBGuiExportModel extends DBGui {
 				//TODO : put the imported components in a compound Command to allow rollback
 				//TODO :
 				//TODO :
-				if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views objects");
+				logger.info("Importing/updating views objects ...");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
 		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
 		            DBVersionPair versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
@@ -1643,7 +1644,7 @@ public class DBGuiExportModel extends DBGui {
                 //TODO : put the imported components in a compound Command to allow rollback
                 //TODO :
                 //TODO :
-                if ( logger.isDebugEnabled() ) logger.debug("Syncing/importing views connections");
+                logger.info("Importing/updating views connections ...");
                 for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
                     if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
                     DBVersionPair versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
@@ -1651,9 +1652,11 @@ public class DBGuiExportModel extends DBGui {
                     incrementText(this.txtNewViewConnectionsInDatabase);
                     incrementText(this.txtTotalViewConnections);
                 }
-	            this.exportedModel.resolveConnectionsSourcesAndTargets();
+	            this.exportedModel.resolveSourceConnections();
+	            this.exportedModel.resolveTargetConnections();
 	            
-	               // if some components must be removed from the model, we do it before the export
+	            // if some components must be removed from the model, we do it before the export
+	            logger.info("Deleting outdated components ...");
                 if ( !this.delayedCommands.isEmpty() ) {
                     // we remove the objects that have been removed by other users in the database
                     CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
@@ -1664,26 +1667,26 @@ public class DBGuiExportModel extends DBGui {
                 }
 			}
                 
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting elements");
+			logger.info("Exporting elements ...");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
 			    doExportEObject(elementsIterator.next().getValue());
 			}
 
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting relationships");
+			logger.info("Exporting relationships ...");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
 			    doExportEObject(relationshipsIterator.next().getValue());
 			}
 			
 			if ( this.selectedDatabase.isWholeModelExported() ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Exporting folders");
+                logger.info("Exporting folders ...");
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
                 while ( foldersIterator.hasNext() ) {
                     doExportEObject(foldersIterator.next().getValue());
                 }
                 
-                if ( logger.isDebugEnabled() ) logger.debug("Exporting views");
+                logger.info("Exporting views ...");
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
                 while ( viewsIterator.hasNext() ) {
                     IDiagramModel view = viewsIterator.next().getValue();
@@ -1695,25 +1698,21 @@ public class DBGuiExportModel extends DBGui {
                     doExportEObject(view);
                 }
 
-                this.exportedModel.resolveRelationshipsSourcesAndTargets();
-	            if ( logger.isDebugEnabled() ) logger.debug("Exporting views objects");
-	            
+	            logger.info("Exporting view objects ...");
 	            Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 	            while ( viewObjectsIterator.hasNext() ) {
 	                IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
 	                doExportEObject(viewObject);
 	            }
 	            
-				if ( logger.isDebugEnabled() ) logger.debug("Exporting views connections");
+				logger.info("Exporting view connections ...");
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 					doExportEObject(viewConnection);
 				}
 				
-	            this.exportedModel.resolveConnectionsSourcesAndTargets();
-				
-				if ( logger.isDebugEnabled() ) logger.debug("Exporting images");
+				logger.info("Exporting images ...");
 				// no need to use imagesNotInModel as the requested images have been imported at the same time as their view object
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: this.exportedModel.getAllImagePaths() ) {

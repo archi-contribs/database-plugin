@@ -542,14 +542,34 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					folder = model.getAllFolders().get(this.currentResultSet.getString("parent_folder_id"));
 				}
 				folder.getElements().add(relationship);
+				
+                IArchimateConcept source = model.getAllElements().get(this.currentResultSet.getString("source_id"));
+                IArchimateConcept target = model.getAllElements().get(this.currentResultSet.getString("target_id"));
+                
+                if ( source != null ) {
+                    // source is an element and is reputed already imported, so we can set it right away
+                    relationship.setSource(source);
+                    source.getSourceRelationships().add(relationship);
+                } else {
+                    // source is another connection and may not be already loaded. So we register it for future resolution
+                    model.registerSourceRelationship(relationship, this.currentResultSet.getString("source_id"));
+                }
+                
+                if ( target != null ) {
+                    // target is an element and is reputed already imported, so we can set it right away
+                    relationship.setTarget(target);
+                    target.getTargetRelationships().add(relationship);
+                } else {
+                    // target is another connection and may not be already loaded. So we register it for future resolution
+                    model.registerTargetRelationship(relationship, this.currentResultSet.getString("target_id"));
+                }
 
 				importProperties(relationship);
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
 
-				// we reference the relationship for future use (establishing relationships, creating views connections, ...)
 				model.countObject(relationship, false, null);
-				model.registerSourceAndTarget(relationship, this.currentResultSet.getString("source_id"), this.currentResultSet.getString("target_id"));
+
 				++this.countRelationshipsImported;
 				return true;
 			}
@@ -680,12 +700,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else
 					((IDiagramModelContainer)model.getAllViewObjects().get(this.currentResultSet.getString("container_id"))).getChildren().add((IDiagramModelObject)eObject);
 
-
-				if ( eObject instanceof IConnectable ) {
-					model.registerSourceConnection((IDiagramModelObject)eObject, this.currentResultSet.getString("source_connections"));
-					model.registerTargetConnection((IDiagramModelObject)eObject, this.currentResultSet.getString("target_connections"));
-				}
-
 				// If the object has got properties but does not have a linked element, then it may have distinct properties
 				if ( eObject instanceof IProperties && this.currentResultSet.getString("element_id")==null ) {
 					importProperties((IProperties)eObject);
@@ -764,11 +778,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				setTextPosition(eObject, this.currentResultSet.getInt("text_position"));
 				setArchimateConcept(eObject, model.getAllRelationships().get(this.currentResultSet.getString("relationship_id")));
 
-				if ( eObject instanceof IConnectable ) {
-					model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("source_connections"));
-					model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("target_connections"));
+				if ( eObject instanceof IDiagramModelConnection ) {
+				    IConnectable source = model.getAllViewObjects().get(this.currentResultSet.getString("source_object_id"));
+				    IConnectable target = model.getAllViewObjects().get(this.currentResultSet.getString("target_object_id"));
+				    
+				    if ( source != null ) {
+				        // source is an object and is reputed already imported, so we can set it right away
+                        ((IDiagramModelConnection)eObject).setSource(source);
+                        source.addConnection((IDiagramModelConnection)eObject);
+				    } else {
+				        // source is another connection and may not be already loaded. So we register it for future resolution
+				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("source_connections"));
+				    }
+				    
+                    if ( target != null ) {
+                        // target is an object and is reputed already imported, so we can set it right away
+                        ((IDiagramModelConnection)eObject).setTarget(target);
+                        target.addConnection((IDiagramModelConnection)eObject);
+                    } else {
+                        // target is another connection and may not be already loaded. So we register it for future resolution
+                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("target_connections"));
+                    }
 				}
-				//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
 
 				if ( eObject instanceof IDiagramModelConnection ) {
 					try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank", ((IIdentifier)eObject).getId(), ((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()) ) {
@@ -1060,7 +1091,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public IArchimateElement importElementFromId(DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy, boolean mustImportRelationships) throws Exception {
 		IArchimateElement element;
-		List<Object> imported = new ArrayList<Object>();
 		boolean hasJustBeenCreated = false;
 
 		if ( logger.isDebugEnabled() ) {
@@ -1162,23 +1192,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 						// we import only relations when both source and target are in the model
 						if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
-							imported.add(importRelationshipFromId(model, view, resultrelationship.getString("id"), 0, false));
+							importRelationshipFromId(model, view, resultrelationship.getString("id"), 0, false);
 						}
 					}
 				}
 			}
+		    
+			model.resolveSourceRelationships();
+			model.resolveTargetRelationships();
 		}
-
-		if ( !imported.isEmpty() )
-			model.resolveRelationshipsSourcesAndTargets();
-
-		imported.add(0, element);
-		//ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-		//if (treeView != null) {
-		//	logger.trace("selecting newly imported components");
-		//	treeView.getViewer().setSelection(new StructuredSelection(element), true);
-		//}
-
 		return element;
 	}
 
@@ -1280,13 +1302,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setStrength(relationship, result.getString("strength"));
 			setAccessType(relationship, result.getInt("access_type"));
 
-			IArchimateConcept source = model.getAllElements().get(result.getString("source_id"));
-			if ( source == null ) source = model.getAllRelationships().get(result.getString("source_id"));
-			relationship.setSource(source);
-
-			IArchimateConcept target = model.getAllElements().get(result.getString("target_id"));
-			if ( source == null ) source = model.getAllRelationships().get(result.getString("target_id"));
-			relationship.setTarget(target);
+            IArchimateConcept source = model.getAllElements().get(result.getString("source_id"));
+            IArchimateConcept target = model.getAllElements().get(result.getString("target_id"));
+            
+            if ( source != null ) {
+                // source is an element and is reputed already imported, so we can set it right away
+                relationship.setSource(source);
+                source.getSourceRelationships().add(relationship);
+            } else {
+                // source is another connection and may not be already loaded. So we register it for future resolution
+                model.registerSourceRelationship(relationship, this.currentResultSet.getString("source_id"));
+            }
+            
+            if ( target != null ) {
+                // target is an element and is reputed already imported, so we can set it right away
+                relationship.setTarget(target);
+                target.getTargetRelationships().add(relationship);
+            } else {
+                // target is another connection and may not be already loaded. So we register it for future resolution
+                model.registerTargetRelationship(relationship, this.currentResultSet.getString("target_id"));
+            }
 
 
 			importProperties(relationship);
@@ -1308,6 +1343,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				assignToFolder(model, relationship, parentFolder);
 			}
 
+			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
+			// and create the corresponding connections
+			// TODO : make an option with this functionality that the user can choose if he want the connections or not
 			if ( view != null && componentToConnectable(view, relationship).isEmpty() ) {
 				List<IConnectable> sourceConnections = componentToConnectable(view, relationship.getSource());
 				List<IConnectable> targetConnections = componentToConnectable(view, relationship.getTarget());
@@ -1432,8 +1470,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
 
 		if ( mustImportViewContent ) {
-		    model.resetSourceAndTargetCounters();
-		    
 			// 2 : we import the objects and create the corresponding elements if they do not exist yet
 			//        importing an element will automatically import the relationships to and from this element
 			prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
@@ -1447,8 +1483,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// each loop imports a connection
 			}
 
-			model.resolveRelationshipsSourcesAndTargets();
-			model.resolveConnectionsSourcesAndTargets();
+			model.resolveSourceConnections();
+			model.resolveTargetConnections();
 		}
 
 		if ( hasJustBeenCreated )
@@ -1571,12 +1607,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 			if ( viewContainer!= null ) ((IDBMetadata)viewContainer).getDBMetadata().setChecksumValid(false);
 
-			if ( viewObject instanceof IConnectable ) {
-				//TODO: no time to register them, but import them right now !
-				model.registerSourceConnection((IDiagramModelObject)viewObject, resultViewObject.getString("source_connections"));
-				model.registerTargetConnection((IDiagramModelObject)viewObject, resultViewObject.getString("target_connections"));
-			}
-
 			// If the object has got properties but does not have a linked element, then it may have distinct properties
 			if ( viewObject instanceof IProperties && resultViewObject.getString("element_id")==null ) {
 				importProperties((IProperties)viewObject);
@@ -1662,14 +1692,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
 			((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
 
-			if ( viewConnection instanceof IConnectable ) {
-				//TODO : check if there is a difference before re-setting the source and target connections
-				((IDiagramModelConnection)viewConnection).getSourceConnections().clear();
-				((IDiagramModelConnection)viewConnection).getTargetConnections().clear();
-				model.registerSourceConnection((IDiagramModelConnection)viewConnection, resultViewConnection.getString("source_connections"));
-				model.registerTargetConnection((IDiagramModelConnection)viewConnection, resultViewConnection.getString("target_connections"));
-			}
-			//model.registerSourceAndTarget((IDiagramModelConnection)eObject, currentResultSet.getString("source_object_id"), currentResultSet.getString("target_object_id"));
+			if ( viewConnection instanceof IDiagramModelConnection ) {
+                IConnectable source = model.getAllViewObjects().get(resultViewConnection.getString("source_object_id"));
+                IConnectable target = model.getAllViewObjects().get(resultViewConnection.getString("target_object_id"));
+                
+                if ( source != null ) {
+                    // source is an object and is reputed already imported, so we can set it right away
+                    ((IDiagramModelConnection)viewConnection).setSource(source);
+                    source.addConnection((IDiagramModelConnection)viewConnection);
+                } else {
+                    // source is another connection and may not be already loaded. So we register it for future resolution
+                    model.registerSourceConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("source_connections"));
+                }
+                
+                if ( target != null ) {
+                    // target is an object and is reputed already imported, so we can set it right away
+                    ((IDiagramModelConnection)viewConnection).setTarget(target);
+                    target.addConnection((IDiagramModelConnection)viewConnection);
+                } else {
+                    // target is another connection and may not be already loaded. So we register it for future resolution
+                    model.registerTargetConnection((IDiagramModelConnection)viewConnection, this.currentResultSet.getString("target_connections"));
+                }
+            }
 
 			if ( viewConnection instanceof IDiagramModelConnection ) {
 				((IDiagramModelConnection)viewConnection).getBendpoints().clear();

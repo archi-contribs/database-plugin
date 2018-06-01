@@ -84,7 +84,8 @@ public class DBScript {
 	                // each loop imports a relationship
 	            }
 	            
-	            modelToImport.resolveRelationshipsSourcesAndTargets();
+	            modelToImport.resolveSourceRelationships();
+	            modelToImport.resolveTargetRelationships();
 	            
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
 	            connection.prepareImportViews(modelToImport);
@@ -108,19 +109,12 @@ public class DBScript {
 	                }
 	            }
 	            
-	            modelToImport.resolveConnectionsSourcesAndTargets();
+	            modelToImport.resolveSourceConnections();
+	            modelToImport.resolveTargetConnections();
 	    
 	            if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
 	            for (String path: connection.getAllImagePaths())
 	                connection.importImage(modelToImport, path);
-	            
-	            if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
-	            for (IDiagramModel view: modelToImport.getAllViews().values()) {
-	                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
-	                while ( connection.importViewsConnections(modelToImport) ) {
-	                    // each loop imports a view connection
-	                }
-	            }
 	        } catch ( Exception e) {
 	            // in case of an import error, we remove the newly created model, except if we are in force mode
 	            if ( !force ) {

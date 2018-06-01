@@ -691,10 +691,7 @@ public class DBGuiImportModel extends DBGui {
 
         // we import the model from the database in a separate thread
         try {
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the model metadata ...");
-            setMessage("Getting model's metadata ...");
             int importSize = this.importConnection.importModel(this.modelToImport);
-            closeMessage();
             setProgressBarMinAndMax(0, importSize);
 
             this.txtTotalElements.setText(toString(this.importConnection.getCountElementsToImport()));
@@ -713,39 +710,37 @@ public class DBGuiImportModel extends DBGui {
             this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
             this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
 
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
+            logger.info("Importing folders ...");
             this.importConnection.prepareImportFolders(this.modelToImport);
             while ( this.importConnection.importFolders(this.modelToImport) ) {
             	this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
                 increaseProgressBar();
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the elements ...");
+            logger.info("Importing elements ...");
             this.importConnection.prepareImportElements(this.modelToImport);
             while ( this.importConnection.importElements(this.modelToImport) ) {
             	this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
                 increaseProgressBar();
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the relationships ...");
+            logger.info("Importing relationships ...");
             this.importConnection.prepareImportRelationships(this.modelToImport);
             while ( this.importConnection.importRelationships(this.modelToImport) ) {
             	this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
                 increaseProgressBar();
             }
+            this.modelToImport.resolveSourceRelationships();
+            this.modelToImport.resolveTargetRelationships();
 
-            setMessage("Resolving relationships' sources and targets ...");
-            this.modelToImport.resolveRelationshipsSourcesAndTargets();
-            closeMessage();
-
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
+            logger.info("Importing views ...");
             this.importConnection.prepareImportViews(this.modelToImport);
             while ( this.importConnection.importViews(this.modelToImport) ) {
             	this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
                 increaseProgressBar();
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
+            logger.info("Importing view objects ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsObjects(this.modelToImport, view) ) {
@@ -755,7 +750,7 @@ public class DBGuiImportModel extends DBGui {
             }
             this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
 
-            if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
+            logger.info("Importing view connections ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsConnections(this.modelToImport) ) {
@@ -763,13 +758,13 @@ public class DBGuiImportModel extends DBGui {
                     increaseProgressBar();
                 }
             }
+            this.modelToImport.resolveSourceConnections();
+            this.modelToImport.resolveTargetConnections();
             this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
 
-            setMessage("Resolving connections' sources and targets ...");
-            this.modelToImport.resolveConnectionsSourcesAndTargets();
             closeMessage();
 
-            if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
+            logger.info("importing images ...");
             for (String path: this.importConnection.getAllImagePaths()) {
                 this.importConnection.importImage(this.modelToImport, path);
                 this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
