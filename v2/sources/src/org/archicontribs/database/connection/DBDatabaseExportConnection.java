@@ -848,8 +848,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	}
 	
 	public void assignEObjectToModel(EObject eObject) throws Exception {
-		if ( logger.isTraceEnabled() ) logger.trace("   assigning component to model");
-		
 		if ( eObject instanceof IArchimateElement )				assignElementToModel((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship )	assignRelationshipToModel((IArchimateRelationship)eObject);
 		else if ( eObject instanceof IFolder )					assignFolderToModel((IFolder)eObject);
@@ -911,6 +909,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignElementToModel(IArchimateConcept element) throws Exception {
 		final String[] elementsInModelColumns = {"element_id", "element_version", "parent_folder_id", "model_id", "model_version", "rank"};
 		DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
+		
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning element to model");
 
 		insert(this.schema+"elements_in_model", elementsInModelColumns
 				,element.getId()
@@ -1002,6 +1002,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		final String[] relationshipsInModelColumns = {"relationship_id", "relationship_version", "parent_folder_id", "model_id", "model_version", "rank"};
 
 		DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
+		
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning relationship to model");
 
 		insert(this.schema+"relationships_in_model", relationshipsInModelColumns
 				,relationship.getId()
@@ -1051,8 +1053,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private void assignFolderToModel(IFolder folder) throws Exception {
 		final String[] foldersInModelColumns = {"folder_id", "folder_version", "parent_folder_id", "model_id", "model_version", "rank"};
-
 		DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
+		
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning folder to model");
 
 		insert(this.schema+"folders_in_model", foldersInModelColumns
 				,folder.getId()
@@ -1114,8 +1117,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private void assignViewToModel(IDiagramModel view) throws Exception {
 		final String[] viewsInModelColumns = {"view_id", "view_version", "parent_folder_id", "model_id", "model_version", "rank"};
-
 		DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
+		
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view to model");
 
 		insert(this.schema+"views_in_model", viewsInModelColumns
 				,view.getId()
@@ -1194,8 +1198,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
 		final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "rank"};
-
 		EObject viewContainer = ((IDBMetadata)viewObject).getDBMetadata().getParentDiagram();
+		
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view object to view");
 
 		insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
 				,((IIdentifier)viewObject).getId()
@@ -1274,6 +1279,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignViewConnectionToView(IDiagramModelConnection viewConnection) throws Exception {
 		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "view_id", "view_version", "rank"};
 
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view connection to view");
+		
 		EObject viewContainer = viewConnection.eContainer();
 		while ( !(viewContainer instanceof IDiagramModel) ) {
 			viewContainer = viewContainer.eContainer();
