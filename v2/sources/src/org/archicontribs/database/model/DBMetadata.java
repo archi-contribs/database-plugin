@@ -150,7 +150,7 @@ public class DBMetadata  {
             return DATABASE_STATUS.IsConflicting;
         }
         
-        // if we're here, it means that the componant has been upadted either in the model, either in the database
+        // if we're here, it means that the component has been updated either in the model, either in the database
         if ( modifiedInModel )
             return DATABASE_STATUS.isUpdatedInModel;
         
