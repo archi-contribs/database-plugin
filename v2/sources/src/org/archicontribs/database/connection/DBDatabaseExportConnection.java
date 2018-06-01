@@ -1195,10 +1195,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
 		final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "rank"};
 
-		EObject viewContainer = viewObject.eContainer();
-		while ( !(viewContainer instanceof IDiagramModel) ) {
-			viewContainer = viewContainer.eContainer();
-		}
+		EObject viewContainer = ((IDBMetadata)viewObject).getDBMetadata().getParentDiagram();
 
 		insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
 				,((IIdentifier)viewObject).getId()

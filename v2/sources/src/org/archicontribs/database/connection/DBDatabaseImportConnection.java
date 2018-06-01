@@ -751,6 +751,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
 
+				/*
 				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSet.getString("relationship_id"));
@@ -758,7 +759,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						importRelationshipFromId(model, null, this.currentResultSet.getString("relationship_id"), 0, false);
 					}
 				}
-
+				*/
 				setName(eObject, this.currentResultSet.getString("name"));
 				setLocked(eObject, this.currentResultSet.getObject("is_locked"));
 				setDocumentation(eObject, this.currentResultSet.getString("documentation"));

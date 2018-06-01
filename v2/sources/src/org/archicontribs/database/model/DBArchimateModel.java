@@ -364,7 +364,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         if ( mustCalculateChecksum ) {
             // if the checksumBuilder contains a single checksum, then we get it
-            // else, we calculate a new checksum from the list of chechsums
+            // else, we calculate a new checksum from the list of checksums
             String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
             ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
             return checksum;
@@ -373,13 +373,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         return null;
     }
 
-    /*
-	public void registerSourceAndTarget(IArchimateRelationship relationship, String sourceId, String targetId) throws Exception {
-		assert (sourceId != null && targetId != null);
-
-		this.allRelationsSourceAndTarget.put(relationship, new SimpleEntry<String, String>(sourceId, targetId));
-	}
-    */
     public void registerSourceRelationship(IArchimateRelationship relationship, String sourceId) throws Exception {
         if ( sourceId != null && sourceId.length()!=0 ) this.allSourceRelationshipsToResolve.put(relationship, sourceId);
     }
@@ -416,36 +409,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allTargetRelationshipsToResolve.clear();
     }
 
-    /* *********************
-	public void resolveRelationshipsSourcesAndTargets() {
-	    if ( logger.isDebugEnabled() ) logger.debug("Resolving sources and targets for relationships");
-		for ( Map.Entry<IArchimateRelationship, Entry<String, String>> entry: this.allRelationsSourceAndTarget.entrySet() ) {
-			IArchimateRelationship relationship = entry.getKey();
-			Entry<String, String> rel = entry.getValue();
-
-			IArchimateConcept source = getAllElements().get(rel.getKey());
-			if ( source == null) source = getAllRelationships().get(rel.getKey());
-
-			IArchimateConcept target = getAllElements().get(rel.getValue());
-			if ( target == null) target = getAllRelationships().get(rel.getValue());
-
-			if ( logger.isTraceEnabled() ) logger.trace("   "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+"   *** source="+((IDBMetadata)source).getDBMetadata().getDebugName()+"   *** target= "+((IDBMetadata)target).getDBMetadata().getDebugName());
-	        relationship.setSource(source);
-			relationship.setTarget(target);
-		}
-
-		this.allRelationsSourceAndTarget.clear();
-	}
-
-    public void registerSourceConnection(IDiagramModelObject object, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) this.allSourceObjectsConnections.put(object, sourceId);
-    }
-
-    public void registerTargetConnection(IDiagramModelObject object, String targetId) throws Exception {
-        if ( targetId != null && targetId.length()!=0 ) this.allTargetObjectsConnections.put(object, targetId);
-    }
-     */
-
     public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
         if ( sourceId != null && sourceId.length()!=0 ) this.allSourceConnectionsToResolve.put(connection, sourceId);
     }
@@ -481,71 +444,4 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         this.allTargetConnectionsToResolve.clear();
     }
-
-    /* *******************
-    public void resolveConnectionsSourcesAndTargets() throws Exception {
-        if ( logger.isDebugEnabled() ) logger.debug("Resolving sources and targets for connections");
-
-        for ( Map.Entry<IDiagramModelObject, String> entry: this.allSourceObjectsConnections.entrySet() ) {
-            IDiagramModelObject object = entry.getKey();
-
-            if ( logger.isTraceEnabled() ) logger.trace("   Resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            object.getSourceConnections().clear();
-            for ( String val: entry.getValue().split(",") ) {
-                IDiagramModelConnection connection = getAllViewConnections().get(val);
-                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
-                connection.setSource(object);
-                object.getSourceConnections().add(connection);
-                if ( logger.isTraceEnabled() ) logger.trace("      Source = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
-            }
-        }
-
-        for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsConnections.entrySet() ) {
-            IDiagramModelConnection object = entry.getKey();
-
-            if ( logger.isTraceEnabled() ) logger.trace("   resolving source connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            object.getSourceConnections().clear();
-            for ( String val: entry.getValue().split(",") ) {
-                IDiagramModelConnection connection = getAllViewConnections().get(val);
-                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
-                connection.setSource(object);
-                object.getSourceConnections().add(connection);
-                if ( logger.isTraceEnabled() ) logger.trace("      Source = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
-            }
-        }
-
-        for ( Map.Entry<IDiagramModelObject, String> entry: this.allTargetObjectsConnections.entrySet() ) {
-            IDiagramModelObject object = entry.getKey();
-
-            if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            object.getTargetConnections().clear();
-            for ( String val: entry.getValue().split(",") ) {
-                IDiagramModelConnection connection = getAllViewConnections().get(val);
-                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
-                connection.setTarget(object);
-                object.getTargetConnections().add(connection);
-                if ( logger.isTraceEnabled() ) logger.trace("      Target = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
-            }
-        }
-
-        for ( Map.Entry<IDiagramModelConnection, String> entry: this.allTargetConnectionsConnections.entrySet() ) {
-            IDiagramModelConnection object = entry.getKey();
-
-            if ( logger.isTraceEnabled() ) logger.trace("   resolving target connection for "+((IDBMetadata)object).getDBMetadata().getDebugName());
-            object.getTargetConnections().clear();
-            for ( String val: entry.getValue().split(",") ) {
-                IDiagramModelConnection connection = getAllViewConnections().get(val);
-                if ( connection == null ) throw new Exception("Cannot find connection "+entry.getValue());
-                connection.setTarget(object);
-                object.getTargetConnections().add(connection);
-                if ( logger.isTraceEnabled() ) logger.trace("      Target = "+((IDBMetadata)connection).getDBMetadata().getDebugName());
-            }
-        }
-
-        this.allSourceObjectsConnections.clear();
-        this.allSourceConnectionsConnections.clear();
-        this.allSourceObjectsConnections.clear();
-        this.allTargetConnectionsConnections.clear();
-	}
-     */
 }

@@ -10,9 +10,9 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
-import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
@@ -59,6 +59,11 @@ public class DBMetadata  {
 	 * Parent diagram 
 	 */
 	@Getter @Setter private IDiagramModelComponent parentDiagram = null;
+	
+	/**
+	 * Used by remember is the component has been exported
+	 */
+	@Getter @Setter private boolean hasBeenExported = false;
 	
 	/**
 	 * Used by views, set to false if some components are removed during the export process so their checksum needs to be recalculated
@@ -128,9 +133,19 @@ public class DBMetadata  {
         if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
             return DATABASE_STATUS.isSynced;
         
-        String initialChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
-        String currentChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
-        String databaseChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
+        String initialChecksum;
+        String currentChecksum;
+        String databaseChecksum;
+        
+        if ( this.component instanceof IDiagramModelContainer && !(this.component instanceof IDiagramModel) ) {
+        	initialChecksum = this.initialVersion.getContainerChecksum();
+        	currentChecksum = this.currentVersion.getContainerChecksum();
+        	databaseChecksum =this.databaseVersion.getContainerChecksum();
+        } else {
+        	initialChecksum = this.initialVersion.getChecksum();
+        	currentChecksum = this.currentVersion.getChecksum();
+        	databaseChecksum =this.databaseVersion.getChecksum();
+        }
         
         // if the components checksum in the model has been modified since the component has been imported
         // this means that the component has been updated in the model

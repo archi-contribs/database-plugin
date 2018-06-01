@@ -24,7 +24,6 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
-import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -103,11 +102,6 @@ public class DBChecksum {
 		if ( eObject instanceof IDiagramModel )						append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
 		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
 		if ( eObject instanceof IDiagramModelNote )					append(checksumBuilder, "border type", ((IDiagramModelNote)eObject).getBorderType());
-		if ( eObject instanceof IConnectable ) {					for ( IDiagramModelConnection conn: ((IConnectable)eObject).getSourceConnections() )
-																		append(checksumBuilder, "source connections", conn.getId());
-																	for ( IDiagramModelConnection conn: ((IConnectable)eObject).getTargetConnections() )
-																		append(checksumBuilder, "target connections", conn.getId());
-		}
 		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksumBuilder, "type", ((IDiagramModelArchimateObject)eObject).getType());
 		if ( eObject instanceof IDiagramModelConnection ) {			append(checksumBuilder, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
 																	append(checksumBuilder, " text position : ", ((IDiagramModelConnection)eObject).getTextPosition());
