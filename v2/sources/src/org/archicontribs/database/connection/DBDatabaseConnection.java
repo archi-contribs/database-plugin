@@ -911,6 +911,8 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( dbVersion == 204 ) {
             addColumn(this.schema+"views", "container_checksum", this.OBJECTID, false, "");
             
+            DBGui.popup("Please wait while calculating new checksum on views table.");
+            
             DBArchimateModel tempModel = new DBArchimateModel();
             try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
@@ -924,6 +926,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                 }
             }
             tempModel = null;
+            
+            DBGui.closePopup();
 
             dbVersion = 205;
         }
@@ -1035,6 +1039,8 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( dbVersion == 208 ) {
             addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, false, "");
             
+            DBGui.popup("Please wait while calculating new checksum on views_objects table.");
+            
             DBArchimateModel tempModel = new DBArchimateModel();
             try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
@@ -1049,6 +1055,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                 }
             }
             tempModel = null;
+            
+            DBGui.closePopup();
             
             dbVersion = 209;
         }
