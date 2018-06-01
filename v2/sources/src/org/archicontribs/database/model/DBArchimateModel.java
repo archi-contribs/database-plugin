@@ -125,33 +125,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
 
     /**
-     * List of all the relationships sources and targets in the model.<br>
-     * <br>
-     * Set by the @countAllObjects method.
-     * <br>
-     * We use LinkedHashMap as the order is important
-     */
-    //@Getter private Map<IArchimateRelationship, Entry<String, String>> allRelationsSourceAndTarget = new LinkedHashMap<IArchimateRelationship, Entry<String, String>>();
-
-    /**
-     * List of all the objects that are a source for a connection in the model views.<br>
-     * <br>
-     * Set by the @countAllObjects method.
-     * <br>
-     * We use LinkedHashMap as the order is important
-     */
-    //@Getter private Map<IDiagramModelObject, String> allSourceObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
-
-    /**
-     * List of all the objects that are a target for a connection in the model views.<br>
-     * <br>
-     * Set by the @countAllObjects method.
-     * <br>
-     * We use LinkedHashMap as the order is important
-     */
-    //@Getter private Map<IDiagramModelObject, String> allTargetObjectsConnections = new LinkedHashMap<IDiagramModelObject, String>();
-
-    /**
      * List of the source relationships that have been imported but not yet created.
      */
     @Getter private Map<IArchimateRelationship, String> allSourceRelationshipsToResolve = new LinkedHashMap<IArchimateRelationship, String>();
