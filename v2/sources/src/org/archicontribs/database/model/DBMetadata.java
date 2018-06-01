@@ -12,6 +12,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
@@ -108,7 +109,6 @@ public class DBMetadata  {
     
     /**
      * Gets the status of the component<br>
-     * - if the database version is zero --> isNewInModel (the component does not exist in the database so it is new in the model)<br>
      * @see COMPONENT_STATUS
      */
     public DATABASE_STATUS getDatabaseStatus() {
@@ -128,9 +128,9 @@ public class DBMetadata  {
         if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
             return DATABASE_STATUS.isSynced;
         
-        String initialChecksum = (this.component instanceof IDiagramModelContainer ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
-        String currentChecksum = (this.component instanceof IDiagramModelContainer ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
-        String databaseChecksum = (this.component instanceof IDiagramModelContainer ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
+        String initialChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.initialVersion.getContainerChecksum() : this.initialVersion.getChecksum();
+        String currentChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.currentVersion.getContainerChecksum() : this.currentVersion.getChecksum();
+        String databaseChecksum = (this.component instanceof IDiagramModelObject && this.component instanceof IDiagramModelContainer ) ? this.databaseVersion.getContainerChecksum() : this.databaseVersion.getChecksum();
         
         // if the components checksum in the model has been modified since the component has been imported
         // this means that the component has been updated in the model
