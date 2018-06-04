@@ -40,10 +40,12 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
+    private IArchimateElement element = null; 
     private String id = null;
     private int version = 0;
     private boolean mustCreateCopy = false;
     private boolean mustImportRelationships = false;
+    private boolean hasBeenCreated = false;
     
     /**
      * Imports an element into the model<br>
@@ -93,7 +95,6 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
     @Override
     public void execute() {
         IArchimateElement element;
-        boolean hasJustBeenCreated = false;
 
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
@@ -103,6 +104,8 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
         }
 
         // TODO add an option to import elements recursively
+        
+        //TODO: If existing element, we must save old values to enable undo (if new element, this is not necessary)
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"elements WHERE id = e.id)" : String.valueOf(this.version);
 
@@ -116,9 +119,9 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
             if ( this.mustCreateCopy ) {
                 element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
                 element.setId(this.model.getIDAdapter().getNewID());
-                hasJustBeenCreated = true;
+                this.hasBeenCreated = true;
 
-                setName(element, result.getString("name"));
+                setName(result.getString("name"));
                 ((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(0);
                 ((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
                 ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
@@ -130,7 +133,7 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
                 if ( element == null ) {
                     element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
                     element.setId(this.id);
-                    hasJustBeenCreated = true;
+                    this.hasBeenCreated = true;
                 }
 
                 setName(element, result.getString("name"));
