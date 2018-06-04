@@ -24,27 +24,22 @@ import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
+import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 
-import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.canvas.model.IHintProvider;
-import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.FolderType;
-import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
-import com.archimatetool.model.IBorderObject;
-import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
@@ -53,26 +48,11 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelBendpoint;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
-import com.archimatetool.model.IDiagramModelImageProvider;
-import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
-import com.archimatetool.model.IDiagramModelReference;
-import com.archimatetool.model.IDocumentable;
 import com.archimatetool.model.IFolder;
-import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.IInfluenceRelationship;
-import com.archimatetool.model.IJunction;
-import com.archimatetool.model.ILineObject;
-import com.archimatetool.model.ILockable;
-import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
-import com.archimatetool.model.ISketchModel;
-import com.archimatetool.model.ITextAlignment;
-import com.archimatetool.model.ITextContent;
-import com.archimatetool.model.ITextPosition;
-
 import lombok.Getter;
 
 /**
@@ -410,19 +390,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
+				DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 
 				folder.setId(this.currentResultSet.getString("folder_id"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("folder_version"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("folder_version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
-				setName(folder, this.currentResultSet.getString("name"));
-				setDocumentation(folder, this.currentResultSet.getString("documentation"));
+				metadata.setName(this.currentResultSet.getString("name"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
 
 				String parentId = this.currentResultSet.getString("parent_folder_id");
 
 				if ( parentId != null && !parentId.isEmpty() ) {
-					folder.setType(FolderType.get(0));                              		// non root folders have got the "USER" type
+					metadata.setType(FolderType.get(0));                              		// non root folders have got the "USER" type
 
 					IFolder parent = model.getAllFolders().get(parentId);
 					if ( parent == null )
@@ -432,7 +414,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 					parent.getFolders().add(folder);
 				} else {
-					folder.setType(FolderType.get(this.currentResultSet.getInt("type")));        // root folders have got their own type
+					metadata.setType(FolderType.get(this.currentResultSet.getInt("type")));        // root folders have got their own type
 					model.getFolders().add(folder);
 				}
 
@@ -468,14 +450,17 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
+				
 				element.setId(this.currentResultSet.getString("element_id"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
-				setName(element, this.currentResultSet.getString("name"));
-				setDocumentation(element, this.currentResultSet.getString("documentation"));
-				setType(element, this.currentResultSet.getString("type"));
+				metadata.setName(this.currentResultSet.getString("name"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setType(this.currentResultSet.getString("type"));
 
 				IFolder folder;
 				if ( this.currentResultSet.getString("parent_folder_id") == null ) {
@@ -517,15 +502,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
+				
 				relationship.setId(this.currentResultSet.getString("relationship_id"));
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
-				setName(relationship, this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
-				setDocumentation(relationship, this.currentResultSet.getString("documentation"));
-				setStrength(relationship, this.currentResultSet.getString("strength"));
-				setAccessType(relationship, this.currentResultSet.getInt("access_type"));
+				metadata.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setStrength(this.currentResultSet.getString("strength"));
+				metadata.setAccessType(this.currentResultSet.getInt("access_type"));
 
 				IFolder folder;
 				if ( this.currentResultSet.getString("parent_folder_id") == null ) {
@@ -593,19 +581,22 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else
 					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 
+				DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+				
 				view.setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(this.currentResultSet.getString("container_checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(this.currentResultSet.getString("container_checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
-				setName(view, this.currentResultSet.getString("name"));
-				setDocumentation(view, this.currentResultSet.getString("documentation"));
-				setConnectionRouterType(view, this.currentResultSet.getInt("connection_router_type"));
-				setViewpoint(view, this.currentResultSet.getString("viewpoint"));
-				setBackground(view, this.currentResultSet.getInt("background"));
-				setHintContent(view, this.currentResultSet.getString("hint_content"));
-				setHintTitle(view, this.currentResultSet.getString("hint_title"));
+				metadata.setName(this.currentResultSet.getString("name"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setConnectionRouterType(this.currentResultSet.getInt("connection_router_type"));
+				metadata.setViewpoint(this.currentResultSet.getString("viewpoint"));
+				metadata.setBackground(this.currentResultSet.getInt("background"));
+				metadata.setHintContent(this.currentResultSet.getString("hint_content"));
+				metadata.setHintTitle(this.currentResultSet.getString("hint_title"));
 
 				model.getAllFolders().get(this.currentResultSet.getString("parent_folder_id")).getElements().add(view);
 
@@ -650,10 +641,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				else
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				
+				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
 
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
@@ -662,28 +657,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
 				}
 
-				setArchimateConcept(eObject, model.getAllElements().get(this.currentResultSet.getString("element_id")));
-				setReferencedModel(eObject, model.getAllViews().get(this.currentResultSet.getString("diagram_ref_id")));
-				setType(eObject, this.currentResultSet.getInt("type"));
-				setBorderColor(eObject, this.currentResultSet.getString("border_color"));
-				setBorderType(eObject, this.currentResultSet.getInt("border_type"));
-				setContent(eObject, this.currentResultSet.getString("content"));
-				setDocumentation(eObject, this.currentResultSet.getString("documentation"));
-				setName(eObject, this.currentResultSet.getString("name"));
-				setHintContent(eObject, this.currentResultSet.getString("hint_content"));
-				setHintTitle(eObject, this.currentResultSet.getString("hint_title"));
-				setLocked(eObject, this.currentResultSet.getObject("is_locked"));
-				setImagePath(eObject, this.currentResultSet.getString("image_path"));
-				setImagePosition(eObject, this.currentResultSet.getInt("image_position"));
-				setLineColor(eObject, this.currentResultSet.getString("line_color"));
-				setLineWidth(eObject, this.currentResultSet.getInt("line_width"));
-				setFillColor(eObject, this.currentResultSet.getString("fill_color"));
-				setFont(eObject, this.currentResultSet.getString("font"));
-				setFontColor(eObject, this.currentResultSet.getString("font_color"));
-				setNotes(eObject, this.currentResultSet.getString("notes"));
-				setTextAlignment(eObject, this.currentResultSet.getInt("text_alignment"));
-				setTextPosition(eObject, this.currentResultSet.getInt("text_position"));
-				setBounds(eObject, this.currentResultSet.getInt("x"), this.currentResultSet.getInt("y"), this.currentResultSet.getInt("width"), this.currentResultSet.getInt("height"));
+				metadata.setArchimateConcept(model.getAllElements().get(this.currentResultSet.getString("element_id")));
+				metadata.setReferencedModel(model.getAllViews().get(this.currentResultSet.getString("diagram_ref_id")));
+				metadata.setType(this.currentResultSet.getInt("type"));
+				metadata.setBorderColor(this.currentResultSet.getString("border_color"));
+				metadata.setBorderType(this.currentResultSet.getInt("border_type"));
+				metadata.setContent(this.currentResultSet.getString("content"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setName(this.currentResultSet.getString("name"));
+				metadata.setHintContent(this.currentResultSet.getString("hint_content"));
+				metadata.setHintTitle(this.currentResultSet.getString("hint_title"));
+				metadata.setLocked(this.currentResultSet.getObject("is_locked"));
+				metadata.setImagePath(this.currentResultSet.getString("image_path"));
+				metadata.setImagePosition(this.currentResultSet.getInt("image_position"));
+				metadata.setLineColor(this.currentResultSet.getString("line_color"));
+				metadata.setLineWidth(this.currentResultSet.getInt("line_width"));
+				metadata.setFillColor(this.currentResultSet.getString("fill_color"));
+				metadata.setFont(this.currentResultSet.getString("font"));
+				metadata.setFontColor(this.currentResultSet.getString("font_color"));
+				metadata.setNotes(this.currentResultSet.getString("notes"));
+				metadata.setTextAlignment(this.currentResultSet.getInt("text_alignment"));
+				metadata.setTextPosition(this.currentResultSet.getInt("text_position"));
+				metadata.setBounds(this.currentResultSet.getInt("x"), this.currentResultSet.getInt("y"), this.currentResultSet.getInt("width"), this.currentResultSet.getInt("height"));
 
 				// The container is either the view, or a container in the view
 				if ( DBPlugin.areEqual(this.currentResultSet.getString("container_id"), view.getId()) )
@@ -740,10 +735,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				else
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				
+				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
-				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				
+				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
 
 				/*
 				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
@@ -754,16 +752,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					}
 				}
 				*/
-				setName(eObject, this.currentResultSet.getString("name"));
-				setLocked(eObject, this.currentResultSet.getObject("is_locked"));
-				setDocumentation(eObject, this.currentResultSet.getString("documentation"));
-				setLineColor(eObject, this.currentResultSet.getString("line_color"));
-				setLineWidth(eObject, this.currentResultSet.getInt("line_width"));
-				setFont(eObject, this.currentResultSet.getString("font"));
-				setFontColor(eObject, this.currentResultSet.getString("font_color"));
-				setType(eObject, this.currentResultSet.getInt("type"));
-				setTextPosition(eObject, this.currentResultSet.getInt("text_position"));
-				setArchimateConcept(eObject, model.getAllRelationships().get(this.currentResultSet.getString("relationship_id")));
+				metadata.setName(this.currentResultSet.getString("name"));
+				metadata.setLocked(this.currentResultSet.getObject("is_locked"));
+				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setLineColor(this.currentResultSet.getString("line_color"));
+				metadata.setLineWidth(this.currentResultSet.getInt("line_width"));
+				metadata.setFont(this.currentResultSet.getString("font"));
+				metadata.setFontColor(this.currentResultSet.getString("font_color"));
+				metadata.setType(this.currentResultSet.getInt("type"));
+				metadata.setTextPosition(this.currentResultSet.getInt("text_position"));
+				metadata.setArchimateConcept(model.getAllRelationships().get(this.currentResultSet.getString("relationship_id")));
 
 				if ( eObject instanceof IDiagramModelConnection ) {
 				    IConnectable source = model.getAllViewObjects().get(this.currentResultSet.getString("source_object_id"));
@@ -989,16 +987,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					throw new Exception("Element with id="+id+" has not been found in the database.");
 				throw new Exception("Element with id="+id+" and version="+version+" has not been found in the database.");
 			}
+			
+			DBMetadata metadata;
 
 			if ( mustCreateCopy ) {
 				hasJustBeenCreated = true;
 				folder = DBArchimateFactory.eINSTANCE.createFolder();
 				folder.setId(model.getIDAdapter().getNewID());
 				folder.setType(FolderType.get(result.getInt("type")));
+				
+				metadata = ((IDBMetadata)folder).getDBMetadata();
 
-				setName(folder, result.getString("name"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(0);
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.setName(result.getString("name"));
+				
+				metadata.getInitialVersion().setVersion(0);
+				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
 				importProperties(folder, id, result.getInt("version"));
 			} else {
@@ -1010,23 +1013,25 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					folder.setType(FolderType.get(result.getInt("type")));
 				}
 
-				setName(folder, result.getString("name"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata = ((IDBMetadata)folder).getDBMetadata();
+				
+				metadata.setName(result.getString("name"));
+				metadata.getInitialVersion().setVersion(result.getInt("version"));
+				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getCurrentVersion().setVersion(result.getInt("version"));
+				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
+				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			}
 
-			setDocumentation(folder, result.getString("documentation"));
-			((IDBMetadata)folder).getDBMetadata().setRootFolderType(result.getInt("root_type"));
+			metadata.setDocumentation(result.getString("documentation"));
+			metadata.setRootFolderType(result.getInt("root_type"));
 
 			if ( hasJustBeenCreated ) 
 				model.countObject(folder, false, null);
@@ -1081,17 +1086,22 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					throw new Exception("Element with id="+id+" has not been found in the database.");
 				throw new Exception("Element with id="+id+" and version="+version+" has not been found in the database.");
 			}
+			
+			DBMetadata metadata;
 
 			if ( mustCreateCopy ) {
 				element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
 				element.setId(model.getIDAdapter().getNewID());
 				hasJustBeenCreated = true;
+				
+				metadata = ((IDBMetadata)element).getDBMetadata();
 
-				setName(element, result.getString("name"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(0);
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(0);
-                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.setName(result.getString("name"));
+				
+				metadata.getInitialVersion().setVersion(0);
+				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getCurrentVersion().setVersion(0);
+				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
 				importProperties(element, id, result.getInt("version"));
 			} else {
@@ -1101,26 +1111,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					element.setId(id);
 					hasJustBeenCreated = true;
 				}
+				
+				metadata = ((IDBMetadata)element).getDBMetadata();
 
-				setName(element, result.getString("name"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)element).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
-                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
-                ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.setName(result.getString("name"));
+				metadata.getInitialVersion().setVersion(result.getInt("version"));
+				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
+                metadata.getCurrentVersion().setVersion(result.getInt("version"));
+                metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
+                metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 
 				importProperties(element);
 			}
 
-			setDocumentation(element, result.getString("documentation"));
-			setType(element, result.getString("type"));
+			metadata.setDocumentation(result.getString("documentation"));
+			metadata.setType(result.getString("type"));
 
 			if ( view != null && componentToConnectable(view, element).isEmpty() ) {
 				view.getChildren().add(ArchimateDiagramModelFactory.createDiagramModelArchimateObject(element));
@@ -1219,16 +1231,20 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					throw new Exception("Relationship with id="+id+" has not been found in the database.");
 				throw new Exception("Relationship with id="+id+" and version="+version+" has not been found in the database.");
 			}
+			
+			DBMetadata metadata;
 
 			if ( mustCreateCopy ) {
 				relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
 				relationship.setId(model.getIDAdapter().getNewID());
 				hasJustBeenCreated = true;
+				
+				metadata = ((IDBMetadata)relationship).getDBMetadata();
 
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(0);
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(0);
-                ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getInitialVersion().setVersion(0);
+				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getCurrentVersion().setVersion(0);
+				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				relationship = model.getAllRelationships().get(id);
 				if ( relationship == null ) {
@@ -1236,25 +1252,27 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					relationship.setId(id);
 					hasJustBeenCreated = true;
 				}
+				
+				metadata = ((IDBMetadata)relationship).getDBMetadata();
 
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(result.getInt("version"));
+				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getCurrentVersion().setVersion(result.getInt("version"));
+				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
+				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			}
 
-			setName(relationship, result.getString("name"));
-			setDocumentation(relationship, result.getString("documentation"));
-			setStrength(relationship, result.getString("strength"));
-			setAccessType(relationship, result.getInt("access_type"));
+			metadata.setName(result.getString("name"));
+			metadata.setDocumentation(result.getString("documentation"));
+			metadata.setStrength(result.getString("strength"));
+			metadata.setAccessType(result.getInt("access_type"));
 
             IArchimateConcept source = model.getAllElements().get(result.getString("source_id"));
             IArchimateConcept target = model.getAllElements().get(result.getString("target_id"));
@@ -1332,6 +1350,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					throw new Exception("View with id="+id+" has not been found in the database.");
 				throw new Exception("View with id="+id+" and version="+version+" has not been found in the database.");
 			}
+			
+			DBMetadata metadata;
 
 			view = model.getAllViews().get(id);
 			if ( mustCreateCopy ) {
@@ -1341,11 +1361,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
 				view.setId(model.getIDAdapter().getNewID());
 				hasJustBeenCreated = true;
+				
+				metadata = ((IDBMetadata)view).getDBMetadata();
 
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(0);
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(0);
-                ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getInitialVersion().setVersion(0);
+				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getCurrentVersion().setVersion(0);
+				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 			} else {
 				view = model.getAllViews().get(id);
 				if ( view == null ) {
@@ -1356,33 +1378,35 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					view.setId(id);
 					hasJustBeenCreated = true;
 				}
+				
+				metadata = ((IDBMetadata)view).getDBMetadata();
 
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				((IDBMetadata)view).getDBMetadata().getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				((IDBMetadata)view).getDBMetadata().getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(result.getInt("version"));
+				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
+				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getCurrentVersion().setVersion(result.getInt("version"));
+				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
+				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
+				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
+				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
+				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 			}
 
-			setName(view, result.getString("name"));
-			setDocumentation(view, result.getString("documentation"));
-			setConnectionRouterType(view, result.getInt("connection_router_type"));
+			metadata.setName(result.getString("name"));
+			metadata.setDocumentation(result.getString("documentation"));
+			metadata.setConnectionRouterType(result.getInt("connection_router_type"));
 
-			setViewpoint(view, result.getString("viewpoint"));
-			setBackground(view, result.getInt("background"));
-			setHintContent(view, result.getString("hint_content"));
-			setHintTitle(view, result.getString("hint_title"));
+			metadata.setViewpoint(result.getString("viewpoint"));
+			metadata.setBackground(result.getInt("background"));
+			metadata.setHintContent(result.getString("hint_content"));
+			metadata.setHintTitle(result.getString("hint_title"));
 		}
 
 		importProperties(view);
@@ -1432,6 +1456,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
 			resultViewObject.next();
+			
+			DBMetadata metadata;
 
 			viewObject = model.getAllViewObjects().get(id);
 			if ( viewObject == null || mustCreateCopy ) {
@@ -1442,27 +1468,31 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				((IIdentifier)viewObject).setId(mustCreateCopy ? model.getIDAdapter().getNewID() : id);
 				
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(1);
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(1);
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				metadata = ((IDBMetadata)viewObject).getDBMetadata();
+				
+				metadata.getInitialVersion().setVersion(1);
+				metadata.getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				metadata.getCurrentVersion().setVersion(1);
+				metadata.getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
+				metadata.getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			} else {
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultViewObject.getInt("version"));
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
-				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(resultViewObject.getInt("version"));
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
-				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				metadata = ((IDBMetadata)viewObject).getDBMetadata();
+				
+				metadata.getInitialVersion().setVersion(resultViewObject.getInt("version"));
+				metadata.getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+				metadata.getCurrentVersion().setVersion(resultViewObject.getInt("version"));
+				metadata.getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
+				metadata.getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			}
 			
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+			metadata.getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+			metadata.getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+			metadata.getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
+			metadata.getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
+			metadata.getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
+			metadata.getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
 				// we check that the element already exists. If not, we import it in shared mode
@@ -1471,28 +1501,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importElementFromId(model, null, resultViewObject.getString("element_id"), 0, false, true);
 			}
 
-			setArchimateConcept(viewObject, model.getAllElements().get(resultViewObject.getString("element_id")));
-			setReferencedModel(viewObject, model.getAllViews().get(resultViewObject.getString("diagram_ref_id")));
-			setType(viewObject, resultViewObject.getInt("type"));
-			setBorderColor(viewObject, resultViewObject.getString("border_color"));
-			setBorderType(viewObject, resultViewObject.getInt("border_type"));
-			setContent(viewObject, resultViewObject.getString("content"));
-			setDocumentation(viewObject, resultViewObject.getString("documentation"));
-			if ( resultViewObject.getObject("element_id") == null ) setName(viewObject, resultViewObject.getString("name"));
-			setHintContent(viewObject, resultViewObject.getString("hint_content"));
-			setHintTitle(viewObject, resultViewObject.getString("hint_title"));
-			setLocked(viewObject, resultViewObject.getObject("is_locked"));
-			setImagePath(viewObject, resultViewObject.getString("image_path"));
-			setImagePosition(viewObject, resultViewObject.getInt("image_position"));
-			setLineColor(viewObject, resultViewObject.getString("line_color"));
-			setLineWidth(viewObject, resultViewObject.getInt("line_width"));
-			setFillColor(viewObject, resultViewObject.getString("fill_color"));
-			setFont(viewObject, resultViewObject.getString("font"));
-			setFontColor(viewObject, resultViewObject.getString("font_color"));
-			setNotes(viewObject, resultViewObject.getString("notes"));
-			setTextAlignment(viewObject, resultViewObject.getInt("text_alignment"));
-			setTextPosition(viewObject, resultViewObject.getInt("text_position"));
-			setBounds(viewObject, resultViewObject.getInt("x"), resultViewObject.getInt("y"), resultViewObject.getInt("width"), resultViewObject.getInt("height"));
+			metadata.setArchimateConcept(model.getAllElements().get(resultViewObject.getString("element_id")));
+			metadata.setReferencedModel(model.getAllViews().get(resultViewObject.getString("diagram_ref_id")));
+			metadata.setType(resultViewObject.getInt("type"));
+			metadata.setBorderColor(resultViewObject.getString("border_color"));
+			metadata.setBorderType(resultViewObject.getInt("border_type"));
+			metadata.setContent(resultViewObject.getString("content"));
+			metadata.setDocumentation(resultViewObject.getString("documentation"));
+			if ( resultViewObject.getObject("element_id") == null ) metadata.setName(resultViewObject.getString("name"));
+			metadata.setHintContent(resultViewObject.getString("hint_content"));
+			metadata.setHintTitle(resultViewObject.getString("hint_title"));
+			metadata.setLocked(resultViewObject.getObject("is_locked"));
+			metadata.setImagePath(resultViewObject.getString("image_path"));
+			metadata.setImagePosition(resultViewObject.getInt("image_position"));
+			metadata.setLineColor(resultViewObject.getString("line_color"));
+			metadata.setLineWidth(resultViewObject.getInt("line_width"));
+			metadata.setFillColor(resultViewObject.getString("fill_color"));
+			metadata.setFont(resultViewObject.getString("font"));
+			metadata.setFontColor(resultViewObject.getString("font_color"));
+			metadata.setNotes(resultViewObject.getString("notes"));
+			metadata.setTextAlignment(resultViewObject.getInt("text_alignment"));
+			metadata.setTextPosition(resultViewObject.getInt("text_position"));
+			metadata.setBounds(resultViewObject.getInt("x"), resultViewObject.getInt("y"), resultViewObject.getInt("width"), resultViewObject.getInt("height"));
 
 			// we check if the view object must be changed from container
 			if ( viewObject instanceof IDiagramModelObject ) {
@@ -1557,6 +1587,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		try ( ResultSet resultViewConnection = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.schema+"views_connections v WHERE id = ? AND version = "+versionString, id) ) {
 			resultViewConnection.next();
+			
+			DBMetadata metadata;
 
 			viewConnection= model.getAllViewConnections().get(id);
 			if ( viewConnection == null || mustCreateCopy ) {
@@ -1575,31 +1607,33 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importRelationshipFromId(model, null, resultViewConnection.getString("relationship_id"), 0, false);
 				}
 			}
+			
+			metadata = ((IDBMetadata)viewConnection).getDBMetadata();
 
-			setName(viewConnection, resultViewConnection.getString("name"));
-			setLocked(viewConnection, resultViewConnection.getObject("is_locked"));
-			setDocumentation(viewConnection, resultViewConnection.getString("documentation"));
-			setLineColor(viewConnection, resultViewConnection.getString("line_color"));
-			setLineWidth(viewConnection, resultViewConnection.getInt("line_width"));
-			setFont(viewConnection, resultViewConnection.getString("font"));
-			setFontColor(viewConnection, resultViewConnection.getString("font_color"));
-			setType(viewConnection, resultViewConnection.getInt("type"));
-			setTextPosition(viewConnection, resultViewConnection.getInt("text_position"));
-			setType(viewConnection, resultViewConnection.getInt("type"));
-			setArchimateConcept(viewConnection, model.getAllRelationships().get(resultViewConnection.getString("relationship_id")));
+			metadata.setName(resultViewConnection.getString("name"));
+			metadata.setLocked(resultViewConnection.getObject("is_locked"));
+			metadata.setDocumentation(resultViewConnection.getString("documentation"));
+			metadata.setLineColor(resultViewConnection.getString("line_color"));
+			metadata.setLineWidth(resultViewConnection.getInt("line_width"));
+			metadata.setFont(resultViewConnection.getString("font"));
+			metadata.setFontColor(resultViewConnection.getString("font_color"));
+			metadata.setType(resultViewConnection.getInt("type"));
+			metadata.setTextPosition(resultViewConnection.getInt("text_position"));
+			metadata.setType(resultViewConnection.getInt("type"));
+			metadata.setArchimateConcept(model.getAllRelationships().get(resultViewConnection.getString("relationship_id")));
 
-			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setVersion(resultViewConnection.getInt("version"));
-			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setChecksum(resultViewConnection.getString("checksum"));
-			((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
-			((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(resultViewConnection.getInt("version"));
-			((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setChecksum(resultViewConnection.getString("checksum"));
-			((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
-			((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
-			((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
-			((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
-			((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
-			((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
-			((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+			metadata.getInitialVersion().setVersion(resultViewConnection.getInt("version"));
+			metadata.getInitialVersion().setChecksum(resultViewConnection.getString("checksum"));
+			metadata.getInitialVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+			metadata.getCurrentVersion().setVersion(resultViewConnection.getInt("version"));
+			metadata.getCurrentVersion().setChecksum(resultViewConnection.getString("checksum"));
+			metadata.getCurrentVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+			metadata.getDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
+			metadata.getDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
+			metadata.getDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
+			metadata.getLatestDatabaseVersion().setVersion(resultViewConnection.getInt("version"));
+			metadata.getLatestDatabaseVersion().setChecksum(resultViewConnection.getString("checksum"));
+			metadata.getLatestDatabaseVersion().setTimestamp(resultViewConnection.getTimestamp("created_on"));
 
 			if ( viewConnection instanceof IDiagramModelConnection ) {
                 IConnectable source = model.getAllViewObjects().get(resultViewConnection.getString("source_object_id"));
