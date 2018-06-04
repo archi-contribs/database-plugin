@@ -29,6 +29,8 @@ import org.archicontribs.database.model.DBArchimateModel;
 
 import com.archimatetool.model.IDiagramModel;
 
+import lombok.Getter;
+
 /**
  * This class holds the information required to connect to, to import from and export to a database
  * 
@@ -47,7 +49,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * the databaseEntry corresponding to the connection
      */
     protected DBDatabaseEntry databaseEntry = null;
-    protected String schema = "";
+    @Getter protected String schema = "";
 
     /**
      * Connection to the database
@@ -190,6 +192,13 @@ public class DBDatabaseConnection implements AutoCloseable {
             // nothing to do
         }
         return false;
+    }
+    
+    /**
+     * You may prefer {@link isConnected}
+     */
+    public boolean isClosed() throws SQLException {
+        return this.connection.isClosed();
     }
 
     /**
