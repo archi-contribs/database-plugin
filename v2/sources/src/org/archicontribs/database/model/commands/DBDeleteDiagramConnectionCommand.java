@@ -4,8 +4,10 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.model;
+package org.archicontribs.database.model.commands;
 
+import org.archicontribs.database.model.DBArchimateModel;
+import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.model.IArchimateModel;
