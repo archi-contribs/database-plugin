@@ -63,12 +63,12 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * Version of the model as it will be exported to the database. Usually @initialVersion + 1.
      */
-    @Getter private DBVersion exportedVersion = new DBVersion();
+    @Getter private DBVersion currentVersion = new DBVersion();
 
     /**
      * Latest version of the model in the database.
      */
-    @Getter private DBVersion latestDatabaseVersion = new DBVersion();
+    @Getter private DBVersion databaseVersion = new DBVersion();
 
     /**
      * List of all elements in the model.<br>

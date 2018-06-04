@@ -126,7 +126,7 @@ public class DBMetadata  {
         
         // The tests are not the same if there is a new version of the model in the database or not ...
         
-        if ( (model.getExportedVersion().getVersion() - model.getInitialVersion().getVersion()) == 1 ) {
+        if ( (model.getCurrentVersion().getVersion() - model.getInitialVersion().getVersion()) == 1 ) {
         	// if nobody created a new version of the database since it has been imported, then only the initialChecksum and currentChecksum matter
         	
         	// if the checksum are identical, it means that the component has not been updated since it has been imported

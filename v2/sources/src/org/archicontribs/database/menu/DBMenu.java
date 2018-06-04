@@ -41,6 +41,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
@@ -52,10 +53,13 @@ import com.archimatetool.model.ISketchModel;
  */
 public class DBMenu extends ExtensionContributionFactory {
     private static final DBLogger logger = new DBLogger(DBMenu.class);
+    private IContributionRoot fAdditions = null;
+    
 
     @Override
     public void createContributionItems(IServiceLocator serviceLocator, IContributionRoot additions) {
         if ( logger.isTraceEnabled() ) logger.trace("Showing menu items");
+        this.fAdditions = additions;
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window != null) {
@@ -64,7 +68,7 @@ public class DBMenu extends ExtensionContributionFactory {
                 switch ( selection.size() ) {
                     case 0:
                         // if nothing is selected, we add an "import model" menu entry
-                        additions.addContributionItem(importModel(), null);
+                        showImportModel();
                         break;
 
                     case 1:
@@ -79,37 +83,37 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "DBArchimateModel" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("model", (DBArchimateModel)obj), null);
-                                    additions.addContributionItem(showVersion((DBArchimateModel)obj), null);
-                                    additions.addContributionItem(showChecksum("", (DBArchimateModel)obj), null);
+                                    showId("model", (DBArchimateModel)obj);
+                                    showVersion((DBArchimateModel)obj);
+                                    showChecksum("", (DBArchimateModel)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(convertIds(), null);
-                                additions.addContributionItem(exportModel(), null);
+                                showConvertIds();
+                                showExportModel();
                                 break;
 
                                 // when the user right clicks in a diagram background
                             case "ArchimateDiagramPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("view ", ((ArchimateDiagramPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((ArchimateDiagramPart)obj).getModel()), null);
-                                    additions.addContributionItem(showChecksum("", ((ArchimateDiagramPart)obj).getModel()), null);
+                                    showId("view ", ((ArchimateDiagramPart)obj).getModel());
+                                    showVersion(((ArchimateDiagramPart)obj).getModel());
+                                    showChecksum("", (IDBMetadata) ((ArchimateDiagramPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory(((ArchimateDiagramPart)obj).getModel()), null);
-                                additions.addContributionItem(importComponentIntoView(), null);
+                                showGetHistory(((ArchimateDiagramPart)obj).getModel());
+                                showImportComponentIntoView();
                                 break;
 
                                 // when the user right clicks in a canvas background
                             case "CanvasDiagramPart" :
-                                additions.addContributionItem(getHistory(((CanvasDiagramPart)obj).getModel()), null);
+                                showGetHistory(((CanvasDiagramPart)obj).getModel());
                                 // cannot import (yet) a component into a canvas, except an image ...
                                 break;
 
                                 // when the user right clicks in a sketch background
                             case "SketchDiagramPart" :
-                                additions.addContributionItem(getHistory(((SketchDiagramPart)obj).getModel()), null);
+                                showGetHistory(((SketchDiagramPart)obj).getModel());
                                 // cannot import (yet) a component into a sketch
                                 break;
 
@@ -117,42 +121,42 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "ArchimateElementEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("object ", ((ArchimateElementEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel()), null);
+                                    showId("object ", ((ArchimateElementEditPart)obj).getModel());
+                                    showVersion(((ArchimateElementEditPart)obj).getModel());
+                                    showChecksum("", (IDBMetadata) ((ArchimateElementEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
-                                    additions.addContributionItem(showId("element ", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                                    additions.addContributionItem(showVersion(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
-                                    additions.addContributionItem(showChecksum("", ((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                    showId("element ", ((ArchimateElementEditPart)obj).getModel().getArchimateElement());
+                                    showVersion(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
+                                    showChecksum("", (IDBMetadata) ((ArchimateElementEditPart)obj).getModel().getArchimateElement());
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement()), null);
+                                showGetHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
                                 break;
 
                                 // when the user right clicks in a diagram and a relationship is selected
                             case "ArchimateRelationshipEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("object ", ((ArchimateRelationshipEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel()), null);
+                                    showId("object ", ((ArchimateRelationshipEditPart)obj).getModel());
+                                    showVersion(((ArchimateRelationshipEditPart)obj).getModel());
+                                    showChecksum("", (IDBMetadata) ((ArchimateRelationshipEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
-                                    additions.addContributionItem(showId("relationship ", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                                    additions.addContributionItem(showVersion(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
-                                    additions.addContributionItem(showChecksum("", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                    showId("relationship ", ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship());
+                                    showVersion(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship());
+                                    showChecksum("", (IDBMetadata) ((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship());
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship()), null);
+                                showGetHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship());
                                 break;
 
                                 // when the user right clicks in a canvas' block
                             case "CanvasBlockEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("block ", ((CanvasBlockEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((CanvasBlockEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath()), null);
-                                    additions.addContributionItem(showChecksum("", ((CanvasBlockEditPart)obj).getModel()), null);
+                                    showId("block ", ((CanvasBlockEditPart)obj).getModel());
+                                    showVersion(((CanvasBlockEditPart)obj).getModel());
+                                    showImagePath(((CanvasBlockEditPart)obj).getModel().getImagePath());
+                                    showChecksum("", (IDBMetadata) ((CanvasBlockEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
                                 }	    				
                                 break;
@@ -161,10 +165,10 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "CanvasStickyEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) { 
-                                    additions.addContributionItem(showId("sticky ", ((CanvasStickyEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((CanvasStickyEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath()), null);
-                                    additions.addContributionItem(showChecksum("", ((CanvasStickyEditPart)obj).getModel()), null);
+                                    showId("sticky ", ((CanvasStickyEditPart)obj).getModel());
+                                    showVersion(((CanvasStickyEditPart)obj).getModel());
+                                    showImagePath(((CanvasStickyEditPart)obj).getModel().getImagePath());
+                                    showChecksum("", (IDBMetadata) ((CanvasStickyEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
                                 }
                                 break;
@@ -173,22 +177,22 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "DiagramConnectionEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("connection ", ((DiagramConnectionEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((DiagramConnectionEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showChecksum("", ((DiagramConnectionEditPart)obj).getModel()), null);
+                                    showId("connection ", ((DiagramConnectionEditPart)obj).getModel());
+                                    showVersion(((DiagramConnectionEditPart)obj).getModel());
+                                    showChecksum("", (IDBMetadata) ((DiagramConnectionEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory(((DiagramConnectionEditPart)obj).getModel()), null);
+                                showGetHistory(((DiagramConnectionEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on an image
                             case "DiagramImageEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("image ", ((DiagramImageEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((DiagramImageEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath()), null);
-                                    additions.addContributionItem(showChecksum("", ((DiagramImageEditPart)obj).getModel()), null);
+                                    showId("image ", ((DiagramImageEditPart)obj).getModel());
+                                    showVersion(((DiagramImageEditPart)obj).getModel());
+                                    showImagePath(((DiagramImageEditPart)obj).getModel().getImagePath());
+                                    showChecksum("", (IDBMetadata) ((DiagramImageEditPart)obj).getModel());
                                     additions.addContributionItem(new Separator(), null);
                                 }
                                 break;
@@ -197,8 +201,8 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "GroupEditPart" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("group ", ((GroupEditPart)obj).getModel()), null);
-                                    additions.addContributionItem(showVersion(((GroupEditPart)obj).getModel()), null);
+                                    showId("group ", ((GroupEditPart)obj).getModel());
+                                    showVersion(((GroupEditPart)obj).getModel());
                                 }
                                 break;
 
@@ -222,60 +226,60 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "ArchimateDiagramModel" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("view ", (IArchimateDiagramModel)obj), null);
-                                    additions.addContributionItem(showVersion((IArchimateDiagramModel)obj), null);
-                                    additions.addContributionItem(showChecksum("", (IArchimateDiagramModel)obj), null);
+                                    showId("view ", (IArchimateDiagramModel)obj);
+                                    showVersion((IArchimateDiagramModel)obj);
+                                    showChecksum("", (IDBMetadata)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory((IArchimateDiagramModel)obj), null);
-                                additions.addContributionItem(importComponentIntoView(), null);
+                                showGetHistory((IArchimateDiagramModel)obj);
+                                showImportComponentIntoView();
                                 break;
 
                                 // when the user right clicks on a canvas in the model tree
                             case "CanvasModel" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("canvas ", (ICanvasModel)obj), null);
-                                    additions.addContributionItem(showVersion((ICanvasModel)obj), null);
-                                    additions.addContributionItem(showChecksum("", (ICanvasModel)obj), null);
+                                    showId("canvas ", (ICanvasModel)obj);
+                                    showVersion((ICanvasModel)obj);
+                                    showChecksum("", (IDBMetadata)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory((ICanvasModel)obj), null);
-                                additions.addContributionItem(importComponent(), null);
+                                showGetHistory((ICanvasModel)obj);
+                                showImportComponent();
                                 break;
 
                                 // when the user right clicks on a sketch in the model tree
                             case "SketchModel" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("sketch ", (ISketchModel)obj), null);
-                                    additions.addContributionItem(showVersion((ISketchModel)obj), null);
-                                    additions.addContributionItem(showChecksum("", (ISketchModel)obj), null);
+                                    showId("sketch ", (ISketchModel)obj);
+                                    showVersion((ISketchModel)obj);
+                                    showChecksum("", (IDBMetadata)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(getHistory((ISketchModel)obj), null);
-                                additions.addContributionItem(importComponent(), null);
+                                showGetHistory((ISketchModel)obj);
+                                showImportComponent();
                                 break;
                             case "Folder" :
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showIdInContextMenu ) {
-                                    additions.addContributionItem(showId("folder ", (IFolder)obj), null);
-                                    additions.addContributionItem(showVersion((IFolder)obj), null);
-                                    additions.addContributionItem(showChecksum("", (IFolder)obj), null);
+                                    showId("folder ", (IFolder)obj);
+                                    showVersion((IFolder)obj);
+                                    showChecksum("", (IDBMetadata)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
-                                additions.addContributionItem(importComponent(), null);
+                                showImportComponent();
                                 break;
                             default :
                                 if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
                                     additions.addContributionItem(new Separator(), null);
                                     if ( showIdInContextMenu ) {
-                                        additions.addContributionItem(showId("", (IIdentifier)obj), null);
-                                        additions.addContributionItem(showVersion((IIdentifier)obj), null);
-                                        additions.addContributionItem(showChecksum("", (IIdentifier)obj), null);
+                                        showId("", (IIdentifier)obj);
+                                        showVersion((IIdentifier)obj);
+                                        showChecksum("", (IDBMetadata)obj);
                                         additions.addContributionItem(new Separator(), null);
                                     }
-                                    additions.addContributionItem(getHistory((IArchimateConcept)obj), null);
+                                    showGetHistory((IArchimateConcept)obj);
                                 } else {
                                     if ( logger.isDebugEnabled() ) logger.debug("No specific menu to show for this class ...");
                                 }
@@ -297,7 +301,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         }
                         if ( oneArchimateModel && allArchimateModels ) {
                             additions.addContributionItem(new Separator(), null);
-                            additions.addContributionItem(mergeModels(), null);
+                            showMergeModels();
                         }
                 }
             }
@@ -305,7 +309,7 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
 
-    static CommandContributionItem getHistory(IArchimateModelObject component) {
+    private void showGetHistory(IArchimateModelObject component) {
         String clazz = component.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
         String label = "get history for "+component.eClass().getName()+" \""+component.getName()+"\"";
@@ -327,10 +331,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem getHistory(IDiagramModelConnection connection) {
+    private void showGetHistory(IDiagramModelConnection connection) {
         String clazz = connection.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
         String label = "get history for "+connection.eClass().getName()+" \""+connection.getName()+"\"";
@@ -352,10 +356,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem importModel() {
+    private void showImportModel() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -377,10 +381,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,                         // style
                 null,                                                       // helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem exportModel() {
+    private void showExportModel() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -402,10 +406,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem importComponent() {
+    private void showImportComponent() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -427,10 +431,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem importComponentIntoView() {
+    private void showImportComponentIntoView() {
         ImageDescriptor menuIcon;
         String label;
 
@@ -452,10 +456,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem showId(String prefix, IIdentifier component) {
+    private void showId(String prefix, IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String label = prefix+"ID : "+component.getId();
 
@@ -474,15 +478,33 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem showChecksum(String prefix, IIdentifier component) {
+    private void showChecksum(String prefix, IDBMetadata component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = prefix+"Checksum: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getChecksum() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getChecksum()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getChecksum();
-
+        
+        String label = prefix+"Checksum:";
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"     Initial = "+ component.getDBMetadata().getInitialVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
                 "org.archicontribs.database.showIdCommand",		          	// commandId
@@ -496,13 +518,159 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"     Current = "+ component.getDBMetadata().getCurrentVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"     Database = " + component.getDBMetadata().getDatabaseVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"     Latest db = " + component.getDBMetadata().getLatestDatabaseVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        if ( component instanceof IDiagramModel ) {
+            label = prefix+"Container:";
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+            
+            label = prefix+"     Initial = "+ component.getDBMetadata().getInitialVersion().getContainerChecksum();
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+            
+            label = prefix+"     Current = "+ component.getDBMetadata().getCurrentVersion().getContainerChecksum();
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+            
+            label = prefix+"     Database = " + component.getDBMetadata().getDatabaseVersion().getContainerChecksum();
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+            
+            label = prefix+"     Latest db = " + component.getDBMetadata().getLatestDatabaseVersion().getContainerChecksum();
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        }
     }
     
-    static CommandContributionItem showChecksum(String prefix, DBArchimateModel model) {
+    private void showChecksum(String prefix, DBArchimateModel model) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = prefix+"Checksum: Initial="+model.getInitialVersion().getChecksum() + " / Current="+model.getExportedVersion().getChecksum()+ " / Database="+model.getLatestDatabaseVersion().getChecksum();
-
+        
+        String label = prefix+"Checksum: Initial = " + model.getInitialVersion().getChecksum();
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
@@ -518,12 +686,48 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"          Current = " + model.getCurrentVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        label = prefix+"          Database = " + model.getDatabaseVersion().getChecksum();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem showVersion(IIdentifier component) {
+    private void showVersion(IIdentifier component) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = "Version: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getVersion() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getVersion();
+        String label = "Version: Initial="+((IDBMetadata)component).getDBMetadata().getInitialVersion().getVersion() + " / Current="+((IDBMetadata)component).getDBMetadata().getCurrentVersion().getVersion()+ " / Database="+((IDBMetadata)component).getDBMetadata().getDatabaseVersion().getVersion()+ " / Latest db="+((IDBMetadata)component).getDBMetadata().getLatestDatabaseVersion().getVersion();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -540,12 +744,12 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,                         // style
                 null,                                                       // helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
     
-    static CommandContributionItem showVersion(DBArchimateModel model) {
+    private void showVersion(DBArchimateModel model) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
-        String label = "Version: Initial="+model.getInitialVersion().getVersion() + " / Current="+model.getExportedVersion().getVersion()+ " / Database="+model.getLatestDatabaseVersion().getVersion();
+        String label = "Version: Initial="+model.getInitialVersion().getVersion() + " / Current="+model.getCurrentVersion().getVersion()+ " / Latest db="+model.getDatabaseVersion().getVersion();
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -562,10 +766,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,                         // style
                 null,                                                       // helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem convertIds() {
+    private void showConvertIds() {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Convert old fashion IDs to Archi4";
 
@@ -584,10 +788,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,                         // style
                 null,                                                       // helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem showImagePath(String imagePath) {
+    private void showImagePath(String imagePath) {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/minus.png"), null));
         String path = (imagePath==null) ? "null" : imagePath;
 
@@ -608,10 +812,10 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 
-    static CommandContributionItem mergeModels() {
+    private void showMergeModels() {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Merge models";
 
@@ -630,6 +834,6 @@ public class DBMenu extends ExtensionContributionFactory {
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
                 true);
-        return new CommandContributionItem(p);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
 }

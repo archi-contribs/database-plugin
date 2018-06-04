@@ -925,7 +925,7 @@ public class DBGuiExportModel extends DBGui {
 		
         
         if ( this.exportedModel.getInitialVersion().getVersion() == 0 && this.selectedDatabase.isCollaborativeMode() && !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-        	popup(Level.WARN, "You selected the collaborative mode in the preferences, but the model has not been imported from a database.\n\nWe temporarily switch to standalone mode.");
+        	popup(Level.WARN, "You selected the collaborative mode in the preferences, but the model has not been imported from a database.\n\nTherefore, the database plugin does not know the initial state of your model's components and will temporarily switch to standalone mode.");
         	this.selectedDatabase.setCollaborativeMode(false);
         }
 	      
@@ -1107,14 +1107,15 @@ public class DBGuiExportModel extends DBGui {
 			return true;
 		
         try {
-        	 this.exportConnection.getVersionsFromDatabase(this.exportedModel);
-        	 if ( this.selectedDatabase.isWholeModelExported() ) {
-        		 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-                 while ( viewsIterator.hasNext() ) {
-                     IDiagramModel view = viewsIterator.next().getValue();
-                     this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-                 }
-        	 }
+            this.exportConnection.getModelVersionsFromDatabase(this.exportedModel);
+            this.exportConnection.getVersionsFromDatabase(this.exportedModel);
+            if ( this.selectedDatabase.isWholeModelExported() ) {
+                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+                while ( viewsIterator.hasNext() ) {
+                    IDiagramModel view = viewsIterator.next().getValue();
+                    this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
+                }
+            }
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
@@ -1513,7 +1514,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		// we calculate the new model checksum
 		try {
-            this.exportedModel.getExportedVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
+            this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException err) {
             popup(Level.FATAL, "Failed to calculate the model's checksum.", err);
             setActiveAction(STATUS.Error);
@@ -1755,9 +1756,10 @@ public class DBGuiExportModel extends DBGui {
     			} catch (SQLException err2) {
     			    SQLError = err2;
     			}
-                doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-                popup(Level.FATAL, "An error occurred while exporting the components.", err);
                 if ( SQLError != null ) {
+                    doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+                    popup(Level.FATAL, "An error occurred while exporting the components.", err);
+
                     doShowResult(STATUS.Error, "Error while exporting model.\n"+SQLError.getMessage());
                     popup(Level.FATAL, "The transaction failed to rollback and the database is left in an unknown state.\n\nPlease check carrefully your database !", SQLError);
                 }
@@ -1776,7 +1778,7 @@ public class DBGuiExportModel extends DBGui {
 			        	 toInt(this.txtNewElementsInDatabase.getText()) == 0 && toInt(this.txtNewRelationshipsInDatabase.getText()) == 0 && toInt(this.txtNewFoldersInDatabase.getText()) == 0 && toInt(this.txtNewViewsInDatabase.getText()) == 0 && toInt(this.txtNewViewObjectsInDatabase.getText()) == 0 && toInt(this.txtNewViewConnectionsInDatabase.getText()) == 0 &&
 			        	 toInt(this.txtUpdatedElementsInDatabase.getText()) == 0 && toInt(this.txtUpdatedRelationshipsInDatabase.getText()) == 0 && toInt(this.txtUpdatedFoldersInDatabase.getText()) == 0 && toInt(this.txtUpdatedViewsInDatabase.getText()) == 0 && toInt(this.txtUpdatedViewObjectsInDatabase.getText()) == 0 && toInt(this.txtUpdatedViewConnectionsInDatabase.getText()) == 0 &&
 			        	 toInt(this.txtConflictingElements.getText()) == 0 && toInt(this.txtConflictingRelationships.getText()) == 0 && toInt(this.txtConflictingFolders.getText()) == 0 && toInt(this.txtConflictingViews.getText()) == 0 && toInt(this.txtConflictingViewObjects.getText()) == 0 && toInt(this.txtConflictingViewConnections.getText()) == 0 &&
-			        	 this.exportedModel.getExportedVersion().getChecksum().equals(this.exportedModel.getInitialVersion().getChecksum()) ) {
+			        	 this.exportedModel.getCurrentVersion().getChecksum().equals(this.exportedModel.getInitialVersion().getChecksum()) ) {
 						this.exportConnection.rollback();
 					    this.exportConnection.setAutoCommit(true);
 						setActiveAction(STATUS.Ok);
@@ -1828,16 +1830,16 @@ public class DBGuiExportModel extends DBGui {
 	void copyExportedVersionToCurrentVersion() {
 		if ( logger.isDebugEnabled() ) logger.debug("updating current versions from exported versions");
 		
-	    this.exportedModel.getInitialVersion().setVersion(this.exportedModel.getExportedVersion().getVersion());
-        this.exportedModel.getInitialVersion().setChecksum(this.exportedModel.getExportedVersion().getChecksum());
-        this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+	    this.exportedModel.getInitialVersion().setVersion(this.exportedModel.getCurrentVersion().getVersion());
+        this.exportedModel.getInitialVersion().setChecksum(this.exportedModel.getCurrentVersion().getChecksum());
+        this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
         
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
             dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
             dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
@@ -1845,7 +1847,7 @@ public class DBGuiExportModel extends DBGui {
             DBMetadata dbMetadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
             dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
             dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
@@ -1853,7 +1855,7 @@ public class DBGuiExportModel extends DBGui {
             DBMetadata dbMetadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
             dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
             dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
@@ -1861,7 +1863,7 @@ public class DBGuiExportModel extends DBGui {
             DBMetadata dbMetadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
             dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
             dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getExportedVersion().getTimestamp());
+            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
         }
         
         Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
@@ -1960,26 +1962,32 @@ public class DBGuiExportModel extends DBGui {
 	    } else
             throw new Exception("At the moment, we cannot export a "+eObjectToExport.getClass().getSimpleName()+" :(");
 		
+        String debugMessage = null;
 		if ( forceExport ) {
+		    debugMessage = "The "+objectClass+" is in Force Export mode, we must export it to the database.";
 		    mustExport = true;
 		} else {
 		    switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() ) {
                 case isNewInModel:
+                    debugMessage = "The "+objectClass+" has been created in the model, we must export it to the database.";
                     mustExport = true;
                     break;
                 case isUpadtedInDatabase:
+                    debugMessage = "The "+objectClass+" has been updated in the database, we must import it from the database.";
                     mustImport = true;
                     break;
                 case isUpdatedInModel:
+                    debugMessage = "The "+objectClass+" has been updated in the model, we must export it to the database.";
                     mustExport = true;
                     break;
                 case isDeletedInDatabase:
+                    debugMessage = "The "+objectClass+" has been deleted in the database, we must delete it from the model.";
                     mustDelete = true;
                     break;
                 case IsConflicting:
                     if ( eObjectToExport instanceof IDiagramModel && DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getContainerChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getContainerChecksum()) ) {
+                        debugMessage = "The "+objectClass+" has not been updated, but its content has, we must export it to the database.";
                         mustExport = true;
-                        ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseVersion().getVersion());
                     } else {
                         if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" conflicts with the version in the database.");
                         switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
@@ -1993,17 +2001,15 @@ public class DBGuiExportModel extends DBGui {
                                 incrementText(txtConflicting);
                                 return false;
                             case exportToDatabase :
-                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged to force export to the database. ");
+                                debugMessage = "The "+objectClass+" is tagged to force export to the database. ";
                                 mustExport = true;
                                 break;
                             case importFromDatabase :
-                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"import the database version\".");
+                                debugMessage = "The "+objectClass+" is tagged to import from to the database. ";
                                 mustImport = true;
                                 break;
-                            case doNotExport :
-                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"do not export\", so we keep it as it is.");
-                                break;
-                            default:
+                            default:    // case doNotExport :
+                                if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"do not export\", we keep it as it is.");
                                 break;
                         }
                     }
@@ -2017,7 +2023,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 
 		if ( mustExport ) {
-		    if ( logger.isDebugEnabled() )  logger.debug("The "+objectClass+" has been updated in Archi, we must export it");
+		    if ( logger.isDebugEnabled() )  logger.debug(debugMessage);
 		    
 			this.exportConnection.exportEObject(eObjectToExport, this);
 			
@@ -2030,7 +2036,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustImport ) {
-		    if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" has been updated in the database, we must import it");
+		    if ( logger.isDebugEnabled() ) logger.debug(debugMessage);
 		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 	            if ( eObjectToExport instanceof IArchimateElement )
@@ -2052,7 +2058,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustDelete ) {
-		    if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" has been deleted in the database. We delete it in the model.");
+		    if ( logger.isDebugEnabled() ) logger.debug(debugMessage);
 		                  
 		    if ( eObjectToExport instanceof IArchimateElement )
 		        this.delayedCommands.add(new DeleteArchimateElementCommand((IArchimateElement)eObjectToExport));
@@ -2357,7 +2363,7 @@ public class DBGuiExportModel extends DBGui {
 	
 	private boolean shallWeForceExport() {
 		return this.exportedModel.getInitialVersion().getVersion() == 0
-                || this.exportedModel.getExportedVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
+                || this.exportedModel.getCurrentVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
                 || !this.selectedDatabase.isCollaborativeMode()
                 || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 	}
