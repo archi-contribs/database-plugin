@@ -255,13 +255,18 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "ArchimateDiagramModel" :
             case "CanvasModel" :
             case "SketchModel" :					this.allViews.put(((IIdentifier)eObject).getId(), (IDiagramModel)eObject);
+            
 										            if ( mustCalculateChecksum ) {
-										                ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+										            	String checksum = checksumBuilder.toString();
+										            	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksum);
+										                ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
 										                ((IDBMetadata)eObject).getDBMetadata().setChecksumValid(true);
 										            }
+										            
 										            for ( EObject child: ((IDiagramModel)eObject).getChildren() ) {
 										                String subChecksum = countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
-										                if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
+										                if ( mustCalculateChecksum )
+										                	checksumBuilder.append(subChecksum);
 										            }
 										            break;
 
@@ -274,34 +279,37 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "DiagramModelReference" :
             case "CanvasModelSticky" :
             case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelObject)eObject);
-										            ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
+										            
+									                if ( mustCalculateChecksum )
+									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksumBuilder.toString());
+									                
 										            if ( eObject instanceof IDiagramModelContainer ) {
-										                if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
-										                for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
-										                    String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
-										                    if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
-										                }
-										            }
-										            if ( eObject instanceof IConnectable) {
-										                for ( EObject source: ((IConnectable)eObject).getSourceConnections() ) {
-										                    String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
-										                    if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum); 
-										                }
-										                for ( EObject target: ((IConnectable)eObject).getTargetConnections() ) {
-										                    String subChecksum = countObject(target, mustCalculateChecksum, parentDiagram);
-										                    if ( mustCalculateChecksum ) checksumBuilder.append(subChecksum);
-										                }
+										                
+									                	for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() )
+									                		countObject(child, mustCalculateChecksum, parentDiagram);
+									                	
+											            if ( eObject instanceof IConnectable) {
+											                for ( EObject source: ((IConnectable)eObject).getSourceConnections() )
+											                    countObject(source, mustCalculateChecksum, parentDiagram);
+											                
+											                for ( EObject target: ((IConnectable)eObject).getTargetConnections() )
+											                    countObject(target, mustCalculateChecksum, parentDiagram);
+											            }
 										            }
 										            break;
 
             case "CanvasModelConnection" :
             case "DiagramModelArchimateConnection":
             case "DiagramModelConnection" :			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
-										            ((IDBMetadata)eObject).getDBMetadata().setParentDiagram(parentDiagram);
+										            
+									                if ( mustCalculateChecksum )
+									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksumBuilder.toString());
 										            break;
 										
-										            case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
-										            if ( mustCalculateChecksum ) ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
+			
+										            if ( mustCalculateChecksum )
+										            	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 										
 										            // TODO : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 										            // so we do not use sub folders or elements in the checksum calculation anymore

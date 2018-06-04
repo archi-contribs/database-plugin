@@ -28,8 +28,6 @@ import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.model.DBArchimateModel;
 
 import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IDiagramModelContainer;
-import com.archimatetool.model.IDiagramModelObject;
 
 /**
  * This class holds the information required to connect to, to import from and export to a database
@@ -667,7 +665,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "created_by "+ this.USERNAME +" NOT NULL, "
                     + "created_on "+ this.DATETIME +" NOT NULL, "
                     + "checksum "+ this.OBJECTID +" NOT NULL, "
-                    + "container_checksum "+ this.OBJECTID +", "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
@@ -1016,7 +1013,6 @@ public class DBDatabaseConnection implements AutoCloseable {
         
         // convert from version 207 to 208
         //      - create metadata table
-        //      - create container_checksum column in views_objects table
         //      - drop columns source_connections and target_connections from views_objects and views_connections tables
         if ( dbVersion == 207 ) {
             DBGui.popup("Please wait while converting data.");
@@ -1030,23 +1026,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "value "+ this.TEXT +", "
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
-            
-            addColumn(this.schema+"views_objects", "container_checksum", this.OBJECTID, true, "");
-            
-            DBArchimateModel tempModel = new DBArchimateModel();
-            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
-                try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views_objects") ) {
-                    while ( result.next() ) {
-                        IDiagramModelObject viewObject;
-                        viewObject = importConnection.importViewObjectFromId(tempModel, result.getString("id"), result.getInt("version"), false);
-                        
-                        if ( viewObject instanceof IDiagramModelContainer ) 
-                            request("UPDATE "+this.schema+"views_objects SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(viewObject), result.getString("id"), result.getInt("version"));
-                    }
-                }
-            }
-            tempModel = null;
             
             dropColumn(this.schema+"views_objects", "source_connections");
             dropColumn(this.schema+"views_objects", "target_connections");

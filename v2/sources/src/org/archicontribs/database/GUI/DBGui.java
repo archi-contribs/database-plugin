@@ -81,7 +81,6 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
-import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
@@ -1305,7 +1304,7 @@ public class DBGui {
 		addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
 		
 		// for view containers, we compare the container checksums of the views themselves without their content 
-        if ( memoryObject instanceof IDiagramModelContainer )
+        if ( memoryObject instanceof IDiagramModel )
             addItemToCompareTable(tree, treeItem, "Container checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getContainerChecksum(), (String)databaseObject.get("container_checksum"));
 		
 	    refreshDisplay();

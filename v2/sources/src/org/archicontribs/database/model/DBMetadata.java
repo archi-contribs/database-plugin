@@ -10,9 +10,8 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelComponent;
-import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 
@@ -54,11 +53,6 @@ public class DBMetadata  {
 	 * Latest version of the component in the database whichever the model that modified the component 
 	 */
 	@Getter DBVersion latestDatabaseVersion = new DBVersion();
-	
-	/**
-	 * Parent diagram 
-	 */
-	@Getter @Setter private IDiagramModelComponent parentDiagram = null;
 	
 	/**
 	 * Used by remember is the component has been exported
@@ -117,35 +111,45 @@ public class DBMetadata  {
      * @see COMPONENT_STATUS
      */
     public DATABASE_STATUS getDatabaseStatus() {
-        // if database version is zero, it means that the component does not exist in the database version of the model
-        // so it is a new component in the model
-        if ( this.databaseVersion.getVersion() == 0 )
+    	DBArchimateModel model;
+    	
+    	if ( this.component instanceof IArchimateModelObject )
+    		model = (DBArchimateModel) ((IArchimateModelObject)this.component).getArchimateModel();
+    	else
+    		model = (DBArchimateModel) ((IDiagramModelComponent)this.component).getDiagramModel().getArchimateModel();
+    	
+        // if the initialVersion is zero, it means that the component does not exist in the database version of the model
+    	// therefore, it couldn't be imported
+        // thus it is a new component in the model
+        if ( this.initialVersion.getVersion() == 0 )
             return DATABASE_STATUS.isNewInModel;
         
-        // if latest database version is zero, it means that the component did exist in the database version of the model,
-        // but it does not exist anymore in the latest version of the database model,
-        // so it means that it has been deleted from the database version of the model by another user
-        if ( this.latestDatabaseVersion.getVersion() == 0 )
-            return DATABASE_STATUS.isDeletedInDatabase;
+        // The tests are not the same if there is a new version of the model in the database or not ...
         
-        // if the latest database checksum equals the current checksum,
-        // this means that the component is synced between the model and the database
-        if ( DBPlugin.areEqual(this.latestDatabaseVersion.getChecksum(), this.currentVersion.getChecksum()) )
+        if ( (model.getExportedVersion().getVersion() - model.getInitialVersion().getVersion()) == 1 ) {
+        	// if nobody created a new version of the database since it has been imported, then only the initialChecksum and currentChecksum matter
+        	
+        	// if the checksum are identical, it means that the component has not been updated since it has been imported
+        	if ( DBPlugin.areEqual(this.currentVersion.getChecksum(), this.initialVersion.getChecksum()) )
+                return DATABASE_STATUS.isSynced;
+        	
+        	// else, it means that it has been updated since it has been imported
+        	return DATABASE_STATUS.isUpdatedInModel;
+        }
+        
+        // if someone created a new version of the model in the database since we imported it, then we need to determine its status compared to the database
+        	
+        // if the databaseVersion is zero, then it means that the component did not exist in the latest version of the model anymore
+        if ( this.databaseVersion.getVersion() == 0 )
+        	return DATABASE_STATUS.isDeletedInDatabase;
+
+        // if the currentChecksum equals the latestDatabasechecksum, this means that the component is synced between the model and the database
+        if ( DBPlugin.areEqual(this.currentVersion.getChecksum(), this.latestDatabaseVersion.getChecksum()) )
             return DATABASE_STATUS.isSynced;
         
-        String initialChecksum;
-        String currentChecksum;
-        String databaseChecksum;
-        
-        if ( this.component instanceof IDiagramModelContainer && !(this.component instanceof IDiagramModel) ) {
-        	initialChecksum = this.initialVersion.getContainerChecksum();
-        	currentChecksum = this.currentVersion.getContainerChecksum();
-        	databaseChecksum =this.databaseVersion.getContainerChecksum();
-        } else {
-        	initialChecksum = this.initialVersion.getChecksum();
-        	currentChecksum = this.currentVersion.getChecksum();
-        	databaseChecksum =this.databaseVersion.getChecksum();
-        }
+        String initialChecksum = this.initialVersion.getChecksum();
+        String currentChecksum = this.currentVersion.getChecksum();
+        String databaseChecksum= this.databaseVersion.getChecksum();
         
         // if the components checksum in the model has been modified since the component has been imported
         // this means that the component has been updated in the model

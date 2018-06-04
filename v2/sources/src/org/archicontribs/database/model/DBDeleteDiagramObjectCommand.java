@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 
@@ -59,7 +60,7 @@ public class DBDeleteDiagramObjectCommand extends Command {
                 for ( IDiagramModelObject child: this.viewObjectChildren )
                     this.viewObjectParent.getChildren().add(child);
             }
-            ((IDBMetadata)((IDBMetadata)this.viewObject).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
+            ((IDBMetadata)((IDiagramModelComponent)this.viewObject).getDiagramModel()).getDBMetadata().setChecksumValid(false);
             ((DBArchimateModel)this.model).getAllViewObjects().remove(this.viewObject.getId());
             this.viewObjectParent.getChildren().remove(this.viewObject);
         }

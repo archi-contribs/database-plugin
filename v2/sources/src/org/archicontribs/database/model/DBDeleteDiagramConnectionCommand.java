@@ -34,7 +34,7 @@ public class DBDeleteDiagramConnectionCommand extends Command {
     @Override
     public void execute() {
         ((DBArchimateModel)this.fModel).getAllViewObjects().remove(this.fConnection.getId());
-        ((IDBMetadata)((IDBMetadata)this.fConnection).getDBMetadata().getParentDiagram()).getDBMetadata().setChecksumValid(false);
+        ((IDBMetadata)(this.fConnection).getDiagramModel()).getDBMetadata().setChecksumValid(false);
         this.fConnection.disconnect();
     }
     

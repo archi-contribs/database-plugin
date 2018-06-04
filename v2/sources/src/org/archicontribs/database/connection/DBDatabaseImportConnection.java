@@ -152,7 +152,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)", id);
 				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)", id);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum, container_checksum FROM "+this.schema+"views v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum, container_checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)", id);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, created_by, created_on, checksum FROM "+this.schema+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)", id);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"views_connections WHERE id = v.id)", id);
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			} else {        
@@ -160,7 +160,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) result = select("SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, created_by, created_on, checksum FROM "+this.schema+"relationships WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IFolder") ) result = select("SELECT id, version, type, name, documentation, created_by, created_on, checksum FROM "+this.schema+"folders WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) result = select("SELECT id, version, class, name, documentation, hint_content, hint_title, created_by, created_on, background, connection_router_type, viewpoint, checksum, container_checksum FROM "+this.schema+"views WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
+				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) result = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum FROM "+this.schema+"views_objects WHERE id = ? AND version = ?", id, version);
 				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) result = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, checksum FROM "+this.schema+"views_connections v WHERE id = ? AND version = ?", id, version);
 				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
 			}
@@ -345,7 +345,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.importViewsRequest = selectViewsRequest + " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
-		String selectViewsObjectsRequest = "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
+		String selectViewsObjectsRequest = "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum"
 				+ " FROM "+this.schema+"views_objects"
 				+ " JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+ " JOIN "+this.schema+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = "+versionToImport
@@ -628,7 +628,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum"
+		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -654,7 +654,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 				((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-                ((IDBMetadata)eObject).getDBMetadata().getInitialVersion().setContainerChecksum(this.currentResultSet.getString("container_checksum"));
 
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
@@ -698,11 +697,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
-				
-				if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)eObject).getId())) {
-					logger.trace("--------------------------- importViewsObjects");
-					logger.trace(Dumper.dump(eObject));
-				}
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -1032,25 +1026,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 
 			setDocumentation(folder, result.getString("documentation"));
+			((IDBMetadata)folder).getDBMetadata().setRootFolderType(result.getInt("root_type"));
 
-			try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", folder.getId()) ) {
-				IFolder parentFolder = null;
-				int latestVersion = 0;
-				// if the folder has been part of the model, even in a previous version of the model, we restore the folder in that folder
-
-				while ( resultParentFolder.next() ) {
-					if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-						parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-						((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("folder_version"));
-					}
-					latestVersion = Math.max(latestVersion, resultParentFolder.getInt("folder_version"));
-				}
-				((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
-
-				assignToFolder(model, folder, parentFolder, result.getInt("root_type"));
-			}
-
-			if ( hasJustBeenCreated )
+			if ( hasJustBeenCreated ) 
 				model.countObject(folder, false, null);
 
 			++this.countFoldersImported;
@@ -1143,23 +1121,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			setDocumentation(element, result.getString("documentation"));
 			setType(element, result.getString("type"));
-
-			try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", element.getId()) ) {
-				IFolder parentFolder = null;
-				int latestVersion = 0;
-
-				// if the element has been part of the model, even in a previous version of the model, we restore the element in that folder
-				while ( resultParentFolder.next() ) {
-					if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-						parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-						((IDBMetadata)element).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("element_version"));
-					}
-					latestVersion = Math.max(latestVersion, resultParentFolder.getInt("element_version"));
-				}
-				((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
-
-				assignToFolder(model, element, parentFolder);
-			}
 
 			if ( view != null && componentToConnectable(view, element).isEmpty() ) {
 				view.getChildren().add(ArchimateDiagramModelFactory.createDiagramModelArchimateObject(element));
@@ -1319,23 +1280,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			importProperties(relationship);
 
-			try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", relationship.getId()) ) {
-				IFolder parentFolder = null;
-				int latestVersion = 0;
-
-				// if the relationship has been part of the model, even in a previous version of the model, we restore the relationship in that folder
-				while ( resultParentFolder.next() ) {
-					if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-						parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-						((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("relationship_version"));
-					}
-					latestVersion = Math.max(latestVersion, resultParentFolder.getInt("relationship_version"));
-				}
-				((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
-
-				assignToFolder(model, relationship, parentFolder);
-			}
-
 			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
 			// and create the corresponding connections
 			// TODO : make an option with this functionality that the user can choose if he want the connections or not
@@ -1441,23 +1385,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			setHintTitle(view, result.getString("hint_title"));
 		}
 
-		try ( ResultSet resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version)", view.getId()) ) {
-			IFolder parentFolder = null;
-			int latestVersion = 0;
-
-			// if the view has been part of the model, even in a previous version of the model, we restore the view in that folder
-			while ( resultParentFolder.next() ) {
-				if ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-					parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-					((IDBMetadata)view).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("view_version"));
-				}
-				latestVersion = Math.max(latestVersion, resultParentFolder.getInt("view_version"));
-			}
-			((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
-
-			assignToFolder(model, view, parentFolder);
-		}
-
 		importProperties(view);
 
 		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
@@ -1503,7 +1430,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		EObject viewObject = null;
 		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views_objects WHERE id = v.id)" : String.valueOf(version);
 
-		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, container_checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
+		try ( ResultSet resultViewObject = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on FROM "+this.schema+"views_objects v WHERE id = ? AND version = "+versionString, id) ) {
 			resultViewObject.next();
 
 			viewObject = model.getAllViewObjects().get(id);
@@ -1517,30 +1444,24 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(1);
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
-                ((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(1);
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
-                ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			} else {
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setVersion(resultViewObject.getInt("version"));
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setChecksum(resultViewObject.getString("checksum"));
-                ((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 				((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(resultViewObject.getInt("version"));
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setChecksum(resultViewObject.getString("checksum"));
-                ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 				((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			}
 			
 			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setVersion(resultViewObject.getInt("version"));
 			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-            ((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 			((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setVersion(resultViewObject.getInt("version"));
 			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setChecksum(resultViewObject.getString("checksum"));
-            ((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setContainerChecksum(resultViewObject.getString("container_checksum"));
 			((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().setTimestamp(resultViewObject.getTimestamp("created_on"));
 
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
@@ -1603,11 +1524,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			// If the object has got properties but does not have a linked element, then it may have distinct properties
 			if ( viewObject instanceof IProperties && resultViewObject.getString("element_id")==null ) {
 				importProperties((IProperties)viewObject);
-			}
-			
-			if ( DBPlugin.areEqual("adfe3e29-578b-469c-8130-0d5d2ae73c52", ((IIdentifier)viewObject).getId())) {
-				logger.trace("------------------------------- importViewObjectFromId");
-				Dumper.dump(viewObject);
 			}
 
 			model.countObject(viewObject, false, null);
@@ -1960,6 +1876,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 
 	private static void assignToFolder(DBArchimateModel model, IFolder folder, IFolder parentFolder, int folderType) {
+		// does not work with top level folders
+		if ( folder.getType().getValue() != 0 )
+			return;
+		
 		IFolder newFolder = (parentFolder != null) ? parentFolder : model.getFolder(FolderType.get(folderType));
 		IFolder currentFolder = model.getFolder(folder);
 
@@ -1972,6 +1892,41 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( newFolder != null ) {
 			if ( logger.isTraceEnabled() ) logger.trace("   Adding "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
 			newFolder.getFolders().add(folder);
+		}
+	}
+	
+	public void changeComponentFromFolder(DBArchimateModel model, IArchimateModelObject eObject) throws Exception {
+		@SuppressWarnings("resource")
+		ResultSet resultParentFolder = null;
+
+		try {
+			if ( eObject instanceof IArchimateElement ) 		  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version AS component_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY element_version DESC", eObject.getId());
+			else if ( eObject instanceof IArchimateRelationship ) resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version AS component_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY relationship_version DESC", eObject.getId());
+			else if ( eObject instanceof IFolder ) 				  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version AS component_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY folder_version DESC", eObject.getId());
+			else if ( eObject instanceof IDiagramModel ) 		  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version AS component_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY view_version DESC", eObject.getId());
+			else throw new Exception("Do not know how to get the folder of a "+eObject.getClass().getSimpleName());
+
+			IFolder parentFolder = null;
+			int latestVersion = 0;
+	
+			// if the component has been part of the model, even in a previous version of the model, we restore the component in that folder
+			if ( resultParentFolder.next() ) {
+				while ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
+					parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
+					latestVersion = resultParentFolder.getInt("component_version");
+					((IDBMetadata)eObject).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("component_version"));
+					break;
+				}
+			}
+			((IDBMetadata)eObject).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
+	
+			if ( eObject instanceof IFolder ) 
+				assignToFolder(model, (IFolder)eObject, parentFolder, ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
+			else
+				assignToFolder(model, eObject, parentFolder);
+		} finally {
+			if ( resultParentFolder != null )
+				resultParentFolder.close();
 		}
 	}
 }
