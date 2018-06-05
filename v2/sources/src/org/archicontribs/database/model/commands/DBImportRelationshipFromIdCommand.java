@@ -40,6 +40,8 @@ import com.archimatetool.model.IProperty;
 public class DBImportRelationshipFromIdCommand extends Command {
     private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
     
+    private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+    
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
@@ -111,6 +113,9 @@ public class DBImportRelationshipFromIdCommand extends Command {
     
     @Override
     public void execute() {
+    	if ( this.commandHasBeenExecuted )
+    		return;		// we do not execute it twice
+    	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
                 logger.debug("Importing a copy of relationship id "+this.id+".");
@@ -233,10 +238,15 @@ public class DBImportRelationshipFromIdCommand extends Command {
             // TODO: find a way to advertise the user as exceptions cannot be thrown
             logger.error("Failed to import relationship !!!", e);
         }
+        
+        this.commandHasBeenExecuted = true;
     }
     
     @Override
     public void undo() {
+    	if ( !this.commandHasBeenExecuted )
+    		return;
+    	
         // if a viewObject has been created, then we remove it from the view
         if ( (this.view != null) && (this.createdViewConnections != null) ) {
             for ( IDiagramModelConnection connection: this.createdViewConnections ) {
@@ -279,6 +289,8 @@ public class DBImportRelationshipFromIdCommand extends Command {
             for ( IProperty prop: this.oldProperties )
                 this.relationship.getProperties().add(prop);
         }
+        
+        this.commandHasBeenExecuted = false;
     }
 
     @Override

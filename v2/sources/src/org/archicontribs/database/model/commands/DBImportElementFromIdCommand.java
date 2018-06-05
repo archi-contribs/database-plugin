@@ -35,6 +35,8 @@ import com.archimatetool.model.IProperty;
 public class DBImportElementFromIdCommand extends Command {
     private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
     
+    private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+    
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
@@ -44,7 +46,7 @@ public class DBImportElementFromIdCommand extends Command {
     private boolean mustCreateCopy = false;
     @SuppressWarnings("unused")
     private boolean mustImportRelationships = false;
-    private boolean hasBeenCreated = false;
+    private boolean elementHasBeenCreated = false;
     
     // old values that need to be retain to allow undo
     private DBVersion oldInitialVersion;
@@ -106,6 +108,9 @@ public class DBImportElementFromIdCommand extends Command {
     
     @Override
     public void execute() {
+    	if ( this.commandHasBeenExecuted )
+    		return;		// we do not execute it twice
+    	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
                 logger.debug("*************************** Importing a copy of element id "+this.id+".");
@@ -132,7 +137,7 @@ public class DBImportElementFromIdCommand extends Command {
 
                 // as the element has just been created, the undo will just need to drop it
                 // so we do not need to save its properties
-                this.hasBeenCreated = true;
+                this.elementHasBeenCreated = true;
                 metadata = ((IDBMetadata)this.element).getDBMetadata();
                 
                 metadata.getInitialVersion().setVersion(0);
@@ -150,7 +155,7 @@ public class DBImportElementFromIdCommand extends Command {
                     
                     // as the element has just been created, the undo will just need to drop it
                     // so we do not need to save its properties
-                    this.hasBeenCreated = true;
+                    this.elementHasBeenCreated = true;
                     metadata = ((IDBMetadata)this.element).getDBMetadata();
                 } else {
                     // the element already exists in the model and will be updated with information from the database
@@ -195,7 +200,7 @@ public class DBImportElementFromIdCommand extends Command {
                     this.model.countObject(this.createdViewObject, false, null);
             }
 
-            if ( this.hasBeenCreated )
+            if ( this.elementHasBeenCreated )
                 this.model.countObject(this.element, false, null);
 
             // this.importConnection.setCountElementsImported(this.importConnection.getCountElementsImported() + 1);
@@ -227,17 +232,22 @@ public class DBImportElementFromIdCommand extends Command {
             // TODO: find a way to advertise the user as exceptions cannot be thrown
             logger.error("Failed to import element !!!", e);
         }
+        
+        this.commandHasBeenExecuted = true;
     }
     
     @Override
     public void undo() {
+    	if ( !this.commandHasBeenExecuted )
+    		return;
+    	
         // if a viewObject has been created, then we remove it from the view
         if ( (this.view != null) && (this.createdViewObject != null) ) {
             this.view.getChildren().remove(this.createdViewObject);
             this.model.getAllViewObjects().remove(this.createdViewObject.getId());
         }
         
-        if ( this.hasBeenCreated ) {
+        if ( this.elementHasBeenCreated ) {
             // if the element has been created by the execute() method, we just delete it
             IFolder parentFolder = (IFolder)this.element.eContainer();
             parentFolder.getElements().remove(this.element);
@@ -262,6 +272,8 @@ public class DBImportElementFromIdCommand extends Command {
             for ( IProperty prop: this.oldProperties )
                 this.element.getProperties().add(prop);
         }
+        
+        this.commandHasBeenExecuted = false;
     }
 
     @Override

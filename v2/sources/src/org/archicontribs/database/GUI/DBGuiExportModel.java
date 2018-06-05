@@ -1481,22 +1481,21 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called when the user clicks on the "Export" button
 	 */
 	protected void export() {
-		int progressBarWidth;
+		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size();
+		
+		logger.info("Exporting model : ");
+		logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
+		logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+		logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
+		logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
 		if ( this.selectedDatabase.isWholeModelExported() ) {
-			logger.info("Exporting model : ");
-			logger.info(String.format("   Elements:      Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-			logger.info(String.format("   Relationships: Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-			logger.info(String.format("   Folders:       Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
-			logger.info(String.format("   views:         Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
-			logger.info(String.format("   Objects:       Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
-			logger.info(String.format("   Connections:   Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-			progressBarWidth = this.exportedModel.getAllFolders().size()+this.exportedModel.getAllElements().size()+this.exportedModel.getAllRelationships().size()+this.exportedModel.getAllViews().size()+this.exportedModel.getAllViewObjects().size()+this.exportedModel.getAllViewConnections().size()+((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
-		} else {
-            logger.info("Exporting model : ");
-            logger.info(String.format("   Elements:      Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()),toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-            logger.info(String.format("   Relationships: Total = %6d   New = %6d   Updated = %6d   Deleted = %6d     New in db = %6d   Updated in db = %6d   Deleted in db = %6d   Conflicting = %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-			progressBarWidth = this.exportedModel.getAllElements().size()+this.exportedModel.getAllRelationships().size();
+			logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
+			logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
+			logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
+			logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
+			progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
 		}
+			
 
 		// we disable the export button to avoid a second click
 		this.btnDoAction.setEnabled(false);
@@ -1628,7 +1627,6 @@ public class DBGuiExportModel extends DBGui {
             if ( !this.exportCommands.getCommands().isEmpty() ) {
                 CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
                 stack.execute(this.exportCommands);
-                compareModelToDatabase();
             }
 
 			//TODO : put the imported components in a compound Command to allow rollback
@@ -1649,7 +1647,6 @@ public class DBGuiExportModel extends DBGui {
             if ( !this.exportCommands.isEmpty() ) {
                 CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
                 stack.execute(this.exportCommands);
-                compareModelToDatabase();
             }
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
@@ -1695,7 +1692,6 @@ public class DBGuiExportModel extends DBGui {
                 if ( !this.exportCommands.isEmpty() ) {
                     CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
                     stack.execute(this.exportCommands);
-                    compareModelToDatabase();
                 }
 			}
 			
