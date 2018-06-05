@@ -19,6 +19,13 @@ import lombok.Getter;
 public class DBVersion {
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
+    public DBVersion(DBVersion version) {
+        setVersion(version.getVersion());
+        setContainerChecksum(version.getContainerChecksum());
+        setChecksum(version.getChecksum());
+        setTimestamp(version.getTimestamp());
+    }
+    
     public DBVersion(int version, String checksum, Timestamp timestamp) {
         setVersion(version);
         setContainerChecksum(null);
