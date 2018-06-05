@@ -69,6 +69,13 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Latest version of the model in the database.
      */
     @Getter private DBVersion databaseVersion = new DBVersion();
+    
+    /**
+     * Determines it the model is the latest one in the database by comparing its currentVersion to the initialVersion
+     */
+    public boolean isTheLatestModelIntheDatabase() {
+        return (this.currentVersion.getVersion() - this.initialVersion.getVersion()) == 1;
+    }
 
     /**
      * List of all elements in the model.<br>

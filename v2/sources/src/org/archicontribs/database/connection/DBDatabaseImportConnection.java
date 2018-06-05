@@ -38,7 +38,6 @@ import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
-import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
@@ -619,7 +618,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
-		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum"
+		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -893,7 +892,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * - existing properties are updated with correct values if needed
 	 * - existing properties with correct values are left untouched 
 	 */
-	private void importProperties(IProperties parent) throws Exception {
+	public void importProperties(IProperties parent) throws Exception {
 		int version;
 		if ( parent instanceof IArchimateModel )
 			version = ((DBArchimateModel)parent).getInitialVersion().getVersion();
@@ -910,7 +909,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * - existing properties with correct values are left untouched 
 	 * @throws SQLException 
 	 */
-	private void importProperties(IProperties parent, String id, int version) throws SQLException {
+	public void importProperties(IProperties parent, String id, int version) throws SQLException {
 		// first, we delete all existing properties
 		parent.getProperties().clear();
 
@@ -1134,7 +1133,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			metadata.setDocumentation(result.getString("documentation"));
 			metadata.setType(result.getString("type"));
 
-			if ( view != null && componentToConnectable(view, element).isEmpty() ) {
+			if ( view != null && metadata.componentToConnectable(view).isEmpty() ) {
 				view.getChildren().add(ArchimateDiagramModelFactory.createDiagramModelArchimateObject(element));
 			}
 
@@ -1168,38 +1167,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			model.resolveTargetRelationships();
 		}
 		return element;
-	}
-
-	private List<IConnectable> componentToConnectable(IArchimateDiagramModel view, IArchimateConcept concept) {
-		List<IConnectable> connectables = new ArrayList<IConnectable>();
-		for ( IDiagramModelObject viewObject: view.getChildren() ) {
-			connectables.addAll(componentToConnectable((IDiagramModelArchimateComponent)viewObject, concept));
-		}
-		return connectables;
-	}
-
-	private List<IConnectable> componentToConnectable(IDiagramModelArchimateComponent component, IArchimateConcept concept) {
-		List<IConnectable> connectables = new ArrayList<IConnectable>();
-
-		if ( concept instanceof IArchimateElement ) {
-			if ( DBPlugin.areEqual(component.getArchimateConcept().getId(), concept.getId()) ) connectables.add(component);
-		} else if ( concept instanceof IArchimateRelationship ) {
-			for ( IDiagramModelConnection conn: component.getSourceConnections() ) {
-				if ( DBPlugin.areEqual(conn.getSource().getId(), concept.getId()) ) connectables.add(conn);
-				if ( DBPlugin.areEqual(conn.getTarget().getId(), concept.getId()) ) connectables.add(conn);
-			}
-			for ( IDiagramModelConnection conn: component.getTargetConnections() ) {
-				if ( DBPlugin.areEqual(conn.getSource().getId(), concept.getId()) ) connectables.add(conn);
-				if ( DBPlugin.areEqual(conn.getTarget().getId(), concept.getId()) ) connectables.add(conn);
-			}
-		}
-
-		if ( component instanceof IDiagramModelContainer ) {
-			for ( IDiagramModelObject child: ((IDiagramModelContainer)component).getChildren() ) {
-				connectables.addAll(componentToConnectable((IDiagramModelArchimateComponent)child, concept));
-			}
-		}
-		return connectables;
 	}
 
 	/**
@@ -1301,9 +1268,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
 			// and create the corresponding connections
 			// TODO : make an option with this functionality that the user can choose if he want the connections or not
-			if ( view != null && componentToConnectable(view, relationship).isEmpty() ) {
-				List<IConnectable> sourceConnections = componentToConnectable(view, relationship.getSource());
-				List<IConnectable> targetConnections = componentToConnectable(view, relationship.getTarget());
+			if ( view != null && metadata.componentToConnectable(view).isEmpty() ) {
+				List<IConnectable> sourceConnections = metadata.componentToConnectable(view, relationship.getSource());
+				List<IConnectable> targetConnections = metadata.componentToConnectable(view, relationship.getTarget());
 
 				for ( IConnectable sourceConnection: sourceConnections ) {
 					for ( IConnectable targetConnection: targetConnections ) {
@@ -1733,75 +1700,213 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( !this.isExportConnectionDuplicate )
 			super.close();
 	}
-
-	private static void assignToFolder(DBArchimateModel model, IArchimateModelObject eObject, IFolder parentFolder) {
-		IFolder newFolder = (parentFolder != null) ? parentFolder : model.getDefaultFolderForObject(eObject);
-		IFolder currentFolder = model.getFolder(eObject);
-
-		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
-			currentFolder.getElements().remove(eObject);
-
-		}
-
-		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("   Adding "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
-			newFolder.getElements().add(eObject);
-		}
-	}
-
-	private static void assignToFolder(DBArchimateModel model, IFolder folder, IFolder parentFolder, int folderType) {
-		// does not work with top level folders
-		if ( folder.getType().getValue() != 0 )
-			return;
-		
-		IFolder newFolder = (parentFolder != null) ? parentFolder : model.getFolder(FolderType.get(folderType));
-		IFolder currentFolder = model.getFolder(folder);
-
-		if ( (currentFolder != null) && (currentFolder != newFolder) ) {
-			if ( logger.isTraceEnabled() ) logger.trace("   Removing "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" from folder "+((IDBMetadata)currentFolder).getDBMetadata().getDebugName());
-			currentFolder.getFolders().remove(folder);
-
-		}
-
-		if ( newFolder != null ) {
-			if ( logger.isTraceEnabled() ) logger.trace("   Adding "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" to folder "+((IDBMetadata)newFolder).getDBMetadata().getDebugName());
-			newFolder.getFolders().add(folder);
-		}
-	}
 	
-	public void changeComponentFromFolder(DBArchimateModel model, IArchimateModelObject eObject) throws Exception {
-		@SuppressWarnings("resource")
-		ResultSet resultParentFolder = null;
+	/**
+	 * Check all the components in the database that have been move to a new folder and set them in the new folder<br>
+	 * <br>
+	 * This methods does nothing if the model is the latest in the database
+	 * @param model
+	 * @throws Exception
+	 */
+    public void setFolderToLastKnown(DBArchimateModel model) throws Exception {
+        if ( model .isLatestVersionImported() )
+            return;
 
-		try {
-			if ( eObject instanceof IArchimateElement ) 		  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, element_version AS component_version FROM elements_in_model WHERE element_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY element_version DESC", eObject.getId());
-			else if ( eObject instanceof IArchimateRelationship ) resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, relationship_version AS component_version FROM relationships_in_model WHERE relationship_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY relationship_version DESC", eObject.getId());
-			else if ( eObject instanceof IFolder ) 				  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, folder_version AS component_version FROM folders_in_model WHERE folder_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY folder_version DESC", eObject.getId());
-			else if ( eObject instanceof IDiagramModel ) 		  resultParentFolder = select("SELECT model_id, model_version, parent_folder_id, view_version AS component_version FROM views_in_model WHERE view_id = ? GROUP BY model_id HAVING model_version = MAX(model_version) ORDER BY view_version DESC", eObject.getId());
-			else throw new Exception("Do not know how to get the folder of a "+eObject.getClass().getSimpleName());
+        // elements
+        try ( ResultSet result = select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
+                + " FROM elements_in_model m1"
+                + " JOIN elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
+                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+                , model.getId()
+                , model.getInitialVersion().getVersion()
+                , model.getDatabaseVersion().getVersion()
+                ) ) {
+            while (result.next() ) {
+                IArchimateElement element = model.getAllElements().get(result.getString("element_id"));
+                if ( element != null ) {
+                    ((IDBMetadata)element).getDBMetadata().setParentFolder(model.getAllFolders().get("parent_folder_id"));
+                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+                    if ( parentFolder != null )
+                        ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
+                }
+            }
+        }
 
-			IFolder parentFolder = null;
-			int latestVersion = 0;
-	
-			// if the component has been part of the model, even in a previous version of the model, we restore the component in that folder
-			if ( resultParentFolder.next() ) {
-				while ( DBPlugin.areEqual(model.getId(), resultParentFolder.getString("model_id")) ) {
-					parentFolder = model.getAllFolders().get(resultParentFolder.getString("parent_folder_id"));
-					latestVersion = resultParentFolder.getInt("component_version");
-					((IDBMetadata)eObject).getDBMetadata().getDatabaseVersion().setVersion(resultParentFolder.getInt("component_version"));
-					break;
-				}
-			}
-			((IDBMetadata)eObject).getDBMetadata().getLatestDatabaseVersion().setVersion(latestVersion);
-	
-			if ( eObject instanceof IFolder ) 
-				assignToFolder(model, (IFolder)eObject, parentFolder, ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
-			else
-				assignToFolder(model, eObject, parentFolder);
-		} finally {
-			if ( resultParentFolder != null )
-				resultParentFolder.close();
-		}
-	}
+        // relationships
+        try ( ResultSet result = select("SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
+                + " FROM relationships_in_model m1"
+                + " JOIN relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
+                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+                , model.getId()
+                , model.getInitialVersion().getVersion()
+                , model.getDatabaseVersion().getVersion()
+                ) ) {
+            while (result.next() ) {
+                IArchimateRelationship relationship = model.getAllRelationships().get(result.getString("relationship_id"));
+                if ( relationship != null ) {
+                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+                    if ( parentFolder != null )
+                        ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
+                }
+            }
+        }
+        
+        // folders
+        try ( ResultSet result = select("SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
+                + " FROM folders_in_model m1"
+                + " JOIN folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
+                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+                , model.getId()
+                , model.getInitialVersion().getVersion()
+                , model.getDatabaseVersion().getVersion()
+                ) ) {
+            while (result.next() ) {
+                IFolder folder = model.getAllFolders().get(result.getString("view_id"));
+                if ( folder != null ) {
+                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+                    if ( parentFolder != null )
+                        ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
+                }
+            }
+        }
+        
+        // views
+        try ( ResultSet result = select("SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
+                + " FROM views_in_model m1"
+                + " JOIN views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
+                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+                , model.getId()
+                , model.getInitialVersion().getVersion()
+                , model.getDatabaseVersion().getVersion()
+                ) ) {
+            while (result.next() ) {
+                IDiagramModel view = model.getAllViews().get(result.getString("view_id"));
+                if ( view != null ) {
+                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+                    if ( parentFolder != null )
+                        ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+     * <br>
+     * if the component has never been part of the model, then is it set in the default folder for this component
+     * @param model
+     * @throws Exception
+     */
+    public void setFolderToLastKnown(DBArchimateModel model, IArchimateElement element) throws Exception {
+        IFolder parentFolder = null;
+
+        if ( !model.isLatestVersionImported() ) {
+            try ( ResultSet result = select("SELECT parent_folder_id"
+                    + " FROM elements_in_model"
+                    + " WHERE model_id = ? and element_id = ?"
+                    + " GROUP BY model_id"
+                    + " HAVING model_version = MAX(model_version)"
+                    , model.getId()
+                    , element.getId()
+                    ) ) {
+                if ( result.next() )
+                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+            }
+        }
+        
+        if (parentFolder == null )
+            parentFolder = model.getDefaultFolderForObject(element);
+        
+        ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
+    }
+    
+    /**
+     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+     * <br>
+     * if the component has never been part of the model, then is it set in the default folder for this component
+     * @param model
+     * @throws Exception
+     */
+    public void setFolderToLastKnown(DBArchimateModel model, IArchimateRelationship relationship) throws Exception {
+        IFolder parentFolder = null;
+
+        if ( !model.isLatestVersionImported() ) {
+            try ( ResultSet result = select("SELECT parent_folder_id"
+                    + " FROM relationships_in_model"
+                    + " WHERE model_id = ? and relationship_id = ?"
+                    + " GROUP BY model_id"
+                    + " HAVING model_version = MAX(model_version)"
+                    , model.getId()
+                    , relationship.getId()
+                    ) ) {
+                if ( result.next() )
+                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+            }
+        }
+        
+        if (parentFolder == null )
+            parentFolder = model.getDefaultFolderForObject(relationship);
+        
+        ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
+    }
+    
+    /**
+     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+     * <br>
+     * if the component has never been part of the model, then is it set in the default folder for this component
+     * @param model
+     * @throws Exception
+     */
+    public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
+        IFolder parentFolder = null;
+
+        if ( !model.isLatestVersionImported() ) {
+            try ( ResultSet result = select("SELECT parent_folder_id"
+                    + " FROM folders_in_model"
+                    + " WHERE model_id = ? and folder_id = ?"
+                    + " GROUP BY model_id"
+                    + " HAVING model_version = MAX(model_version)"
+                    , model.getId()
+                    , folder.getId()
+                    ) ) {
+                if ( result.next() )
+                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+            }
+        }
+        
+        if (parentFolder == null )
+            parentFolder = model.getFolder(((IDBMetadata)folder).getDBMetadata().getFolderType());
+        
+        ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
+    }
+    
+    /**
+     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+     * <br>
+     * if the component has never been part of the model, then is it set in the default folder for this component
+     * @param model
+     * @throws Exception
+     */
+    public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
+        IFolder parentFolder = null;
+
+        if ( !model.isLatestVersionImported() ) {
+            try ( ResultSet result = select("SELECT parent_folder_id"
+                    + " FROM views_in_model"
+                    + " WHERE model_id = ? and view_id = ?"
+                    + " GROUP BY model_id"
+                    + " HAVING model_version = MAX(model_version)"
+                    , model.getId()
+                    , view.getId()
+                    ) ) {
+                if ( result.next() )
+                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+            }
+        }
+        
+        if (parentFolder == null )
+            parentFolder = model.getDefaultFolderForObject(view);
+        
+        ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
+    }
 }
