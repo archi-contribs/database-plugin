@@ -20,10 +20,7 @@ public class DBVersion {
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
     public DBVersion(DBVersion version) {
-        setVersion(version.getVersion());
-        setContainerChecksum(version.getContainerChecksum());
-        setChecksum(version.getChecksum());
-        setTimestamp(version.getTimestamp());
+        set(version);
     }
     
     public DBVersion(int version, String checksum, Timestamp timestamp) {
@@ -50,6 +47,13 @@ public class DBVersion {
         setContainerChecksum(null);
         setChecksum(null);
         setTimestamp(null);
+    }
+    
+    public void set(DBVersion version) {
+        setVersion(version.getVersion());
+        setContainerChecksum(version.getContainerChecksum());
+        setChecksum(version.getChecksum());
+        setTimestamp(version.getTimestamp());
     }
     
     @Getter private int version;
