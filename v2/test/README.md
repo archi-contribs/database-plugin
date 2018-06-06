@@ -10,13 +10,12 @@ The beta5 release is now nearly fully functional :) and is compatible with both 
 
 Please do not forget to fill in an issue if you discover a misbehaviour.
 
-
 ## Known bugs:
-These bugs should be solved before the release of version 2.1:
+These bugs need to be solved before the release of version 2.1:
 * The sync process cannot (yet) be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
+* When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
 * In the "import individual component", the "ignore case" button seems to malfunction, importing embedded views does not recursively imports the linked view and the images may not be imported as expected
-* The plugins requires a lot of memory, often leading to increase the JVM size (java parameter -Xmx)
-* The SQL Server database is not managed well
+* The plugins requires a lot of memory, often leading to increase the JVM size (set java parameter -Xmx1024 in Archi.ini file)
 
 ## Planned improvements
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
