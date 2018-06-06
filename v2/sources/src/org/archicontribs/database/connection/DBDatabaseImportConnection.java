@@ -1801,7 +1801,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         IFolder parentFolder = null;
 
         if ( !model.isLatestVersionImported() ) {
-            try ( ResultSet result = select("SELECT parent_folder_id"
+            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM elements_in_model"
                     + " WHERE model_id = ? and element_id = ?"
                     + " GROUP BY model_id"
@@ -1831,7 +1831,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         IFolder parentFolder = null;
 
         if ( !model.isLatestVersionImported() ) {
-            try ( ResultSet result = select("SELECT parent_folder_id"
+            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM relationships_in_model"
                     + " WHERE model_id = ? and relationship_id = ?"
                     + " GROUP BY model_id"
@@ -1861,7 +1861,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         IFolder parentFolder = null;
 
         if ( !model.isLatestVersionImported() ) {
-            try ( ResultSet result = select("SELECT parent_folder_id"
+            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM folders_in_model"
                     + " WHERE model_id = ? and folder_id = ?"
                     + " GROUP BY model_id"
@@ -1891,7 +1891,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         IFolder parentFolder = null;
 
         if ( !model.isLatestVersionImported() ) {
-            try ( ResultSet result = select("SELECT parent_folder_id"
+            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM views_in_model"
                     + " WHERE model_id = ? and view_id = ?"
                     + " GROUP BY model_id"
