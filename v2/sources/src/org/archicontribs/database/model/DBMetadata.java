@@ -231,6 +231,8 @@ public class DBMetadata  {
 
     /**
      * @return the list of views objects that reference the component
+     * @param view view in which the concept should be searched in
+     * @param concept Archimate concept to search in the view
      */
     public List<IConnectable> componentToConnectable(IArchimateDiagramModel view, IArchimateConcept concept) {
         List<IConnectable> connectables = new ArrayList<IConnectable>();
@@ -245,25 +247,27 @@ public class DBMetadata  {
 
     /**
      * @return the list of views objects that reference the component
+     * @param parentComponent View object in which the concept should be searched in
+     * @param concept Archimate concept to search in the view object
      */
-    private List<IConnectable> toConnectable(IDiagramModelArchimateComponent component, IArchimateConcept concept) {
+    private List<IConnectable> toConnectable(IDiagramModelArchimateComponent parentComponent, IArchimateConcept concept) {
         List<IConnectable> connectables = new ArrayList<IConnectable>();
 
         if ( concept instanceof IArchimateElement ) {
-            if ( DBPlugin.areEqual(component.getArchimateConcept().getId(), concept.getId()) ) connectables.add(component);
+            if ( DBPlugin.areEqual(parentComponent.getArchimateConcept().getId(), concept.getId()) ) connectables.add(parentComponent);
         } else if ( concept instanceof IArchimateRelationship ) {
-            for ( IDiagramModelConnection conn: component.getSourceConnections() ) {
+            for ( IDiagramModelConnection conn: parentComponent.getSourceConnections() ) {
                 if ( DBPlugin.areEqual(conn.getSource().getId(), concept.getId()) ) connectables.add(conn);
                 if ( DBPlugin.areEqual(conn.getTarget().getId(), concept.getId()) ) connectables.add(conn);
             }
-            for ( IDiagramModelConnection conn: component.getTargetConnections() ) {
+            for ( IDiagramModelConnection conn: parentComponent.getTargetConnections() ) {
                 if ( DBPlugin.areEqual(conn.getSource().getId(), concept.getId()) ) connectables.add(conn);
                 if ( DBPlugin.areEqual(conn.getTarget().getId(), concept.getId()) ) connectables.add(conn);
             }
         }
 
-        if ( component instanceof IDiagramModelContainer ) {
-            for ( IDiagramModelObject child: ((IDiagramModelContainer)component).getChildren() ) {
+        if ( parentComponent instanceof IDiagramModelContainer ) {
+            for ( IDiagramModelObject child: ((IDiagramModelContainer)parentComponent).getChildren() ) {
                 connectables.addAll(toConnectable((IDiagramModelArchimateComponent)child, concept));
             }
         }
