@@ -322,8 +322,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	            throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
 	
 	        if ( currentVersion != databaseVersion ) {
-	            if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") )
+	            if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
 	                upgradeDatabase(currentVersion);
+	                DBGui.popup(Level.INFO, "Database successfully upgraded.");
+	            }
 	            else
 	                throw new SQLException("The database needs to be upgraded.");
 	        }
@@ -935,10 +937,26 @@ public class DBDatabaseConnection implements AutoCloseable {
         }
 
         // convert from version 205 to 206 :
+        //      - add the created_by and created_on columns in the views_connections and views_objects tables
         //      - create tables views_connections_in_view and views_objects_in_view
-        //      - remove the view_id and view_version columns from the views_connections and views_objects tables
+        //      - remove the rank, view_id and view_version columns from the views_connections and views_objects tables
         //
         if ( dbVersion == 205 ) {
+        	Timestamp now = new Timestamp(0);
+        	
+            addColumn(this.schema+"views_connections", "created_by", this.USERNAME, false, "databasePlugin");			// we set dummy value to satisfy the NOT NULL condition
+            addColumn(this.schema+"views_connections", "created_on", this.DATETIME, false, now);						// we set dummy value to satisfy the NOT NULL condition
+        	
+            request("UPDATE "+this.schema+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_connections c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_connections.id = j.id");
+            		
+            
+            addColumn(this.schema+"views_objects", "created_by", this.USERNAME, false, "databasePlugin");				// we set dummy value to satisfy the NOT NULL condition
+            addColumn(this.schema+"views_objects", "created_on", this.DATETIME, false, now);							// we set dummy value to satisfy the NOT NULL condition
+            
+            request("UPDATE "+this.schema+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_objects c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_objects.id = j.id");
+
+            
+            
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
             request("CREATE TABLE "+this.schema+"views_connections_in_view ("
                     + "civ_id "+ this.AUTO_INCREMENT+", "
@@ -1004,9 +1022,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             dropColumn(this.schema+"views_connections", "view_id");
             dropColumn(this.schema+"views_connections", "view_version");
-
+            dropColumn(this.schema+"views_connections", "rank");
+            
             dropColumn(this.schema+"views_objects", "view_id");
             dropColumn(this.schema+"views_objects", "view_version");
+            dropColumn(this.schema+"views_objects", "rank");
 
             dbVersion = 206;
         }
