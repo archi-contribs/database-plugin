@@ -6,7 +6,7 @@
 |------------------------------------------------|--|
 |                                                |  |
 
-The beta4 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
+The beta5 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
 
 Please do not forget to fill in an issue if you discover a misbehaviour.
 
@@ -14,10 +14,9 @@ Please do not forget to fill in an issue if you discover a misbehaviour.
 ## Known bugs:
 These bugs should be solved before the release of version 2.1:
 * The sync process cannot (yet) be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
-* Open views are not correctly refreshed when relationships have been updated during the export (especially when components have been changed from one container to another) so the opened views may be closed and re-opened after an export
-* In case of an Exception, the error popup is shown before the database transaction is rolled-back, thus leaving the database tables locked which could lead towards a deny of service in case the user does not close the error popup
 * In the "import individual component", the "ignore case" button seems to malfunction, importing embedded views does not recursively imports the linked view and the images may not be imported as expected
 * The plugins requires a lot of memory, often leading to increase the JVM size (java parameter -Xmx)
+* The SQL Server database is not managed well
 
 ## Planned improvements
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
@@ -51,6 +50,7 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * Add popup message during the import as it may take some time
 * *Export model:*
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
+  * In case of exception, the database lock is released before the error message is displayed
   * An option has been added to show / not show the model's comparison to the database before the export (showing gives more information to the user but it takes some time on big models)
   * For **relational databases**:
     * Create two export modes: standalone and collaborative modes:
