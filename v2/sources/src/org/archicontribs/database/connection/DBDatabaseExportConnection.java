@@ -506,9 +506,9 @@ public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel mo
 
     Iterator<Map.Entry<String, IDiagramModelConnection>> itvc = model.getAllViewConnections().entrySet().iterator();
     while (itvc.hasNext()) {
-        IDiagramModelConnection connection = itvc.next().getValue();
-        if ( connection.getDiagramModel() == view ) {
-            DBMetadata metadata = ((IDBMetadata)connection).getDBMetadata();
+        IDiagramModelConnection cnct = itvc.next().getValue();
+        if ( cnct.getDiagramModel() == view ) {
+            DBMetadata metadata = ((IDBMetadata)cnct).getDBMetadata();
             metadata.getCurrentVersion().setVersion(0);
             metadata.getInitialVersion().reset();
             metadata.getDatabaseVersion().reset();
