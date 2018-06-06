@@ -983,8 +983,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		try ( ResultSet result = select("SELECT version, type, root_type, name, documentation, checksum, created_on FROM "+this.schema+"folders f WHERE id = ? AND version = "+versionString, id) ) {
 			if ( !result.next() ) {
 				if ( version == 0 )
-					throw new Exception("Element with id="+id+" has not been found in the database.");
-				throw new Exception("Element with id="+id+" and version="+version+" has not been found in the database.");
+					throw new Exception("Folder with id="+id+" has not been found in the database.");
+				throw new Exception("Folder with id="+id+" and version="+version+" has not been found in the database.");
 			}
 			
 			DBMetadata metadata;
@@ -1031,6 +1031,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			metadata.setDocumentation(result.getString("documentation"));
 			metadata.setRootFolderType(result.getInt("root_type"));
+			
+			setFolderToLastKnown(model, folder);
 
 			if ( hasJustBeenCreated ) 
 				model.countObject(folder, false, null);
@@ -1714,8 +1716,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
         // elements
         try ( ResultSet result = select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM elements_in_model m1"
-                + " JOIN elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
+                + " FROM "+this.schema+"elements_in_model m1"
+                + " JOIN "+this.schema+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
                 + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                 , model.getId()
                 , model.getInitialVersion().getVersion()
@@ -1724,7 +1726,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
             while (result.next() ) {
                 IArchimateElement element = model.getAllElements().get(result.getString("element_id"));
                 if ( element != null ) {
-                    ((IDBMetadata)element).getDBMetadata().setParentFolder(model.getAllFolders().get("parent_folder_id"));
                     IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
                     if ( parentFolder != null )
                         ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
@@ -1734,8 +1735,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
         // relationships
         try ( ResultSet result = select("SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM relationships_in_model m1"
-                + " JOIN relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
+                + " FROM "+this.schema+"relationships_in_model m1"
+                + " JOIN "+this.schema+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
                 + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                 , model.getId()
                 , model.getInitialVersion().getVersion()
@@ -1753,8 +1754,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         
         // folders
         try ( ResultSet result = select("SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM folders_in_model m1"
-                + " JOIN folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
+                + " FROM "+this.schema+"folders_in_model m1"
+                + " JOIN "+this.schema+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
                 + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                 , model.getId()
                 , model.getInitialVersion().getVersion()
@@ -1772,8 +1773,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         
         // views
         try ( ResultSet result = select("SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM views_in_model m1"
-                + " JOIN views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
+                + " FROM "+this.schema+"views_in_model m1"
+                + " JOIN "+this.schema+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
                 + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                 , model.getId()
                 , model.getInitialVersion().getVersion()
@@ -1798,26 +1799,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
      * @throws Exception
      */
     public void setFolderToLastKnown(DBArchimateModel model, IArchimateElement element) throws Exception {
-        IFolder parentFolder = null;
-
         if ( !model.isLatestVersionImported() ) {
+            IFolder parentFolder = null;
+        	
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM elements_in_model"
-                    + " WHERE model_id = ? and element_id = ?"
-                    + " GROUP BY model_id"
-                    + " HAVING model_version = MAX(model_version)"
+                    + " FROM "+this.schema+"elements_in_model"
+                    + " WHERE model_id = ? AND element_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"elements_in_model WHERE model_id = ? AND element_id = ?)"
+                    , model.getId()
+                    , element.getId()
                     , model.getId()
                     , element.getId()
                     ) ) {
                 if ( result.next() )
                     parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
             }
+            
+            if (parentFolder == null )
+                parentFolder = model.getDefaultFolderForObject(element);
+            
+            ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
         }
-        
-        if (parentFolder == null )
-            parentFolder = model.getDefaultFolderForObject(element);
-        
-        ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
     }
     
     /**
@@ -1828,26 +1829,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
      * @throws Exception
      */
     public void setFolderToLastKnown(DBArchimateModel model, IArchimateRelationship relationship) throws Exception {
-        IFolder parentFolder = null;
-
         if ( !model.isLatestVersionImported() ) {
+            IFolder parentFolder = null;
+
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM relationships_in_model"
-                    + " WHERE model_id = ? and relationship_id = ?"
-                    + " GROUP BY model_id"
-                    + " HAVING model_version = MAX(model_version)"
+                    + " FROM "+this.schema+"relationships_in_model"
+                    + " WHERE model_id = ? and relationship_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"relationships_in_model WHERE model_id = ? AND relationship_id = ?)"
+                    , model.getId()
+                    , relationship.getId()
                     , model.getId()
                     , relationship.getId()
                     ) ) {
                 if ( result.next() )
                     parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
             }
+            
+            if (parentFolder == null )
+                parentFolder = model.getDefaultFolderForObject(relationship);
+            
+            ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
         }
-        
-        if (parentFolder == null )
-            parentFolder = model.getDefaultFolderForObject(relationship);
-        
-        ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
     }
     
     /**
@@ -1858,26 +1859,27 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
      * @throws Exception
      */
     public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
-        IFolder parentFolder = null;
-
         if ( !model.isLatestVersionImported() ) {
+            IFolder parentFolder = null;
+            
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM folders_in_model"
-                    + " WHERE model_id = ? and folder_id = ?"
-                    + " GROUP BY model_id"
-                    + " HAVING model_version = MAX(model_version)"
+                    + " FROM "+this.schema+"folders_in_model"
+                    + " WHERE model_id = ? and folder_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"folders_in_model WHERE model_id = ? AND folder_id = ?)"
+                    , model.getId()
+                    , folder.getId()
                     , model.getId()
                     , folder.getId()
                     ) ) {
                 if ( result.next() )
                     parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
             }
+            if (parentFolder == null )
+                parentFolder = model.getFolder(((IDBMetadata)folder).getDBMetadata().getFolderType());
+            
+            ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
         }
         
-        if (parentFolder == null )
-            parentFolder = model.getFolder(((IDBMetadata)folder).getDBMetadata().getFolderType());
-        
-        ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
+
     }
     
     /**
@@ -1888,25 +1890,25 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
      * @throws Exception
      */
     public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
-        IFolder parentFolder = null;
-
         if ( !model.isLatestVersionImported() ) {
+            IFolder parentFolder = null;
+
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM views_in_model"
-                    + " WHERE model_id = ? and view_id = ?"
-                    + " GROUP BY model_id"
-                    + " HAVING model_version = MAX(model_version)"
+                    + " FROM "+this.schema+"views_in_model"
+                    + " WHERE model_id = ? and view_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"views_in_model WHERE model_id = ? AND view_id = ?)"
+                    , model.getId()
+                    , view.getId()
                     , model.getId()
                     , view.getId()
                     ) ) {
                 if ( result.next() )
                     parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
             }
+            
+            if (parentFolder == null )
+                parentFolder = model.getDefaultFolderForObject(view);
+            
+            ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
         }
-        
-        if (parentFolder == null )
-            parentFolder = model.getDefaultFolderForObject(view);
-        
-        ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
     }
 }
