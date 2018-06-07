@@ -887,7 +887,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             addColumn(this.schema+"models", "checksum", this.OBJECTID, false, "");
 
             if ( logger.isDebugEnabled() ) logger.debug("Calculating models checksum");
-            try ( ResultSet result = select("SELECT id, version, name, note, purpose FROM models") ) {
+            try ( ResultSet result = select("SELECT id, version, name, note, purpose FROM "+this.schema+"models") ) {
                 while ( result.next() ) {
                     StringBuilder checksumBuilder = new StringBuilder();
                     DBChecksum.append(checksumBuilder, "id", result.getString("id"));

@@ -251,9 +251,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the elements from the database");
         try ( ResultSet result = select(
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
-                        + " FROM elements"
-                        + " LEFT JOIN elements_in_model ON element_id = id AND element_version = version"
-                        + " WHERE id IN (SELECT id FROM elements JOIN elements_in_model ON element_id = id AND element_version = version WHERE model_id = ?)"
+                        + " FROM "+this.schema+"elements"
+                        + " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
+                        + " WHERE id IN (SELECT id FROM "+this.schema+"elements JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ?)"
                         + " ORDER BY id, version"
                         ,modelId
                 ) ) {
@@ -303,9 +303,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the relationships from the database");
         try ( ResultSet result = select(
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
-                        + " FROM relationships"
-                        + " LEFT JOIN relationships_in_model ON relationship_id = id AND relationship_version = version"
-                        + " WHERE id IN (SELECT id FROM relationships JOIN relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ?)"
+                        + " FROM "+this.schema+"relationships"
+                        + " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
+                        + " WHERE id IN (SELECT id FROM "+this.schema+"relationships JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ?)"
                         + " ORDER BY id, version"
                         ,modelId
                 ) ) {
@@ -354,9 +354,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the folders from the database");
         try ( ResultSet result = select(
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
-                        + " FROM folders"
-                        + " LEFT JOIN folders_in_model ON folder_id = id AND folder_version = version"
-                        + " WHERE id IN (SELECT id FROM folders JOIN folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ?)"
+                        + " FROM "+this.schema+"folders"
+                        + " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
+                        + " WHERE id IN (SELECT id FROM "+this.schema+"folders JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ?)"
                         + " ORDER BY id, version"
                         ,modelId
                 ) ) {
@@ -404,9 +404,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the views from the database");
         try ( ResultSet result = select(
                 "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
-                        + " FROM views"
-                        + " LEFT JOIN views_in_model ON view_id = id AND view_version = version"
-                        + " WHERE id IN (SELECT id FROM views JOIN views_in_model ON view_id = id AND view_version = version WHERE model_id = ?)"
+                        + " FROM "+this.schema+"views"
+                        + " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
+                        + " WHERE id IN (SELECT id FROM "+this.schema+"views JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ?)"
                         + " ORDER BY id, version"
                         ,modelId
                 ) ) {
@@ -461,7 +461,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             // at last, we check if all the images in the model are in the database
             if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
             for ( String path: model.getAllImagePaths() ) {
-                try ( ResultSet result = select("SELECT path from images where path = ?", path) ) {
+                try ( ResultSet result = select("SELECT path from "+this.schema+"images where path = ?", path) ) {
                     if ( result.next() && result.getObject("path") != null ) {
                         // the image is in the database
                     } else {
@@ -473,9 +473,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         } else {
             // we check if the latest version of the model has got images that are not in the model
             if ( logger.isDebugEnabled() ) logger.debug("Checking missing images from the database");
-            try ( ResultSet result = select ("SELECT DISTINCT image_path FROM views_objects "
-                    + "JOIN views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
-                    + "JOIN views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
+            try ( ResultSet result = select ("SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
+                    + "JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
+                    + "JOIN "+this.schema+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
                     + "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
                     ,model.getId()
                     ,model.getDatabaseVersion().getVersion()
@@ -523,9 +523,9 @@ public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel mo
     if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view objects from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
     try ( ResultSet result = select(
             "SELECT id, name, version, checksum, created_on, view_id, view_version"
-                    + " FROM views_objects"
-                    + " LEFT JOIN views_objects_in_view ON object_id = id AND object_version = version"
-                    + " WHERE id IN (SELECT id FROM views_objects JOIN views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ?)"
+                    + " FROM "+this.schema+"views_objects"
+                    + " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
+                    + " WHERE id IN (SELECT id FROM "+this.schema+"views_objects JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ?)"
                     + " ORDER BY id, version"
                     ,viewId
             ) ) {
@@ -574,9 +574,9 @@ public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel mo
     if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view connections from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
     try ( ResultSet result = select(
             "SELECT id, name, version, checksum, created_on, view_id, view_version"
-                    + " FROM views_connections"
-                    + " LEFT JOIN views_connections_in_view ON connection_id = id AND connection_version = version"
-                    + " WHERE id IN (SELECT id FROM views_connections JOIN views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ?)"
+                    + " FROM "+this.schema+"views_connections"
+                    + " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
+                    + " WHERE id IN (SELECT id FROM "+this.schema+"views_connections JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ?)"
                     + " ORDER BY id, version"
                     ,viewId
             ) ) {
