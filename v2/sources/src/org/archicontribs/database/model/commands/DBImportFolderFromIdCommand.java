@@ -115,8 +115,8 @@ public class DBImportFolderFromIdCommand extends Command {
         try ( ResultSet result = this.importConnection.select("SELECT version, type, root_type, name, documentation, checksum, created_on FROM "+this.importConnection.getSchema()+"folders f WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
-                    throw new Exception("Element with id="+this.id+" has not been found in the database.");
-                throw new Exception("Element with id="+this.id+" and version="+this.version+" has not been found in the database.");
+                    throw new Exception("Folder with id="+this.id+" has not been found in the database.");
+                throw new Exception("Folder with id="+this.id+" and version="+this.version+" has not been found in the database.");
             }
             
             DBMetadata metadata;
