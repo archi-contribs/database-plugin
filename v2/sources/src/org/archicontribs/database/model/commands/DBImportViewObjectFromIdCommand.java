@@ -11,6 +11,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBPair;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -80,7 +81,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 	private Integer oldWidth = null;
 	private Integer oldHeight = null;
 	
-    private ArrayList<IProperty> oldProperties;
+    private ArrayList<DBPair<String, String>> oldProperties;
     
     /**
      * Imports a view object into the model<br>
@@ -179,7 +180,10 @@ public class DBImportViewObjectFromIdCommand extends Command {
 				this.oldHeight = metadata.getHeight();
 				
 				if ( this.importedViewObject instanceof IProperties && result.getString("element_id")==null ) {
-					this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedViewObject).getProperties());
+					this.oldProperties = new ArrayList<DBPair<String, String>>();
+					for ( IProperty prop: ((IProperties)this.importedViewObject).getProperties() ) {
+						this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+					}
 				}
 				
 				metadata.getInitialVersion().setVersion(result.getInt("version"));
@@ -327,8 +331,12 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			// If the object has got properties but does not have a linked element, then it may have distinct properties
 			if ( this.importedViewObject instanceof IProperties && metadata.getArchimateConcept() == null ) {
 	            ((IProperties)this.importedViewObject).getProperties().clear();
-	            for ( IProperty prop: this.oldProperties )
+	            for ( DBPair<String, String> pair: this.oldProperties ) {
+	            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+	            	prop.setKey(pair.getKey());
+	            	prop.setValue(pair.getValue());
 	            	((IProperties)this.importedViewObject).getProperties().add(prop);
+	            }
 			}
         }
         
