@@ -45,7 +45,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
-    private IArchimateRelationship relationship = null; 
+    private IArchimateRelationship importedRelationship = null; 
     private String id = null;
     private int version = 0;
     private boolean mustCreateCopy = false;
@@ -135,35 +135,35 @@ public class DBImportRelationshipFromIdCommand extends Command {
             DBMetadata metadata;
 
             if ( this.mustCreateCopy ) {
-                this.relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                this.relationship.setId(this.model.getIDAdapter().getNewID());
+                this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
+                this.importedRelationship.setId(this.model.getIDAdapter().getNewID());
 
                 // as the element has just been created, the undo will just need to drop it
                 // so we do not need to save its properties
                 this.hasBeenCreated = true;
-                metadata = ((IDBMetadata)this.relationship).getDBMetadata();
+                metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
                 
                 metadata.getInitialVersion().setVersion(0);
                 metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
                 metadata.getCurrentVersion().setVersion(0);
                 metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
-                this.importConnection.importProperties(this.relationship, this.id, result.getInt("version"));
+                this.importConnection.importProperties(this.importedRelationship, this.id, result.getInt("version"));
             } else {
-                this.relationship = this.model.getAllRelationships().get(this.id);
+                this.importedRelationship = this.model.getAllRelationships().get(this.id);
                 
-                if ( this.relationship == null ) {
-                    this.relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                    this.relationship.setId(this.id);
+                if ( this.importedRelationship == null ) {
+                    this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
+                    this.importedRelationship.setId(this.id);
                     
                     // as the element has just been created, the undo will just need to drop it
                     // so we do not need to save its properties
                     this.hasBeenCreated = true;
-                    metadata = ((IDBMetadata)this.relationship).getDBMetadata();
+                    metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
                 } else {
                     // the element already exists in the model and will be updated with information from the database
                     // we need to keep a value of all its properties to allow undo
-                    metadata = ((IDBMetadata)this.relationship).getDBMetadata();
+                    metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
                     
                     this.oldInitialVersion = metadata.getInitialVersion();
                     this.oldCurrentVersion = metadata.getCurrentVersion();
@@ -178,7 +178,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
                     this.oldSource = metadata.getSource();
                     this.oldTarget = metadata.getTarget();
                     
-                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.relationship).getProperties());
+                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedRelationship).getProperties());
                     this.oldFolder = metadata.getParentFolder();
                 }
 
@@ -190,7 +190,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
                 metadata.getDatabaseVersion().set(metadata.getInitialVersion());
                 metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-                this.importConnection.importProperties(this.relationship);
+                this.importConnection.importProperties(this.importedRelationship);
             }
 
             metadata.setName(result.getString("name"));
@@ -206,19 +206,19 @@ public class DBImportRelationshipFromIdCommand extends Command {
             if ( target == null ) target = this.model.getAllRelationships().get(result.getString("target_id"));
             metadata.setTarget(target);
             
-            this.importConnection.setFolderToLastKnown(this.model, this.relationship);
+            this.importConnection.setFolderToLastKnown(this.model, this.importedRelationship);
 
             // During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
             // and create the corresponding connections
             // TODO : make an option with this functionality that the user can choose if he want the connections or not
             if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
                 this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
-                List<IConnectable> sourceConnections = metadata.componentToConnectable(this.view, this.relationship.getSource());
-                List<IConnectable> targetConnections = metadata.componentToConnectable(this.view, this.relationship.getTarget());
+                List<IConnectable> sourceConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getSource());
+                List<IConnectable> targetConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getTarget());
 
                 for ( IConnectable sourceConnection: sourceConnections ) {
                     for ( IConnectable targetConnection: targetConnections ) {
-                        IDiagramModelArchimateConnection connection = ArchimateDiagramModelFactory.createDiagramModelArchimateConnection(this.relationship);
+                        IDiagramModelArchimateConnection connection = ArchimateDiagramModelFactory.createDiagramModelArchimateConnection(this.importedRelationship);
                         this.createdViewConnections.add(connection);
                         
                         connection.setSource(sourceConnection);
@@ -231,7 +231,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
             }
 
             if ( this.hasBeenCreated )
-                this.model.countObject(this.relationship, false, null);
+                this.model.countObject(this.importedRelationship, false, null);
 
             // this.importConnection.setCountElementsImported(this.importConnection.getCountElementsImported() + 1);
         } catch (Exception e) {
@@ -262,13 +262,13 @@ public class DBImportRelationshipFromIdCommand extends Command {
         
         if ( this.hasBeenCreated ) {
             // if the element has been created by the execute() method, we just delete it
-            IFolder parentFolder = (IFolder)this.relationship.eContainer();
-            parentFolder.getElements().remove(this.relationship);
+            IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
+            parentFolder.getElements().remove(this.importedRelationship);
             
-            this.model.getAllRelationships().remove(this.relationship.getId());
+            this.model.getAllRelationships().remove(this.importedRelationship.getId());
         } else {
             // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.relationship).getDBMetadata();
+            DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
             
             metadata.getInitialVersion().set(this.oldInitialVersion);
             metadata.getCurrentVersion().set(this.oldCurrentVersion);
@@ -285,9 +285,9 @@ public class DBImportRelationshipFromIdCommand extends Command {
             
             metadata.setParentFolder(this.oldFolder);
             
-            this.relationship.getProperties().clear();
+            this.importedRelationship.getProperties().clear();
             for ( IProperty prop: this.oldProperties )
-                this.relationship.getProperties().add(prop);
+                this.importedRelationship.getProperties().add(prop);
         }
         
         this.commandHasBeenExecuted = false;
@@ -311,7 +311,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
         this.oldProperties = null;
         this.createdViewConnections = null;
         
-        this.relationship = null;
+        this.importedRelationship = null;
         this.model = null;
         this.view = null;
         this.id = null;

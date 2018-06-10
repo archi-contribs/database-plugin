@@ -40,7 +40,7 @@ public class DBImportElementFromIdCommand extends Command {
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
-    private IArchimateElement element = null; 
+    private IArchimateElement importedElement = null; 
     private String id = null;
     private int version = 0;
     private boolean mustCreateCopy = false;
@@ -132,35 +132,35 @@ public class DBImportElementFromIdCommand extends Command {
             DBMetadata metadata;
 
             if ( this.mustCreateCopy ) {
-                this.element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                this.element.setId(this.model.getIDAdapter().getNewID());
+                this.importedElement = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
+                this.importedElement.setId(this.model.getIDAdapter().getNewID());
 
                 // as the element has just been created, the undo will just need to drop it
                 // so we do not need to save its properties
                 this.elementHasBeenCreated = true;
-                metadata = ((IDBMetadata)this.element).getDBMetadata();
+                metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
                 
                 metadata.getInitialVersion().setVersion(0);
                 metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
                 metadata.getCurrentVersion().setVersion(0);
                 metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 
-                this.importConnection.importProperties(this.element, this.id, result.getInt("version"));
+                this.importConnection.importProperties(this.importedElement, this.id, result.getInt("version"));
             } else {
-                this.element = this.model.getAllElements().get(this.id);
+                this.importedElement = this.model.getAllElements().get(this.id);
                 
-                if ( this.element == null ) {
-                    this.element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                    this.element.setId(this.id);
+                if ( this.importedElement == null ) {
+                    this.importedElement = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
+                    this.importedElement.setId(this.id);
                     
                     // as the element has just been created, the undo will just need to drop it
                     // so we do not need to save its properties
                     this.elementHasBeenCreated = true;
-                    metadata = ((IDBMetadata)this.element).getDBMetadata();
+                    metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
                 } else {
                     // the element already exists in the model and will be updated with information from the database
                     // we need to keep a value of all its properties to allow undo
-                    metadata = ((IDBMetadata)this.element).getDBMetadata();
+                    metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
                     
                     this.oldInitialVersion = metadata.getInitialVersion();
                     this.oldCurrentVersion = metadata.getCurrentVersion();
@@ -171,7 +171,7 @@ public class DBImportElementFromIdCommand extends Command {
                     this.oldDocumentation = metadata.getDocumentation();
                     this.oldType = metadata.getJunctionType();
                     
-                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.element).getProperties());
+                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedElement).getProperties());
                     this.oldFolder = metadata.getParentFolder();
                 }
 
@@ -185,23 +185,23 @@ public class DBImportElementFromIdCommand extends Command {
                 metadata.getDatabaseVersion().set(metadata.getInitialVersion());
                 metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-                this.importConnection.importProperties(this.element);
+                this.importConnection.importProperties(this.importedElement);
             }
 
             metadata.setName(result.getString("name"));
             metadata.setDocumentation(result.getString("documentation"));
             metadata.setType(result.getString("type"));
             
-            this.importConnection.setFolderToLastKnown(this.model, this.element);
+            this.importConnection.setFolderToLastKnown(this.model, this.importedElement);
 
             if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
-                    this.createdViewObject = ArchimateDiagramModelFactory.createDiagramModelArchimateObject(this.element);
+                    this.createdViewObject = ArchimateDiagramModelFactory.createDiagramModelArchimateObject(this.importedElement);
                     this.view.getChildren().add(this.createdViewObject);
                     this.model.countObject(this.createdViewObject, false, null);
             }
 
             if ( this.elementHasBeenCreated )
-                this.model.countObject(this.element, false, null);
+                this.model.countObject(this.importedElement, false, null);
 
             // this.importConnection.setCountElementsImported(this.importConnection.getCountElementsImported() + 1);
             /*
@@ -249,13 +249,13 @@ public class DBImportElementFromIdCommand extends Command {
         
         if ( this.elementHasBeenCreated ) {
             // if the element has been created by the execute() method, we just delete it
-            IFolder parentFolder = (IFolder)this.element.eContainer();
-            parentFolder.getElements().remove(this.element);
+            IFolder parentFolder = (IFolder)this.importedElement.eContainer();
+            parentFolder.getElements().remove(this.importedElement);
             
-            this.model.getAllElements().remove(this.element.getId());
+            this.model.getAllElements().remove(this.importedElement.getId());
         } else {
             // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.element).getDBMetadata();
+            DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
             
             metadata.getInitialVersion().set(this.oldInitialVersion);
             metadata.getCurrentVersion().set(this.oldCurrentVersion);
@@ -268,9 +268,9 @@ public class DBImportElementFromIdCommand extends Command {
             
             metadata.setParentFolder(this.oldFolder);
             
-            this.element.getProperties().clear();
+            this.importedElement.getProperties().clear();
             for ( IProperty prop: this.oldProperties )
-                this.element.getProperties().add(prop);
+                this.importedElement.getProperties().add(prop);
         }
         
         this.commandHasBeenExecuted = false;
@@ -290,7 +290,7 @@ public class DBImportElementFromIdCommand extends Command {
         this.oldProperties = null;
         this.createdViewObject = null;
         
-        this.element = null;
+        this.importedElement = null;
         this.model = null;
         this.view = null;
         this.id = null;
