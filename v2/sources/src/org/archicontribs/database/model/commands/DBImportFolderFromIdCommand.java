@@ -57,10 +57,10 @@ public class DBImportFolderFromIdCommand extends Command {
     
     
     /**
-     * Imports an element into the model<br>
+     * Imports a folder into the model<br>
      * @param view if a view is provided, then an ArchimateObject will be automatically created
-     * @param elementId id of the element to import
-     * @param elementVersion version of the element to import (0 if the latest version should be imported)
+     * @param id id of the element to import
+     * @param version version of the element to import (0 if the latest version should be imported)
      */
     public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
         this.importConnection = connection;
@@ -70,13 +70,12 @@ public class DBImportFolderFromIdCommand extends Command {
     }
     
     /**
-     * Imports an element into the model<br>
+     * Imports a folder into the model<br>
      * @param model model into which the element will be imported
      * @param view if a view is provided, then an ArchimateObject will be automatically created
      * @param id id of the element to import
      * @param version version of the element to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
-     * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id 
      */
     public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
