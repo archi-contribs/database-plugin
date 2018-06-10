@@ -15,6 +15,7 @@ import java.util.List;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBPair;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -64,7 +65,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
     private IFolder oldFolder = null;
     private IArchimateConcept oldSource = null;
     private IArchimateConcept oldTarget = null;
-    private ArrayList<IProperty> oldProperties = null;
+    private ArrayList<DBPair<String, String>> oldProperties = null;
     private List<IDiagramModelConnection> createdViewConnections = null;
     
     
@@ -178,7 +179,11 @@ public class DBImportRelationshipFromIdCommand extends Command {
                     this.oldSource = metadata.getSource();
                     this.oldTarget = metadata.getTarget();
                     
-                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedRelationship).getProperties());
+					this.oldProperties = new ArrayList<DBPair<String, String>>();
+					for ( IProperty prop: ((IProperties)this.importedRelationship).getProperties() ) {
+						this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+					}
+					
                     this.oldFolder = metadata.getParentFolder();
                 }
 
@@ -288,8 +293,12 @@ public class DBImportRelationshipFromIdCommand extends Command {
             metadata.setParentFolder(this.oldFolder);
             
             this.importedRelationship.getProperties().clear();
-            for ( IProperty prop: this.oldProperties )
-                this.importedRelationship.getProperties().add(prop);
+            for ( DBPair<String, String> pair: this.oldProperties ) {
+            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+            	prop.setKey(pair.getKey());
+            	prop.setValue(pair.getValue());
+            	this.importedRelationship.getProperties().add(prop);
+            }
         }
         
         this.commandHasBeenExecuted = false;

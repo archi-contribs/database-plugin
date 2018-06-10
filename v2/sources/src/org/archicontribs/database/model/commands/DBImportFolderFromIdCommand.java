@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBPair;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -53,7 +54,7 @@ public class DBImportFolderFromIdCommand extends Command {
     private FolderType oldFolderType = null;
     private Integer oldRootFolderType = null;
     private IFolder oldFolder = null;
-    private ArrayList<IProperty> oldProperties = null;
+    private ArrayList<DBPair<String, String>> oldProperties = null;
     
     
     /**
@@ -161,7 +162,11 @@ public class DBImportFolderFromIdCommand extends Command {
                     this.oldFolderType = metadata.getFolderType();
                     this.oldRootFolderType = metadata.getRootFolderType();
                     
-                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedFolder).getProperties());
+					this.oldProperties = new ArrayList<DBPair<String, String>>();
+					for ( IProperty prop: ((IProperties)this.importedFolder).getProperties() ) {
+						this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+					}
+					
                     this.oldFolder = metadata.getParentFolder();
                 }
 
@@ -226,8 +231,12 @@ public class DBImportFolderFromIdCommand extends Command {
             metadata.setParentFolder(this.oldFolder);
             
             this.importedFolder.getProperties().clear();
-            for ( IProperty prop: this.oldProperties )
-                this.importedFolder.getProperties().add(prop);
+            for ( DBPair<String, String> pair: this.oldProperties ) {
+            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+            	prop.setKey(pair.getKey());
+            	prop.setValue(pair.getValue());
+            	this.importedFolder.getProperties().add(prop);
+            }
         }
         
         this.commandHasBeenExecuted = false;

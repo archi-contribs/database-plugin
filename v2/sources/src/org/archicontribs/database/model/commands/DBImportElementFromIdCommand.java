@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Calendar;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBPair;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -24,7 +25,6 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
-import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
 /**
@@ -58,7 +58,7 @@ public class DBImportElementFromIdCommand extends Command {
     private String oldName = null;
     private String oldType = null;
     private IFolder oldFolder = null;
-    private ArrayList<IProperty> oldProperties = null;
+    private ArrayList<DBPair<String, String>> oldProperties = null;
     private IDiagramModelObject createdViewObject = null;
     
     
@@ -171,7 +171,11 @@ public class DBImportElementFromIdCommand extends Command {
                     this.oldDocumentation = metadata.getDocumentation();
                     this.oldType = metadata.getJunctionType();
                     
-                    this.oldProperties = new ArrayList<IProperty>(((IProperties)this.importedElement).getProperties());
+					this.oldProperties = new ArrayList<DBPair<String, String>>();
+					for ( IProperty prop: this.importedElement.getProperties() ) {
+						this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+					}
+					
                     this.oldFolder = metadata.getParentFolder();
                 }
 
@@ -271,8 +275,12 @@ public class DBImportElementFromIdCommand extends Command {
             metadata.setParentFolder(this.oldFolder);
             
             this.importedElement.getProperties().clear();
-            for ( IProperty prop: this.oldProperties )
-                this.importedElement.getProperties().add(prop);
+            for ( DBPair<String, String> pair: this.oldProperties ) {
+            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+            	prop.setKey(pair.getKey());
+            	prop.setValue(pair.getValue());
+            	this.importedElement.getProperties().add(prop);
+            }
         }
         
         this.commandHasBeenExecuted = false;
