@@ -81,7 +81,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 	private Integer oldWidth = null;
 	private Integer oldHeight = null;
 	
-    private ArrayList<DBPair<String, String>> oldProperties;
+    private ArrayList<DBPair<String, String>> oldProperties = null;
     
     /**
      * Imports a view object into the model<br>
