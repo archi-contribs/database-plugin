@@ -403,7 +403,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				String parentId = this.currentResultSet.getString("parent_folder_id");
 
 				if ( parentId != null && !parentId.isEmpty() ) {
-					metadata.setType(FolderType.get(0));                              		// non root folders have got the "USER" type
+					metadata.setFolderType(FolderType.get(0));                              		// non root folders have got the "USER" type
 
 					IFolder parent = model.getAllFolders().get(parentId);
 					if ( parent == null )
@@ -413,7 +413,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 					parent.getFolders().add(folder);
 				} else {
-					metadata.setType(FolderType.get(this.currentResultSet.getInt("type")));        // root folders have got their own type
+					metadata.setFolderType(FolderType.get(this.currentResultSet.getInt("type")));        // root folders have got their own type
 					model.getFolders().add(folder);
 				}
 

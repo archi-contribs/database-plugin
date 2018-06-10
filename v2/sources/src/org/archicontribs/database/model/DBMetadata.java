@@ -105,7 +105,7 @@ public class DBMetadata  {
      * This is needed to determine what class of eObjects it is able to store<br>
      * Folders created by the user have got a type of 0 (zero) but the root folder they are in limit the kind of objects they can store   
      */
-    @Getter @Setter private int rootFolderType;
+    private int rootFolderType;
 
     public DBMetadata(EObject component) {
         assert ( component instanceof IIdentifier );
@@ -358,9 +358,21 @@ public class DBMetadata  {
         return null;
     }
 
-    public void setType(FolderType type) {
+    public void setFolderType(FolderType type) {
         if ( (this.component instanceof IFolder) && (type != null) && (((IFolder)this.component).getType().getValue() != type.getValue()) )
             ((IFolder)this.component).setType(type);
+    }
+    
+    // RootFolderType
+    public Integer getRootFolderType() {
+        if ( this.component instanceof IFolder )
+            return this.rootFolderType;
+        return null;
+    }
+
+    public void setRootFolderType(Integer type) {
+        if ( (this.component instanceof IFolder) && (type != null) && (this.rootFolderType != type.intValue()) )
+        	this.rootFolderType = type;
     }
 
     // BorderColor
