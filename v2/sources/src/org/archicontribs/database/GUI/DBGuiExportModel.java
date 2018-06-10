@@ -30,6 +30,7 @@ import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
@@ -1604,7 +1605,8 @@ public class DBGuiExportModel extends DBGui {
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
                     if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
 				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-                    importConnection.importFolderFromId(this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+                    this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
+                    this.exportCommands.execute();
                     incrementText(this.txtNewFoldersInDatabase);
                     incrementText(this.txtTotalFolders);
 				}
@@ -2059,11 +2061,11 @@ public class DBGuiExportModel extends DBGui {
 		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 	            if ( eObjectToExport instanceof IArchimateElement )
-	                importConnection.importElementFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
+	            	this.exportCommands.add(new DBImportElementFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
 	            else if ( eObjectToExport instanceof IArchimateRelationship )
-	                importConnection.importRelationshipFromId(this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+		            this.exportCommands.add(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
 	            else if ( eObjectToExport instanceof IFolder )
-	                importConnection.importFolderFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
+                    this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
 	            else if ( eObjectToExport instanceof IDiagramModel )
 	                importConnection.importViewFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
 	            else if ( eObjectToExport instanceof IDiagramModelObject )
@@ -2071,6 +2073,8 @@ public class DBGuiExportModel extends DBGui {
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
 	                importConnection.importViewConnectionFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	            
+                this.exportCommands.execute();
+                
 	            incrementText(txtUpdatedInDatabase);
 	            exported = true;
 			}

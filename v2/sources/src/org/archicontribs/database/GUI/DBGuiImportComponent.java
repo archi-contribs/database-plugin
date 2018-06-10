@@ -19,6 +19,8 @@ import com.archimatetool.model.IDiagramModel;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
+import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -1394,6 +1396,8 @@ public class DBGuiImportComponent extends DBGui {
 		int done = 0;
 		
 		try {
+			CompoundCommand importCommands = new CompoundCommand();
+			
 			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
@@ -1401,7 +1405,8 @@ public class DBGuiImportComponent extends DBGui {
 				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 				
 				if ( this.compoElements.getVisible() )
-					imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
+					importCommands.add(new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
+					// TODO: find a way to select the imported element to select it in the folder tree ::: imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
 				//else if ( compoContainers.getVisible() )
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());

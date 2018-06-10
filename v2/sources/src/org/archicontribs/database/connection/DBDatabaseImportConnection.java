@@ -31,11 +31,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
 
-import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateConcept;
-import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
@@ -652,8 +650,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSet.getString("element_id"));
-					if ( element == null )
-						importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
+					if ( element == null ) {
+						//TODO --> convert to command ::: importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
+					}
 				}
 
 				metadata.setArchimateConcept(model.getAllElements().get(this.currentResultSet.getString("element_id")));
@@ -946,355 +945,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 
 	/**
-	 * Imports a folder into the model<br>
-	 * @param model model into which the folder will be imported
-	 * @param id id of the folder to import
-	 * @param version version of the folder to import (0 if the latest version should be imported)
-	 * @return the imported folder
-	 * @throws Exception
-	 */
-	public IFolder importFolderFromId(DBArchimateModel model, String id, int version) throws Exception {
-		return this.importFolderFromId(model, id, version, false);
-	}
-
-	/**
-	 * Imports a folder into the model<br>
-	 * The folder is imported empty. Folder content should be imported separately<br>
-	 * @param model model into which the element will be imported
-	 * @param id id of the folder to import
-	 * @param folderVersion version of the folder to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the folder should be its original id
-	 * @return the imported folder
-	 * @throws Exception
-	 */
-	public IFolder importFolderFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy) throws Exception {
-		IFolder folder;
-		boolean hasJustBeenCreated = false;
-
-		if ( logger.isDebugEnabled() ) {
-			if ( mustCreateCopy )
-				logger.debug("Importing a copy of folder id "+id+".");
-			else
-				logger.debug("Importing folder id "+id+".");
-		}
-
-		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"folders WHERE id = f.id)" : String.valueOf(version);
-
-		try ( ResultSet result = select("SELECT version, type, root_type, name, documentation, checksum, created_on FROM "+this.schema+"folders f WHERE id = ? AND version = "+versionString, id) ) {
-			if ( !result.next() ) {
-				if ( version == 0 )
-					throw new Exception("Folder with id="+id+" has not been found in the database.");
-				throw new Exception("Folder with id="+id+" and version="+version+" has not been found in the database.");
-			}
-			
-			DBMetadata metadata;
-
-			if ( mustCreateCopy ) {
-				hasJustBeenCreated = true;
-				folder = DBArchimateFactory.eINSTANCE.createFolder();
-				folder.setId(model.getIDAdapter().getNewID());
-				folder.setType(FolderType.get(result.getInt("type")));
-				
-				metadata = ((IDBMetadata)folder).getDBMetadata();
-
-				metadata.setName(result.getString("name"));
-				
-				metadata.getInitialVersion().setVersion(0);
-				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-
-				importProperties(folder, id, result.getInt("version"));
-			} else {
-				folder = model.getAllFolders().get(id);
-				if ( folder == null ) {
-					hasJustBeenCreated = true;
-					folder = DBArchimateFactory.eINSTANCE.createFolder();
-					folder.setId(id);
-					folder.setType(FolderType.get(result.getInt("type")));
-				}
-
-				metadata = ((IDBMetadata)folder).getDBMetadata();
-				
-				metadata.setName(result.getString("name"));
-				metadata.getInitialVersion().setVersion(result.getInt("version"));
-				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getCurrentVersion().setVersion(result.getInt("version"));
-				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
-				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-			}
-
-			metadata.setDocumentation(result.getString("documentation"));
-			metadata.setRootFolderType(result.getInt("root_type"));
-			
-			setFolderToLastKnown(model, folder);
-
-			if ( hasJustBeenCreated ) 
-				model.countObject(folder, false, null);
-
-			++this.countFoldersImported;
-		}
-
-		return folder;
-	}
-
-	/**
-	 * Imports an element into the model<br>
-	 * @param view if a view is provided, then an ArchimateObject will be automatically created
-	 * @param elementId id of the element to import
-	 * @param elementVersion version of the element to import (0 if the latest version should be imported)
-	 * @return the imported element
-	 * @throws Exception
-	 */
-	public IArchimateElement importElementFromId(DBArchimateModel model, String elementId, int elementVersion) throws Exception {
-		return this.importElementFromId(model, null, elementId, elementVersion, false, false);
-	}
-
-	/**
-	 * Imports an element into the model<br>
-	 * @param model model into which the element will be imported
-	 * @param view if a view is provided, then an ArchimateObject will be automatically created
-	 * @param id id of the element to import
-	 * @param version version of the element to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
-	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
-	 * @return the imported element
-	 * @throws Exception
-	 */
-	public IArchimateElement importElementFromId(DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy, boolean mustImportRelationships) throws Exception {
-		IArchimateElement element;
-		boolean hasJustBeenCreated = false;
-
-		if ( logger.isDebugEnabled() ) {
-			if ( mustCreateCopy )
-				logger.debug("Importing a copy of element id "+id+".");
-			else
-				logger.debug("Importing element id "+id+".");
-		}
-
-		// TODO add an option to import elements recursively
-
-		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"elements WHERE id = e.id)" : String.valueOf(version);
-
-		try ( ResultSet result = select("SELECT version, class, name, documentation, type, checksum, created_on FROM "+this.schema+"elements e WHERE id = ? AND version = "+versionString, id) ) {
-			if ( !result.next() ) {
-				if ( version == 0 )
-					throw new Exception("Element with id="+id+" has not been found in the database.");
-				throw new Exception("Element with id="+id+" and version="+version+" has not been found in the database.");
-			}
-			
-			DBMetadata metadata;
-
-			if ( mustCreateCopy ) {
-				element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-				element.setId(model.getIDAdapter().getNewID());
-				hasJustBeenCreated = true;
-				
-				metadata = ((IDBMetadata)element).getDBMetadata();
-
-				metadata.setName(result.getString("name"));
-				
-				metadata.getInitialVersion().setVersion(0);
-				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-				metadata.getCurrentVersion().setVersion(0);
-				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-
-				importProperties(element, id, result.getInt("version"));
-			} else {
-				element = model.getAllElements().get(id);
-				if ( element == null ) {
-					element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-					element.setId(id);
-					hasJustBeenCreated = true;
-				}
-				
-				metadata = ((IDBMetadata)element).getDBMetadata();
-
-				metadata.setName(result.getString("name"));
-				metadata.getInitialVersion().setVersion(result.getInt("version"));
-				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                metadata.getCurrentVersion().setVersion(result.getInt("version"));
-                metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
-                metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-
-				importProperties(element);
-			}
-
-			metadata.setDocumentation(result.getString("documentation"));
-			metadata.setType(result.getString("type"));
-
-			if ( view != null && metadata.componentToConnectable(view).isEmpty() ) {
-				view.getChildren().add(ArchimateDiagramModelFactory.createDiagramModelArchimateObject(element));
-			}
-
-			if ( hasJustBeenCreated )
-				model.countObject(element, false, null);
-
-			++this.countElementsImported;
-
-		}
-
-		if ( mustImportRelationships ) {
-			// We import the relationships that source or target the element
-			try ( ResultSet resultrelationship = select("SELECT id, source_id, target_id FROM "+this.schema+"relationships WHERE source_id = ? OR target_id = ?", id, id) ) {
-				while ( resultrelationship.next() && resultrelationship.getString("id") != null ) {
-					// we import only relationships that do not exist
-					if ( model.getAllRelationships().get(resultrelationship.getString("id")) == null ) {
-						IArchimateElement sourceElement = model.getAllElements().get(resultrelationship.getString("source_id"));
-						IArchimateRelationship sourceRelationship = model.getAllRelationships().get(resultrelationship.getString("source_id"));
-						IArchimateElement targetElement = model.getAllElements().get(resultrelationship.getString("target_id"));
-						IArchimateRelationship targetRelationship = model.getAllRelationships().get(resultrelationship.getString("target_id"));
-
-						// we import only relations when both source and target are in the model
-						if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
-							importRelationshipFromId(model, view, resultrelationship.getString("id"), 0, false);
-						}
-					}
-				}
-			}
-		    
-			model.resolveSourceRelationships();
-			model.resolveTargetRelationships();
-		}
-		return element;
-	}
-
-	/**
-	 * Imports a relationship into the model
-	 * @param model model into which the relationship will be imported
-	 * @param view if a view is provided, then an ArchimateConnection will be automatically created
-	 * @param id id of the relationship to import
-	 * @param version version of the relationship to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should kee its original id
-	 * @return the imported relationship
-	 * @throws Exception
-	 */
-	public IArchimateRelationship importRelationshipFromId(DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy) throws Exception {
-		boolean hasJustBeenCreated = false;
-		IArchimateRelationship relationship;
-
-		if ( logger.isDebugEnabled() ) {
-			if ( mustCreateCopy )
-				logger.debug("Importing a copy of relationship id "+id+".");
-			else
-				logger.debug("Importing relationship id "+id+".");
-		}
-
-		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"relationships WHERE id = r.id)" : String.valueOf(version);
-
-		try ( ResultSet result = select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, checksum, created_on FROM "+this.schema+"relationships r WHERE id = ? AND version = "+versionString, id) ) {
-			if ( !result.next() ) {
-				if ( version == 0 )
-					throw new Exception("Relationship with id="+id+" has not been found in the database.");
-				throw new Exception("Relationship with id="+id+" and version="+version+" has not been found in the database.");
-			}
-			
-			DBMetadata metadata;
-
-			if ( mustCreateCopy ) {
-				relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-				relationship.setId(model.getIDAdapter().getNewID());
-				hasJustBeenCreated = true;
-				
-				metadata = ((IDBMetadata)relationship).getDBMetadata();
-
-				metadata.getInitialVersion().setVersion(0);
-				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-				metadata.getCurrentVersion().setVersion(0);
-				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-			} else {
-				relationship = model.getAllRelationships().get(id);
-				if ( relationship == null ) {
-					relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-					relationship.setId(id);
-					hasJustBeenCreated = true;
-				}
-				
-				metadata = ((IDBMetadata)relationship).getDBMetadata();
-
-				metadata.getInitialVersion().setVersion(result.getInt("version"));
-				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getCurrentVersion().setVersion(result.getInt("version"));
-				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
-				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-			}
-
-			metadata.setName(result.getString("name"));
-			metadata.setDocumentation(result.getString("documentation"));
-			metadata.setStrength(result.getString("strength"));
-			metadata.setAccessType(result.getInt("access_type"));
-
-            IArchimateConcept source = model.getAllElements().get(result.getString("source_id"));
-            IArchimateConcept target = model.getAllElements().get(result.getString("target_id"));
-            
-            if ( source != null ) {
-                // source is an element and is reputed already imported, so we can set it right away
-                relationship.setSource(source);
-                source.getSourceRelationships().add(relationship);
-            } else {
-                // source is another connection and may not be already loaded. So we register it for future resolution
-                model.registerSourceRelationship(relationship, this.currentResultSet.getString("source_id"));
-            }
-            
-            if ( target != null ) {
-                // target is an element and is reputed already imported, so we can set it right away
-                relationship.setTarget(target);
-                target.getTargetRelationships().add(relationship);
-            } else {
-                // target is another connection and may not be already loaded. So we register it for future resolution
-                model.registerTargetRelationship(relationship, this.currentResultSet.getString("target_id"));
-            }
-
-
-			importProperties(relationship);
-
-			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
-			// and create the corresponding connections
-			// TODO : make an option with this functionality that the user can choose if he want the connections or not
-			if ( view != null && metadata.componentToConnectable(view).isEmpty() ) {
-				List<IConnectable> sourceConnections = metadata.componentToConnectable(view, relationship.getSource());
-				List<IConnectable> targetConnections = metadata.componentToConnectable(view, relationship.getTarget());
-
-				for ( IConnectable sourceConnection: sourceConnections ) {
-					for ( IConnectable targetConnection: targetConnections ) {
-						IDiagramModelArchimateConnection cnct = ArchimateDiagramModelFactory.createDiagramModelArchimateConnection(relationship);
-						cnct.setSource(sourceConnection);
-						sourceConnection.getSourceConnections().add(cnct);
-						cnct.setTarget(targetConnection);
-						targetConnection.getTargetConnections().add(cnct);
-					}
-				}
-			}
-		}
-
-		if ( hasJustBeenCreated )
-			model.countObject(relationship, false, null);
-
-		++this.countRelationshipsImported;
-
-		return relationship;
-	}
-
-	/**
 	 * This method imports a view, optionally including all graphical objects and connections and requirements (elements and relationships)<br>
 	 * elements and relationships that needed to be imported are located in a folder named by the view
 	 */
@@ -1466,8 +1116,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( viewObject instanceof IDiagramModelArchimateComponent && resultViewObject.getString("element_id") != null) {
 				// we check that the element already exists. If not, we import it in shared mode
 				IArchimateElement element = model.getAllElements().get(resultViewObject.getString("element_id"));
-				if ( element == null )
-					importElementFromId(model, null, resultViewObject.getString("element_id"), 0, false, true);
+				if ( element == null ) {
+					//TODO --> convert to command ::: importElementFromId(model, null, resultViewObject.getString("element_id"), 0, false, true);
+				}
 			}
 
 			metadata.setArchimateConcept(model.getAllElements().get(resultViewObject.getString("element_id")));
@@ -1573,7 +1224,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 				IArchimateRelationship relationship = model.getAllRelationships().get(resultViewConnection.getString("relationship_id"));
 				if ( relationship == null ) {
-					importRelationshipFromId(model, null, resultViewConnection.getString("relationship_id"), 0, false);
+					//TODO --> convert to command ::: importRelationshipFromId(model, null, resultViewConnection.getString("relationship_id"), 0, false);
 				}
 			}
 			
