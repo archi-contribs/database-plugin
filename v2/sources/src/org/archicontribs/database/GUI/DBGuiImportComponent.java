@@ -15,12 +15,11 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 
-import com.archimatetool.model.IDiagramModel;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
-import org.eclipse.gef.commands.CompoundCommand;
+import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -1396,24 +1395,28 @@ public class DBGuiImportComponent extends DBGui {
 		int done = 0;
 		
 		try {
-			CompoundCommand importCommands = new CompoundCommand();
-			
 			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
 				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 				
-				if ( this.compoElements.getVisible() )
-					importCommands.add(new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
-					// TODO: find a way to select the imported element to select it in the folder tree ::: imported.add(this.importConnection.importElementFromId(this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
+				if ( this.compoElements.getVisible() ) {
+					DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true);
+					command.execute();
+
+					if ( command.getImportedElement() != null )
+						imported.add(command.getImportedElement());
+				}
 				//else if ( compoContainers.getVisible() )
 				//	database.importContainerFromId(importedModel, id, !getOptionValue());
 				//	database.importFolder(importedModel, id, !getOptionValue());
 				else if ( this.compoViews.getVisible() ) {
-					IDiagramModel view = this.importConnection.importViewFromId(this.importedModel, /*this.selectedFolder,*/ id, 0, !getOptionValue(), true);
-					if ( view != null )
-						imported.add(view);
+					DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
+					command.execute();
+
+					if ( command.getImportedView() != null ) 
+						imported.add(command.getImportedView());
 				}
 			}
 		} catch(RuntimeException e) {

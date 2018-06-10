@@ -9,10 +9,8 @@ package org.archicontribs.database.connection;
 import java.io.ByteArrayInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.sql.Types;
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -26,6 +24,8 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
@@ -651,7 +651,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSet.getString("element_id"));
 					if ( element == null ) {
-						//TODO --> convert to command ::: importElementFromId(model, null, this.currentResultSet.getString("element_id"), 0, false, true);
+						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSet.getString("element_id"), 0, false, true);
+						command.execute();
+						
+						element = command.getImportedElement();
 					}
 				}
 
@@ -741,15 +744,17 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
 
-				/*
 				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSet.getString("relationship_id"));
 					if ( relationship == null ) {
-						importRelationshipFromId(model, null, this.currentResultSet.getString("relationship_id"), 0, false);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSet.getString("element_id"), 0, false);
+						command.execute();
+						
+						relationship = command.getImportedRelationship();
 					}
 				}
-				*/
+
 				metadata.setName(this.currentResultSet.getString("name"));
 				metadata.setLocked(this.currentResultSet.getObject("is_locked"));
 				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
@@ -943,119 +948,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 		}
 	}
-
-	/**
-	 * This method imports a view, optionally including all graphical objects and connections and requirements (elements and relationships)<br>
-	 * elements and relationships that needed to be imported are located in a folder named by the view
-	 */
-	public IDiagramModel importViewFromId(DBArchimateModel model, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) throws Exception {
-		IDiagramModel view;
-		boolean hasJustBeenCreated = false;
-
-		if ( logger.isDebugEnabled() ) {
-			if ( mustCreateCopy )
-				logger.debug("Importing a copy of view id "+id);
-			else {
-				logger.debug("Importing view id "+id);
-			}
-		}
-
-		// 1 : we create or update the view
-		String versionString = (version==0) ? "(SELECT MAX(version) FROM "+this.schema+"views WHERE id = v.id)" : String.valueOf(version);
-
-		try ( ResultSet result = select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, container_checksum, created_on FROM "+this.schema+"views v WHERE id = ? AND version = "+versionString, id) ) {
-			if ( !result.next() ) {
-				if ( version == 0 )
-					throw new Exception("View with id="+id+" has not been found in the database.");
-				throw new Exception("View with id="+id+" and version="+version+" has not been found in the database.");
-			}
-			
-			DBMetadata metadata;
-
-			view = model.getAllViews().get(id);
-			if ( mustCreateCopy ) {
-				if ( DBPlugin.areEqual(result.getString("class"), "CanvasModel") )
-					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(result.getString("class"));
-				else
-					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-				view.setId(model.getIDAdapter().getNewID());
-				hasJustBeenCreated = true;
-				
-				metadata = ((IDBMetadata)view).getDBMetadata();
-
-				metadata.getInitialVersion().setVersion(0);
-				metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-				metadata.getCurrentVersion().setVersion(0);
-				metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-			} else {
-				view = model.getAllViews().get(id);
-				if ( view == null ) {
-					if ( DBPlugin.areEqual(result.getString("class"), "CanvasModel") )
-						view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(result.getString("class"));
-					else
-						view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-					view.setId(id);
-					hasJustBeenCreated = true;
-				}
-				
-				metadata = ((IDBMetadata)view).getDBMetadata();
-
-				metadata.getInitialVersion().setVersion(result.getInt("version"));
-				metadata.getInitialVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getCurrentVersion().setVersion(result.getInt("version"));
-				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				metadata.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-				metadata.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-				metadata.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-				metadata.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-				metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-			}
-
-			metadata.setName(result.getString("name"));
-			metadata.setDocumentation(result.getString("documentation"));
-			metadata.setConnectionRouterType(result.getInt("connection_router_type"));
-
-			metadata.setViewpoint(result.getString("viewpoint"));
-			metadata.setBackground(result.getInt("background"));
-			metadata.setHintContent(result.getString("hint_content"));
-			metadata.setHintTitle(result.getString("hint_title"));
-		}
-
-		importProperties(view);
-
-		if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
-
-		if ( mustImportViewContent ) {
-			// 2 : we import the objects and create the corresponding elements if they do not exist yet
-			//        importing an element will automatically import the relationships to and from this element
-			prepareImportViewsObjects(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
-			while ( importViewsObjects(model, view) ) {
-				// each loop imports an object
-			}
-
-			// 3 : we import the connections and create the corresponding relationships if they do not exist yet
-			prepareImportViewsConnections(((IIdentifier)view).getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
-			while ( importViewsConnections(model) ) {
-				// each loop imports a connection
-			}
-
-			model.resolveSourceConnections();
-			model.resolveTargetConnections();
-		}
-
-		if ( hasJustBeenCreated )
-			model.countObject(view, false, null);
-
-		return view;
-	}
-
 
 	/**
 	 * gets the latest model version in the database (0 if the model does not exist in the database)

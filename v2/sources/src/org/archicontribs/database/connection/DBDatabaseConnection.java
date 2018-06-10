@@ -26,6 +26,7 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.model.DBArchimateModel;
+import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 
 import com.archimatetool.model.IDiagramModel;
 
@@ -923,7 +924,9 @@ public class DBDatabaseConnection implements AutoCloseable {
                 try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
                         IDiagramModel view;
-                        view = importConnection.importViewFromId(tempModel, result.getString("id"), result.getInt("version"), false, false);
+                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, result.getString("id"), result.getInt("version"), false, false);
+                        command.execute();
+                        view = command.getImportedView();
                         
                         request("UPDATE "+this.schema+"views SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(view), result.getString("id"), result.getInt("version"));
                     }

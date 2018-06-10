@@ -33,6 +33,7 @@ import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewConnectionFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewObjectFromIdCommand;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
@@ -1660,7 +1661,8 @@ public class DBGuiExportModel extends DBGui {
 			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
 			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
 			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
-			        importConnection.importViewFromId(this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
+			        this.exportCommands.add(new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false));
+		            this.exportCommands.execute();
 			        incrementText(this.txtNewViewsInDatabase);
 			        incrementText(this.txtTotalViews);
 			    }
@@ -2071,7 +2073,7 @@ public class DBGuiExportModel extends DBGui {
 	            else if ( eObjectToExport instanceof IFolder )
                     this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
 	            else if ( eObjectToExport instanceof IDiagramModel )
-	                importConnection.importViewFromId(this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
+	            	this.exportCommands.add(new DBImportViewFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false));
 	            else if ( eObjectToExport instanceof IDiagramModelObject )
 	            	this.exportCommands.add(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false));
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
