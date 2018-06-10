@@ -184,6 +184,8 @@ public class DBImportFolderFromIdCommand extends Command {
             metadata.setType(result.getString("type"));
             metadata.setRootFolderType(result.getInt("root_type"));
             
+            this.importConnection.importProperties(this.importedFolder);
+            
             this.importConnection.setFolderToLastKnown(this.model, this.importedFolder);
 
             if ( this.folderHasBeenCreated )
