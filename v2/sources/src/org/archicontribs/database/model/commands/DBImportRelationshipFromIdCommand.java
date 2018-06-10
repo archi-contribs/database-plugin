@@ -198,6 +198,8 @@ public class DBImportRelationshipFromIdCommand extends Command {
             metadata.setStrength(result.getString("strength"));
             metadata.setAccessType(result.getInt("access_type"));
             
+            this.importConnection.importProperties(this.importedRelationship);
+            
             IArchimateConcept source = this.model.getAllElements().get(result.getString("source_id"));
             if ( source == null ) source = this.model.getAllRelationships().get(result.getString("source_id"));
             metadata.setSource(source);
