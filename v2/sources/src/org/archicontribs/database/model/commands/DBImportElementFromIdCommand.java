@@ -64,7 +64,8 @@ public class DBImportElementFromIdCommand extends Command {
     
     /**
      * Imports an element into the model<br>
-     * @param view if a view is provided, then an ArchimateObject will be automatically created
+     * @param connection connection to the database
+     * @param model model into which the element will be imported
      * @param elementId id of the element to import
      * @param elementVersion version of the element to import (0 if the latest version should be imported)
      */
@@ -77,6 +78,7 @@ public class DBImportElementFromIdCommand extends Command {
     
     /**
      * Imports an element into the model<br>
+     * @param connection connection to the database
      * @param model model into which the element will be imported
      * @param view if a view is provided, then an ArchimateObject will be automatically created
      * @param id id of the element to import

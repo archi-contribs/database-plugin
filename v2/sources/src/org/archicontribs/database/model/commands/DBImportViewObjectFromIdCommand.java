@@ -31,7 +31,7 @@ import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
 /**
- * Command for importing an element from it's ID.
+ * Command for importing a view object from it's ID.
  * 
  * @author Herve Jouin
  */
@@ -85,10 +85,11 @@ public class DBImportViewObjectFromIdCommand extends Command {
     
     /**
      * Imports a view object into the model<br>
-     * @param model model into which the element will be imported
-     * @param id id of the element to import
-     * @param version version of the element to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
+     * @param connection connection to the database
+     * @param model model into which the view object will be imported
+     * @param id id of the view object to import
+     * @param version version of the view object to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
      */
     public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
@@ -202,7 +203,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			metadata.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
 
 			if ( this.importedViewObject instanceof IDiagramModelArchimateComponent && result.getString("element_id") != null) {
-				// we check that the element already exists. If not, we import it in shared mode
+				// we check that the view object already exists. If not, we import it in shared mode
 				IArchimateElement element = this.model.getAllElements().get(result.getString("element_id"));
 				if ( element == null ) {
 					this.importCorrespondingElementCommand = new DBImportElementFromIdCommand(this.importConnection, this.model, result.getString("element_id"), 0);
@@ -273,7 +274,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)this.importedViewObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)this.importedViewObject).getDBMetadata().getDebugName());
         } catch (Exception e) {
             // TODO: find a way to advertise the user as exceptions cannot be thrown
-            logger.error("Failed to import element !!!", e);
+            logger.error("Failed to import view object !!!", e);
         }
         
         this.commandHasBeenExecuted = true;
@@ -290,7 +291,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
         }
         
         if ( this.importedViewObjectHasBeenCreated ) {
-            // if the element has been created by the execute() method, we just delete it
+            // if the view object has been created by the execute() method, we just delete it
             IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
             container.getChildren().remove(this.importedViewObject);
             

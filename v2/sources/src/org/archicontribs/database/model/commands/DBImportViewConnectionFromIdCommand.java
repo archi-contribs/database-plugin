@@ -30,7 +30,7 @@ import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
 /**
- * Command for importing an element from it's ID.
+ * Command for importing an view connection from it's ID.
  * 
  * @author Herve Jouin
  */
@@ -69,10 +69,11 @@ public class DBImportViewConnectionFromIdCommand extends Command {
     
     /**
      * Imports a view connection into the model<br>
-     * @param model model into which the element will be imported
-     * @param id id of the element to import
-     * @param version version of the element to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
+     * @param connection connection to the database
+     * @param model model into which the view connection will be imported
+     * @param id id of the view connection to import
+     * @param version version of the view connection to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view connection should be its original id
      */
     public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
@@ -183,13 +184,13 @@ public class DBImportViewConnectionFromIdCommand extends Command {
 				// we check that the relationship already exists. If not, we import it in shared mode
 				IArchimateRelationship relationship = this.model.getAllRelationships().get(result.getString("relationship_id"));
 				if ( relationship == null ) {
-					this.importCorrespondingRelationshipCommand = new DBImportElementFromIdCommand(this.importConnection, this.model, result.getString("relationship_id"), 0);
+					this.importCorrespondingRelationshipCommand = new DBImportRelationshipFromIdCommand(this.importConnection, this.model, result.getString("relationship_id"), 0);
 					this.importCorrespondingRelationshipCommand.execute();
 				}
 			}
 
 			if ( this.model.getAllRelationships().get(result.getString("relationship_id")) != null ) metadata.setName(result.getString("name"));
-			metadata.setArchimateConcept(this.model.getAllElements().get(result.getString("relationship_id")));
+			metadata.setArchimateConcept(this.model.getAllRelationships().get(result.getString("relationship_id")));
 			metadata.setLocked(result.getObject("is_locked"));
 			metadata.setDocumentation(result.getString("documentation"));
 			metadata.setLineColor(result.getString("line_color"));
@@ -236,7 +237,7 @@ public class DBImportViewConnectionFromIdCommand extends Command {
 			if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)this.importedViewConnection).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)this.importedViewConnection).getDBMetadata().getDebugName());
         } catch (Exception e) {
             // TODO: find a way to advertise the user as exceptions cannot be thrown
-            logger.error("Failed to import element !!!", e);
+            logger.error("Failed to import view connection !!!", e);
         }
         
         this.commandHasBeenExecuted = true;
@@ -277,7 +278,7 @@ public class DBImportViewConnectionFromIdCommand extends Command {
 			metadata.setType(this.oldType);
 			metadata.setTextPosition(this.oldTextPosition);
             
-			// If the object has got properties but does not have a linked element, then it may have distinct properties
+			// If the object has got properties but does not have a linked relationship, then it may have distinct properties
 			if ( metadata.getArchimateConcept() == null ) {
 	            ((IProperties)this.importedViewConnection).getProperties().clear();
 	            for ( DBPair<String, String> pair: this.oldProperties ) {

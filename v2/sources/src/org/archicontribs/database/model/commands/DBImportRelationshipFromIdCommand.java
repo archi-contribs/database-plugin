@@ -39,7 +39,7 @@ import com.archimatetool.model.IProperty;
  * @author Herve Jouin
  */
 public class DBImportRelationshipFromIdCommand extends Command {
-    private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
+    private static final DBLogger logger = new DBLogger(DBImportRelationshipFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
     
@@ -71,7 +71,8 @@ public class DBImportRelationshipFromIdCommand extends Command {
     
     /**
      * Imports a relationship into the model<br>
-     * @param view if a view is provided, then an ArchimateConnection will be automatically created
+     * @param connection connection to the database
+     * @param model model into which the relationship will be imported
      * @param relationshipId id of the relationship to import
      * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
      */
@@ -83,15 +84,14 @@ public class DBImportRelationshipFromIdCommand extends Command {
     }
     
     /**
-     * Imports an element into the model<br>
-     * @param model model into which the element will be imported
+     * Imports a relationship into the model<br>
+     * @param model model into which the relationship will be imported
      * @param view if a view is provided, then an ArchimateObject will be automatically created
-     * @param id id of the element to import
-     * @param version version of the element to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
-     * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
+     * @param id id of the relationship to import
+     * @param version version of the relationship to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the relationship should be its original id
      */
-    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy, boolean mustImportRelationships) {
+    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
         this.model = model;
         this.view = view;
@@ -139,7 +139,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
                 this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
                 this.importedRelationship.setId(this.model.getIDAdapter().getNewID());
 
-                // as the element has just been created, the undo will just need to drop it
+                // as the relationship has just been created, the undo will just need to drop it
                 // so we do not need to save its properties
                 this.hasBeenCreated = true;
                 metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
@@ -157,12 +157,12 @@ public class DBImportRelationshipFromIdCommand extends Command {
                     this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
                     this.importedRelationship.setId(this.id);
                     
-                    // as the element has just been created, the undo will just need to drop it
+                    // as the relationship has just been created, the undo will just need to drop it
                     // so we do not need to save its properties
                     this.hasBeenCreated = true;
                     metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
                 } else {
-                    // the element already exists in the model and will be updated with information from the database
+                    // the relationship already exists in the model and will be updated with information from the database
                     // we need to keep a value of all its properties to allow undo
                     metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
                     
@@ -239,8 +239,6 @@ public class DBImportRelationshipFromIdCommand extends Command {
 
             if ( this.hasBeenCreated )
                 this.model.countObject(this.importedRelationship, false, null);
-
-            // this.importConnection.setCountElementsImported(this.importConnection.getCountElementsImported() + 1);
         } catch (Exception e) {
             // TODO: find a way to advertise the user as exceptions cannot be thrown
             logger.error("Failed to import relationship !!!", e);
@@ -268,7 +266,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
         }
         
         if ( this.hasBeenCreated ) {
-            // if the element has been created by the execute() method, we just delete it
+            // if the relationship has been created by the execute() method, we just delete it
             IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
             parentFolder.getElements().remove(this.importedRelationship);
             

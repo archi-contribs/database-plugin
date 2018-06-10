@@ -26,7 +26,7 @@ import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
 /**
- * Command for importing an element from it's ID.
+ * Command for importing a folder from it's ID.
  * 
  * @author Herve Jouin
  */
@@ -59,9 +59,10 @@ public class DBImportFolderFromIdCommand extends Command {
     
     /**
      * Imports a folder into the model<br>
-     * @param view if a view is provided, then an ArchimateObject will be automatically created
-     * @param id id of the element to import
-     * @param version version of the element to import (0 if the latest version should be imported)
+     * @param connection connection to the database
+     * @param model model into which the folder will be imported
+     * @param id id of the folder to import
+     * @param version version of the folder to import (0 if the latest version should be imported)
      */
     public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
         this.importConnection = connection;
@@ -72,11 +73,11 @@ public class DBImportFolderFromIdCommand extends Command {
     
     /**
      * Imports a folder into the model<br>
-     * @param model model into which the element will be imported
-     * @param view if a view is provided, then an ArchimateObject will be automatically created
-     * @param id id of the element to import
-     * @param version version of the element to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id 
+     * @param connection connection to the database
+     * @param model model into which the folder will be imported
+     * @param id id of the folder to import
+     * @param version version of the folder to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the folder should be its original id 
      */
     public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
@@ -125,7 +126,7 @@ public class DBImportFolderFromIdCommand extends Command {
                 this.importedFolder = DBArchimateFactory.eINSTANCE.createFolder();
                 this.importedFolder.setId(this.model.getIDAdapter().getNewID());
 
-                // as the element has just been created, the undo will just need to drop it
+                // as the folder has just been created, the undo will just need to drop it
                 // so we do not need to save its properties
                 this.folderHasBeenCreated = true;
                 metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
@@ -143,12 +144,12 @@ public class DBImportFolderFromIdCommand extends Command {
                     this.importedFolder = DBArchimateFactory.eINSTANCE.createFolder();
                     this.importedFolder.setId(this.id);
                     
-                    // as the element has just been created, the undo will just need to drop it
+                    // as the folder has just been created, the undo will just need to drop it
                     // so we do not need to save its properties
                     this.folderHasBeenCreated = true;
                     metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
                 } else {
-                    // the element already exists in the model and will be updated with information from the database
+                    // the folder already exists in the model and will be updated with information from the database
                     // we need to keep a value of all its properties to allow undo
                     metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
                     
