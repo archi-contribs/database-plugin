@@ -83,12 +83,11 @@ public class DBImportViewObjectFromIdCommand extends Command {
     private ArrayList<IProperty> oldProperties;
     
     /**
-     * Imports an element into the model<br>
+     * Imports a view object into the model<br>
      * @param model model into which the element will be imported
      * @param id id of the element to import
      * @param version version of the element to import (0 if the latest version should be imported)
      * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
-     * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
      */
     public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
         this.importConnection = connection;
