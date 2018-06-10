@@ -388,7 +388,7 @@ public class DBMetadata  {
     }
 
     // BorderType
-    public Integer setBorderType() {
+    public Integer getBorderType() {
         if ( this.component instanceof IDiagramModelNote ) 
             return ((IDiagramModelNote)this.component).getBorderType();
         return null;
