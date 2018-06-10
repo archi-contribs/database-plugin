@@ -158,6 +158,10 @@ public class DBImportViewObjectFromIdCommand extends Command {
 				metadata.getCurrentVersion().setVersion(1);
 				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
 				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				
+				// If the object has got properties but does not have a linked element, then it may have distinct properties
+				if ( this.importedViewObject instanceof IProperties && result.getString("element_id")==null )
+					this.importConnection.importProperties((IProperties)this.importedViewObject, this.id, result.getInt("version"));
 			} else {
 				metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
 				
@@ -200,6 +204,10 @@ public class DBImportViewObjectFromIdCommand extends Command {
 				metadata.getCurrentVersion().setVersion(result.getInt("version"));
 				metadata.getCurrentVersion().setChecksum(result.getString("checksum"));
 				metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+				
+				// If the object has got properties but does not have a linked element, then it may have distinct properties
+				if ( this.importedViewObject instanceof IProperties && result.getString("element_id")==null )
+					this.importConnection.importProperties((IProperties)this.importedViewObject);
 			}
 			
 			metadata.getDatabaseVersion().setVersion(result.getInt("version"));
@@ -240,10 +248,6 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			metadata.setTextAlignment(result.getInt("text_alignment"));
 			metadata.setTextPosition(result.getInt("text_position"));
 			metadata.setBounds(result.getInt("x"), result.getInt("y"), result.getInt("width"), result.getInt("height"));
-			
-			// If the object has got properties but does not have a linked element, then it may have distinct properties
-			if ( this.importedViewObject instanceof IProperties && result.getString("element_id")==null )
-				this.importConnection.importProperties((IProperties)this.importedViewObject);
 
 			// we check if the view object must be changed from container
 			if ( this.importedViewObject instanceof IDiagramModelObject ) {

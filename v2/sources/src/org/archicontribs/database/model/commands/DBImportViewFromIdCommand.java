@@ -203,8 +203,6 @@ public class DBImportViewFromIdCommand extends Command {
 			metadata.setHintContent(result.getString("hint_content"));
 			metadata.setHintTitle(result.getString("hint_title"));
             
-            this.importConnection.importProperties(this.importedView);
-            
             this.importConnection.setFolderToLastKnown(this.model, this.importedView);
             
     		if ( this.mustImportViewContent ) {
