@@ -48,12 +48,12 @@ public class DBImportFolderFromIdCommand extends Command {
     private DBVersion oldDatabaseVersion;
     private DBVersion oldLatestDatabaseVersion;
     
-    private String oldDocumentation;
-    private String oldName;
-    private FolderType oldFolderType;
-    private int oldRootFolderType;
-    private IFolder oldFolder;
-    private ArrayList<IProperty> oldProperties;
+    private String oldDocumentation = null;
+    private String oldName = null;
+    private FolderType oldFolderType = null;
+    private Integer oldRootFolderType = null;
+    private IFolder oldFolder = null;
+    private ArrayList<IProperty> oldProperties = null;
     
     
     /**

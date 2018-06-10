@@ -57,14 +57,14 @@ public class DBImportRelationshipFromIdCommand extends Command {
     private DBVersion oldDatabaseVersion;
     private DBVersion oldLatestDatabaseVersion;
     
-    private String oldDocumentation;
-    private String oldName;
-    private String oldStrength;
-    private Integer oldAccessType;
-    private IFolder oldFolder;
-    private IArchimateConcept oldSource;
-    private IArchimateConcept oldTarget;
-    private ArrayList<IProperty> oldProperties;
+    private String oldDocumentation = null;
+    private String oldName = null;
+    private String oldStrength = null;
+    private Integer oldAccessType = null;
+    private IFolder oldFolder = null;
+    private IArchimateConcept oldSource = null;
+    private IArchimateConcept oldTarget = null;
+    private ArrayList<IProperty> oldProperties = null;
     private List<IDiagramModelConnection> createdViewConnections = null;
     
     

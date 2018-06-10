@@ -54,11 +54,11 @@ public class DBImportElementFromIdCommand extends Command {
     private DBVersion oldDatabaseVersion;
     private DBVersion oldLatestDatabaseVersion;
     
-    private String oldDocumentation;
-    private String oldName;
-    private String oldType;
-    private IFolder oldFolder;
-    private ArrayList<IProperty> oldProperties;
+    private String oldDocumentation = null;
+    private String oldName = null;
+    private String oldType = null;
+    private IFolder oldFolder = null;
+    private ArrayList<IProperty> oldProperties = null;
     private IDiagramModelObject createdViewObject = null;
     
     
