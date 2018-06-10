@@ -183,6 +183,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
+ * 										Use commands to allow undo/redo
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:
