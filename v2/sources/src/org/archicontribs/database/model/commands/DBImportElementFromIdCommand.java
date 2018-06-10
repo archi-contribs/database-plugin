@@ -192,6 +192,8 @@ public class DBImportElementFromIdCommand extends Command {
             metadata.setDocumentation(result.getString("documentation"));
             metadata.setType(result.getString("type"));
             
+            this.importConnection.importProperties(this.importedElement);
+            
             this.importConnection.setFolderToLastKnown(this.model, this.importedElement);
 
             if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
