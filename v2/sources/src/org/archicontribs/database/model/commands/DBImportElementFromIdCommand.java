@@ -95,6 +95,13 @@ public class DBImportElementFromIdCommand extends Command {
         this.mustCreateCopy = mustCreateCopy;
         this.mustImportRelationships = mustImportRelationships;
     }
+    
+    /**
+     * @return the relationship that has been imported by the command (of course, the command must have been executed before)
+     */
+    public IArchimateElement getImportedElement() {
+    	return this.importedElement;
+    }
 
     @Override
     public boolean canExecute() {

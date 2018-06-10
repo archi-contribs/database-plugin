@@ -82,6 +82,13 @@ public class DBImportViewConnectionFromIdCommand extends Command {
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
     }
+    
+    /**
+     * @return the view connection that has been imported by the command (of course, the command must have been executed before)
+     */
+    public IDiagramModelConnection getImportedViewConnection() {
+    	return this.importedViewConnection;
+    }
 
     @Override
     public boolean canExecute() {

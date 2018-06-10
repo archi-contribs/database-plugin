@@ -84,6 +84,13 @@ public class DBImportRelationshipFromIdCommand extends Command {
     }
     
     /**
+     * @return the relationship that has been imported by the command (of course, the command must have been executed before)
+     */
+    public IArchimateRelationship getImportedRelationship() {
+    	return this.importedRelationship;
+    }
+    
+    /**
      * Imports a relationship into the model<br>
      * @param model model into which the relationship will be imported
      * @param view if a view is provided, then an ArchimateObject will be automatically created

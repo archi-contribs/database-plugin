@@ -98,6 +98,13 @@ public class DBImportViewObjectFromIdCommand extends Command {
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
     }
+    
+    /**
+     * @return the view object that has been imported by the command (of course, the command must have been executed before)
+     */
+    public EObject getImportedViewObject() {
+    	return this.importedViewObject;
+    }
 
     @Override
     public boolean canExecute() {

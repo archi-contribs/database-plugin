@@ -86,6 +86,13 @@ public class DBImportFolderFromIdCommand extends Command {
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
     }
+    
+    /**
+     * @return the folder that has been imported by the command (of course, the command must have been executed before)
+     */
+    public IFolder getImportedFolder() {
+    	return this.importedFolder;
+    }
 
     @Override
     public boolean canExecute() {
