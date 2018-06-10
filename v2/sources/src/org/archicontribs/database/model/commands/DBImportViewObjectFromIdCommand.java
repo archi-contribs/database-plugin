@@ -57,6 +57,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
     
 	private IArchimateConcept oldArchimateConcept = null;
 	private IDiagramModel oldReferencedModel = null;
+	private String oldDocumentation = null;
 	private Integer oldType = null;
 	private String oldBorderColor = null;
 	private Integer oldBorderType = null;
@@ -155,6 +156,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 				if ( result.getObject("element_id") == null ) this.oldName = metadata.getName();
 				this.oldArchimateConcept = metadata.getArchimateConcept();
 				this.oldReferencedModel = metadata.getReferencedModel();
+				this.oldDocumentation = metadata.getDocumentation();
 				this.oldType = metadata.getType();
 				this.oldBorderColor = metadata.getBorderColor();
 				this.oldBorderType = metadata.getBorderType();
@@ -302,6 +304,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			if ( metadata.getArchimateConcept() != null ) metadata.setName(this.oldName);
 			metadata.setArchimateConcept(this.oldArchimateConcept);
 			metadata.setReferencedModel(this.oldReferencedModel);
+			metadata.setDocumentation(this.oldDocumentation);
 			metadata.setType(this.oldType);
 			metadata.setBorderColor(this.oldBorderColor);
 			metadata.setBorderType(this.oldBorderType);
@@ -345,6 +348,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
         
 		this.oldArchimateConcept = null;
 		this.oldReferencedModel = null;
+		this.oldDocumentation = null;
 		this.oldType = null;
 		this.oldBorderColor = null;
 		this.oldBorderType = null;
