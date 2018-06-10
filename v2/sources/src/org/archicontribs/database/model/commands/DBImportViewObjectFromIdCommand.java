@@ -288,8 +288,8 @@ public class DBImportViewObjectFromIdCommand extends Command {
         
         if ( this.importedViewObjectHasBeenCreated ) {
             // if the element has been created by the execute() method, we just delete it
-            IFolder parentFolder = (IFolder)this.importedViewObject.eContainer();
-            parentFolder.getElements().remove(this.importedViewObject);
+            IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
+            container.getChildren().remove(this.importedViewObject);
             
             this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
         } else {
