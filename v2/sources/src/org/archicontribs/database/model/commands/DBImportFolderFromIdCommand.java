@@ -120,7 +120,7 @@ public class DBImportFolderFromIdCommand extends Command {
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"folders WHERE id = f.id)" : String.valueOf(this.version);
 
-        try ( ResultSet result = this.importConnection.select("SELECT version, type, root_type, name, documentation, checksum, created_on FROM "+this.importConnection.getSchema()+"folders f WHERE id = ? AND version = "+versionString, this.id) ) {
+        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT version, type, root_type, name, documentation, checksum, created_on FROM "+this.importConnection.getSchema()+"folders f WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
                     throw new Exception("Folder with id="+this.id+" has not been found in the database.");

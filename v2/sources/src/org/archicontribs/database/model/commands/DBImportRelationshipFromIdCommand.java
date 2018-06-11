@@ -133,7 +133,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"relationships WHERE id = r.id)" : String.valueOf(this.version);
 
-        try ( ResultSet result = this.importConnection.select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, checksum, created_on FROM "+this.importConnection.getSchema()+"relationships r WHERE id = ? AND version = "+versionString, this.id) ) {
+        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT version, class, name, documentation, source_id, target_id, strength, access_type, checksum, created_on FROM "+this.importConnection.getSchema()+"relationships r WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
                     throw new Exception("Relationship with id="+this.id+" has not been found in the database.");

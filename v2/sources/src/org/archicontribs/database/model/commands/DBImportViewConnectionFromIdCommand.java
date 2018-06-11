@@ -116,7 +116,7 @@ public class DBImportViewConnectionFromIdCommand extends Command {
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"views_connections WHERE id = v.id)" : String.valueOf(this.version);
 
-        try ( ResultSet result = this.importConnection.select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.importConnection.getSchema()+"views_connections v WHERE id = ? AND version = "+versionString, this.id) ) {
+        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum, created_on FROM "+this.importConnection.getSchema()+"views_connections v WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
                     throw new Exception("View connection with id="+this.id+" has not been found in the database.");

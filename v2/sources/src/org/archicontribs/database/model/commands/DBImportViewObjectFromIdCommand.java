@@ -132,7 +132,7 @@ public class DBImportViewObjectFromIdCommand extends Command {
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"views_objects WHERE id = v.id)" : String.valueOf(this.version);
 
-        try ( ResultSet result = this.importConnection.select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on FROM "+this.importConnection.getSchema()+"views_objects v WHERE id = ? AND version = "+versionString, this.id) ) {
+        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on FROM "+this.importConnection.getSchema()+"views_objects v WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
                     throw new Exception("View object with id="+this.id+" has not been found in the database.");

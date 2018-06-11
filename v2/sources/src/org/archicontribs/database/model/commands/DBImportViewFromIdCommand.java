@@ -115,7 +115,7 @@ public class DBImportViewFromIdCommand extends Command {
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"views WHERE id = v.id)" : String.valueOf(this.version);
 
-        try ( ResultSet result = this.importConnection.select("SELECT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, container_checksum, created_on FROM "+this.importConnection.getSchema()+"views v WHERE id = ? AND version = "+versionString, this.id) ) {
+        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, container_checksum, created_on FROM "+this.importConnection.getSchema()+"views v WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {
                 if ( this.version == 0 )
                     throw new Exception("View with id="+this.id+" has not been found in the database.");
