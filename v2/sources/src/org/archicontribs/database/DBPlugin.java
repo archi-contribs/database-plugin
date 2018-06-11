@@ -293,12 +293,13 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
-		preferenceStore.setDefault("loggerExpert",		      "log4j.rootLogger                               = INFO, stdout, file\n"+
+		preferenceStore.setDefault("loggerExpert",
+		        "log4j.rootLogger                               = INFO, stdout, file\n"+
 				"\n"+
 				"log4j.appender.stdout                          = org.apache.log4j.ConsoleAppender\n"+
 				"log4j.appender.stdout.Target                   = System.out\n"+
 				"log4j.appender.stdout.layout                   = org.apache.log4j.PatternLayout\n"+
-				"log4j.appender.stdout.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-30.30C{1} %m%n\n"+
+				"log4j.appender.stdout.layout.ConversionPattern = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n\n"+
 				"\n"+
 				"log4j.appender.file                            = org.apache.log4j.FileAppender\n"+
 				"log4j.appender.file.ImmediateFlush             = true\n"+
@@ -306,7 +307,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				"log4j.appender.file.Encoding                   = UTF-8\n"+
 				"log4j.appender.file.File                       = "+(System.getProperty("user.home")+File.separator+pluginName+".log").replace("\\", "\\\\")+"\n"+
 				"log4j.appender.file.layout                     = org.apache.log4j.PatternLayout\n"+
-				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-30.30C{1} %m%n");
+				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n");
 		logger = new DBLogger(DBPlugin.class);
 		logger.info("Initialising "+pluginName+" plugin ...");
 		
