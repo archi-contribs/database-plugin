@@ -185,6 +185,8 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Added tootip with properties column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
  * 										Use commands to allow undo/redo
+ *                                      Added a label to explain that the icons can be selected
+ *                                      The categories can now be clicked to select/unselect the whole category
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:

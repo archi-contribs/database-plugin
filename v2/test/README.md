@@ -1,4 +1,4 @@
-
+		
 
 # beta release
 
@@ -8,17 +8,19 @@
 
 The beta5 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
 
-Please do not forget to fill in an issue if you discover a misbehaviour.
+`Please do not forget to fill in an issue if you discover a misbehaviour.`
 
 ## Known bugs:
 These bugs need to be solved before the release of version 2.1:
+
 * The sync process cannot (yet) be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
-* In the "import individual component", the "ignore case" button seems to malfunction, importing embedded views does not recursively imports the linked view and the images may not be imported as expected
+* importing embedded views does not recursively imports the linked view and the images may not be imported as expected
 * The plugins requires a lot of memory, often leading to increase the JVM size (set java parameter -Xmx1024 in Archi.ini file)
 
 ## Planned improvements
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
+
 * Improve the inline help and the GitHub wiki that lack a lot of information. Specifically, the algorithms should be described.
 * Improve import's performance by gathering all the objects properties and connections boundpoints in hashmaps in order to reduce the number of SQL requests generated
 * Add a "do not share" property that will force the "import individual component" to create a copy of the components. This way, it will be possible to implement, in the same view, some components that will be shared and other duplicated across models. The aim is to allow the creation of templates.
@@ -45,8 +47,12 @@ In addition, some improvements are planned but it's not guaranteed that they wil
 * *Import Model*
   * an import model from database context menu entry has been added when no model is selected
 * *Import individual component:*
-  * Added documentation column in the array to help distinguish components having the same name
+  * Added documentation column to help distinguish components having the same name
+  * Added tootip with properties to help distinguish components having the same name
   * Add popup message during the import as it may take some time
+  * Use commands to allow undo/redo
+  * Added a label to explain that the icons can be selected
+  * The categories can now be clicked to select/unselect the whole category
 * *Export model:*
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
   * In case of exception, the database lock is released before the error message is displayed
