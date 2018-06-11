@@ -182,6 +182,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      fix centering of GUI windows
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
+ *                                      Added tootip with properties column to help distinguish components having the same name
  * 										Added popup message during the import as it may take some time
  * 										Use commands to allow undo/redo
  *                                  Import model:
