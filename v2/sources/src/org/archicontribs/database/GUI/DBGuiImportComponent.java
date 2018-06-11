@@ -22,12 +22,18 @@ import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -39,6 +45,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
@@ -199,6 +206,10 @@ public class DBGuiImportComponent extends DBGui {
 
 		// We activate the Eclipse Help framework
 		setHelpHref("importComponent.html");
+		
+		enableOption();
+		createGrpFilter();
+		createGrpComponents();
 
 		getDatabases(false);
 	}
@@ -209,12 +220,17 @@ public class DBGuiImportComponent extends DBGui {
 	@Override
 	protected void connectedToDatabase(boolean ignore) {
 	    this.importConnection = new DBDatabaseImportConnection(getDatabaseConnection());
-	    
-		enableOption();
-		createGrpFilter();
-		createGrpComponents();
 		this.compoRightBottom.setVisible(true);
 		this.compoRightBottom.layout();
+		try {
+		    if ( this.radioOptionElement.getSelection() )
+		        getElements();
+		    else if ( this.radioOptionView.getSelection() )
+		        getViews();
+		    else this.tblComponents.clearAll();
+        } catch (Exception err) {
+            DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+        }
 	}
 
 	private void createGrpFilter() {
@@ -248,7 +264,7 @@ public class DBGuiImportComponent extends DBGui {
 				try {
 					getElements();
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 				}
 			} @Override public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
@@ -265,7 +281,7 @@ public class DBGuiImportComponent extends DBGui {
 				try {
 					getViews();
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 				}
 			}
 			@Override public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
@@ -305,7 +321,7 @@ public class DBGuiImportComponent extends DBGui {
 							getViews();
 					}
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 				} 
 			}
 		});
@@ -333,7 +349,7 @@ public class DBGuiImportComponent extends DBGui {
 							getViews();
 					}
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 				} 
 			}
 		});
@@ -354,6 +370,15 @@ public class DBGuiImportComponent extends DBGui {
 		fd.bottom = new FormAttachment(100, -10);
 		this.compoElements.setLayoutData(fd);
 		this.compoElements.setLayout(new FormLayout());
+		
+        Label title = new Label(this.compoElements, SWT.CENTER);
+        title.setText("You may click on a label or an icon to (un)select the corresponding classes ...");
+        title.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(0);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(100);
+        title.setLayoutData(fd);
 
 		Composite strategyActiveCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
 		Composite strategyBehaviorCompo = new Composite(this.compoElements, SWT.TRANSPARENT);
@@ -479,7 +504,7 @@ public class DBGuiImportComponent extends DBGui {
 		Label passiveLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
 		Canvas passiveCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(title, 2);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
 		fd.left = new FormAttachment(0, 70);
 		fd.right = new FormAttachment(0, 110);
@@ -491,11 +516,42 @@ public class DBGuiImportComponent extends DBGui {
 		passiveLabel.setLayoutData(fd);
 		passiveLabel.setText("Passive");
 		passiveLabel.setBackground(PASSIVE_COLOR);
+		passiveLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.productLabel);
+		        labelList.add(DBGuiImportComponent.this.dataObjectLabel);
+		        labelList.add(DBGuiImportComponent.this.artifactLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+		        try {
+                    getElements();
+		        } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label behaviorLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
 		Canvas behaviorCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(title, 2);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
 		fd.left = new FormAttachment(0, 115);
 		fd.right = new FormAttachment(55);
@@ -507,11 +563,60 @@ public class DBGuiImportComponent extends DBGui {
 		behaviorLabel.setLayoutData(fd);
 		behaviorLabel.setText("Behavior");
 		behaviorLabel.setBackground(PASSIVE_COLOR);
+		behaviorLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.capabilityLabel);
+		        labelList.add(DBGuiImportComponent.this.courseOfActionLabel);
+		        labelList.add(DBGuiImportComponent.this.businessProcessLabel);
+		        labelList.add(DBGuiImportComponent.this.businessFunctionLabel);
+		        labelList.add(DBGuiImportComponent.this.businessInteractionLabel);
+		        labelList.add(DBGuiImportComponent.this.businessEventLabel);
+		        labelList.add(DBGuiImportComponent.this.businessServiceLabel);
+		        labelList.add(DBGuiImportComponent.this.businessObjectLabel);
+		        labelList.add(DBGuiImportComponent.this.contractLabel);
+		        labelList.add(DBGuiImportComponent.this.representationLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationFunctionLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationInteractionLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationEventLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationServiceLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationProcessLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyFunctionLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyProcessLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyInteractionLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyEventLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyServiceLabel);
+		        labelList.add(DBGuiImportComponent.this.materialLabel);
+	                
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label activeLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
 		Canvas activeCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(title, 2);
 		fd.bottom = new FormAttachment(implementationCompo, 1, SWT.TOP);
 		fd.left = new FormAttachment(55, 5);
 		fd.right = new FormAttachment(100, -65);
@@ -523,11 +628,57 @@ public class DBGuiImportComponent extends DBGui {
 		activeLabel.setLayoutData(fd);
 		activeLabel.setText("Active");
 		activeLabel.setBackground(PASSIVE_COLOR);
+		activeLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.resourceLabel);
+		        labelList.add(DBGuiImportComponent.this.businessActorLabel);
+		        labelList.add(DBGuiImportComponent.this.businessRoleLabel);
+		        labelList.add(DBGuiImportComponent.this.businessCollaborationLabel);
+		        labelList.add(DBGuiImportComponent.this.businessInterfaceLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationComponentLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationCollaborationLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationInterfaceLabel);
+		        labelList.add(DBGuiImportComponent.this.nodeLabel);
+		        labelList.add(DBGuiImportComponent.this.deviceLabel);
+		        labelList.add(DBGuiImportComponent.this.systemSoftwareLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyCollaborationLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyInterfaceLabel);
+		        labelList.add(DBGuiImportComponent.this.pathLabel);
+		        labelList.add(DBGuiImportComponent.this.communicationNetworkLabel);
+		        labelList.add(DBGuiImportComponent.this.equipmentLabel);
+		        labelList.add(DBGuiImportComponent.this.facilityLabel);
+		        labelList.add(DBGuiImportComponent.this.distributionNetworkLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label motivationLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
 		Canvas motivationCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT);
 		fd = new FormData();
-		fd.top = new FormAttachment(0);
+		fd.top = new FormAttachment(title, 2);
 		fd.bottom = new FormAttachment(85, -2);
 		fd.left = new FormAttachment(100, -60);
 		fd.right = new FormAttachment(100);
@@ -539,6 +690,44 @@ public class DBGuiImportComponent extends DBGui {
 		motivationLabel.setLayoutData(fd);
 		motivationLabel.setText("Motivation");
 		motivationLabel.setBackground(MOTIVATION_COLOR);
+		motivationLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.stakeholderLabel);
+		        labelList.add(DBGuiImportComponent.this.driverLabel);
+		        labelList.add(DBGuiImportComponent.this.assessmentLabel);
+		        labelList.add(DBGuiImportComponent.this.goalLabel);
+		        labelList.add(DBGuiImportComponent.this.outcomeLabel);
+		        labelList.add(DBGuiImportComponent.this.valueLabel);
+		        labelList.add(DBGuiImportComponent.this.principleLabel);
+		        labelList.add(DBGuiImportComponent.this.requirementLabel);
+		        labelList.add(DBGuiImportComponent.this.constaintLabel);
+		        labelList.add(DBGuiImportComponent.this.smeaningLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		PaintListener redraw = new PaintListener() {
 			@Override
@@ -566,8 +755,8 @@ public class DBGuiImportComponent extends DBGui {
 		Label strategyLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas strategyCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(10, 2);
-		fd.bottom = new FormAttachment(25, -2);
+		fd.top = new FormAttachment(15, 2);
+		fd.bottom = new FormAttachment(29, -2);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100, -60);
 		strategyCanvas.setLayoutData(fd);
@@ -578,12 +767,43 @@ public class DBGuiImportComponent extends DBGui {
 		strategyLabel.setLayoutData(fd);
 		strategyLabel.setBackground(STRATEGY_COLOR);
 		strategyLabel.setText("Strategy");
+		strategyLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		       super.mouseUp(event);
+		       
+		       ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+		       
+		       labelList.add(DBGuiImportComponent.this.capabilityLabel);
+		       labelList.add(DBGuiImportComponent.this.courseOfActionLabel);
+		       labelList.add(DBGuiImportComponent.this.resourceLabel);
+		       
+		       boolean areAllSet = true;
+		       for ( ComponentLabel label: labelList) {
+		           if ( !label.isSelected()) {
+		               areAllSet = false;
+		               break;
+		           }
+		       }
+		       
+		       for ( ComponentLabel label: labelList) {
+		           label.setSelected(!areAllSet);
+		           label.redraw();
+		       }
+		       
+               try {
+                   getElements();
+               } catch (Exception err) {
+                   DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+               }
+		    }
+		});
 
 		Label businessLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas businessCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(25, 2);
-		fd.bottom = new FormAttachment(40, -2);
+		fd.top = new FormAttachment(29, 2);
+		fd.bottom = new FormAttachment(43, -2);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100, -60);
 		businessCanvas.setLayoutData(fd);
@@ -594,12 +814,53 @@ public class DBGuiImportComponent extends DBGui {
 		businessLabel.setLayoutData(fd);
 		businessLabel.setBackground(BUSINESS_COLOR);
 		businessLabel.setText("Business");
+		businessLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseUp(MouseEvent event) {
+               super.mouseUp(event);
+               
+               ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+               
+               labelList.add(DBGuiImportComponent.this.productLabel);
+               labelList.add(DBGuiImportComponent.this.businessProcessLabel);
+               labelList.add(DBGuiImportComponent.this.businessFunctionLabel);
+               labelList.add(DBGuiImportComponent.this.businessInteractionLabel);
+               labelList.add(DBGuiImportComponent.this.businessEventLabel);
+               labelList.add(DBGuiImportComponent.this.businessServiceLabel);
+               labelList.add(DBGuiImportComponent.this.businessObjectLabel);
+               labelList.add(DBGuiImportComponent.this.contractLabel);
+               labelList.add(DBGuiImportComponent.this.representationLabel);
+               labelList.add(DBGuiImportComponent.this.businessActorLabel);
+               labelList.add(DBGuiImportComponent.this.businessRoleLabel);
+               labelList.add(DBGuiImportComponent.this.businessCollaborationLabel);
+               labelList.add(DBGuiImportComponent.this.businessInterfaceLabel);
+               
+               boolean areAllSet = true;
+               for ( ComponentLabel label: labelList) {
+                   if ( !label.isSelected()) {
+                       areAllSet = false;
+                       break;
+                   }
+               }
+               
+               for ( ComponentLabel label: labelList) {
+                   label.setSelected(!areAllSet);
+                   label.redraw();
+               }
+               
+               try {
+                   getElements();
+               } catch (Exception err) {
+                   DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+               }
+            }
+        });
 
 		Label applicationLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas applicationCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(40, 2);
-		fd.bottom = new FormAttachment(55, -2);
+		fd.top = new FormAttachment(43, 2);
+		fd.bottom = new FormAttachment(57, -2);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100, -60);
 		applicationCanvas.setLayoutData(fd);
@@ -610,12 +871,49 @@ public class DBGuiImportComponent extends DBGui {
 		applicationLabel.setLayoutData(fd);
 		applicationLabel.setBackground(APPLICATION_COLOR);
 		applicationLabel.setText("Application");
+		applicationLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.dataObjectLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationFunctionLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationInteractionLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationEventLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationServiceLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationProcessLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationComponentLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationCollaborationLabel);
+		        labelList.add(DBGuiImportComponent.this.applicationInterfaceLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label technologyLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas technologyCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(55, 2);
-		fd.bottom = new FormAttachment(70, -2);
+		fd.top = new FormAttachment(57, 2);
+		fd.bottom = new FormAttachment(71, -2);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100, -60);
 		technologyCanvas.setLayoutData(fd);
@@ -626,11 +924,52 @@ public class DBGuiImportComponent extends DBGui {
 		technologyLabel.setLayoutData(fd);
 		technologyLabel.setBackground(TECHNOLOGY_COLOR);
 		technologyLabel.setText("Technology");
+		technologyLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.artifactLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyFunctionLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyProcessLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyInteractionLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyEventLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyServiceLabel);
+		        labelList.add(DBGuiImportComponent.this.nodeLabel);
+		        labelList.add(DBGuiImportComponent.this.deviceLabel);
+		        labelList.add(DBGuiImportComponent.this.systemSoftwareLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyCollaborationLabel);
+		        labelList.add(DBGuiImportComponent.this.technologyInterfaceLabel);
+		        labelList.add(DBGuiImportComponent.this.pathLabel);
+		        labelList.add(DBGuiImportComponent.this.communicationNetworkLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label physicalLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas physicalCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
-		fd.top = new FormAttachment(70, 2);
+		fd.top = new FormAttachment(71, 2);
 		fd.bottom = new FormAttachment(85, -2);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100, -60);
@@ -642,6 +981,38 @@ public class DBGuiImportComponent extends DBGui {
 		physicalLabel.setLayoutData(fd);
 		physicalLabel.setBackground(PHYSICAL_COLOR);
 		physicalLabel.setText("Physical");
+		physicalLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.materialLabel);
+		        labelList.add(DBGuiImportComponent.this.equipmentLabel);
+		        labelList.add(DBGuiImportComponent.this.facilityLabel);
+		        labelList.add(DBGuiImportComponent.this.distributionNetworkLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Label implementationLabel = new Label(this.compoElements, SWT.NONE);
 		Canvas implementationCanvas = new Canvas(this.compoElements, SWT.NONE);
@@ -658,6 +1029,39 @@ public class DBGuiImportComponent extends DBGui {
 		implementationLabel.setLayoutData(fd);
 		implementationLabel.setBackground(IMPLEMENTATION_COLOR);
 		implementationLabel.setText("Implementation");
+		implementationLabel.addMouseListener(new MouseAdapter() {
+		    @Override
+		    public void mouseUp(MouseEvent event) {
+		        super.mouseUp(event);
+
+		        ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+
+		        labelList.add(DBGuiImportComponent.this.workpackageLabel);
+		        labelList.add(DBGuiImportComponent.this.deliverableLabel);
+		        labelList.add(DBGuiImportComponent.this.implementationEventLabel);
+		        labelList.add(DBGuiImportComponent.this.plateauLabel);
+		        labelList.add(DBGuiImportComponent.this.gapLabel);
+
+		        boolean areAllSet = true;
+		        for ( ComponentLabel label: labelList) {
+		            if ( !label.isSelected()) {
+		                areAllSet = false;
+		                break;
+		            }
+		        }
+
+		        for ( ComponentLabel label: labelList) {
+		            label.setSelected(!areAllSet);
+		            label.redraw();
+		        }
+		        
+                try {
+                    getElements();
+                } catch (Exception err) {
+                    DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+                }
+		    }
+		});
 
 		Canvas otherCanvas = new Canvas(this.compoElements, SWT.NONE);
 		fd = new FormData();
@@ -1064,7 +1468,7 @@ public class DBGuiImportComponent extends DBGui {
 							getViews();
 					}
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 				} 
 			}
 
@@ -1108,6 +1512,13 @@ public class DBGuiImportComponent extends DBGui {
 				DBGuiImportComponent.this.btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
 			}
 		});
+
+		this.tblComponents.addListener(SWT.Dispose, this.tooltipListener);
+		this.tblComponents.addListener(SWT.KeyDown, this.tooltipListener);
+		this.tblComponents.addListener(SWT.MouseMove, this.tooltipListener);
+		this.tblComponents.addListener(SWT.MouseHover, this.tooltipListener);
+		
+		
 		
 		TableColumn colName = new TableColumn(this.tblComponents, SWT.NONE);
 		colName.setText("Name");
@@ -1155,7 +1566,7 @@ public class DBGuiImportComponent extends DBGui {
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
 		for (ComponentLabel label: this.allElementLabels) {
-			if ( (boolean)label.getLabel().getData("isSelected") ) {
+			if ( label.isSelected() ) {
 				inList.append(inList.length()==0 ? "?" : ", ?");
 				classList.add(label.getElementClassname());
 			}
@@ -1184,17 +1595,36 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result = null;
 			try {
 				if ( this.filterName.getText().length() == 0 )
-					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
+					result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
 				else {
 					if ( this.ignoreCase.getSelection() )
-						result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
+						result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
 					else
-						result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+						result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 				}
 	
 				while (result.next()) {
-					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null))
-						createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null)) {
+                        StringBuilder tooltipBuilder = new StringBuilder();
+						TableItem item = createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+						
+						try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+						    while ( resultProperties.next() ) {
+						        if ( tooltipBuilder.length() != 0 )
+						            tooltipBuilder.append("\n");
+						        tooltipBuilder.append("   - ");
+						        tooltipBuilder.append(resultProperties.getString("name"));
+						        tooltipBuilder.append(": ");
+						        String value = resultProperties.getString("value");
+						        if ( value.length() > 22 )
+						            tooltipBuilder.append(value.substring(0,19)+"...");
+						        else
+						            tooltipBuilder.append(value);
+						    }
+						}
+						if ( tooltipBuilder.length() != 0 )
+						    item.setData("tooltip", tooltipBuilder.toString());
+					}
 				}
 			} finally {
 				if ( result != null ) {
@@ -1337,13 +1767,32 @@ public class DBGuiImportComponent extends DBGui {
 			ResultSet result = null;
 			try {
 				if ( this.filterName.getText().length() == 0 )
-					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
+					result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
 				else
-					result = this.importConnection.select("SELECT id, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
+					result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
 	
 				while (result.next()) {
-					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null))
-						createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+					if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null)) {
+	                    StringBuilder tooltipBuilder = new StringBuilder();
+						TableItem item = createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
+						
+                        try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+                            while ( resultProperties.next() ) {
+                                if ( tooltipBuilder.length() != 0 )
+                                    tooltipBuilder.append("\n");
+                                tooltipBuilder.append("   - ");
+                                tooltipBuilder.append(resultProperties.getString("name"));
+                                tooltipBuilder.append(": ");
+                                String value = resultProperties.getString("value");
+                                if ( value.length() > 22 )
+                                    tooltipBuilder.append(value.substring(0,19)+"...");
+                                else
+                                    tooltipBuilder.append(value);
+                            }
+                        }
+                        if ( tooltipBuilder.length() != 0 )
+                            item.setData("tooltip", tooltipBuilder.toString());
+					}
 				}
 			} finally {
 				if ( result != null ) {
@@ -1370,7 +1819,7 @@ public class DBGuiImportComponent extends DBGui {
 
 
 
-	private static void createTableItem(Table table, String id, String className, String name, String documentation) {
+	private static TableItem createTableItem(Table table, String id, String className, String name, String documentation) {
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
 		item.setText(0, "   "+name);
@@ -1379,7 +1828,7 @@ public class DBGuiImportComponent extends DBGui {
 			item.setImage(DBCanvasFactory.getImage(className));
 		else
 			item.setImage(DBArchimateFactory.getImage(className));
-		//TODO: add the properties in a popup as several components may have the same name !!! 
+		return item; 
 	}
 
 
@@ -1438,27 +1887,27 @@ public class DBGuiImportComponent extends DBGui {
 	}
 
 	private class ComponentLabel {
-	    private Label label;
+	    Label label;
 
 		ComponentLabel(Composite parent, String toolTip) {
-			this.label = new Label(parent, SWT.NONE);
+		    this.label = new Label(parent, SWT.NONE);
 			this.label.setSize(100,  100);
 			this.label.setToolTipText(toolTip);
 			this.label.setImage(DBArchimateFactory.getImage(getElementClassname()));
 			this.label.addPaintListener(this.redraw);
 			this.label.addListener(SWT.MouseUp, DBGuiImportComponent.this.getElementsListener);
-			this.label.setData("isSelected", false);
+			setSelected(false);
 		}
 
 		private PaintListener redraw = new PaintListener() {
 			@Override
 			public void paintControl(PaintEvent event)
 			{
-				if ( (boolean)ComponentLabel.this.getLabel().getData("isSelected") )
-				    ComponentLabel.this.getLabel().setBackground(GREY_COLOR);
+				if ( ComponentLabel.this.isSelected() )
+				    ComponentLabel.this.label.setBackground(GREY_COLOR);
 				//event.gc.drawRoundRectangle(0, 0, 16, 16, 2, 2);
 				else
-				    ComponentLabel.this.getLabel().setBackground(null);
+				    ComponentLabel.this.label.setBackground(null);
 			}
 		};
 
@@ -1466,21 +1915,32 @@ public class DBGuiImportComponent extends DBGui {
 			return this.label.getToolTipText().replaceAll(" ",  "");
 		}
 		
-		public Label getLabel() {
-		    return this.label;
+		public void setSelected(boolean selected) {
+		    this.label.setData("isSelected", selected);
+		}
+		
+		public boolean isSelected() {
+		    Boolean selected = (Boolean)this.label.getData("isSelected");
+		    if ( selected == null )
+		        return false;
+		    return selected.booleanValue();
+		}
+		
+		public void redraw() {
+		    this.label.redraw();
 		}
 	}
 
 	Listener getElementsListener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
-			Label label = (Label)event.widget;
-			label.setData("isSelected", !(boolean)label.getData("isSelected"));
+		    Label label = (Label)event.widget;
+			label.setData("isSelected", !(Boolean)label.getData("isSelected"));
 			label.redraw();
 			try {
 				getElements();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 			}
 		}
 	};
@@ -1492,20 +1952,70 @@ public class DBGuiImportComponent extends DBGui {
     		try {
 				getFolders();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 			}
     	}
     };
 	 */
 
-	private Listener getViewsListener = new Listener() {
+	final private Listener getViewsListener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
 			try {
 				getViews();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised during the import.", err);
+				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 			}
 		}
 	};
+    
+    final private Listener tooltipListener = new Listener() {
+        Shell tip = null;
+        StyledText label = null;
+        
+        @Override
+        public void handleEvent (Event event) {
+            switch (event.type) {
+                case SWT.Dispose:
+                case SWT.KeyDown:
+                case SWT.MouseMove:
+                    if (this.tip == null) break;
+                    this.tip.dispose ();
+                    this.tip = null;
+                    this.label = null;
+                    break;
+
+                case SWT.MouseHover:
+                    TableItem item = DBGuiImportComponent.this.tblComponents.getItem (new Point (event.x, event.y));
+
+                    if (item != null) {
+                        Table table = item.getParent();
+                        
+                        if ( (this.tip != null)  && !this.tip.isDisposed () )
+                            this.tip.dispose ();
+                        
+                        if ( item.getData("tooltip") != null ) {
+                            this.tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+                            FillLayout layout = new FillLayout ();
+                            layout.marginWidth = 2;
+                            this.tip.setLayout (layout);
+                            this.label = new StyledText (this.tip, SWT.NONE);
+                            this.label.setEditable(false);
+                            this.label.setText("Properties:\n"+(String)item.getData("tooltip"));
+                            StyleRange style = new StyleRange( 0, 11, null, null, SWT.BOLD);
+                            style.underline = true;
+                            this.label.setStyleRange(style);
+                            Point size = this.tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
+                            Point pt = table.toDisplay (event.x, event.y);
+                            this.tip.setBounds (pt.x, pt.y, size.x, size.y);
+                            this.tip.setVisible (true);
+                        }
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+        }
+    };
 }
