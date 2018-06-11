@@ -42,6 +42,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
     private static final DBLogger logger = new DBLogger(DBImportRelationshipFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+    private Exception exception;
     
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
@@ -84,10 +85,19 @@ public class DBImportRelationshipFromIdCommand extends Command {
     }
     
     /**
-     * @return the relationship that has been imported by the command (of course, the command must have been executed before)
+     * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
+     * if the value is null, the exception that has been raised can be get using {@link getException}
      */
     public IArchimateRelationship getImportedRelationship() {
     	return this.importedRelationship;
+    }
+    
+    
+    /**
+     * @return the view object that has been imported by the command (of course, the command must have been executed before)
+     */
+    public Exception getException() {
+        return this.exception;
     }
     
     /**
@@ -114,7 +124,8 @@ public class DBImportRelationshipFromIdCommand extends Command {
                     && (!this.importConnection.isClosed())
                     && (this.model != null)
                     && (this.id != null) ;
-        } catch (@SuppressWarnings("unused") SQLException ign) {
+        } catch (SQLException err) {
+            this.exception = err;
             return false;
         }
     }
@@ -244,12 +255,12 @@ public class DBImportRelationshipFromIdCommand extends Command {
 
             if ( this.hasBeenCreated )
                 this.model.countObject(this.importedRelationship, false, null);
-        } catch (Exception e) {
-            // TODO: find a way to advertise the user as exceptions cannot be thrown
-            logger.error("Failed to import relationship !!!", e);
+            
+            this.commandHasBeenExecuted = true;
+        } catch (Exception err) {
+            this.importedRelationship = null;
+            this.exception = err;
         }
-        
-        this.commandHasBeenExecuted = true;
     }
     
     @Override

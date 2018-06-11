@@ -36,6 +36,7 @@ public class DBImportElementFromIdCommand extends Command {
     private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+    private Exception exception;
     
     private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
@@ -97,10 +98,18 @@ public class DBImportElementFromIdCommand extends Command {
     }
     
     /**
-     * @return the relationship that has been imported by the command (of course, the command must have been executed before)
+     * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
+     * if the value is null, the exception that has been raised can be get using {@link getException}
      */
     public IArchimateElement getImportedElement() {
     	return this.importedElement;
+    }
+    
+    /**
+     * @return the view object that has been imported by the command (of course, the command must have been executed before)
+     */
+    public Exception getException() {
+        return this.exception;
     }
 
     @Override
@@ -110,7 +119,8 @@ public class DBImportElementFromIdCommand extends Command {
                     && (!this.importConnection.isClosed())
                     && (this.model != null)
                     && (this.id != null) ;
-        } catch (@SuppressWarnings("unused") SQLException ign) {
+        } catch (SQLException err) {
+            this.exception = err;
             return false;
         }
     }
@@ -242,12 +252,11 @@ public class DBImportElementFromIdCommand extends Command {
                 this.model.resolveTargetRelationships();
             }
             */
-        } catch (Exception e) {
-            // TODO: find a way to advertise the user as exceptions cannot be thrown
-            logger.error("Failed to import element !!!", e);
+            this.commandHasBeenExecuted = true;
+        } catch (Exception err) {
+            this.importedElement = null;
+            this.exception = err;
         }
-        
-        this.commandHasBeenExecuted = true;
     }
     
     @Override
