@@ -1600,9 +1600,6 @@ public class DBGuiExportModel extends DBGui {
 	        if ( this.selectedDatabase.isWholeModelExported() ) {
 	            this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 				
-				//TODO : put the imported components in a compound Command to allow rollback
-				//TODO :
-				//TODO :
 				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
 				logger.info("Importing new folders ...");
 				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
@@ -1615,9 +1612,6 @@ public class DBGuiExportModel extends DBGui {
 				}
 			}
 	
-			//TODO : put the imported components in a compound Command to allow rollback
-			//TODO :
-			//TODO :
 			logger.info("Importing new elements ...");
 			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
@@ -1633,9 +1627,6 @@ public class DBGuiExportModel extends DBGui {
                 stack.execute(this.exportCommands);
             }
 
-			//TODO : put the imported components in a compound Command to allow rollback
-			//TODO :
-			//TODO :
 			logger.info("Importing new relationships ...");
 	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
 	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
@@ -1654,9 +1645,6 @@ public class DBGuiExportModel extends DBGui {
             }
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
-                //TODO : put the imported components in a compound Command to allow rollback
-                //TODO :
-                //TODO :
 			    logger.info("Importing new views ...");
 			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
 			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
@@ -1667,9 +1655,6 @@ public class DBGuiExportModel extends DBGui {
 			        incrementText(this.txtTotalViews);
 			    }
 
-				//TODO : put the imported components in a compound Command to allow rollback
-				//TODO :
-				//TODO :
 				logger.info("Importing new views objects ...");
 		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
 		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
@@ -1680,9 +1665,6 @@ public class DBGuiExportModel extends DBGui {
 		        	incrementText(this.txtTotalViewObjects);
 		        }
 				
-                //TODO : put the imported components in a compound Command to allow rollback
-                //TODO :
-                //TODO :
                 logger.info("Importing new views connections ...");
                 for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
                     if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
@@ -1702,6 +1684,7 @@ public class DBGuiExportModel extends DBGui {
                 }
 			}
 			
+			// TODO : use a command to allow undo
 			logger.info("Checking if components have been moved to new folder ...");
 			importConnection.setFolderToLastKnown(this.exportedModel);
                 
