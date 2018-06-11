@@ -122,9 +122,9 @@ public class DBImportElementFromIdCommand extends Command {
     	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
-                logger.debug("*************************** Importing a copy of element id "+this.id+".");
+                logger.debug("   Importing a copy of element id "+this.id+".");
             else
-                logger.debug("*************************** Importing element id "+this.id+".");
+                logger.debug("   Importing element id "+this.id+".");
         }
 
         // TODO add an option to import elements recursively

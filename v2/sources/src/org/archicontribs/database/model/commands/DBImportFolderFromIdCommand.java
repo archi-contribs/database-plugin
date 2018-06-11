@@ -113,9 +113,9 @@ public class DBImportFolderFromIdCommand extends Command {
     	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
-                logger.debug("*************************** Importing a copy of folder id "+this.id+".");
+                logger.debug("   Importing a copy of folder id "+this.id+".");
             else
-                logger.debug("*************************** Importing folder id "+this.id+".");
+                logger.debug("   Importing folder id "+this.id+".");
         }
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"folders WHERE id = f.id)" : String.valueOf(this.version);

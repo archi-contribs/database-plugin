@@ -126,12 +126,12 @@ public class DBImportRelationshipFromIdCommand extends Command {
     	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
-                logger.debug("Importing a copy of relationship id "+this.id+".");
+                logger.debug("   Importing a copy of relationship id "+this.id+".");
             else
-                logger.debug("Importing relationship id "+this.id+".");
+                logger.debug("   Importing relationship id "+this.id+".");
         }
 
-        String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"relationships WHERE id = e.id)" : String.valueOf(this.version);
+        String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"relationships WHERE id = r.id)" : String.valueOf(this.version);
 
         try ( ResultSet result = this.importConnection.select("SELECT version, class, name, documentation, source_id, target_id, strength, access_type, checksum, created_on FROM "+this.importConnection.getSchema()+"relationships r WHERE id = ? AND version = "+versionString, this.id) ) {
             if ( !result.next() ) {

@@ -121,6 +121,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		ResultSet result = null;
 		int version = objectVersion;
 		HashMap<String, Object> hashResult = null;
+		
+		if ( logger.isDebugEnabled() ) logger.debug("   Getting "+clazz);
 
 		try {
 			if ( version == 0 ) {
@@ -245,6 +247,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Import the model metadata from the database
 	 */
 	public int importModel(DBArchimateModel model) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   importing model");
 		// reseting the model's counters
 		model.resetCounters();
 
@@ -374,6 +377,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the folders from the database
 	 */
 	public void prepareImportFolders(DBArchimateModel model) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import folders");
 		this.currentResultSet = select(this.importFoldersRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -386,6 +390,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importFolders(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing folder");
+			    
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 				DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 
@@ -433,6 +439,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the elements from the database
 	 */
 	public void prepareImportElements(DBArchimateModel model) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import elements");
 		this.currentResultSet = select(this.importElementsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -446,6 +453,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importElements(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing element");
+			    
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
 				
@@ -486,6 +495,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the relationships from the database
 	 */
 	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import relationships");
 		this.currentResultSet = select(this.importRelationshipsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -498,6 +508,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importRelationships(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing relationship");
+			    
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
 				
@@ -560,6 +572,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views from the database
 	 */
 	public void prepareImportViews(DBArchimateModel model) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views");
 		this.currentResultSet = select(this.importViewsRequest,
 				model.getId(),
 				model.getInitialVersion().getVersion()
@@ -572,6 +585,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViews(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing view");
+			    
 				IDiagramModel view;
 				if ( DBPlugin.areEqual(this.currentResultSet.getString("class"), "CanvasModel") )
 					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
@@ -616,6 +631,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects");
 		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
@@ -632,6 +648,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing view object");
+			    
 				EObject eObject;
 
 				if ( this.currentResultSet.getString("class").startsWith("Canvas") )
@@ -714,6 +732,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
+	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections");
 		this.currentResultSet = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
@@ -730,6 +749,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSet != null ) {
 			if ( this.currentResultSet.next() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("   importing view connection");
+			    
 				EObject eObject;
 
 				if ( this.currentResultSet.getString("class").startsWith("Canvas") )
@@ -748,7 +769,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSet.getString("relationship_id"));
 					if ( relationship == null ) {
-						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSet.getString("element_id"), 0, false);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSet.getString("relationship_id"), 0, false);
 						command.execute();
 						
 						relationship = command.getImportedRelationship();
@@ -914,6 +935,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	public void importProperties(IProperties parent, String id, int version) throws SQLException {
+	    if ( logger.isDebugEnabled() ) logger.debug("   importing properties");
+	    
 		// first, we delete all existing properties
 		parent.getProperties().clear();
 
@@ -934,6 +957,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void importMetadata(DBArchimateModel model) throws SQLException {
+	    if ( logger.isDebugEnabled() ) logger.debug("   importing metadata");
+	    
 		// first, we delete all existing metadata
 		model.getMetadata().getEntries().clear();
 
@@ -1004,6 +1029,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     public void setFolderToLastKnown(DBArchimateModel model) throws Exception {
         if ( model .isLatestVersionImported() )
             return;
+        
+        if ( logger.isDebugEnabled() ) logger.debug("   setting folders to last known");
 
         // elements
         try ( ResultSet result = select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
@@ -1092,6 +1119,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     public void setFolderToLastKnown(DBArchimateModel model, IArchimateElement element) throws Exception {
         if ( !model.isLatestVersionImported() ) {
             IFolder parentFolder = null;
+            
+            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
         	
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM "+this.schema+"elements_in_model"
@@ -1122,6 +1151,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     public void setFolderToLastKnown(DBArchimateModel model, IArchimateRelationship relationship) throws Exception {
         if ( !model.isLatestVersionImported() ) {
             IFolder parentFolder = null;
+            
+            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
 
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM "+this.schema+"relationships_in_model"
@@ -1152,6 +1183,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
         if ( !model.isLatestVersionImported() ) {
             IFolder parentFolder = null;
+
+            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
             
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM "+this.schema+"folders_in_model"
@@ -1183,6 +1216,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
         if ( !model.isLatestVersionImported() ) {
             IFolder parentFolder = null;
+            
+            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
 
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
                     + " FROM "+this.schema+"views_in_model"

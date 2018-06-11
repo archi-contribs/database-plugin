@@ -125,9 +125,9 @@ public class DBImportViewObjectFromIdCommand extends Command {
     	
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
-                logger.debug("*************************** Importing a copy of view object id "+this.id+".");
+                logger.debug("   Importing a copy of view object id "+this.id+".");
             else
-                logger.debug("*************************** Importing view object id "+this.id+".");
+                logger.debug("   Importing view object id "+this.id+".");
         }
 
         String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"views_objects WHERE id = v.id)" : String.valueOf(this.version);
