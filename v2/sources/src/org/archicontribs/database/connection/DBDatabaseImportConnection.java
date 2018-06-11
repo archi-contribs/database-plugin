@@ -84,7 +84,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * ResultSet of the current transaction (used by import process to allow the loop to be managed outside the DBdatabase class)
 	 */
-	private ResultSet currentResultSet = null;
+	private ResultSet currentResultSetElements = null;
+	private ResultSet currentResultSetRelationships = null;
+	private ResultSet currentResultSetFolders = null;
+	private ResultSet currentResultSetViews = null;
+	private ResultSet currentResultSetViewsObjects = null;
+	private ResultSet currentResultSetViewsConnections = null;
 
 	/**
 	 * Gets a component from the database and convert the result into a HashMap<br>
@@ -378,7 +383,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportFolders(DBArchimateModel model) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import folders");
-		this.currentResultSet = select(this.importFoldersRequest
+		this.currentResultSetFolders = select(this.importFoldersRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				);
@@ -388,36 +393,36 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Import the folders from the database
 	 */
 	public boolean importFolders(DBArchimateModel model) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetFolders != null ) {
+			if ( this.currentResultSetFolders.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing folder");
 			    
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 				DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 
-				folder.setId(this.currentResultSet.getString("folder_id"));
+				folder.setId(this.currentResultSetFolders.getString("folder_id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("folder_version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetFolders.getInt("folder_version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetFolders.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSetFolders.getTimestamp("created_on"));
 
-				metadata.setName(this.currentResultSet.getString("name"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
+				metadata.setName(this.currentResultSetFolders.getString("name"));
+				metadata.setDocumentation(this.currentResultSetFolders.getString("documentation"));
 
-				String parentId = this.currentResultSet.getString("parent_folder_id");
+				String parentId = this.currentResultSetFolders.getString("parent_folder_id");
 
 				if ( parentId != null && !parentId.isEmpty() ) {
 					metadata.setFolderType(FolderType.get(0));                              		// non root folders have got the "USER" type
 
 					IFolder parent = model.getAllFolders().get(parentId);
 					if ( parent == null )
-						parent=model.getFolder(FolderType.get(this.currentResultSet.getInt("root_type")));
+						parent=model.getFolder(FolderType.get(this.currentResultSetFolders.getInt("root_type")));
 					if ( parent == null ) 
-						throw new Exception("Don't know where to create folder "+this.currentResultSet.getString("name")+" of type "+this.currentResultSet.getInt("type")+" and root_type "+this.currentResultSet.getInt("root_type")+" (unknown folder ID "+this.currentResultSet.getString("parent_folder_id")+")");
+						throw new Exception("Don't know where to create folder "+this.currentResultSetFolders.getString("name")+" of type "+this.currentResultSetFolders.getInt("type")+" and root_type "+this.currentResultSetFolders.getInt("root_type")+" (unknown folder ID "+this.currentResultSetFolders.getString("parent_folder_id")+")");
 
 					parent.getFolders().add(folder);
 				} else {
-					metadata.setFolderType(FolderType.get(this.currentResultSet.getInt("type")));        // root folders have got their own type
+					metadata.setFolderType(FolderType.get(this.currentResultSetFolders.getInt("type")));        // root folders have got their own type
 					model.getFolders().add(folder);
 				}
 
@@ -429,8 +434,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countFoldersImported;
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetFolders.close();
+			this.currentResultSetFolders = null;
 		}
 		return false;
 	}
@@ -440,7 +445,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportElements(DBArchimateModel model) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import elements");
-		this.currentResultSet = select(this.importElementsRequest
+		this.currentResultSetElements = select(this.importElementsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				);
@@ -451,28 +456,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the elements from the database
 	 */
 	public boolean importElements(DBArchimateModel model) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetElements != null ) {
+			if ( this.currentResultSetElements.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing element");
 			    
-				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSetElements.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
 				
-				element.setId(this.currentResultSet.getString("element_id"));
+				element.setId(this.currentResultSetElements.getString("element_id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetElements.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetElements.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSetElements.getTimestamp("created_on"));
 
-				metadata.setName(this.currentResultSet.getString("name"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
-				metadata.setType(this.currentResultSet.getString("type"));
+				metadata.setName(this.currentResultSetElements.getString("name"));
+				metadata.setDocumentation(this.currentResultSetElements.getString("documentation"));
+				metadata.setType(this.currentResultSetElements.getString("type"));
 
 				IFolder folder;
-				if ( this.currentResultSet.getString("parent_folder_id") == null ) {
+				if ( this.currentResultSetElements.getString("parent_folder_id") == null ) {
 					folder = model.getDefaultFolderForObject(element);
 				} else {
-					folder = model.getAllFolders().get(this.currentResultSet.getString("parent_folder_id"));
+					folder = model.getAllFolders().get(this.currentResultSetElements.getString("parent_folder_id"));
 				}
 				folder.getElements().add(element);
 
@@ -485,8 +490,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countElementsImported;
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetElements.close();
+			this.currentResultSetElements = null;
 		}
 		return false;
 	}
@@ -496,7 +501,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import relationships");
-		this.currentResultSet = select(this.importRelationshipsRequest
+		this.currentResultSetRelationships = select(this.importRelationshipsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				);
@@ -506,34 +511,34 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the relationships from the database
 	 */
 	public boolean importRelationships(DBArchimateModel model) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetRelationships != null ) {
+			if ( this.currentResultSetRelationships.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing relationship");
 			    
-				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSetRelationships.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
 				
-				relationship.setId(this.currentResultSet.getString("relationship_id"));
+				relationship.setId(this.currentResultSetRelationships.getString("relationship_id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetRelationships.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetRelationships.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSetRelationships.getTimestamp("created_on"));
 
-				metadata.setName(this.currentResultSet.getString("name")==null ? "" : this.currentResultSet.getString("name"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
-				metadata.setStrength(this.currentResultSet.getString("strength"));
-				metadata.setAccessType(this.currentResultSet.getInt("access_type"));
+				metadata.setName(this.currentResultSetRelationships.getString("name")==null ? "" : this.currentResultSetRelationships.getString("name"));
+				metadata.setDocumentation(this.currentResultSetRelationships.getString("documentation"));
+				metadata.setStrength(this.currentResultSetRelationships.getString("strength"));
+				metadata.setAccessType(this.currentResultSetRelationships.getInt("access_type"));
 
 				IFolder folder;
-				if ( this.currentResultSet.getString("parent_folder_id") == null ) {
+				if ( this.currentResultSetRelationships.getString("parent_folder_id") == null ) {
 					folder = model.getDefaultFolderForObject(relationship);
 				} else {
-					folder = model.getAllFolders().get(this.currentResultSet.getString("parent_folder_id"));
+					folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
 				}
 				folder.getElements().add(relationship);
 				
-                IArchimateConcept source = model.getAllElements().get(this.currentResultSet.getString("source_id"));
-                IArchimateConcept target = model.getAllElements().get(this.currentResultSet.getString("target_id"));
+                IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
+                IArchimateConcept target = model.getAllElements().get(this.currentResultSetRelationships.getString("target_id"));
                 
                 if ( source != null ) {
                     // source is an element and is reputed already imported, so we can set it right away
@@ -541,7 +546,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                     source.getSourceRelationships().add(relationship);
                 } else {
                     // source is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerSourceRelationship(relationship, this.currentResultSet.getString("source_id"));
+                    model.registerSourceRelationship(relationship, this.currentResultSetRelationships.getString("source_id"));
                 }
                 
                 if ( target != null ) {
@@ -550,7 +555,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                     target.getTargetRelationships().add(relationship);
                 } else {
                     // target is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerTargetRelationship(relationship, this.currentResultSet.getString("target_id"));
+                    model.registerTargetRelationship(relationship, this.currentResultSetRelationships.getString("target_id"));
                 }
 
 				importProperties(relationship);
@@ -562,8 +567,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countRelationshipsImported;
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetRelationships.close();
+			this.currentResultSetRelationships = null;
 		}
 		return false;
 	}
@@ -573,7 +578,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViews(DBArchimateModel model) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views");
-		this.currentResultSet = select(this.importViewsRequest,
+		this.currentResultSetViews = select(this.importViewsRequest,
 				model.getId(),
 				model.getInitialVersion().getVersion()
 				);
@@ -583,34 +588,34 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views from the database
 	 */
 	public boolean importViews(DBArchimateModel model) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetViews != null ) {
+			if ( this.currentResultSetViews.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing view");
 			    
 				IDiagramModel view;
-				if ( DBPlugin.areEqual(this.currentResultSet.getString("class"), "CanvasModel") )
-					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				if ( DBPlugin.areEqual(this.currentResultSetViews.getString("class"), "CanvasModel") )
+					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(this.currentResultSetViews.getString("class"));
 				else
-					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(this.currentResultSetViews.getString("class"));
 
 				DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
 				
-				view.setId(this.currentResultSet.getString("id"));
+				view.setId(this.currentResultSetViews.getString("id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				metadata.getInitialVersion().setContainerChecksum(this.currentResultSet.getString("container_checksum"));
-				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetViews.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetViews.getString("checksum"));
+				metadata.getInitialVersion().setContainerChecksum(this.currentResultSetViews.getString("container_checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSetViews.getTimestamp("created_on"));
 
-				metadata.setName(this.currentResultSet.getString("name"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
-				metadata.setConnectionRouterType(this.currentResultSet.getInt("connection_router_type"));
-				metadata.setViewpoint(this.currentResultSet.getString("viewpoint"));
-				metadata.setBackground(this.currentResultSet.getInt("background"));
-				metadata.setHintContent(this.currentResultSet.getString("hint_content"));
-				metadata.setHintTitle(this.currentResultSet.getString("hint_title"));
+				metadata.setName(this.currentResultSetViews.getString("name"));
+				metadata.setDocumentation(this.currentResultSetViews.getString("documentation"));
+				metadata.setConnectionRouterType(this.currentResultSetViews.getInt("connection_router_type"));
+				metadata.setViewpoint(this.currentResultSetViews.getString("viewpoint"));
+				metadata.setBackground(this.currentResultSetViews.getInt("background"));
+				metadata.setHintContent(this.currentResultSetViews.getString("hint_content"));
+				metadata.setHintTitle(this.currentResultSetViews.getString("hint_title"));
 
-				model.getAllFolders().get(this.currentResultSet.getString("parent_folder_id")).getElements().add(view);
+				model.getAllFolders().get(this.currentResultSetViews.getString("parent_folder_id")).getElements().add(view);
 
 				importProperties(view);
 
@@ -621,8 +626,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countViewsImported;
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetViews.close();
+			this.currentResultSetViews = null;
 		}
 		return false;
 	}
@@ -632,7 +637,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects");
-		this.currentResultSet = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
+		this.currentResultSetViewsObjects = select("SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -646,67 +651,67 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views objects from the database
 	 */
 	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetViewsObjects != null ) {
+			if ( this.currentResultSetViewsObjects.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing view object");
 			    
 				EObject eObject;
 
-				if ( this.currentResultSet.getString("class").startsWith("Canvas") )
-					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				if ( this.currentResultSetViewsObjects.getString("class").startsWith("Canvas") )
+					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSetViewsObjects.getString("class"));
 				else
-					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSetViewsObjects.getString("class"));
 				
 				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
-				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
+				((IIdentifier)eObject).setId(this.currentResultSetViewsObjects.getString("id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
-				metadata.getInitialVersion().setTimestamp(this.currentResultSet.getTimestamp("created_on"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetViewsObjects.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetViewsObjects.getString("checksum"));
+				metadata.getInitialVersion().setTimestamp(this.currentResultSetViewsObjects.getTimestamp("created_on"));
 
-				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSet.getString("element_id") != null) {
+				if ( eObject instanceof IDiagramModelArchimateComponent && this.currentResultSetViewsObjects.getString("element_id") != null) {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
-					IArchimateElement element = model.getAllElements().get(this.currentResultSet.getString("element_id"));
+					IArchimateElement element = model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id"));
 					if ( element == null ) {
-						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSet.getString("element_id"), 0, false, true);
+						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSetViewsObjects.getString("element_id"), 0, false, true);
 						command.execute();
 						
 						element = command.getImportedElement();
 					}
 				}
 
-				metadata.setArchimateConcept(model.getAllElements().get(this.currentResultSet.getString("element_id")));
-				metadata.setReferencedModel(model.getAllViews().get(this.currentResultSet.getString("diagram_ref_id")));
-				metadata.setType(this.currentResultSet.getInt("type"));
-				metadata.setBorderColor(this.currentResultSet.getString("border_color"));
-				metadata.setBorderType(this.currentResultSet.getInt("border_type"));
-				metadata.setContent(this.currentResultSet.getString("content"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
-				metadata.setName(this.currentResultSet.getString("name"));
-				metadata.setHintContent(this.currentResultSet.getString("hint_content"));
-				metadata.setHintTitle(this.currentResultSet.getString("hint_title"));
-				metadata.setLocked(this.currentResultSet.getObject("is_locked"));
-				metadata.setImagePath(this.currentResultSet.getString("image_path"));
-				metadata.setImagePosition(this.currentResultSet.getInt("image_position"));
-				metadata.setLineColor(this.currentResultSet.getString("line_color"));
-				metadata.setLineWidth(this.currentResultSet.getInt("line_width"));
-				metadata.setFillColor(this.currentResultSet.getString("fill_color"));
-				metadata.setFont(this.currentResultSet.getString("font"));
-				metadata.setFontColor(this.currentResultSet.getString("font_color"));
-				metadata.setNotes(this.currentResultSet.getString("notes"));
-				metadata.setTextAlignment(this.currentResultSet.getInt("text_alignment"));
-				metadata.setTextPosition(this.currentResultSet.getInt("text_position"));
-				metadata.setBounds(this.currentResultSet.getInt("x"), this.currentResultSet.getInt("y"), this.currentResultSet.getInt("width"), this.currentResultSet.getInt("height"));
+				metadata.setArchimateConcept(model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id")));
+				metadata.setReferencedModel(model.getAllViews().get(this.currentResultSetViewsObjects.getString("diagram_ref_id")));
+				metadata.setType(this.currentResultSetViewsObjects.getInt("type"));
+				metadata.setBorderColor(this.currentResultSetViewsObjects.getString("border_color"));
+				metadata.setBorderType(this.currentResultSetViewsObjects.getInt("border_type"));
+				metadata.setContent(this.currentResultSetViewsObjects.getString("content"));
+				metadata.setDocumentation(this.currentResultSetViewsObjects.getString("documentation"));
+				metadata.setName(this.currentResultSetViewsObjects.getString("name"));
+				metadata.setHintContent(this.currentResultSetViewsObjects.getString("hint_content"));
+				metadata.setHintTitle(this.currentResultSetViewsObjects.getString("hint_title"));
+				metadata.setLocked(this.currentResultSetViewsObjects.getObject("is_locked"));
+				metadata.setImagePath(this.currentResultSetViewsObjects.getString("image_path"));
+				metadata.setImagePosition(this.currentResultSetViewsObjects.getInt("image_position"));
+				metadata.setLineColor(this.currentResultSetViewsObjects.getString("line_color"));
+				metadata.setLineWidth(this.currentResultSetViewsObjects.getInt("line_width"));
+				metadata.setFillColor(this.currentResultSetViewsObjects.getString("fill_color"));
+				metadata.setFont(this.currentResultSetViewsObjects.getString("font"));
+				metadata.setFontColor(this.currentResultSetViewsObjects.getString("font_color"));
+				metadata.setNotes(this.currentResultSetViewsObjects.getString("notes"));
+				metadata.setTextAlignment(this.currentResultSetViewsObjects.getInt("text_alignment"));
+				metadata.setTextPosition(this.currentResultSetViewsObjects.getInt("text_position"));
+				metadata.setBounds(this.currentResultSetViewsObjects.getInt("x"), this.currentResultSetViewsObjects.getInt("y"), this.currentResultSetViewsObjects.getInt("width"), this.currentResultSetViewsObjects.getInt("height"));
 
 				// The container is either the view, or a container in the view
-				if ( DBPlugin.areEqual(this.currentResultSet.getString("container_id"), view.getId()) )
+				if ( DBPlugin.areEqual(this.currentResultSetViewsObjects.getString("container_id"), view.getId()) )
 					view.getChildren().add((IDiagramModelObject)eObject);
 				else
-					((IDiagramModelContainer)model.getAllViewObjects().get(this.currentResultSet.getString("container_id"))).getChildren().add((IDiagramModelObject)eObject);
+					((IDiagramModelContainer)model.getAllViewObjects().get(this.currentResultSetViewsObjects.getString("container_id"))).getChildren().add((IDiagramModelObject)eObject);
 
 				// If the object has got properties but does not have a linked element, then it may have distinct properties
-				if ( eObject instanceof IProperties && this.currentResultSet.getString("element_id")==null ) {
+				if ( eObject instanceof IProperties && this.currentResultSetViewsObjects.getString("element_id")==null ) {
 					importProperties((IProperties)eObject);
 				}
 
@@ -717,13 +722,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countViewObjectsImported;
 
 				// if the object contains an image, we store its path to import it later
-				if ( this.currentResultSet.getString("image_path") != null )
-					this.allImagePaths.add(this.currentResultSet.getString("image_path"));
+				if ( this.currentResultSetViewsObjects.getString("image_path") != null )
+					this.allImagePaths.add(this.currentResultSetViewsObjects.getString("image_path"));
 
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetViewsObjects.close();
+			this.currentResultSetViewsObjects = null;
 		}
 		return false;
 	}
@@ -733,7 +738,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
 	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections");
-		this.currentResultSet = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
+		this.currentResultSetViewsConnections = select("SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -747,49 +752,49 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views connections from the database
 	 */
 	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
-		if ( this.currentResultSet != null ) {
-			if ( this.currentResultSet.next() ) {
+		if ( this.currentResultSetViewsConnections != null ) {
+			if ( this.currentResultSetViewsConnections.next() ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("   importing view connection");
 			    
 				EObject eObject;
 
-				if ( this.currentResultSet.getString("class").startsWith("Canvas") )
-					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+				if ( this.currentResultSetViewsConnections.getString("class").startsWith("Canvas") )
+					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSetViewsConnections.getString("class"));
 				else
-					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSet.getString("class"));
+					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSetViewsConnections.getString("class"));
 				
 				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
-				((IIdentifier)eObject).setId(this.currentResultSet.getString("id"));
+				((IIdentifier)eObject).setId(this.currentResultSetViewsConnections.getString("id"));
 				
-				metadata.getInitialVersion().setVersion(this.currentResultSet.getInt("version"));
-				metadata.getInitialVersion().setChecksum(this.currentResultSet.getString("checksum"));
+				metadata.getInitialVersion().setVersion(this.currentResultSetViewsConnections.getInt("version"));
+				metadata.getInitialVersion().setChecksum(this.currentResultSetViewsConnections.getString("checksum"));
 
-				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSet.getString("relationship_id") != null) {
+				if ( eObject instanceof IDiagramModelArchimateConnection && this.currentResultSetViewsConnections.getString("relationship_id") != null) {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
-					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSet.getString("relationship_id"));
+					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id"));
 					if ( relationship == null ) {
-						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSet.getString("relationship_id"), 0, false);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, false);
 						command.execute();
 						
 						relationship = command.getImportedRelationship();
 					}
 				}
 
-				metadata.setName(this.currentResultSet.getString("name"));
-				metadata.setLocked(this.currentResultSet.getObject("is_locked"));
-				metadata.setDocumentation(this.currentResultSet.getString("documentation"));
-				metadata.setLineColor(this.currentResultSet.getString("line_color"));
-				metadata.setLineWidth(this.currentResultSet.getInt("line_width"));
-				metadata.setFont(this.currentResultSet.getString("font"));
-				metadata.setFontColor(this.currentResultSet.getString("font_color"));
-				metadata.setType(this.currentResultSet.getInt("type"));
-				metadata.setTextPosition(this.currentResultSet.getInt("text_position"));
-				metadata.setArchimateConcept(model.getAllRelationships().get(this.currentResultSet.getString("relationship_id")));
+				metadata.setName(this.currentResultSetViewsConnections.getString("name"));
+				metadata.setLocked(this.currentResultSetViewsConnections.getObject("is_locked"));
+				metadata.setDocumentation(this.currentResultSetViewsConnections.getString("documentation"));
+				metadata.setLineColor(this.currentResultSetViewsConnections.getString("line_color"));
+				metadata.setLineWidth(this.currentResultSetViewsConnections.getInt("line_width"));
+				metadata.setFont(this.currentResultSetViewsConnections.getString("font"));
+				metadata.setFontColor(this.currentResultSetViewsConnections.getString("font_color"));
+				metadata.setType(this.currentResultSetViewsConnections.getInt("type"));
+				metadata.setTextPosition(this.currentResultSetViewsConnections.getInt("text_position"));
+				metadata.setArchimateConcept(model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id")));
 
 				if ( eObject instanceof IDiagramModelConnection ) {
-				    IConnectable source = model.getAllViewObjects().get(this.currentResultSet.getString("source_object_id"));
-				    IConnectable target = model.getAllViewObjects().get(this.currentResultSet.getString("target_object_id"));
+				    IConnectable source = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("source_object_id"));
+				    IConnectable target = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("target_object_id"));
 				    
 				    if ( source != null ) {
 				        // source is an object and is reputed already imported, so we can set it right away
@@ -797,7 +802,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                         source.addConnection((IDiagramModelConnection)eObject);
 				    } else {
 				        // source is another connection and may not be already loaded. So we register it for future resolution
-				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("source_object_id"));
+				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("source_object_id"));
 				    }
 				    
                     if ( target != null ) {
@@ -806,7 +811,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
                         target.addConnection((IDiagramModelConnection)eObject);
                     } else {
                         // target is another connection and may not be already loaded. So we register it for future resolution
-                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSet.getString("target_object_id"));
+                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("target_object_id"));
                     }
 				}
 
@@ -828,7 +833,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countViewConnectionsImported;
 
 				// If the connection has got properties but does not have a linked relationship, then it may have distinct properties
-				if ( eObject instanceof IProperties && this.currentResultSet.getString("relationship_id")==null ) {
+				if ( eObject instanceof IProperties && this.currentResultSetViewsConnections.getString("relationship_id")==null ) {
 					importProperties((IProperties)eObject);
 				}
 
@@ -836,8 +841,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				return true;
 			}
-			this.currentResultSet.close();
-			this.currentResultSet = null;
+			this.currentResultSetViewsConnections.close();
+			this.currentResultSetViewsConnections = null;
 		}
 		return false;
 	}
@@ -986,10 +991,30 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 
 	public void reset() throws SQLException {
-		if ( this.currentResultSet != null ) {
-			this.currentResultSet.close();
-			this.currentResultSet = null;
-		}
+	    if ( this.currentResultSetElements != null ) {
+	        this.currentResultSetElements.close();
+	        this.currentResultSetElements = null;
+	    }
+	    if ( this.currentResultSetRelationships != null ) {
+	        this.currentResultSetRelationships.close();
+	        this.currentResultSetRelationships = null;
+	    }
+	    if ( this.currentResultSetFolders != null ) {
+	        this.currentResultSetFolders.close();
+	        this.currentResultSetFolders = null;
+	    }
+	    if ( this.currentResultSetViews != null ) {
+	        this.currentResultSetViews.close();
+	        this.currentResultSetViews = null;
+	    }
+	    if ( this.currentResultSetViewsObjects != null ) {
+	        this.currentResultSetViewsObjects.close();
+	        this.currentResultSetViewsObjects = null;
+	    }
+	    if ( this.currentResultSetViewsConnections != null ) {
+	        this.currentResultSetViewsConnections.close();
+	        this.currentResultSetViewsConnections = null;
+	    }
 
 		// we reset the counters
 		this.countElementsToImport = 0;
