@@ -20,6 +20,7 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -1852,7 +1853,7 @@ public class DBGuiImportComponent extends DBGui {
 				
 				if ( this.compoElements.getVisible() ) {
 					DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true);
-					command.execute();
+					((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(command);
 
 					if ( command.getImportedElement() != null )
 						imported.add(command.getImportedElement());
@@ -1862,7 +1863,7 @@ public class DBGuiImportComponent extends DBGui {
 				//	database.importFolder(importedModel, id, !getOptionValue());
 				else if ( this.compoViews.getVisible() ) {
 					DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
-					command.execute();
+					((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(command);
 
 					if ( command.getImportedView() != null ) 
 						imported.add(command.getImportedView());

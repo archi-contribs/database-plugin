@@ -88,6 +88,7 @@ public class DBGuiExportModel extends DBGui {
 	HashMap<String, DBMetadata> newDatabaseComponents;
 	
 	private CompoundCommand exportCommands;
+	private CommandStack stack;
 	DBDatabaseExportConnection exportConnection;
 	
 	/**
@@ -1581,6 +1582,7 @@ public class DBGuiExportModel extends DBGui {
 		// we initialize the delayedCommand used to allow rollback of elements and relationships deletion
 		// it is delayed because we want to delete the elements and relationships after they've been exported (as the getAllElements and getAllRelationships cannot be changed during the export loop)
 		this.exportCommands = new CompoundCommand();
+		this.stack = (CommandStack)this.exportedModel.getAdapter(CommandStack.class);
 		
 		// we export the components
 		try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
@@ -1606,7 +1608,7 @@ public class DBGuiExportModel extends DBGui {
                     if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
 				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
                     this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-                    this.exportCommands.execute();
+                    this.stack.execute(this.exportCommands);
                     incrementText(this.txtNewFoldersInDatabase);
                     incrementText(this.txtTotalFolders);
 				}
@@ -1617,14 +1619,13 @@ public class DBGuiExportModel extends DBGui {
 			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
 			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
 	        	this.exportCommands.add(new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-	        	this.exportCommands.execute();
+	        	this.stack.execute(this.exportCommands);
 	        	incrementText(this.txtNewElementsInDatabase);
 	        	incrementText(this.txtTotalElements);
 			}
 			
             if ( !this.exportCommands.getCommands().isEmpty() ) {
-                CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
-                stack.execute(this.exportCommands);
+                this.stack.execute(this.exportCommands);
             }
 
 			logger.info("Importing new relationships ...");
@@ -1632,7 +1633,7 @@ public class DBGuiExportModel extends DBGui {
 	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
 	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
 	            this.exportCommands.add(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-	            this.exportCommands.execute();
+	            this.stack.execute(this.exportCommands);
 	        	incrementText(this.txtNewRelationshipsInDatabase);
 	        	incrementText(this.txtTotalRelationships);
 	        }
@@ -1640,8 +1641,7 @@ public class DBGuiExportModel extends DBGui {
 	        this.exportedModel.resolveTargetRelationships();
 	        
             if ( !this.exportCommands.isEmpty() ) {
-                CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
-                stack.execute(this.exportCommands);
+                this.stack.execute(this.exportCommands);
             }
 	
 			if ( this.selectedDatabase.isWholeModelExported() ) {
@@ -1650,7 +1650,7 @@ public class DBGuiExportModel extends DBGui {
 			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
 			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
 			        this.exportCommands.add(new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false));
-		            this.exportCommands.execute();
+			        this.stack.execute(this.exportCommands);
 			        incrementText(this.txtNewViewsInDatabase);
 			        incrementText(this.txtTotalViews);
 			    }
@@ -1660,7 +1660,7 @@ public class DBGuiExportModel extends DBGui {
 		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
 		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
 		            this.exportCommands.add(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false));
-		            this.exportCommands.execute();
+		            this.stack.execute(this.exportCommands);
 		        	incrementText(this.txtNewViewObjectsInDatabase);
 		        	incrementText(this.txtTotalViewObjects);
 		        }
@@ -1670,7 +1670,7 @@ public class DBGuiExportModel extends DBGui {
                     if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
                     DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                     this.exportCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false));
-		            this.exportCommands.execute();
+                    this.stack.execute(this.exportCommands);
                     incrementText(this.txtNewViewConnectionsInDatabase);
                     incrementText(this.txtTotalViewConnections);
                 }
@@ -1679,8 +1679,7 @@ public class DBGuiExportModel extends DBGui {
 	            
 	            logger.info("Applying changes to the model ...");
                 if ( !this.exportCommands.isEmpty() ) {
-                    CommandStack stack = (CommandStack) this.exportedModel.getAdapter(CommandStack.class);
-                    stack.execute(this.exportCommands);
+                    this.stack.execute(this.exportCommands);
                 }
 			}
 			
@@ -2062,7 +2061,7 @@ public class DBGuiExportModel extends DBGui {
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
 	            	this.exportCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false));
 	            
-                this.exportCommands.execute();
+	            this.stack.execute(this.exportCommands);
                 
 	            incrementText(txtUpdatedInDatabase);
 	            exported = true;
@@ -2077,13 +2076,15 @@ public class DBGuiExportModel extends DBGui {
 		    else if ( eObjectToExport instanceof IArchimateRelationship )
                 this.exportCommands.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)eObjectToExport));
 		    else if ( eObjectToExport instanceof IFolder )
-		        new DeleteFolderCommand((IFolder)eObjectToExport).execute();
+		        this.exportCommands.add(new DeleteFolderCommand((IFolder)eObjectToExport));
 		    else if ( eObjectToExport instanceof IDiagramModel )
-		        new DeleteDiagramModelCommand((IDiagramModel)eObjectToExport).execute();
+		        this.exportCommands.add(new DeleteDiagramModelCommand((IDiagramModel)eObjectToExport));
             else if ( eObjectToExport instanceof IDiagramModelArchimateObject )
 		        this.exportCommands.add(new DBDeleteDiagramObjectCommand(this.exportedModel, (IDiagramModelArchimateObject)eObjectToExport));
 		    else if ( eObjectToExport instanceof IDiagramModelArchimateConnection )
 		        this.exportCommands.add(new DBDeleteDiagramConnectionCommand(this.exportedModel, (IDiagramModelArchimateConnection)eObjectToExport));
+		    
+		    this.stack.execute(this.exportCommands);
 		    
 		    incrementText(txtDeletedInDatabase);
             exported = true;
@@ -2372,8 +2373,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
 			    if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
-			    CommandStack stack = (CommandStack)this.exportedModel.getAdapter(CommandStack.class);
-			    stack.markSaveLocation();
+			    this.stack.markSaveLocation();
 			}
 		} else {
 			setMessage(message, RED_COLOR);

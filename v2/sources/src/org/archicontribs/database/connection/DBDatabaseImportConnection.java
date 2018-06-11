@@ -27,6 +27,7 @@ import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Display;
@@ -675,7 +676,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					IArchimateElement element = model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id"));
 					if ( element == null ) {
 						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSetViewsObjects.getString("element_id"), 0, false, true);
-						command.execute();
+						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 						
 						element = command.getImportedElement();
 					}
@@ -775,7 +776,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id"));
 					if ( relationship == null ) {
 						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, false);
-						command.execute();
+						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 						
 						relationship = command.getImportedRelationship();
 					}
