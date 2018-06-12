@@ -1599,93 +1599,96 @@ public class DBGuiExportModel extends DBGui {
 		        this.exportConnection.emptyNeo4jDB();
 		    }
 		    
-	        if ( this.selectedDatabase.isWholeModelExported() ) {
+	        if ( this.selectedDatabase.isWholeModelExported() )
 	            this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
-				
-				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
-				logger.info("Importing new folders ...");
-				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
-                    if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
-				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-                    this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-                    this.stack.execute(this.exportCommands);
-                    incrementText(this.txtNewFoldersInDatabase);
-                    incrementText(this.txtTotalFolders);
-				}
-			}
-	
-			logger.info("Importing new elements ...");
-			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
-			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
-	        	this.exportCommands.add(new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-	        	this.stack.execute(this.exportCommands);
-	        	incrementText(this.txtNewElementsInDatabase);
-	        	incrementText(this.txtTotalElements);
-			}
-			
-            if ( !this.exportCommands.getCommands().isEmpty() ) {
-                this.stack.execute(this.exportCommands);
-            }
-
-			logger.info("Importing new relationships ...");
-	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
-	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
-	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
-	            this.exportCommands.add(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion()));
-	            this.stack.execute(this.exportCommands);
-	        	incrementText(this.txtNewRelationshipsInDatabase);
-	        	incrementText(this.txtTotalRelationships);
-	        }
-	        this.exportedModel.resolveSourceRelationships();
-	        this.exportedModel.resolveTargetRelationships();
-	        
-            if ( !this.exportCommands.isEmpty() ) {
-                this.stack.execute(this.exportCommands);
-            }
-	
-			if ( this.selectedDatabase.isWholeModelExported() ) {
-			    logger.info("Importing new views ...");
-			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
-			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
-			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
-			        this.exportCommands.add(new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false));
-			        this.stack.execute(this.exportCommands);
-			        incrementText(this.txtNewViewsInDatabase);
-			        incrementText(this.txtTotalViews);
-			    }
-
-				logger.info("Importing new views objects ...");
-		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
-		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
-		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-		            this.exportCommands.add(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false));
-		            this.stack.execute(this.exportCommands);
-		        	incrementText(this.txtNewViewObjectsInDatabase);
-		        	incrementText(this.txtTotalViewObjects);
-		        }
-				
-                logger.info("Importing new views connections ...");
-                for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
-                    if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
-                    DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
-                    this.exportCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false));
-                    this.stack.execute(this.exportCommands);
-                    incrementText(this.txtNewViewConnectionsInDatabase);
-                    incrementText(this.txtTotalViewConnections);
-                }
-	            this.exportedModel.resolveSourceConnections();
-	            this.exportedModel.resolveTargetConnections();
 	            
-	            logger.info("Applying changes to the model ...");
+	        if ( this.selectedDatabase.isCollaborativeMode() ) {
+                if ( this.selectedDatabase.isWholeModelExported() ) {
+    				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
+    				logger.info("Importing new folders ...");
+    				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
+                        if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
+    				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
+    				    DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+    				    command.execute();
+                        this.exportCommands.add(command);
+                        incrementText(this.txtNewFoldersInDatabase);
+                        incrementText(this.txtTotalFolders);
+    				}
+    			}
+    	
+    			logger.info("Importing new elements ...");
+    			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
+    			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
+    			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
+    			    DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+    			    command.execute();
+    	        	this.exportCommands.add(command);
+    	        	incrementText(this.txtNewElementsInDatabase);
+    	        	incrementText(this.txtTotalElements);
+    			}
+    
+    			logger.info("Importing new relationships ...");
+    	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
+    	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
+    	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
+    	            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+    	            command.execute();
+    	            this.exportCommands.add(command);
+    	        	incrementText(this.txtNewRelationshipsInDatabase);
+    	        	incrementText(this.txtTotalRelationships);
+    	        }
+    	        //TODO: move into a command to allow undo
+    	        this.exportedModel.resolveSourceRelationships();
+    	        this.exportedModel.resolveTargetRelationships();
+    	
+    			if ( this.selectedDatabase.isWholeModelExported() ) {
+    			    logger.info("Importing new views ...");
+    			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
+    			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
+    			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
+    			        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
+    			        command.execute();
+    			        this.exportCommands.add(command);
+    			        incrementText(this.txtNewViewsInDatabase);
+    			        incrementText(this.txtTotalViews);
+    			    }
+    
+    				logger.info("Importing new views objects ...");
+    		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
+    		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
+    		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
+    		            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
+    		            command.execute();
+    		            this.stack.execute(this.exportCommands);
+    		        	incrementText(this.txtNewViewObjectsInDatabase);
+    		        	incrementText(this.txtTotalViewObjects);
+    		        }
+    				
+                    logger.info("Importing new views connections ...");
+                    for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
+                        if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
+                        DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
+                        DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
+                        command.execute();
+                        this.exportCommands.add(command);
+                        incrementText(this.txtNewViewConnectionsInDatabase);
+                        incrementText(this.txtTotalViewConnections);
+                    }
+                    // TODO: move into command to allow undo
+    	            this.exportedModel.resolveSourceConnections();
+    	            this.exportedModel.resolveTargetConnections();
+    			}
+    			
+    			// TODO : move into a command to allow undo
+    			logger.info("Checking if components have been moved to new folder ...");
+    			importConnection.setFolderToLastKnown(this.exportedModel);
+    			
+                logger.info("Applying changes to the model ...");
                 if ( !this.exportCommands.isEmpty() ) {
                     this.stack.execute(this.exportCommands);
                 }
-			}
-			
-			// TODO : use a command to allow undo
-			logger.info("Checking if components have been moved to new folder ...");
-			importConnection.setFolderToLastKnown(this.exportedModel);
+	        }
                 
 			logger.info("Exporting elements ...");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
