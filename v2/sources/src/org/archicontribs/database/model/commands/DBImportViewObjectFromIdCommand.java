@@ -98,6 +98,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand {
         this.id = id;
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
+        
+        setLabel("Import view object");
     }
     
     /**

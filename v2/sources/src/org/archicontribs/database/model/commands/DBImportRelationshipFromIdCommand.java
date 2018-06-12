@@ -78,26 +78,7 @@ public class DBImportRelationshipFromIdCommand extends Command {
      * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
      */
     public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-        this.importConnection = connection;
-        this.model = model;
-        this.id = id;
-        this.version = version;
-    }
-    
-    /**
-     * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
-     * if the value is null, the exception that has been raised can be get using {@link getException}
-     */
-    public IArchimateRelationship getImportedRelationship() {
-    	return this.importedRelationship;
-    }
-    
-    
-    /**
-     * @return the view object that has been imported by the command (of course, the command must have been executed before)
-     */
-    public Exception getException() {
-        return this.exception;
+        this(connection, model, null, id, version, false);
     }
     
     /**
@@ -115,6 +96,24 @@ public class DBImportRelationshipFromIdCommand extends Command {
         this.id = id;
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
+        
+        setLabel("Import relationships");
+    }
+    
+    /**
+     * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
+     * if the value is null, the exception that has been raised can be get using {@link getException}
+     */
+    public IArchimateRelationship getImportedRelationship() {
+    	return this.importedRelationship;
+    }
+    
+    
+    /**
+     * @return the view object that has been imported by the command (of course, the command must have been executed before)
+     */
+    public Exception getException() {
+        return this.exception;
     }
 
     @Override

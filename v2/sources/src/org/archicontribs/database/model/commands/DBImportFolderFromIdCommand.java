@@ -66,10 +66,7 @@ public class DBImportFolderFromIdCommand extends Command {
      * @param version version of the folder to import (0 if the latest version should be imported)
      */
     public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-        this.importConnection = connection;
-        this.model = model;
-        this.id = id;
-        this.version = version;
+        this(connection, model, id, version, false);
     }
     
     /**
@@ -86,6 +83,8 @@ public class DBImportFolderFromIdCommand extends Command {
         this.id = id;
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
+        
+        setLabel("import Folder");
     }
     
     /**

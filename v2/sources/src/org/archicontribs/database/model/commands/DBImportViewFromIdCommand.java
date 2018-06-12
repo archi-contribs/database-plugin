@@ -83,6 +83,8 @@ public class DBImportViewFromIdCommand extends Command {
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
         this.mustImportViewContent = mustImportViewContent;
+        
+        setLabel("import view");
     }
     
     /**
