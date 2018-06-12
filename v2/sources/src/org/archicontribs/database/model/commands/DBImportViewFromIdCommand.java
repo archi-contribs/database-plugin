@@ -22,6 +22,8 @@ import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
+
+import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
@@ -249,7 +251,8 @@ public class DBImportViewFromIdCommand extends Command {
     		return;
     	
         if ( this.viewHasBeenCreated ) {
-            // TODO: removing the view is not sufficient. We must delete all the elements and relationships imported while the view has been imported
+            EditorManager.closeDiagramEditor(this.importedView);
+
             IFolder parentFolder = (IFolder)this.importedView.eContainer();
             parentFolder.getElements().remove(this.importedView);
             
