@@ -18,7 +18,8 @@ import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
-import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CompoundCommand;
+
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
@@ -34,7 +35,7 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewConnectionFromIdCommand extends Command {
+public class DBImportViewConnectionFromIdCommand extends CompoundCommand {
     private static final DBLogger logger = new DBLogger(DBImportViewConnectionFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
@@ -47,7 +48,6 @@ public class DBImportViewConnectionFromIdCommand extends Command {
     private int version = 0;
     private boolean mustCreateCopy = false;
     private boolean importedViewConnectionHasBeenCreated = false;
-    private Command importCorrespondingRelationshipCommand = null;
     
     // old values that need to be retain to allow undo
     private DBVersion oldInitialVersion;
@@ -201,10 +201,8 @@ public class DBImportViewConnectionFromIdCommand extends Command {
 			if ( this.importedViewConnection instanceof IDiagramModelArchimateConnection && result.getString("relationship_id") != null) {
 				// we check that the relationship already exists. If not, we import it in shared mode
 				IArchimateRelationship relationship = this.model.getAllRelationships().get(result.getString("relationship_id"));
-				if ( relationship == null ) {
-					this.importCorrespondingRelationshipCommand = new DBImportRelationshipFromIdCommand(this.importConnection, this.model, result.getString("relationship_id"), 0);
-					this.importCorrespondingRelationshipCommand.execute();
-				}
+				if ( relationship == null )
+					this.add(new DBImportRelationshipFromIdCommand(this.importConnection, this.model, result.getString("relationship_id"), 0));
 			}
 
 			if ( this.model.getAllRelationships().get(result.getString("relationship_id")) != null ) metadata.setName(result.getString("name"));
@@ -265,11 +263,6 @@ public class DBImportViewConnectionFromIdCommand extends Command {
     public void undo() {
     	if ( !this.commandHasBeenExecuted )
     		return;
-    	
-        // if a importedViewObject has been created, then we remove it from the view
-        if ( this.importCorrespondingRelationshipCommand != null ) {
-            this.importCorrespondingRelationshipCommand.undo();
-        }
         
         if ( this.importedViewConnectionHasBeenCreated ) {
             // if the view connection has been created by the execute() method, we just delete it
@@ -327,9 +320,6 @@ public class DBImportViewConnectionFromIdCommand extends Command {
         this.oldCurrentVersion = null;
         this.oldDatabaseVersion = null;
         this.oldLatestDatabaseVersion = null;
-        
-        this.importCorrespondingRelationshipCommand.dispose();
-        this.importCorrespondingRelationshipCommand = null;
         
 		this.oldName = null;
 		this.oldArchimateConcept = null;

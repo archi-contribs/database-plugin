@@ -19,7 +19,8 @@ import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CompoundCommand;
+
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IDiagramModel;
@@ -35,7 +36,7 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewObjectFromIdCommand extends Command {
+public class DBImportViewObjectFromIdCommand extends CompoundCommand {
     private static final DBLogger logger = new DBLogger(DBImportViewObjectFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
@@ -48,7 +49,6 @@ public class DBImportViewObjectFromIdCommand extends Command {
     private int version = 0;
     private boolean mustCreateCopy = false;
     private boolean importedViewObjectHasBeenCreated = false;
-    private Command importCorrespondingElementCommand = null;
     
     // old values that need to be retain to allow undo
     private DBVersion oldInitialVersion;
@@ -230,10 +230,8 @@ public class DBImportViewObjectFromIdCommand extends Command {
 			if ( this.importedViewObject instanceof IDiagramModelArchimateComponent && result.getString("element_id") != null) {
 				// we check that the view object already exists. If not, we import it in shared mode
 				IArchimateElement element = this.model.getAllElements().get(result.getString("element_id"));
-				if ( element == null ) {
-					this.importCorrespondingElementCommand = new DBImportElementFromIdCommand(this.importConnection, this.model, result.getString("element_id"), 0);
-					this.importCorrespondingElementCommand.execute();
-				}
+				if ( element == null )
+					this.add(new DBImportElementFromIdCommand(this.importConnection, this.model, result.getString("element_id"), 0));
 			}
 
 			if ( this.model.getAllElements().get(result.getString("element_id")) != null ) metadata.setName(result.getString("name"));
@@ -305,11 +303,6 @@ public class DBImportViewObjectFromIdCommand extends Command {
     public void undo() {
     	if ( !this.commandHasBeenExecuted )
     		return;
-    	
-        // if a importedViewObject has been created, then we remove it from the view
-        if ( this.importCorrespondingElementCommand != null ) {
-            this.importCorrespondingElementCommand.undo();
-        }
         
         if ( this.importedViewObjectHasBeenCreated ) {
             // if the view object has been created by the execute() method, we just delete it
@@ -371,9 +364,6 @@ public class DBImportViewObjectFromIdCommand extends Command {
         this.oldCurrentVersion = null;
         this.oldDatabaseVersion = null;
         this.oldLatestDatabaseVersion = null;
-        
-        this.importCorrespondingElementCommand.dispose();
-        this.importCorrespondingElementCommand = null;
         
 		this.oldArchimateConcept = null;
 		this.oldReferencedModel = null;

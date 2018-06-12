@@ -19,10 +19,12 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
-import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CompoundCommand;
+
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
@@ -32,7 +34,7 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportElementFromIdCommand extends Command {
+public class DBImportElementFromIdCommand extends CompoundCommand {
     private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
@@ -45,7 +47,6 @@ public class DBImportElementFromIdCommand extends Command {
     private String id = null;
     private int version = 0;
     private boolean mustCreateCopy = false;
-    @SuppressWarnings("unused")
     private boolean mustImportRelationships = false;
     private boolean elementHasBeenCreated = false;
     
@@ -228,7 +229,6 @@ public class DBImportElementFromIdCommand extends Command {
                 this.model.countObject(this.importedElement, false, null);
 
             // this.importConnection.setCountElementsImported(this.importConnection.getCountElementsImported() + 1);
-            /*
             if ( this.mustImportRelationships ) {
                 // We import the relationships that source or target the element
                 try ( ResultSet resultrelationship = this.importConnection.select("SELECT id, source_id, target_id FROM "+this.importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
@@ -241,9 +241,8 @@ public class DBImportElementFromIdCommand extends Command {
                             IArchimateRelationship targetRelationship = this.model.getAllRelationships().get(resultrelationship.getString("target_id"));
 
                             // we import only relations when both source and target are in the model
-                            if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) ) {
-                                chain(new importRelationshipFromIdCommand(this.importConnection, this.model, this.view, resultrelationship.getString("id"), 0, false));
-                            }
+                            if ( (sourceElement!=null || sourceRelationship!=null) && (targetElement!=null || targetRelationship!=null) )
+                                this.add(new DBImportRelationshipFromIdCommand(this.importConnection, this.model, this.view, resultrelationship.getString("id"), 0, false));
                         }
                     }
                 }
@@ -251,7 +250,6 @@ public class DBImportElementFromIdCommand extends Command {
                 this.model.resolveSourceRelationships();
                 this.model.resolveTargetRelationships();
             }
-            */
             this.commandHasBeenExecuted = true;
         } catch (Exception err) {
             this.importedElement = null;
