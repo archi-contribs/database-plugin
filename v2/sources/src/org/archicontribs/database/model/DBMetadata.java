@@ -363,6 +363,11 @@ public class DBMetadata  {
             ((IFolder)this.component).setType(type);
     }
     
+    public void setFolderType(Integer type) {
+        if ( (this.component instanceof IFolder) && (type != null) && (((IFolder)this.component).getType().getValue() != type) )
+            ((IFolder)this.component).setType(FolderType.get(type.intValue()));
+    }
+    
     // RootFolderType
     public Integer getRootFolderType() {
         if ( this.component instanceof IFolder )
