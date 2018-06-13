@@ -7,10 +7,12 @@
 package org.archicontribs.database.model.commands;
 
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashMap;
+import java.util.List;
+
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -26,7 +28,6 @@ import org.eclipse.gef.commands.Command;
 import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
-import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 
@@ -35,27 +36,31 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewFromIdCommand extends Command {
+public class DBImportViewFromIdCommand extends Command implements IDBImportFromIdCommand {
     private static final DBLogger logger = new DBLogger(DBImportViewFromIdCommand.class);
     
+    private IDiagramModel importedView= null; 
+    
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+    private List<IDBImportFromIdCommand> importViewContentCommands = new ArrayList<IDBImportFromIdCommand>();
     private Exception exception;
     
-    private DBDatabaseImportConnection importConnection = null;
     private DBArchimateModel model = null;
-    private IDiagramModel importedView= null; 
+    
     private String id = null;
-    private int version = 0;
-    private boolean mustCreateCopy = false;
-    private boolean mustImportViewContent = false;
-    private boolean viewHasBeenCreated = false;
+    private boolean mustCreateCopy;
+    private boolean mustImportViewContent;
+    private boolean isNew;
+    
+    // new values that are retrieved from the database
+    private HashMap<String, Object> newValues = null;
+    private IFolder newFolder = null;
     
     // old values that need to be retain to allow undo
     private DBVersion oldInitialVersion;
     private DBVersion oldCurrentVersion;
     private DBVersion oldDatabaseVersion;
     private DBVersion oldLatestDatabaseVersion;
-    
     private String oldName = null;
     private String oldDocumentation = null;
     private Integer oldConnectionRouterType = null;
@@ -76,42 +81,89 @@ public class DBImportViewFromIdCommand extends Command {
      * @param version version of the view to import (0 if the latest version should be imported)
      * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view should be its original id 
      */
-    public DBImportViewFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) {
-        this.importConnection = connection;
+    public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) {
         this.model = model;
         this.id = id;
-        this.version = version;
         this.mustCreateCopy = mustCreateCopy;
         this.mustImportViewContent = mustImportViewContent;
         
-        setLabel("import view");
-    }
-    
-    /**
-     * @return the view that has been imported by the command (of course, the command must have been executed before)<br>
-     * if the value is null, the exception that has been raised can be get using {@link getException}
-     */
-    public IDiagramModel getImportedView() {
-    	return this.importedView;
-    }
-    
-    /**
-     * @return the view object that has been imported by the command (of course, the command must have been executed before)
-     */
-    public Exception getException() {
-        return this.exception;
-    }
+        if ( logger.isDebugEnabled() ) {
+            if ( this.mustCreateCopy )
+                logger.debug("   Importing a copy of view id "+this.id+".");
+            else
+                logger.debug("   Importing view id "+this.id+".");
+        }
 
-    @Override
-    public boolean canExecute() {
         try {
-            return (this.importConnection != null)
-                    && (!this.importConnection.isClosed())
-                    && (this.model != null)
-                    && (this.id != null) ;
-        } catch (SQLException err) {
+            if ( !this.mustCreateCopy ) {
+                this.importedView = model.getAllViews().get(this.id);
+                if ( this.importedView != null ) {
+                    // we must save the old values to allow undo
+                    DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
+
+                    this.oldInitialVersion = metadata.getInitialVersion();
+                    this.oldCurrentVersion = metadata.getCurrentVersion();
+                    this.oldDatabaseVersion = metadata.getDatabaseVersion();
+                    this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+
+                    this.oldName = metadata.getName();
+                    this.oldDocumentation = metadata.getDocumentation();
+                    this.oldConnectionRouterType = metadata.getConnectionRouterType();
+                    this.oldViewpoint = metadata.getViewpoint();
+                    this.oldBackground = metadata.getBackground();
+                    this.oldHintContent = metadata.getHintContent();
+                    this.oldHintTitle = metadata.getHintTitle();
+
+                    this.oldProperties = new ArrayList<DBPair<String, String>>();
+                    for ( IProperty prop: this.importedView.getProperties() ) {
+                        this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+                    }
+
+                    this.oldFolder = metadata.getParentFolder();
+                }
+            }
+
+            // we get the new values from the database to allow execute and redo
+            this.newValues = importConnection.getObject(id, "IArchimateElement", version);
+
+            this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
+            
+    		if ( this.mustImportViewContent ) {
+    			// we import the objects and create the corresponding elements if they do not exist yet
+    			//    we use the importFromId method in order to allow undo and redo
+    			try (ResultSet result = (version == 0)
+    					? importConnection.select("SELECT object_id, object_version, rank FROM "+importConnection.getSchema()+"view_objects_in_views WHERE view_id = ? AND version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"view_objects_in_views WHERE view_id = ?) ORDER BY rank", id, id)
+    					: importConnection.select("SELECT object_id, object_version, rank FROM "+importConnection.getSchema()+"view_objects_in_views WHERE view_id = ? AND version = ? ORDER BY rank", id, version) ) {
+    				while ( result.next() ) {
+    					this.importViewContentCommands.add(new DBImportViewObjectFromIdCommand(importConnection, model, result.getString("object_id"), (version == 0) ? 0 : result.getInt("object_version"), mustCreateCopy));
+    				}
+    			}
+    			
+    			// we import the connections and create the corresponding relationships if they do not exist yet
+    			//    we use the importFromId method in order to allow undo and redo
+    			try (ResultSet result = (version == 0)
+    					? importConnection.select("SELECT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"view_connections_in_views WHERE view_id = ? AND version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"view_connections_in_views WHERE view_id = ?) ORDER BY rank", id, id)
+    					: importConnection.select("SELECT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"view_connections_in_views WHERE view_id = ? AND version = ? ORDER BY rank", id, version) ) {
+    				while ( result.next() ) {
+    					this.importViewContentCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, model, result.getString("connection_id"), (version == 0) ? 0 : result.getInt("connection_version"), mustCreateCopy));
+    				}
+    			}
+
+    			//this.model.resolveSourceConnections();
+    			//this.model.resolveTargetConnections();
+    		}
+
+            if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
+                setLabel("import view");
+            } else {
+                if ( ((String)this.newValues.get("name")).length() > 20 )
+                    setLabel("import \""+((String)this.newValues.get("name")).substring(0,16)+"...\"");
+                else
+                    setLabel("import \""+(String)this.newValues.get("name")+"\"");
+            }
+        } catch (Exception err) {
+            this.importedView = null;
             this.exception = err;
-            return false;
         }
     }
     
@@ -120,129 +172,66 @@ public class DBImportViewFromIdCommand extends Command {
     	if ( this.commandHasBeenExecuted )
     		return;		// we do not execute it twice
     	
-        if ( logger.isDebugEnabled() ) {
-            if ( this.mustCreateCopy )
-                logger.debug("   Importing a copy of view id "+this.id+".");
-            else
-                logger.debug("   Importing view id "+this.id+".");
-        }
-
-        String versionString = (this.version==0) ? "(SELECT MAX(version) FROM "+this.importConnection.getSchema()+"views WHERE id = v.id)" : String.valueOf(this.version);
-
-        try ( ResultSet result = this.importConnection.select("SELECT DISTINCT version, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, checksum, container_checksum, created_on FROM "+this.importConnection.getSchema()+"views v WHERE id = ? AND version = "+versionString, this.id) ) {
-            if ( !result.next() ) {
-                if ( this.version == 0 )
-                    throw new Exception("View with id="+this.id+" has not been found in the database.");
-                throw new Exception("View with id="+this.id+" and version="+this.version+" has not been found in the database.");
-            }
+    	this.commandHasBeenExecuted = true;
+    	
+    	try {
+            this.importedView = this.model.getAllViews().get(this.id);
             
-            DBMetadata metadata;
+            if ( this.importedView == null ) {
+                this.isNew = true;
+                if ( DBPlugin.areEqual((String)this.newValues.get("class"), "CanvasModel") )
+                	this.importedView = (IDiagramModel) DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
+                else
+                	this.importedView = (IDiagramModel) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+            } else
+                this.isNew = false;
+
+            DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
 
             if ( this.mustCreateCopy ) {
-				if ( DBPlugin.areEqual(result.getString("class"), "CanvasModel") )
-					this.importedView = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(result.getString("class"));
-				else
-					this.importedView = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                this.importedView.setId(this.model.getIDAdapter().getNewID());
-
-                // as the view has just been created, the undo will just need to drop it
-                // so we do not need to save its properties
-                this.viewHasBeenCreated = true;
-                metadata = ((IDBMetadata)this.importedView).getDBMetadata();
-                
-                metadata.getInitialVersion().setVersion(0);
-                metadata.getInitialVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-                metadata.getCurrentVersion().setVersion(0);
-                metadata.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-
-                this.importConnection.importProperties(this.importedView, this.id, result.getInt("version"));
+                metadata.setId(this.model.getIDAdapter().getNewID());
+                metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
             } else {
-                this.importedView = this.model.getAllViews().get(this.id);
-                
-                if ( this.importedView == null ) {
-    				if ( DBPlugin.areEqual(result.getString("class"), "CanvasModel") )
-    					this.importedView = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(result.getString("class"));
-    				else
-    					this.importedView = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(result.getString("class"));
-                    this.importedView.setId(this.id);
-                    
-                    // as the view has just been created, the undo will just need to drop it
-                    // so we do not need to save its properties
-                    this.viewHasBeenCreated = true;
-                    metadata = ((IDBMetadata)this.importedView).getDBMetadata();
-                } else {
-                    // the view already exists in the model and will be updated with information from the database
-                    // we need to keep a value of all its properties to allow undo
-                    metadata = ((IDBMetadata)this.importedView).getDBMetadata();
-                    
-                    this.oldInitialVersion = metadata.getInitialVersion();
-                    this.oldCurrentVersion = metadata.getCurrentVersion();
-                    this.oldDatabaseVersion = metadata.getDatabaseVersion();
-                    this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
-                    
-                    this.oldName = metadata.getName();
-                    this.oldDocumentation = metadata.getDocumentation();
-                    this.oldConnectionRouterType = metadata.getConnectionRouterType();
-                    this.oldViewpoint = metadata.getViewpoint();
-                    this.oldBackground = metadata.getBackground();
-                    this.oldHintContent = metadata.getHintContent();
-                    this.oldHintTitle = metadata.getHintTitle();
-                    
-					for ( IProperty prop: ((IProperties)this.importedView).getProperties() ) {
-						this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
-					}
-					
-                    this.oldFolder = metadata.getParentFolder();
-                }
-
-
-                
-                metadata.getInitialVersion().setVersion(result.getInt("version"));
-                metadata.getInitialVersion().setChecksum(result.getString("checksum"));
-                metadata.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                
-                metadata.getCurrentVersion().set(metadata.getInitialVersion());
-                metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-                metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
-
-                this.importConnection.importProperties(this.importedView);
+                metadata.setId((String)this.newValues.get("id"));
+                metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
             }
 
-			metadata.setName(result.getString("name"));
-			metadata.setDocumentation(result.getString("documentation"));
-			metadata.setConnectionRouterType(result.getInt("connection_router_type"));
+            metadata.getCurrentVersion().set(metadata.getInitialVersion());
+            metadata.getDatabaseVersion().set(metadata.getInitialVersion());
+            metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			metadata.setViewpoint(result.getString("viewpoint"));
-			metadata.setBackground(result.getInt("background"));
-			metadata.setHintContent(result.getString("hint_content"));
-			metadata.setHintTitle(result.getString("hint_title"));
+            metadata.setName((String)this.newValues.get("name"));
+            metadata.setDocumentation((String)this.newValues.get("documentation"));
+			metadata.setConnectionRouterType((Integer)this.newValues.get("connection_router_type"));
+			metadata.setViewpoint((String)this.newValues.get("viewpoint"));
+			metadata.setBackground((Integer)this.newValues.get("background"));
+			metadata.setHintContent((String)this.newValues.get("hint_content"));
+			metadata.setHintTitle((String)this.newValues.get("hint_title"));
             
-            this.importConnection.setFolderToLastKnown(this.model, this.importedView);
+            this.importedView.getProperties().clear();
+            for ( String[] newProperty: (String[][])this.newValues.get("properties")) {
+                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+                prop.setKey(newProperty[0]);
+                prop.setValue(newProperty[1]);
+                this.importedView.getProperties().add(prop);
+            }
             
-    		if ( this.mustImportViewContent ) {
-    			// 2 : we import the objects and create the corresponding elements if they do not exist yet
-    			//        importing an element will automatically import the relationships to and from this element
-    			this.importConnection.prepareImportViewsObjects(((IIdentifier)this.importedView).getId(), ((IDBMetadata)this.importedView).getDBMetadata().getInitialVersion().getVersion());
-    			while ( this.importConnection.importViewsObjects(this.model, this.importedView) ) {
-    				// each loop imports an object
-    			}
-
-    			// 3 : we import the connections and create the corresponding relationships if they do not exist yet
-    			this.importConnection.prepareImportViewsConnections(((IIdentifier)this.importedView).getId(), ((IDBMetadata)this.importedView).getDBMetadata().getInitialVersion().getVersion());
-    			while ( this.importConnection.importViewsConnections(this.model) ) {
-    				// each loop imports a connection
-    			}
-
-    			this.model.resolveSourceConnections();
-    			this.model.resolveTargetConnections();
-    		}
-
-            if ( this.viewHasBeenCreated )
+            if ( this.newFolder == null )
+                metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedView));
+            else
+                metadata.setParentFolder(this.newFolder);
+            
+            if ( this.isNew )
                 this.model.countObject(this.importedView, false, null);
             
-            this.commandHasBeenExecuted = true;
+            // if some content must be imported
+            for (IDBImportFromIdCommand childCommand: this.importViewContentCommands) {
+            	childCommand.execute();
+                if ( childCommand.getException() != null )
+                	throw childCommand.getException();
+            }
+            
         } catch (Exception err) {
-            this.importedView = null;
             this.exception = err;
         }
     }
@@ -253,75 +242,72 @@ public class DBImportViewFromIdCommand extends Command {
     }
     
     @Override
-    public boolean canRedo() {
-        return !this.commandHasBeenExecuted && canExecute();
-    }
-    
-    @Override
     public void undo() {
     	if ( !this.commandHasBeenExecuted )
     		return;
     	
-        if ( this.viewHasBeenCreated ) {
-            EditorManager.closeDiagramEditor(this.importedView);
-
-            IFolder parentFolder = (IFolder)this.importedView.eContainer();
-            parentFolder.getElements().remove(this.importedView);
-            
-            this.model.getAllFolders().remove(this.importedView.getId());
-        } else {
-            // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
-            
-            metadata.getInitialVersion().set(this.oldInitialVersion);
-            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
-            
-			metadata.setName(this.oldName);
-			metadata.setDocumentation(this.oldDocumentation);
-			metadata.setConnectionRouterType(this.oldConnectionRouterType);
-
-			metadata.setViewpoint(this.oldViewpoint);
-			metadata.setBackground(this.oldBackground);
-			metadata.setHintContent(this.oldHintContent);
-			metadata.setHintTitle(this.oldHintTitle);
-            
-            metadata.setParentFolder(this.oldFolder);
-            
-            this.importedView.getProperties().clear();
-            ((IProperties)this.importedView).getProperties().clear();
-            for ( DBPair<String, String> pair: this.oldProperties ) {
-            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-            	prop.setKey(pair.getKey());
-            	prop.setValue(pair.getValue());
-            	((IProperties)this.importedView).getProperties().add(prop);
-            }
+        // if some content has been imported
+        for (int i = this.importViewContentCommands.size() - 1 ; i >= 0 ; --i)
+        	this.importViewContentCommands.get(i).undo();
+    	
+        if ( this.importedView != null ) {
+	        if ( this.isNew ) {
+	        	// if the view has been created by the execute() method, we just delete it
+	            EditorManager.closeDiagramEditor(this.importedView);
+	
+	            IFolder parentFolder = (IFolder)this.importedView.eContainer();
+	            if ( parentFolder != null )
+	            	parentFolder.getElements().remove(this.importedView);
+	            
+	            this.model.getAllFolders().remove(this.importedView.getId());
+	        } else {
+	            // else, we need to restore the old properties
+	            DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
+	            
+	            metadata.getInitialVersion().set(this.oldInitialVersion);
+	            metadata.getCurrentVersion().set(this.oldCurrentVersion);
+	            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+	            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+	            
+				metadata.setName(this.oldName);
+				metadata.setDocumentation(this.oldDocumentation);
+				metadata.setConnectionRouterType(this.oldConnectionRouterType);
+				metadata.setViewpoint(this.oldViewpoint);
+				metadata.setBackground(this.oldBackground);
+				metadata.setHintContent(this.oldHintContent);
+				metadata.setHintTitle(this.oldHintTitle);
+	            
+	            metadata.setParentFolder(this.oldFolder);
+	            
+	            this.importedView.getProperties().clear();
+	            ((IProperties)this.importedView).getProperties().clear();
+	            for ( DBPair<String, String> pair: this.oldProperties ) {
+	            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+	            	prop.setKey(pair.getKey());
+	            	prop.setValue(pair.getValue());
+	            	((IProperties)this.importedView).getProperties().add(prop);
+	            }
+	        }
         }
         
+        // we allow the command to be executed again
         this.commandHasBeenExecuted = false;
     }
 
+    /**
+     * @return the element that has been imported by the command (of course, the command must have been executed before)<br>
+     * if the value is null, the exception that has been raised can be get using {@link getException}
+     */
     @Override
-    public void dispose() {
-        this.oldInitialVersion = null;
-        this.oldCurrentVersion = null;
-        this.oldDatabaseVersion = null;
-        this.oldLatestDatabaseVersion = null;
-        
-        this.oldName = null;
-        this.oldDocumentation = null;
-        this.oldConnectionRouterType = null;
-        this.oldViewpoint = null;
-        this.oldBackground = null;
-        this.oldHintContent = null;
-        this.oldHintTitle = null;
-        
-        this.oldProperties = null;
-        
-        this.importedView = null;
-        this.model = null;
-        this.id = null;
-        this.importConnection = null;
+    public IDiagramModel getImported() {
+        return this.importedView;
+    }
+
+    /**
+     * @return the exception that has been raised during the import process, if any.
+     */
+    @Override
+    public Exception getException() {
+        return this.exception;
     }
 }

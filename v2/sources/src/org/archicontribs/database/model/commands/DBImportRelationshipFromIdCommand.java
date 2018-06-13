@@ -44,14 +44,14 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
     private List<IDiagramModelConnection> createdViewConnections = null;
 
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-    private Exception exception;
+    private Exception exception = null;
 
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
 
-    private String id = null;
-    private boolean mustCreateCopy = false;
-    private boolean isNew = false;
+    private String id;
+    private boolean mustCreateCopy;
+    private boolean isNew;
 
     // new values that are retrieved from the database
     private HashMap<String, Object> newValues = null;
@@ -79,8 +79,8 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
      * @param relationshipId id of the relationship to import
      * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
      */
-    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-        this(connection, model, null, id, version, false);
+    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
+        this(importConnection, model, null, id, version, false);
     }
 
     /**
@@ -147,20 +147,16 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
                     setLabel("import \""+(String)this.newValues.get("name")+"\"");
             }
         } catch (Exception err) {
-            this.importedRelationship = null;
             this.exception = err;
         }
-    }
-
-    @Override
-    public boolean canExecute() {
-        return (this.model != null) && (this.id != null) ;
     }
 
     @Override
     public void execute() {
         if ( this.commandHasBeenExecuted )
             return;		// we do not execute it twice
+        
+        this.commandHasBeenExecuted = true;
         
         IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
         if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
@@ -240,17 +236,10 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 
             if ( this.isNew )
                 this.model.countObject(this.importedRelationship, false, null);
-
-            this.commandHasBeenExecuted = true;
+            
         } catch (Exception err) {
-            this.importedRelationship = null;
             this.exception = err;
         }
-    }
-
-    @Override
-    public boolean canUndo() {
-        return this.commandHasBeenExecuted && (this.importedRelationship != null);
     }
 
     @Override
@@ -271,47 +260,45 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
             }
         }
 
-        if ( this.isNew ) {
-            // if the relationship has been created by the execute() method, we just delete it
-            IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
-            parentFolder.getElements().remove(this.importedRelationship);
-
-            this.model.getAllRelationships().remove(this.importedRelationship.getId());
-        } else {
-            // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
-
-            metadata.getInitialVersion().set(this.oldInitialVersion);
-            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
-
-            metadata.setName(this.oldName);
-            metadata.setDocumentation(this.oldDocumentation);
-            metadata.setStrength(this.oldStrength);
-            metadata.setAccessType(this.oldAccessType);
-
-            metadata.setSource(this.oldSource);
-            metadata.setTarget(this.oldTarget);
-
-            metadata.setParentFolder(this.oldFolder);
-
-            this.importedRelationship.getProperties().clear();
-            for ( DBPair<String, String> pair: this.oldProperties ) {
-                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-                prop.setKey(pair.getKey());
-                prop.setValue(pair.getValue());
-                this.importedRelationship.getProperties().add(prop);
-            }
+        if ( this.importedRelationship != null ) {
+	        if ( this.isNew ) {
+	            // if the relationship has been created by the execute() method, we just delete it
+	            IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
+	            if ( parentFolder != null )
+	            	parentFolder.getElements().remove(this.importedRelationship);
+	
+	            this.model.getAllRelationships().remove(this.importedRelationship.getId());
+	        } else {
+	            // else, we need to restore the old properties
+	            DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+	
+	            metadata.getInitialVersion().set(this.oldInitialVersion);
+	            metadata.getCurrentVersion().set(this.oldCurrentVersion);
+	            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+	            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+	
+	            metadata.setName(this.oldName);
+	            metadata.setDocumentation(this.oldDocumentation);
+	            metadata.setStrength(this.oldStrength);
+	            metadata.setAccessType(this.oldAccessType);
+	
+	            metadata.setSource(this.oldSource);
+	            metadata.setTarget(this.oldTarget);
+	
+	            metadata.setParentFolder(this.oldFolder);
+	
+	            this.importedRelationship.getProperties().clear();
+	            for ( DBPair<String, String> pair: this.oldProperties ) {
+	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+	                prop.setKey(pair.getKey());
+	                prop.setValue(pair.getValue());
+	                this.importedRelationship.getProperties().add(prop);
+	            }
+	        }
         }
 
+        // we allow the command to be executed again
         this.commandHasBeenExecuted = false;
-    }
-
-
-    @Override
-    public boolean canRedo() {
-        return canExecute();
     }
 
     /**
@@ -330,31 +317,5 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
     @Override
     public Exception getException() {
         return this.exception;
-    }
-
-    @Override
-    public void dispose() {
-        this.importedRelationship = null;
-        this.createdViewConnections = null;
-
-        this.oldInitialVersion = null;
-        this.oldCurrentVersion = null;
-        this.oldDatabaseVersion = null;
-        this.oldLatestDatabaseVersion = null;
-
-        this.newValues = null;
-        this.newFolder = null;
-
-        this.oldName = null;
-        this.oldDocumentation = null;
-        this.oldStrength = null;
-        this.oldAccessType = null;
-        this.oldSource = null;
-        this.oldTarget = null;
-        this.oldProperties = null;
-
-        this.model = null;
-        this.view = null;
-        this.id = null;
     }
 }

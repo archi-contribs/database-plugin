@@ -36,7 +36,7 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewObjectFromIdCommand extends CompoundCommand {
+public class DBImportViewObjectFromIdCommand extends CompoundCommand implements IDBImportFromIdCommand {
     private static final DBLogger logger = new DBLogger(DBImportViewObjectFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
@@ -410,4 +410,10 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand {
         this.id = null;
         this.importConnection = null;
     }
+
+	@Override
+	public EObject getImported() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

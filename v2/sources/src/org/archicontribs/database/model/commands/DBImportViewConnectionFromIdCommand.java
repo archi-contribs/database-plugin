@@ -18,6 +18,7 @@ import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CompoundCommand;
 
 import com.archimatetool.model.IArchimateConcept;
@@ -35,7 +36,7 @@ import com.archimatetool.model.IProperty;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewConnectionFromIdCommand extends CompoundCommand {
+public class DBImportViewConnectionFromIdCommand extends CompoundCommand implements IDBImportFromIdCommand{
     private static final DBLogger logger = new DBLogger(DBImportViewConnectionFromIdCommand.class);
     
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
@@ -352,4 +353,10 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand {
         this.id = null;
         this.importConnection = null;
     }
+
+	@Override
+	public EObject getImported() {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

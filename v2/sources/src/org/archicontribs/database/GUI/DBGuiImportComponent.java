@@ -22,6 +22,7 @@ import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
+import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
@@ -1862,10 +1863,19 @@ public class DBGuiImportComponent extends DBGui {
 
 				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 				
-				if ( this.compoElements.getVisible() )
-					commands.add(new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
-				else if ( this.compoViews.getVisible() )
-					commands.add(new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true));
+				if ( this.compoElements.getVisible() ) {
+					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true); 
+					if ( command.getException() != null )
+						throw command.getException();
+					commands.add((Command)command);
+				}
+
+				else if ( this.compoViews.getVisible() ) {
+					IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
+					if ( command.getException() != null )
+						throw command.getException();
+					commands.add((Command)command);
+				}
                 //else if ( compoContainers.getVisible() )
                 //  database.importContainerFromId(importedModel, id, !getOptionValue());
                 //  database.importFolder(importedModel, id, !getOptionValue());

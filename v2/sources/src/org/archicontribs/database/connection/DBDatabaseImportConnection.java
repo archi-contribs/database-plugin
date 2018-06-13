@@ -127,7 +127,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		ResultSet result = null;
 		int version = objectVersion;
 		HashMap<String, Object> hashResult = null;
-		
+
 		if ( logger.isDebugEnabled() ) logger.debug("   Getting "+clazz);
 
 		try {
@@ -157,34 +157,44 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(clazz,  "IFolder") ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
 
 				// properties
-				String[][] databaseProperties;
-				try ( ResultSet resultProperties = select("SELECT count(*) as count_properties FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version) ) {
-					resultProperties.next();
-					databaseProperties = new String[resultProperties.getInt("count_properties")][2];
+				try ( ResultSet resultCountProperties = select("SELECT count(*) as count_properties FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version) ) {
+					int countProperties = 0;
+					if ( resultCountProperties.next() ) 
+						countProperties = resultCountProperties.getInt("count_properties");
+					
+					if ( countProperties != 0 ) {
+						String[][] databaseProperties = new String[countProperties][2];
+						try ( ResultSet resultProperties = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+							int i = 0;
+							while ( resultProperties.next() ) {
+								databaseProperties[i++] = new String[] { resultProperties.getString("name"), resultProperties.getString("value") };
+							}
+							hashResult.put("properties", databaseProperties);
+						}
+					}
 				}
 
-				try ( ResultSet resultProperties = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
-					int i = 0;
-					while ( resultProperties.next() ) {
-						databaseProperties[i++] = new String[] { resultProperties.getString("name"), resultProperties.getString("value") };
-					}
-					hashResult.put("properties", databaseProperties);
-				}
+
 
 				// bendpoints
-				Integer[][] databaseBendpoints;
-				try ( ResultSet resultBendpoints = select("SELECT count(*) as count_bendpoints FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version) ) {
-					result.next();
-					databaseBendpoints = new Integer[resultBendpoints.getInt("count_bendpoints")][4];
+				try ( ResultSet resultCountBendpoints = select("SELECT count(*) as count_bendpoints FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version) ) {
+					int countBendpoints = 0;
+					if ( result.next() ) 
+						countBendpoints = resultCountBendpoints.getInt("count_bendpoints");
+					
+					if ( countBendpoints != 0 ) {
+						try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
+							Integer[][] databaseBendpoints = new Integer[countBendpoints][4];
+							int j = 0;
+							while ( result.next() ) {
+								databaseBendpoints[j++] = new Integer[] { resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y") };
+							}
+							hashResult.put("bendpoints", databaseBendpoints);
+						}
+					}
 				}
 
-				try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
-					int j = 0;
-					while ( result.next() ) {
-						databaseBendpoints[j++] = new Integer[] { resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y") };
-					}
-					hashResult.put("bendpoints", databaseBendpoints);
-				}
+
 			} else
 				hashResult = new HashMap<String, Object>();
 		} finally {
@@ -253,7 +263,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Import the model metadata from the database
 	 */
 	public int importModel(DBArchimateModel model) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   importing model");
+		if ( logger.isDebugEnabled() ) logger.debug("   importing model");
 		// reseting the model's counters
 		model.resetCounters();
 
@@ -383,7 +393,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the folders from the database
 	 */
 	public void prepareImportFolders(DBArchimateModel model) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import folders");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import folders");
 		this.currentResultSetFolders = select(this.importFoldersRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -396,13 +406,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importFolders(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetFolders != null ) {
 			if ( this.currentResultSetFolders.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing folder");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing folder");
+
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 				DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 
 				folder.setId(this.currentResultSetFolders.getString("folder_id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetFolders.getInt("folder_version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetFolders.getString("checksum"));
 				metadata.getInitialVersion().setTimestamp(this.currentResultSetFolders.getTimestamp("created_on"));
@@ -445,7 +455,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the elements from the database
 	 */
 	public void prepareImportElements(DBArchimateModel model) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import elements");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import elements");
 		this.currentResultSetElements = select(this.importElementsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -459,13 +469,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importElements(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetElements != null ) {
 			if ( this.currentResultSetElements.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing element");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing element");
+
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSetElements.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
-				
+
 				element.setId(this.currentResultSetElements.getString("element_id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetElements.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetElements.getString("checksum"));
 				metadata.getInitialVersion().setTimestamp(this.currentResultSetElements.getTimestamp("created_on"));
@@ -501,7 +511,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the relationships from the database
 	 */
 	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import relationships");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import relationships");
 		this.currentResultSetRelationships = select(this.importRelationshipsRequest
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -514,13 +524,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importRelationships(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetRelationships != null ) {
 			if ( this.currentResultSetRelationships.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing relationship");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing relationship");
+
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSetRelationships.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
-				
+
 				relationship.setId(this.currentResultSetRelationships.getString("relationship_id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetRelationships.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetRelationships.getString("checksum"));
 				metadata.getInitialVersion().setTimestamp(this.currentResultSetRelationships.getTimestamp("created_on"));
@@ -537,27 +547,27 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
 				}
 				folder.getElements().add(relationship);
-				
-                IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
-                IArchimateConcept target = model.getAllElements().get(this.currentResultSetRelationships.getString("target_id"));
-                
-                if ( source != null ) {
-                    // source is an element and is reputed already imported, so we can set it right away
-                    relationship.setSource(source);
-                    source.getSourceRelationships().add(relationship);
-                } else {
-                    // source is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerSourceRelationship(relationship, this.currentResultSetRelationships.getString("source_id"));
-                }
-                
-                if ( target != null ) {
-                    // target is an element and is reputed already imported, so we can set it right away
-                    relationship.setTarget(target);
-                    target.getTargetRelationships().add(relationship);
-                } else {
-                    // target is another connection and may not be already loaded. So we register it for future resolution
-                    model.registerTargetRelationship(relationship, this.currentResultSetRelationships.getString("target_id"));
-                }
+
+				IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
+				IArchimateConcept target = model.getAllElements().get(this.currentResultSetRelationships.getString("target_id"));
+
+				if ( source != null ) {
+					// source is an element and is reputed already imported, so we can set it right away
+					relationship.setSource(source);
+					source.getSourceRelationships().add(relationship);
+				} else {
+					// source is another connection and may not be already loaded. So we register it for future resolution
+					model.registerSourceRelationship(relationship, this.currentResultSetRelationships.getString("source_id"));
+				}
+
+				if ( target != null ) {
+					// target is an element and is reputed already imported, so we can set it right away
+					relationship.setTarget(target);
+					target.getTargetRelationships().add(relationship);
+				} else {
+					// target is another connection and may not be already loaded. So we register it for future resolution
+					model.registerTargetRelationship(relationship, this.currentResultSetRelationships.getString("target_id"));
+				}
 
 				importProperties(relationship);
 
@@ -578,7 +588,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views from the database
 	 */
 	public void prepareImportViews(DBArchimateModel model) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views");
 		this.currentResultSetViews = select(this.importViewsRequest,
 				model.getId(),
 				model.getInitialVersion().getVersion()
@@ -591,8 +601,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViews(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetViews != null ) {
 			if ( this.currentResultSetViews.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing view");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing view");
+
 				IDiagramModel view;
 				if ( DBPlugin.areEqual(this.currentResultSetViews.getString("class"), "CanvasModel") )
 					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(this.currentResultSetViews.getString("class"));
@@ -600,9 +610,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					view = (IDiagramModel) DBArchimateFactory.eINSTANCE.create(this.currentResultSetViews.getString("class"));
 
 				DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
-				
+
 				view.setId(this.currentResultSetViews.getString("id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetViews.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetViews.getString("checksum"));
 				metadata.getInitialVersion().setContainerChecksum(this.currentResultSetViews.getString("container_checksum"));
@@ -637,7 +647,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects");
 		this.currentResultSetViewsObjects = select("SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
@@ -654,19 +664,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
 		if ( this.currentResultSetViewsObjects != null ) {
 			if ( this.currentResultSetViewsObjects.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing view object");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing view object");
+
 				EObject eObject;
 
 				if ( this.currentResultSetViewsObjects.getString("class").startsWith("Canvas") )
 					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSetViewsObjects.getString("class"));
 				else
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSetViewsObjects.getString("class"));
-				
+
 				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
 				((IIdentifier)eObject).setId(this.currentResultSetViewsObjects.getString("id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetViewsObjects.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetViewsObjects.getString("checksum"));
 				metadata.getInitialVersion().setTimestamp(this.currentResultSetViewsObjects.getTimestamp("created_on"));
@@ -677,8 +687,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					if ( element == null ) {
 						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSetViewsObjects.getString("element_id"), 0, false, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
-						
+
 						element = command.getImported();
+
+						if ( command.getException() != null )
+							throw command.getException();
 					}
 				}
 
@@ -738,7 +751,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
-	    if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections");
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections");
 		this.currentResultSetViewsConnections = select("SELECT DISTINCT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
@@ -755,19 +768,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetViewsConnections != null ) {
 			if ( this.currentResultSetViewsConnections.next() ) {
-			    if ( logger.isDebugEnabled() ) logger.debug("   importing view connection");
-			    
+				if ( logger.isDebugEnabled() ) logger.debug("   importing view connection");
+
 				EObject eObject;
 
 				if ( this.currentResultSetViewsConnections.getString("class").startsWith("Canvas") )
 					eObject = DBCanvasFactory.eINSTANCE.create(this.currentResultSetViewsConnections.getString("class"));
 				else
 					eObject = DBArchimateFactory.eINSTANCE.create(this.currentResultSetViewsConnections.getString("class"));
-				
+
 				DBMetadata metadata = ((IDBMetadata)eObject).getDBMetadata();
 
 				((IIdentifier)eObject).setId(this.currentResultSetViewsConnections.getString("id"));
-				
+
 				metadata.getInitialVersion().setVersion(this.currentResultSetViewsConnections.getInt("version"));
 				metadata.getInitialVersion().setChecksum(this.currentResultSetViewsConnections.getString("checksum"));
 
@@ -777,8 +790,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					if ( relationship == null ) {
 						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, false);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
-						
+
 						relationship = command.getImported();
+
+						if ( command.getException() != null )
+							throw command.getException();
 					}
 				}
 
@@ -794,26 +810,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setArchimateConcept(model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id")));
 
 				if ( eObject instanceof IDiagramModelConnection ) {
-				    IConnectable source = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("source_object_id"));
-				    IConnectable target = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("target_object_id"));
-				    
-				    if ( source != null ) {
-				        // source is an object and is reputed already imported, so we can set it right away
-                        ((IDiagramModelConnection)eObject).setSource(source);
-                        source.addConnection((IDiagramModelConnection)eObject);
-				    } else {
-				        // source is another connection and may not be already loaded. So we register it for future resolution
-				        model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("source_object_id"));
-				    }
-				    
-                    if ( target != null ) {
-                        // target is an object and is reputed already imported, so we can set it right away
-                        ((IDiagramModelConnection)eObject).setTarget(target);
-                        target.addConnection((IDiagramModelConnection)eObject);
-                    } else {
-                        // target is another connection and may not be already loaded. So we register it for future resolution
-                        model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("target_object_id"));
-                    }
+					IConnectable source = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("source_object_id"));
+					IConnectable target = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("target_object_id"));
+
+					if ( source != null ) {
+						// source is an object and is reputed already imported, so we can set it right away
+						((IDiagramModelConnection)eObject).setSource(source);
+						source.addConnection((IDiagramModelConnection)eObject);
+					} else {
+						// source is another connection and may not be already loaded. So we register it for future resolution
+						model.registerSourceConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("source_object_id"));
+					}
+
+					if ( target != null ) {
+						// target is an object and is reputed already imported, so we can set it right away
+						((IDiagramModelConnection)eObject).setTarget(target);
+						target.addConnection((IDiagramModelConnection)eObject);
+					} else {
+						// target is another connection and may not be already loaded. So we register it for future resolution
+						model.registerTargetConnection((IDiagramModelConnection)eObject, this.currentResultSetViewsConnections.getString("target_object_id"));
+					}
 				}
 
 				if ( eObject instanceof IDiagramModelConnection ) {
@@ -867,8 +883,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					}
 					imagePath = archiveMgr.addByteContentEntry(path, imageContent);
 
-                    if ( logger.isDebugEnabled() && !DBPlugin.areEqual(imagePath, path) )
-                        logger.debug( "... image imported but with new path "+imagePath);
+					if ( logger.isDebugEnabled() && !DBPlugin.areEqual(imagePath, path) )
+						logger.debug( "... image imported but with new path "+imagePath);
 
 				} catch (Exception e) {
 					throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
@@ -941,8 +957,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	public void importProperties(IProperties parent, String id, int version) throws SQLException {
-	    if ( logger.isDebugEnabled() ) logger.debug("   importing properties");
-	    
+		if ( logger.isDebugEnabled() ) logger.debug("   importing properties");
+
 		// first, we delete all existing properties
 		parent.getProperties().clear();
 
@@ -963,8 +979,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void importMetadata(DBArchimateModel model) throws SQLException {
-	    if ( logger.isDebugEnabled() ) logger.debug("   importing metadata");
-	    
+		if ( logger.isDebugEnabled() ) logger.debug("   importing metadata");
+
 		// first, we delete all existing metadata
 		model.getMetadata().getEntries().clear();
 
@@ -992,30 +1008,30 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 
 	public void reset() throws SQLException {
-	    if ( this.currentResultSetElements != null ) {
-	        this.currentResultSetElements.close();
-	        this.currentResultSetElements = null;
-	    }
-	    if ( this.currentResultSetRelationships != null ) {
-	        this.currentResultSetRelationships.close();
-	        this.currentResultSetRelationships = null;
-	    }
-	    if ( this.currentResultSetFolders != null ) {
-	        this.currentResultSetFolders.close();
-	        this.currentResultSetFolders = null;
-	    }
-	    if ( this.currentResultSetViews != null ) {
-	        this.currentResultSetViews.close();
-	        this.currentResultSetViews = null;
-	    }
-	    if ( this.currentResultSetViewsObjects != null ) {
-	        this.currentResultSetViewsObjects.close();
-	        this.currentResultSetViewsObjects = null;
-	    }
-	    if ( this.currentResultSetViewsConnections != null ) {
-	        this.currentResultSetViewsConnections.close();
-	        this.currentResultSetViewsConnections = null;
-	    }
+		if ( this.currentResultSetElements != null ) {
+			this.currentResultSetElements.close();
+			this.currentResultSetElements = null;
+		}
+		if ( this.currentResultSetRelationships != null ) {
+			this.currentResultSetRelationships.close();
+			this.currentResultSetRelationships = null;
+		}
+		if ( this.currentResultSetFolders != null ) {
+			this.currentResultSetFolders.close();
+			this.currentResultSetFolders = null;
+		}
+		if ( this.currentResultSetViews != null ) {
+			this.currentResultSetViews.close();
+			this.currentResultSetViews = null;
+		}
+		if ( this.currentResultSetViewsObjects != null ) {
+			this.currentResultSetViewsObjects.close();
+			this.currentResultSetViewsObjects = null;
+		}
+		if ( this.currentResultSetViewsConnections != null ) {
+			this.currentResultSetViewsConnections.close();
+			this.currentResultSetViewsConnections = null;
+		}
 
 		// we reset the counters
 		this.countElementsToImport = 0;
@@ -1044,7 +1060,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( !this.isExportConnectionDuplicate )
 			super.close();
 	}
-	
+
 	/**
 	 * Check all the components in the database that have been move to a new folder and set them in the new folder<br>
 	 * <br>
@@ -1052,186 +1068,186 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param model
 	 * @throws Exception
 	 */
-    public void setFolderToLastKnown(DBArchimateModel model) throws Exception {
-        if ( model .isLatestVersionImported() )
-            return;
-        
-        if ( logger.isDebugEnabled() ) logger.debug("   setting folders to last known");
+	public void setFolderToLastKnown(DBArchimateModel model) throws Exception {
+		if ( model .isLatestVersionImported() )
+			return;
 
-        // elements
-        try ( ResultSet result = select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM "+this.schema+"elements_in_model m1"
-                + " JOIN "+this.schema+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
-                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
-                , model.getId()
-                , model.getInitialVersion().getVersion()
-                , model.getDatabaseVersion().getVersion()
-                ) ) {
-            while (result.next() ) {
-                IArchimateElement element = model.getAllElements().get(result.getString("element_id"));
-                if ( element != null ) {
-                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                    if ( parentFolder != null )
-                        ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
-                }
-            }
-        }
+		if ( logger.isDebugEnabled() ) logger.debug("   setting folders to last known");
 
-        // relationships
-        try ( ResultSet result = select("SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM "+this.schema+"relationships_in_model m1"
-                + " JOIN "+this.schema+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
-                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
-                , model.getId()
-                , model.getInitialVersion().getVersion()
-                , model.getDatabaseVersion().getVersion()
-                ) ) {
-            while (result.next() ) {
-                IArchimateRelationship relationship = model.getAllRelationships().get(result.getString("relationship_id"));
-                if ( relationship != null ) {
-                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                    if ( parentFolder != null )
-                        ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
-                }
-            }
-        }
-        
-        // folders
-        try ( ResultSet result = select("SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM "+this.schema+"folders_in_model m1"
-                + " JOIN "+this.schema+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
-                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
-                , model.getId()
-                , model.getInitialVersion().getVersion()
-                , model.getDatabaseVersion().getVersion()
-                ) ) {
-            while (result.next() ) {
-                IFolder folder = model.getAllFolders().get(result.getString("view_id"));
-                if ( folder != null ) {
-                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                    if ( parentFolder != null )
-                        ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
-                }
-            }
-        }
-        
-        // views
-        try ( ResultSet result = select("SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
-                + " FROM "+this.schema+"views_in_model m1"
-                + " JOIN "+this.schema+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
-                + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
-                , model.getId()
-                , model.getInitialVersion().getVersion()
-                , model.getDatabaseVersion().getVersion()
-                ) ) {
-            while (result.next() ) {
-                IDiagramModel view = model.getAllViews().get(result.getString("view_id"));
-                if ( view != null ) {
-                    IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                    if ( parentFolder != null )
-                        ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
-                }
-            }
-        }
-    }
-    
-    /**
-     * Gets the latest folder where the elementId was in the model
-     */
-    public IFolder getLastKnownFolder(DBArchimateModel model, String clazz, String id) throws Exception {
-        IFolder parentFolder = null;
-        
-        if ( !model.isLatestVersionImported() ) {
-            String table;
-            String column;
-            if ( logger.isDebugEnabled() ) logger.debug("   getting last known folder");
-            
-            if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) { table = this.schema+"elements_in_model" ; column = "element_id"; }
-            else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) { table = this.schema+"relationships_in_model" ; column = "relationship_id"; }
-            else if ( DBPlugin.areEqual(clazz,  "IFolder") ) { table = this.schema+"folders_in_model" ; column = "folder_id"; }
-            else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) { table = this.schema+"views_in_model" ; column = "view_id"; }
-            else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) { table = this.schema+"views_ojects_in_model" ; column = "object_id"; }
-            else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) { table = this.schema+"views_connections_in_model" ; column = "connection_id"; }
-            else throw new Exception("Do not know how to get a "+clazz+" from the database.");
-        
-            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    +" FROM "+table
-                    +" WHERE model_id = ? AND "+column+" = ? AND model_version = (SELECT MAX(model_version) FROM "+table+" WHERE model_id = ? AND "+column+" = ?)"
-                    , model.getId()
-                    , id
-                    , model.getId()
-                    , id
-                    ) ) {
-                if ( result.next() )
-                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-            }
-        }
-        
-        return parentFolder;
-    }
-    
-    /**
-     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
-     * <br>
-     * if the component has never been part of the model, then is it set in the default folder for this component
-     * @param model
-     * @throws Exception
-     */
-    public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
-        if ( !model.isLatestVersionImported() ) {
-            IFolder parentFolder = null;
+		// elements
+		try ( ResultSet result = select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
+				+ " FROM "+this.schema+"elements_in_model m1"
+				+ " JOIN "+this.schema+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
+				+ " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+				, model.getId()
+				, model.getInitialVersion().getVersion()
+				, model.getDatabaseVersion().getVersion()
+				) ) {
+			while (result.next() ) {
+				IArchimateElement element = model.getAllElements().get(result.getString("element_id"));
+				if ( element != null ) {
+					IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+					if ( parentFolder != null )
+						((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
+				}
+			}
+		}
 
-            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
-            
-            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM "+this.schema+"folders_in_model"
-                    + " WHERE model_id = ? and folder_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"folders_in_model WHERE model_id = ? AND folder_id = ?)"
-                    , model.getId()
-                    , folder.getId()
-                    , model.getId()
-                    , folder.getId()
-                    ) ) {
-                if ( result.next() )
-                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-            }
-            if (parentFolder == null )
-                parentFolder = model.getFolder(((IDBMetadata)folder).getDBMetadata().getFolderType());
-            
-            ((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
-        }
-        
+		// relationships
+		try ( ResultSet result = select("SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
+				+ " FROM "+this.schema+"relationships_in_model m1"
+				+ " JOIN "+this.schema+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
+				+ " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+				, model.getId()
+				, model.getInitialVersion().getVersion()
+				, model.getDatabaseVersion().getVersion()
+				) ) {
+			while (result.next() ) {
+				IArchimateRelationship relationship = model.getAllRelationships().get(result.getString("relationship_id"));
+				if ( relationship != null ) {
+					IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+					if ( parentFolder != null )
+						((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
+				}
+			}
+		}
 
-    }
-    
-    /**
-     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
-     * <br>
-     * if the component has never been part of the model, then is it set in the default folder for this component
-     * @param model
-     * @throws Exception
-     */
-    public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
-        if ( !model.isLatestVersionImported() ) {
-            IFolder parentFolder = null;
-            
-            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
+		// folders
+		try ( ResultSet result = select("SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
+				+ " FROM "+this.schema+"folders_in_model m1"
+				+ " JOIN "+this.schema+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
+				+ " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+				, model.getId()
+				, model.getInitialVersion().getVersion()
+				, model.getDatabaseVersion().getVersion()
+				) ) {
+			while (result.next() ) {
+				IFolder folder = model.getAllFolders().get(result.getString("view_id"));
+				if ( folder != null ) {
+					IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+					if ( parentFolder != null )
+						((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
+				}
+			}
+		}
 
-            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM "+this.schema+"views_in_model"
-                    + " WHERE model_id = ? and view_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"views_in_model WHERE model_id = ? AND view_id = ?)"
-                    , model.getId()
-                    , view.getId()
-                    , model.getId()
-                    , view.getId()
-                    ) ) {
-                if ( result.next() )
-                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-            }
-            
-            if (parentFolder == null )
-                parentFolder = model.getDefaultFolderForObject(view);
-            
-            ((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
-        }
-    }
+		// views
+		try ( ResultSet result = select("SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
+				+ " FROM "+this.schema+"views_in_model m1"
+				+ " JOIN "+this.schema+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
+				+ " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
+				, model.getId()
+				, model.getInitialVersion().getVersion()
+				, model.getDatabaseVersion().getVersion()
+				) ) {
+			while (result.next() ) {
+				IDiagramModel view = model.getAllViews().get(result.getString("view_id"));
+				if ( view != null ) {
+					IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+					if ( parentFolder != null )
+						((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Gets the latest folder where the elementId was in the model
+	 */
+	public IFolder getLastKnownFolder(DBArchimateModel model, String clazz, String id) throws Exception {
+		IFolder parentFolder = null;
+
+		if ( !model.isLatestVersionImported() ) {
+			String table;
+			String column;
+			if ( logger.isDebugEnabled() ) logger.debug("   getting last known folder");
+
+			if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) { table = this.schema+"elements_in_model" ; column = "element_id"; }
+			else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) { table = this.schema+"relationships_in_model" ; column = "relationship_id"; }
+			else if ( DBPlugin.areEqual(clazz,  "IFolder") ) { table = this.schema+"folders_in_model" ; column = "folder_id"; }
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) { table = this.schema+"views_in_model" ; column = "view_id"; }
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) { table = this.schema+"views_ojects_in_model" ; column = "object_id"; }
+			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) { table = this.schema+"views_connections_in_model" ; column = "connection_id"; }
+			else throw new Exception("Do not know how to get a "+clazz+" from the database.");
+
+			try ( ResultSet result = select("SELECT parent_folder_id, model_version"
+					+" FROM "+table
+					+" WHERE model_id = ? AND "+column+" = ? AND model_version = (SELECT MAX(model_version) FROM "+table+" WHERE model_id = ? AND "+column+" = ?)"
+					, model.getId()
+					, id
+					, model.getId()
+					, id
+					) ) {
+				if ( result.next() )
+					parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+			}
+		}
+
+		return parentFolder;
+	}
+
+	/**
+	 * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+	 * <br>
+	 * if the component has never been part of the model, then is it set in the default folder for this component
+	 * @param model
+	 * @throws Exception
+	 */
+	public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
+		if ( !model.isLatestVersionImported() ) {
+			IFolder parentFolder = null;
+
+			if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
+
+			try ( ResultSet result = select("SELECT parent_folder_id, model_version"
+					+ " FROM "+this.schema+"folders_in_model"
+					+ " WHERE model_id = ? and folder_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"folders_in_model WHERE model_id = ? AND folder_id = ?)"
+					, model.getId()
+					, folder.getId()
+					, model.getId()
+					, folder.getId()
+					) ) {
+				if ( result.next() )
+					parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+			}
+			if (parentFolder == null )
+				parentFolder = model.getFolder(((IDBMetadata)folder).getDBMetadata().getFolderType());
+
+			((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
+		}
+
+
+	}
+
+	/**
+	 * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
+	 * <br>
+	 * if the component has never been part of the model, then is it set in the default folder for this component
+	 * @param model
+	 * @throws Exception
+	 */
+	public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
+		if ( !model.isLatestVersionImported() ) {
+			IFolder parentFolder = null;
+
+			if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
+
+			try ( ResultSet result = select("SELECT parent_folder_id, model_version"
+					+ " FROM "+this.schema+"views_in_model"
+					+ " WHERE model_id = ? and view_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"views_in_model WHERE model_id = ? AND view_id = ?)"
+					, model.getId()
+					, view.getId()
+					, model.getId()
+					, view.getId()
+					) ) {
+				if ( result.next() )
+					parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
+			}
+
+			if (parentFolder == null )
+				parentFolder = model.getDefaultFolderForObject(view);
+
+			((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
+		}
+	}
 }

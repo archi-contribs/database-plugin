@@ -43,13 +43,13 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
     private IDiagramModelObject createdViewObject = null;
 
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-    private List<DBImportRelationshipFromIdCommand> importRelationshipCommands = new ArrayList<DBImportRelationshipFromIdCommand>();
-    private Exception exception;
+    private List<IDBImportFromIdCommand> importRelationshipCommands = new ArrayList<IDBImportFromIdCommand>();
+    private Exception exception = null;
 
     private DBArchimateModel model = null;
     private IArchimateDiagramModel view = null;
 
-    private String id = null;
+    private String id;
     private boolean mustCreateCopy;
     private boolean mustImportRelationships;
     private boolean isNew;
@@ -77,8 +77,8 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
      * @param elementId id of the element to import
      * @param elementVersion version of the element to import (0 if the latest version should be imported)
      */
-    public DBImportElementFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-        this(connection, model, null, id, version, false, false);
+    public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
+        this(importConnection, model, null, id, version, false, false);
     }
 
     /**
@@ -106,7 +106,6 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
         }
 
         try {
-
             if ( !this.mustCreateCopy ) {
                 this.importedElement = model.getAllElements().get(this.id);
                 if ( this.importedElement != null ) {
@@ -144,7 +143,11 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
                         // we import only relationships that are not present in the model
                         // TODO: add an option to import the relationship to refresh its properties from the database
                         if ( this.model.getAllRelationships().get(resultrelationship.getString("id")) == null ) {
-                            this.importRelationshipCommands.add(new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, resultrelationship.getString("id"), 0, false));
+                            IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, resultrelationship.getString("id"), 0, false);
+                            if ( command.getException() == null )
+                            	this.importRelationshipCommands.add(command);
+                            else
+                            	throw command.getException();
                         }
                     }
                 }
@@ -159,14 +162,13 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
                     setLabel("import \""+(String)this.newValues.get("name")+"\"");
             }
         } catch (Exception err) {
-            this.importedElement = null;
             this.exception = err;
         }
     }
 
     @Override
     public boolean canExecute() {
-        return (this.model != null) && (this.id != null) ;
+        return (this.model != null) && (this.id != null) && (this.exception == null);
     }
 
     @Override
@@ -174,6 +176,8 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
         if ( this.commandHasBeenExecuted )
             return;		// we do not execute it twice
 
+        this.commandHasBeenExecuted = true;
+        
         try {
             this.importedElement = this.model.getAllElements().get(this.id);
 
@@ -224,33 +228,22 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
                 this.model.countObject(this.importedElement, false, null);
 
             // if some relationships must be imported
-            if ( !this.importRelationshipCommands.isEmpty() ) {
-                for ( Command childCommand: this.importRelationshipCommands )
-                    childCommand.execute();
+            for (IDBImportFromIdCommand childCommand: this.importRelationshipCommands) {
+                childCommand.execute();
+                if ( childCommand.getException() != null )
+                	throw childCommand.getException();
             }
 
-            this.commandHasBeenExecuted = true;
         } catch (Exception err) {
-            this.importedElement = null;
             this.exception = err;
         }
     }
 
     @Override
-    public boolean canUndo() {
-        return this.commandHasBeenExecuted && (this.importedElement != null);
-    }
-
-    @Override
     public void undo() {
-        if ( !this.commandHasBeenExecuted )
-            return;
-
         // if some relationships have been imported
-        if ( !this.importRelationshipCommands.isEmpty() ) {
-            for (int i = this.importRelationshipCommands.size() - 1 ; i >= 0 ; --i)
-                this.importRelationshipCommands.get(i).undo();
-        }
+        for (int i = this.importRelationshipCommands.size() - 1 ; i >= 0 ; --i)
+        	this.importRelationshipCommands.get(i).undo();
 
         // if a viewObject has been created, then we remove it from the view
         if ( (this.view != null) && (this.createdViewObject != null) ) {
@@ -258,48 +251,41 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
             this.model.getAllViewObjects().remove(this.createdViewObject.getId());
         }
 
-        if ( this.isNew ) {
-            // if the element has been created by the execute() method, we just delete it
-            IFolder parentFolder = (IFolder)this.importedElement.eContainer();
-            parentFolder.getElements().remove(this.importedElement);
-
-            this.model.getAllElements().remove(this.importedElement.getId());
-        } else {
-            // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
-
-            metadata.getInitialVersion().set(this.oldInitialVersion);
-            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
-
-            metadata.setName(this.oldName);
-            metadata.setDocumentation(this.oldDocumentation);
-            metadata.setType(this.oldType);
-
-            metadata.setParentFolder(this.oldFolder);
-
-            this.importedElement.getProperties().clear();
-            for ( DBPair<String, String> pair: this.oldProperties ) {
-                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-                prop.setKey(pair.getKey());
-                prop.setValue(pair.getValue());
-                this.importedElement.getProperties().add(prop);
-            }
+        if ( this.importedElement != null ) {
+        	if ( this.isNew ) {
+	            // if the element has been created by the execute() method, we just delete it
+	            IFolder parentFolder = (IFolder)this.importedElement.eContainer();
+	            if ( parentFolder != null )
+	            	parentFolder.getElements().remove(this.importedElement);
+	
+	            this.model.getAllElements().remove(this.importedElement.getId());
+	        } else {
+	            // else, we need to restore the old properties
+	            DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
+	
+	            metadata.getInitialVersion().set(this.oldInitialVersion);
+	            metadata.getCurrentVersion().set(this.oldCurrentVersion);
+	            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+	            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+	
+	            metadata.setName(this.oldName);
+	            metadata.setDocumentation(this.oldDocumentation);
+	            metadata.setType(this.oldType);
+	
+	            metadata.setParentFolder(this.oldFolder);
+	
+	            this.importedElement.getProperties().clear();
+	            for ( DBPair<String, String> pair: this.oldProperties ) {
+	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+	                prop.setKey(pair.getKey());
+	                prop.setValue(pair.getValue());
+	                this.importedElement.getProperties().add(prop);
+	            }
+	        }
         }
-        this.importedElement = null;
-
+        
+        // we allow the command to be executed again
         this.commandHasBeenExecuted = false;
-    }
-
-    @Override
-    public boolean canRedo() {
-        return canExecute();
-    }
-
-    @Override
-    public void redo() {
-        execute();
     }
 
     /**
@@ -317,30 +303,5 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
     @Override
     public Exception getException() {
         return this.exception;
-    }
-
-    @Override
-    public void dispose() {
-        this.createdViewObject = null;
-        this.importedElement = null;
-
-        this.importRelationshipCommands = null;
-
-        this.oldInitialVersion = null;
-        this.oldCurrentVersion = null;
-        this.oldDatabaseVersion = null;
-        this.oldLatestDatabaseVersion = null;
-
-        this.newValues = null;
-        this.newFolder = null;
-
-        this.oldName = null;
-        this.oldDocumentation = null;
-        this.oldType = null;
-        this.oldProperties = null;
-
-        this.model = null;
-        this.view = null;
-        this.id = null;
     }
 }
