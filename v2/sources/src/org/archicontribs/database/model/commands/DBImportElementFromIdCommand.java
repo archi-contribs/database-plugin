@@ -257,6 +257,16 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
     }
     
     @Override
+    public boolean canUndo() {
+        return this.commandHasBeenExecuted;
+    }
+    
+    @Override
+    public boolean canRedo() {
+        return !this.commandHasBeenExecuted && canExecute();
+    }
+    
+    @Override
     public void undo() {
     	if ( !this.commandHasBeenExecuted )
     		return;
