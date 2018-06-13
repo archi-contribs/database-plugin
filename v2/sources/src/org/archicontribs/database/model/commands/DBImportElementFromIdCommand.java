@@ -72,10 +72,7 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
      * @param elementVersion version of the element to import (0 if the latest version should be imported)
      */
     public DBImportElementFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-        this.importConnection = connection;
-        this.model = model;
-        this.id = id;
-        this.version = version;
+        this(connection, model, null, id, version, false, false);
     }
     
     /**
@@ -96,6 +93,8 @@ public class DBImportElementFromIdCommand extends CompoundCommand {
         this.version = version;
         this.mustCreateCopy = mustCreateCopy;
         this.mustImportRelationships = mustImportRelationships;
+        
+        setLabel("Import element");
     }
     
     /**
