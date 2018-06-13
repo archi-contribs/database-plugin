@@ -1586,10 +1586,10 @@ public class DBGuiImportComponent extends DBGui {
 		addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 		addOn += " ORDER BY NAME";
 		
-		if ( logger.isTraceEnabled() ) {
-			logger.trace("   inList = "+inList.toString());
-			logger.trace("   addOn = "+addOn);
-		}
+		//if ( logger.isTraceEnabled() ) {
+		//	logger.trace("   inList = "+inList.toString());
+		//	logger.trace("   addOn = "+addOn);
+		//}
 
 		if ( inList.length() != 0 ) {
 			@SuppressWarnings("resource")
@@ -1845,6 +1845,7 @@ public class DBGuiImportComponent extends DBGui {
 		int done = 0;
 		
 		try {
+		    CommandStack commandStack = ((CommandStack)this.importedModel.getAdapter(CommandStack.class));
 			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
@@ -1853,7 +1854,7 @@ public class DBGuiImportComponent extends DBGui {
 				
 				if ( this.compoElements.getVisible() ) {
 					DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true);
-					((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(command);
+					commandStack.execute(command);
 
 					if ( command.getImportedElement() != null )
 						imported.add(command.getImportedElement());
@@ -1863,7 +1864,7 @@ public class DBGuiImportComponent extends DBGui {
 				//	database.importFolder(importedModel, id, !getOptionValue());
 				else if ( this.compoViews.getVisible() ) {
 					DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
-					((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(command);
+					commandStack.execute(command);
 
 					if ( command.getImportedView() != null ) 
 						imported.add(command.getImportedView());
