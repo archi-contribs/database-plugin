@@ -8,6 +8,7 @@ package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.apache.log4j.Level;
@@ -20,7 +21,9 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
+import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
 import org.eclipse.gef.commands.CommandStack;
+import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
@@ -1562,8 +1565,6 @@ public class DBGuiImportComponent extends DBGui {
 
 		this.tblComponents.removeAll();
 
-		if ( logger.isDebugEnabled() ) logger.debug("Getting elements");
-
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
 		for (ComponentLabel label: this.allElementLabels) {
@@ -1572,6 +1573,11 @@ public class DBGuiImportComponent extends DBGui {
 				classList.add(label.getElementClassname());
 			}
 		}
+		
+		if ( inList.length() == 0 )
+		    return;
+		
+	    if ( logger.isDebugEnabled() ) logger.debug("Getting elements");
 		
 		this.hideOption.setText("Hide components with empty names");
 		String addOn = "";
@@ -1738,8 +1744,6 @@ public class DBGuiImportComponent extends DBGui {
 
 		this.tblComponents.removeAll();
 
-		if ( logger.isDebugEnabled() ) logger.debug("Getting views");
-
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> classList = new ArrayList<String>();
 		if ( this.archimateViews.getSelection() ) {
@@ -1754,6 +1758,11 @@ public class DBGuiImportComponent extends DBGui {
 			inList.append(inList.length()==0 ? "?" : ", ?");
 			classList.add("SketchModel");
 		}
+		
+		if ( inList.length() == 0 )
+		    return;
+		
+	    if ( logger.isDebugEnabled() ) logger.debug("Getting views");
 
 		this.hideOption.setText("Hide default views");
 		String addOn = "";
@@ -1841,34 +1850,25 @@ public class DBGuiImportComponent extends DBGui {
 				logger.debug("Importing a copy of "+this.tblComponents.getSelectionCount()+" component(s).");
 		}
 
-		List<Object> imported = new ArrayList<Object>();
-		int done = 0;
-		
+
+
+
+        CompoundCommand commands = new CompoundCommand();
+        int done = 0;
 		try {
-		    CommandStack commandStack = ((CommandStack)this.importedModel.getAdapter(CommandStack.class));
 			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
 				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 				
-				if ( this.compoElements.getVisible() ) {
-					DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true);
-					commandStack.execute(command);
-
-					if ( command.getImportedElement() != null )
-						imported.add(command.getImportedElement());
-				}
-				//else if ( compoContainers.getVisible() )
-				//	database.importContainerFromId(importedModel, id, !getOptionValue());
-				//	database.importFolder(importedModel, id, !getOptionValue());
-				else if ( this.compoViews.getVisible() ) {
-					DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
-					commandStack.execute(command);
-
-					if ( command.getImportedView() != null ) 
-						imported.add(command.getImportedView());
-				}
+				if ( this.compoElements.getVisible() )
+					commands.add(new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true));
+				else if ( this.compoViews.getVisible() )
+					commands.add(new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true));
+                //else if ( compoContainers.getVisible() )
+                //  database.importContainerFromId(importedModel, id, !getOptionValue());
+                //  database.importFolder(importedModel, id, !getOptionValue());
 			}
 		} catch(RuntimeException e) {
 			popup(Level.ERROR, "Couldn't import component.", e);
@@ -1877,6 +1877,19 @@ public class DBGuiImportComponent extends DBGui {
 			closeMessage();
 		}
 
+		((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(commands);
+        
+		// we select the imported components in the model tree 
+	    List<Object> imported = new ArrayList<Object>();
+	      
+        Iterator<IDBImportFromIdCommand> iterator = commands.getCommands().iterator();
+        while ( iterator.hasNext() ) {
+            IDBImportFromIdCommand command = iterator.next();
+            
+            if ( command.getImported() != null )
+                imported.add(command.getImported());
+        }
+        
 		if ( !imported.isEmpty() ) {
 			// We select the element in the model tree
 			ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
@@ -1884,7 +1897,7 @@ public class DBGuiImportComponent extends DBGui {
 				treeView.getViewer().setSelection(new StructuredSelection(imported));
 		}
 
-		// we redraw the tblComponents to unselect the items (and hide the newly imported components if the option is selected)
+		// we redraw the tblComponents table to unselect the items (and hide the newly imported components if the option is selected)
 		this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
 	}
 

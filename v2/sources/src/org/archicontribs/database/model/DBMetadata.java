@@ -421,6 +421,18 @@ public class DBMetadata  {
         if ( (this.component instanceof IDocumentable) && (documentation != null) && !DBPlugin.areEqual(((IDocumentable)this.component).getDocumentation(), documentation) )  
             ((IDocumentable)this.component).setDocumentation(documentation);
     }
+    
+    // Name
+    public String getId() {
+        if ( this.component instanceof IIdentifier )
+            ((IIdentifier)this.component).getId();
+        return null;
+    }
+
+    public void setId(String id) {
+        if ( (this.component instanceof IIdentifier) && (id != null) && !DBPlugin.areEqual(((IIdentifier)this.component).getId(), id) )
+            ((IIdentifier)this.component).setId(id);
+    }
 
     // Name
     public String getName() {

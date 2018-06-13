@@ -23,23 +23,24 @@ public class DBVersion {
         set(version);
     }
     
+    public DBVersion(int version, String containerChecksum, String checksum, Timestamp timestamp) {
+        set(version, containerChecksum, checksum, timestamp);
+    }
+    
     public DBVersion(int version, String checksum, Timestamp timestamp) {
-        setVersion(version);
-        setContainerChecksum(null);
-        setChecksum(checksum);
-        setTimestamp(timestamp);
+        set(version, null, checksum, timestamp);
     }
     
     public DBVersion() {
-    	this(0, null, null);
+    	this(0, null, null, null);
     }
     
     public DBVersion(Timestamp timestamp) {
-    	this(0, null, timestamp);
+    	this(0, null, null, timestamp);
     }
     
     public DBVersion(int version) {
-    	this(version, null, null);
+    	this(version, null, null, null);
     }
     
     public void reset() {
@@ -54,6 +55,20 @@ public class DBVersion {
         setContainerChecksum(version.getContainerChecksum());
         setChecksum(version.getChecksum());
         setTimestamp(version.getTimestamp());
+    }
+    
+    public void set(int version, String checksum, Timestamp timestamp) {
+        setVersion(version);
+        setContainerChecksum(null);
+        setChecksum(checksum);
+        setTimestamp(timestamp);
+    }
+    
+    public void set(int version, String containerChecksum, String checksum, Timestamp timestamp) {
+        setVersion(version);
+        setContainerChecksum(containerChecksum);
+        setChecksum(checksum);
+        setTimestamp(timestamp);
     }
     
     @Getter private int version;

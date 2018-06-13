@@ -678,7 +678,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, this.currentResultSetViewsObjects.getString("element_id"), 0, false, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 						
-						element = command.getImportedElement();
+						element = command.getImported();
 					}
 				}
 
@@ -778,7 +778,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, false);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 						
-						relationship = command.getImportedRelationship();
+						relationship = command.getImported();
 					}
 				}
 
@@ -1136,67 +1136,38 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     }
     
     /**
-     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
-     * <br>
-     * if the component has never been part of the model, then is it set in the default folder for this component
-     * @param model
-     * @throws Exception
+     * Gets the latest folder where the elementId was in the model
      */
-    public void setFolderToLastKnown(DBArchimateModel model, IArchimateElement element) throws Exception {
+    public IFolder getLastKnownFolder(DBArchimateModel model, String clazz, String id) throws Exception {
+        IFolder parentFolder = null;
+        
         if ( !model.isLatestVersionImported() ) {
-            IFolder parentFolder = null;
+            String table;
+            String column;
+            if ( logger.isDebugEnabled() ) logger.debug("   getting last known folder");
             
-            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
-        	
+            if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) { table = this.schema+"elements_in_model" ; column = "element_id"; }
+            else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) { table = this.schema+"relationships_in_model" ; column = "relationship_id"; }
+            else if ( DBPlugin.areEqual(clazz,  "IFolder") ) { table = this.schema+"folders_in_model" ; column = "folder_id"; }
+            else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) { table = this.schema+"views_in_model" ; column = "view_id"; }
+            else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateObject") ) { table = this.schema+"views_ojects_in_model" ; column = "object_id"; }
+            else if ( DBPlugin.areEqual(clazz,  "IDiagramModelArchimateConnection") ) { table = this.schema+"views_connections_in_model" ; column = "connection_id"; }
+            else throw new Exception("Do not know how to get a "+clazz+" from the database.");
+        
             try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM "+this.schema+"elements_in_model"
-                    + " WHERE model_id = ? AND element_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"elements_in_model WHERE model_id = ? AND element_id = ?)"
+                    +" FROM "+table
+                    +" WHERE model_id = ? AND "+column+" = ? AND model_version = (SELECT MAX(model_version) FROM "+table+" WHERE model_id = ? AND "+column+" = ?)"
                     , model.getId()
-                    , element.getId()
+                    , id
                     , model.getId()
-                    , element.getId()
+                    , id
                     ) ) {
                 if ( result.next() )
                     parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
             }
-            
-            if (parentFolder == null )
-                parentFolder = model.getDefaultFolderForObject(element);
-            
-            ((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
         }
-    }
-    
-    /**
-     * Check if the component has already been part of the model once, and sets it to the folder it was in.<br>
-     * <br>
-     * if the component has never been part of the model, then is it set in the default folder for this component
-     * @param model
-     * @throws Exception
-     */
-    public void setFolderToLastKnown(DBArchimateModel model, IArchimateRelationship relationship) throws Exception {
-        if ( !model.isLatestVersionImported() ) {
-            IFolder parentFolder = null;
-            
-            if ( logger.isDebugEnabled() ) logger.debug("   setting folder to last known");
-
-            try ( ResultSet result = select("SELECT parent_folder_id, model_version"
-                    + " FROM "+this.schema+"relationships_in_model"
-                    + " WHERE model_id = ? and relationship_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.schema+"relationships_in_model WHERE model_id = ? AND relationship_id = ?)"
-                    , model.getId()
-                    , relationship.getId()
-                    , model.getId()
-                    , relationship.getId()
-                    ) ) {
-                if ( result.next() )
-                    parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-            }
-            
-            if (parentFolder == null )
-                parentFolder = model.getDefaultFolderForObject(relationship);
-            
-            ((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
-        }
+        
+        return parentFolder;
     }
     
     /**
