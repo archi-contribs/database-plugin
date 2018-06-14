@@ -15,7 +15,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.data.DBPair;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -69,7 +69,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
     private IFolder oldFolder = null;
     private IArchimateConcept oldSource = null;
     private IArchimateConcept oldTarget = null;
-    private ArrayList<DBPair<String, String>> oldProperties = null;
+    private ArrayList<DBProperty> oldProperties = null;
 
 
     /**
@@ -121,12 +121,12 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
                     this.oldStrength = metadata.getStrength();
                     this.oldAccessType = metadata.getAccessType();
 
-                    this.oldSource = metadata.getSource();
-                    this.oldTarget = metadata.getTarget();
+                    this.oldSource = metadata.getRelationshipSource();
+                    this.oldTarget = metadata.getRelationshipTarget();
 
-                    this.oldProperties = new ArrayList<DBPair<String, String>>();
+                    this.oldProperties = new ArrayList<DBProperty>();
                     for ( IProperty prop: this.importedRelationship.getProperties() ) {
-                        this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+                        this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
 
                     this.oldFolder = metadata.getParentFolder();
@@ -158,16 +158,6 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
         
         this.commandHasBeenExecuted = true;
         
-        IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
-        if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
-        
-        IArchimateConcept target = this.model.getAllElements().get(this.newValues.get("target_id"));
-        if ( target == null ) target = this.model.getAllRelationships().get(this.newValues.get("target_id"));
-
-        // we import the relationship if and only if the source and target exist
-        if ( (source == null) || (target == null) )
-            return;
-        
         try {
             this.importedRelationship = this.model.getAllRelationships().get(this.id);
 
@@ -196,8 +186,25 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
             metadata.setStrength((String)this.newValues.get("strength"));
             metadata.setAccessType((Integer)this.newValues.get("access_type"));
 
-            metadata.setSource(source);
-            metadata.setTarget(target);
+            IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
+            if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
+            if ( source == null ) {
+                // the source may be another relationship that has not been loaded yet, so we register it for future resolution
+                this.model.registerSourceRelationship(this.importedRelationship, (String)this.newValues.get("source_id"));
+            } else {
+                // the source can be resolved right away
+                metadata.setRelationshipSource(source);
+            }
+            
+            IArchimateConcept target = this.model.getAllElements().get(this.newValues.get("target_id"));
+            if ( target == null ) target = this.model.getAllRelationships().get(this.newValues.get("target_id"));
+            if ( target == null ) {
+                // the target may be another relationship that has not been loaded yet, so we register it for future resolution
+                this.model.registerTargetRelationship(this.importedRelationship, (String)this.newValues.get("target_id"));
+            } else {
+                // the target can be resolved right away
+                metadata.setRelationshipTarget(target);
+            }
 
             this.importedRelationship.getProperties().clear();
             for ( String[] newProperty: (String[][])this.newValues.get("properties")) {
@@ -282,17 +289,17 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	            metadata.setStrength(this.oldStrength);
 	            metadata.setAccessType(this.oldAccessType);
 	
-	            metadata.setSource(this.oldSource);
-	            metadata.setTarget(this.oldTarget);
+	            metadata.setRelationshipSource(this.oldSource);
+	            metadata.setRelationshipTarget(this.oldTarget);
 	
 	            metadata.setParentFolder(this.oldFolder);
 	
 	            this.importedRelationship.getProperties().clear();
-	            for ( DBPair<String, String> pair: this.oldProperties ) {
-	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-	                prop.setKey(pair.getKey());
-	                prop.setValue(pair.getValue());
-	                this.importedRelationship.getProperties().add(prop);
+	            for ( DBProperty oldProperty: this.oldProperties ) {
+	                IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+	                newProperty.setKey(oldProperty.getKey());
+	                newProperty.setValue(oldProperty.getValue());
+	                this.importedRelationship.getProperties().add(newProperty);
 	            }
 	        }
         }

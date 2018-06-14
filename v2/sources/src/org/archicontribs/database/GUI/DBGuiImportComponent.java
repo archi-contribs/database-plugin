@@ -171,7 +171,7 @@ public class DBGuiImportComponent extends DBGui {
 		super(title);
 
 		this.includeNeo4j = false;
-
+		 
 		setMessage("Counting model's components");
 		model.countAllObjects();
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");

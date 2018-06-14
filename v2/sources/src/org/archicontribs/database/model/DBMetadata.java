@@ -737,13 +737,13 @@ public class DBMetadata  {
     }
     
     // Relationship Source
-    public IArchimateConcept getSource() {
+    public IArchimateConcept getRelationshipSource() {
         if ( this.component instanceof IArchimateRelationship )
             return ((IArchimateRelationship)this.component).getSource();
         return null;
     }
     
-    public void setSource(IArchimateConcept source) {
+    public void setRelationshipSource(IArchimateConcept source) {
         if ( this.component instanceof IArchimateRelationship && (source != null) && (source != this.component) && (source != ((IArchimateRelationship)this.component).getSource()) ) {
             ((IArchimateRelationship)this.component).setSource(source);
             source.getSourceRelationships().add((IArchimateRelationship)this.component);
@@ -751,16 +751,44 @@ public class DBMetadata  {
     }
     
     // Relationship Target
-    public IArchimateConcept getTarget() {
+    public IArchimateConcept getRelationshipTarget() {
         if ( this.component instanceof IArchimateRelationship )
             return ((IArchimateRelationship)this.component).getTarget();
         return null;
     }
     
-    public void setTarget(IArchimateConcept target) {
+    public void setRelationshipTarget(IArchimateConcept target) {
         if ( this.component instanceof IArchimateRelationship && (target != null) && (target != this.component) && (target != ((IArchimateRelationship)this.component).getTarget()) ) {
             ((IArchimateRelationship)this.component).setTarget(target);
             target.getTargetRelationships().add((IArchimateRelationship)this.component);
+        }
+    }
+    
+    // View connection source
+    public IConnectable getSourceConnection() {
+        if ( this.component instanceof IDiagramModelConnection )
+            return ((IDiagramModelConnection)this.component).getSource();
+        return null;
+    }
+    
+    public void setSourceConnection(IConnectable source) {
+        if ( this.component instanceof IDiagramModelConnection && (source != null) && (source != this.component) && (source != ((IArchimateRelationship)this.component).getSource()) ) {
+            ((IDiagramModelConnection)this.component).setSource(source);
+            source.getSourceConnections().add((IDiagramModelConnection)this.component);
+        }
+    }
+    
+    // View connection target
+    public IConnectable getTargetConnection() {
+        if ( this.component instanceof IDiagramModelConnection )
+            return ((IDiagramModelConnection)this.component).getTarget();
+        return null;
+    }
+    
+    public void setTargetConnection(IConnectable target) {
+        if ( this.component instanceof IDiagramModelConnection && (target != null) && (target != this.component) && (target != ((IDiagramModelConnection)this.component).getTarget()) ) {
+            ((IDiagramModelConnection)this.component).setTarget(target);
+            target.getTargetConnections().add((IDiagramModelConnection)this.component);
         }
     }
 }

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.data.DBPair;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -58,7 +58,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
     private FolderType oldFolderType = null;
     private Integer oldRootFolderType = null;
     private IFolder oldFolder = null;
-    private ArrayList<DBPair<String, String>> oldProperties = null;
+    private ArrayList<DBProperty> oldProperties = null;
     
     
     /**
@@ -108,9 +108,9 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
                     this.oldFolderType = metadata.getFolderType();
                     this.oldRootFolderType = metadata.getRootFolderType();
                     
-                    this.oldProperties = new ArrayList<DBPair<String, String>>();
+                    this.oldProperties = new ArrayList<DBProperty>();
                     for ( IProperty prop: this.importedFolder.getProperties() ) {
-                        this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+                        this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
                     
                     this.oldFolder = metadata.getParentFolder();
@@ -223,11 +223,11 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	            metadata.setParentFolder(this.oldFolder);
 	            
 	            this.importedFolder.getProperties().clear();
-	            for ( DBPair<String, String> pair: this.oldProperties ) {
-	            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-	            	prop.setKey(pair.getKey());
-	            	prop.setValue(pair.getValue());
-	            	this.importedFolder.getProperties().add(prop);
+	            for ( DBProperty oldProperty: this.oldProperties ) {
+	            	IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+	            	newProperty.setKey(oldProperty.getKey());
+	            	newProperty.setValue(oldProperty.getValue());
+	            	this.importedFolder.getProperties().add(newProperty);
 	            }
 	        }
     	}

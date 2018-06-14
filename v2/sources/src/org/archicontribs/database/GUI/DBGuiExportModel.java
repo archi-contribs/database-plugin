@@ -1497,7 +1497,7 @@ public class DBGuiExportModel extends DBGui {
 			logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
 			logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
 			logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-			progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getImagePaths().size();
+			progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size();
 		}
 			
 
@@ -1610,7 +1610,10 @@ public class DBGuiExportModel extends DBGui {
                         if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
     				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
     				    DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-    				    command.execute();
+    				    if ( command.canExecute() )
+    				        command.execute();
+    				    if ( command.getException() != null )
+    				        throw command.getException();
                         this.exportCommands.add(command);
                         incrementText(this.txtNewFoldersInDatabase);
                         incrementText(this.txtTotalFolders);
@@ -1622,7 +1625,10 @@ public class DBGuiExportModel extends DBGui {
     			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
     			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
     			    DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-    			    command.execute();
+                    if ( command.canExecute() )
+                        command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
     	        	this.exportCommands.add(command);
     	        	incrementText(this.txtNewElementsInDatabase);
     	        	incrementText(this.txtTotalElements);
@@ -1633,7 +1639,10 @@ public class DBGuiExportModel extends DBGui {
     	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
     	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
     	            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-    	            command.execute();
+                    if ( command.canExecute() )
+                        command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
     	            this.exportCommands.add(command);
     	        	incrementText(this.txtNewRelationshipsInDatabase);
     	        	incrementText(this.txtTotalRelationships);
@@ -1648,7 +1657,10 @@ public class DBGuiExportModel extends DBGui {
     			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
     			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
     			        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
-    			        command.execute();
+                        if ( command.canExecute() )
+                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
     			        this.exportCommands.add(command);
     			        incrementText(this.txtNewViewsInDatabase);
     			        incrementText(this.txtTotalViews);
@@ -1659,7 +1671,10 @@ public class DBGuiExportModel extends DBGui {
     		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
     		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
     		            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-    		            command.execute();
+                        if ( command.canExecute() )
+                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
     		            this.stack.execute(this.exportCommands);
     		        	incrementText(this.txtNewViewObjectsInDatabase);
     		        	incrementText(this.txtTotalViewObjects);
@@ -1670,7 +1685,10 @@ public class DBGuiExportModel extends DBGui {
                         if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
                         DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                         DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-                        command.execute();
+                        if ( command.canExecute() )
+                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
                         this.exportCommands.add(command);
                         incrementText(this.txtNewViewConnectionsInDatabase);
                         incrementText(this.txtTotalViewConnections);

@@ -16,7 +16,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.data.DBPair;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -69,7 +69,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
     private String oldHintContent = null;
     private String oldHintTitle = null;
     private IFolder oldFolder = null;
-    private ArrayList<DBPair<String, String>> oldProperties = null;
+    private ArrayList<DBProperty> oldProperties = null;
     
     
     /**
@@ -114,9 +114,9 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
                     this.oldHintContent = metadata.getHintContent();
                     this.oldHintTitle = metadata.getHintTitle();
 
-                    this.oldProperties = new ArrayList<DBPair<String, String>>();
+                    this.oldProperties = new ArrayList<DBProperty>();
                     for ( IProperty prop: this.importedView.getProperties() ) {
-                        this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+                        this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
 
                     this.oldFolder = metadata.getParentFolder();
@@ -126,7 +126,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
             // we get the new values from the database to allow execute and redo
             this.newValues = importConnection.getObject(id, "IArchimateElement", version);
 
-            this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
+            this.newFolder = importConnection.getLastKnownFolder(this.model, "IDiagramModel", this.id);
             
     		if ( this.mustImportViewContent ) {
     			// we import the objects and create the corresponding elements if they do not exist yet
@@ -226,9 +226,11 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
             
             // if some content must be imported
             for (IDBImportFromIdCommand childCommand: this.importViewContentCommands) {
-            	childCommand.execute();
-                if ( childCommand.getException() != null )
-                	throw childCommand.getException();
+            	if ( childCommand.canExecute() )
+            	    childCommand.execute();
+            	
+            	if ( childCommand.getException() != null )
+            	    throw childCommand.getException();
             }
             
         } catch (Exception err) {
@@ -247,12 +249,14 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
     		return;
     	
         // if some content has been imported
-        for (int i = this.importViewContentCommands.size() - 1 ; i >= 0 ; --i)
-        	this.importViewContentCommands.get(i).undo();
+        for (int i = this.importViewContentCommands.size() - 1 ; i >= 0 ; --i) {
+            if ( this.importViewContentCommands.get(i).canUndo() ) 
+                this.importViewContentCommands.get(i).undo();
+        }
     	
         if ( this.importedView != null ) {
 	        if ( this.isNew ) {
-	        	// if the view has been created by the execute() method, we just delete it
+	        	// if the view has been created by the execute method, we just delete it
 	            EditorManager.closeDiagramEditor(this.importedView);
 	
 	            IFolder parentFolder = (IFolder)this.importedView.eContainer();
@@ -281,11 +285,11 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 	            
 	            this.importedView.getProperties().clear();
 	            ((IProperties)this.importedView).getProperties().clear();
-	            for ( DBPair<String, String> pair: this.oldProperties ) {
-	            	IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-	            	prop.setKey(pair.getKey());
-	            	prop.setValue(pair.getValue());
-	            	((IProperties)this.importedView).getProperties().add(prop);
+	            for ( DBProperty oldPropery: this.oldProperties ) {
+	            	IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+	            	newProperty.setKey(oldPropery.getKey());
+	            	newProperty.setValue(oldPropery.getValue());
+	            	((IProperties)this.importedView).getProperties().add(newProperty);
 	            }
 	        }
         }

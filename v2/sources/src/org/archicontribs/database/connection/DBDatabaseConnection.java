@@ -925,11 +925,12 @@ public class DBDatabaseConnection implements AutoCloseable {
                     while ( result.next() ) {
                         IDiagramModel view;
                         DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, result.getString("id"), result.getInt("version"), false, false);
-                        command.execute();
-                        view = command.getImported();
-                        
+                        if ( command.canExecute() )
+                            command.execute();
                         if ( command.getException() != null )
-                        	throw command.getException();
+                            throw command.getException();
+                        
+                        view = command.getImported();
                         
                         request("UPDATE "+this.schema+"views SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(view), result.getString("id"), result.getInt("version"));
                     }

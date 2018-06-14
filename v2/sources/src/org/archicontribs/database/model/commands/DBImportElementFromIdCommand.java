@@ -16,7 +16,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-import org.archicontribs.database.data.DBPair;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -67,7 +67,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
     private String oldName = null;
     private String oldType = null;
     private IFolder oldFolder = null;
-    private ArrayList<DBPair<String, String>> oldProperties = null;
+    private ArrayList<DBProperty> oldProperties = null;
 
 
     /**
@@ -121,9 +121,9 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
                     this.oldDocumentation = metadata.getDocumentation();
                     this.oldType = metadata.getJunctionType();
 
-                    this.oldProperties = new ArrayList<DBPair<String, String>>();
+                    this.oldProperties = new ArrayList<DBProperty>();
                     for ( IProperty prop: this.importedElement.getProperties() ) {
-                        this.oldProperties.add(new DBPair<String, String>(prop.getKey(), prop.getValue()));
+                        this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
 
                     this.oldFolder = metadata.getParentFolder();
@@ -229,7 +229,9 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 
             // if some relationships must be imported
             for (IDBImportFromIdCommand childCommand: this.importRelationshipCommands) {
-                childCommand.execute();
+                if ( childCommand.canExecute() )
+                    childCommand.execute();
+                
                 if ( childCommand.getException() != null )
                 	throw childCommand.getException();
             }
@@ -242,8 +244,10 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
     @Override
     public void undo() {
         // if some relationships have been imported
-        for (int i = this.importRelationshipCommands.size() - 1 ; i >= 0 ; --i)
-        	this.importRelationshipCommands.get(i).undo();
+        for (int i = this.importRelationshipCommands.size() - 1 ; i >= 0 ; --i) {
+            if ( this.importRelationshipCommands.get(i).canUndo() )
+                this.importRelationshipCommands.get(i).undo();
+        }
 
         // if a viewObject has been created, then we remove it from the view
         if ( (this.view != null) && (this.createdViewObject != null) ) {
@@ -253,7 +257,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 
         if ( this.importedElement != null ) {
         	if ( this.isNew ) {
-	            // if the element has been created by the execute() method, we just delete it
+	            // if the element has been created by the execute method, we just delete it
 	            IFolder parentFolder = (IFolder)this.importedElement.eContainer();
 	            if ( parentFolder != null )
 	            	parentFolder.getElements().remove(this.importedElement);
@@ -275,11 +279,11 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	            metadata.setParentFolder(this.oldFolder);
 	
 	            this.importedElement.getProperties().clear();
-	            for ( DBPair<String, String> pair: this.oldProperties ) {
-	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-	                prop.setKey(pair.getKey());
-	                prop.setValue(pair.getValue());
-	                this.importedElement.getProperties().add(prop);
+	            for ( DBProperty oldProperty: this.oldProperties ) {
+	                IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+	                newProperty.setKey(oldProperty.getKey());
+	                newProperty.setValue(oldProperty.getValue());
+	                this.importedElement.getProperties().add(newProperty);
 	            }
 	        }
         }

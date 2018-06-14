@@ -155,7 +155,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * List of all the image paths in the model.
      */
     public List<String> getAllImagePaths() {
-        return ((IArchiveManager)getAdapter(IArchiveManager.class)).getImagePaths();
+        return ((IArchiveManager)getAdapter(IArchiveManager.class)).getLoadedImagePaths();
     }
 
     /**
