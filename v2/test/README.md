@@ -6,16 +6,18 @@
 |------------------------------------------------|--|
 |                                                |  |
 
-The beta5 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
+The beta6 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
 
 `Please do not forget to fill in an issue if you discover a misbehaviour.`
+
+
 
 ## Known bugs:
 These bugs need to be solved before the release of version 2.1:
 
-* The sync process cannot (yet) be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
+* The sync process cannot fully be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
-* importing embedded views does not recursively imports the linked view and the images may not be imported as expected
+* importing embedded views does not recursively imports the linked view
 * The plugins requires a lot of memory, often leading to increase the JVM size (set java parameter -Xmx1024 in Archi.ini file)
 
 ## Planned improvements
