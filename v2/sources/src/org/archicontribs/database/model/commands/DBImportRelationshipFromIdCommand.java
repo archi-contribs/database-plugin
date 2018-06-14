@@ -38,291 +38,289 @@ import com.archimatetool.model.IProperty;
  * @author Herve Jouin
  */
 public class DBImportRelationshipFromIdCommand extends Command implements IDBImportFromIdCommand {
-    private static final DBLogger logger = new DBLogger(DBImportRelationshipFromIdCommand.class);
+	private static final DBLogger logger = new DBLogger(DBImportRelationshipFromIdCommand.class);
 
-    private IArchimateRelationship importedRelationship = null;
-    private List<IDiagramModelConnection> createdViewConnections = null;
+	private IArchimateRelationship importedRelationship = null;
+	private List<IDiagramModelConnection> createdViewConnections = null;
 
-    private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-    private Exception exception = null;
+	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+	private Exception exception = null;
 
-    private DBArchimateModel model = null;
-    private IArchimateDiagramModel view = null;
+	private DBArchimateModel model = null;
+	private IArchimateDiagramModel view = null;
 
-    private String id;
-    private boolean mustCreateCopy;
-    private boolean isNew;
+	private String id;
+	private boolean mustCreateCopy;
+	private boolean isNew;
 
-    // new values that are retrieved from the database
-    private HashMap<String, Object> newValues = null;
-    private IFolder newFolder = null;
+	// new values that are retrieved from the database
+	private HashMap<String, Object> newValues = null;
+	private IFolder newFolder = null;
 
-    // old values that need to be retain to allow undo
-    private DBVersion oldInitialVersion;
-    private DBVersion oldCurrentVersion;
-    private DBVersion oldDatabaseVersion;
-    private DBVersion oldLatestDatabaseVersion;
-    private String oldDocumentation = null;
-    private String oldName = null;
-    private String oldStrength = null;
-    private Integer oldAccessType = null;
-    private IFolder oldFolder = null;
-    private IArchimateConcept oldSource = null;
-    private IArchimateConcept oldTarget = null;
-    private ArrayList<DBProperty> oldProperties = null;
-
-
-    /**
-     * Imports a relationship into the model<br>
-     * @param connection connection to the database
-     * @param model model into which the relationship will be imported
-     * @param relationshipId id of the relationship to import
-     * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
-     */
-    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-        this(importConnection, model, null, id, version, false);
-    }
-
-    /**
-     * Imports a relationship into the model<br>
-     * @param model model into which the relationship will be imported
-     * @param view if a view is provided, then an ArchimateObject will be automatically created
-     * @param id id of the relationship to import
-     * @param version version of the relationship to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the relationship should be its original id
-     */
-    public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy) {
-        this.model = model;
-        this.view = view;
-        this.id = id;
-        this.mustCreateCopy = mustCreateCopy;
-
-        if ( logger.isDebugEnabled() ) {
-            if ( this.mustCreateCopy )
-                logger.debug("   Importing a copy of relationship id "+this.id+".");
-            else
-                logger.debug("   Importing relationship id "+this.id+".");
-        }
-
-        try {
-            if ( !this.mustCreateCopy ) {
-                this.importedRelationship = model.getAllRelationships().get(this.id);
-                if ( this.importedRelationship != null ) {
-                    // we must save the old values to allow undo
-                    DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
-
-                    this.oldInitialVersion = metadata.getInitialVersion();
-                    this.oldCurrentVersion = metadata.getCurrentVersion();
-                    this.oldDatabaseVersion = metadata.getDatabaseVersion();
-                    this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
-
-                    this.oldName = metadata.getName();
-                    this.oldDocumentation = metadata.getDocumentation();
-                    this.oldStrength = metadata.getStrength();
-                    this.oldAccessType = metadata.getAccessType();
-
-                    this.oldSource = metadata.getRelationshipSource();
-                    this.oldTarget = metadata.getRelationshipTarget();
-
-                    this.oldProperties = new ArrayList<DBProperty>();
-                    for ( IProperty prop: this.importedRelationship.getProperties() ) {
-                        this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
-                    }
-
-                    this.oldFolder = metadata.getParentFolder();
-                }
-            }
-
-            // we get the new values from the database to allow execute and redo
-            this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
-
-            this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
-
-            if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
-                setLabel("import relationship");
-            } else {
-                if ( ((String)this.newValues.get("name")).length() > 20 )
-                    setLabel("import \""+((String)this.newValues.get("name")).substring(0,16)+"...\"");
-                else
-                    setLabel("import \""+(String)this.newValues.get("name")+"\"");
-            }
-        } catch (Exception err) {
-            this.exception = err;
-        }
-    }
-
-    @Override
-    public void execute() {
-        if ( this.commandHasBeenExecuted )
-            return;		// we do not execute it twice
-        
-        this.commandHasBeenExecuted = true;
-        
-        try {
-            this.importedRelationship = this.model.getAllRelationships().get(this.id);
-
-            if ( this.importedRelationship == null ) {
-                this.isNew = true;
-                this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
-            } else
-                this.isNew = false;
-
-            DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
-
-            if ( this.mustCreateCopy ) {
-                metadata.setId(this.model.getIDAdapter().getNewID());
-                metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-            } else {
-                metadata.setId((String)this.newValues.get("id"));
-                metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-            }
-
-            metadata.getCurrentVersion().set(metadata.getInitialVersion());
-            metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-            metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
-
-            metadata.setName((String)this.newValues.get("name"));
-            metadata.setDocumentation((String)this.newValues.get("documentation"));
-            metadata.setStrength((String)this.newValues.get("strength"));
-            metadata.setAccessType((Integer)this.newValues.get("access_type"));
-
-            IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
-            if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
-            if ( source == null ) {
-                // the source may be another relationship that has not been loaded yet, so we register it for future resolution
-                this.model.registerSourceRelationship(this.importedRelationship, (String)this.newValues.get("source_id"));
-            } else {
-                // the source can be resolved right away
-                metadata.setRelationshipSource(source);
-            }
-            
-            IArchimateConcept target = this.model.getAllElements().get(this.newValues.get("target_id"));
-            if ( target == null ) target = this.model.getAllRelationships().get(this.newValues.get("target_id"));
-            if ( target == null ) {
-                // the target may be another relationship that has not been loaded yet, so we register it for future resolution
-                this.model.registerTargetRelationship(this.importedRelationship, (String)this.newValues.get("target_id"));
-            } else {
-                // the target can be resolved right away
-                metadata.setRelationshipTarget(target);
-            }
-
-            this.importedRelationship.getProperties().clear();
-            for ( String[] newProperty: (String[][])this.newValues.get("properties")) {
-                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-                prop.setKey(newProperty[0]);
-                prop.setValue(newProperty[1]);
-                this.importedRelationship.getProperties().add(prop);
-            }
-
-            // During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
-            // and create the corresponding connections
-            // TODO : add an option that the user can choose if he wants the connections or not
-            if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
-                this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
-                List<IConnectable> sourceConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getSource());
-                List<IConnectable> targetConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getTarget());
-
-                for ( IConnectable sourceConnection: sourceConnections ) {
-                    for ( IConnectable targetConnection: targetConnections ) {
-                        IDiagramModelArchimateConnection connection = ArchimateDiagramModelFactory.createDiagramModelArchimateConnection(this.importedRelationship);
-                        this.createdViewConnections.add(connection);
-
-                        connection.setSource(sourceConnection);
-                        sourceConnection.getSourceConnections().add(connection);
-
-                        connection.setTarget(targetConnection);
-                        targetConnection.getTargetConnections().add(connection);
-                    }
-                }
-            }
-
-            if ( this.newFolder == null )
-                metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
-            else
-                metadata.setParentFolder(this.newFolder);
-
-            if ( this.isNew )
-                this.model.countObject(this.importedRelationship, false, null);
-            
-        } catch (Exception err) {
-            this.exception = err;
-        }
-    }
-
-    @Override
-    public void undo() {
-        if ( !this.commandHasBeenExecuted )
-            return;
-
-        // if a viewObject has been created, then we remove it from the view
-        if ( (this.view != null) && (this.createdViewConnections != null) ) {
-            for ( IDiagramModelConnection connection: this.createdViewConnections ) {
-                IConnectable sourceConnection = connection.getSource();
-                connection.setSource(null);
-                sourceConnection.getSourceConnections().remove(connection);
-
-                IConnectable targetConnection = connection.getTarget();
-                connection.setTarget(null);
-                targetConnection.getTargetConnections().remove(connection);
-            }
-        }
-
-        if ( this.importedRelationship != null ) {
-	        if ( this.isNew ) {
-	            // if the relationship has been created by the execute() method, we just delete it
-	            IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
-	            if ( parentFolder != null )
-	            	parentFolder.getElements().remove(this.importedRelationship);
-	
-	            this.model.getAllRelationships().remove(this.importedRelationship.getId());
-	        } else {
-	            // else, we need to restore the old properties
-	            DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
-	
-	            metadata.getInitialVersion().set(this.oldInitialVersion);
-	            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-	            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-	            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
-	
-	            metadata.setName(this.oldName);
-	            metadata.setDocumentation(this.oldDocumentation);
-	            metadata.setStrength(this.oldStrength);
-	            metadata.setAccessType(this.oldAccessType);
-	
-	            metadata.setRelationshipSource(this.oldSource);
-	            metadata.setRelationshipTarget(this.oldTarget);
-	
-	            metadata.setParentFolder(this.oldFolder);
-	
-	            this.importedRelationship.getProperties().clear();
-	            for ( DBProperty oldProperty: this.oldProperties ) {
-	                IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
-	                newProperty.setKey(oldProperty.getKey());
-	                newProperty.setValue(oldProperty.getValue());
-	                this.importedRelationship.getProperties().add(newProperty);
-	            }
-	        }
-        }
-
-        // we allow the command to be executed again
-        this.commandHasBeenExecuted = false;
-    }
-
-    /**
-     * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
-     * if the value is null, the exception that has been raised can be get using {@link getException}
-     */
-    @Override
-    public IArchimateRelationship getImported() {
-        return this.importedRelationship;
-    }
+	// old values that need to be retain to allow undo
+	private DBVersion oldInitialVersion;
+	private DBVersion oldCurrentVersion;
+	private DBVersion oldDatabaseVersion;
+	private DBVersion oldLatestDatabaseVersion;
+	private String oldDocumentation = null;
+	private String oldName = null;
+	private String oldStrength = null;
+	private Integer oldAccessType = null;
+	private IFolder oldFolder = null;
+	private IArchimateConcept oldSource = null;
+	private IArchimateConcept oldTarget = null;
+	private ArrayList<DBProperty> oldProperties = null;
 
 
-    /**
-     * @return the exception that has been raised during the import process, if any.
-     */
-    @Override
-    public Exception getException() {
-        return this.exception;
-    }
+	/**
+	 * Imports a relationship into the model<br>
+	 * @param connection connection to the database
+	 * @param model model into which the relationship will be imported
+	 * @param relationshipId id of the relationship to import
+	 * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
+	 */
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
+		this(importConnection, model, null, id, version, false);
+	}
+
+	/**
+	 * Imports a relationship into the model<br>
+	 * @param model model into which the relationship will be imported
+	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param id id of the relationship to import
+	 * @param version version of the relationship to import (0 if the latest version should be imported)
+	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the relationship should be its original id
+	 */
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy) {
+		this.model = model;
+		this.view = view;
+		this.id = id;
+		this.mustCreateCopy = mustCreateCopy;
+
+		if ( logger.isDebugEnabled() ) {
+			if ( this.mustCreateCopy )
+				logger.debug("   Importing a copy of relationship id "+this.id+".");
+			else
+				logger.debug("   Importing relationship id "+this.id+".");
+		}
+
+		try {
+			// we get the new values from the database to allow execute and redo
+			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
+
+			this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
+
+			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
+				setLabel("import relationship");
+			} else {
+				if ( ((String)this.newValues.get("name")).length() > 20 )
+					setLabel("import \""+((String)this.newValues.get("name")).substring(0,16)+"...\"");
+				else
+					setLabel("import \""+(String)this.newValues.get("name")+"\"");
+			}
+		} catch (Exception err) {
+			this.exception = err;
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	@Override
+	public void execute() {
+		if ( this.commandHasBeenExecuted )
+			return;		// we do not execute it twice
+
+		this.commandHasBeenExecuted = true;
+
+		try {
+			this.importedRelationship = this.model.getAllRelationships().get(this.id);
+
+			if ( (this.importedRelationship == null) || this.mustCreateCopy ) {
+				this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+
+				this.isNew = true;
+			} else {
+				// we must save the old values to allow undo
+				DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+
+				this.oldInitialVersion = metadata.getInitialVersion();
+				this.oldCurrentVersion = metadata.getCurrentVersion();
+				this.oldDatabaseVersion = metadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+
+				this.oldName = metadata.getName();
+				this.oldDocumentation = metadata.getDocumentation();
+				this.oldStrength = metadata.getStrength();
+				this.oldAccessType = metadata.getAccessType();
+
+				this.oldSource = metadata.getRelationshipSource();
+				this.oldTarget = metadata.getRelationshipTarget();
+
+				this.oldProperties = new ArrayList<DBProperty>();
+				for ( IProperty prop: this.importedRelationship.getProperties() ) {
+					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
+				}
+
+				this.oldFolder = metadata.getParentFolder();
+
+				this.isNew = false;
+			}
+
+			DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+
+			if ( this.mustCreateCopy ) {
+				metadata.setId(this.model.getIDAdapter().getNewID());
+				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+			} else {
+				metadata.setId((String)this.newValues.get("id"));
+				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+			}
+
+			metadata.getCurrentVersion().set(metadata.getInitialVersion());
+			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
+			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
+
+			metadata.setName((String)this.newValues.get("name"));
+			metadata.setDocumentation((String)this.newValues.get("documentation"));
+			metadata.setStrength((String)this.newValues.get("strength"));
+			metadata.setAccessType((Integer)this.newValues.get("access_type"));
+
+			IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
+			if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
+			if ( source == null ) {
+				// the source may be another relationship that has not been loaded yet, so we register it for future resolution
+				this.model.registerSourceRelationship(this.importedRelationship, (String)this.newValues.get("source_id"));
+			} else {
+				// the source can be resolved right away
+				metadata.setRelationshipSource(source);
+			}
+
+			IArchimateConcept target = this.model.getAllElements().get(this.newValues.get("target_id"));
+			if ( target == null ) target = this.model.getAllRelationships().get(this.newValues.get("target_id"));
+			if ( target == null ) {
+				// the target may be another relationship that has not been loaded yet, so we register it for future resolution
+				this.model.registerTargetRelationship(this.importedRelationship, (String)this.newValues.get("target_id"));
+			} else {
+				// the target can be resolved right away
+				metadata.setRelationshipTarget(target);
+			}
+
+			this.importedRelationship.getProperties().clear();
+			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+				prop.setKey(newProperty.getKey());
+				prop.setValue(newProperty.getValue());
+				this.importedRelationship.getProperties().add(prop);
+			}
+
+			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
+			// and create the corresponding connections
+			// TODO : add an option that the user can choose if he wants the connections or not
+			if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
+				this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
+				List<IConnectable> sourceConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getSource());
+				List<IConnectable> targetConnections = metadata.componentToConnectable(this.view, this.importedRelationship.getTarget());
+
+				for ( IConnectable sourceConnection: sourceConnections ) {
+					for ( IConnectable targetConnection: targetConnections ) {
+						IDiagramModelArchimateConnection connection = ArchimateDiagramModelFactory.createDiagramModelArchimateConnection(this.importedRelationship);
+						this.createdViewConnections.add(connection);
+
+						connection.setSource(sourceConnection);
+						sourceConnection.getSourceConnections().add(connection);
+
+						connection.setTarget(targetConnection);
+						targetConnection.getTargetConnections().add(connection);
+					}
+				}
+			}
+
+			if ( this.newFolder == null )
+				metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
+			else
+				metadata.setParentFolder(this.newFolder);
+
+			if ( this.isNew )
+				this.model.countObject(this.importedRelationship, false, null);
+
+		} catch (Exception err) {
+			this.exception = err;
+		}
+	}
+
+	@Override
+	public void undo() {
+		if ( !this.commandHasBeenExecuted )
+			return;
+
+		// if a viewObject has been created, then we remove it from the view
+		if ( (this.view != null) && (this.createdViewConnections != null) ) {
+			for ( IDiagramModelConnection connection: this.createdViewConnections ) {
+				IConnectable sourceConnection = connection.getSource();
+				connection.setSource(null);
+				sourceConnection.getSourceConnections().remove(connection);
+
+				IConnectable targetConnection = connection.getTarget();
+				connection.setTarget(null);
+				targetConnection.getTargetConnections().remove(connection);
+			}
+		}
+
+		if ( this.importedRelationship != null ) {
+			if ( this.isNew ) {
+				// if the relationship has been created by the execute() method, we just delete it
+				IFolder parentFolder = (IFolder)this.importedRelationship.eContainer();
+				if ( parentFolder != null )
+					parentFolder.getElements().remove(this.importedRelationship);
+
+				this.model.getAllRelationships().remove(this.importedRelationship.getId());
+			} else {
+				// else, we need to restore the old properties
+				DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+
+				metadata.getInitialVersion().set(this.oldInitialVersion);
+				metadata.getCurrentVersion().set(this.oldCurrentVersion);
+				metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+				metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+
+				metadata.setName(this.oldName);
+				metadata.setDocumentation(this.oldDocumentation);
+				metadata.setStrength(this.oldStrength);
+				metadata.setAccessType(this.oldAccessType);
+
+				metadata.setRelationshipSource(this.oldSource);
+				metadata.setRelationshipTarget(this.oldTarget);
+
+				metadata.setParentFolder(this.oldFolder);
+
+				this.importedRelationship.getProperties().clear();
+				for ( DBProperty oldProperty: this.oldProperties ) {
+					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					newProperty.setKey(oldProperty.getKey());
+					newProperty.setValue(oldProperty.getValue());
+					this.importedRelationship.getProperties().add(newProperty);
+				}
+			}
+		}
+
+		// we allow the command to be executed again
+		this.commandHasBeenExecuted = false;
+	}
+
+	/**
+	 * @return the relationship that has been imported by the command (of course, the command must have been executed before)<br>
+	 * if the value is null, the exception that has been raised can be get using {@link getException}
+	 */
+	@Override
+	public IArchimateRelationship getImported() {
+		return this.importedRelationship;
+	}
+
+
+	/**
+	 * @return the exception that has been raised during the import process, if any.
+	 */
+	@Override
+	public Exception getException() {
+		return this.exception;
+	}
 }

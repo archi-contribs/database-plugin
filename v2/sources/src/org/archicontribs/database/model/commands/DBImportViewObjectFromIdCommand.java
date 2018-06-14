@@ -39,338 +39,335 @@ import com.archimatetool.model.IProperty;
  * @author Herve Jouin
  */
 public class DBImportViewObjectFromIdCommand extends CompoundCommand implements IDBImportFromIdCommand {
-    private static final DBLogger logger = new DBLogger(DBImportViewObjectFromIdCommand.class);
+	private static final DBLogger logger = new DBLogger(DBImportViewObjectFromIdCommand.class);
 
-    private EObject importedViewObject = null; 
+	private EObject importedViewObject = null; 
 
-    private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-    private Exception exception;
+	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
+	private Exception exception;
 
-    private DBArchimateModel model = null;
-    private IDiagramModelContainer oldContainer = null;
+	private DBArchimateModel model = null;
+	private IDiagramModelContainer oldContainer = null;
 
-    private String id;
-    private boolean mustCreateCopy;
-    private boolean isNew;
+	private String id;
+	private boolean mustCreateCopy;
+	private boolean isNew;
 
-    // new values that are retrieved from the database
-    private HashMap<String, Object> newValues = null;
-    private byte[]newImageContent = null;
+	// new values that are retrieved from the database
+	private HashMap<String, Object> newValues = null;
+	private byte[]newImageContent = null;
 
-    // old values that need to be retain to allow undo
-    private DBVersion oldInitialVersion;
-    private DBVersion oldCurrentVersion;
-    private DBVersion oldDatabaseVersion;
-    private DBVersion oldLatestDatabaseVersion;
-    private IArchimateConcept oldArchimateConcept = null;
-    private IDiagramModel oldReferencedModel = null;
-    private String oldDocumentation = null;
-    private Integer oldType = null;
-    private String oldBorderColor = null;
-    private Integer oldBorderType = null;
-    private String oldContent = null;
-    private String oldName = null;
-    private String oldHintContent = null;
-    private String oldHintTitle = null;
-    private Boolean oldIsLocked = null;
-    private String oldImagePath = null;
-    private Integer oldImagePosition = null;
-    private String oldLineColor = null;
-    private Integer oldLineWidth = null;
-    private String oldFillColor = null;
-    private String oldFont = null;
-    private String oldFontColor = null;
-    private String oldNotes = null;
-    private Integer oldTextAlignment = null;
-    private Integer oldTextPosition = null;
-    private Integer oldX = null;
-    private Integer oldY = null;
-    private Integer oldWidth = null;
-    private Integer oldHeight = null;
-    private ArrayList<DBProperty> oldProperties = null;
+	// old values that need to be retain to allow undo
+	private DBVersion oldInitialVersion;
+	private DBVersion oldCurrentVersion;
+	private DBVersion oldDatabaseVersion;
+	private DBVersion oldLatestDatabaseVersion;
+	private IArchimateConcept oldArchimateConcept = null;
+	private IDiagramModel oldReferencedModel = null;
+	private String oldDocumentation = null;
+	private Integer oldType = null;
+	private String oldBorderColor = null;
+	private Integer oldBorderType = null;
+	private String oldContent = null;
+	private String oldName = null;
+	private String oldHintContent = null;
+	private String oldHintTitle = null;
+	private Boolean oldIsLocked = null;
+	private String oldImagePath = null;
+	private Integer oldImagePosition = null;
+	private String oldLineColor = null;
+	private Integer oldLineWidth = null;
+	private String oldFillColor = null;
+	private String oldFont = null;
+	private String oldFontColor = null;
+	private String oldNotes = null;
+	private Integer oldTextAlignment = null;
+	private Integer oldTextPosition = null;
+	private Integer oldX = null;
+	private Integer oldY = null;
+	private Integer oldWidth = null;
+	private Integer oldHeight = null;
+	private ArrayList<DBProperty> oldProperties = null;
 
-    /**
-     * Imports a view object into the model<br>
-     * @param connection connection to the database
-     * @param model model into which the view object will be imported
-     * @param id id of the view object to import
-     * @param version version of the view object to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
-     */
-    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
-        this.model = model;
-        this.id = id;
-        this.mustCreateCopy = mustCreateCopy;
+	/**
+	 * Imports a view object into the model<br>
+	 * @param connection connection to the database
+	 * @param model model into which the view object will be imported
+	 * @param id id of the view object to import
+	 * @param version version of the view object to import (0 if the latest version should be imported)
+	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
+	 */
+	public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
+		this.model = model;
+		this.id = id;
+		this.mustCreateCopy = mustCreateCopy;
 
-        if ( logger.isDebugEnabled() ) {
-            if ( this.mustCreateCopy )
-                logger.debug("   Importing a copy of view object id "+this.id+".");
-            else
-                logger.debug("   Importing view object id "+this.id+".");
-        }
+		if ( logger.isDebugEnabled() ) {
+			if ( this.mustCreateCopy )
+				logger.debug("   Importing a copy of view object id "+this.id+".");
+			else
+				logger.debug("   Importing view object id "+this.id+".");
+		}
 
-        try {
-            if ( !this.mustCreateCopy ) {
-                this.importedViewObject = model.getAllViewObjects().get(this.id);
-                if ( this.importedViewObject != null ) {
-                    // we must save the old values to allow undo
-                    DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
+		try {
+			// we get the new values from the database to allow execute and redo
+			this.newValues = importConnection.getObject(id, "IDiagramModelArchimateObject", version);
 
-                    this.oldInitialVersion = metadata.getInitialVersion();
-                    this.oldCurrentVersion = metadata.getCurrentVersion();
-                    this.oldDatabaseVersion = metadata.getDatabaseVersion();
-                    this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+			// if the object contains an image
+			if ( this.newValues.get("image_path") != null ) {
+				IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
+				if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
+					try ( ResultSet imageResult = importConnection.select("SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
+						if ( imageResult.next() )
+							this.newImageContent = imageResult.getBytes("image");
+					}
+				}
+			}
 
-                    this.oldName = metadata.getName();
-                    this.oldArchimateConcept = metadata.getArchimateConcept();
-                    this.oldReferencedModel = metadata.getReferencedModel();
-                    this.oldDocumentation = metadata.getDocumentation();
-                    this.oldType = metadata.getType();
-                    this.oldBorderColor = metadata.getBorderColor();
-                    this.oldBorderType = metadata.getBorderType();
-                    this.oldContent = metadata.getContent();
-                    this.oldHintContent = metadata.getHintContent();
-                    this.oldHintTitle = metadata.getHintTitle();
-                    this.oldIsLocked = metadata.isLocked();
-                    this.oldImagePath = metadata.getImagePath();
-                    this.oldImagePosition = metadata.getImagePosition();
-                    this.oldLineColor = metadata.getLineColor();
-                    this.oldLineWidth = metadata.getLineWidth();
-                    this.oldFillColor = metadata.getFillColor();
-                    this.oldFont = metadata.getFont();
-                    this.oldFontColor = metadata.getFontColor();
-                    this.oldNotes = metadata.getNotes();
-                    this.oldTextAlignment = metadata.getTextAlignment();
-                    this.oldTextPosition = metadata.getTextPosition();
-                    this.oldX = metadata.getX();
-                    this.oldY = metadata.getY();
-                    this.oldWidth = metadata.getWidth();
-                    this.oldHeight = metadata.getHeight();
+			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
+				setLabel("import view object");
+			} else {
+				if ( ((String)this.newValues.get("name")).length() > 20 )
+					setLabel("import \""+((String)this.newValues.get("name")).substring(0,16)+"...\"");
+				else
+					setLabel("import \""+(String)this.newValues.get("name")+"\"");
+			}
+		} catch (Exception err) {
+			this.exception = err;
+		}
+	}
 
-                    if ( this.importedViewObject instanceof IProperties && metadata.getArchimateConcept()==null ) {
-                        this.oldProperties = new ArrayList<DBProperty>();
-                        for ( IProperty prop: ((IProperties)this.importedViewObject).getProperties() ) {
-                            this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
-                        }
-                    }
+	@Override
+	public boolean canExecute() {
+		return (this.model != null) && (this.id != null) && (this.exception == null);
+	}
 
-                    this.oldContainer = (IDiagramModelContainer)this.importedViewObject.eContainer();
-                }
-            }
+	@Override
+	public void execute() {
+		if ( this.commandHasBeenExecuted )
+			return;		// we do not execute it twice
 
-            // we get the new values from the database to allow execute and redo
-            this.newValues = importConnection.getObject(id, "IDiagramModelArchimateObject", version);
-            
-            // if the object contains an image
-            if ( this.newValues.get("image_path") != null ) {
-                IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
-                if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
-                    try ( ResultSet imageResult = importConnection.select("SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
-                        if ( imageResult.next() )
-                            this.newImageContent = imageResult.getBytes("image");
-                    }
-                }
-            }
-            
-            if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
-                setLabel("import view object");
-            } else {
-                if ( ((String)this.newValues.get("name")).length() > 20 )
-                    setLabel("import \""+((String)this.newValues.get("name")).substring(0,16)+"...\"");
-                else
-                    setLabel("import \""+(String)this.newValues.get("name")+"\"");
-            }
-        } catch (Exception err) {
-            this.exception = err;
-        }
-    }
+		this.commandHasBeenExecuted = true;
 
-    @Override
-    public boolean canExecute() {
-        return (this.model != null) && (this.id != null) && (this.exception == null);
-    }
+		try {
+			this.importedViewObject = this.model.getAllViewObjects().get(this.id);
 
-    @Override
-    public void execute() {
-        if ( this.commandHasBeenExecuted )
-            return;		// we do not execute it twice
+			if ( this.importedViewObject == null ) {
+				if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
+					this.importedViewObject = DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
+				else
+					this.importedViewObject = DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
 
-        this.commandHasBeenExecuted = true;
+				this.isNew = true;
+			} else {
+				// we must save the old values to allow undo
+				DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
 
-        try {
-            this.importedViewObject = this.model.getAllViewObjects().get(this.id);
+				this.oldInitialVersion = metadata.getInitialVersion();
+				this.oldCurrentVersion = metadata.getCurrentVersion();
+				this.oldDatabaseVersion = metadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
 
-            if ( this.importedViewObject == null ) {
-                this.isNew = true;
-                if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
-                    this.importedViewObject = DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
-                else
-                    this.importedViewObject = DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
-            } else
-                this.isNew = false;
+				this.oldName = metadata.getName();
+				this.oldArchimateConcept = metadata.getArchimateConcept();
+				this.oldReferencedModel = metadata.getReferencedModel();
+				this.oldDocumentation = metadata.getDocumentation();
+				this.oldType = metadata.getType();
+				this.oldBorderColor = metadata.getBorderColor();
+				this.oldBorderType = metadata.getBorderType();
+				this.oldContent = metadata.getContent();
+				this.oldHintContent = metadata.getHintContent();
+				this.oldHintTitle = metadata.getHintTitle();
+				this.oldIsLocked = metadata.isLocked();
+				this.oldImagePath = metadata.getImagePath();
+				this.oldImagePosition = metadata.getImagePosition();
+				this.oldLineColor = metadata.getLineColor();
+				this.oldLineWidth = metadata.getLineWidth();
+				this.oldFillColor = metadata.getFillColor();
+				this.oldFont = metadata.getFont();
+				this.oldFontColor = metadata.getFontColor();
+				this.oldNotes = metadata.getNotes();
+				this.oldTextAlignment = metadata.getTextAlignment();
+				this.oldTextPosition = metadata.getTextPosition();
+				this.oldX = metadata.getX();
+				this.oldY = metadata.getY();
+				this.oldWidth = metadata.getWidth();
+				this.oldHeight = metadata.getHeight();
 
-            DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
+				if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
+					this.oldProperties = new ArrayList<DBProperty>();
+					for ( IProperty prop: ((IProperties)this.importedViewObject).getProperties() ) {
+						this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
+					}
+				}
 
-            if ( this.mustCreateCopy ) {
-                metadata.setId(this.model.getIDAdapter().getNewID());
-                metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-            } else {
-                metadata.setId((String)this.newValues.get("id"));
-                metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-            }
+				this.oldContainer = (IDiagramModelContainer)this.importedViewObject.eContainer();
 
-            metadata.getCurrentVersion().set(metadata.getInitialVersion());
-            metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-            metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
+				this.isNew = false;
+			}
 
-            if ( this.newValues.get("element_id") != null ) metadata.setName((String)this.newValues.get("name"));
-            metadata.setArchimateConcept(this.model.getAllElements().get(this.newValues.get("element_id")));
-            metadata.setReferencedModel(this.model.getAllViews().get(this.newValues.get("diagram_ref_id")));
-            metadata.setType((Integer)this.newValues.get("type"));
-            metadata.setBorderColor((String)this.newValues.get("border_color"));
-            metadata.setBorderType((Integer)this.newValues.get("border_type"));
-            metadata.setContent((String)this.newValues.get("content"));
-            metadata.setDocumentation((String)this.newValues.get("documentation"));
-            metadata.setHintContent((String)this.newValues.get("hint_content"));
-            metadata.setHintTitle((String)this.newValues.get("hint_title"));
-            metadata.setLocked(this.newValues.get("is_locked"));
-            metadata.setImagePath((String)this.newValues.get("image_path"));
-            metadata.setImagePosition((Integer)this.newValues.get("image_position"));
-            metadata.setLineColor((String)this.newValues.get("line_color"));
-            metadata.setLineWidth((Integer)this.newValues.get("line_width"));
-            metadata.setFillColor((String)this.newValues.get("fill_color"));
-            metadata.setFont((String)this.newValues.get("font"));
-            metadata.setFontColor((String)this.newValues.get("font_color"));
-            metadata.setNotes((String)this.newValues.get("notes"));
-            metadata.setTextAlignment((Integer)this.newValues.get("text_alignment"));
-            metadata.setTextPosition((Integer)this.newValues.get("text_position"));
-            metadata.setBounds((Integer)this.newValues.get("x"), (Integer)this.newValues.get("y"), (Integer)this.newValues.get("width"), (Integer)this.newValues.get("height"));
+			DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
 
-            // we check if the view object must be changed from container
-            if ( this.importedViewObject instanceof IDiagramModelObject ) {
-                IDiagramModelContainer newContainer = this.model.getAllViews().get(this.newValues.get("container_id"));
-                if ( newContainer == null )
-                    newContainer = (IDiagramModelContainer) this.model.getAllViewObjects().get(this.newValues.get("container_id"));
+			if ( this.mustCreateCopy ) {
+				metadata.setId(this.model.getIDAdapter().getNewID());
+				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+			} else {
+				metadata.setId((String)this.newValues.get("id"));
+				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+			}
 
-                if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
-                    if ( this.oldContainer != null ) {
-                        if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)this.oldContainer).getDBMetadata().getDebugName());
-                        this.oldContainer.getChildren().remove(this.importedViewObject);
-                    }
+			metadata.getCurrentVersion().set(metadata.getInitialVersion());
+			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
+			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-                    if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
-                    newContainer.getChildren().add((IDiagramModelObject)this.importedViewObject);
-                }
-            }
-            
-            // If the object has got properties but does not have a linked element, then it may have distinct properties
-            if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
-                ((IProperties)this.importedViewObject).getProperties().clear();
-                for ( DBProperty oldProperty: this.oldProperties ) {
-                    IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
-                    newProperty.setKey(oldProperty.getKey());
-                    newProperty.setValue(oldProperty.getValue());
-                    ((IProperties)this.importedViewObject).getProperties().add(newProperty);
-                }
-            }
+			if ( this.newValues.get("element_id") == null ) metadata.setName((String)this.newValues.get("name"));
+			metadata.setArchimateConcept(this.model.getAllElements().get(this.newValues.get("element_id")));
+			metadata.setReferencedModel(this.model.getAllViews().get(this.newValues.get("diagram_ref_id")));
+			metadata.setType((Integer)this.newValues.get("type"));
+			metadata.setBorderColor((String)this.newValues.get("border_color"));
+			metadata.setBorderType((Integer)this.newValues.get("border_type"));
+			metadata.setContent((String)this.newValues.get("content"));
+			metadata.setDocumentation((String)this.newValues.get("documentation"));
+			metadata.setHintContent((String)this.newValues.get("hint_content"));
+			metadata.setHintTitle((String)this.newValues.get("hint_title"));
+			metadata.setLocked(this.newValues.get("is_locked"));
+			metadata.setImagePath((String)this.newValues.get("image_path"));
+			metadata.setImagePosition((Integer)this.newValues.get("image_position"));
+			metadata.setLineColor((String)this.newValues.get("line_color"));
+			metadata.setLineWidth((Integer)this.newValues.get("line_width"));
+			metadata.setFillColor((String)this.newValues.get("fill_color"));
+			metadata.setFont((String)this.newValues.get("font"));
+			metadata.setFontColor((String)this.newValues.get("font_color"));
+			metadata.setNotes((String)this.newValues.get("notes"));
+			metadata.setTextAlignment((Integer)this.newValues.get("text_alignment"));
+			metadata.setTextPosition((Integer)this.newValues.get("text_position"));
+			metadata.setBounds((Integer)this.newValues.get("x"), (Integer)this.newValues.get("y"), (Integer)this.newValues.get("width"), (Integer)this.newValues.get("height"));
 
-            // if the object contains an image
-            String imagePath = (String)this.newValues.get("image_path");
-            if ( imagePath != null ) {
-                IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
-                if ( !archiveMgr.getLoadedImagePaths().contains(imagePath) )
-                    archiveMgr.addByteContentEntry(imagePath, this.newImageContent);
+			// we check if the view object must be changed from container
+			if ( this.importedViewObject instanceof IDiagramModelObject ) {
+				IDiagramModelContainer newContainer = this.model.getAllViews().get(this.newValues.get("container_id"));
+				if ( newContainer == null )
+					newContainer = (IDiagramModelContainer) this.model.getAllViewObjects().get(this.newValues.get("container_id"));
 
-                metadata.setImagePath(imagePath);
-            }
+				if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
+					if ( this.oldContainer != null ) {
+						if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)this.oldContainer).getDBMetadata().getDebugName());
+						this.oldContainer.getChildren().remove(this.importedViewObject);
+					}
 
-            // we determine the view that contains the view object
-            EObject view = this.importedViewObject.eContainer();
-            while ( (view!= null) && !(view instanceof IDiagramModel) ) {
-                view = view.eContainer();
-            }
+					if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
+					newContainer.getChildren().add((IDiagramModelObject)this.importedViewObject);
+				}
+			}
 
-            // we indicate that the checksum of the view is not valid anymore
-            if ( view!= null )
-                ((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
+			// If the object has got properties but does not have a linked element, then it may have distinct properties
+			if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
+				((IProperties)this.importedViewObject).getProperties().clear();
+				for ( DBProperty oldProperty: this.oldProperties ) {
+					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					newProperty.setKey(oldProperty.getKey());
+					newProperty.setValue(oldProperty.getValue());
+					((IProperties)this.importedViewObject).getProperties().add(newProperty);
+				}
+			}
 
-            this.model.countObject(this.importedViewObject, false, null);
+			// if the object contains an image
+			String imagePath = (String)this.newValues.get("image_path");
+			if ( imagePath != null ) {
+				IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
+				if ( !archiveMgr.getLoadedImagePaths().contains(imagePath) )
+					archiveMgr.addByteContentEntry(imagePath, this.newImageContent);
 
-        } catch (Exception err) {
-            this.importedViewObject = null;
-            this.exception = err;
-        }
-    }
+				metadata.setImagePath(imagePath);
+			}
 
-    @Override
-    public void undo() {
-        if ( !this.commandHasBeenExecuted )
-            return;
-        
-        if ( this.isNew ) {
-            // if the view object has been created by the execute() method, we just delete it
-            IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
-            container.getChildren().remove(this.importedViewObject);
+			// we determine the view that contains the view object
+			EObject view = this.importedViewObject.eContainer();
+			while ( (view!= null) && !(view instanceof IDiagramModel) ) {
+				view = view.eContainer();
+			}
 
-            this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
-        } else {
-            // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
-            
-            metadata.getInitialVersion().set(this.oldInitialVersion);
-            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+			// we indicate that the checksum of the view is not valid anymore
+			if ( view!= null )
+				((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
 
-            if ( metadata.getArchimateConcept() != null ) metadata.setName(this.oldName);
-            metadata.setArchimateConcept(this.oldArchimateConcept);
-            metadata.setReferencedModel(this.oldReferencedModel);
-            metadata.setDocumentation(this.oldDocumentation);
-            metadata.setType(this.oldType);
-            metadata.setBorderColor(this.oldBorderColor);
-            metadata.setBorderType(this.oldBorderType);
-            metadata.setContent(this.oldContent);
+			this.model.countObject(this.importedViewObject, false, null);
 
-            metadata.setHintContent(this.oldHintContent);
-            metadata.setHintTitle(this.oldHintTitle);
-            metadata.setLocked(this.oldIsLocked);
-            metadata.setImagePath(this.oldImagePath);            // TODO: find a way to remove the image from the model if it is not used anymore
-            metadata.setImagePosition(this.oldImagePosition);
-            metadata.setLineColor(this.oldLineColor);
-            metadata.setLineWidth(this.oldLineWidth);
-            metadata.setFillColor(this.oldFillColor);
-            metadata.setFont(this.oldFont);
-            metadata.setFontColor(this.oldFontColor);
-            metadata.setNotes(this.oldNotes);
-            metadata.setTextAlignment(this.oldTextAlignment);
-            metadata.setTextPosition(this.oldTextPosition);
-            metadata.setBounds(this.oldX,  this.oldY,  this.oldWidth, this.oldHeight);
+		} catch (Exception err) {
+			this.importedViewObject = null;
+			this.exception = err;
+		}
+	}
 
-            // If the object has got properties but does not have a linked element, then it may have distinct properties
-            if ( this.importedViewObject instanceof IProperties && metadata.getArchimateConcept() == null ) {
-                ((IProperties)this.importedViewObject).getProperties().clear();
-                for ( DBProperty oldProperty: this.oldProperties ) {
-                    IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
-                    newProperty.setKey(oldProperty.getKey());
-                    newProperty.setValue(oldProperty.getValue());
-                    ((IProperties)this.importedViewObject).getProperties().add(newProperty);
-                }
-            }
-        }
+	@Override
+	public void undo() {
+		if ( !this.commandHasBeenExecuted )
+			return;
 
-        this.commandHasBeenExecuted = false;
-    }
+		if ( this.isNew ) {
+			// if the view object has been created by the execute() method, we just delete it
+			IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
+			container.getChildren().remove(this.importedViewObject);
 
-    @Override
-    public EObject getImported() {
-        return this.importedViewObject;
-    }
+			this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
+		} else {
+			// else, we need to restore the old properties
+			DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
 
-    /**
-     * @return the view object that has been imported by the command (of course, the command must have been executed before)
-     */
-    @Override
-    public Exception getException() {
-        return this.exception;
-    }
+			metadata.getInitialVersion().set(this.oldInitialVersion);
+			metadata.getCurrentVersion().set(this.oldCurrentVersion);
+			metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+			metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+
+			if ( metadata.getArchimateConcept() != null ) metadata.setName(this.oldName);
+			metadata.setArchimateConcept(this.oldArchimateConcept);
+			metadata.setReferencedModel(this.oldReferencedModel);
+			metadata.setDocumentation(this.oldDocumentation);
+			metadata.setType(this.oldType);
+			metadata.setBorderColor(this.oldBorderColor);
+			metadata.setBorderType(this.oldBorderType);
+			metadata.setContent(this.oldContent);
+
+			metadata.setHintContent(this.oldHintContent);
+			metadata.setHintTitle(this.oldHintTitle);
+			metadata.setLocked(this.oldIsLocked);
+			metadata.setImagePath(this.oldImagePath);            // TODO: find a way to remove the image from the model if it is not used anymore
+			metadata.setImagePosition(this.oldImagePosition);
+			metadata.setLineColor(this.oldLineColor);
+			metadata.setLineWidth(this.oldLineWidth);
+			metadata.setFillColor(this.oldFillColor);
+			metadata.setFont(this.oldFont);
+			metadata.setFontColor(this.oldFontColor);
+			metadata.setNotes(this.oldNotes);
+			metadata.setTextAlignment(this.oldTextAlignment);
+			metadata.setTextPosition(this.oldTextPosition);
+			metadata.setBounds(this.oldX,  this.oldY,  this.oldWidth, this.oldHeight);
+
+			// If the object has got properties but does not have a linked element, then it may have distinct properties
+			if ( this.importedViewObject instanceof IProperties && metadata.getArchimateConcept() == null ) {
+				((IProperties)this.importedViewObject).getProperties().clear();
+				for ( DBProperty oldProperty: this.oldProperties ) {
+					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					newProperty.setKey(oldProperty.getKey());
+					newProperty.setValue(oldProperty.getValue());
+					((IProperties)this.importedViewObject).getProperties().add(newProperty);
+				}
+			}
+		}
+
+		this.commandHasBeenExecuted = false;
+	}
+
+	@Override
+	public EObject getImported() {
+		return this.importedViewObject;
+	}
+
+	/**
+	 * @return the view object that has been imported by the command (of course, the command must have been executed before)
+	 */
+	@Override
+	public Exception getException() {
+		return this.exception;
+	}
 }
