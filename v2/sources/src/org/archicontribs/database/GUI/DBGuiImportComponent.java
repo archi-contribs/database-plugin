@@ -1880,6 +1880,13 @@ public class DBGuiImportComponent extends DBGui {
                 //  database.importContainerFromId(importedModel, id, !getOptionValue());
                 //  database.importFolder(importedModel, id, !getOptionValue());
 			}
+			
+			// just in case
+			this.importedModel.resolveSourceRelationships();
+			this.importedModel.resolveTargetRelationships();
+			
+			this.importedModel.resolveSourceConnections();
+			this.importedModel.resolveTargetConnections();
 		} catch(RuntimeException e) {
 			popup(Level.ERROR, "Couldn't import component.", e);
 		} finally {
