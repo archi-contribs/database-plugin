@@ -51,10 +51,17 @@ public class DBVersion {
     }
     
     public void set(DBVersion version) {
-        setVersion(version.getVersion());
-        setContainerChecksum(version.getContainerChecksum());
-        setChecksum(version.getChecksum());
-        setTimestamp(version.getTimestamp());
+        if  (version == null ) {
+	        setVersion(0);
+	        setContainerChecksum(null);
+	        setChecksum(null);
+	        setTimestamp(null);
+        } else {
+	        setVersion(version.getVersion());
+	        setContainerChecksum(version.getContainerChecksum());
+	        setChecksum(version.getChecksum());
+	        setTimestamp(version.getTimestamp());
+        }
     }
     
     public void set(int version, String checksum, Timestamp timestamp) {
