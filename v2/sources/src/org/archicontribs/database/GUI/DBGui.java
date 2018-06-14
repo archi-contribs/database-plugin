@@ -12,7 +12,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
@@ -26,6 +28,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -1263,38 +1266,39 @@ public class DBGui {
                 propertiesTreeItem.setExpanded(false);
 				
 				// we get a sorted list of component's properties
-				String[][] componentProperties = new String[((IProperties)memoryObject).getProperties().size()][2];
+				ArrayList<DBProperty> componentProperties = new ArrayList<DBProperty>();
 				for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i) {
-					componentProperties[i] = new String[] { ((IProperties)memoryObject).getProperties().get(i).getKey(), ((IProperties)memoryObject).getProperties().get(i).getValue() };
+					componentProperties.add(new DBProperty(((IProperties)memoryObject).getProperties().get(i).getKey(), ((IProperties)memoryObject).getProperties().get(i).getValue()));
 				}
-				Arrays.sort(componentProperties, this.stringComparator);
+				Collections.sort(componentProperties, this.propertyComparator);
 		
 				// we get a sorted list of properties from the database
-				String[][] databaseProperties = (String[][])databaseObject.get("properties");
-				Arrays.sort(databaseProperties, this.stringComparator);
+				@SuppressWarnings("unchecked")
+				ArrayList<DBProperty> databaseProperties = (ArrayList<DBProperty>)databaseObject.get("properties");
+				Collections.sort(databaseProperties, this.propertyComparator);
 		
 				int indexComponent = 0;
 				int indexDatabase = 0;
 				int compare;
-				while ( (indexComponent < componentProperties.length) || (indexDatabase < databaseProperties.length) ) {
-					if ( indexComponent >= componentProperties.length )
+				while ( (indexComponent < componentProperties.size()) || (indexDatabase < databaseProperties.size()) ) {
+					if ( indexComponent >= componentProperties.size() )
 						compare = 1;
 					else {
-						if ( indexDatabase >= databaseProperties.length )
+						if ( indexDatabase >= databaseProperties.size() )
 							compare = -1;
 						else
-							compare = DBPlugin.collator.compare(componentProperties[indexComponent][0], databaseProperties[indexDatabase][0]);
+							compare = DBPlugin.collator.compare(componentProperties.get(indexComponent).getKey(), databaseProperties.get(indexDatabase).getKey());
 					}
 		
 					if ( compare == 0 ) {				// both have got the same property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties[indexComponent][0], componentProperties[indexComponent][1], databaseProperties[indexDatabase][1]);
+						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getKey(), databaseProperties.get(indexDatabase).getValue());
 						++indexComponent;
 						++indexDatabase;
 					} else if ( compare < 0 ) {			// only the component has got the property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties[indexComponent][0], componentProperties[indexComponent][1], null);
+						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), null);
 						++indexComponent;
 					} else {							// only the database has got the property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties[indexDatabase][0], null, databaseProperties[indexDatabase][1]);
+						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexDatabase).getKey(), null, databaseProperties.get(indexDatabase).getValue());
 						++indexDatabase;
 					}
 				}
@@ -1310,10 +1314,10 @@ public class DBGui {
 	    refreshDisplay();
 	}
 	
-	Comparator<String[]> stringComparator = new Comparator<String[]>() {
+	Comparator<DBProperty> propertyComparator = new Comparator<DBProperty>() {
 		@Override
-        public int compare(final String[] row1, final String[] row2) {
-			return DBPlugin.collator.compare(row1[0],row2[0]);
+        public int compare(final DBProperty row1, final DBProperty row2) {
+			return DBPlugin.collator.compare(row1.getKey(),row2.getKey());
 		}
 	};
 	

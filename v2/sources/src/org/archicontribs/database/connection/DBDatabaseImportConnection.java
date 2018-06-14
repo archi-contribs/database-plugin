@@ -19,6 +19,7 @@ import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
@@ -157,21 +158,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(clazz,  "IFolder") ) hashResult.put("class", "Folder");                  // the folders table does not have a class column, so we add the property by hand
 
 				// properties
-				try ( ResultSet resultCountProperties = select("SELECT count(*) as count_properties FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ?", id, version) ) {
-					int countProperties = 0;
-					if ( resultCountProperties.next() ) 
-						countProperties = resultCountProperties.getInt("count_properties");
-					
-					if ( countProperties != 0 ) {
-						String[][] databaseProperties = new String[countProperties][2];
-						try ( ResultSet resultProperties = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
-							int i = 0;
-							while ( resultProperties.next() ) {
-								databaseProperties[i++] = new String[] { resultProperties.getString("name"), resultProperties.getString("value") };
-							}
-							hashResult.put("properties", databaseProperties);
-						}
-					}
+				ArrayList<DBProperty> databaseProperties = new ArrayList<DBProperty>();
+				try ( ResultSet resultProperties = select("SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+					while ( resultProperties.next() )
+						databaseProperties.add(new DBProperty(resultProperties.getString("name"), resultProperties.getString("value")));
+					hashResult.put("properties", databaseProperties);
 				}
 
 
@@ -293,7 +284,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schema+"elements_in_model"
 				+ " JOIN "+this.schema+"elements ON elements.id = element_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on, checksum";
+				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+toCharDocumentation+", created_on, checksum, rank";
 		try (ResultSet resultElements = select("SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
@@ -317,7 +308,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schema+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
-		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum"
+		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, documentation, created_on, checksum, rank"
 				+ " FROM "+this.schema+"folders_in_model"
 				+ " JOIN "+this.schema+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
@@ -329,7 +320,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.importFoldersRequest = selectFoldersRequest + " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
-		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum"
+		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum, rank"
 				+ " FROM "+this.schema+"views_in_model"
 				+ " JOIN "+this.schema+"views ON views.id = views_in_model.view_id AND views.version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
@@ -648,7 +639,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects");
-		this.currentResultSetViewsObjects = select("SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on"
+		this.currentResultSetViewsObjects = select("SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum, created_on, rank"
 				+" FROM "+this.schema+"views_objects"
 				+" JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
@@ -719,7 +710,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setBounds(this.currentResultSetViewsObjects.getInt("x"), this.currentResultSetViewsObjects.getInt("y"), this.currentResultSetViewsObjects.getInt("width"), this.currentResultSetViewsObjects.getInt("height"));
 
 				// The container is either the view, or a container in the view
-				if ( DBPlugin.areEqual(this.currentResultSetViewsObjects.getString("container_id"), view.getId()) )
+				// if the container is not found, we create the object in the view as this is better than an NullPointerException
+				IDiagramModelContainer container = (IDiagramModelContainer)model.getAllViewObjects().get(this.currentResultSetViewsObjects.getString("container_id"));
+				if ( (container == null) || DBPlugin.areEqual(this.currentResultSetViewsObjects.getString("container_id"), view.getId()) )
 					view.getChildren().add((IDiagramModelObject)eObject);
 				else
 					((IDiagramModelContainer)model.getAllViewObjects().get(this.currentResultSetViewsObjects.getString("container_id"))).getChildren().add((IDiagramModelObject)eObject);
@@ -752,7 +745,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections");
-		this.currentResultSetViewsConnections = select("SELECT DISTINCT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum"
+		this.currentResultSetViewsConnections = select("SELECT DISTINCT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, checksum, rank"
 				+" FROM "+this.schema+"views_connections"
 				+" JOIN "+this.schema+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+" WHERE view_id = ? AND view_version = ?"
