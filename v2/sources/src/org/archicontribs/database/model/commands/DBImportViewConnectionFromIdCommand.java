@@ -98,7 +98,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
+			this.newValues = importConnection.getObject(id, "IDiagramModelArchimateConnection", version);
 			
             // if the object references a relationship that is not referenced in the model, then we import it
             if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.newValues.get("relationship_id")) == null) ) {
@@ -197,18 +197,10 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			/*
-            // TODO: shall we import the relationship if not present or shall we assumethat it is already present ? 
-			if ( (this.importedViewConnection instanceof IDiagramModelArchimateConnection) && this.newValues.get("relationship_id") != null) {
-				// we check that the relationship already exists. If not, we import it in shared mode
-				IArchimateRelationship relationship = this.model.getAllRelationships().get(this.newValues.get("relationship_id"));
-				if ( relationship == null )
-					this.add(new DBImportRelationshipFromIdCommand(importConnection, this.model, (String)this.newValues.get("relationship_id"), 0));
-			}
-			 */
-
-			if ( this.newValues.get("relationship_id") == null ) metadata.setName((String)this.newValues.get("name"));
-			metadata.setArchimateConcept(this.model.getAllRelationships().get(this.newValues.get("relationship_id")));
+			if ( this.newValues.get("relationship_id") == null )
+			    metadata.setName((String)this.newValues.get("name"));
+			else
+			    metadata.setArchimateConcept(this.model.getAllRelationships().get(this.newValues.get("relationship_id")));
 			metadata.setLocked(this.newValues.get("is_locked"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setLineColor((String)this.newValues.get("line_color"));
@@ -235,7 +227,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				this.model.registerTargetConnection(this.importedViewConnection, (String)this.newValues.get("target_object_id"));
 			} else {
 				// target is an object and is reputed already imported, so we can set it right away
-				this.importedViewConnection.setTarget(target);
+				metadata.setTargetConnection(target);
 			}
 
 			// If the connection has got properties but does not have a linked element, then it may have distinct properties
