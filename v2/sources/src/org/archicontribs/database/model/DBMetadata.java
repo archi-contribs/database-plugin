@@ -772,7 +772,7 @@ public class DBMetadata  {
     }
     
     public void setSourceConnection(IConnectable source) {
-        if ( this.component instanceof IDiagramModelConnection && (source != null) && (source != this.component) && (source != ((IArchimateRelationship)this.component).getSource()) ) {
+        if ( this.component instanceof IDiagramModelConnection && (source != null) && (source != this.component) && (source != ((IDiagramModelConnection)this.component).getSource()) ) {
             ((IDiagramModelConnection)this.component).setSource(source);
             source.getSourceConnections().add((IDiagramModelConnection)this.component);
         }
