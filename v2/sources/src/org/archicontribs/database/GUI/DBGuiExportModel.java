@@ -37,7 +37,10 @@ import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewObjectFromIdCommand;
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
+import org.archicontribs.database.model.commands.DBSetFolderToLastKnownCommand;
+import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.swt.SWT;
@@ -1612,8 +1615,9 @@ public class DBGuiExportModel extends DBGui {
                         if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
     				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
     				    DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-    				    if ( command.canExecute() )
-    				        command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
+                        command.execute();
     				    if ( command.getException() != null )
     				        throw command.getException();
                         this.exportCommands.add(command);
@@ -1627,8 +1631,9 @@ public class DBGuiExportModel extends DBGui {
     			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
     			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
     			    DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-                    if ( command.canExecute() )
-                        command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
                     if ( command.getException() != null )
                         throw command.getException();
     	        	this.exportCommands.add(command);
@@ -1641,8 +1646,9 @@ public class DBGuiExportModel extends DBGui {
     	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
     	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
     	            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-                    if ( command.canExecute() )
-                        command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
                     if ( command.getException() != null )
                         throw command.getException();
     	            this.exportCommands.add(command);
@@ -1651,8 +1657,7 @@ public class DBGuiExportModel extends DBGui {
     	        }
     	        
     	        DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
-    	        if ( resolveRelationshipsCommand.canExecute() )
-    	            resolveRelationshipsCommand.execute();
+    	        resolveRelationshipsCommand.execute();
                 this.exportCommands.add(resolveRelationshipsCommand);
     	
     			if ( this.selectedDatabase.isWholeModelExported() ) {
@@ -1661,8 +1666,9 @@ public class DBGuiExportModel extends DBGui {
     			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
     			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
     			        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
-                        if ( command.canExecute() )
-                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
+                        command.execute();
                         if ( command.getException() != null )
                             throw command.getException();
     			        this.exportCommands.add(command);
@@ -1675,8 +1681,9 @@ public class DBGuiExportModel extends DBGui {
     		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
     		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
     		            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-                        if ( command.canExecute() )
-                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
+                        command.execute();
                         if ( command.getException() != null )
                             throw command.getException();
     		            this.stack.execute(this.exportCommands);
@@ -1689,8 +1696,9 @@ public class DBGuiExportModel extends DBGui {
                         if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
                         DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                         DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-                        if ( command.canExecute() )
-                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
+                        command.execute();
                         if ( command.getException() != null )
                             throw command.getException();
                         this.exportCommands.add(command);
@@ -1699,19 +1707,18 @@ public class DBGuiExportModel extends DBGui {
                     }
                     
                     DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
-                    if ( resolveConnectionsCommand.canExecute() )
-                        resolveConnectionsCommand.execute();
+                    resolveConnectionsCommand.execute();
                     this.exportCommands.add(resolveConnectionsCommand);
     			}
     			
-    			// TODO: move into a command to allow undo
     			logger.info("Checking if components have been moved to new folder ...");
-    			importConnection.setFolderToLastKnown(this.exportedModel);
-    			
-                logger.info("Applying changes to the model ...");
-                if ( !this.exportCommands.isEmpty() ) {
-                    this.stack.execute(this.exportCommands);
-                }
+    			DBSetFolderToLastKnownCommand setFoldercommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
+    			if ( setFoldercommand.getException() != null )
+    			    throw setFoldercommand.getException();
+    			setFoldercommand.execute();
+                if ( setFoldercommand.getException() != null )
+                    throw setFoldercommand.getException();
+    			this.exportCommands.add(setFoldercommand);
 	        }
                 
 			logger.info("Exporting elements ...");
@@ -1774,6 +1781,9 @@ public class DBGuiExportModel extends DBGui {
 					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
 						incrementText(this.txtNewImagesInModel);
 				}
+				
+                // we register the compoundCommand to the model's stack to allow undo/redo
+                this.stack.execute(this.exportCommands);
 			}
 		} catch (Exception err) {
             if ( hasBeenClosed() )
@@ -1782,7 +1792,12 @@ public class DBGuiExportModel extends DBGui {
     			setActiveAction(STATUS.Error);
     			SQLException SQLError = null;
     			try  {
+    			    // we rollback any update done on the model
+    			    this.exportCommands.undo();
+    			    
+    			    // we rollback any update done on the database
     			    this.exportConnection.rollback();
+    			    
     			    doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
     			    popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
     			} catch (SQLException err2) {
@@ -2068,23 +2083,32 @@ public class DBGuiExportModel extends DBGui {
 		}
 		
 		if ( mustImport ) {
+		    IDBImportFromIdCommand importCommand = null;
+		    
 		    if ( logger.isDebugEnabled() ) logger.debug(debugMessage);
 		    
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 	            if ( eObjectToExport instanceof IArchimateElement )
-	            	this.exportCommands.add(new DBImportElementFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
+	                importCommand = new DBImportElementFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
 	            else if ( eObjectToExport instanceof IArchimateRelationship )
-		            this.exportCommands.add(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
+	                importCommand = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
 	            else if ( eObjectToExport instanceof IFolder )
-                    this.exportCommands.add(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion()));
+	                importCommand = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
 	            else if ( eObjectToExport instanceof IDiagramModel )
-	            	this.exportCommands.add(new DBImportViewFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false));
+	                importCommand = new DBImportViewFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, false);
 	            else if ( eObjectToExport instanceof IDiagramModelObject )
-	            	this.exportCommands.add(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false));
+	                importCommand = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
-	            	this.exportCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false));
+	                importCommand = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false);
 	            
-	            this.stack.execute(this.exportCommands);
+	            if ( importCommand != null ) {
+	                if (importCommand.getException() != null )
+	                    throw importCommand.getException();
+	                importCommand.execute();
+	                if (importCommand.getException() != null )
+	                    throw importCommand.getException();
+	                this.exportCommands.add((Command)importCommand);
+	            }
                 
 	            incrementText(txtUpdatedInDatabase);
 	            exported = true;
@@ -2106,8 +2130,6 @@ public class DBGuiExportModel extends DBGui {
 		        this.exportCommands.add(new DBDeleteDiagramObjectCommand(this.exportedModel, (IDiagramModelArchimateObject)eObjectToExport));
 		    else if ( eObjectToExport instanceof IDiagramModelArchimateConnection )
 		        this.exportCommands.add(new DBDeleteDiagramConnectionCommand(this.exportedModel, (IDiagramModelArchimateConnection)eObjectToExport));
-		    
-		    this.stack.execute(this.exportCommands);
 		    
 		    incrementText(txtDeletedInDatabase);
             exported = true;
