@@ -6,19 +6,15 @@
 |------------------------------------------------|--|
 |                                                |  |
 
-The beta6 release is now nearly fully functional :) and is compatible with both Archi 4.2 and future Archi 4.3.
-
-`Please do not forget to fill in an issue if you discover a misbehaviour.`
+`Please dho not forget to fill in an issue if you discover a misbehaviour.`
 
 
 
-## Known bugs:
-These bugs need to be solved before the release of version 2.1:
+## Known bugs or points of attention:
+These points need to be addressed before the release of version 2.1:
 
-* The sync process cannot fully be rolled back. So in case of an error in the middle of the export process, the model can be left in an inconsistent state
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
-* importing embedded views does not recursively imports the linked view
-* The plugins requires a lot of memory, often leading to increase the JVM size (set java parameter -Xmx1024 in Archi.ini file)
+* The plugins requires quite a bit of memory for its internal work, often leading to increase the JVM size (set java parameter -Xmx1024 in Archi.ini file)
 
 ## Planned improvements
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
@@ -35,9 +31,9 @@ In addition, some improvements are planned but it's not guaranteed that they wil
 * Create a window that provide detailed statistics about the model and its content
 * Add an option to duplicate a model
 * Add an option to merge models
-* For the "import individual component":
-  * Allow to recursively import elements that have got relations with the imported element
-  * Allow to select all the classes of one group in one click
+* ''For the "import individual component":''
+    * Allow to recursively import elements that have got relations with the imported element
+** Allow to select all the classes of one group in one click
   * Add some explanation on the window that is not really intuitive
   * Add an option to import relationships to/from a component that would be in the database but not in the model
 * for the "component history":
