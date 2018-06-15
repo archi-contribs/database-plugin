@@ -47,6 +47,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	private Exception exception;
 
 	private DBArchimateModel model = null;
+    private DBImportRelationshipFromIdCommand importRelationshipCommand = null;
 
 	private String id = null;
 	private boolean mustCreateCopy = false;
@@ -98,6 +99,13 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
+			
+            // if the object references a relationship that is not referenced in the model, then we import it
+            if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.newValues.get("relationship_id")) == null) ) {
+                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, (String)this.newValues.get("relationship_id"), 0, mustCreateCopy);
+                if ( this.importRelationshipCommand.getException() != null )
+                    throw this.importRelationshipCommand.getException();
+            }
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import view connection");
@@ -123,6 +131,10 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			return;		// we do not execute it twice
 
 		this.commandHasBeenExecuted = true;
+		
+        // if the referenced relationship needs to be imported
+        if ( this.importRelationshipCommand != null )
+            this.importRelationshipCommand.execute();
 
 		try {
 			this.importedViewConnection = this.model.getAllViewConnections().get(this.id);
@@ -310,6 +322,10 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				this.importedViewConnection.getBendpoints().add(newBendpoint);
 			}
 		}
+		
+		// if a relationship has been imported
+        if ( this.importRelationshipCommand != null )
+            this.importRelationshipCommand.undo();
 
 		this.commandHasBeenExecuted = false;
 	}
