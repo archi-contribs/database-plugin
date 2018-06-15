@@ -35,6 +35,8 @@ import org.archicontribs.database.model.commands.DBImportRelationshipFromIdComma
 import org.archicontribs.database.model.commands.DBImportViewConnectionFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewObjectFromIdCommand;
+import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
+import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
@@ -1647,9 +1649,11 @@ public class DBGuiExportModel extends DBGui {
     	        	incrementText(this.txtNewRelationshipsInDatabase);
     	        	incrementText(this.txtTotalRelationships);
     	        }
-    	        //TODO: move into a command to allow undo
-    	        this.exportedModel.resolveSourceRelationships();
-    	        this.exportedModel.resolveTargetRelationships();
+    	        
+    	        DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
+    	        if ( resolveRelationshipsCommand.canExecute() )
+    	            resolveRelationshipsCommand.execute();
+                this.exportCommands.add(resolveRelationshipsCommand);
     	
     			if ( this.selectedDatabase.isWholeModelExported() ) {
     			    logger.info("Importing new views ...");
@@ -1693,12 +1697,14 @@ public class DBGuiExportModel extends DBGui {
                         incrementText(this.txtNewViewConnectionsInDatabase);
                         incrementText(this.txtTotalViewConnections);
                     }
-                    // TODO: move into command to allow undo
-    	            this.exportedModel.resolveSourceConnections();
-    	            this.exportedModel.resolveTargetConnections();
+                    
+                    DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
+                    if ( resolveConnectionsCommand.canExecute() )
+                        resolveConnectionsCommand.execute();
+                    this.exportCommands.add(resolveConnectionsCommand);
     			}
     			
-    			// TODO : move into a command to allow undo
+    			// TODO: move into a command to allow undo
     			logger.info("Checking if components have been moved to new folder ...");
     			importConnection.setFolderToLastKnown(this.exportedModel);
     			
@@ -1712,7 +1718,6 @@ public class DBGuiExportModel extends DBGui {
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
 				IArchimateElement element = elementsIterator.next().getValue();
-			    //importConnection.setFolderToLastKnown(this.exportedModel, element);
 			    doExportEObject(element);
 			}
 
@@ -1720,7 +1725,6 @@ public class DBGuiExportModel extends DBGui {
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
 				IArchimateRelationship relationship = relationshipsIterator.next().getValue();
-			    //importConnection.setFolderToLastKnown(this.exportedModel, relationship);
 			    doExportEObject(relationship);
 			}
 			
@@ -1730,7 +1734,6 @@ public class DBGuiExportModel extends DBGui {
                 while ( viewsIterator.hasNext() ) {
                     IDiagramModel view = viewsIterator.next().getValue();
                     // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
-    			    //importConnection.setFolderToLastKnown(this.exportedModel, view);
                     if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
                     	this.exportedModel.countObject(view, true, view);
                     	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
@@ -1761,7 +1764,6 @@ public class DBGuiExportModel extends DBGui {
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
                 while ( foldersIterator.hasNext() ) {
                 	IFolder folder = foldersIterator.next().getValue();
-                	//importConnection.setFolderToLastKnown(this.exportedModel, folder);
                     doExportEObject(folder);
                 }
 				
