@@ -136,7 +136,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             // if the object is an embedded view but the linked view does not exist in the model, then we import it
             if ( (this.newValues.get("diagram_ref_id") != null) && (model.getAllViews().get(this.newValues.get("diagram_ref_id")) == null) ) {
-                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, (String)this.newValues.get("diagram_ref_id"), 0, mustCreateCopy, mustCreateCopy);
+                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, (String)this.newValues.get("diagram_ref_id"), 0, mustCreateCopy, true);
                 if ( importLinkedViewCommand.getException() != null )
                     throw importLinkedViewCommand.getException();
                 this.importLinkedViewCommands.add(importLinkedViewCommand);
