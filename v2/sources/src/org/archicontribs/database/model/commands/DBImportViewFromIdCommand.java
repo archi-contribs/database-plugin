@@ -105,19 +105,25 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				//    we use the importFromId method in order to allow undo and redo
 				try (ResultSet result = (version == 0)
 						? importConnection.select("SELECT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ?) ORDER BY rank", id, id)
-								: importConnection.select("SELECT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
+								: importConnection.select("SELECT DISTINCT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
 					while ( result.next() ) {
-						this.importViewContentCommands.add(new DBImportViewObjectFromIdCommand(importConnection, model, result.getString("object_id"), (version == 0) ? 0 : result.getInt("object_version"), mustCreateCopy));
+					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, model, result.getString("object_id"), (version == 0) ? 0 : result.getInt("object_version"), mustCreateCopy);
+					    if ( command.getException() != null )
+					        throw command.getException();
+						this.importViewContentCommands.add(command);
 					}
 				}
 
 				// we import the connections and create the corresponding relationships if they do not exist yet
 				//    we use the importFromId method in order to allow undo and redo
 				try (ResultSet result = (version == 0)
-						? importConnection.select("SELECT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ?) ORDER BY rank", id, id)
-								: importConnection.select("SELECT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
+						? importConnection.select("SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ?) ORDER BY rank", id, id)
+						: importConnection.select("SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
 					while ( result.next() ) {
-						this.importViewContentCommands.add(new DBImportViewConnectionFromIdCommand(importConnection, model, result.getString("connection_id"), (version == 0) ? 0 : result.getInt("connection_version"), mustCreateCopy));
+					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, model, result.getString("connection_id"), (version == 0) ? 0 : result.getInt("connection_version"), mustCreateCopy);
+					    if ( command.getException() != null )
+					        throw command.getException();
+						this.importViewContentCommands.add(command);
 					}
 				}
 			}
@@ -220,8 +226,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 
 			// if some content must be imported
 			for (IDBImportFromIdCommand childCommand: this.importViewContentCommands) {
-				if ( childCommand.canExecute() )
-					childCommand.execute();
+				childCommand.execute();
 
 				if ( childCommand.getException() != null )
 					throw childCommand.getException();
