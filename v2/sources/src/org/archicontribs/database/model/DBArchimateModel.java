@@ -405,7 +405,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         if ( targetId != null && targetId.length()!=0 ) this.allTargetConnectionsToResolve.put(connection, targetId);
     }
 
-    public void resolveSourceConnections() throws Exception {
+    public void resolveSourceConnections() {
         logger.info("Resolving source connections.");
 
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsToResolve.entrySet() ) {
@@ -419,7 +419,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allSourceConnectionsToResolve.clear();
     }
 
-    public void resolveTargetConnections() throws Exception {
+    public void resolveTargetConnections() {
         logger.info("Resolving target connections.");
 
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allTargetConnectionsToResolve.entrySet() ) {
