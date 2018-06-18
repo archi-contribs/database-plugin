@@ -121,9 +121,13 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
                 if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
                     try ( ResultSet imageResult = importConnection.select("SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
-                        if ( imageResult.next() )
+                        if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
+                            logger.debug("   Importing image "+this.newValues.get("image_path")+" (size = "+this.newImageContent.length+")");
+                        }
                     }
+                } else {
+                    logger.debug("   Image "+this.newValues.get("image_path")+" already exists in the model");
                 }
             }
             
