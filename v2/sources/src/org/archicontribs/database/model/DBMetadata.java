@@ -33,6 +33,7 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelImage;
 import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
@@ -501,12 +502,18 @@ public class DBMetadata  {
     public String getImagePath() {   
         if ( this.component instanceof IDiagramModelImageProvider )  
             return ((IDiagramModelImageProvider)this.component).getImagePath();
+        if ( this.component instanceof IDiagramModelImage )  
+            return ((IDiagramModelImage)this.component).getImagePath();
         return null;
     }
 
     public void setImagePath(String imagePath) {   
-        if ( (this.component instanceof IDiagramModelImageProvider) && (imagePath != null) && !DBPlugin.areEqual(((IDiagramModelImageProvider)this.component).getImagePath(), imagePath) )  
-            ((IDiagramModelImageProvider)this.component).setImagePath(imagePath);
+        if ( (imagePath != null) && !DBPlugin.areEqual(((IDiagramModelImageProvider)this.component).getImagePath(), imagePath) ) {
+            if ( this.component instanceof IDiagramModelImageProvider )  
+                ((IDiagramModelImageProvider)this.component).setImagePath(imagePath);
+            if ( this.component instanceof IDiagramModel )  
+                ((IDiagramModelImage)this.component).setImagePath(imagePath);
+        }
     }
 
     // ImagePosition
