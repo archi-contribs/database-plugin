@@ -125,7 +125,8 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 		return (this.model != null) && (this.id != null) && (this.exception == null);
 	}
 
-	@Override
+	@SuppressWarnings("unchecked")
+    @Override
 	public void execute() {
 		if ( this.commandHasBeenExecuted )
 			return;		// we do not execute it twice
@@ -232,16 +233,24 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			// If the connection has got properties but does not have a linked element, then it may have distinct properties
 			if ( metadata.getArchimateConcept() == null ) {
-				this.oldProperties = new ArrayList<DBProperty>();
-				for ( IProperty prop: this.importedViewConnection.getProperties() ) {
-					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
-				}
+	            this.importedViewConnection.getProperties().clear();
+	            for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+	                prop.setKey(newProperty.getKey());
+	                prop.setValue(newProperty.getValue());
+	                this.importedViewConnection.getProperties().add(prop);
+	            }
 			}
 
-			this.oldBendpoints = new ArrayList<DBBendpoint>();
-			for ( IDiagramModelBendpoint bendpoint: this.importedViewConnection.getBendpoints() ) {
-				this.oldBendpoints.add(new DBBendpoint(bendpoint.getStartX(), bendpoint.getStartY(), bendpoint.getEndX(), bendpoint.getEndY()));
-			}
+            this.importedViewConnection.getBendpoints().clear();
+            for ( DBBendpoint newBendpoint: (ArrayList<DBBendpoint>)this.newValues.get("bendpoints")) {
+                IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
+                bendpoint.setStartX(newBendpoint.getStartX());
+                bendpoint.setStartY(newBendpoint.getStartY());
+                bendpoint.setEndX(newBendpoint.getEndX());
+                bendpoint.setEndY(newBendpoint.getEndY());
+                this.importedViewConnection.getBendpoints().add(bendpoint);
+            }
 
 			// we determine the view that contains the view object
 			EObject view = this.importedViewConnection.eContainer();
