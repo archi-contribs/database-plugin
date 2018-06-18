@@ -299,11 +299,13 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             // If the object has got properties but does not have a linked element, then it may have distinct properties
             if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
                 ((IProperties)this.importedViewObject).getProperties().clear();
-                for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-                    IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-                    prop.setKey(newProperty.getKey());
-                    prop.setValue(newProperty.getValue());
-                    ((IProperties)this.importedViewObject).getProperties().add(prop);
+                if ( this.newValues.get("properties") != null ) {
+                    for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+                        IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+                        prop.setKey(newProperty.getKey());
+                        prop.setValue(newProperty.getValue());
+                        ((IProperties)this.importedViewObject).getProperties().add(prop);
+                    }
                 }
             }
 

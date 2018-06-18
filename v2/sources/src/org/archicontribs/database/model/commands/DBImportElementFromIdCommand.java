@@ -204,11 +204,13 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			metadata.setType((String)this.newValues.get("type"));
 
 			this.importedElement.getProperties().clear();
-			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-				prop.setKey(newProperty.getKey());
-				prop.setValue(newProperty.getValue());
-				this.importedElement.getProperties().add(prop);
+			if ( this.newValues.get("properties") != null ) {
+    			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				prop.setKey(newProperty.getKey());
+    				prop.setValue(newProperty.getValue());
+    				this.importedElement.getProperties().add(prop);
+    			}
 			}
 
 			if ( this.newFolder == null )

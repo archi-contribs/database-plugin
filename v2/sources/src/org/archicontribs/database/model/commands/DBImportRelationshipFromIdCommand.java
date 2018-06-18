@@ -205,11 +205,13 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			}
 
 			this.importedRelationship.getProperties().clear();
-			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
-				prop.setKey(newProperty.getKey());
-				prop.setValue(newProperty.getValue());
-				this.importedRelationship.getProperties().add(prop);
+			if ( this.newValues.get("properties") != null ) {
+    			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				prop.setKey(newProperty.getKey());
+    				prop.setValue(newProperty.getValue());
+    				this.importedRelationship.getProperties().add(prop);
+    			}
 			}
 
 			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
