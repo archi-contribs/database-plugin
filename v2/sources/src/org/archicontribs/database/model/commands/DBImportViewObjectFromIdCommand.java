@@ -125,6 +125,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                         if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
                             logger.debug("   Importing image "+this.newValues.get("image_path")+" (size = "+this.newImageContent.length+")");
+                            // TODO: the image content should be part of a cross instance array in order to be store only once in memory
                         }
                     }
                 } else {
