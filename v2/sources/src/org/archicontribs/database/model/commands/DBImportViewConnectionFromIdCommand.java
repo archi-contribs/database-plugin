@@ -32,6 +32,7 @@ import com.archimatetool.model.IDiagramModelBendpoint;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.Logger;
 
 /**
  * Command for importing an view connection from it's ID.
@@ -116,6 +117,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 					setLabel("import \""+(String)this.newValues.get("name")+"\"");
 			}
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}
@@ -268,6 +270,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			this.model.countObject(this.importedViewConnection, false, null);
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.importedViewConnection = null;
 			this.exception = err;
 		}

@@ -19,6 +19,7 @@ import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
+import com.archimatetool.model.util.Logger;
 
 /**
  *  Check all the components in the database that have been move to a new folder and set them in the new folder<br>
@@ -120,6 +121,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
                 }
             }
         } catch (Exception e) {
+            Logger.logError("Got Exception "+e.getMessage());
             this.exception = e;
         }
     }

@@ -33,6 +33,7 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.Logger;
 
 /**
  * Command for importing a view object from it's ID.
@@ -155,6 +156,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                     setLabel("import \""+(String)this.newValues.get("name")+"\"");
             }
         } catch (Exception err) {
+            Logger.logError("Got Exception "+err.getMessage());
             this.exception = err;
         }
     }
@@ -332,6 +334,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             this.model.countObject(this.importedViewObject, false, null);
 
         } catch (Exception err) {
+            Logger.logError("Got Exception "+err.getMessage());
             this.importedViewObject = null;
             this.exception = err;
         }

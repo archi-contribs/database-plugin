@@ -24,6 +24,7 @@ import org.eclipse.gef.commands.Command;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.Logger;
 
 /**
  * Command for importing a folder from it's ID.
@@ -107,6 +108,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 					setLabel("import \""+(String)this.newValues.get("name")+"\"");
 			}
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.importedFolder = null;
 			this.exception = err;
 		}
@@ -189,6 +191,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 				this.model.countObject(this.importedFolder, false, null);
 
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}

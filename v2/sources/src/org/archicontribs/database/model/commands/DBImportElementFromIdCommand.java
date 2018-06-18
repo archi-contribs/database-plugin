@@ -30,6 +30,7 @@ import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.Logger;
 
 /**
  * Command for importing an element from it's ID.
@@ -138,6 +139,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 					setLabel("import \""+(String)this.newValues.get("name")+"\"");
 			}
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}
@@ -237,6 +239,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			}
 
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}

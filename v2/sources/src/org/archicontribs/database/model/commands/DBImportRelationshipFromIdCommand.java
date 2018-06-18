@@ -31,6 +31,7 @@ import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
+import com.archimatetool.model.util.Logger;
 
 /**
  * Command for importing a relationship from it's ID.
@@ -119,6 +120,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 					setLabel("import \""+(String)this.newValues.get("name")+"\"");
 			}
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}
@@ -245,6 +247,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.model.countObject(this.importedRelationship, false, null);
 
 		} catch (Exception err) {
+		    Logger.logError("Got Exception "+err.getMessage());
 			this.exception = err;
 		}
 	}
