@@ -160,6 +160,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
         return (this.model != null) && (this.id != null) && (this.exception == null);
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public void execute() {
         if ( this.commandHasBeenExecuted )
@@ -294,11 +295,11 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             // If the object has got properties but does not have a linked element, then it may have distinct properties
             if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
                 ((IProperties)this.importedViewObject).getProperties().clear();
-                for ( DBProperty oldProperty: this.oldProperties ) {
-                    IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
-                    newProperty.setKey(oldProperty.getKey());
-                    newProperty.setValue(oldProperty.getValue());
-                    ((IProperties)this.importedViewObject).getProperties().add(newProperty);
+                for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+                    IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+                    prop.setKey(newProperty.getKey());
+                    prop.setValue(newProperty.getValue());
+                    ((IProperties)this.importedViewObject).getProperties().add(prop);
                 }
             }
 
