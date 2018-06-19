@@ -191,7 +191,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Automatically open the default view of the imported models
  * 									Export model:
  *										For relational databases :
- *											Create two export modes: standalone and collaborative modes
+ *											Create collaborative mode
  *											Allow to specify the generated view screenshots border width and scale factor
  *										For Neo4J databases:
  *											Create two export modes: native and extended

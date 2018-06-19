@@ -47,7 +47,6 @@ import org.eclipse.swt.widgets.Text;
 /**
  * A field editor that manages the list of databases configurations
  * 
- * @author Herve jouin
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Group grpDatabases;
@@ -90,10 +89,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Composite compoNeo4jRelationships;
 	private Button btnNeo4jStandardRelationships;
 	private Button btnNeo4jTypedRelationships;
-	private Label lblExportMode;
-	private Composite compoExportMode;
-	private Button btnStandaloneMode;
-	private Button btnCollaborativeMode;
 	private Label lblServer;
 	private Text txtServer;
 	private Label lblPort;
@@ -605,52 +600,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jTypedRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		
 
-		
-		this.lblExportMode = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportMode.setText("Export mode:");
-		this.lblExportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportType, 4);
-		fd.left = new FormAttachment(this.lblExportType, 0 , SWT.LEFT);
-		this.lblExportMode.setLayoutData(fd);
-		this.lblExportMode.setVisible(false);
-		this.lblExportMode.setToolTipText("Please choose how the plugin shoud export your data.");
-
-		this.compoExportMode = new Composite(this.grpDatabases, SWT.NONE);
-		this.compoExportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.compoExportMode.setVisible(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportMode, 0, SWT.TOP);
-		fd.bottom = new FormAttachment(this.lblExportMode, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
-		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
-		this.compoExportMode.setLayoutData(fd);
-		rl = new RowLayout();
-		rl.marginTop = 0;
-		rl.marginLeft = 0;
-		rl.spacing = 10;
-		this.compoExportMode.setLayout(rl);
-
-		this.btnCollaborativeMode = new Button(this.compoExportMode, SWT.RADIO);
-		this.btnCollaborativeMode.setText("Collaborative mode");
-		this.btnCollaborativeMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnCollaborativeMode.setToolTipText("The collaborative mode is a bit slower than the standalone mode but allows for several people to work on the same model at the same time."+
-				"   --> While exporting your model, the plugin checks if components have been updated in the database while you were editing the model:\n"+
-				"           - components updated in both your model and the database generate conflicts that need to be manually solved\n"+
-				"           - components that have been created or updated in the database but not in the model are automatically imported without generating any conflict.");
-		
-		this.btnStandaloneMode = new Button(this.compoExportMode, SWT.RADIO);
-		this.btnStandaloneMode.setText("Standalone mode");
-		this.btnStandaloneMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnStandaloneMode.setToolTipText("The standalone mode is the quickest mode if only one person is working on a model at a time."+
-				"   --> The plugin behaves as for archimate files : it exports your model as it is, without checking if components have been updated in the database while you were editing the model.");
-		
 		this.lblExportViewImages = new Label(this.grpDatabases, SWT.NONE);
 		this.lblExportViewImages.setText("Export View Images:");
 		this.lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportMode, 5);
-		fd.left = new FormAttachment(this.lblExportMode, 0 , SWT.LEFT);
+		fd.top = new FormAttachment(this.lblExportType, 5);
+		fd.left = new FormAttachment(this.lblExportType, 0 , SWT.LEFT);
 		this.lblExportViewImages.setLayoutData(fd);
 		this.lblExportViewImages.setVisible(false);
 		this.lblExportViewImages.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
@@ -839,7 +794,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDiscard.setVisible(false);
 
 
-		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportType, this.compoExportViewImages, this.compoNeo4jMode, this.compoExportMode, this.btnDiscard, this.btnSave});
+		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportType, this.compoExportViewImages, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
 
 		this.grpDatabases.layout();
 
@@ -912,11 +867,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.compoNeo4jEmpty.setVisible(isNeo4j);
 		this.lblNeo4jRelationships.setVisible(isNeo4j);
 		this.compoNeo4jRelationships.setVisible(isNeo4j);
-		
-		this.lblExportMode.setVisible(!isNeo4j);
-		this.compoExportMode.setVisible(!isNeo4j);
-		this.btnCollaborativeMode.setVisible(!isNeo4j);
-		this.btnStandaloneMode.setVisible(!isNeo4j);
 		
 		this.lblServer.setVisible(!isFile);
 		this.txtServer.setVisible(!isFile);
@@ -1040,7 +990,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setViewSnapshotRequired(this.btnExportViewImages.getSelection());
 		databaseEntry.setViewsImagesBorderWidth(Integer.valueOf(this.txtBorderWidth.getText()));
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
-		databaseEntry.setCollaborativeMode(this.btnCollaborativeMode.getSelection());
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
 		databaseEntry.setShouldEmptyNeo4jDB(this.btnNeo4jEmptyDB.getSelection());
 		databaseEntry.setNeo4jTypedRelationship(this.btnNeo4jTypedRelationships.getSelection());
@@ -1070,8 +1019,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.btnNeo4jDoNotEmptyDB.setSelection(true);
 	        this.btnNeo4jStandardRelationships.setSelection(true);
 	        this.btnNeo4jTypedRelationships.setSelection(false);
-	        this.btnCollaborativeMode.setSelection(true);
-	        this.btnStandaloneMode.setSelection(false);
 	        this.btnExportViewImages.setSelection(false);
 			this.txtBorderWidth.setText("10");
 			this.txtScaleFactor.setText("100");
@@ -1094,10 +1041,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.btnNeo4jExtendedMode.setSelection(!databaseEntry.isNeo4jNativeMode());
             this.btnNeo4jEmptyDB.setSelection(databaseEntry.shouldEmptyNeo4jDB());
             this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.shouldEmptyNeo4jDB());
-            this.btnCollaborativeMode.setSelection(databaseEntry.isCollaborativeMode());
             this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.isNeo4jTypedRelationship());
             this.btnNeo4jTypedRelationships.setSelection(databaseEntry.isNeo4jTypedRelationship());
-            this.btnStandaloneMode.setSelection(!databaseEntry.isCollaborativeMode());
             this.btnExportViewImages.setSelection(databaseEntry.isViewSnapshotRequired());
             this.btnDoNotExportViewImages.setSelection(!databaseEntry.isViewSnapshotRequired());
             this.txtBorderWidth.setText(String.valueOf(databaseEntry.getViewsImagesBorderWidth()));
@@ -1135,9 +1080,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jDoNotEmptyDB.setEnabled(editMode);
 		this.btnNeo4jStandardRelationships.setEnabled(editMode);
 		this.btnNeo4jTypedRelationships.setEnabled(editMode);
-		
-	    this.btnCollaborativeMode.setEnabled(editMode);
-	    this.btnStandaloneMode.setEnabled(editMode);
 	    
 	    this.btnExportViewImages.setEnabled(editMode);
 	    this.btnDoNotExportViewImages.setEnabled(editMode);
@@ -1233,8 +1175,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.btnShowPassword.setVisible(false);
 			this.lblExportViewImages.setVisible(false);
 			this.compoExportViewImages.setVisible(false);
-			this.lblExportMode.setVisible(false);
-			this.compoExportMode.setVisible(false);
 
 			this.btnSave.setVisible(false);
 			this.btnDiscard.setVisible(false);

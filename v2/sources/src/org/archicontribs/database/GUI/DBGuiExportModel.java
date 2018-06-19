@@ -935,43 +935,37 @@ public class DBGuiExportModel extends DBGui {
         this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j);
 		this.txtNewImagesInModel.setVisible(!isNeo4j);
 		
-        
-        if ( this.exportedModel.getInitialVersion().getVersion() == 0 && this.selectedDatabase.isCollaborativeMode() && !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-        	popup(Level.WARN, "You selected the collaborative mode in the preferences, but the model has not been imported from a database.\n\nTherefore, the database plugin does not know the initial state of your model's components and will temporarily switch to standalone mode.");
-        	this.selectedDatabase.setCollaborativeMode(false);
-        }
-	      
-        // we hide the database and conflict columns in standalone mode or Neo4J, and show them in collaborative mode
-        this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViewObjects.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViewConnections.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        // we hide the database and conflict columns if Neo4J
+        this.lblDatabase.setVisible(!isNeo4j);
+        this.lblDatabaseNew.setVisible(!isNeo4j);
+        this.lblDatabaseDeleted.setVisible(!isNeo4j);
+        this.lblDatabaseUpdated.setVisible(!isNeo4j);
+        this.lblConflicts.setVisible(!isNeo4j);
+        this.txtNewElementsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedElementsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedElementsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingElements.setVisible(!isNeo4j);
+        this.txtNewRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingRelationships.setVisible(!isNeo4j);
+        this.txtNewFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingFolders.setVisible(!isNeo4j);
+        this.txtNewViewsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViews.setVisible(!isNeo4j);
+        this.txtNewViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViewObjects.setVisible(!isNeo4j);
+        this.txtNewViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViewConnections.setVisible(!isNeo4j);
+        this.txtNewImagesInDatabase.setVisible(!isNeo4j);
 		
 		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
 		try {
@@ -1066,37 +1060,37 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewImagesInModel.setVisible(!isNeo4j);
 
           
-        // we hide the database and conflict columns in standalone mode or Neo4J, and show them in collaborative mode
-        this.lblDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseNew.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseDeleted.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblDatabaseUpdated.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.lblConflicts.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedElementsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingElements.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedRelationshipsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingRelationships.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedFoldersInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingFolders.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViews.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewObjectsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViewObjects.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtUpdatedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtDeletedViewConnectionsInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtConflictingViewConnections.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
-        this.txtNewImagesInDatabase.setVisible(this.selectedDatabase.isCollaborativeMode() && !isNeo4j);
+        // we hide the database and conflict columns if Neo4J
+        this.lblDatabase.setVisible(!isNeo4j);
+        this.lblDatabaseNew.setVisible(!isNeo4j);
+        this.lblDatabaseDeleted.setVisible(!isNeo4j);
+        this.lblDatabaseUpdated.setVisible(!isNeo4j);
+        this.lblConflicts.setVisible(!isNeo4j);
+        this.txtNewElementsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedElementsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedElementsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingElements.setVisible(!isNeo4j);
+        this.txtNewRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedRelationshipsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingRelationships.setVisible(!isNeo4j);
+        this.txtNewFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedFoldersInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingFolders.setVisible(!isNeo4j);
+        this.txtNewViewsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViews.setVisible(!isNeo4j);
+        this.txtNewViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewObjectsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViewObjects.setVisible(!isNeo4j);
+        this.txtNewViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtUpdatedViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtDeletedViewConnectionsInDatabase.setVisible(!isNeo4j);
+        this.txtConflictingViewConnections.setVisible(!isNeo4j);
+        this.txtNewImagesInDatabase.setVisible(!isNeo4j);
 		
 		this.txtNewElementsInModel.setText(toString(0));		this.txtUpdatedElementsInModel.setText(toString(0));		this.txtNewElementsInDatabase.setText(toString(0));			this.txtUpdatedElementsInDatabase.setText(toString(0));			this.txtConflictingElements.setText(toString(0));
 		this.txtNewRelationshipsInModel.setText(toString(0));	this.txtUpdatedRelationshipsInModel.setText(toString(0));	this.txtNewRelationshipsInDatabase.setText(toString(0));	this.txtUpdatedRelationshipsInDatabase.setText(toString(0));	this.txtConflictingRelationships.setText(toString(0));
@@ -1135,10 +1129,7 @@ public class DBGuiExportModel extends DBGui {
             return false;
         }
         
-	    // we export the components without checking for conflicts in 4 cases:
-        //    - the model is not in the database
-        //    - the current model is the latest model in the database
-        //    - we are in standalone mode
+	    // we export the components without checking for conflicts in 1 case:
 		//	  - we export to a Neo4j database
         
         
@@ -1607,119 +1598,117 @@ public class DBGuiExportModel extends DBGui {
 	        if ( this.selectedDatabase.isWholeModelExported() )
 	            this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 	            
-	        if ( this.selectedDatabase.isCollaborativeMode() ) {
-                if ( this.selectedDatabase.isWholeModelExported() ) {
-    				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
-    				logger.info("Importing new folders ...");
-    				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
-                        if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
-    				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-    				    DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-                        if ( command.getException() != null )
-                            throw command.getException();
-                        command.execute();
-    				    if ( command.getException() != null )
-    				        throw command.getException();
-                        this.exportCommands.add(command);
-                        incrementText(this.txtNewFoldersInDatabase);
-                        incrementText(this.txtTotalFolders);
-    				}
-    			}
-    	
-    			logger.info("Importing new elements ...");
-    			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
-    			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
-    			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
-    			    DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+            if ( this.selectedDatabase.isWholeModelExported() ) {
+				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
+				logger.info("Importing new folders ...");
+				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
+                    if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
+				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
+				    DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
                     if ( command.getException() != null )
                         throw command.getException();
                     command.execute();
-                    if ( command.getException() != null )
-                        throw command.getException();
-    	        	this.exportCommands.add(command);
-    	        	incrementText(this.txtNewElementsInDatabase);
-    	        	incrementText(this.txtTotalElements);
-    			}
-    
-    			logger.info("Importing new relationships ...");
-    	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
-    	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
-    	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
-    	            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
-                    if ( command.getException() != null )
-                        throw command.getException();
-                    command.execute();
-                    if ( command.getException() != null )
-                        throw command.getException();
-    	            this.exportCommands.add(command);
-    	        	incrementText(this.txtNewRelationshipsInDatabase);
-    	        	incrementText(this.txtTotalRelationships);
-    	        }
-    	        
-    	        DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
-    	        resolveRelationshipsCommand.execute();
-                this.exportCommands.add(resolveRelationshipsCommand);
-    	
-    			if ( this.selectedDatabase.isWholeModelExported() ) {
-    			    logger.info("Importing new views ...");
-    			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
-    			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
-    			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
-    			        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
-                        if ( command.getException() != null )
-                            throw command.getException();
-                        command.execute();
-                        if ( command.getException() != null )
-                            throw command.getException();
-    			        this.exportCommands.add(command);
-    			        incrementText(this.txtNewViewsInDatabase);
-    			        incrementText(this.txtTotalViews);
-    			    }
-    
-    				logger.info("Importing new views objects ...");
-    		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
-    		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
-    		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-    		            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-                        if ( command.getException() != null )
-                            throw command.getException();
-                        command.execute();
-                        if ( command.getException() != null )
-                            throw command.getException();
-    		            this.stack.execute(this.exportCommands);
-    		        	incrementText(this.txtNewViewObjectsInDatabase);
-    		        	incrementText(this.txtTotalViewObjects);
-    		        }
-    				
-                    logger.info("Importing new views connections ...");
-                    for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
-                        if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
-                        DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
-                        DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
-                        if ( command.getException() != null )
-                            throw command.getException();
-                        command.execute();
-                        if ( command.getException() != null )
-                            throw command.getException();
-                        this.exportCommands.add(command);
-                        incrementText(this.txtNewViewConnectionsInDatabase);
-                        incrementText(this.txtTotalViewConnections);
-                    }
-                    
-                    DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
-                    resolveConnectionsCommand.execute();
-                    this.exportCommands.add(resolveConnectionsCommand);
-    			}
-    			
-    			logger.info("Checking if components have been moved to new folder ...");
-    			DBSetFolderToLastKnownCommand setFoldercommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
-    			if ( setFoldercommand.getException() != null )
-    			    throw setFoldercommand.getException();
-    			setFoldercommand.execute();
-                if ( setFoldercommand.getException() != null )
-                    throw setFoldercommand.getException();
-    			this.exportCommands.add(setFoldercommand);
+				    if ( command.getException() != null )
+				        throw command.getException();
+                    this.exportCommands.add(command);
+                    incrementText(this.txtNewFoldersInDatabase);
+                    incrementText(this.txtTotalFolders);
+				}
+			}
+	
+			logger.info("Importing new elements ...");
+			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
+			    if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
+			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
+			    DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+                if ( command.getException() != null )
+                    throw command.getException();
+                command.execute();
+                if ( command.getException() != null )
+                    throw command.getException();
+	        	this.exportCommands.add(command);
+	        	incrementText(this.txtNewElementsInDatabase);
+	        	incrementText(this.txtTotalElements);
+			}
+
+			logger.info("Importing new relationships ...");
+	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
+	            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
+	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
+	            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion());
+                if ( command.getException() != null )
+                    throw command.getException();
+                command.execute();
+                if ( command.getException() != null )
+                    throw command.getException();
+	            this.exportCommands.add(command);
+	        	incrementText(this.txtNewRelationshipsInDatabase);
+	        	incrementText(this.txtTotalRelationships);
 	        }
+	        
+	        DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
+	        resolveRelationshipsCommand.execute();
+            this.exportCommands.add(resolveRelationshipsCommand);
+	
+			if ( this.selectedDatabase.isWholeModelExported() ) {
+			    logger.info("Importing new views ...");
+			    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
+			        if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
+			        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
+			        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, false);
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
+			        this.exportCommands.add(command);
+			        incrementText(this.txtNewViewsInDatabase);
+			        incrementText(this.txtTotalViews);
+			    }
+
+				logger.info("Importing new views objects ...");
+		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
+		            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
+		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
+		            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
+		            this.stack.execute(this.exportCommands);
+		        	incrementText(this.txtNewViewObjectsInDatabase);
+		        	incrementText(this.txtTotalViewObjects);
+		        }
+				
+                logger.info("Importing new views connections ...");
+                for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
+                    if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
+                    DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
+                    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false);
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    this.exportCommands.add(command);
+                    incrementText(this.txtNewViewConnectionsInDatabase);
+                    incrementText(this.txtTotalViewConnections);
+                }
+                
+                DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
+                resolveConnectionsCommand.execute();
+                this.exportCommands.add(resolveConnectionsCommand);
+			}
+			
+			logger.info("Checking if components have been moved to new folder ...");
+			DBSetFolderToLastKnownCommand setFoldercommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
+			if ( setFoldercommand.getException() != null )
+			    throw setFoldercommand.getException();
+			setFoldercommand.execute();
+            if ( setFoldercommand.getException() != null )
+                throw setFoldercommand.getException();
+			this.exportCommands.add(setFoldercommand);
                 
 			logger.info("Exporting elements ...");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
@@ -2430,7 +2419,6 @@ public class DBGuiExportModel extends DBGui {
 	private boolean shallWeForceExport() {
 		return this.exportedModel.getInitialVersion().getVersion() == 0
                 || this.exportedModel.getCurrentVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || !this.selectedDatabase.isCollaborativeMode()
                 || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 	}
 

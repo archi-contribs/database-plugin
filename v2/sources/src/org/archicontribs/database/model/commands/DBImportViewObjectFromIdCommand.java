@@ -270,7 +270,6 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             metadata.setHintContent((String)this.newValues.get("hint_content"));
             metadata.setHintTitle((String)this.newValues.get("hint_title"));
             metadata.setLocked(this.newValues.get("is_locked"));
-            metadata.setImagePath((String)this.newValues.get("image_path"));
             metadata.setImagePosition((Integer)this.newValues.get("image_position"));
             metadata.setLineColor((String)this.newValues.get("line_color"));
             metadata.setLineWidth((Integer)this.newValues.get("line_width"));
@@ -313,12 +312,11 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             }
 
             // if the object contains an image
-            String imagePath = (String)this.newValues.get("image_path");
-            if ( imagePath != null ) {
+            if ( this.newImageContent != null ) {
+                String imagePath = (String)this.newValues.get("image_path");
                 IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
                 if ( !archiveMgr.getLoadedImagePaths().contains(imagePath) )
                     archiveMgr.addByteContentEntry(imagePath, this.newImageContent);
-
                 metadata.setImagePath(imagePath);
             }
 

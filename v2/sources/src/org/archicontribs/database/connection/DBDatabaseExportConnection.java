@@ -187,15 +187,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         }
                     }
                 }
-
-                initialVersion = model.getInitialVersion().getVersion();
-                latestDatabaseVersion = model.getDatabaseVersion().getVersion();
-                exportedVersion = model.getCurrentVersion().getVersion();
+                logger.debug("The model already exists in the database:");
             } else {
                 model.getDatabaseVersion().setVersion(0);
 
-                logger.debug("The model does not (yet) exist in the database");
+                logger.debug("The model does not exist in the database");
             }
+
             
             model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion() + 1);
             
@@ -203,7 +201,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             latestDatabaseVersion = model.getDatabaseVersion().getVersion();
             exportedVersion = model.getCurrentVersion().getVersion();
 
-            logger.debug("The model already exists in the database:");
             logger.debug("   - initial version = "+initialVersion);
             logger.debug("   - latest database version = "+latestDatabaseVersion);
             logger.debug("   - exported version = "+exportedVersion);

@@ -38,10 +38,9 @@ public class DBDatabaseEntry {
      * @param exportViewImages : true if screenshots of the views must be exported in the database, false if screenshots are not necessary
      * @param neo4jNativeMode : true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
      * @param neo4jEmptyDB : true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
-     * @param collaborativeMode : true if the export must be done in collaborative mode, or false if the export must be done in standalone mode
      * @throws Exception
      */
-    public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean neo4jEmptyDB, boolean collaborativeMode) throws Exception {
+    public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
         setName(name);
         setDriver(driver);
         setServer(server);
@@ -57,8 +56,6 @@ public class DBDatabaseEntry {
 
         setNeo4jNativeMode(neo4jNativeMode);
         setShouldEmptyNeo4jDB(neo4jEmptyDB);
-        
-        setCollaborativeMode(collaborativeMode);
     }
 
 	/**
@@ -174,11 +171,6 @@ public class DBDatabaseEntry {
 	 * Should we use typed relationships in Neo4j databases
 	 */
 	@Getter @Setter private boolean neo4jTypedRelationship = false;
-	
-	/**
-	 * Are we in collaborative mode
-	 */
-	@Getter @Setter private boolean collaborativeMode = false;
 
 
 	/**
@@ -259,8 +251,6 @@ public class DBDatabaseEntry {
 					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 					databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
 					databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
-					
-					databaseEntry.setCollaborativeMode(store.getBoolean(preferenceName+"_collaborative-mode_"+String.valueOf(line)));
 
 					databaseEntries.add(databaseEntry);
 				} catch (Exception e) {
@@ -300,7 +290,6 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.isNeo4jNativeMode());
 			store.setValue(preferenceName+"_neo4j-empty-database_"+String.valueOf(line), databaseEntry.shouldEmptyNeo4jDB());
 			store.setValue(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line), databaseEntry.isNeo4jTypedRelationship());
-			store.setValue(preferenceName+"_collaborative-mode_"+String.valueOf(line), databaseEntry.isCollaborativeMode());
 		}
 	}
 
