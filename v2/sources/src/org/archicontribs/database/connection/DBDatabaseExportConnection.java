@@ -230,6 +230,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             if ( result.next() ) {
                 // if the component does exist in the database, we set it's databaseVersion
                 metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                metadata.getLatestDatabaseVersion().set(metadata.getDatabaseVersion());
             }
         }
     }
