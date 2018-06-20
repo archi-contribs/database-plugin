@@ -27,7 +27,7 @@ import org.eclipse.gef.commands.Command;
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
-import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -41,7 +41,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
 
 	private IArchimateElement importedElement = null;
-	private IDiagramModelObject createdViewObject = null;
+	private IDiagramModelArchimateObject createdViewObject = null;
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
 	private List<IDBImportFromIdCommand> importRelationshipCommands = new ArrayList<IDBImportFromIdCommand>();
