@@ -128,6 +128,7 @@ public class DBGui {
 	public static final Color WHITE_COLOR = new Color(display, 255, 255, 255);
 	public static final Color GREY_COLOR = new Color(display, 100, 100, 100);
 	public static final Color BLACK_COLOR = new Color(display, 0, 0, 0);
+	public static final Color YELLOW_COLOR = new Color(display, 255, 255, 0);
 	
 	public static final Color COMPO_LEFT_COLOR = new Color(display, 240, 248, 255);			// light blue
 	public static final Color COMPO_BACKGROUND_COLOR = new Color(display, 250, 250, 250);	// light grey
@@ -1021,7 +1022,7 @@ public class DBGui {
 	}
     
     public void setMessage(String message) {
-    	setMessage(message, COMPO_LEFT_COLOR);
+    	setMessage(message, YELLOW_COLOR);
     }
     
     protected void setMessage(String message, Color background) {
