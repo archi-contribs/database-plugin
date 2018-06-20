@@ -260,7 +260,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		model.resetCounters();
 
 		if ( model.getInitialVersion().getVersion() == 0 ) {
-			try ( ResultSet result = select("SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
+			try ( ResultSet result = select("SELECT MAX(version) AS version FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
 				if ( result.next() )
 					model.getInitialVersion().setVersion(result.getInt("version"));
 			}
