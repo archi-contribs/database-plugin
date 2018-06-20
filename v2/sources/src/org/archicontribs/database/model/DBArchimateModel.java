@@ -15,6 +15,7 @@ import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.editor.model.IArchiveManager;
+import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
@@ -288,7 +289,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "SketchModelSticky" :				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelObject)eObject);
 										            
 									                if ( mustCalculateChecksum )
-									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksumBuilder.toString());
+									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 									                
 										            if ( eObject instanceof IDiagramModelContainer ) {
 										                
@@ -308,23 +309,18 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "CanvasModelConnection" :
             case "DiagramModelArchimateConnection":
             case "DiagramModelConnection" :			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
-										            
-									                if ( mustCalculateChecksum )
-									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksumBuilder.toString());
 										            break;
 										
 			case "Folder" :							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
-										            if ( mustCalculateChecksum )
-										            	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
-										
 										            // TODO : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 										            // so we do not use sub folders or elements in the checksum calculation anymore
 										            // at the moment, this is not important as we do not allow to share folders between models
 										            // but a solution needs to be found !!!
 										
 										            for ( IFolder subFolder: ((IFolder)eObject).getFolders() ) {
-										                ((IDBMetadata)subFolder).getDBMetadata().setRootFolderType( ( subFolder.getType().getValue() != 0 ) ? subFolder.getType().getValue() : ((IDBMetadata)eObject).getDBMetadata().getRootFolderType());
+														// we fix the folder type
+														subFolder.setType(FolderType.USER);
 										                countObject(subFolder, mustCalculateChecksum, parentDiagram);
 										                //SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
 										            }
