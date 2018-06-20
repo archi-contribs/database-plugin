@@ -95,7 +95,7 @@ public class DBVersion {
     }
     
     /**
-     * For containers, the checksum calculation must take the content in account 
+     * For containers, the checksum calculation must <b>not</b> take the content in account 
      */
     @Getter private String containerChecksum;
     /**
