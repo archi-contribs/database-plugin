@@ -41,8 +41,8 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
-import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ISketchModel;
@@ -574,7 +574,25 @@ public class DBMenu extends ExtensionContributionFactory {
                 true);
         this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
         
-        if ( component instanceof IDiagramModel ) {
+        label = prefix+"Database status = " + component.getDBMetadata().getDatabaseStatus();
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.showIdCommand",                 // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+        
+        if ( component instanceof IDiagramModelContainer ) {
             label = prefix+"Container:";
             if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
             p = new CommandContributionItemParameter(
@@ -648,6 +666,24 @@ public class DBMenu extends ExtensionContributionFactory {
             this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
             
             label = prefix+"     Latest db = " + component.getDBMetadata().getLatestDatabaseVersion().getContainerChecksum();
+            if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+            p = new CommandContributionItemParameter(
+                    PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                    "org.archicontribs.database.DBMenu",                        // id
+                    "org.archicontribs.database.showIdCommand",                 // commandId
+                    null,                                                       // parameters
+                    menuIcon,                                                   // icon
+                    null,                                                       // disabledIcon
+                    null,                                                       // hoverIcon
+                    label,                                                      // label
+                    null,                                                       // mnemonic
+                    null,                                                       // tooltip 
+                    CommandContributionItem.STYLE_PUSH,                         // style
+                    null,                                                       // helpContextId
+                    true);
+            this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+            
+            label = prefix+"Database status = " + component.getDBMetadata().getDatabaseStatus();
             if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
             p = new CommandContributionItemParameter(
                     PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
