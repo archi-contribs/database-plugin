@@ -195,7 +195,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             }
 
             
-            model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion() + 1);
+            model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion() );
             
             initialVersion = model.getInitialVersion().getVersion();
             latestDatabaseVersion = model.getDatabaseVersion().getVersion();
@@ -686,7 +686,7 @@ private void exportElement(IArchimateConcept element) throws Exception {
     final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "checksum"};
 
     // if the element is exported, the we increase its exportedVersion
-    ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)element).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
@@ -750,7 +750,7 @@ private void exportRelationship(IArchimateConcept relationship) throws Exception
     final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "checksum"};
 
     // if the relationship is exported, the we increase its exportedVersion
-    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
@@ -843,7 +843,7 @@ private void exportFolder(IFolder folder) throws Exception {
     final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "checksum"};
 
     // if the folder is exported, the we increase its exportedVersion
-    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
@@ -895,7 +895,7 @@ private void exportView(IDiagramModel view, DBGui gui) throws Exception {
     final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum", "container_checksum"};
 
     // if the view is exported, the we increase its exportedVersion
-    ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)view).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
@@ -966,7 +966,7 @@ private void exportViewObject(IDiagramModelComponent viewObject) throws Exceptio
     final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
 
     // if the viewObject is exported, the we increase its exportedVersion
-    ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
     
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)viewObject).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
@@ -1045,7 +1045,7 @@ private void exportViewConnection(IDiagramModelConnection viewConnection) throws
     final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
     // if the viewConnection is exported, the we increase its exportedVersion
-    ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion() + 1);
+    ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
     
     if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)viewConnection).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
