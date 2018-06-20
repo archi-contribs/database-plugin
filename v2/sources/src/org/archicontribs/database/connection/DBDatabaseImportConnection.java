@@ -680,12 +680,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				metadata.setArchimateConcept(model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id")));
 				metadata.setReferencedModel(model.getAllViews().get(this.currentResultSetViewsObjects.getString("diagram_ref_id")));
-				metadata.setType(this.currentResultSetViewsObjects.getInt("type"));
+				
 				metadata.setBorderColor(this.currentResultSetViewsObjects.getString("border_color"));
 				metadata.setBorderType(this.currentResultSetViewsObjects.getInt("border_type"));
 				metadata.setContent(this.currentResultSetViewsObjects.getString("content"));
 				metadata.setDocumentation(this.currentResultSetViewsObjects.getString("documentation"));
-				metadata.setName(this.currentResultSetViewsObjects.getString("name"));
 				metadata.setHintContent(this.currentResultSetViewsObjects.getString("hint_content"));
 				metadata.setHintTitle(this.currentResultSetViewsObjects.getString("hint_title"));
 				metadata.setLocked(this.currentResultSetViewsObjects.getObject("is_locked"));
@@ -696,9 +695,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setFillColor(this.currentResultSetViewsObjects.getString("fill_color"));
 				metadata.setFont(this.currentResultSetViewsObjects.getString("font"));
 				metadata.setFontColor(this.currentResultSetViewsObjects.getString("font_color"));
+				metadata.setName(this.currentResultSetViewsObjects.getString("name"));
 				metadata.setNotes(this.currentResultSetViewsObjects.getString("notes"));
 				metadata.setTextAlignment(this.currentResultSetViewsObjects.getInt("text_alignment"));
 				metadata.setTextPosition(this.currentResultSetViewsObjects.getInt("text_position"));
+				metadata.setType(this.currentResultSetViewsObjects.getInt("type"));
 				metadata.setBounds(this.currentResultSetViewsObjects.getInt("x"), this.currentResultSetViewsObjects.getInt("y"), this.currentResultSetViewsObjects.getInt("width"), this.currentResultSetViewsObjects.getInt("height"));
 				
 				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
