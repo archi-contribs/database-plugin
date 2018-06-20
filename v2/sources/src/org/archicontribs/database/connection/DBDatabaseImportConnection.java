@@ -409,6 +409,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				metadata.setName(this.currentResultSetFolders.getString("name"));
 				metadata.setDocumentation(this.currentResultSetFolders.getString("documentation"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+folder.getClass().getSimpleName()+" \""+folder.getName()+"\" version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion());
 
 				String parentId = this.currentResultSetFolders.getString("parent_folder_id");
 
@@ -428,7 +430,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				importProperties(folder);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+folder.getClass().getSimpleName()+" \""+folder.getName()+"\" version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference this folder for future use (storing sub-folders or components into it ...)
 				model.countObject(folder, false, null);
@@ -471,6 +472,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setName(this.currentResultSetElements.getString("name"));
 				metadata.setDocumentation(this.currentResultSetElements.getString("documentation"));
 				metadata.setType(this.currentResultSetElements.getString("type"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+element.getClass().getSimpleName()+" \""+element.getName()+"\" version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion());
 
 				IFolder folder;
 				if ( this.currentResultSetElements.getString("parent_folder_id") == null ) {
@@ -481,8 +484,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				folder.getElements().add(element);
 
 				importProperties(element);
-
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+element.getClass().getSimpleName()+" \""+element.getName()+"\" version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the element for future use (establishing relationships, creating views objects, ...)
 				model.countObject(element, false, null);
@@ -525,6 +526,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setDocumentation(this.currentResultSetRelationships.getString("documentation"));
 				metadata.setStrength(this.currentResultSetRelationships.getString("strength"));
 				metadata.setAccessType(this.currentResultSetRelationships.getInt("access_type"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion());
 
 				IFolder folder;
 				if ( this.currentResultSetRelationships.getString("parent_folder_id") == null ) {
@@ -556,8 +559,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				importProperties(relationship);
-
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion());
 
 				model.countObject(relationship, false, null);
 
@@ -609,12 +610,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setBackground(this.currentResultSetViews.getInt("background"));
 				metadata.setHintContent(this.currentResultSetViews.getString("hint_content"));
 				metadata.setHintTitle(this.currentResultSetViews.getString("hint_title"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+view.getClass().getSimpleName()+" \""+view.getName()+"\" version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
 
 				model.getAllFolders().get(this.currentResultSetViews.getString("parent_folder_id")).getElements().add(view);
 
 				importProperties(view);
-
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+view.getClass().getSimpleName()+" \""+view.getName()+"\" version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the view for future use
 				model.countObject(view, false, null);
@@ -699,6 +700,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setTextAlignment(this.currentResultSetViewsObjects.getInt("text_alignment"));
 				metadata.setTextPosition(this.currentResultSetViewsObjects.getInt("text_position"));
 				metadata.setBounds(this.currentResultSetViewsObjects.getInt("x"), this.currentResultSetViewsObjects.getInt("y"), this.currentResultSetViewsObjects.getInt("width"), this.currentResultSetViewsObjects.getInt("height"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				// The container is either the view, or a container in the view
 				// if the container is not found, we create the object in the view as this is better than an NullPointerException
@@ -712,8 +715,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( eObject instanceof IProperties && this.currentResultSetViewsObjects.getString("element_id")==null ) {
 					importProperties((IProperties)eObject);
 				}
-
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -790,6 +791,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				metadata.setType(this.currentResultSetViewsConnections.getInt("type"));
 				metadata.setTextPosition(this.currentResultSetViewsConnections.getInt("text_position"));
 				metadata.setArchimateConcept(model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id")));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				if ( eObject instanceof IDiagramModelConnection ) {
 					IConnectable source = model.getAllViewObjects().get(this.currentResultSetViewsConnections.getString("source_object_id"));
@@ -835,8 +838,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( eObject instanceof IProperties && this.currentResultSetViewsConnections.getString("relationship_id")==null ) {
 					importProperties((IProperties)eObject);
 				}
-
-				if ( logger.isDebugEnabled() ) logger.debug("   imported "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				return true;
 			}
