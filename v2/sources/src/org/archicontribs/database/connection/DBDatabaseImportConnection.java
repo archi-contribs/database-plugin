@@ -49,6 +49,7 @@ import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import lombok.Getter;
@@ -185,7 +186,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
     				}
 				}
 				
-                logger.debug("   Found version "+result.getInt("version")+" of "+result.getString("class"));
+                logger.debug("   Found "+hashResult.get("class")+" \""+hashResult.get("name")+"\" version "+hashResult.get("version"));
 			} else
 				hashResult = new HashMap<String, Object>();
 		} finally {
@@ -397,8 +398,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importFolders(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetFolders != null ) {
 			if ( this.currentResultSetFolders.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing folder");
-
 				IFolder folder = DBArchimateFactory.eINSTANCE.createFolder();
 				DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 
@@ -429,7 +428,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				importProperties(folder);
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)folder).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+folder.getClass().getSimpleName()+" \""+folder.getName()+"\" version "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference this folder for future use (storing sub-folders or components into it ...)
 				model.countObject(folder, false, null);
@@ -460,8 +459,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importElements(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetElements != null ) {
 			if ( this.currentResultSetElements.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing element");
-
 				IArchimateElement element = (IArchimateElement) DBArchimateFactory.eINSTANCE.create(this.currentResultSetElements.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
 
@@ -485,7 +482,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(element);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)element).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+element.getClass().getSimpleName()+" \""+element.getName()+"\" version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the element for future use (establishing relationships, creating views objects, ...)
 				model.countObject(element, false, null);
@@ -515,8 +512,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importRelationships(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetRelationships != null ) {
 			if ( this.currentResultSetRelationships.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing relationship");
-
 				IArchimateRelationship relationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create(this.currentResultSetRelationships.getString("class"));
 				DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
 
@@ -562,7 +557,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(relationship);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion());
 
 				model.countObject(relationship, false, null);
 
@@ -592,8 +587,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViews(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetViews != null ) {
 			if ( this.currentResultSetViews.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing view");
-
 				IDiagramModel view;
 				if ( DBPlugin.areEqual(this.currentResultSetViews.getString("class"), "CanvasModel") )
 					view = (IDiagramModel) DBCanvasFactory.eINSTANCE.create(this.currentResultSetViews.getString("class"));
@@ -621,7 +614,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(view);
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)view).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+view.getClass().getSimpleName()+" \""+view.getName()+"\" version "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the view for future use
 				model.countObject(view, false, null);
@@ -655,8 +648,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
 		if ( this.currentResultSetViewsObjects != null ) {
 			if ( this.currentResultSetViewsObjects.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing view object");
-
 				EObject eObject;
 
 				if ( this.currentResultSetViewsObjects.getString("class").startsWith("Canvas") )
@@ -722,7 +713,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				// we reference the view for future use
 				model.countObject(eObject, false, null);
@@ -761,8 +752,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetViewsConnections != null ) {
 			if ( this.currentResultSetViewsConnections.next() ) {
-				if ( logger.isDebugEnabled() ) logger.debug("   importing view connection");
-
 				EObject eObject;
 
 				if ( this.currentResultSetViewsConnections.getString("class").startsWith("Canvas") )
@@ -847,7 +836,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					importProperties((IProperties)eObject);
 				}
 
-				if ( logger.isDebugEnabled() ) logger.debug("   imported version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion()+" of "+((IDBMetadata)eObject).getDBMetadata().getDebugName());
+				if ( logger.isDebugEnabled() ) logger.debug("   imported "+eObject.getClass().getSimpleName()+" \""+((INameable)eObject).getName()+"\" version "+((IDBMetadata)eObject).getDBMetadata().getInitialVersion().getVersion());
 
 				return true;
 			}
@@ -870,9 +859,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 					if ( logger.isDebugEnabled() ) {
 						if ( (imageContent.length/1024)/2014 > 1 )
-							logger.debug( "Importing "+path+" with "+(imageContent.length/1024)/1024+" Mo of data");
+							logger.debug( "Importing "+path+" ("+(imageContent.length/1024)/1024+" Mo)");
 						else
-							logger.debug( "Importing "+path+" with "+imageContent.length/1024+" Ko of data");
+							logger.debug( "Importing "+path+" ("+imageContent.length/1024+" Ko)");
 					}
 					imagePath = archiveMgr.addByteContentEntry(path, imageContent);
 
