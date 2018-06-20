@@ -126,10 +126,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         String modelId = model.getId();
 
-        int initialVersion;
-        int latestDatabaseVersion;
-        int exportedVersion;
-
         // we reset all the versions
         Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
@@ -196,14 +192,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
             
             model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion() );
-            
-            initialVersion = model.getInitialVersion().getVersion();
-            latestDatabaseVersion = model.getDatabaseVersion().getVersion();
-            exportedVersion = model.getCurrentVersion().getVersion();
 
-            logger.debug("   - initial version = "+initialVersion);
-            logger.debug("   - latest database version = "+latestDatabaseVersion);
-            logger.debug("   - exported version = "+exportedVersion);
+            if ( logger.isDebugEnabled() ) {
+	            logger.debug("   Initial version = "+model.getInitialVersion().getVersion());
+	            logger.debug("   Current version = "+model.getCurrentVersion().getVersion());
+	            logger.debug("   Database version = "+model.getDatabaseVersion().getVersion());
+            }
         }
     }
     
