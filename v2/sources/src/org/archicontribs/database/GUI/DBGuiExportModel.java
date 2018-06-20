@@ -2455,9 +2455,7 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	private boolean shallWeForceExport() {
-		return this.exportedModel.getInitialVersion().getVersion() == 0
-                || this.exportedModel.getCurrentVersion().getVersion() == this.exportedModel.getInitialVersion().getVersion()
-                || DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		return DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 	}
 
 	Button btnDoNotExport;
