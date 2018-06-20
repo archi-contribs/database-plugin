@@ -107,8 +107,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		else if ( component instanceof IArchimateRelationship ) clazz = "IArchimateRelationship";
 		else if ( component instanceof IFolder ) clazz = "IFolder";
 		else if ( component instanceof IDiagramModel ) clazz = "IDiagramModel";
-		else if ( component instanceof IDiagramModelObject	 ) clazz = "IDiagramModelObject";
-		else if ( component instanceof IDiagramModelConnection	 ) clazz = "IDiagramModelConnection";
+		else if ( component instanceof IDiagramModelObject ) clazz = "IDiagramModelObject";
+		else if ( component instanceof IDiagramModelConnection ) clazz = "IDiagramModelConnection";
 		else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
 		return getObject(id, clazz, version);

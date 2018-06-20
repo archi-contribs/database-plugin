@@ -99,7 +99,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IDiagramModelArchimateConnection", version);
+			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
 			
             // if the object references a relationship that is not referenced in the model, then we import it
             if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.newValues.get("relationship_id")) == null) ) {

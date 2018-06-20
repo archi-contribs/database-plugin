@@ -115,7 +115,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
         try {
             // we get the new values from the database to allow execute and redo
-            this.newValues = importConnection.getObject(id, "IDiagramModelArchimateObject", version);
+            this.newValues = importConnection.getObject(id, "IDiagramModelObject", version);
 
             // if the object contains an image
             if ( this.newValues.get("image_path") != null ) {
