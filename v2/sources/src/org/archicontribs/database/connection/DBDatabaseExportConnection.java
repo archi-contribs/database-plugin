@@ -206,6 +206,33 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             logger.debug("   - exported version = "+exportedVersion);
         }
     }
+    
+    /**
+     * Gets the version and checksum of an individual component from the database and fills its DBMetadata.<br>
+     * <br>
+     * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.<br>
+     * 
+     */
+    public void getVersionFromDatabase(IIdentifier component) throws Exception {
+        assert (component != null);
+        String tableName;
+
+        if ( component instanceof IArchimateElement ) tableName = getSchema()+"elements";
+        else if ( component instanceof IArchimateRelationship ) tableName = getSchema()+"relationships";
+        else if ( component instanceof IFolder ) tableName = getSchema()+"folders";
+        else if ( component instanceof IDiagramModel ) tableName = getSchema()+"views";
+        else if ( component instanceof IDiagramModelObject  ) tableName = getSchema()+"views_objects";
+        else if ( component instanceof IDiagramModelConnection  ) tableName = getSchema()+"views_connections";
+        else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+        
+        try ( ResultSet result = select("SELECT version, checksum, created_on FROM "+tableName+" WHERE id = ? AND version = (SELECT MAX(version) FROM "+tableName+" WHERE id = ?)", component.getId(), component.getId()) ) {
+            DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
+            if ( result.next() ) {
+                // if the component does exist in the database, we set it's databaseVersion
+                metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+            }
+        }
+    }
 
     /**
      * Gets the versions and checksum of one model's components from the database and fills their DBMetadata.<br>
@@ -213,7 +240,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * Components that are not in the current model are set in elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel.<br>
      * <br>
      * This method is meant to be called during the export process, before the export of the components as it sets the DBVersion variables used during the export process.
-     * @throws SQLException
      */
     public void getVersionsFromDatabase(DBArchimateModel model) throws SQLException, RuntimeException {
         // This method can retrieve versions only if the database contains the whole model tables
@@ -275,22 +301,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
                 if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
                     // if the component is part of the model, we compare with the model's version
-                    if ( result.getInt("model_version") == initialVersion ) {
-                        currentComponent.getInitialVersion().setVersion(result.getInt("version"));
-                        currentComponent.getInitialVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                    } else if ( result.getInt("model_version") == latestDatabaseVersion ) {
-                        currentComponent.getDatabaseVersion().setVersion(result.getInt("version"));
-                        currentComponent.getDatabaseVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-                    }
+                    if ( result.getInt("model_version") == initialVersion )
+                        currentComponent.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                    else if ( result.getInt("model_version") == latestDatabaseVersion )
+                        currentComponent.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
                 }
 
                 // components are sorted by version (so also by timestamp) so the latest found is the latest in time
-                currentComponent.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-                currentComponent.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-                currentComponent.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-
+                currentComponent.getLatestDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
 
                 currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
             }
@@ -327,24 +345,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
                 if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
                     // if the component is part of the model, we compare with the model's version
-                    if ( result.getInt("model_version") == initialVersion ) {
-                        currentComponent.getInitialVersion().setVersion(result.getInt("version"));
-                        currentComponent.getInitialVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                    } else if ( result.getInt("model_version") == latestDatabaseVersion ) {
-                        currentComponent.getDatabaseVersion().setVersion(result.getInt("version"));
-                        currentComponent.getDatabaseVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-                    }
+                    if ( result.getInt("model_version") == initialVersion )
+                        currentComponent.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                    else if ( result.getInt("model_version") == latestDatabaseVersion )
+                        currentComponent.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
                 }
 
                 // components are sorted by version (so also by timestamp) so the latest found is the latest in time
-                currentComponent.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-                currentComponent.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-                currentComponent.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+                currentComponent.getLatestDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
 
-
-                currentComponent.getCurrentVersion().setVersion(result.getInt("version"));	            	}
+                currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
+            }
         }
 
         // folders
@@ -378,21 +389,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
                 if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
                     // if the component is part of the model, we compare with the model's version
-                    if ( result.getInt("model_version") == initialVersion ) {
-                        currentComponent.getInitialVersion().setVersion(result.getInt("version"));
-                        currentComponent.getInitialVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                    } else if ( result.getInt("model_version") == latestDatabaseVersion ) {
-                        currentComponent.getDatabaseVersion().setVersion(result.getInt("version"));
-                        currentComponent.getDatabaseVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-                    }
+                    if ( result.getInt("model_version") == initialVersion )
+                        currentComponent.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                    else if ( result.getInt("model_version") == latestDatabaseVersion )
+                        currentComponent.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
                 }
 
                 // components are sorted by version (so also by timestamp) so the latest found is the latest in time
-                currentComponent.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-                currentComponent.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-                currentComponent.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+                currentComponent.getLatestDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
 
                 currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
             }
@@ -425,27 +429,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     currentComponent = new DBMetadata(null);
                     this.viewsNotInModel.put(result.getString("id"), currentComponent);
                 }
-
+                
                 if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
                     // if the component is part of the model, we compare with the model's version
-                    if ( result.getInt("model_version") == initialVersion ) {
-                        currentComponent.getInitialVersion().setVersion(result.getInt("version"));
-                        currentComponent.getInitialVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getInitialVersion().setContainerChecksum(result.getString("container_checksum"));
-                        currentComponent.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
-                    } else if ( result.getInt("model_version") == latestDatabaseVersion ) {
-                        currentComponent.getDatabaseVersion().setVersion(result.getInt("version"));
-                        currentComponent.getDatabaseVersion().setChecksum(result.getString("checksum"));
-                        currentComponent.getDatabaseVersion().setContainerChecksum(result.getString("container_checksum"));
-                        currentComponent.getDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
-                    }
+                    if ( result.getInt("model_version") == initialVersion )
+                        currentComponent.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getString("container_checksum"), result.getTimestamp("created_on"));
+                    else if ( result.getInt("model_version") == latestDatabaseVersion )
+                        currentComponent.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getString("container_checksum"), result.getTimestamp("created_on"));
                 }
 
                 // components are sorted by version (so also by timestamp) so the latest found is the latest in time
-                currentComponent.getLatestDatabaseVersion().setVersion(result.getInt("version"));
-                currentComponent.getLatestDatabaseVersion().setChecksum(result.getString("checksum"));
-                currentComponent.getLatestDatabaseVersion().setContainerChecksum(result.getString("container_checksum"));
-                currentComponent.getLatestDatabaseVersion().setTimestamp(result.getTimestamp("created_on"));
+                currentComponent.getLatestDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getString("container_checksum"), result.getTimestamp("created_on"));
 
                 currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
             }

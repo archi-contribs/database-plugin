@@ -27,6 +27,7 @@ import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.DBMetadata.CONFLICT_CHOICE;
+import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
@@ -889,7 +890,12 @@ public class DBGuiExportModel extends DBGui {
         this.btnCompareModelToDatabase.addSelectionListener(new SelectionListener() {
             @Override public void widgetSelected(SelectionEvent e) {
                 setMessage("Comparing model from the database...");
-            	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
+            	boolean upToDate = false;
+            	try {
+            	    upToDate = DBGuiExportModel.this.compareModelToDatabase();
+            	} catch (Exception err) {
+            	    popup(Level.ERROR, "Failed to compare the model to the database.", err);
+            	}
             	closeMessage();
             	if ( upToDate ) {
             		popup(Level.INFO, "Your database is already up to date.");
@@ -1009,11 +1015,16 @@ public class DBGuiExportModel extends DBGui {
 		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
             setMessage("Comparing model from the database...");
-        	boolean upToDate = DBGuiExportModel.this.compareModelToDatabase();
-        	closeMessage();
-        	if ( upToDate ) {
-        		popup(Level.INFO, "Your database is already up to date.");
-        		this.btnClose.setText("Close");
+            boolean upToDate = false;
+            try {
+                upToDate = DBGuiExportModel.this.compareModelToDatabase();
+            } catch (Exception err) {
+                popup(Level.ERROR, "Failed to compare the model to the database.", err);
+            }
+            closeMessage();
+            if ( upToDate ) {
+                popup(Level.INFO, "Your database is already up to date.");
+                DBGuiExportModel.this.btnClose.setText("Close");
         	}
         } else {
             if ( logger.isDebugEnabled() ) logger.debug("Enabling the \"Export\" button.");
@@ -1107,7 +1118,7 @@ public class DBGuiExportModel extends DBGui {
 	 * 
 	 * @return true is the database is up to date, false if the model needs to be exported
 	 */
-	protected boolean compareModelToDatabase() {
+	protected boolean compareModelToDatabase() throws Exception {
 		// We do not verify the content of neo4j database, we just export the components
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			return true;
@@ -1146,6 +1157,10 @@ public class DBGuiExportModel extends DBGui {
         while (ite.hasNext()) {
             IArchimateElement element = ite.next().getValue();
             DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(element);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1199,7 +1214,12 @@ public class DBGuiExportModel extends DBGui {
         nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
+            IArchimateRelationship relationship = itr.next().getValue();
+            DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(relationship);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1252,8 +1272,12 @@ public class DBGuiExportModel extends DBGui {
         nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
-            IFolder tmp = itf.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)tmp).getDBMetadata();
+            IFolder folder = itf.next().getValue();
+            DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(folder);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1306,7 +1330,12 @@ public class DBGuiExportModel extends DBGui {
         nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
+            IDiagramModel view = itv.next().getValue();
+            DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(view);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1361,6 +1390,10 @@ public class DBGuiExportModel extends DBGui {
         while (ito.hasNext()) {
         	IDiagramModelObject imo = ito.next().getValue();
             DBMetadata metadata = ((IDBMetadata)imo).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(imo);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1413,7 +1446,12 @@ public class DBGuiExportModel extends DBGui {
         nbDeletedInDb = 0;
         Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
         while (itc.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
+            IDiagramModelConnection imc = itc.next().getValue();
+            DBMetadata metadata = ((IDBMetadata)imc).getDBMetadata();
+            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
+                // if the component is new in the model, we check if it already exist in other models in the database
+                this.exportConnection.getVersionFromDatabase(imc);
+            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
