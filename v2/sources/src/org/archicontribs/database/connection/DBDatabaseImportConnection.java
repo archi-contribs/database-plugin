@@ -151,8 +151,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 
 			if ( result.next() ) {
-			    logger.debug("   Found version "+result.getInt("version")+" of "+result.getString("class"));
-			    
 				version = result.getInt("version");
 
 				hashResult = resultSetToHashMap(result);
@@ -168,24 +166,26 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 
 				// bendpoints
-				try ( ResultSet resultCountBendpoints = select("SELECT count(*) as count_bendpoints FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version) ) {
-					int countBendpoints = 0;
-					if ( result.next() ) 
-						countBendpoints = resultCountBendpoints.getInt("count_bendpoints");
-					
-					if ( countBendpoints != 0 ) {
-						try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
-							Integer[][] databaseBendpoints = new Integer[countBendpoints][4];
-							int j = 0;
-							while ( result.next() ) {
-								databaseBendpoints[j++] = new Integer[] { resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y") };
-							}
-							hashResult.put("bendpoints", databaseBendpoints);
-						}
-					}
+				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
+    				try ( ResultSet resultCountBendpoints = select("SELECT count(*) as count_bendpoints FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version) ) {
+    					int countBendpoints = 0;
+    					if ( result.next() ) 
+    						countBendpoints = resultCountBendpoints.getInt("count_bendpoints");
+    					
+    					if ( countBendpoints != 0 ) {
+    						try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
+    							Integer[][] databaseBendpoints = new Integer[countBendpoints][4];
+    							int j = 0;
+    							while ( result.next() ) {
+    								databaseBendpoints[j++] = new Integer[] { resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y") };
+    							}
+    							hashResult.put("bendpoints", databaseBendpoints);
+    						}
+    					}
+    				}
 				}
-
-
+				
+                logger.debug("   Found version "+result.getInt("version")+" of "+result.getString("class"));
 			} else
 				hashResult = new HashMap<String, Object>();
 		} finally {

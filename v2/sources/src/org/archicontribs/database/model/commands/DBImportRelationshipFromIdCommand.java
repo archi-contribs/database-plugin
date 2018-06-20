@@ -98,12 +98,11 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 		this.id = id;
 		this.mustCreateCopy = mustCreateCopy;
 
-		if ( logger.isDebugEnabled() ) {
-			if ( this.mustCreateCopy )
-				logger.debug("   Importing a copy of relationship id "+this.id+".");
-			else
-				logger.debug("   Importing relationship id "+this.id+".");
-		}
+        if ( logger.isDebugEnabled() ) {
+            String copyOf = this.mustCreateCopy ? " a copy of" : "";
+            String intoView = (view != null) ? " into view "+view.getId() : "";  
+            logger.debug("   Importing"+copyOf+" relationship id "+this.id+intoView+".");
+        }
 
 		try {
 			// we get the new values from the database to allow execute and redo

@@ -224,13 +224,23 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         else if ( component instanceof IDiagramModelObject  ) tableName = getSchema()+"views_objects";
         else if ( component instanceof IDiagramModelConnection  ) tableName = getSchema()+"views_connections";
         else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+
+        DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
+        boolean isLatest = true;
         
-        try ( ResultSet result = select("SELECT version, checksum, created_on FROM "+tableName+" WHERE id = ? AND version = (SELECT MAX(version) FROM "+tableName+" WHERE id = ?)", component.getId(), component.getId()) ) {
-            DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
-            if ( result.next() ) {
-                // if the component does exist in the database, we set it's databaseVersion
-                metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
-                metadata.getLatestDatabaseVersion().set(metadata.getDatabaseVersion());
+        try ( ResultSet result = select("SELECT version, checksum, created_on FROM "+tableName+" WHERE id = ? ORDER BY version DESC", component.getId()) ) {
+            while ( result.next() ) {
+                if ( isLatest ) {
+                    metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                    metadata.getLatestDatabaseVersion().set(metadata.getDatabaseVersion());
+                    isLatest = false;
+                }
+                if ( DBPlugin.areEqual(result.getString("checksum"), metadata.getCurrentVersion().getChecksum()) ) {
+                    metadata.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+                    metadata.getCurrentVersion().setVersion(result.getInt("version"));
+                    metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
+                    break;
+                }   
             }
         }
     }

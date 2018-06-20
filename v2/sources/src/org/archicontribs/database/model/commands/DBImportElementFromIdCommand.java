@@ -25,8 +25,10 @@ import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
+import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
@@ -100,10 +102,9 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 		this.mustImportRelationships = mustImportRelationships;
 
 		if ( logger.isDebugEnabled() ) {
-			if ( this.mustCreateCopy )
-				logger.debug("   Importing a copy of element id "+this.id+".");
-			else
-				logger.debug("   Importing element id "+this.id+".");
+		    String copyOf = this.mustCreateCopy ? " a copy of" : "";
+		    String intoView = (view != null) ? " into view "+view.getId() : "";  
+			logger.debug("   Importing"+copyOf+" element id "+this.id+intoView+".");
 		}
 
 		try {
@@ -115,17 +116,23 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			if ( this.mustImportRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
 				// We import the relationships that source or target the element
-				try ( ResultSet resultrelationship = importConnection.select("SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
-					while ( resultrelationship.next() && resultrelationship.getString("id") != null ) {
-						// we import only relationships that are not present in the model
-						// TODO: add an option to import the relationship to refresh its properties from the database
-						if ( this.model.getAllRelationships().get(resultrelationship.getString("id")) == null ) {
-							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, resultrelationship.getString("id"), 0, false);
+				try ( ResultSet resultRelationship = importConnection.select("SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
+					while ( resultRelationship.next() ) {
+					    IArchimateRelationship relationship = this.model.getAllRelationships().get(resultRelationship.getString("id"));
+					    IArchimateConcept source = this.model.getAllElements().get(resultRelationship.getString("source_id"));
+					    if ( source == null ) source = this.model.getAllRelationships().get(resultRelationship.getString("source_id"));
+					    IArchimateConcept target = this.model.getAllElements().get(resultRelationship.getString("target_id"));
+					    if ( target == null ) target = this.model.getAllRelationships().get(resultRelationship.getString("target_id"));
+					    
+                        // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
+						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), id) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), id) || target != null) ) {
+							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, resultRelationship.getString("id"), 0, false);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
 							else
 								throw command.getException();
 						}
+                        // TODO: add an option to import the relationship to refresh its properties from the database
 					}
 				}
 			}

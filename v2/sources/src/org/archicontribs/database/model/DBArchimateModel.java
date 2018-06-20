@@ -361,14 +361,35 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         return null;
     }
 
+    /**
+     * register that the source of the relationship the concept with ID = sourceId<br>
+     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveSourceRelationships})<br>
+     * <br>
+     * As all the elements are imported before the relationships, the source of the relationship is another relationship (else, the element would have been existing in the model) 
+     * @param relationship
+     * @param sourceId
+     * @throws Exception
+     */
     public void registerSourceRelationship(IArchimateRelationship relationship, String sourceId) throws Exception {
         if ( sourceId != null && sourceId.length()!=0 ) this.allSourceRelationshipsToResolve.put(relationship, sourceId);
     }
 
+    /**
+     * register that the target of the relationship the concept with ID = sourceId<br>
+     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveTargetRelationships})<br>
+     * <br>
+     * As all the elements are imported before the relationships, the target of the relationship is another relationship (else, the element would have been existing in the model) 
+     * @param relationship
+     * @param sourceId
+     * @throws Exception
+     */
     public void registerTargetRelationship(IArchimateRelationship relationship, String targetId) throws Exception {
         if ( targetId != null && targetId.length()!=0 ) this.allTargetRelationshipsToResolve.put(relationship, targetId);
     }
     
+    /**
+     * resolves the source relationships (see {@link registerSourceRelationship})
+     */
     public void resolveSourceRelationships() {
         logger.info("Resolving source relationships.");
 
@@ -376,13 +397,18 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IArchimateRelationship relationship = entry.getKey();
 
             IArchimateRelationship source = this.getAllRelationships().get(entry.getValue());
-            relationship.setSource(source);
-            source.getSourceRelationships().add(relationship);
+            if ( source != null ) {
+                relationship.setSource(source);
+                source.getSourceRelationships().add(relationship);
+            }
         }
 
         this.allSourceRelationshipsToResolve.clear();
     }
 
+    /**
+     * resolves the target relationships (see {@link registerTargetRelationship})
+     */
     public void resolveTargetRelationships() {
         logger.info("Resolving target relationships.");
 
@@ -390,8 +416,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             IArchimateRelationship relationship = entry.getKey();
 
             IArchimateRelationship target = this.getAllRelationships().get(entry.getValue());
-            relationship.setTarget(target);
-            target.getTargetRelationships().add(relationship);
+            if ( target != null ) {
+                relationship.setTarget(target);
+                target.getTargetRelationships().add(relationship);
+            }
         }
 
         this.allTargetRelationshipsToResolve.clear();
