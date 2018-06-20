@@ -36,16 +36,21 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 		if ( selection instanceof IFolder ) {											// if the user clicked on a folder in the tree
 			model = (DBArchimateModel) ((IFolder)selection).getArchimateModel();
 			folder = (IFolder)selection;
+			
 		} else if ( selection instanceof IArchimateConcept ) {							// if the user clicked on an element or a relationship in the tree
 			model = (DBArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
+			
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
 			model = (DBArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
+			
 		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
 			model = (DBArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
 			view = ((IArchimateDiagramModel)selection);
+			
 	    } else if ( selection instanceof ArchimateDiagramPart ) {                     // if the user clicked on a view background
 	        model = (DBArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
 			view = ((ArchimateDiagramPart)selection).getModel();
+			
 		} else {
 			DBGui.popup(Level.ERROR, "Do not know which component you selected : "+selection.getClass().getSimpleName());
 			return null;
