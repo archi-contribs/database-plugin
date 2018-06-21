@@ -322,9 +322,9 @@ public class DBMetadata  {
     public Integer getType() {
         if ( this.component instanceof IDiagramModelArchimateObject )
             return ((IDiagramModelArchimateObject)this.component).getType();
-        else if ( this.component instanceof IDiagramModelArchimateConnection )
+        if ( this.component instanceof IDiagramModelArchimateConnection )
             return ((IDiagramModelArchimateConnection)this.component).getType();
-        else if ( this.component instanceof IDiagramModelConnection )
+        if ( this.component instanceof IDiagramModelConnection )
             return ((IDiagramModelConnection)this.component).getType();
         return null;
     }
@@ -511,7 +511,7 @@ public class DBMetadata  {
         if ( (imagePath != null) && !DBPlugin.areEqual(((IDiagramModelImageProvider)this.component).getImagePath(), imagePath) ) {
             if ( this.component instanceof IDiagramModelImageProvider )  
                 ((IDiagramModelImageProvider)this.component).setImagePath(imagePath);
-            if ( this.component instanceof IDiagramModel )  
+            else if ( this.component instanceof IDiagramModel )  
                 ((IDiagramModelImage)this.component).setImagePath(imagePath);
         }
     }
@@ -616,12 +616,18 @@ public class DBMetadata  {
     public Integer getTextPosition() {
         if ( this.component instanceof ITextPosition ) 
             return ((ITextPosition)this.component).getTextPosition();
+        if ( this.component instanceof IDiagramModelConnection )
+            return ((IDiagramModelConnection)this.component).getTextPosition();
         return null;
     }
 
     public void setTextPosition(Integer textPosition) {
-        if ( (this.component instanceof ITextPosition) && (textPosition != null) && ((ITextPosition)this.component).getTextPosition() != textPosition.intValue() ) 
-            ((ITextPosition)this.component).setTextPosition(textPosition);
+        if ( textPosition != null  ) {
+            if ( (this.component instanceof ITextPosition) && ((ITextPosition)this.component).getTextPosition() != textPosition.intValue() )
+                ((ITextPosition)this.component).setTextPosition(textPosition);
+            else if ( (this.component instanceof IDiagramModelConnection) && ((IDiagramModelConnection)this.component).getTextPosition() != textPosition.intValue())
+                ((IDiagramModelConnection)this.component).setTextPosition(textPosition);
+        }
     }
 
     // Bounds
