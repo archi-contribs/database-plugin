@@ -13,6 +13,7 @@
 ## Known bugs or points of attention:
 These points need to be addressed before the release of version 2.1:
 
+* When the "import individual component is called from a folder, the component is not created in that folder.   
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
 * The plugins requires quite a bit of memory for its internal work, often leading to increase the JVM size (set Java parameter -Xmx1024 in Archi.ini file)
 
