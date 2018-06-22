@@ -13,7 +13,6 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -28,6 +27,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
@@ -1106,7 +1106,8 @@ public class DBGui {
 	    fillInCompareTable(tree, null, memoryObject, memoryObjectversion);
 	}
 	
-    protected void fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
+    @SuppressWarnings("unchecked")
+	protected void fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
         assert ( memoryObject!=null );
 
         logger.debug("showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
@@ -1203,7 +1204,7 @@ public class DBGui {
 			
 			// we show up the bendpoints only if they both exist
 			if ( databaseObject.containsKey("bendpoints") ) {
-				if ( (((IDiagramModelConnection)memoryObject).getBendpoints().size() != 0) || (((Integer[][])databaseObject.get("bendpoints")).length != 0) ) {
+				if ( (((IDiagramModelConnection)memoryObject).getBendpoints().size() != 0) || (((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size() != 0) ) {
 				    TreeItem bendpointsTreeItem;
 	                if ( treeItem == null )
 	                    bendpointsTreeItem = new TreeItem(tree, SWT.NONE);
@@ -1213,15 +1214,15 @@ public class DBGui {
 				    bendpointsTreeItem.setExpanded(false);
 					// we get a sorted list of component's bendpoints
 					Integer[][] componentBendpoints = new Integer[((IDiagramModelConnection)memoryObject).getBendpoints().size()][4];
-					for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i) {
+					for (int i = 0; i < ((IDiagramModelConnection)memoryObject).getBendpoints().size(); ++i) {
 						componentBendpoints[i] = new Integer[] { ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartY(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndY() };
 					}
-					Arrays.sort(componentBendpoints, this.integerComparator);
+					//Arrays.sort(componentBendpoints, this.integerComparator);www
 			
 					// we get a sorted list of properties from the database
 					Integer[][] databaseBendpoints = (Integer[][])databaseObject.get("bendpoints");
 					if ( databaseBendpoints == null ) databaseBendpoints = new Integer[0][0];			// just because it must not be null
-					Arrays.sort(databaseBendpoints, this.integerComparator);
+					//Arrays.sort(databaseBendpoints, this.integerComparator);
 			
 					int indexComponent = 0;
 					int indexDatabase = 0;
@@ -1274,7 +1275,6 @@ public class DBGui {
 				Collections.sort(componentProperties, this.propertyComparator);
 		
 				// we get a sorted list of properties from the database
-				@SuppressWarnings("unchecked")
 				ArrayList<DBProperty> databaseProperties = (ArrayList<DBProperty>)databaseObject.get("properties");
 				Collections.sort(databaseProperties, this.propertyComparator);
 		
