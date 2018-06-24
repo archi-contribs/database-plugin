@@ -1212,16 +1212,21 @@ public class DBGui {
 	                    bendpointsTreeItem = new TreeItem(treeItem, SWT.NONE);
 				    bendpointsTreeItem.setText("Bendpoints");
 				    bendpointsTreeItem.setExpanded(false);
-					// we get a sorted list of component's bendpoints
+				    
+					// we get a list of component's bendpoints
 					Integer[][] componentBendpoints = new Integer[((IDiagramModelConnection)memoryObject).getBendpoints().size()][4];
 					for (int i = 0; i < ((IDiagramModelConnection)memoryObject).getBendpoints().size(); ++i) {
 						componentBendpoints[i] = new Integer[] { ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartY(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndY() };
 					}
 					//Arrays.sort(componentBendpoints, this.integerComparator);www
 			
-					// we get a sorted list of properties from the database
-					Integer[][] databaseBendpoints = (Integer[][])databaseObject.get("bendpoints");
-					if ( databaseBendpoints == null ) databaseBendpoints = new Integer[0][0];			// just because it must not be null
+					// we get a list of properties from the database
+					Integer[][] databaseBendpoints = new Integer[((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size()][4];
+					int i = 0;
+					for (DBBendpoint bp: (ArrayList<DBBendpoint>)databaseObject.get("bendpoints") ) {
+						componentBendpoints[i] = new Integer[] { bp.getStartX(), bp.getStartY(), bp.getEndX(), bp.getEndY() };
+						++i;
+					}
 					//Arrays.sort(databaseBendpoints, this.integerComparator);
 			
 					int indexComponent = 0;
