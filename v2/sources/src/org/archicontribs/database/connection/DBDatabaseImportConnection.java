@@ -18,6 +18,7 @@ import java.util.List;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -168,22 +169,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				// bendpoints
 				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
-    				try ( ResultSet resultCountBendpoints = select("SELECT count(*) as count_bendpoints FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ?", id, version) ) {
-    					int countBendpoints = 0;
-    					if ( result.next() ) 
-    						countBendpoints = resultCountBendpoints.getInt("count_bendpoints");
-    					
-    					if ( countBendpoints != 0 ) {
-    						try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
-    							Integer[][] databaseBendpoints = new Integer[countBendpoints][4];
-    							int j = 0;
-    							while ( result.next() ) {
-    								databaseBendpoints[j++] = new Integer[] { resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y") };
-    							}
-    							hashResult.put("bendpoints", databaseBendpoints);
-    						}
-    					}
-    				}
+					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<DBBendpoint>();
+					try ( ResultSet resultBendpoints = select("SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
+						while ( result.next() )
+							databaseBendpoints.add(new DBBendpoint(resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y")));
+						hashResult.put("bendpoints", databaseBendpoints);
+					}
 				}
 				
                 logger.debug("   Found "+hashResult.get("class")+" \""+hashResult.get("name")+"\" version "+hashResult.get("version"));
