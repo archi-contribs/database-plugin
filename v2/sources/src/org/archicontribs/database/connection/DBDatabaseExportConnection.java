@@ -261,7 +261,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( modelInitialVersion != 0 ) {
 			String modelId = model.getId();
 			int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
-			int modelCurrentVersion = model.getCurrentVersion().getVersion();
 			
 			// we get the components versions from the database.
 
@@ -443,38 +442,36 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
 				}
 			}
-
-			if ( modelCurrentVersion == 1 ) {
-				// even if the model does not exist in the database, the images can exist in the database
-				// images do not have a version as they cannot be modified. Their path is a checksum and loading a new image creates a new path.
-
-				// at last, we check if all the images in the model are in the database
-				if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
-				for ( String path: model.getAllImagePaths() ) {
-					try ( ResultSet result = select("SELECT path from "+this.schema+"images where path = ?", path) ) {
-						if ( result.next() && result.getObject("path") != null ) {
-							// the image is in the database
-						} else {
-							// the image is not in the database
-							this.imagesNotInDatabase.put(path, new DBMetadata(null));
-						}
+			
+			// we check if the latest version of the model has got images that are not in the model
+			if ( logger.isDebugEnabled() ) logger.debug("Checking missing images from the database");
+			try ( ResultSet result = select ("SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
+					+ "JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
+					+ "JOIN "+this.schema+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
+					+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
+					,model.getId()
+					,model.getDatabaseVersion().getVersion()
+					) ) {
+				while ( result.next() ) {
+					if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
+						this.imagesNotInModel.put(result.getString("image_path"), new DBMetadata(null));
 					}
 				}
-			} else {
-				// we check if the latest version of the model has got images that are not in the model
-				if ( logger.isDebugEnabled() ) logger.debug("Checking missing images from the database");
-				try ( ResultSet result = select ("SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
-						+ "JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
-						+ "JOIN "+this.schema+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
-						+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
-						,model.getId()
-						,model.getDatabaseVersion().getVersion()
-						) ) {
-					while ( result.next() ) {
-						if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
-							this.imagesNotInModel.put(result.getString("image_path"), new DBMetadata(null));
-						}
-					}
+			}
+		}
+
+		// even if the model does not exist in the database, the images can exist in the database
+		// images do not have a version as they cannot be modified. Their path is a checksum and loading a new image creates a new path.
+
+		// at last, we check if all the images in the model are in the database
+		if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
+		for ( String path: model.getAllImagePaths() ) {
+			try ( ResultSet result = select("SELECT path from "+this.schema+"images where path = ?", path) ) {
+				if ( result.next() && result.getObject("path") != null ) {
+					// the image is in the database
+				} else {
+					// the image is not in the database
+					this.imagesNotInDatabase.put(path, new DBMetadata(null));
 				}
 			}
 		}

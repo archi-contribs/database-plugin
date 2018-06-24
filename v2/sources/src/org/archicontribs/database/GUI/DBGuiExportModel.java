@@ -1140,10 +1140,6 @@ public class DBGuiExportModel extends DBGui {
             return false;
         }
         
-	    // we export the components without checking for conflicts in 1 case:
-		//	  - we export to a Neo4j database
-        
-        
         if ( logger.isDebugEnabled() ) logger.debug("Calculating number of new, updated and deleted components (forceExport = "+shallWeForceExport()+").");
         
         int nbNew = 0;
