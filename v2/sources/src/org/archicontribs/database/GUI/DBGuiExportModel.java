@@ -1124,7 +1124,7 @@ public class DBGuiExportModel extends DBGui {
 			return true;
 		
         try {
-            this.exportConnection.getModelVersionsFromDatabase(this.exportedModel);
+            this.exportConnection.getModelVersionFromDatabase(this.exportedModel);
             this.exportConnection.getVersionsFromDatabase(this.exportedModel);
             if ( this.selectedDatabase.isWholeModelExported() ) {
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
