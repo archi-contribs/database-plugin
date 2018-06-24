@@ -21,6 +21,8 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
+import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
+import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
 import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
@@ -1882,11 +1884,8 @@ public class DBGuiImportComponent extends DBGui {
 			}
 			
 			// just in case
-			this.importedModel.resolveSourceRelationships();
-			this.importedModel.resolveTargetRelationships();
-			
-			this.importedModel.resolveSourceConnections();
-			this.importedModel.resolveTargetConnections();
+			commands.add(new DBResolveRelationshipsCommand(this.importedModel));
+			commands.add(new DBResolveConnectionsCommand(this.importedModel));
 		} catch(RuntimeException e) {
 			popup(Level.ERROR, "Couldn't import component.", e);
 		} finally {
