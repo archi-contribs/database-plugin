@@ -113,7 +113,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	@Getter private HashMap<String, DBMetadata> imagesNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> imagesNotInDatabase = new HashMap<String, DBMetadata>();
 
-	public void getModelVersionsFromDatabase(DBArchimateModel model) throws SQLException {
+	public void getModelVersionFromDatabase(DBArchimateModel model) throws SQLException {
 		// we reset the variables
 		this.elementsNotInModel.clear();
 		this.relationshipsNotInModel.clear();
