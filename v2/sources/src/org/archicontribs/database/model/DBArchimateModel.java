@@ -292,17 +292,16 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 									                
 										            if ( eObject instanceof IDiagramModelContainer ) {
-										                
 									                	for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() )
 									                		countObject(child, mustCalculateChecksum, parentDiagram);
-									                	
-											            if ( eObject instanceof IConnectable) {
-											                for ( EObject source: ((IConnectable)eObject).getSourceConnections() )
-											                    countObject(source, mustCalculateChecksum, parentDiagram);
-											                
-											                for ( EObject target: ((IConnectable)eObject).getTargetConnections() )
-											                    countObject(target, mustCalculateChecksum, parentDiagram);
-											            }
+										            }
+										            
+										            if ( eObject instanceof IConnectable) {
+										                for ( EObject source: ((IConnectable)eObject).getSourceConnections() )
+										                    countObject(source, mustCalculateChecksum, parentDiagram);
+										                
+										                for ( EObject target: ((IConnectable)eObject).getTargetConnections() )
+										                    countObject(target, mustCalculateChecksum, parentDiagram);
 										            }
 										            break;
 
