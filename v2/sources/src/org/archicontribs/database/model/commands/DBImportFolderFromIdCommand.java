@@ -98,7 +98,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IFolder", version);
 
-			if ( folder != null )
+			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == (int)this.newValues.get("root_type")) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IFolder", this.id);

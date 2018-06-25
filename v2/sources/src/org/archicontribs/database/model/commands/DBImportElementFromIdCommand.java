@@ -112,7 +112,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IArchimateElement", version);
 
-			if ( folder != null )
+			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);

@@ -109,7 +109,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
 
-			if ( folder != null )
+			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
