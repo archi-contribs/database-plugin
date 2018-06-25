@@ -13,7 +13,6 @@
 ## Known bugs or points of attention:
 These points need to be addressed before the release of version 2.1:
 
-* When the "import individual component is called from a folder, the component is not created in that folder.   
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
 * The plugins requires quite a bit of memory for its internal work, often leading to increase the JVM size (set Java parameter -Xmx1024 in Archi.ini file)
 
@@ -32,14 +31,13 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * Add support for new database brands (DB2, Sybase, MongoDB, and more generally ODBC)
   * Allow to update a model from the database without exporting our own changes
   * Create a window that provide detailed statistics about the model and its content
-  * Add an option to duplicate a model
+  * Add an option to duplicate a model (change model's ID, change all components IDs)
   * Add an option to merge models
 * ''For the "import individual component":''
   * Allow to recursively import elements that have got relations with the imported element
 * for the "component history":
   * Allow to export individual component to the database
   * Allow to update a component from the database without exporting our own changes
-  * Allow to get history for folders and views
 
 ## Changes from the version 2.0.7b:
 * *Import Model*
@@ -51,6 +49,9 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * The import can now be undone / redone
   * A label now explains that the icons can be selected on the import element window
   * The categories can now be clicked to select/un-select the whole category
+  * It is now possible to get history from folders and views
+  * The components are now imported in the selected folder
+  * The class of the selected folder is pre-selected
 * *Export model:*
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
   * In case of exception, the database lock is released before the error message is displayed
