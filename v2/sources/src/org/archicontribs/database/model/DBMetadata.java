@@ -382,6 +382,96 @@ public class DBMetadata  {
         }
         return null;
     }
+    
+    // defaultFolderType
+    public static int getDefaultFolderType(String clazz) {
+    	switch ( clazz ) {
+	        case "capability":
+	        case "courseOfAction":
+	    	case "resource":
+	        	return FolderType.STRATEGY_VALUE;
+	        	
+	        case "product":
+	        case "businessActor":
+	        case "businessRole":
+	        case "businessCollaboration":
+	        case "businessInterface":
+	        case "businessProcess":
+	        case "businessFunction":
+	        case "businessInteraction":
+	        case "businessEvent":
+	        case "businessService":
+	        case "businessObject":
+	        case "contract":
+	        case "representation":
+	        	return FolderType.BUSINESS_VALUE;
+
+	        case "applicationComponentLabel":
+	        case "applicationCollaboration":
+	        case "applicationInterface":
+	        case "applicationFunction":
+	        case "applicationInteraction":
+	        case "applicationEvent":
+	        case "applicationService":
+	        case "applicationProcess":
+	        case "dataObject":
+	        	return FolderType.APPLICATION_VALUE;
+
+	        case "artifact":
+	        case "technologyFunction":
+	        case "technologyProcess":
+	        case "technologyInteraction":
+	        case "technologyEvent":
+	        case "technologyService":
+	        case "technologyCollaboration":
+	        case "technologyInterface":
+	        case "node":
+	        case "device":
+	        case "systemSoftware":
+	        case "path":
+	        case "communicationNetwork":
+	        	
+	        case "material":
+	        case "equipment":
+	        case "facility":
+	        case "distributionNetwork":
+	        case "workpackage":
+	        case "deliverable":
+	        case "implementationEvent":
+	        case "plateau":
+	        case "gap":
+	        	return FolderType.TECHNOLOGY_VALUE;
+	        	
+	        	
+
+	        case "stakeholder":
+	        case "driver":
+	        case "assessment":
+	        case "goal":
+	        case "outcome":
+	        case "principle":
+	        case "requirement":
+	        case "constaint":
+	        case "smeaning":
+	        case "value":
+	        	return FolderType.MOTIVATION_VALUE;
+
+	        case "grouping":
+	        case "location":
+	        case "junction":
+	        	return FolderType.OTHER_VALUE;
+	        
+	        case "ArchimateDiagramModel":
+	        case "CanvasModel":
+	        case "SketchModel":
+	        	return FolderType.DIAGRAMS_VALUE;
+	        	
+	        default:
+	        	if ( clazz.endsWith("Relationship") )
+	        		return FolderType.RELATIONS_VALUE;
+	        	return 0;
+    	}
+    }
 
     // BorderColor
     public String getBorderColor() {
