@@ -267,8 +267,12 @@ public class DBGuiImportComponent extends DBGui {
                     break;
 
                 case FolderType.DIAGRAMS_VALUE:
-                    this.radioOptionElement.setSelection(false);
-                    this.radioOptionView.setSelection(true);
+                    if ( view == null ) {
+                        // if no view is selected, then we suppose we must import a view in the selected folder
+                        // if a view is selected, we suppose we must import a component into that view (but we cannot guess which one)
+                        this.radioOptionElement.setSelection(false);
+                        this.radioOptionView.setSelection(true);
+                    }
                     break;
 
                 default:
