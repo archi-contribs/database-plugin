@@ -182,11 +182,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      fix centering of GUI windows
  * 									Import individual component:
  * 										Added documentation column to help distinguish components having the same name
- *                                      Added tootip with properties column to help distinguish components having the same name
- * 										Added popup message during the import as it may take some time
+ *                                      Added tooltip with properties to help distinguish components having the same name
+ * 										Added message during the import as it may take some time
  * 										Use commands to allow undo/redo
  *                                      Added a label to explain that the icons can be selected
  *                                      The categories can now be clicked to select/unselect the whole category
+ *                                      The component is imported in the selected folder
+ *                                      The element class is pre-selected depending on the selected folder
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:
@@ -222,9 +224,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * ----------
  *		Import individual component:
  *			allow to import elements recursively
- *			allow to select all the classes of one group in a single click
- *			when the user right clicks on a folder, automatically select the class corresponding to the folder (views, components, ...)
- *          add a popup to explain what to do with the class icons (like: click to select/unselect)
  *		Get component history:
  *			allow to export individual component, or update it from the database, directly from the history window
  *			allow to get the database history
@@ -239,7 +238,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1";
+	public static final String pluginVersion = "2.1 beta 8";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
