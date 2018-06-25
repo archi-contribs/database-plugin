@@ -522,8 +522,6 @@ public class DBGui {
 	public void run() {
 		this.dialog.open();
 		this.dialog.layout();
-		
-		
 	}
 	
 	/**

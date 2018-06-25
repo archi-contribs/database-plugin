@@ -39,21 +39,26 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 			
 		} else if ( selection instanceof IArchimateConcept ) {							// if the user clicked on an element or a relationship in the tree
 			model = (DBArchimateModel) ((IArchimateConcept)selection).getArchimateModel();
+			folder = (IFolder) ((IArchimateConcept)selection).eContainer();
 			
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
 			model = (DBArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
 			
 		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
-			model = (DBArchimateModel)((IArchimateDiagramModel)selection).getArchimateModel();
+			model = (DBArchimateModel) ((IArchimateDiagramModel)selection).getArchimateModel();
 			view = ((IArchimateDiagramModel)selection);
+			folder = (IFolder)view.eContainer();
 			
-	    } else if ( selection instanceof ArchimateDiagramPart ) {                     // if the user clicked on a view background
-	        model = (DBArchimateModel)((ArchimateDiagramPart)selection).getModel().getArchimateModel();
+	    } else if ( selection instanceof ArchimateDiagramPart ) {                       // if the user clicked on a view background
+	        model = (DBArchimateModel) ((ArchimateDiagramPart)selection).getModel().getArchimateModel();
 			view = ((ArchimateDiagramPart)selection).getModel();
 			
+		} else if ( selection instanceof DBArchimateModel ) {                           // if the user clicked on the model
+            model = (DBArchimateModel) selection;
+            
 		} else {
-			DBGui.popup(Level.ERROR, "Do not know which component you selected : "+selection.getClass().getSimpleName());
-			return null;
+			logger.error("We do not know what the user selected ("+selection.getClass().getSimpleName()+")");
+		    return null;                                                                // we do not know what the user selected
 		}
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Importing component in model "+model.getName());
