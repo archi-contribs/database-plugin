@@ -1295,7 +1295,7 @@ public class DBGui {
 					}
 		
 					if ( compare == 0 ) {				// both have got the same property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getKey(), databaseProperties.get(indexDatabase).getValue());
+						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), databaseProperties.get(indexDatabase).getValue());
 						++indexComponent;
 						++indexDatabase;
 					} else if ( compare < 0 ) {			// only the component has got the property
