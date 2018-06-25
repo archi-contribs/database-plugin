@@ -234,7 +234,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         // we also ensure that the root folders are exported first
         for (IFolder folder: getFolders() ) {
-            ((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
+            //((IDBMetadata)folder).getDBMetadata().setRootFolderType(folder.getType().getValue());
             this.allFolders.put(folder.getId(), folder);
         }
 

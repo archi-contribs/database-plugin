@@ -57,7 +57,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	private String oldDocumentation = null;
 	private String oldName = null;
 	private FolderType oldFolderType = null;
-	private Integer oldRootFolderType = null;
+	//private Integer oldRootFolderType = null;
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
 
@@ -70,18 +70,19 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	 * @param version version of the folder to import (0 if the latest version should be imported)
 	 */
 	public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-		this(connection, model, id, version, false);
+		this(connection, model, null, id, version, false);
 	}
 
 	/**
 	 * Imports a folder into the model<br>
 	 * @param connection connection to the database
 	 * @param model model into which the folder will be imported
+	 * @param folder if a folder is provided, the folder will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the folder to import
 	 * @param version version of the folder to import (0 if the latest version should be imported)
 	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the folder should be its original id 
 	 */
-	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
+	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, boolean mustCreateCopy) {
 		this.model = model;
 		this.id = id;
 		this.mustCreateCopy = mustCreateCopy;
@@ -97,7 +98,10 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IFolder", version);
 
-			this.newFolder = importConnection.getLastKnownFolder(this.model, "IFolder", this.id);
+			if ( folder != null )
+			    this.newFolder = folder;
+			else
+			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IFolder", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import folder");
@@ -141,7 +145,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 				this.oldName = metadata.getName();
 				this.oldDocumentation = metadata.getDocumentation();
 				this.oldFolderType = metadata.getFolderType();
-				this.oldRootFolderType = metadata.getRootFolderType();
+				//this.oldRootFolderType = metadata.getRootFolderType();
 
 				this.oldProperties = new ArrayList<DBProperty>();
 				for ( IProperty prop: this.importedFolder.getProperties() ) {
@@ -170,7 +174,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 			metadata.setName((String)this.newValues.get("name"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setFolderType((Integer)this.newValues.get("type"));
-			metadata.setRootFolderType((Integer)this.newValues.get("root_type"));
+			//metadata.setRootFolderType((Integer)this.newValues.get("root_type"));
 
 			this.importedFolder.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
@@ -222,7 +226,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 				metadata.setName(this.oldName);
 				metadata.setDocumentation(this.oldDocumentation);
 				metadata.setFolderType(this.oldFolderType);
-				metadata.setRootFolderType(this.oldRootFolderType);
+				//metadata.setRootFolderType(this.oldRootFolderType);
 
 				metadata.setParentFolder(this.oldFolder);
 

@@ -81,18 +81,19 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	 * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
 	 */
 	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-		this(importConnection, model, null, id, version, false);
+		this(importConnection, model, null, null, id, version, false);
 	}
 
 	/**
 	 * Imports a relationship into the model<br>
 	 * @param model model into which the relationship will be imported
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param folder if a folder is provided, the relationship will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the relationship to import
 	 * @param version version of the relationship to import (0 if the latest version should be imported)
 	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the relationship should be its original id
 	 */
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, String id, int version, boolean mustCreateCopy) {
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, boolean mustCreateCopy) {
 		this.model = model;
 		this.view = view;
 		this.id = id;
@@ -108,7 +109,10 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
 
-			this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
+			if ( folder != null )
+			    this.newFolder = folder;
+			else
+			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import relationship");

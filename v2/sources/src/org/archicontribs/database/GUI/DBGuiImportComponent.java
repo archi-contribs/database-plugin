@@ -163,6 +163,7 @@ public class DBGuiImportComponent extends DBGui {
     ComponentLabel smeaningLabel;
     ComponentLabel valueLabel;
     ComponentLabel productLabel;
+    ComponentLabel groupingLabel;
     ComponentLabel locationLabel;
 
     private Label lblStrategy;
@@ -260,6 +261,9 @@ public class DBGuiImportComponent extends DBGui {
                     // there is no "other" group so no MouseUp listener. The getElements needs to be called manually. 
                     this.locationLabel.setSelected(true);
                     this.locationLabel.redraw();
+                    
+                    this.groupingLabel.setSelected(true);
+                    this.groupingLabel.redraw();
                     break;
 
                 case FolderType.DIAGRAMS_VALUE:
@@ -558,7 +562,7 @@ public class DBGuiImportComponent extends DBGui {
 
         // Containers !!!
         //
-        //createTableItem(tblClasses, "Grouping");
+        this.groupingLabel = new ComponentLabel(otherCompo, "Grouping");
         this.locationLabel = new ComponentLabel(otherCompo, "Location");
 
         this.allElementLabels = new ComponentLabel[]{ this.resourceLabel, this.capabilityLabel, this.courseOfActionLabel, this.applicationComponentLabel, this.applicationCollaborationLabel, this.applicationInterfaceLabel, this.applicationFunctionLabel, this.applicationInteractionLabel, this.applicationEventLabel, this.applicationServiceLabel, this.dataObjectLabel, this.applicationProcessLabel, this.businessActorLabel, this.businessRoleLabel, this.businessCollaborationLabel, this.businessInterfaceLabel, this.businessProcessLabel, this.businessFunctionLabel, this.businessInteractionLabel, this.businessEventLabel, this.businessServiceLabel, this.businessObjectLabel, this.contractLabel, this.representationLabel, this.nodeLabel, this.deviceLabel, this.systemSoftwareLabel, this.technologyCollaborationLabel, this.technologyInterfaceLabel, this.pathLabel, this.communicationNetworkLabel, this.technologyFunctionLabel, this.technologyProcessLabel, this.technologyInteractionLabel, this.technologyEventLabel, this.technologyServiceLabel, this.artifactLabel, this.equipmentLabel, this.facilityLabel, this.distributionNetworkLabel, this.materialLabel, this.workpackageLabel, this.deliverableLabel, this.implementationEventLabel, this.plateauLabel, this.gapLabel, this.stakeholderLabel, this.driverLabel, this.assessmentLabel, this.goalLabel, this.outcomeLabel, this.principleLabel, this.requirementLabel, this.constaintLabel, this.smeaningLabel, this.valueLabel, this.productLabel, this.locationLabel};
@@ -1956,14 +1960,14 @@ public class DBGuiImportComponent extends DBGui {
                 setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 
                 if ( this.compoElements.getVisible() ) {
-                    IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, id, 0, !getOptionValue(), true); 
+                    IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, !getOptionValue(), true); 
                     if ( command.getException() != null )
                         throw command.getException();
                     commands.add((Command)command);
                 }
 
                 else if ( this.compoViews.getVisible() ) {
-                    IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, id, 0, !getOptionValue(), true);
+                    IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, !getOptionValue(), true);
                     if ( command.getException() != null )
                         throw command.getException();
                     commands.add((Command)command);

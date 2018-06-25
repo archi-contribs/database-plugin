@@ -924,7 +924,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                 try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
                         IDiagramModel view;
-                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, result.getString("id"), result.getInt("version"), false, false);
+                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), false, false);
                         if ( command.canExecute() )
                             command.execute();
                         if ( command.getException() != null )

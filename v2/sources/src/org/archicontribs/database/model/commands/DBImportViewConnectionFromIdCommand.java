@@ -103,7 +103,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			
             // if the object references a relationship that is not referenced in the model, then we import it
             if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.newValues.get("relationship_id")) == null) ) {
-                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, (String)this.newValues.get("relationship_id"), 0, mustCreateCopy);
+                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, mustCreateCopy);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
             }

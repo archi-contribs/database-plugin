@@ -78,11 +78,12 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 	 * @param connection connection to the database
 	 * @param model model into which the view will be imported
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param folder if a folder is provided, the view will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the view to import
 	 * @param version version of the view to import (0 if the latest version should be imported)
 	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view should be its original id 
 	 */
-	public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) {
+	public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, boolean mustCreateCopy, boolean mustImportViewContent) {
 		this.model = model;
 		this.id = id;
 		this.mustCreateCopy = mustCreateCopy;
@@ -99,7 +100,10 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IDiagramModel", version);
 
-			this.newFolder = importConnection.getLastKnownFolder(this.model, "IDiagramModel", this.id);
+			if ( folder != null )
+			    this.newFolder = folder;
+			else
+			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IDiagramModel", this.id);
 
 			if ( this.mustImportViewContent ) {
 				// we import the objects and create the corresponding elements if they do not exist yet
