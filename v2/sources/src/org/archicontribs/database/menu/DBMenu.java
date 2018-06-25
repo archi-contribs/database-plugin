@@ -268,6 +268,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showChecksum("", (IDBMetadata)obj);
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory((IFolder)obj);
                                 showImportComponent();
                                 break;
                             default :

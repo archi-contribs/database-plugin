@@ -22,6 +22,7 @@ import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
 public class DBMenuComponentHistoryHandler extends AbstractHandler {
@@ -42,6 +43,8 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
         	component = (ICanvasModel)selection;
         } else if ( selection instanceof ISketchModel ) {									// if the user clicked on a view in the tree
         	component = (ISketchModel)selection;
+        } else if ( selection instanceof IFolder ) {										// if the user clicked on a folder in the tree
+        	component = (IFolder)selection;
         } else {
             DBGui.popup(Level.ERROR, "Do not know which component you selected :(");
             return null;

@@ -34,6 +34,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
 public class DBGuiComponentHistory extends DBGui {
@@ -215,7 +216,9 @@ public class DBGuiComponentHistory extends DBGui {
             tableName = "relationships";
         else if ( this.selectedComponent instanceof IArchimateDiagramModel || this.selectedComponent instanceof ICanvasModel || this.selectedComponent instanceof ISketchModel )
         	tableName = "views";
-    	else {
+        else if ( this.selectedComponent instanceof IFolder )
+        	tableName = "folders";
+        else {
 		    popup(Level.FATAL, "Cannot get history for components of class "+this.selectedComponent.getClass().getSimpleName());
 		    return ;
 		}
