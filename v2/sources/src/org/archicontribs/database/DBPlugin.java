@@ -282,7 +282,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("exportWithDefaultValues", false);
 		preferenceStore.setDefault("checkForUpdateAtStartup", false);
 		preferenceStore.setDefault("closeIfSuccessful",       false);
-		preferenceStore.setDefault("showZeroValues",          true);
+		preferenceStore.setDefault("showZeroValues",          false);
 		preferenceStore.setDefault("compareBeforeExport",     true);
 		preferenceStore.setDefault("deleteIfImportError",     true);
 		preferenceStore.setDefault("importShared",            false);
