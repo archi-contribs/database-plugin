@@ -1762,6 +1762,14 @@ public class DBGuiExportModel extends DBGui {
 			    doExportEObject(relationship);
 			}
 			
+            
+            logger.info("Exporting folders ...");
+            Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
+            while ( foldersIterator.hasNext() ) {
+                IFolder folder = foldersIterator.next().getValue();
+                doExportEObject(folder);
+            }
+			
 			if ( this.selectedDatabase.isWholeModelExported() ) {
                 logger.info("Exporting views ...");
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
@@ -1793,13 +1801,6 @@ public class DBGuiExportModel extends DBGui {
 	        		if ( ((IDBMetadata)viewConnection.getDiagramModel()).getDBMetadata().isHasBeenExported() )
 	        			doExportEObject(viewConnection);
 				}
-				
-                logger.info("Exporting folders ...");
-                Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
-                while ( foldersIterator.hasNext() ) {
-                	IFolder folder = foldersIterator.next().getValue();
-                    doExportEObject(folder);
-                }
 				
 				logger.info("Exporting images ...");
 				// no need to use imagesNotInModel as the requested images have been imported at the same time as their view object
