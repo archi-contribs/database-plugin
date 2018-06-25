@@ -106,6 +106,8 @@ public class DBChecksum {
 		if ( eObject instanceof IDiagramModelNote )					append(checksumBuilder, "border type", ((IDiagramModelNote)eObject).getBorderType());
 		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksumBuilder, "type", ((IDiagramModelArchimateObject)eObject).getType());
 		if ( eObject instanceof IDiagramModelConnection ) {			append(checksumBuilder, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
+		                                                            append(checksumBuilder, "source id", ((IDiagramModelConnection)eObject).getSource().getId());
+		                                                            append(checksumBuilder, "target id", ((IDiagramModelConnection)eObject).getTarget().getId());
 																	append(checksumBuilder, " text position : ", ((IDiagramModelConnection)eObject).getTextPosition());
 																	for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
 																		append(checksumBuilder, "bendpoint start x", point.getStartX());
