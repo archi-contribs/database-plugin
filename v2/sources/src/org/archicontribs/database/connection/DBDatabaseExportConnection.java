@@ -271,9 +271,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"elements"
 							+ " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"elements JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"elements JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ? AND model_version = ?)"
 							+ " ORDER BY id, version, model_version"
 							,modelId
+							,modelDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
@@ -315,9 +316,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"relationships"
 							+ " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"relationships JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"relationships JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ? AND model_version = ?)"
 							+ " ORDER BY id, version, model_version"
 							,modelId
+							,modelDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
@@ -359,9 +361,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"folders"
 							+ " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"folders JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"folders JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ? AND model_version = ?)"
 							+ " ORDER BY id, version, model_version"
 							,modelId
+							,modelDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
@@ -402,9 +405,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"views"
 							+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"views JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"views JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ? AND model_version = ?)"
 							+ " ORDER BY id, version, model_version"
 							,modelId
+							,modelDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
@@ -514,9 +518,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_objects"
 							+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"views_objects JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"views_objects JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ? AND view_version = ?)"
 							+ " ORDER BY id, version, view_version"
 							,viewId
+							,viewDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
@@ -566,9 +571,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_connections"
 							+ " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
-							+ " WHERE id IN (SELECT id FROM "+this.schema+"views_connections JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ?)"
+							+ " WHERE id IN (SELECT id FROM "+this.schema+"views_connections JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ? AND view_version = ?)"
 							+ " ORDER BY id, version, view_version"
 							,viewId
+							,viewDatabaseVersion
 					) ) {
 				String previousId = null;
 				DBMetadata previousComponent = null;
