@@ -1177,30 +1177,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	public boolean exportImage(String path, byte[] image) throws SQLException {
 		// we do not export null images (should never happen, but it sometimes does)
 		if ( image == null ) 
-			return true;
-
-		boolean exported = false;
+			return false;
 
 		try ( ResultSet result = select("SELECT path FROM "+this.schema+"images WHERE path = ?", path) ) {
-
-			if ( result.next() ) {
-				// if the image exists in the database, we update it
-				request("UPDATE "+this.schema+"images SET image = ? WHERE path = ?"
-						,image
-						,path
-						);
-				exported = true;
-			} else {
+			if ( !result.next() ) {
 				// if the image is not yet in the db, we insert it
 				String[] databaseColumns = {"path", "image"};
-				insert(this.schema+"images", databaseColumns
-						,path
-						,image							
-						);
-				exported = true;
+				insert(this.schema+"images", databaseColumns, path, image);
+				return true;
 			}
 		}
-		return exported;
+		return false;
 	}
 
 	public static String getTargetConnectionsString(EList<IDiagramModelConnection> connections) {
