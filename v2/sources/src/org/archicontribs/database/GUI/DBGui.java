@@ -101,6 +101,11 @@ import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
+/**
+ * This class manages the GUI of the plugin.
+ * 
+ * @author Herve Jouin
+ */
 public class DBGui {
 	protected static final DBLogger logger = new DBLogger(DBGui.class);
 	
