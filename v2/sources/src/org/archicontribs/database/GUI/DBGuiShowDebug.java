@@ -22,8 +22,8 @@ import org.eclipse.swt.widgets.TableItem;
 
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
-import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelImage;
 import com.archimatetool.model.IDiagramModelImageProvider;
 
@@ -402,7 +402,7 @@ public class DBGuiShowDebug extends DBGui {
             this.correspondingConceptDebugTable.setVisible(false);
         }
         
-        if ( !(this.selectedObject instanceof IDiagramModelContainer) ) {
+        if ( !(this.selectedObject instanceof IDiagramModel) ) {
             TableColumn column = this.selectedComponentDebugTable.getColumn(2);
             column.setResizable(false);
             column.setWidth(0);
