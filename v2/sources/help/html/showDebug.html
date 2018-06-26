@@ -10,6 +10,62 @@
 <body>
 <h1 style="color: blue; text-decoration: underline;">Debugging information</h1>
 <br>
-The plugin can show detailed information about the selected component.
-
+The plugin can show detailed information any component in the model.
+<br>
+<br>
+This debugging information can be accessed using the context menu (right-click) of the component.
+<br>
+<br>
+<img class="image" src="../img/debugging-information.png">
+<br>
+<br>
+You may choose a database to compare the component to the database content.
+<br>
+The fields provided are:
+<ul>
+   <li><b>Name</b>: the name of the component</li>
+   <li><b>Id</b>: the internal ID of the component</li>
+   <li><b>Class</b>: the class of the component</li>
+   <li><b>Image path</b>: the path of the embedded image (if any)</li>
+   <li><b>Database status</b>: the status of the component regarding the selected database
+   <ul>
+      <li><b>isSynced</b>: The component is sync'ed with the database. It doesn't need to be exported to the database.</li>
+      <li><b>isNewInModel</b>: The component does not exist in the database. It needs to be exported to the database.</li>
+      <li><b>isUpadtedInDatabase</b>: The component has been updated in the database by another person (either in the same model or another one). The model needs to be updated with the new values from the database.</li>
+      <li><b>isUpdatedInModel</b>: The component does exist in the database and has been updated in the model. The new values need to be exported to the database.</li>
+      <li><b>isDeletedInDatabase</b>: The component does exist in the database but the latest version of the model does not includes it anymore. It needs to be deleted from the model.</li>
+      <li><b>isConflicting</b>: The component has been updated both in the database and in the model. The conflict will have to be manually resolved during the next export process.</li>
+   </ul></li>
+</ul>
+<br>
+The array provides the following columns:
+<ul>
+   <li><b>Version</b>: version of the component</li>
+   <li><b>Container checksum</b>: checksum of the component without its content</li>
+   <li><b>Checksum</b>: checksum of the component taking in account its content</li>
+   <li><b>Created on</b>: date when the component has been created in the database</li>
+</ul>
+<br>
+These columns are provided for several states of the component:
+<ul>
+   <li><b>Initial</b>: Version of the component as it was when the model has been imported from or exported to the database.
+   <ul>
+      <li>If null, this means that the component has been created or loaded from an Archimate file.</li>
+      <li>Else, this means that the component has been imported from the database, or already exported to the database.
+   </ul></li>
+   <li><b>Current</b>: Actual version of the component in the model</li>
+   <li><b>Database</b>: Version of the component as it is registered in the latest version of the model in the database
+   <ul>
+      <li>If null, this means that the component is not part of the latest version of the model in the database</li>
+      <li>Else, this means that the component is part of the latest version of the model in the database</li>
+   </ul></li>
+   <li><b>Latest database</b>: Latest version of the component (whichever the model)
+   <ul>
+      <li>If null, then the component does not exist in the database</li>
+      <li>Else, the component does exist in the database.
+      
+   </ul></li>
+</ul>
+<br>
+When the selected component is a graphical object or connection, the corresponding Archimate concept is also shown.
 </body>
