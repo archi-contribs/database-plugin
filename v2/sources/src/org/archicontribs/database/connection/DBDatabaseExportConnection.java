@@ -227,7 +227,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		try ( ResultSet result = select("SELECT version, checksum"+containerChecksum+", created_on FROM "+tableName+" WHERE id = ? ORDER BY version DESC", component.getId()) ) {
 			while ( result.next() ) {
 				if ( isLatest ) {
-					metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+				    if ( component instanceof IDiagramModel )
+				        metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("container_checksum"), result.getString("checksum"), result.getTimestamp("created_on"));
+				    else
+				        metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
 					metadata.getLatestDatabaseVersion().set(metadata.getDatabaseVersion());
 					isLatest = false;
 				}
