@@ -65,9 +65,9 @@
             name="mergeModelsCommand">
       </command>
       <command
-            defaultHandler="org.archicontribs.database.menu.DBMenuShowIdHandler"
-            id="org.archicontribs.database.showIdCommand"
-            name="showIdCommand">
+            defaultHandler="org.archicontribs.database.menu.DBMenuShowDebugHandler"
+            id="org.archicontribs.database.showDebugCommand"
+            name="showDebugCommand">
       </command>
             <command
             defaultHandler="org.archicontribs.database.menu.DBMenuConvertIdsHandler"

@@ -295,7 +295,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            
 									                if ( mustCalculateChecksum ) {
 									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
-									                	this.viewChecksum.append(checksumBuilder.toString());
+									                	if ( this.viewChecksum != null )
+									                	    this.viewChecksum.append(checksumBuilder.toString());
 									                }
 									                
 										            if ( eObject instanceof IDiagramModelContainer ) {
@@ -303,7 +304,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 									                	    String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
 									                	    if ( mustCalculateChecksum ) {
 									                	        checksumBuilder.append(subChecksum);
-									                	        this.viewChecksum.append(subChecksum);
+									                	        if ( this.viewChecksum != null )
+									                	            this.viewChecksum.append(subChecksum);
 									                	    }
 									                	}
 										            }
@@ -311,7 +313,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            if ( eObject instanceof IConnectable) {
 										                for ( EObject source: ((IConnectable)eObject).getSourceConnections() ) {
 										                    String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
-										                    if ( mustCalculateChecksum )
+										                    if ( mustCalculateChecksum && (this.viewChecksum != null) )
 										                        this.viewChecksum.append(subChecksum);
 										                }
 										                
@@ -328,13 +330,13 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "DiagramModelArchimateConnection":
             case "DiagramModelConnection":			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
             
-                                                    if ( mustCalculateChecksum ) {
+                                                    if ( mustCalculateChecksum && (this.viewChecksum != null) ) {
                                                         this.viewChecksum.append(checksumBuilder.toString());
                                                     }
             
                                                     for ( EObject source: ((IDiagramModelConnection)eObject).getSourceConnections() ) {
                                                         String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
-                                                        if ( mustCalculateChecksum )
+                                                        if ( mustCalculateChecksum && (this.viewChecksum != null) )
                                                             this.viewChecksum.append(subChecksum);
                                                     }
             
