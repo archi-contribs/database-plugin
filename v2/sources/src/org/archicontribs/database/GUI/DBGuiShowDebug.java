@@ -7,6 +7,7 @@ package org.archicontribs.database.GUI;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
+import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
@@ -456,21 +457,21 @@ public class DBGuiShowDebug extends DBGui {
             item.setText(1, String.valueOf(model.getInitialVersion().getVersion()));
             item.setText(2, model.getInitialVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getInitialVersion().getTimestamp().toString());
+            item.setText(4, model.getInitialVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getInitialVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Current");
             item.setText(1, String.valueOf(model.getCurrentVersion().getVersion()));
             item.setText(2, model.getCurrentVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getCurrentVersion().getTimestamp().toString());
+            item.setText(4, model.getCurrentVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getCurrentVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Database");
             item.setText(1, String.valueOf(model.getDatabaseVersion().getVersion()));
             item.setText(2, model.getDatabaseVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getDatabaseVersion().getTimestamp().toString());
+            item.setText(4, model.getDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getDatabaseVersion().getTimestamp().toString());
         } else {
             DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
             
@@ -481,28 +482,28 @@ public class DBGuiShowDebug extends DBGui {
             item.setText(1, String.valueOf(metadata.getInitialVersion().getVersion()));
             item.setText(2, metadata.getInitialVersion().getContainerChecksum());
             item.setText(3, metadata.getInitialVersion().getChecksum());
-            item.setText(4, metadata.getInitialVersion().getTimestamp().toString());
+            item.setText(4, metadata.getInitialVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getInitialVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Current");
             item.setText(1, String.valueOf(metadata.getCurrentVersion().getVersion()));
             item.setText(2, metadata.getCurrentVersion().getContainerChecksum());
             item.setText(3, metadata.getCurrentVersion().getChecksum());
-            item.setText(4, metadata.getCurrentVersion().getTimestamp().toString());
+            item.setText(4, metadata.getCurrentVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getCurrentVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Database");
             item.setText(1, String.valueOf(metadata.getDatabaseVersion().getVersion()));
             item.setText(2, metadata.getDatabaseVersion().getContainerChecksum());
             item.setText(3, metadata.getDatabaseVersion().getChecksum());
-            item.setText(4, metadata.getDatabaseVersion().getTimestamp().toString());
+            item.setText(4, metadata.getDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getLatestDatabaseVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Latest database");
             item.setText(1, String.valueOf(metadata.getLatestDatabaseVersion().getVersion()));
             item.setText(2, metadata.getLatestDatabaseVersion().getContainerChecksum());
             item.setText(3, metadata.getLatestDatabaseVersion().getChecksum());
-            item.setText(4, metadata.getLatestDatabaseVersion().getTimestamp().toString());
+            item.setText(4, metadata.getLatestDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getLatestDatabaseVersion().getTimestamp().toString());
             
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
                 IArchimateConcept concept = ((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept();
@@ -515,28 +516,28 @@ public class DBGuiShowDebug extends DBGui {
                 item.setText(1, String.valueOf(metadata.getInitialVersion().getVersion()));
                 item.setText(2, metadata.getInitialVersion().getContainerChecksum());
                 item.setText(3, metadata.getInitialVersion().getChecksum());
-                item.setText(4, metadata.getInitialVersion().getTimestamp().toString());
+                item.setText(4, metadata.getInitialVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getInitialVersion().getTimestamp().toString());
                 
                 item = new TableItem(this.correspondingConceptDebugTable, SWT.NONE);
                 item.setText(0, "Current");
                 item.setText(1, String.valueOf(metadata.getCurrentVersion().getVersion()));
                 item.setText(2, metadata.getCurrentVersion().getContainerChecksum());
                 item.setText(3, metadata.getCurrentVersion().getChecksum());
-                item.setText(4, metadata.getCurrentVersion().getTimestamp().toString());
+                item.setText(4, metadata.getCurrentVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getCurrentVersion().getTimestamp().toString());
                 
                 item = new TableItem(this.correspondingConceptDebugTable, SWT.NONE);
                 item.setText(0, "Database");
                 item.setText(1, String.valueOf(metadata.getDatabaseVersion().getVersion()));
                 item.setText(2, metadata.getDatabaseVersion().getContainerChecksum());
                 item.setText(3, metadata.getDatabaseVersion().getChecksum());
-                item.setText(4, metadata.getDatabaseVersion().getTimestamp().toString());
+                item.setText(4, metadata.getDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getDatabaseVersion().getTimestamp().toString());
                 
                 item = new TableItem(this.correspondingConceptDebugTable, SWT.NONE);
                 item.setText(0, "Latest database");
                 item.setText(1, String.valueOf(metadata.getLatestDatabaseVersion().getVersion()));
                 item.setText(2, metadata.getLatestDatabaseVersion().getContainerChecksum());
                 item.setText(3, metadata.getLatestDatabaseVersion().getChecksum());
-                item.setText(4, metadata.getLatestDatabaseVersion().getTimestamp().toString());
+                item.setText(4, metadata.getLatestDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : metadata.getLatestDatabaseVersion().getTimestamp().toString());
             }
         }
     }
