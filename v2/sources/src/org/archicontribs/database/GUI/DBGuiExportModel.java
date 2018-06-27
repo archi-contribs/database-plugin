@@ -1866,6 +1866,7 @@ public class DBGuiExportModel extends DBGui {
 				for ( String path: this.exportedModel.getAllImagePaths() ) {
 					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
 						incrementText(this.txtNewImagesInModel);
+					increaseProgressBar();
 				}
 				
                 // we register the compoundCommand to the model's stack to allow undo/redo
