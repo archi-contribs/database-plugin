@@ -440,9 +440,23 @@ public class DBGuiShowDebug extends DBGui {
             if ( this.selectedObject instanceof DBArchimateModel )
                 this.connection.getVersionsFromDatabase((DBArchimateModel)this.selectedObject);
             else {
+                DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
+                
+                metadata.getCurrentVersion().setVersion(0);
+                metadata.getInitialVersion().reset();
+                metadata.getDatabaseVersion().reset();
+                metadata.getLatestDatabaseVersion().reset();
                 this.connection.getVersionFromDatabase(this.selectedObject);
-                if ( this.selectedObject instanceof IDiagramModelArchimateComponent )
+                
+                if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
+                    IArchimateConcept concept = ((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept();
+                    metadata = ((IDBMetadata)concept).getDBMetadata();
+                    metadata.getCurrentVersion().setVersion(0);
+                    metadata.getInitialVersion().reset();
+                    metadata.getDatabaseVersion().reset();
+                    metadata.getLatestDatabaseVersion().reset();
                     this.connection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
+                }
             }
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to get information about component from the database.", err);
