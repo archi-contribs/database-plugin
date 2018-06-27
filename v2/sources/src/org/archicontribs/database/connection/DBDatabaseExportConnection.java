@@ -162,6 +162,24 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			metadata.getDatabaseVersion().reset();
 			metadata.getLatestDatabaseVersion().reset();
 		}
+		
+		Iterator<Map.Entry<String, IDiagramModelObject>> ito = model.getAllViewObjects().entrySet().iterator();
+		while (ito.hasNext()) {
+		    DBMetadata metadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
+		    metadata.getCurrentVersion().setVersion(0);
+		    metadata.getInitialVersion().reset();
+		    metadata.getDatabaseVersion().reset();
+		    metadata.getLatestDatabaseVersion().reset();
+		}
+
+		Iterator<Map.Entry<String, IDiagramModelConnection>> itc = model.getAllViewConnections().entrySet().iterator();
+		while (itc.hasNext()) {
+		    DBMetadata metadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
+		    metadata.getCurrentVersion().setVersion(0);
+		    metadata.getInitialVersion().reset();
+		    metadata.getDatabaseVersion().reset();
+		    metadata.getLatestDatabaseVersion().reset();
+		}
 
 		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
 		model.getCurrentVersion().reset();
