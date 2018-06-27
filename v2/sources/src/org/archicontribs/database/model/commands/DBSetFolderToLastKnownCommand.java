@@ -50,7 +50,6 @@ public class DBSetFolderToLastKnownCommand extends Command {
                             this.oldObjectsFolders.put(element, ((IDBMetadata)element).getDBMetadata().getParentFolder());
                             this.newObjectsFolders.put(element, parentFolder);
                         }
-                        //((IDBMetadata)element).getDBMetadata().setParentFolder(parentFolder);
                     }
                 }
             }
@@ -72,7 +71,6 @@ public class DBSetFolderToLastKnownCommand extends Command {
                             this.oldObjectsFolders.put(relationship, ((IDBMetadata)relationship).getDBMetadata().getParentFolder());
                             this.newObjectsFolders.put(relationship, parentFolder);
                         }
-                        //((IDBMetadata)relationship).getDBMetadata().setParentFolder(parentFolder);
                     }
                 }
             }
@@ -94,7 +92,6 @@ public class DBSetFolderToLastKnownCommand extends Command {
                             this.oldObjectsFolders.put(folder, ((IDBMetadata)folder).getDBMetadata().getParentFolder());
                             this.newObjectsFolders.put(folder, parentFolder);
                         }
-                        //((IDBMetadata)folder).getDBMetadata().setParentFolder(parentFolder);
                     }
                 }
             }
@@ -116,7 +113,6 @@ public class DBSetFolderToLastKnownCommand extends Command {
                             this.oldObjectsFolders.put(view, ((IDBMetadata)view).getDBMetadata().getParentFolder());
                             this.newObjectsFolders.put(view, parentFolder);
                         }
-                        //((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
                     }
                 }
             }
@@ -138,6 +134,10 @@ public class DBSetFolderToLastKnownCommand extends Command {
         for (Map.Entry<EObject, IFolder> oldObjectEntry : this.oldObjectsFolders.entrySet()) {
             ((IDBMetadata)oldObjectEntry.getKey()).getDBMetadata().setParentFolder(oldObjectEntry.getValue());
         }
+    }
+    
+    public boolean needsToBeExecuted() {
+        return (this.newObjectsFolders.size() != 0) || (this.oldObjectsFolders.size() != 0);
     }
     
     public Exception getException() {
