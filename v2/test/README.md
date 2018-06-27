@@ -1,5 +1,3 @@
-		
-
 # beta release
 
 |`Please note that this version is for testing purpose. **It must not be used on a production database**`|  |
