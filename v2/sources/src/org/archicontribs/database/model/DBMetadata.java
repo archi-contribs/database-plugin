@@ -217,9 +217,10 @@ public class DBMetadata  {
     }
 
     /**
-     * @return the list of views objects that reference the component
+     * @return the list of views objects or connections that reference the concept
+     * @param view view in which the concept should be searched in
      */
-    public List<IConnectable> componentToConnectable(IArchimateDiagramModel view) {
+    public List<IConnectable> findConnectables(IArchimateDiagramModel view) {
         List<IConnectable> connectables = new ArrayList<IConnectable>();
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {
@@ -231,11 +232,11 @@ public class DBMetadata  {
     }
 
     /**
-     * @return the list of views objects that reference the component
+     * @return the list of views objects or connections that reference the concept
      * @param view view in which the concept should be searched in
      * @param concept Archimate concept to search in the view
      */
-    public List<IConnectable> componentToConnectable(IArchimateDiagramModel view, IArchimateConcept concept) {
+    public List<IConnectable> findConnectables(IArchimateDiagramModel view, IArchimateConcept concept) {
         List<IConnectable> connectables = new ArrayList<IConnectable>();
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {

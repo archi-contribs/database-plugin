@@ -231,7 +231,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			else
 				metadata.setParentFolder(this.newFolder);
 
-			if ( this.view != null && metadata.componentToConnectable(this.view).isEmpty() ) {
+			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
 				this.createdViewObject = ArchimateDiagramModelFactory.createDiagramModelArchimateObject(this.importedElement);
 				this.view.getChildren().add(this.createdViewObject);
 				this.model.countObject(this.createdViewObject, false, null);
