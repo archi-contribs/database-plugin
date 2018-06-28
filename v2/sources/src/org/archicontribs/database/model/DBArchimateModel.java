@@ -16,6 +16,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.FolderType;
+import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
@@ -152,6 +153,31 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      */
     @Getter private Map<IDiagramModelConnection, String> allTargetConnectionsToResolve = new LinkedHashMap<IDiagramModelConnection, String>();
 
+    /**
+     * List all the elements IDs that have been changed during the import process in copy mode
+     */
+    @Getter private Map<String, String> allCopiedElements = new LinkedHashMap<String, String>();
+    
+    /**
+     * List all the relationship IDs that have been changed during the import process in copy mode
+     */
+    @Getter private Map<String, String> allCopiedRelationships = new LinkedHashMap<String, String>();
+    
+    /**
+     * List all the views IDs that have been changed during the import process in copy mode
+     */
+    @Getter private Map<String, String> allCopiedView = new LinkedHashMap<String, String>();
+
+    /**
+     * List all the view objects IDs that have been changed during the import process in copy mode
+     */
+    @Getter private Map<String, String> allCopiedViewObjects = new LinkedHashMap<String, String>();
+    
+    /**
+     * List all the view connections IDs that have been changed during the import process in copy mode
+     */
+    @Getter private Map<String, String> allCopiedViewConnections = new LinkedHashMap<String, String>();
+    
     /**
      * List of all the image paths in the model.
      */
@@ -387,7 +413,98 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         return null;
     }
-
+    
+    /**
+     * register that an element has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedElement(String oldId, String newId) {
+   		this.allCopiedElements.put(oldId, newId);
+    }
+    
+    /**
+     * Get the ID of the copied element
+     * @return the Id of the copied element, or the Id of the element itself if it has not been copied
+     */
+    public String getNewElementId(String oldId) {
+    	return getNewId(this.allCopiedElements,oldId);
+    }
+    
+    /**
+     * register that a relationship has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedRelationship(String oldId, String newId) {
+   		this.allCopiedRelationships.put(oldId, newId);
+    }
+    
+    /**
+     * Get the ID of the copied relationship
+     * @return the Id of the copied relationship, or the Id of the relationship itself if it has not been copied
+     */
+    public String getNewRelationshipId(String oldId) {
+    	return getNewId(this.allCopiedRelationships,oldId);
+    }
+    
+    /**
+     * register that a view has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedView(String oldId, String newId) {
+  		this.allCopiedView.put(oldId, newId);
+    }
+    
+    /**
+     * Get the ID of the copied view object
+     * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
+     */
+    public String getNewViewId(String oldId) {
+    	return getNewId(this.allCopiedView,oldId);
+    }
+    
+    /**
+     * register that a view object has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedViewObject(String oldId, String newId) {
+  		this.allCopiedViewObjects.put(oldId, newId);
+    }
+    
+    /**
+     * Get the ID of the copied view object
+     * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
+     */
+    public String getNewViewObjectId(String oldId) {
+    	return getNewId(this.allCopiedViewObjects,oldId);
+    }
+    
+    /**
+     * register that a view connection has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedViewConnection(String oldId, String newId) {
+   		this.allCopiedViewConnections.put(oldId, newId);
+    }
+    
+    /**
+     * Get the ID of the copied view object
+     * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
+     */
+    public String getNewViewConnectionId(String oldId) {
+    	return getNewId(this.allCopiedViewConnections,oldId);
+    }
+    
+    private static String getNewId(Map<String, String> map, String oldId) {
+    	String newId = map.get(oldId);
+    	
+    	if ( newId == null )
+    		return oldId;
+    	return newId;
+    }
+    
+    /**
+     * register that a view connection has been copied during the import process. So we keep the its old and new ID.
+     */
+    public void registerCopiedConnection(String oldId, String newId) {
+    	if ( (oldId != null) && (oldId.length() != 0)  && (newId != null) && (newId.length() != 0) )
+    		this.allCopiedViewConnections.put(oldId, newId);
+    }
+    
     /**
      * register that the source of the relationship the concept with ID = sourceId<br>
      * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveSourceRelationships})<br>
@@ -398,7 +515,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @throws Exception
      */
     public void registerSourceRelationship(IArchimateRelationship relationship, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) this.allSourceRelationshipsToResolve.put(relationship, sourceId);
+        if ( (sourceId != null) && (sourceId.length() != 0) )
+        	this.allSourceRelationshipsToResolve.put(relationship, sourceId);
     }
 
     /**
@@ -411,80 +529,101 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @throws Exception
      */
     public void registerTargetRelationship(IArchimateRelationship relationship, String targetId) throws Exception {
-        if ( targetId != null && targetId.length()!=0 ) this.allTargetRelationshipsToResolve.put(relationship, targetId);
+        if ( (targetId != null) && (targetId.length() != 0) )
+        	this.allTargetRelationshipsToResolve.put(relationship, targetId);
     }
     
     /**
-     * resolves the source relationships (see {@link registerSourceRelationship})
+     * resolves the source and target relationships (see {@link registerSourceRelationship})
+     * @throws Exception 
      */
-    public void resolveSourceRelationships() {
+    public void resolveSourceAndTargetRelationships() throws Exception {
         logger.info("Resolving source relationships.");
-
         for ( Map.Entry<IArchimateRelationship, String> entry: this.allSourceRelationshipsToResolve.entrySet() ) {
             IArchimateRelationship relationship = entry.getKey();
 
-            IArchimateRelationship source = this.getAllRelationships().get(entry.getValue());
-            if ( source != null ) {
-                relationship.setSource(source);
-                source.getSourceRelationships().add(relationship);
-            }
+            // The source can be either a relationship or an element
+            IArchimateConcept source = this.getAllRelationships().get(getNewRelationshipId(entry.getValue()));
+            if ( source == null )
+                source = this.getAllElements().get(getNewElementId(entry.getValue()));
+        
+            if ( source == null )
+            	throw new Exception("Failed to resolve source relationship for "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
+
+            relationship.setSource(source);
+            source.getSourceRelationships().add(relationship);
+        }
+        
+        logger.info("Resolving target relationships.");
+        for ( Map.Entry<IArchimateRelationship, String> entry: this.allTargetRelationshipsToResolve.entrySet() ) {
+            IArchimateRelationship relationship = entry.getKey();
+            
+            // The target can be either a relationship or an element
+            IArchimateConcept target = this.getAllRelationships().get(getNewRelationshipId(entry.getValue()));
+            if ( target == null )
+                target = this.getAllElements().get(getNewElementId(entry.getValue()));
+        
+            if ( target == null )
+            	throw new Exception("Failed to resolve target relationship for "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
+
+            relationship.setTarget(target);
+            target.getTargetRelationships().add(relationship);
         }
 
         this.allSourceRelationshipsToResolve.clear();
-    }
-
-    /**
-     * resolves the target relationships (see {@link registerTargetRelationship})
-     */
-    public void resolveTargetRelationships() {
-        logger.info("Resolving target relationships.");
-
-        for ( Map.Entry<IArchimateRelationship, String> entry: this.allTargetRelationshipsToResolve.entrySet() ) {
-            IArchimateRelationship relationship = entry.getKey();
-
-            IArchimateRelationship target = this.getAllRelationships().get(entry.getValue());
-            if ( target != null ) {
-                relationship.setTarget(target);
-                target.getTargetRelationships().add(relationship);
-            }
-        }
-
         this.allTargetRelationshipsToResolve.clear();
+        this.allCopiedElements.clear();
+        this.allCopiedRelationships.clear();
     }
+    
+
 
     public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
-        if ( sourceId != null && sourceId.length()!=0 ) this.allSourceConnectionsToResolve.put(connection, sourceId);
+        if ( (sourceId != null) && (sourceId.length() != 0) )
+        	this.allSourceConnectionsToResolve.put(connection, sourceId);
     }
 
     public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
-        if ( targetId != null && targetId.length()!=0 ) this.allTargetConnectionsToResolve.put(connection, targetId);
+        if ( (targetId != null) && (targetId.length() != 0) )
+        	this.allTargetConnectionsToResolve.put(connection, targetId);
     }
 
-    public void resolveSourceConnections() {
+    public void resolveSourceAndTargetConnections() throws Exception {
         logger.info("Resolving source connections.");
-
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsToResolve.entrySet() ) {
             IDiagramModelConnection connection = entry.getKey();
+            
+            // The source can be either a view connection or a view object
+            IConnectable source = this.getAllViewConnections().get(getNewViewConnectionId(entry.getValue()));
+            if ( source == null )
+                source = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
+        
+            if ( source == null )
+            	throw new Exception("Failed to resolve source connection for "+((IDBMetadata)connection).getDBMetadata().getDebugName());
 
-            IConnectable source = this.getAllViewConnections().get(entry.getValue());
             connection.setSource(source);
             source.addConnection(connection);
         }
 
-        this.allSourceConnectionsToResolve.clear();
-    }
-
-    public void resolveTargetConnections() {
         logger.info("Resolving target connections.");
-
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allTargetConnectionsToResolve.entrySet() ) {
             IDiagramModelConnection connection = entry.getKey();
+            
+            // The source can be either a view connection or a view object
+            IConnectable target = this.getAllViewConnections().get(getNewViewConnectionId(entry.getValue()));
+            if ( target == null )
+            	target = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
+        
+            if ( target == null )
+            	throw new Exception("Failed to resolve target connection for "+((IDBMetadata)connection).getDBMetadata().getDebugName());
 
-            IConnectable target = this.getAllViewConnections().get(entry.getValue());
             connection.setSource(target);
             target.addConnection(connection);
         }
 
+        this.allSourceConnectionsToResolve.clear();
         this.allTargetConnectionsToResolve.clear();
+        this.allCopiedViewObjects.clear();
+        this.allCopiedViewConnections.clear();
     }
 }

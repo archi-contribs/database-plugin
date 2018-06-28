@@ -102,7 +102,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
 			
             // if the object references a relationship that is not referenced in the model, then we import it
-            if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.newValues.get("relationship_id")) == null) ) {
+            if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))) == null) ) {
                 this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, mustCreateCopy);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
@@ -191,6 +191,9 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			if ( this.mustCreateCopy ) {
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				this.model.registerCopiedConnection((String)this.newValues.get("id"), metadata.getId());
+				if ( ((String)this.newValues.get("id")).endsWith("c603d0f2a44f") )
+					logger.fatal("**************** importing connection c603d0f2a44f");
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
@@ -203,7 +206,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			if ( this.newValues.get("relationship_id") == null )
 			    metadata.setName((String)this.newValues.get("name"));
 			else
-			    metadata.setArchimateConcept(this.model.getAllRelationships().get(this.newValues.get("relationship_id")));
+			    metadata.setArchimateConcept(this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))));
 			metadata.setLocked(this.newValues.get("is_locked"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setLineColor((String)this.newValues.get("line_color"));
@@ -213,28 +216,32 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			metadata.setType((Integer)this.newValues.get("type"));
 			metadata.setTextPosition((Integer)this.newValues.get("text_position"));
 
-			IConnectable source = this.model.getAllViewObjects().get(this.newValues.get("source_object_id"));
-			if ( source == null ) source = this.model.getAllViewConnections().get(this.newValues.get("source_object_id"));
+			// The source of the view connection can be either a view object or another view connection
+			IConnectable source = this.model.getAllViewObjects().get(this.model.getNewViewObjectId((String)this.newValues.get("source_object_id")));
+			if ( source == null )
+				source = this.model.getAllViewConnections().get(this.model.getNewViewConnectionId((String)this.newValues.get("source_object_id")));
 			if ( source == null ) {
-				// source is another connection and may not be already loaded. So we register it for future resolution
+				// the source does not exist in the model, so we register it for later resolution
 				this.model.registerSourceConnection(this.importedViewConnection, (String)this.newValues.get("source_object_id"));
 			} else {
-				// source is an object and is reputed already imported, so we can set it right away
+				// the source can be resolved right away
 				metadata.setSourceConnection(source);
 			}
 
-			IConnectable target = this.model.getAllViewObjects().get(this.newValues.get("target_object_id"));
-			if ( target == null ) target = this.model.getAllViewConnections().get(this.newValues.get("target_object_id"));
+			// The target of the view connection can be either a view object or another view connection
+			IConnectable target = this.model.getAllViewObjects().get(this.model.getNewViewObjectId((String)this.newValues.get("target_object_id")));
+			if ( target == null )
+				target = this.model.getAllViewConnections().get(this.model.getNewViewConnectionId((String)this.newValues.get("target_object_id")));
 			if ( target == null ) {
-				// target is another connection and may not be already loaded. So we register it for future resolution
+				// the target does not exist in the model, so we register it for later resolution
 				this.model.registerTargetConnection(this.importedViewConnection, (String)this.newValues.get("target_object_id"));
 			} else {
-				// target is an object and is reputed already imported, so we can set it right away
+				// the target can be resolved right away
 				metadata.setTargetConnection(target);
 			}
 
 			// If the connection has got properties but does not have a linked element, then it may have distinct properties
-			if ( metadata.getArchimateConcept() == null ) {
+			if ( this.newValues.get("relationship_id") == null ) {
 	            this.importedViewConnection.getProperties().clear();
 	            if ( this.newValues.get("properties") != null ) {
     	            for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {

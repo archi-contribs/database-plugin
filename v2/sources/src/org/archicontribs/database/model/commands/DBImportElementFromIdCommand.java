@@ -122,11 +122,15 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 				// We import the relationships that source or target the element
 				try ( ResultSet resultRelationship = importConnection.select("SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
 					while ( resultRelationship.next() ) {
-					    IArchimateRelationship relationship = this.model.getAllRelationships().get(resultRelationship.getString("id"));
-					    IArchimateConcept source = this.model.getAllElements().get(resultRelationship.getString("source_id"));
-					    if ( source == null ) source = this.model.getAllRelationships().get(resultRelationship.getString("source_id"));
-					    IArchimateConcept target = this.model.getAllElements().get(resultRelationship.getString("target_id"));
-					    if ( target == null ) target = this.model.getAllRelationships().get(resultRelationship.getString("target_id"));
+					    IArchimateRelationship relationship = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("id")));
+					    
+					    IArchimateConcept source = this.model.getAllElements().get(this.model.getNewElementId(resultRelationship.getString("source_id")));
+					    if ( source == null )
+					    	source = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("source_id")));
+					    
+					    IArchimateConcept target = this.model.getAllElements().get(this.model.getNewElementId(resultRelationship.getString("target_id")));
+					    if ( target == null )
+					    	target = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("target_id")));
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
 						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), id) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), id) || target != null) ) {
@@ -203,6 +207,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			if ( this.mustCreateCopy ) {
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				this.model.registerCopiedElement((String)this.newValues.get("id"), metadata.getId());
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));

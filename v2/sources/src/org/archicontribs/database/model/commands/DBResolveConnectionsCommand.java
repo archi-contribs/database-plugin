@@ -17,6 +17,9 @@ import org.eclipse.gef.commands.Command;
 public class DBResolveConnectionsCommand extends Command implements IDBImportFromIdCommand {
     private DBArchimateModel model = null;
     
+    private Exception exception = null;
+    private boolean commandHasBeenExecuted = false;
+    
     public DBResolveConnectionsCommand(DBArchimateModel model) {
         this.model = model;
     }
@@ -28,12 +31,20 @@ public class DBResolveConnectionsCommand extends Command implements IDBImportFro
     
     @Override
     public void execute() {
-        this.model.resolveSourceConnections();
-        this.model.resolveTargetConnections();
+    	if ( ! this.commandHasBeenExecuted ) {
+	    	this.commandHasBeenExecuted = true;
+	        try {
+				this.model.resolveSourceAndTargetConnections();
+			} catch (Exception e) {
+				this.exception = e;
+			}
+    	}
     }
     
-    
-    // no need to undo
+    @Override
+	public void undo() {
+    	this.commandHasBeenExecuted = false;
+    }
     
     // redo is same as execute
 
@@ -44,7 +55,7 @@ public class DBResolveConnectionsCommand extends Command implements IDBImportFro
 
 	@Override
 	public Exception getException() {
-		return null;
+		return this.exception;
 	}
 
 }

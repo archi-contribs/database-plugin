@@ -175,6 +175,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			if ( this.mustCreateCopy ) {
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				this.model.registerCopiedRelationship((String)this.newValues.get("id"), metadata.getId());
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
@@ -189,20 +190,24 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			metadata.setStrength((String)this.newValues.get("strength"));
 			metadata.setAccessType((Integer)this.newValues.get("access_type"));
 
-			IArchimateConcept source = this.model.getAllElements().get(this.newValues.get("source_id"));
-			if ( source == null ) source = this.model.getAllRelationships().get(this.newValues.get("source_id"));
+			// The source of the relationship can be either an element or another relationship
+			IArchimateConcept source = this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("source_id")));
+			if ( source == null )
+				source = this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("source_id")));
 			if ( source == null ) {
-				// the source may be another relationship that has not been loaded yet, so we register it for future resolution
+				// the source does not exist in the model, so we register it for later resolution
 				this.model.registerSourceRelationship(this.importedRelationship, (String)this.newValues.get("source_id"));
 			} else {
 				// the source can be resolved right away
 				metadata.setRelationshipSource(source);
 			}
 
-			IArchimateConcept target = this.model.getAllElements().get(this.newValues.get("target_id"));
-			if ( target == null ) target = this.model.getAllRelationships().get(this.newValues.get("target_id"));
+			// The target of the relationship can be either an element or another relationship
+			IArchimateConcept target = this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("target_id")));
+			if ( target == null )
+				target = this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("target_id")));
 			if ( target == null ) {
-				// the target may be another relationship that has not been loaded yet, so we register it for future resolution
+				// the target does not exist in the model, so we register it for later resolution
 				this.model.registerTargetRelationship(this.importedRelationship, (String)this.newValues.get("target_id"));
 			} else {
 				// the target can be resolved right away

@@ -730,8 +730,7 @@ public class DBGuiImportModel extends DBGui {
             	this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
                 increaseProgressBar();
             }
-            this.modelToImport.resolveSourceRelationships();
-            this.modelToImport.resolveTargetRelationships();
+            this.modelToImport.resolveSourceAndTargetRelationships();
 
             logger.info("Importing views ...");
             this.importConnection.prepareImportViews(this.modelToImport);
@@ -758,8 +757,7 @@ public class DBGuiImportModel extends DBGui {
                     increaseProgressBar();
                 }
             }
-            this.modelToImport.resolveSourceConnections();
-            this.modelToImport.resolveTargetConnections();
+            this.modelToImport.resolveSourceAndTargetConnections();
             this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
 
             closeMessage();

@@ -1972,11 +1972,17 @@ public class DBGuiImportComponent extends DBGui {
                     IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, !getOptionValue(), true); 
                     if ( command.getException() != null )
                         throw command.getException();
+                    command.execute();
+                    if ( command.getException() != null )
+                        throw command.getException();
                     commands.add((Command)command);
                 }
 
                 else if ( this.compoViews.getVisible() ) {
                     IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, !getOptionValue(), true);
+                    if ( command.getException() != null )
+                        throw command.getException();
+                    command.execute();
                     if ( command.getException() != null )
                         throw command.getException();
                     commands.add((Command)command);
@@ -1986,38 +1992,46 @@ public class DBGuiImportComponent extends DBGui {
                 //  database.importFolder(importedModel, id, !getOptionValue());
             }
 
-            // just in case
-            commands.add(new DBResolveRelationshipsCommand(this.importedModel));
-            commands.add(new DBResolveConnectionsCommand(this.importedModel));
+            DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.importedModel);
+            resolveRelationshipsCommand.execute();
+            if ( resolveRelationshipsCommand.getException() != null )
+                throw resolveRelationshipsCommand.getException();
+            commands.add(resolveRelationshipsCommand);
+            
+            DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.importedModel);
+            resolveConnectionsCommand.execute();
+            if ( resolveConnectionsCommand.getException() != null )
+                throw resolveConnectionsCommand.getException();
+            commands.add(resolveConnectionsCommand);
+            
+            ((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(commands);
+
+            // we select the imported components in the model tree 
+            List<Object> imported = new ArrayList<Object>();
+
+            Iterator<IDBImportFromIdCommand> iterator = commands.getCommands().iterator();
+            while ( iterator.hasNext() ) {
+                IDBImportFromIdCommand command = iterator.next();
+
+                if ( command.getImported() != null )
+                    imported.add(command.getImported());
+            }
+
+            if ( !imported.isEmpty() ) {
+                // We select the element in the model tree
+                ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
+                if(treeView != null)
+                    treeView.getViewer().setSelection(new StructuredSelection(imported));
+            }
+
+            // we redraw the tblComponents table to unselect the items (and hide the newly imported components if the option is selected)
+            this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
         } catch(RuntimeException e) {
             popup(Level.ERROR, "Couldn't import component.", e);
         } finally {
             // we do not catch the exception if any, but we need to close the popup
             closeMessage();
         }
-
-        ((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(commands);
-
-        // we select the imported components in the model tree 
-        List<Object> imported = new ArrayList<Object>();
-
-        Iterator<IDBImportFromIdCommand> iterator = commands.getCommands().iterator();
-        while ( iterator.hasNext() ) {
-            IDBImportFromIdCommand command = iterator.next();
-
-            if ( command.getImported() != null )
-                imported.add(command.getImported());
-        }
-
-        if ( !imported.isEmpty() ) {
-            // We select the element in the model tree
-            ITreeModelView treeView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-            if(treeView != null)
-                treeView.getViewer().setSelection(new StructuredSelection(imported));
-        }
-
-        // we redraw the tblComponents table to unselect the items (and hide the newly imported components if the option is selected)
-        this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
     }
 
     private class ComponentLabel {

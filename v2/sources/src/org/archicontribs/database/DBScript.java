@@ -84,8 +84,7 @@ public class DBScript {
 	                // each loop imports a relationship
 	            }
 	            
-	            modelToImport.resolveSourceRelationships();
-	            modelToImport.resolveTargetRelationships();
+	            modelToImport.resolveSourceAndTargetRelationships();
 	            
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the views ...");
 	            connection.prepareImportViews(modelToImport);
@@ -109,8 +108,7 @@ public class DBScript {
 	                }
 	            }
 	            
-	            modelToImport.resolveSourceConnections();
-	            modelToImport.resolveTargetConnections();
+	            modelToImport.resolveSourceAndTargetConnections();
 	    
 	            if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
 	            for (String path: connection.getAllImagePaths())

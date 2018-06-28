@@ -505,7 +505,7 @@ public class DBMetadata  {
     // Content
     public String getContent() {
         if ( this.component instanceof ITextContent ) 
-            ((ITextContent)this.component).getContent();
+            return ((ITextContent)this.component).getContent();
         return null;
     }
     public void setContent(String content) {
@@ -528,7 +528,7 @@ public class DBMetadata  {
     // Name
     public String getId() {
         if ( this.component instanceof IIdentifier )
-            ((IIdentifier)this.component).getId();
+            return ((IIdentifier)this.component).getId();
         return null;
     }
 
@@ -540,7 +540,7 @@ public class DBMetadata  {
     // Name
     public String getName() {
         if ( this.component instanceof INameable )
-            ((INameable)this.component).getName();
+            return ((INameable)this.component).getName();
         return null;
     }
 
@@ -628,7 +628,7 @@ public class DBMetadata  {
     // LineColor
     public String getLineColor() {   
         if ( this.component instanceof ILineObject )  
-            ((ILineObject)this.component).getLineColor();
+            return ((ILineObject)this.component).getLineColor();
         return null;
     }
 

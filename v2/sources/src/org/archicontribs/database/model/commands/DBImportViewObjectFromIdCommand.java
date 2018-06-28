@@ -134,14 +134,14 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             }
             
             // if the object references an element that is not referenced in the model, then we import it
-            if ( (this.newValues.get("element_id") != null) && (this.model.getAllElements().get(this.newValues.get("element_id")) == null) ) {
+            if ( (this.newValues.get("element_id") != null) && (this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))) == null) ) {
                 this.importElementCommand = new DBImportElementFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("element_id"), 0, mustCreateCopy, true);
                 if ( this.importElementCommand.getException() != null )
                     throw this.importElementCommand.getException();
             }
 
             // if the object is an embedded view but the linked view does not exist in the model, then we import it
-            if ( (this.newValues.get("diagram_ref_id") != null) && (model.getAllViews().get(this.newValues.get("diagram_ref_id")) == null) ) {
+            if ( (this.newValues.get("diagram_ref_id") != null) && (model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
                 DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, mustCreateCopy, true);
                 if ( importLinkedViewCommand.getException() != null )
                     throw importLinkedViewCommand.getException();
@@ -248,6 +248,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( this.mustCreateCopy ) {
                 metadata.setId(this.model.getIDAdapter().getNewID());
                 metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+                this.model.registerCopiedViewObject((String)this.newValues.get("id"), metadata.getId());
             } else {
                 metadata.setId((String)this.newValues.get("id"));
                 metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
@@ -260,8 +261,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( this.newValues.get("element_id") == null )
                 metadata.setName((String)this.newValues.get("name"));
             else
-                metadata.setArchimateConcept(this.model.getAllElements().get(this.newValues.get("element_id")));
-            metadata.setReferencedModel(this.model.getAllViews().get(this.newValues.get("diagram_ref_id")));
+                metadata.setArchimateConcept(this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))));
+            metadata.setReferencedModel(this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))));
             metadata.setType((Integer)this.newValues.get("type"));
             metadata.setBorderColor((String)this.newValues.get("border_color"));
             metadata.setBorderType((Integer)this.newValues.get("border_type"));
@@ -283,9 +284,9 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             // we check if the view object must be changed from container
             if ( this.importedViewObject instanceof IDiagramModelObject ) {
-                IDiagramModelContainer newContainer = this.model.getAllViews().get(this.newValues.get("container_id"));
+                IDiagramModelContainer newContainer = this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("container_id")));
                 if ( newContainer == null )
-                    newContainer = (IDiagramModelContainer) this.model.getAllViewObjects().get(this.newValues.get("container_id"));
+                    newContainer = (IDiagramModelContainer) this.model.getAllViewObjects().get(this.model.getNewViewObjectId((String)this.newValues.get("container_id")));
 
                 if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
                     if ( this.oldContainer != null ) {
@@ -299,7 +300,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             }
 
             // If the object has got properties but does not have a linked element, then it may have distinct properties
-            if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
+            if ( (this.importedViewObject instanceof IProperties) && (this.newValues.get("element_id") == null) ) {
                 ((IProperties)this.importedViewObject).getProperties().clear();
                 if ( this.newValues.get("properties") != null ) {
                     for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {

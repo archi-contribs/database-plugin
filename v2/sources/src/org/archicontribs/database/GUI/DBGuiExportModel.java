@@ -1711,6 +1711,8 @@ public class DBGuiExportModel extends DBGui {
 	        if ( (this.exportedModel.getAllSourceRelationshipsToResolve().size() != 0) || (this.exportedModel.getAllTargetRelationshipsToResolve().size() != 0) ) {
 	            DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
 	            resolveRelationshipsCommand.execute();
+	            if ( resolveRelationshipsCommand.getException() != null )
+	            	throw resolveRelationshipsCommand.getException();
 	            this.exportCommands.add(resolveRelationshipsCommand);
 	        }
 	
@@ -1790,6 +1792,8 @@ public class DBGuiExportModel extends DBGui {
                 if ( (this.exportedModel.getAllSourceConnectionsToResolve().size() != 0) || (this.exportedModel.getAllTargetConnectionsToResolve().size() != 0) ) {
                     DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
                     resolveConnectionsCommand.execute();
+                    if ( resolveConnectionsCommand.getException() != null )
+                    	throw resolveConnectionsCommand.getException();
                     this.exportCommands.add(resolveConnectionsCommand);
                 }
 			}
