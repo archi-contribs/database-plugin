@@ -217,6 +217,7 @@ public class DBMetadata  {
     }
 
     /**
+     * This method checks all the views objects and connections in a view and return those that reference the current Archimate concept
      * @return the list of views objects or connections that reference the concept
      * @param view view in which the concept should be searched in
      */
@@ -225,13 +226,14 @@ public class DBMetadata  {
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {
             for ( IDiagramModelObject viewObject: view.getChildren() ) {
-                connectables.addAll(toConnectable((IDiagramModelArchimateComponent)viewObject, (IArchimateConcept)this.component));
+                connectables.addAll(findConnectables((IDiagramModelArchimateComponent)viewObject, (IArchimateConcept)this.component));
             }
         }
         return connectables;
     }
 
     /**
+     * This method checks all the views objects and connections in a view and return those that reference a specific Archimate concept
      * @return the list of views objects or connections that reference the concept
      * @param view view in which the concept should be searched in
      * @param concept Archimate concept to search in the view
@@ -241,22 +243,24 @@ public class DBMetadata  {
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {
             for ( IDiagramModelObject viewObject: view.getChildren() ) {
-                connectables.addAll(toConnectable((IDiagramModelArchimateComponent)viewObject, concept));
+                connectables.addAll(findConnectables((IDiagramModelArchimateComponent)viewObject, concept));
             }
         }
         return connectables;
     }
 
     /**
-     * @return the list of views objects that reference the component
+     * This method checks if the view object references the concept. If the view object is a container, the method chechs recusrsively all the included view objects.
+     * @return the list of views objects that reference the concept
      * @param parentComponent View object in which the concept should be searched in
      * @param concept Archimate concept to search in the view object
      */
-    private List<IConnectable> toConnectable(IDiagramModelArchimateComponent parentComponent, IArchimateConcept concept) {
+    private List<IConnectable> findConnectables(IDiagramModelArchimateComponent parentComponent, IArchimateConcept concept) {
         List<IConnectable> connectables = new ArrayList<IConnectable>();
 
         if ( concept instanceof IArchimateElement ) {
-            if ( DBPlugin.areEqual(parentComponent.getArchimateConcept().getId(), concept.getId()) ) connectables.add(parentComponent);
+            if ( DBPlugin.areEqual(parentComponent.getArchimateConcept().getId(), concept.getId()) )
+                connectables.add(parentComponent);
         } else if ( concept instanceof IArchimateRelationship ) {
             for ( IDiagramModelConnection conn: parentComponent.getSourceConnections() ) {
                 if ( DBPlugin.areEqual(conn.getSource().getId(), concept.getId()) ) connectables.add(conn);
@@ -270,7 +274,7 @@ public class DBMetadata  {
 
         if ( parentComponent instanceof IDiagramModelContainer ) {
             for ( IDiagramModelObject child: ((IDiagramModelContainer)parentComponent).getChildren() ) {
-                connectables.addAll(toConnectable((IDiagramModelArchimateComponent)child, concept));
+                connectables.addAll(findConnectables((IDiagramModelArchimateComponent)child, concept));
             }
         }
         return connectables;
