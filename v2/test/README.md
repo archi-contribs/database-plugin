@@ -84,6 +84,7 @@ In addition, some improvements are planned but it's not guaranteed that they wil
     * The inline help can be accessed using the interrogation mark on every plugin window.
     * Export and import back the model's "metadata" (may be used by other external tools)
     * Do not calculate checksum on images anymore
+	* A new "show debug information" window has been created
     * Update JDBC drivers
       * Neo4J to 3.1.0
       * SQLite to 3.21.0
