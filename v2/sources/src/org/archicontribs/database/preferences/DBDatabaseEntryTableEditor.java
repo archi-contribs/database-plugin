@@ -135,6 +135,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setLayout(new FormLayout());
 		this.grpDatabases.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.grpDatabases.setText("Databases : ");
+		
+		GridData gd = new GridData();
+		gd.heightHint = 320;
+		gd.minimumHeight = 320;
+		gd.horizontalAlignment = GridData.FILL;
+		gd.grabExcessHorizontalSpace = true;
+		this.grpDatabases.setLayoutData(gd);
 
 		this.btnUp = new Button(this.grpDatabases, SWT.NONE);
 		this.btnUp.setText("^");
@@ -476,7 +483,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblExportType, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblExportType, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoExportType.setLayoutData(fd);
 		RowLayout rl = new RowLayout();
@@ -518,7 +525,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jMode, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jMode, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jMode.setLayoutData(fd);
 		rl = new RowLayout();
@@ -550,7 +557,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jEmpty.setLayoutData(fd);
 		rl = new RowLayout();
@@ -582,7 +589,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jRelationships.setLayoutData(fd);
 		rl = new RowLayout();
@@ -601,7 +608,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 
 		this.lblExportViewImages = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportViewImages.setText("Export View Images:");
+		this.lblExportViewImages.setText("Export view spapshots:");
 		this.lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblExportType, 5);
@@ -616,7 +623,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblExportViewImages, -1, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblExportViewImages, 5, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 50, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoExportViewImages.setLayoutData(fd);
 		this.compoExportViewImages.setLayout(new FormLayout());
@@ -797,12 +804,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportType, this.compoExportViewImages, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
 
 		this.grpDatabases.layout();
-
-		GridData gd = new GridData();
-		gd.heightHint = this.compoExportViewImages.getLocation().y + this.compoExportViewImages.getSize().y - 10;
-		gd.horizontalAlignment = GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		this.grpDatabases.setLayoutData(gd);
 	}
 
 	/*
