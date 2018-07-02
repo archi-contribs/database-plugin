@@ -130,7 +130,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *									Preference page:
  *									    Correct traversal order of fields on preference page
  *									    The default database port is automatically filled-in when port field is empty or equals 0
- *									    The default for new databases is to not export view images
+ *									    The default for new databases is to not export view snapshots
  *									    When saving preferences while editing database properties, the plugin now asks if the updates need to be saved or discarded
  *                                  Miscellaneous:
  *                                  	Rewrite of the checksum calculation procedure to ensure it is always the same length

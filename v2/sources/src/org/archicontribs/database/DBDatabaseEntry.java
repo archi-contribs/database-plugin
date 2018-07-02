@@ -26,35 +26,35 @@ public class DBDatabaseEntry {
 
     /**
      * Created a database entry
-     * @param name : name of the entry (just a bulk of letters, can contain spaces)
-     * @param driver : name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
-     * @param server : IP address or DNS name of the server where the database stands
-     * @param port : TCP port on which the database is listening to 
-     * @param database : name of the database
-     * @param schema : name of the schema
-     * @param username : account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
-     * @param password : password used to connect to the database
+     * @param entryName : name of the entry (just a bulk of letters, can contain spaces)
+     * @param driverName : name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
+     * @param serverName : IP address or DNS name of the server where the database stands
+     * @param portValue : TCP port on which the database is listening to 
+     * @param databaseName : name of the database
+     * @param schemaName : name of the schema
+     * @param userName : account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
+     * @param pass : password used to connect to the database
      * @param exportWholeModel : true if the whole model (including folders, views, objects and connections) should be exported, or false if only the elements and relationships must be exported. 
      * @param exportViewImages : true if screenshots of the views must be exported in the database, false if screenshots are not necessary
-     * @param neo4jNativeMode : true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
+     * @param isNeo4jNativeMode : true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
      * @param neo4jEmptyDB : true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
      * @throws Exception
      */
-    public DBDatabaseEntry(String name, String driver, String server, int port, String database, String schema, String username, String password, boolean exportWholeModel, boolean exportViewImages, boolean neo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
-        setName(name);
-        setDriver(driver);
-        setServer(server);
-        setPort(port);
-        setDatabase(database);
-        setSchema(schema);
-        setUsername(username);
-        setPassword(password);
+    public DBDatabaseEntry(String entryName, String driverName, String serverName, int portValue, String databaseName, String schemaName, String userName, String pass, boolean exportWholeModel, boolean exportViewImages, boolean isNeo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
+        setName(entryName);
+        setDriver(driverName);
+        setServer(serverName);
+        setPort(portValue);
+        setDatabase(databaseName);
+        setSchema(schemaName);
+        setUsername(userName);
+        setPassword(pass);
 
         //TODO: store this parameter once for all in the database as exporting the elements and relationships only in a database where the previous models have got views is equal to removing the views from the model
         setWholeModelExported(exportWholeModel);
         setViewSnapshotRequired(exportViewImages);
 
-        setNeo4jNativeMode(neo4jNativeMode);
+        setNeo4jNativeMode(isNeo4jNativeMode);
         setShouldEmptyNeo4jDB(neo4jEmptyDB);
     }
 
@@ -73,18 +73,18 @@ public class DBDatabaseEntry {
 	/**
      * Driver to use to access the database<br>
      * <br>
-     * @param driver must be one of @DBDatabase.VALUES
+     * @param driverName must be one of @DBDatabase.VALUES
      */
-    public void setDriver(String driver) throws Exception {
+    public void setDriver(String driverName) throws Exception {
         // we ensure that the driver is known
         this.driver = null;
         for ( DBDatabase db: DBDatabase.VALUES ) {
-            if ( DBPlugin.areEqual(db.getDriverName(), driver) ) {
-                this.driver = driver.toLowerCase();
+            if ( DBPlugin.areEqual(db.getDriverName(), driverName) ) {
+                this.driver = driverName.toLowerCase();
                 return;
             }
         }
-        throw new Exception("Unknown driver "+driver);
+        throw new Exception("Unknown driver "+driverName);
     }
 	
 	/**
@@ -104,11 +104,11 @@ public class DBDatabaseEntry {
      * <br>
      * @value port should be between 0 and 65535 
      */
-    public void setPort(int port) throws Exception {
+    public void setPort(int portValue) throws Exception {
         // we ensure that the port is > 0 and < 65536
-        if ( (port < 0) || (port > 65535) )
+        if ( (portValue < 0) || (portValue > 65535) )
             throw new Exception("Port should be between 0 and 65535");
-        this.port = port;
+        this.port = portValue;
     }
 	
 	/**
