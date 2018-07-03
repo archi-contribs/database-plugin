@@ -67,6 +67,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnExportWithDefaultValues;
 	private Button btnCloseIfSuccessful;
 	private Button btnShowZeroValues;
+	private Button btnCheckMaxMemoryAtStartup;
 	private Button btnRemoveDirtyFlag;
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
@@ -210,12 +211,21 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnShowZeroValues.setLayoutData(fd);
 		
+		this.btnCheckMaxMemoryAtStartup = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCheckMaxMemoryAtStartup.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnCheckMaxMemoryAtStartup.setText("Check max memory available at startup");
+		this.btnCheckMaxMemoryAtStartup.setSelection(preferenceStore.getBoolean("checkMaxMemory"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnShowZeroValues, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnCheckMaxMemoryAtStartup.setLayoutData(fd);
+		
 		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
 		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnShowZeroValues, 5);
+		fd.top = new FormAttachment(this.btnCheckMaxMemoryAtStartup, 5);
 		fd.left = new FormAttachment(0, 10);
 		this.btnRemoveDirtyFlag.setLayoutData(fd);
 		
@@ -444,6 +454,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("closeIfSuccessful", this.btnCloseIfSuccessful.getSelection());
     	preferenceStore.setValue("checkForUpdateAtStartup", this.btnCheckForUpdateAtStartupButton.getSelection());
     	preferenceStore.setValue("showZeroValues", this.btnShowZeroValues.getSelection());
+    	preferenceStore.setValue("checkMaxMemory", this.btnCheckMaxMemoryAtStartup.getSelection());
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());

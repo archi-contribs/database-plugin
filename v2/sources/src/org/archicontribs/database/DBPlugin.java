@@ -166,11 +166,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 23/05/2018				Fill in the online help
+ * v2.1: 23/05/2018				    Fill in the online help
  *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
  *                                  Remove checksums on images as the path is already a kind of checksum
  *                                  Export and import back model's metadata
  *                                  Add option to show or hide zero values on export and import windows
+ *                                  Manage the alpha transparency introduced in Archi 4.3
+ *                                  Check for max memory available at startup
  *                                  Bug fixes:
  * 										Solve plugin initialization failure that occurred some times
  *                                      Fix progress bar during download new version of the plugin from GitHub
@@ -289,6 +291,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("removeDirtyFlag",         false);
 		preferenceStore.setDefault("showIdInContextMenu",     false);
 		preferenceStore.setDefault("traceSQL",                true);
+		preferenceStore.setDefault("checkMaxMemory",          true);
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
@@ -318,6 +321,20 @@ public class DBPlugin extends AbstractUIPlugin {
 				DBGui.closePopup();
 			}
 		});
+		
+		// we check if the database plugin has got 1 GB max memory (in fact, Xmx1g = 954 MB so in reality we check for 950 MB)
+		int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1000000);
+		
+		if ( maxMemory < 950 ) {
+			if ( getPreferenceStore().getBoolean("checkMaxMemory") )
+				DBGui.popup(Level.WARN, "Archi is configured with "+maxMemory+" MB max memory.\n\n"
+						+ "If you plan to use the database plugin with huge models, we recommand to configure Archi\n"
+						+ "with 1 GB of memory (you may add or update the \"-Xmx\" parameter in the Archi.ini file).\n\n"
+						+ "You may deactivate the memory check in the database plugin preference page.");
+			else
+				logger.warn("Archi is configured with "+maxMemory+" MB max memory instead of the 1 GB recommanded.");
+		} else
+			logger.debug("Archi is setup with "+maxMemory+" MB of memory.");
 		
 		// we check if the plugin has been upgraded using the automatic procedure
 		try {
