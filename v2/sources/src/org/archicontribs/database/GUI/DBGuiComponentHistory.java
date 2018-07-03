@@ -47,6 +47,7 @@ public class DBGuiComponentHistory extends DBGui {
 	
 	private Button btnImportDatabaseVersion;
 	private Button btnExportModelVersion;
+	Label lblCompareComponents;
 	
 	Tree tblContent;
 	Table tblVersions;
@@ -107,12 +108,31 @@ public class DBGuiComponentHistory extends DBGui {
 		this.lblVersions.setLayoutData(fd);
 		
 		this.tblVersions = new Table(grpComponents, SWT.BORDER | SWT.FULL_SELECTION);
+		this.tblVersions.setBackground(TABLE_BACKGROUND_COLOR);
 		this.tblVersions.setHeaderVisible(true);
 		this.tblVersions.setLinesVisible(true);
 		this.tblVersions.addListener(SWT.Selection, new Listener() {
 		    @Override
             public void handleEvent(Event e) {
-		        fillInCompareTable(DBGuiComponentHistory.this.tblContent, DBGuiComponentHistory.this.selectedComponent, Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)));
+		        Boolean areIdentical = fillInCompareTable(DBGuiComponentHistory.this.tblContent, DBGuiComponentHistory.this.selectedComponent, Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)));
+		        if ( areIdentical == null )
+		        	DBGuiComponentHistory.this.lblCompareComponents.setText("Content:");
+		        else {
+		        	String componentType = "Components";
+		    		if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateElement ) 
+		    			componentType = "Elements";
+		    		else if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateRelationship ) 
+		    			componentType = "Relationships";
+		            else if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateDiagramModel || DBGuiComponentHistory.this.selectedComponent instanceof ICanvasModel || DBGuiComponentHistory.this.selectedComponent instanceof ISketchModel )
+		            	componentType = "Views";
+		            else if ( DBGuiComponentHistory.this.selectedComponent instanceof IFolder )
+		            	componentType = "Folders";
+
+		        	if ( areIdentical.booleanValue() )
+		        		DBGuiComponentHistory.this.lblCompareComponents.setText(componentType + " are identical");
+		        	else
+		        		DBGuiComponentHistory.this.lblCompareComponents.setText(componentType + " are different (check highlighted lines):");
+		        }
 		    }
 		});
 		fd = new FormData();
@@ -134,20 +154,21 @@ public class DBGuiComponentHistory extends DBGui {
 		colCreatedOn.setWidth(145);
 		colCreatedOn.setText("Created on");
 		
-		Label lblContent = new Label(grpComponents, SWT.NONE);
-		lblContent.setBackground(GROUP_BACKGROUND_COLOR);
-		lblContent.setText("Content :");
+		this.lblCompareComponents = new Label(grpComponents, SWT.NONE);
+		this.lblCompareComponents.setBackground(GROUP_BACKGROUND_COLOR);
+		this.lblCompareComponents.setText("Content :");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.tblVersions, 20);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(100, -10);
-		lblContent.setLayoutData(fd);
+		this.lblCompareComponents.setLayoutData(fd);
 		
 		this.tblContent = new Tree(grpComponents, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION);
+		this.tblContent.setBackground(TABLE_BACKGROUND_COLOR);
 		this.tblContent.setHeaderVisible(true);
 		this.tblContent.setLinesVisible(true);
 		fd = new FormData();
-		fd.top = new FormAttachment(lblContent, 10);
+		fd.top = new FormAttachment(this.lblCompareComponents, 10);
 		fd.left = new FormAttachment(0, 10);
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -50);
