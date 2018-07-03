@@ -298,11 +298,11 @@ public class DBMenu extends ExtensionContributionFactory {
     private void showGetHistory(IArchimateModelObject component) {
         String clazz = component.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
-        String label = "get history for "+component.eClass().getName()+" \""+component.getName()+"\"";
+        String label = "Get history for "+component.eClass().getName()+" \""+component.getName()+"\"";
         if ( label.length() > 100 )
             label = label.substring(0, 100);
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -323,11 +323,11 @@ public class DBMenu extends ExtensionContributionFactory {
     private void showGetHistory(IDiagramModelConnection connection) {
         String clazz = connection.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
-        String label = "get history for "+connection.eClass().getName()+" \""+connection.getName()+"\"";
+        String label = "Get history for "+connection.eClass().getName()+" \""+connection.getName()+"\"";
         if ( label.length() > 100 )
             label = label.substring(0, 100);
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -352,7 +352,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import model from database";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -377,7 +377,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/export.png"), null));
         label = "Export model to database";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -402,7 +402,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import components from database";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -427,7 +427,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import components from database into view";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -449,7 +449,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Show debugging information";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -471,7 +471,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Convert old fashion IDs to Archi4 IDs";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -493,7 +493,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Merge models";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
