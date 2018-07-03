@@ -68,8 +68,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Opens a connection to a JDBC database using all the connection details
 	 */
-	public DBDatabaseImportConnection(DBDatabaseEntry databaseEntry) throws ClassNotFoundException, SQLException {
-		super(databaseEntry);
+	public DBDatabaseImportConnection(DBDatabaseEntry dbEntry) throws ClassNotFoundException, SQLException {
+		super(dbEntry);
 	}
 
 	/**
