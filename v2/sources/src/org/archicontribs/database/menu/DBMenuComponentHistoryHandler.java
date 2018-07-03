@@ -46,7 +46,7 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
         } else if ( selection instanceof IFolder ) {										// if the user clicked on a folder in the tree
         	component = (IFolder)selection;
         } else {
-            DBGui.popup(Level.ERROR, "Do not know which component you selected :(");
+            DBGui.popup(Level.ERROR, "Do not know which component you selected.");
             return null;
         }
 

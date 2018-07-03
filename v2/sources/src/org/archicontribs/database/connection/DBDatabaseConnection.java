@@ -95,39 +95,39 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( isConnected() )
             close();
 
-        if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+" : driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.databaseEntry.getSchema()+", username="+this.databaseEntry.getUsername());
+        if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+": driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.databaseEntry.getSchema()+", username="+this.databaseEntry.getUsername());
 
         String clazz = null;
         String connectionString = null;
 
         switch (this.databaseEntry.getDriver()) {
-            case "postgresql" :
+            case "postgresql":
                 clazz = "org.postgresql.Driver";
                 connectionString = "jdbc:postgresql://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + "/" + this.databaseEntry.getDatabase();
                 break;
-            case "ms-sql"      :
+            case "ms-sql":
                 clazz = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
                 connectionString = "jdbc:sqlserver://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + ";databaseName=" + this.databaseEntry.getDatabase();
                 if ( DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) )
                     connectionString += ";integratedSecurity=true";
                 break;
-            case "mysql"      :
+            case "mysql":
                 clazz = "com.mysql.jdbc.Driver";
                 connectionString = "jdbc:mysql://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + "/" + this.databaseEntry.getDatabase();
                 break;
-            case "neo4j"      :
+            case "neo4j":
                 clazz = "org.neo4j.jdbc.Driver";
                 connectionString = "jdbc:neo4j:bolt://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort();
                 break;
-            case "oracle"     :
+            case "oracle":
                 clazz = "oracle.jdbc.driver.OracleDriver";
                 connectionString = "jdbc:oracle:thin:@" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + ":" + this.databaseEntry.getDatabase();
                 break;
-            case "sqlite"     :
+            case "sqlite":
                 clazz = "org.sqlite.JDBC";
                 connectionString = "jdbc:sqlite:"+this.databaseEntry.getServer();
                 break;
-            default :
+            default:
                 throw new SQLException("Unknonwn driver " + this.databaseEntry.getDriver());        // just in case
         }
 
@@ -850,7 +850,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
         setAutoCommit(false);
 
-        // convert from version 200 to 201 :
+        // convert from version 200 to 201:
         //      - add a blob column into the views table
         if ( dbVersion == 200 ) {
             addColumn(this.schema+"views", "screenshot", this.IMAGE);			           // request("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" screenshot "+this.IMAGE);
@@ -858,7 +858,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 201;
         }
 
-        // convert from version 201 to 202 :
+        // convert from version 201 to 202:
         //      - add text_position column in the views_connections table
         //      - add source_connections and target_connections to views_objects and views_connections tables
         if ( dbVersion == 201 ) {
@@ -871,7 +871,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 202;
         }
 
-        // convert from version 202 to 203 :
+        // convert from version 202 to 203:
         //      - add element_version column to the views_objects table
         //      - add relationship_version column to the views_connections table
         if ( dbVersion == 202 ) {
@@ -881,7 +881,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 203;
         }
 
-        // convert from version 203 to 204 :
+        // convert from version 203 to 204:
         //      - add a checksum to the model
         //
         if ( dbVersion == 203 ) {
@@ -910,7 +910,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 204;
         }
 
-        // convert from version 204 to 205 :
+        // convert from version 204 to 205:
         //      - add a container_checksum column in the views table
         //
         if ( dbVersion == 204 ) {
@@ -943,7 +943,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 205;
         }
 
-        // convert from version 205 to 206 :
+        // convert from version 205 to 206:
         //      - add the created_by and created_on columns in the views_connections and views_objects tables
         //      - create tables views_connections_in_view and views_objects_in_view
         //      - remove the rank, view_id and view_version columns from the views_connections and views_objects tables
@@ -1038,7 +1038,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             dbVersion = 206;
         }
         
-        // convert from version 206 to 207 :
+        // convert from version 206 to 207:
         //      - remove the checksum column from the images table
         //
         if ( dbVersion == 206 ) {
@@ -1167,7 +1167,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             result = pstmt.executeQuery();
         } catch (SQLException err) {
             // in case of an SQLException, we log the raw request to ease the debug process
-            if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request : "+request);
+            if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request: "+request);
             throw err;
         }
 

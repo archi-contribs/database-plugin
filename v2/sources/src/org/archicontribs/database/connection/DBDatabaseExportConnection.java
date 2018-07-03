@@ -702,7 +702,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		else if ( eObject instanceof IDiagramModelObject )		assignViewObjectToView((IDiagramModelObject)eObject);
 		else if ( eObject instanceof IDiagramModelConnection )	assignViewConnectionToView((IDiagramModelConnection)eObject);
 		else
-			throw new Exception("Do not know how to assign to the model : "+eObject.getClass().getSimpleName());
+			throw new Exception("Do not know how to assign to the model: "+eObject.getClass().getSimpleName());
 	}
 
 	/**
@@ -717,7 +717,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)element).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-			// TODO : USE MERGE instead to replace existing nodes
+			// TODO: USE MERGE instead to replace existing nodes
 			request("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
 					,element.getId()
 					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
@@ -782,7 +782,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
 			String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
-			// TODO : USE MERGE instead to replace existing nodes
+			// TODO: USE MERGE instead to replace existing nodes
 			if ( this.databaseEntry.isNeo4jNativeMode() ) {
 				if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
 					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
@@ -1010,7 +1010,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IDocumentable && !(viewObject instanceof IDiagramModelArchimateComponent)) ? ((IDocumentable)viewObject).getDocumentation() : null)        // They have got there own documentation. The others use the documentation of the corresponding ArchimateConcept
 				,((viewObject instanceof IHintProvider) ? ((IHintProvider)viewObject).getHintContent() : null)
 				,((viewObject instanceof IHintProvider) ? ((IHintProvider)viewObject).getHintTitle() : null)
-				//TODO : add helpHintcontent and helpHintTitle
+				//TODO: add helpHintcontent and helpHintTitle
 				,((viewObject instanceof ILockable) ? (((ILockable)viewObject).isLocked()?1:0) : null)
 				,((viewObject instanceof IDiagramModelImageProvider) ? ((IDiagramModelImageProvider)viewObject).getImagePath() : null)
 				,((viewObject instanceof IIconic) ? ((IIconic)viewObject).getImagePosition() : null)

@@ -89,7 +89,7 @@ public class DBGuiComponentHistory extends DBGui {
 		Group grpComponents = new Group(this.compoRightBottom, SWT.NONE);
 		grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		grpComponents.setFont(GROUP_TITLE_FONT);
-		grpComponents.setText("Component history : ");
+		grpComponents.setText("Component history: ");
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
@@ -100,7 +100,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.lblVersions = new Label(grpComponents, SWT.NONE);
 		this.lblVersions.setBackground(GROUP_BACKGROUND_COLOR);
-		this.lblVersions.setText("Versions :");		
+		this.lblVersions.setText("Versions:");		
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
 		fd.left = new FormAttachment(0, 10);
@@ -247,9 +247,9 @@ public class DBGuiComponentHistory extends DBGui {
 		}
 		
 		if ( this.tblVersions.getItemCount() > 1 ) {
-		    this.lblVersions.setText(this.tblVersions.getItemCount()+" versions have been found in the database :");
+		    this.lblVersions.setText(this.tblVersions.getItemCount()+" versions have been found in the database:");
 		} else {
-		    this.lblVersions.setText(this.tblVersions.getItemCount()+" version has been found in the database :");
+		    this.lblVersions.setText(this.tblVersions.getItemCount()+" version has been found in the database:");
 		}
 		
 		if ( this.tblVersions.getItemCount() != 0 ) {

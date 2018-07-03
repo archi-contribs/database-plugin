@@ -113,7 +113,7 @@ public class DBGuiImportImage extends DBGui {
     private void createGrpImages() {
         this.grpImages = new Group(this.compoRightBottom, SWT.NONE);
         this.grpImages.setBackground(GROUP_BACKGROUND_COLOR);
-        this.grpImages.setText("Images in the database : ");
+        this.grpImages.setText("Images in the database: ");
         this.grpImages.setFont(GROUP_TITLE_FONT);
         FormData fd = new FormData();
         fd.top = new FormAttachment(0);

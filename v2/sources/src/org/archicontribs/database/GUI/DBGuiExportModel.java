@@ -178,7 +178,7 @@ public class DBGuiExportModel extends DBGui {
 	private void createGrpModel() {
 		this.grpModelVersions = new Group(this.compoRightBottom, SWT.NONE);
 		this.grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
-		this.grpModelVersions.setText("Your model versions : ");
+		this.grpModelVersions.setText("Your model versions: ");
 		this.grpModelVersions.setFont(GROUP_TITLE_FONT);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
@@ -236,7 +236,7 @@ public class DBGuiExportModel extends DBGui {
 
 		Label lblModelName = new Label(this.grpModelVersions, SWT.NONE);
 		lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
-		lblModelName.setText("Model name :");
+		lblModelName.setText("Model name:");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 10);
 		fd.left = new FormAttachment(40, 0);
@@ -253,7 +253,7 @@ public class DBGuiExportModel extends DBGui {
 
 		Label lblPurpose = new Label(this.grpModelVersions, SWT.NONE);
 		lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
-		lblPurpose.setText("Purpose :");
+		lblPurpose.setText("Purpose:");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.txtModelName, 10);
 		fd.left = new FormAttachment(lblModelName, 0, SWT.LEFT);
@@ -271,7 +271,7 @@ public class DBGuiExportModel extends DBGui {
 
 		Label lblReleaseNote = new Label(this.grpModelVersions, SWT.NONE);
 		lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
-		lblReleaseNote.setText("Release note :");
+		lblReleaseNote.setText("Release note:");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.txtPurpose, 10);
 		fd.left = new FormAttachment(lblPurpose, 0, SWT.LEFT);
@@ -289,7 +289,7 @@ public class DBGuiExportModel extends DBGui {
 	}
 
 	/**
-	 * Creates a group displaying details about the exported model's components :<br>
+	 * Creates a group displaying details about the exported model's components:<br>
 	 * - total number<br>
 	 * - number sync'ed with the database<br>
 	 * - number that do not exist in the database<br>
@@ -299,7 +299,7 @@ public class DBGuiExportModel extends DBGui {
         this.grpComponents = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
-        this.grpComponents.setText("Your model's components : ");
+        this.grpComponents.setText("Your model's components: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(100, -240);
         fd.left = new FormAttachment(0);
@@ -310,7 +310,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblElements = new Label(this.grpComponents, SWT.NONE);
         lblElements.setBackground(GROUP_BACKGROUND_COLOR);
-        lblElements.setText("Elements :");
+        lblElements.setText("Elements:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 25);
         fd.left = new FormAttachment(0, 30);
@@ -318,7 +318,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblRelationships = new Label(this.grpComponents, SWT.NONE);
         lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
-        lblRelationships.setText("Relationships :");
+        lblRelationships.setText("Relationships:");
         fd = new FormData();
         fd.top = new FormAttachment(lblElements, 10);
         fd.left = new FormAttachment(0, 30);
@@ -326,7 +326,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblFolders = new Label(this.grpComponents, SWT.NONE);
         lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
-        lblFolders.setText("Folders :");
+        lblFolders.setText("Folders:");
         fd = new FormData();
         fd.top = new FormAttachment(lblRelationships, 10);
         fd.left = new FormAttachment(0, 30);
@@ -334,7 +334,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblViews = new Label(this.grpComponents, SWT.NONE);
         lblViews.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViews.setText("Views :");
+        lblViews.setText("Views:");
         fd = new FormData();
         fd.top = new FormAttachment(lblFolders, 10);
         fd.left = new FormAttachment(0, 30);
@@ -342,7 +342,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblViewObjects = new Label(this.grpComponents, SWT.NONE);
         lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViewObjects.setText("Objects :");
+        lblViewObjects.setText("Objects:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViews, 10);
         fd.left = new FormAttachment(0, 30);
@@ -350,7 +350,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblViewConnections = new Label(this.grpComponents, SWT.NONE);
         lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViewConnections.setText("Connections :");
+        lblViewConnections.setText("Connections:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViewObjects, 10);
         fd.left = new FormAttachment(0, 30);
@@ -358,7 +358,7 @@ public class DBGuiExportModel extends DBGui {
 
         Label lblImages = new Label(this.grpComponents, SWT.NONE);
         lblImages.setBackground(GROUP_BACKGROUND_COLOR);
-        lblImages.setText("Images :");
+        lblImages.setText("Images:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViewConnections, 10);
         fd.left = new FormAttachment(0, 30);
@@ -1518,7 +1518,7 @@ public class DBGuiExportModel extends DBGui {
 	protected void export() {
 		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size();
 		
-		logger.info("Exporting model : ");
+		logger.info("Exporting model: ");
 		logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
 		logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
 		logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
@@ -2100,7 +2100,7 @@ public class DBGuiExportModel extends DBGui {
             txtDeletedInDatabase = this.txtDeletedViewConnectionsInDatabase;
             txtConflicting = this.txtConflictingViewConnections;
 	    } else
-            throw new Exception("At the moment, we cannot export a "+eObjectToExport.getClass().getSimpleName()+" :(");
+            throw new Exception("At the moment, we cannot export a "+eObjectToExport.getClass().getSimpleName()+" ...");
 		
         String debugMessage = null;
 		if ( forceExport ) {
@@ -2135,9 +2135,9 @@ public class DBGuiExportModel extends DBGui {
                                 if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
                                 new TableItem(this.tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
                                 if ( this.tblListConflicts.getItemCount() < 2 )
-                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database:");
                                 else
-                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
+                                    this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database:");
                                 incrementText(txtConflicting);
                                 return false;
                             case exportToDatabase:
@@ -2247,7 +2247,7 @@ public class DBGuiExportModel extends DBGui {
 			this.grpConflict = new Group(this.compoRightBottom, SWT.NONE);
 			this.grpConflict.setBackground(GROUP_BACKGROUND_COLOR);
 			this.grpConflict.setFont(TITLE_FONT);
-			this.grpConflict.setText("Conflict : ");
+			this.grpConflict.setText("Conflict: ");
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(0);
 			fd.left = new FormAttachment(0);
@@ -2258,7 +2258,7 @@ public class DBGuiExportModel extends DBGui {
 	
 			this.lblCantExport = new Label(this.grpConflict, SWT.NONE);
 			this.lblCantExport.setBackground(GROUP_BACKGROUND_COLOR);
-			this.lblCantExport.setText("Can't export because some components conflict with newer version in the database :");
+			this.lblCantExport.setText("Can't export because some components conflict with newer version in the database:");
 			fd = new FormData();
 			fd.top = new FormAttachment(0, 10);
 			fd.left = new FormAttachment(0, 10);
@@ -2308,7 +2308,7 @@ public class DBGuiExportModel extends DBGui {
 	
 			Label lblCompare = new Label(this.grpConflict, SWT.NONE);
 			lblCompare.setBackground(GROUP_BACKGROUND_COLOR);
-			lblCompare.setText("Please verify your version against the latest version in the database :");
+			lblCompare.setText("Please verify your version against the latest version in the database:");
 			fd = new FormData();
 			fd.top = new FormAttachment(this.tblListConflicts, 20);
 			fd.left = new FormAttachment(0, 10);
@@ -2471,9 +2471,9 @@ public class DBGuiExportModel extends DBGui {
 			export();
 		} else {
 			if ( this.tblListConflicts.getItemCount() < 2 )
-				this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database :");
+				this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" component conflicts with newer version in the database:");
 			else
-				this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
+				this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database:");
 
 			if ( index < this.tblListConflicts.getItemCount() )
 				this.tblListConflicts.setSelection(index);

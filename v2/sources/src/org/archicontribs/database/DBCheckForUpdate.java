@@ -96,11 +96,11 @@ public class DBCheckForUpdate {
 							logger.debug("Proxy request from "+getRequestingHost()+":"+getRequestingPort());
 						if ( logger.isTraceEnabled() ) {
 							logger.trace("   Proxy configuration:");
-							logger.trace("   prot : "+prot);
-							logger.trace("   host : "+host);
-							logger.trace("   port : "+port);
-							logger.trace("   user : "+user);
-							logger.trace("   pass : (xxxxx)");
+							logger.trace("   prot: "+prot);
+							logger.trace("   host: "+host);
+							logger.trace("   port: "+port);
+							logger.trace("   user: "+user);
+							logger.trace("   pass: (xxxxx)");
 						}
 
 						// we check if the request comes from the proxy (IP or hostname), else we do not send the password (for security reason)
@@ -170,9 +170,9 @@ public class DBCheckForUpdate {
 
 			if ( DBPlugin.pluginVersion.compareTo(entry.getKey()) >= 0 ) {
 				if ( verbose )
-					DBGui.popup(Level.INFO, "You already have got the latest version : "+DBPlugin.pluginVersion);
+					DBGui.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion);
 				else
-					logger.info("You already have got the latest version : "+DBPlugin.pluginVersion);
+					logger.info("You already have got the latest version: "+DBPlugin.pluginVersion);
 				return;
 			}
 
@@ -188,9 +188,9 @@ public class DBCheckForUpdate {
 			while ( ask ) {
 				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
 				switch ( this.answer ) {
-					case 0 : ask = false ; break;  // Yes
-					case 1 : return ;              // No
-					case 2 : ask = true ;          // release note
+					case 0: ask = false ; break;  // Yes
+					case 1: return ;              // No
+					case 2: ask = true ;          // release note
 							 Program.launch(releaseNoteUrl);
 							 break;
 					default: break;					// should never be here, but just in case
@@ -207,11 +207,11 @@ public class DBCheckForUpdate {
 			tmpFilename = newPluginFilename+".tmp";
 
 			if ( logger.isTraceEnabled() ) {
-				logger.trace("   File URL : " + entry.getValue());
-				logger.trace("   File type : " + FileType);
-				logger.trace("   File length : "+fileLength);
-				logger.trace("   Tmp download file path : " + tmpFilename);
-				logger.trace("   New Plugin file path : " + newPluginFilename);
+				logger.trace("   File URL: " + entry.getValue());
+				logger.trace("   File type: " + FileType);
+				logger.trace("   File length: "+fileLength);
+				logger.trace("   Tmp download file path: " + tmpFilename);
+				logger.trace("   New Plugin file path: " + newPluginFilename);
 			}
 			
 			// we delete the temp file in case a previous download failed

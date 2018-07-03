@@ -73,7 +73,7 @@ public class DBMenu extends ExtensionContributionFactory {
                         switch ( obj.getClass().getSimpleName() ) {
 
                             // when a user right clicks on a model
-                            case "DBArchimateModel" :
+                            case "DBArchimateModel":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showConvertIds();
@@ -83,7 +83,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a diagram background
-                            case "ArchimateDiagramPart" :
+                            case "ArchimateDiagramPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -94,7 +94,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a canvas background
-                            case "CanvasDiagramPart" :
+                            case "CanvasDiagramPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -105,7 +105,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a sketch background
-                            case "SketchDiagramPart" :
+                            case "SketchDiagramPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -116,7 +116,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a diagram and an element is selected
-                            case "ArchimateElementEditPart" :
+                            case "ArchimateElementEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -126,7 +126,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a diagram and a relationship is selected
-                            case "ArchimateRelationshipEditPart" :
+                            case "ArchimateRelationshipEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -136,7 +136,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a canvas' block
-                            case "CanvasBlockEditPart" :
+                            case "CanvasBlockEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -145,7 +145,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks in a canvas' sticky
-                            case "CanvasStickyEditPart" :
+                            case "CanvasStickyEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) { 
                                     showDebug();
@@ -154,7 +154,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a connection
-                            case "DiagramConnectionEditPart" :
+                            case "DiagramConnectionEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -164,7 +164,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on an image
-                            case "DiagramImageEditPart" :
+                            case "DiagramImageEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -173,7 +173,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a group
-                            case "GroupEditPart" :
+                            case "GroupEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -182,7 +182,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a note
-                            case "NoteEditPart" :
+                            case "NoteEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -191,7 +191,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a sketch actor
-                            case "SketchActorEditPart" :
+                            case "SketchActorEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -200,7 +200,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a sketch group
-                            case "SketchGroupEditPart" :
+                            case "SketchGroupEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -209,7 +209,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a sticky
-                            case "StickyEditPart" :
+                            case "StickyEditPart":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -218,7 +218,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;	
 
                                 // when the user right clicks on a diagram in the model tree
-                            case "ArchimateDiagramModel" :
+                            case "ArchimateDiagramModel":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -229,7 +229,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a canvas in the model tree
-                            case "CanvasModel" :
+                            case "CanvasModel":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -240,7 +240,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 break;
 
                                 // when the user right clicks on a sketch in the model tree
-                            case "SketchModel" :
+                            case "SketchModel":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -249,7 +249,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 showGetHistory((ISketchModel)obj);
                                 showImportComponent();
                                 break;
-                            case "Folder" :
+                            case "Folder":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
@@ -258,7 +258,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 showGetHistory((IFolder)obj);
                                 showImportComponent();
                                 break;
-                            default :
+                            default:
                                 if ( obj instanceof IArchimateElement || obj instanceof IArchimateRelationship ) {
                                     additions.addContributionItem(new Separator(), null);
                                     if ( showDebugInContextMenu ) {
@@ -302,7 +302,7 @@ public class DBMenu extends ExtensionContributionFactory {
         if ( label.length() > 100 )
             label = label.substring(0, 100);
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -327,7 +327,7 @@ public class DBMenu extends ExtensionContributionFactory {
         if ( label.length() > 100 )
             label = label.substring(0, 100);
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -352,7 +352,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import model from database";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -377,7 +377,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/export.png"), null));
         label = "Export model to database";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -402,7 +402,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import individual component";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -427,7 +427,7 @@ public class DBMenu extends ExtensionContributionFactory {
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
         label = "Import individual component into view";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
@@ -449,7 +449,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Show debugging information";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -471,7 +471,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Convert old fashion IDs to Archi4 IDs";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
@@ -493,7 +493,7 @@ public class DBMenu extends ExtensionContributionFactory {
         ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
         String label = "Merge models";
 
-        if ( logger.isDebugEnabled() ) logger.debug("adding menu label : "+label);
+        if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id

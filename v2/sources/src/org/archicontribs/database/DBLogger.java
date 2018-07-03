@@ -42,7 +42,7 @@ public class DBLogger {
 
 	/**
 	 * Creates a proxy to to the Log4J logger class
-	 * @param clazz : Class that will be reported on the log lines
+	 * @param clazz: Class that will be reported on the log lines
 	 */
 	public <T> DBLogger(Class<T> clazz) {
 		if ( ! initialised ) {
@@ -91,10 +91,10 @@ public class DBLogger {
 
 	/**
 	 * Logs a message
-	 * @param clazz : Class that will be reported in the log line
-     * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
-     * @param message : Message to print on the log line
-     * @param t : Exception to add to the log file (the exception message and stacktrace will be added to the log file)
+	 * @param clazz Class that will be reported in the log line
+     * @param level level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message Message to print on the log line
+     * @param t Exception to add to the log file (the exception message and stacktrace will be added to the log file)
 	 */
 	public <T> void log(Class<T> clazz, Level level, String message, Throwable t) {
 		String className = clazz.getName();
@@ -115,16 +115,16 @@ public class DBLogger {
 	
 	/**
 	 * Logs a message
-	 * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
-     * @param message : Message to print on the log line
+	 * @param level level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message Message to print on the log line
 	 */
 	public void log(Level level, String message)						{ log(this.getClass(), level, message, null); }
 	
 	/**
 	 * Logs a message
-     * @param clazz : Class that will be reported in the log line
-     * @param level : level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
-     * @param message : Message to print on the log line
+     * @param clazz Class that will be reported in the log line
+     * @param level level of the log line (may be Level.ERROR, Level.WARN, Level.INFO, Level.DEBUG, Level.TRACE)
+     * @param message Message to print on the log line
 	 */
 	public <T> void log(Class<T> clazz, Level level, String message)	{ log(clazz, level, message, null); }
 	
@@ -258,10 +258,10 @@ public class DBLogger {
 		debug("getting logger preferences from store");
 		
 		switch (loggerMode) {
-		case "disabled" :
+		case "disabled":
 			return null;
 			
-		case "simple" :
+		case "simple":
     		properties.setProperty("log4j.rootLogger",									DBPlugin.INSTANCE.getPreferenceStore().getString("loggerLevel").toUpperCase()+", stdout, file");
     		
     		properties.setProperty("log4j.appender.stdout",								"org.apache.log4j.ConsoleAppender");
@@ -278,7 +278,7 @@ public class DBLogger {
     		properties.setProperty("log4j.appender.file.layout.ConversionPattern",		"%d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n");
     		break;
     		
-		case "expert" :
+		case "expert":
     		String loggerExpert = DBPlugin.INSTANCE.getPreferenceStore().getString("loggerExpert");
     		if ( loggerExpert == null ) DBPlugin.INSTANCE.getPreferenceStore().getDefaultString("loggerExpert");
     		

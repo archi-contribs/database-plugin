@@ -26,18 +26,18 @@ public class DBDatabaseEntry {
 
     /**
      * Created a database entry
-     * @param entryName : name of the entry (just a bulk of letters, can contain spaces)
-     * @param driverName : name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
-     * @param serverName : IP address or DNS name of the server where the database stands
-     * @param portValue : TCP port on which the database is listening to 
-     * @param databaseName : name of the database
-     * @param schemaName : name of the schema
-     * @param userName : account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
-     * @param pass : password used to connect to the database
-     * @param exportWholeModel : true if the whole model (including folders, views, objects and connections) should be exported, or false if only the elements and relationships must be exported. 
-     * @param exportViewImages : true if screenshots of the views must be exported in the database, false if screenshots are not necessary
-     * @param isNeo4jNativeMode : true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
-     * @param neo4jEmptyDB : true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
+     * @param entryName name of the entry (just a bulk of letters, can contain spaces)
+     * @param driverName name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
+     * @param serverName IP address or DNS name of the server where the database stands
+     * @param portValue TCP port on which the database is listening to 
+     * @param databaseName name of the database
+     * @param schemaName name of the schema
+     * @param userName account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
+     * @param pass password used to connect to the database
+     * @param exportWholeModel true if the whole model (including folders, views, objects and connections) should be exported, or false if only the elements and relationships must be exported. 
+     * @param exportViewImages true if screenshots of the views must be exported in the database, false if screenshots are not necessary
+     * @param isNeo4jNativeMode true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
+     * @param neo4jEmptyDB true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
      * @throws Exception
      */
     public DBDatabaseEntry(String entryName, String driverName, String serverName, int portValue, String databaseName, String schemaName, String userName, String pass, boolean exportWholeModel, boolean exportViewImages, boolean isNeo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
@@ -205,7 +205,7 @@ public class DBDatabaseEntry {
 	/**
 	 * Gets all the database entries from the preference store
 	 * 
-	 * @param includeNeo4j : True if the Neo4J database must be included, false if the Neo4J databases must me excluded
+	 * @param includeNeo4j True if the Neo4J database must be included, false if the Neo4J databases must me excluded
 	 * @return List of the database entries
 	 */
 	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
@@ -264,7 +264,7 @@ public class DBDatabaseEntry {
 	/**
 	 * Persist the database entries in the preference store
 	 * 
-	 * @param databaseEntries : List of the database entries to persist in the preference store
+	 * @param databaseEntries List of the database entries to persist in the preference store
 	 */
 	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) {
 		if ( logger.isDebugEnabled() ) logger.debug("Recording databases in preference store");
@@ -296,7 +296,7 @@ public class DBDatabaseEntry {
 	/**
 	 * Get a database entry from the database name
 	 * 
-	 * @param databaseName : database name of the database entry
+	 * @param databaseName database name of the database entry
 	 * @return The database entry corresponding to the database name
 	 * @throws Exception
 	 */

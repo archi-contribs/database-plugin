@@ -120,10 +120,10 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		Group grpVersion = new Group(behaviourComposite, SWT.NONE);
 		grpVersion.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		grpVersion.setLayout(new FormLayout());
-		grpVersion.setText("Version : ");
+		grpVersion.setText("Version: ");
 		
 		Label versionLbl = new Label(grpVersion, SWT.NONE);
-		versionLbl.setText("Actual version :");
+		versionLbl.setText("Actual version:");
 		versionLbl.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, 5);
@@ -173,7 +173,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
 		Group grpMiscellaneous = new Group(behaviourComposite, SWT.NONE);
 		grpMiscellaneous.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		grpMiscellaneous.setText("Miscellaneous :");
+		grpMiscellaneous.setText("Miscellaneous:");
 		grpMiscellaneous.setLayout(new FormLayout());
 		
 		gd = new GridData();
@@ -247,7 +247,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.btnShowIdInContextMenu.setLayoutData(fd);
 		
 		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
-		lblDefaultImportType.setText("Default component import type :");
+		lblDefaultImportType.setText("Default component import type:");
 		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
@@ -276,7 +276,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
         grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
         grpHelp.setLayout(new FormLayout());
-        grpHelp.setText("Online help : ");
+        grpHelp.setText("Online help: ");
         
         gd = new GridData();
         //gd.heightHint = 40;
@@ -295,7 +295,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
                  e.gc.drawImage(DBGui.HELP_ICON, 2, 2);
             }
         });
-        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBPreferencePage.this.logger.isDebugEnabled() ) DBPreferencePage.this.logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
+        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBPreferencePage.this.logger.isDebugEnabled() ) DBPreferencePage.this.logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
         fd = new FormData(30,30);
         fd.top = new FormAttachment(0, 11);
         fd.left = new FormAttachment(0, 10);
@@ -357,7 +357,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         this.loggerLevelRadioGroupEditor = new RadioGroupFieldEditor("loggerLevel", "", 6, LOGGER_LEVELS, this.simpleModeGroup, false);
         addField(this.loggerLevelRadioGroupEditor);
         
-        this.filenameFileFieldEditor = new DBFileFieldEditor("loggerFilename", "Log filename : ", false, StringFieldEditor.VALIDATE_ON_KEY_STROKE, this.simpleModeGroup);
+        this.filenameFileFieldEditor = new DBFileFieldEditor("loggerFilename", "Log filename: ", false, StringFieldEditor.VALIDATE_ON_KEY_STROKE, this.simpleModeGroup);
         addField(this.filenameFileFieldEditor);
         
         
@@ -414,19 +414,19 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
 		// Defining of the user's choice, we show up the simple or expert parameters or none of them
 		switch ( mode ) {
-		case "disabled" :
+		case "disabled":
 			this.expertModeGroup.setVisible(false);
 			this.simpleModeGroup.setVisible(false);
 			break;
-		case "simple" :
+		case "simple":
 			this.expertModeGroup.setVisible(false);
 			this.simpleModeGroup.setVisible(true);
 			break;
-		case "expert" :
+		case "expert":
 			this.expertModeGroup.setVisible(true);
 			this.simpleModeGroup.setVisible(false);
 			break;
-		default : 
+		default: 
 			this.expertModeGroup.setVisible(false);
 			this.simpleModeGroup.setVisible(false);
 			this.logger.error("Unknown value \""+mode+"\" in loggerModeRadioGroupEditor.");

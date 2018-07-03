@@ -100,7 +100,7 @@ public class DBGuiImportModel extends DBGui {
         createAction(ACTION.Three, "3 - Status");
         setActiveAction(ACTION.One);
 
-        // We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
+        // We activate the btnDoAction button: if the user select the "Import" button --> call the doImport() method
         setBtnAction("Import", new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -185,7 +185,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpModels = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
         this.grpModels.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpModels.setFont(GROUP_TITLE_FONT);
-        this.grpModels.setText("Models : ");
+        this.grpModels.setText("Models: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
@@ -196,7 +196,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblListModels = new Label(this.grpModels, SWT.NONE);
         lblListModels.setBackground(GROUP_BACKGROUND_COLOR);
-        lblListModels.setText("Filter :");
+        lblListModels.setText("Filter:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 10);
         fd.left = new FormAttachment(0, 10);
@@ -286,7 +286,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpModelVersions = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
         this.grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpModelVersions.setFont(GROUP_TITLE_FONT);
-        this.grpModelVersions.setText("Versions of selected model : ");
+        this.grpModelVersions.setText("Versions of selected model: ");
         fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(50, 5);
@@ -340,7 +340,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.lblModelName = new Label(this.grpModelVersions, SWT.NONE);
         this.lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblModelName.setText("Model name :");
+        this.lblModelName.setText("Model name:");
         fd = new FormData();
         fd.top = new FormAttachment(this.tblModelVersions, 10);
         fd.left = new FormAttachment(0, 10);
@@ -357,7 +357,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.lblPurpose = new Label(this.grpModelVersions, SWT.NONE);
         this.lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblPurpose.setText("Purpose :");
+        this.lblPurpose.setText("Purpose:");
         fd = new FormData();
         fd.top = new FormAttachment(this.txtModelName, 10);
         fd.left = new FormAttachment(0, 10);
@@ -375,7 +375,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.lblReleaseNote = new Label(this.grpModelVersions, SWT.NONE);
         this.lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblReleaseNote.setText("Release note :");
+        this.lblReleaseNote.setText("Release note:");
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, 10);
         fd.left = new FormAttachment(0, 10);
@@ -400,7 +400,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setVisible(false);
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
-        this.grpComponents.setText("Your model's components : ");
+        this.grpComponents.setText("Your model's components: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(100, -220);
         fd.left = new FormAttachment(0);
@@ -411,7 +411,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblElements = new Label(this.grpComponents, SWT.NONE);
         lblElements.setBackground(GROUP_BACKGROUND_COLOR);
-        lblElements.setText("Elements :");
+        lblElements.setText("Elements:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 25);
         fd.left = new FormAttachment(0, 30);
@@ -419,7 +419,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblRelationships = new Label(this.grpComponents, SWT.NONE);
         lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
-        lblRelationships.setText("Relationships :");
+        lblRelationships.setText("Relationships:");
         fd = new FormData();
         fd.top = new FormAttachment(lblElements, 10);
         fd.left = new FormAttachment(0, 30);
@@ -427,7 +427,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblFolders = new Label(this.grpComponents, SWT.NONE);
         lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
-        lblFolders.setText("Folders :");
+        lblFolders.setText("Folders:");
         fd = new FormData();
         fd.top = new FormAttachment(lblRelationships, 10);
         fd.left = new FormAttachment(0, 30);
@@ -435,7 +435,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblViews = new Label(this.grpComponents, SWT.NONE);
         lblViews.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViews.setText("Views :");
+        lblViews.setText("Views:");
         fd = new FormData();
         fd.top = new FormAttachment(lblFolders, 10);
         fd.left = new FormAttachment(0, 30);
@@ -443,7 +443,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblViewObjects = new Label(this.grpComponents, SWT.NONE);
         lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViewObjects.setText("Objects :");
+        lblViewObjects.setText("Objects:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViews, 10);
         fd.left = new FormAttachment(0, 30);
@@ -451,7 +451,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblViewConnections = new Label(this.grpComponents, SWT.NONE);
         lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
-        lblViewConnections.setText("Connections :");
+        lblViewConnections.setText("Connections:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViewObjects, 10);
         fd.left = new FormAttachment(0, 30);
@@ -459,7 +459,7 @@ public class DBGuiImportModel extends DBGui {
 
         Label lblImages = new Label(this.grpComponents, SWT.NONE);
         lblImages.setBackground(GROUP_BACKGROUND_COLOR);
-        lblImages.setText("Images :");
+        lblImages.setText("Images:");
         fd = new FormData();
         fd.top = new FormAttachment(lblViewConnections, 10);
         fd.left = new FormAttachment(0, 30);

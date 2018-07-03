@@ -134,7 +134,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setFont(parent.getFont());
 		this.grpDatabases.setLayout(new FormLayout());
 		this.grpDatabases.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.grpDatabases.setText("Databases : ");
+		this.grpDatabases.setText("Databases: ");
 		
 		GridData gd = new GridData();
 		gd.heightHint = 320;
@@ -499,7 +499,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			@Override public void widgetSelected(SelectionEvent e) { driverChanged(); }
 			@Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
-		this.btnWholeType.setToolTipText("The plugin will export the whole model content : elements, relationships, folders, views and images.\n   --> It will therefore be possible to import back your models from the database.");
+		this.btnWholeType.setToolTipText("The plugin will export the whole model content: elements, relationships, folders, views and images.\n   --> It will therefore be possible to import back your models from the database.");
 
 		this.btnComponentsType = new Button(this.compoExportType, SWT.RADIO);
 		this.btnComponentsType.setText("Elements and relationships only");
@@ -1211,7 +1211,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	/**
 	 * Moves the currently selected item up or down.
 	 *
-	 * @param direction :
+	 * @param direction:
 	 *            <code>true</code> if the item should move up, and
 	 *            <code>false</code> if it should move down
 	 */

@@ -212,10 +212,10 @@ public class DBGui {
 	
 
 	/**
-	 * Create the dialog with minimal graphical objects : 
-	 * 		left composite : picture of a database with Archimate diagram inside, the plugin version, (my name of course) and 4 icons + texts to list actions 
-	 * 		bottom composite : Close, doAction button at the right and help buton on the left
-	 * 		right composite : database list in a combo and a button to set preferences
+	 * Create the dialog with minimal graphical objects: 
+	 * 		left composite: picture of a database with Archimate diagram inside, the plugin version, (my name of course) and 4 icons + texts to list actions 
+	 * 		bottom composite: Close, doAction button at the right and help buton on the left
+	 * 		right composite: database list in a combo and a button to set preferences
 	 */
 	protected DBGui(String title) {
 		if ( logger.isDebugEnabled() ) logger.debug("Creating Form GUI.");
@@ -393,7 +393,7 @@ public class DBGui {
 		this.grpDatabase.setData("visible", true);
 		this.grpDatabase.setBackground(GROUP_BACKGROUND_COLOR);
 		this.grpDatabase.setFont(GROUP_TITLE_FONT);
-		this.grpDatabase.setText("Database : ");
+		this.grpDatabase.setText("Database: ");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
@@ -404,7 +404,7 @@ public class DBGui {
 		
 		Label lblRegisteredDatabases = new Label(this.grpDatabase, SWT.NONE);
 		lblRegisteredDatabases.setBackground(GROUP_BACKGROUND_COLOR);
-		lblRegisteredDatabases.setText("Registered databases :");
+		lblRegisteredDatabases.setText("Registered databases:");
 		fd = new FormData();
 		fd.top = new FormAttachment(25);
 		fd.left = new FormAttachment(0, 10);
@@ -465,7 +465,7 @@ public class DBGui {
                  event.gc.drawImage(HELP_ICON, 2, 2);
             }
         });
-		this.btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBGui.this.HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help : /"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); } } });
+		this.btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBGui.this.HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); } } });
 		fd = new FormData(30,30);
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 5);
@@ -676,10 +676,10 @@ public class DBGui {
 			default: icon = null;
 		}
 		switch ( action ) {
-			case One : this.activeAction = ACTION.One; this.imgFirstAction.setImage(icon); break;
-			case Two : this.activeAction = ACTION.Two; this.imgSecondAction.setImage(icon); break;
-			case Three : this.activeAction = ACTION.Three; this.imgThirdAction.setImage(icon); break;
-			case Four : this.activeAction = ACTION.Four; this.imgFourthAction.setImage(icon); break;
+			case One: this.activeAction = ACTION.One; this.imgFirstAction.setImage(icon); break;
+			case Two: this.activeAction = ACTION.Two; this.imgSecondAction.setImage(icon); break;
+			case Three: this.activeAction = ACTION.Three; this.imgThirdAction.setImage(icon); break;
+			case Four: this.activeAction = ACTION.Four; this.imgFourthAction.setImage(icon); break;
 			default:
 		}
 	}
@@ -709,10 +709,10 @@ public class DBGui {
 	 */
 	protected void createAction(ACTION action, String label) {
 		switch ( action ) {
-			case One : this.lblFirstAction.setText(label); break;
-			case Two : this.lblSecondAction.setText(label); break;
-			case Three : this.lblThirdAction.setText(label); break;
-			case Four : this.lblFourthAction.setText(label); break;
+			case One: this.lblFirstAction.setText(label); break;
+			case Two: this.lblSecondAction.setText(label); break;
+			case Three: this.lblThirdAction.setText(label); break;
+			case Four: this.lblFourthAction.setText(label); break;
 			default:
 		}
 	}
@@ -882,14 +882,14 @@ public class DBGui {
 		}
 
 		switch ( level.toInt() ) {
-			case Priority.FATAL_INT :
-			case Priority.ERROR_INT :
+			case Priority.FATAL_INT:
+			case Priority.ERROR_INT:
 				MessageDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
 				break;
-			case Priority.WARN_INT :
+			case Priority.WARN_INT:
 				MessageDialog.openWarning(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
 				break;
-			default :
+			default:
 				MessageDialog.openInformation(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
 				break;
 		}
@@ -912,7 +912,7 @@ public class DBGui {
 	 * The exception stacktrace is also printed on the standard error stream
 	 */
 	public static int question(String msg, String[] buttonLabels) {
-		if ( logger.isDebugEnabled() ) logger.debug("question : "+msg);
+		if ( logger.isDebugEnabled() ) logger.debug("question: "+msg);
 		
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
@@ -927,7 +927,7 @@ public class DBGui {
 			}
 		});
 
-		if ( logger.isDebugEnabled() ) logger.debug("answer : "+buttonLabels[questionResult]);
+		if ( logger.isDebugEnabled() ) logger.debug("answer: "+buttonLabels[questionResult]);
 		return questionResult;
 	}
 	
@@ -1211,7 +1211,7 @@ public class DBGui {
 	    refreshDisplay();
 		if ( memoryObject instanceof IDiagramModelConnection ) {
 			areIdentical &= addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelConnection)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));			// we do not use getText as it is deprecated
-			areIdentical &= addItemToCompareTable(tree, treeItem, "Text position : ", String.valueOf(((IDiagramModelConnection)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Text position", String.valueOf(((IDiagramModelConnection)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
 			
 			// we show up the bendpoints only if they both exist
 			if ( databaseObject.containsKey("bendpoints") ) {

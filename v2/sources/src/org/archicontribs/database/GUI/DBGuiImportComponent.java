@@ -206,9 +206,9 @@ public class DBGuiImportComponent extends DBGui {
         setActiveAction(ACTION.One);
 
         // we show the option in the bottom
-        setOption("Import type :", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
+        setOption("Import type:", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
 
-        // We activate the btnDoAction button : if the user select the "Import" button --> call the doImport() method
+        // We activate the btnDoAction button: if the user select the "Import" button --> call the doImport() method
         setBtnAction("Import", new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent event) {
@@ -310,7 +310,7 @@ public class DBGuiImportComponent extends DBGui {
         this.grpFilter = new Group(this.compoRightBottom, SWT.NONE);
         this.grpFilter.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpFilter.setFont(GROUP_TITLE_FONT);
-        this.grpFilter.setText("Filter : ");
+        this.grpFilter.setText("Filter: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
@@ -322,7 +322,7 @@ public class DBGuiImportComponent extends DBGui {
         Label chooseCategory = new Label(this.grpFilter, SWT.NONE);
         chooseCategory.setBackground(GROUP_BACKGROUND_COLOR);
         chooseCategory.setFont(BOLD_FONT);
-        chooseCategory.setText("Category :");
+        chooseCategory.setText("Category:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 20);
         fd.left = new FormAttachment(0, 10);
@@ -367,7 +367,7 @@ public class DBGuiImportComponent extends DBGui {
         Label chooseName = new Label(this.grpFilter, SWT.NONE);
         chooseName.setBackground(GROUP_BACKGROUND_COLOR);
         chooseName.setFont(BOLD_FONT);
-        chooseName.setText("Name filter :");
+        chooseName.setText("Name filter:");
         fd = new FormData();
         fd.top = new FormAttachment(this.radioOptionView, 10);
         fd.left = new FormAttachment(0, 10);
@@ -1409,7 +1409,7 @@ public class DBGuiImportComponent extends DBGui {
 
 		Label folderTypeLabel = new Label(compoFolders, SWT.NONE);
 		folderTypeLabel.setBackground(GROUP_BACKGROUND_COLOR);
-		folderTypeLabel.setText("Select folders type to display :");
+		folderTypeLabel.setText("Select folders type to display:");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 30);
@@ -1494,7 +1494,7 @@ public class DBGuiImportComponent extends DBGui {
 
         Label viewTypeLabel = new Label(this.compoViews, SWT.NONE);
         viewTypeLabel.setBackground(GROUP_BACKGROUND_COLOR);
-        viewTypeLabel.setText("Select views type to display :");
+        viewTypeLabel.setText("Select views type to display:");
         fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0, 30);
@@ -1532,7 +1532,7 @@ public class DBGuiImportComponent extends DBGui {
         this.grpComponent = new Group(this.compoRightBottom, SWT.NONE);
         this.grpComponent.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponent.setFont(GROUP_TITLE_FONT);
-        this.grpComponent.setText("Select the component to import : ");
+        this.grpComponent.setText("Select the component to import: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(this.grpFilter, 10);
         fd.left = new FormAttachment(0);

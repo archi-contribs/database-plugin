@@ -282,7 +282,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         int len = 0;
 
         if ( mustCalculateChecksum ) {
-            //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice : as sources and targets) 
+            //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets) 
             checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             len = checksumBuilder.length();
         }
@@ -370,7 +370,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										
 			case "Folder":							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
-										            // TODO : SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
+										            // TODO: SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
 										            // so we do not use sub folders or elements in the checksum calculation anymore
 										            // at the moment, this is not important as we do not allow to share folders between models
 										            // but a solution needs to be found !!!

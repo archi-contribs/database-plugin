@@ -336,7 +336,7 @@ public class DBTextFieldEditor extends FieldEditor {
 					SWT.MULTI | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP);
 			this.textField.setFont(parent.getFont());
 			switch (this.validateStrategy) {
-				case VALIDATE_ON_KEY_STROKE :
+				case VALIDATE_ON_KEY_STROKE:
 					this.textField.addKeyListener(new KeyAdapter() {
 						@Override
 						public void keyPressed(KeyEvent e) {
@@ -356,7 +356,7 @@ public class DBTextFieldEditor extends FieldEditor {
 						}
 					});
 					break;
-				case VALIDATE_ON_FOCUS_LOST :
+				case VALIDATE_ON_FOCUS_LOST:
 					this.textField.addKeyListener(new KeyAdapter() {
 						@SuppressWarnings("synthetic-access")
                         @Override
@@ -377,7 +377,7 @@ public class DBTextFieldEditor extends FieldEditor {
 						}
 					});
 					break;
-				default :
+				default:
 			}
 			this.textField.addDisposeListener(new DisposeListener() {
 				@Override

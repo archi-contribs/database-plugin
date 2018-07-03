@@ -201,18 +201,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// we only listed the types that may be found by the database proxy and not the exhaustive types list
 				String columnName = rs.getMetaData().getColumnName(column).toLowerCase();			// we need to convert to lowercase because of Oracle
 				switch ( rs.getMetaData().getColumnType(column) ) {
-					case Types.INTEGER :
-					case Types.NUMERIC :
-					case Types.SMALLINT :
-					case Types.TINYINT :
-					case Types.BIGINT :
-					case Types.BOOLEAN :
-					case Types.BIT :        map.put(columnName, rs.getInt(column));  break;
+					case Types.INTEGER:
+					case Types.NUMERIC:
+					case Types.SMALLINT:
+					case Types.TINYINT:
+					case Types.BIGINT:
+					case Types.BOOLEAN:
+					case Types.BIT:        map.put(columnName, rs.getInt(column));  break;
 
-					case Types.TIMESTAMP :
-					case Types.TIME :       map.put(columnName, rs.getTimestamp(column)); break;
+					case Types.TIMESTAMP:
+					case Types.TIME:       map.put(columnName, rs.getTimestamp(column)); break;
 
-					default :               map.put(columnName, rs.getString(column));
+					default:               map.put(columnName, rs.getString(column));
 				}
 			}
 		}
@@ -867,7 +867,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				++this.countImagesImported;
 			}
 			else
-				throw new Exception("Import of image failed : unkwnown image path "+path);
+				throw new Exception("Import of image failed: unkwnown image path "+path);
 		} 
 	}
 

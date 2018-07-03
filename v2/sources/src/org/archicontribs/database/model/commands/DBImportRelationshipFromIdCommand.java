@@ -226,7 +226,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 
 			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
 			// and create the corresponding connections
-			// TODO : add an option that the user can choose if he wants the connections or not
+			// TODO: add an option that the user can choose if he wants the connections or not
 			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
 				this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
 				List<IConnectable> sourceConnections = metadata.findConnectables(this.view, this.importedRelationship.getSource());

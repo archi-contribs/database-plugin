@@ -33,7 +33,7 @@ public class DBMenuMergeModelsHandler extends AbstractHandler {
 
 		if ( logger.isDebugEnabled() ) logger.debug("Merging models "+modelNames);
 		
-		//TODO : to be developped
+		//TODO: to be developped
 		DBGui.popup(Level.INFO, "Not yet implemented.");
 		
 		return null;

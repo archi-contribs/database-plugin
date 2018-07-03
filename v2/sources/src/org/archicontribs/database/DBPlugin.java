@@ -30,11 +30,11 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 
  * @author Herve Jouin
  *
- * v0.1 : 			25/03/2016		plug-in creation
+ * v0.1: 			25/03/2016		plug-in creation
  * 
- * v1.0.0 :			10/12/2016		First production release
+ * v1.0.0:			10/12/2016		First production release
  * 
- * v2.0.0.beta1 :	26/02/2017		Added log4j support
+ * v2.0.0.beta1:	26/02/2017		Added log4j support
  * 									Version all the elements and relationships
  * 									Reduce the quantity of data exported by exporting only updated components (use of checksums)
  * 									Detect database conflicts and add a conflict resolution mechanism
@@ -47,7 +47,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 									Add the ability to import components from other models
  * 									Add inline help
  * 
- * v2.0.0.beta2 :	19/03/2017		Importing an element now imports its relationships as well
+ * v2.0.0.beta2:	19/03/2017		Importing an element now imports its relationships as well
  * 									Add import folder functionality
  * 									Add import view functionality
  * 									Change RCP methods to insert entries in menus in order to be more friendly with other plugins
@@ -59,16 +59,16 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *									Improve exceptions catching between threads
  *									Replace boolean database columns by integer columns for better compatibility
  *
- * v2.0.0.beta3 :	21/03/2017		Correct preference page where some options are outside the window on some displays
+ * v2.0.0.beta3:	21/03/2017		Correct preference page where some options are outside the window on some displays
  * 									Solve SQL duplicate key error message on model export
  * 
- * v2.0.0.beta4 :	29/03/2017		Correct import folders properties
+ * v2.0.0.beta4:	29/03/2017		Correct import folders properties
  * 									Add version numbers of imported objects in debug mode
  * 									Solve MySQL compatibility issue on elements import SQL request
  * 									Detect folders and views changes using checksum
  * 									Solve bug where save button does not show up in preferences page
  * 
- * v2.0.0 :         28/04/2017		Export Model:
+ * v2.0.0:         28/04/2017		Export Model:
  *                                     Solve bug where properties were not exported correctly
  *                                     Solve bug where connections could be exported twice
  *                                     Rewrite the conflict detection when exporting to make it more accurate
@@ -76,10 +76,10 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                     Add a popup when nothing needs to be exported
  *                                  Import Model:
  *                                     Create the status page on the export model window
- *                                  Import individual component :
+ *                                  Import individual component:
  *                                     Add the ability to hide existing components in the import component module
  *                                     Add the ability to hide default views in the import component module
- *                                  Get component history :
+ *                                  Get component history:
  *                                     Solve bug where the component was not found in the database
  *                                  Preferences:
  *                                     Add a preference entry to automatically close import and export windows on success
@@ -96,18 +96,18 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                     Replaced database table "archi_plugin" by new table "database_version"
  *                                     Opens the model in the tree after import
  *                                     
- * v2.0.1 : 01/05/2017              Add the ability to export images of views in the database
+ * v2.0.1: 01/05/2017              Add the ability to export images of views in the database
  * 									Add a preference to keep the imported model even in case of error
 									Add SQL Server integrated security authentication mode
  * 									Reduce memory leak
  * 									Added back Neo4J support (elements and relationships export only)
  * 									Solve NullPointerException while checking database
  * 
- * v2.0.2 : 02/05/2017              Solve errors during table creation in PostGreSQL database
+ * v2.0.2: 02/05/2017              Solve errors during table creation in PostGreSQL database
  *                                  Solve "Operation not allowed after ResultSet closed" error message on model export
  *                                  Add a menu entry to replace old fashion IDs to Archi 4 IDs (to ensure uniqueness of all components)
  *                                  
- * v2.0.3 : 07/05/2017              Export model:
+ * v2.0.3: 07/05/2017              Export model:
  *                                  	Make conflict management more reliable on PostGreSQL databases
  *                                 		Added a preference to remove the dirty flag on the model after a successful export
  *                                 		Solve bug where count of exported components could be erroneous
@@ -123,7 +123,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Remove the NOT NULL constraints on some columns because Oracle does not do any difference between an empty string and a null value
  *                                      Renamed mssql driver to ms-sql to be visually more distinctive from mysql
  * 
- * v2.0.4 : 11/05/2017				Export model:
+ * v2.0.4: 11/05/2017				Export model:
  * 										Solve bug where export conflicts were not detected correctly on MySQL databases
  *                                  Import individual component:
  *                                  	The import type (shared or copy) can now be changed directly on the import window
@@ -137,13 +137,13 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                  	Rewrite of the views connections import procedure to ensure that they are imported in the same order as in the original model
  *                                  	This leads to 2 new columns (source_connections and target_connections) in the view_objects and views_connections database tables
  *                                  
- * v2.0.5 : 17/05/2017				Export model:
+ * v2.0.5: 17/05/2017				Export model:
  * 										Change order of folders export (exporting all the root folders first)
  * 									Import model:
  * 										Solve bug in counting components to import prior the import itself which can cause false error messages even when the import is successful
  * 										Solve bug in folder import where the parent folder was not created yet before its content
  * 
- * v2.0.6 : 30/05/2017				Import model:
+ * v2.0.6: 30/05/2017				Import model:
  * 										Solve bug when importing a model which has got a shared view which has been updated by another model
  * 										The import SQL request have been rewritten because of Oracle specificity
  * 										A double click on a model's version now launches the import
@@ -153,7 +153,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										Added column "element_version" to table "views_objects"
  * 										Added column "relationship_version" to table "views_connections"
  * 
- * v2.0.7 : 30/06/2017				Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected
+ * v2.0.7: 30/06/2017				Rollback to single thread as multi-threading causes to many side effects and does not accelerate the import and export duration as expected
  *                                  Improve checksum mechanism
  *                                  Add an option to show up ID and checksum in context menu rather than relying on the logger mode
  *                                  Import model:
@@ -164,9 +164,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Show up more information about conflicting components
  *                                      Increase the conflict detection and resolution
  * 										
- * v2.0.7b : 01/07/2017				Solve Neo4J errors
+ * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1 : 23/05/2018				Fill in the online help
+ * v2.1: 23/05/2018				Fill in the online help
  *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
  *                                  Remove checksums on images as the path is already a kind of checksum
  *                                  Export and import back model's metadata
@@ -192,7 +192,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:
- *										For relational databases :
+ *										For relational databases:
  *											Create collaborative mode
  *											Allow to specify the generated view screenshots border width and scale factor
  *										For Neo4J databases:

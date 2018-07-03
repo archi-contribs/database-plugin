@@ -45,7 +45,7 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
             // if the user clicked on a graphical object in a view
             component = (IArchimateModelObject) ((EditPart)selection).getModel();
         } else {
-            DBGui.popup(Level.ERROR, "Do not know which component you selected :(");
+            DBGui.popup(Level.ERROR, "Do not know which component you selected.");
             return null;
         }
         
