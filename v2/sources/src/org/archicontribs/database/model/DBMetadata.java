@@ -545,7 +545,8 @@ public class DBMetadata  {
     }
 
     public void setName(String name) {
-        if ( (this.component instanceof INameable) && (name != null) && !DBPlugin.areEqual(((INameable)this.component).getName(), name) )
+    	// we do not set the name if the component is a view object linked to an element or a relationship (as the name is set with the element or the relationship)
+        if ( (this.component instanceof INameable && !(this.component instanceof IDiagramModelArchimateObject || this.component instanceof IDiagramModelArchimateConnection)) && (name != null) && !DBPlugin.areEqual(((INameable)this.component).getName(), name) )
             ((INameable)this.component).setName(name);
     }
 
