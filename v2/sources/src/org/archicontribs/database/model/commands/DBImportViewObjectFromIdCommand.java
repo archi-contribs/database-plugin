@@ -120,7 +120,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             // if the object contains an image
             if ( this.newValues.get("image_path") != null ) {
                 IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
-                if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
+                if ( !archiveMgr.getLoadedImagePaths().contains((String)this.newValues.get("image_path")) ) {
                     try ( ResultSet imageResult = importConnection.select("SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
                         if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
@@ -291,7 +291,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
                     if ( this.oldContainer != null ) {
                         if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)this.oldContainer).getDBMetadata().getDebugName());
-                        this.oldContainer.getChildren().remove(this.importedViewObject);
+                        this.oldContainer.getChildren().remove((IDiagramModelObject)this.importedViewObject);
                     }
 
                     if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
@@ -348,7 +348,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
         if ( this.isNew ) {
             // if the view object has been created by the execute() method, we just delete it
             IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
-            container.getChildren().remove(this.importedViewObject);
+            container.getChildren().remove((IDiagramModelObject)this.importedViewObject);
 
             this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
         } else {
