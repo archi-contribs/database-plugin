@@ -116,22 +116,12 @@ public class DBGuiComponentHistory extends DBGui {
             public void handleEvent(Event e) {
 		        Boolean areIdentical = fillInCompareTable(DBGuiComponentHistory.this.tblContent, DBGuiComponentHistory.this.selectedComponent, Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)));
 		        if ( areIdentical == null )
-		        	DBGuiComponentHistory.this.lblCompareComponents.setText("Content:");
+		        	DBGuiComponentHistory.this.lblCompareComponents.setText("Versions:");
 		        else {
-		        	String componentType = "Components";
-		    		if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateElement ) 
-		    			componentType = "Elements";
-		    		else if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateRelationship ) 
-		    			componentType = "Relationships";
-		            else if ( DBGuiComponentHistory.this.selectedComponent instanceof IArchimateDiagramModel || DBGuiComponentHistory.this.selectedComponent instanceof ICanvasModel || DBGuiComponentHistory.this.selectedComponent instanceof ISketchModel )
-		            	componentType = "Views";
-		            else if ( DBGuiComponentHistory.this.selectedComponent instanceof IFolder )
-		            	componentType = "Folders";
-
 		        	if ( areIdentical.booleanValue() )
-		        		DBGuiComponentHistory.this.lblCompareComponents.setText(componentType + " are identical");
+		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are identical");
 		        	else
-		        		DBGuiComponentHistory.this.lblCompareComponents.setText(componentType + " are different (check highlighted lines):");
+		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are different (check highlighted lines):");
 		        }
 		    }
 		});
@@ -156,7 +146,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.lblCompareComponents = new Label(grpComponents, SWT.NONE);
 		this.lblCompareComponents.setBackground(GROUP_BACKGROUND_COLOR);
-		this.lblCompareComponents.setText("Content :");
+		this.lblCompareComponents.setText("Versions:");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.tblVersions, 20);
 		fd.left = new FormAttachment(0, 10);
