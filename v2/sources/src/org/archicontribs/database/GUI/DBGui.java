@@ -138,7 +138,7 @@ public class DBGui {
 	public static final Color COMPO_LEFT_COLOR = new Color(display, 240, 248, 255);			// light blue
 	public static final Color COMPO_BACKGROUND_COLOR = new Color(display, 250, 250, 250);	// light grey
 	public static final Color GROUP_BACKGROUND_COLOR = new Color(display, 235, 235, 235);	// light grey (a bit darker than compo background)
-	public static final Color TABLE_BACKGROUND_COLOR = GROUP_BACKGROUND_COLOR;
+	public static final Color TABLE_BACKGROUND_COLOR = new Color(display, 225, 225, 225);	// light grey (a bit darker than group background)
 	public static final Color HIGHLIGHTED_COLOR = display.getSystemColor(SWT.COLOR_GRAY);
 	
 	public static final Color STRATEGY_COLOR = new Color(display, 255, 222, 170);
@@ -226,8 +226,10 @@ public class DBGui {
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
 		this.dialog.setMinimumSize(800, 700);
 		this.dialog.setSize(1000,700);
-		int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
-		this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
+		// the scale factor is managed automatically on windows
+		//int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
+		//this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
+		this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
 		this.dialog.setLayout(new FormLayout());
 		
 	    this.dialog.addListener(SWT.Close, new Listener()
@@ -664,13 +666,14 @@ public class DBGui {
 	protected void setActiveAction(ACTION action, STATUS status) {
 		Image icon;
 		switch ( status ) {
-			case Selected : icon = RIGHT_ARROW_ICON; break;
-			case Running : icon = CLOCK_ICON; break;
-			case Bypassed : icon = BYPASSED_ICON; break;
-			case Ok : icon = OK_ICON; break;
-			case Warn : icon = WARNING_ICON; break;
-			case Error : icon = ERROR_ICON; break;
-			default : icon = null;
+			case Selected: icon = RIGHT_ARROW_ICON; break;
+			case Running: icon = CLOCK_ICON; break;
+			case Bypassed: icon = BYPASSED_ICON; break;
+			case Ok: icon = OK_ICON; break;
+			case Warn: icon = WARNING_ICON; break;
+			case Error: icon = ERROR_ICON; break;
+			case Empty: icon = null; break;
+			default: icon = null;
 		}
 		switch ( action ) {
 			case One : this.activeAction = ACTION.One; this.imgFirstAction.setImage(icon); break;
@@ -1105,12 +1108,12 @@ public class DBGui {
 	    return this.dialog==null ? true : this.dialog.isDisposed();
 	}
 	
-	protected void fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion) {
-	    fillInCompareTable(tree, null, memoryObject, memoryObjectversion);
+	protected Boolean fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion) {
+	    return fillInCompareTable(tree, null, memoryObject, memoryObjectversion);
 	}
 	
     @SuppressWarnings("unchecked")
-	protected void fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
+	protected Boolean fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
         assert ( memoryObject!=null );
 
         logger.debug("showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
@@ -1122,88 +1125,93 @@ public class DBGui {
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
 			//TODO: shall we exit to the status page with status=error ???
-			return;
+			return null;
 		}
+		
+		boolean areIdentical = true;
 	    
 	    if ( treeItem == null ) {          // the root component
 	        tree.removeAll();
 	        refreshDisplay();
         
-	        addItemToCompareTable(tree, treeItem, "Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version")));
-        
-            if ( (String)databaseObject.get("created_by") != null ) {
-                addItemToCompareTable(tree, treeItem, "Username", DBPlugin.getUserName(), (String)databaseObject.get("created_by"));
-            }
+	        TreeItem item = new TreeItem(tree, SWT.NONE);
+	        item.setText(new String[] {"Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version"))});
+	      
+	        if ( (String)databaseObject.get("created_by") != null ) {
+	        	item = new TreeItem(tree, SWT.NONE);
+	        	item.setText(new String[] {"Created by", DBPlugin.getUserName(), (String)databaseObject.get("created_by")}); 
+	        }
         
             if ( databaseObject.get("created_on") != null ) {
+	        	item = new TreeItem(tree, SWT.NONE);
                 if ( ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp() != null )
-                    addItemToCompareTable(tree, treeItem, "Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
+                	item.setText(new String[] {"Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
                 else
-                    addItemToCompareTable(tree, treeItem, "Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on")));
+                	item.setText(new String[] {"Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
             }
 	    }
 	    
-	    addItemToCompareTable(tree, treeItem, "Class", memoryObject.getClass().getSimpleName(), (String)databaseObject.get("class"));
-	    addItemToCompareTable(tree, treeItem, "Name", ((INameable)memoryObject).getName(), (String)databaseObject.get("name"));
+	    areIdentical &= areIdentical &= addItemToCompareTable(tree, treeItem, "Class", memoryObject.getClass().getSimpleName(), (String)databaseObject.get("class"));
+	    areIdentical &= addItemToCompareTable(tree, treeItem, "Name", ((INameable)memoryObject).getName(), (String)databaseObject.get("name"));
 	    
-	    if ( memoryObject instanceof IDocumentable )					addItemToCompareTable(tree, treeItem, "Documentation", ((IDocumentable)memoryObject).getDocumentation(), (String)databaseObject.get("documentation"));
+	    if ( memoryObject instanceof IDocumentable )					areIdentical &= addItemToCompareTable(tree, treeItem, "Documentation", ((IDocumentable)memoryObject).getDocumentation(), (String)databaseObject.get("documentation"));
 	    
-	    if ( memoryObject instanceof IJunction )						addItemToCompareTable(tree, treeItem, "Type", ((IJunction)memoryObject).getType(), (String)databaseObject.get("type"));
-		if ( memoryObject instanceof IArchimateRelationship ) {		    addItemToCompareTable(tree, treeItem, "Source id", ((IArchimateRelationship)memoryObject).getSource().getId(), (String)databaseObject.get("source_id"));
-																	    addItemToCompareTable(tree, treeItem, "Target id", ((IArchimateRelationship)memoryObject).getTarget().getId(), (String)databaseObject.get("target_id"));
-			if ( memoryObject instanceof IInfluenceRelationship )		addItemToCompareTable(tree, treeItem, "Strength", ((IInfluenceRelationship)memoryObject).getStrength(), (String)databaseObject.get("strength"));
-			if ( memoryObject instanceof IAccessRelationship )			addItemToCompareTable(tree, treeItem, "Access type", String.valueOf(((IAccessRelationship)memoryObject).getAccessType()), String.valueOf((int)databaseObject.get("access_type")));
+	    if ( memoryObject instanceof IJunction )						areIdentical &= addItemToCompareTable(tree, treeItem, "Type", ((IJunction)memoryObject).getType(), (String)databaseObject.get("type"));
+		if ( memoryObject instanceof IArchimateRelationship ) {		    areIdentical &= addItemToCompareTable(tree, treeItem, "Source id", ((IArchimateRelationship)memoryObject).getSource().getId(), (String)databaseObject.get("source_id"));
+																	    areIdentical &= addItemToCompareTable(tree, treeItem, "Target id", ((IArchimateRelationship)memoryObject).getTarget().getId(), (String)databaseObject.get("target_id"));
+			if ( memoryObject instanceof IInfluenceRelationship )		areIdentical &= addItemToCompareTable(tree, treeItem, "Strength", ((IInfluenceRelationship)memoryObject).getStrength(), (String)databaseObject.get("strength"));
+			if ( memoryObject instanceof IAccessRelationship )			areIdentical &= addItemToCompareTable(tree, treeItem, "Access type", String.valueOf(((IAccessRelationship)memoryObject).getAccessType()), String.valueOf((int)databaseObject.get("access_type")));
 		}
-		if ( memoryObject instanceof IFolder )							addItemToCompareTable(tree, treeItem, "Folder type", ((IFolder)memoryObject).getType().getLiteral(), FolderType.get((int)databaseObject.get("type")).getLiteral());
-		if ( memoryObject instanceof IArchimateDiagramModel )			addItemToCompareTable(tree, treeItem, "Viewpoint", ((IArchimateDiagramModel)memoryObject).getViewpoint(), (String)databaseObject.get("viewpoint"));
-		if ( memoryObject instanceof IDiagramModel )					addItemToCompareTable(tree, treeItem, "Router type", String.valueOf(((IDiagramModel)memoryObject).getConnectionRouterType()), databaseObject.get("connection_router_type")==null ? null : String.valueOf((int)databaseObject.get("connection_router_type")));
-		if ( memoryObject instanceof IBorderObject )					addItemToCompareTable(tree, treeItem, "Border color", ((IBorderObject)memoryObject).getBorderColor(), (String)databaseObject.get("border_color"));
-		if ( memoryObject instanceof IDiagramModelNote )				addItemToCompareTable(tree, treeItem, "Border type", String.valueOf(((IDiagramModelNote)memoryObject).getBorderType()), databaseObject.get("border_type")==null ? null : String.valueOf((int)databaseObject.get("border_type")));
+		if ( memoryObject instanceof IFolder )							areIdentical &= addItemToCompareTable(tree, treeItem, "Folder type", ((IFolder)memoryObject).getType().getLiteral(), FolderType.get((int)databaseObject.get("type")).getLiteral());
+		if ( memoryObject instanceof IArchimateDiagramModel )			areIdentical &= addItemToCompareTable(tree, treeItem, "Viewpoint", ((IArchimateDiagramModel)memoryObject).getViewpoint(), (String)databaseObject.get("viewpoint"));
+		if ( memoryObject instanceof IDiagramModel )					areIdentical &= addItemToCompareTable(tree, treeItem, "Router type", String.valueOf(((IDiagramModel)memoryObject).getConnectionRouterType()), databaseObject.get("connection_router_type")==null ? null : String.valueOf((int)databaseObject.get("connection_router_type")));
+		if ( memoryObject instanceof IBorderObject )					areIdentical &= addItemToCompareTable(tree, treeItem, "Border color", ((IBorderObject)memoryObject).getBorderColor(), (String)databaseObject.get("border_color"));
+		if ( memoryObject instanceof IDiagramModelNote )				areIdentical &= addItemToCompareTable(tree, treeItem, "Border type", String.valueOf(((IDiagramModelNote)memoryObject).getBorderType()), databaseObject.get("border_type")==null ? null : String.valueOf((int)databaseObject.get("border_type")));
 		if ( memoryObject instanceof IConnectable ) {
 			// TODO: get source and target connections from database and compare then to component's ones
 			/*
 			for ( IDiagramModelConnection conn: ((IConnectable)component).getSourceConnections() )
-				addItemToCompareTable(table, level, "source connections", conn.getId(), (String)hashResult.get("xxxxx"));
+				areIdentical &= addItemToCompareTable(table, level, "source connections", conn.getId(), (String)hashResult.get("xxxxx"));
 			for ( IDiagramModelConnection conn: ((IConnectable)component).getTargetConnections() )
-				addItemToCompareTable(table, level, "target connections", conn.getId(), (String)hashResult.get("xxxxx"));
+				areIdentical &= addItemToCompareTable(table, level, "target connections", conn.getId(), (String)hashResult.get("xxxxx"));
 			*/
 		}
-		if ( memoryObject instanceof IDiagramModelArchimateObject )		addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelArchimateObject)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));
-		if ( memoryObject instanceof IDiagramModelImageProvider )		addItemToCompareTable(tree, treeItem, "Image path", ((IDiagramModelImageProvider)memoryObject).getImagePath(), (String)databaseObject.get("image_path"));
-		if ( memoryObject instanceof IDiagramModelObject ) {			addItemToCompareTable(tree, treeItem, "Fill color", ((IDiagramModelObject)memoryObject).getFillColor(), (String)databaseObject.get("fill_color"));
+		if ( memoryObject instanceof IDiagramModelArchimateObject )		areIdentical &= addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelArchimateObject)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));
+		if ( memoryObject instanceof IDiagramModelImageProvider )		areIdentical &= addItemToCompareTable(tree, treeItem, "Image path", ((IDiagramModelImageProvider)memoryObject).getImagePath(), (String)databaseObject.get("image_path"));
+		if ( memoryObject instanceof IDiagramModelObject ) {			areIdentical &= addItemToCompareTable(tree, treeItem, "Fill color", ((IDiagramModelObject)memoryObject).getFillColor(), (String)databaseObject.get("fill_color"));
 																		IBounds bounds = ((IDiagramModelObject)memoryObject).getBounds();
-																		addItemToCompareTable(tree, treeItem, "X", String.valueOf(bounds.getX()), databaseObject.get("x") == null ? null : String.valueOf((int)databaseObject.get("x")));
-																		addItemToCompareTable(tree, treeItem, "Y", String.valueOf(bounds.getY()), databaseObject.get("y")==null ? null : String.valueOf((int)databaseObject.get("y")));
-																		addItemToCompareTable(tree, treeItem, "Width" ,String.valueOf(bounds.getWidth()), databaseObject.get("width")==null ? null : String.valueOf((int)databaseObject.get("width")));
-																		addItemToCompareTable(tree, treeItem, "Height", String.valueOf(bounds.getHeight()), databaseObject.get("height")==null ? null : String.valueOf((int)databaseObject.get("height")));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "X", String.valueOf(bounds.getX()), databaseObject.get("x") == null ? null : String.valueOf((int)databaseObject.get("x")));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Y", String.valueOf(bounds.getY()), databaseObject.get("y")==null ? null : String.valueOf((int)databaseObject.get("y")));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Width" ,String.valueOf(bounds.getWidth()), databaseObject.get("width")==null ? null : String.valueOf((int)databaseObject.get("width")));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Height", String.valueOf(bounds.getHeight()), databaseObject.get("height")==null ? null : String.valueOf((int)databaseObject.get("height")));
 		}
-		if ( memoryObject instanceof IDiagramModelArchimateComponent )	addItemToCompareTable(tree, treeItem, "Archimate concept", ((IDiagramModelArchimateComponent)memoryObject).getArchimateConcept().getId(), (String)databaseObject.get("element_id"));
-		if ( memoryObject instanceof IDiagramModelArchimateConnection )	addItemToCompareTable(tree, treeItem, "Archimate concept", ((IDiagramModelArchimateConnection)memoryObject).getArchimateConcept().getId(), (String)databaseObject.get("element_id"));
-		if ( memoryObject instanceof IFontAttribute ) {					addItemToCompareTable(tree, treeItem, "Font", ((IFontAttribute)memoryObject).getFont(), (String)databaseObject.get("font"));
-																		addItemToCompareTable(tree, treeItem, "Font color", ((IFontAttribute)memoryObject).getFontColor(), (String)databaseObject.get("font color"));
+		if ( memoryObject instanceof IDiagramModelArchimateComponent )	areIdentical &= addItemToCompareTable(tree, treeItem, "Archimate concept", ((IDiagramModelArchimateComponent)memoryObject).getArchimateConcept().getId(), (String)databaseObject.get("element_id"));
+		if ( memoryObject instanceof IDiagramModelArchimateConnection )	areIdentical &= addItemToCompareTable(tree, treeItem, "Archimate concept", ((IDiagramModelArchimateConnection)memoryObject).getArchimateConcept().getId(), (String)databaseObject.get("element_id"));
+		if ( memoryObject instanceof IFontAttribute ) {					areIdentical &= addItemToCompareTable(tree, treeItem, "Font", ((IFontAttribute)memoryObject).getFont(), (String)databaseObject.get("font"));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Font color", ((IFontAttribute)memoryObject).getFontColor(), (String)databaseObject.get("font color"));
 		}
-		if ( memoryObject instanceof ILineObject ) {					addItemToCompareTable(tree, treeItem, "Line width", String.valueOf(((ILineObject)memoryObject).getLineWidth()), databaseObject.get("line_width")==null ? null : String.valueOf((int)databaseObject.get("line_width")));
-																		addItemToCompareTable(tree, treeItem, "Line color", ((ILineObject)memoryObject).getLineColor(), (String)databaseObject.get("line_color"));
+		if ( memoryObject instanceof ILineObject ) {					areIdentical &= addItemToCompareTable(tree, treeItem, "Line width", String.valueOf(((ILineObject)memoryObject).getLineWidth()), databaseObject.get("line_width")==null ? null : String.valueOf((int)databaseObject.get("line_width")));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Line color", ((ILineObject)memoryObject).getLineColor(), (String)databaseObject.get("line_color"));
 		}
-		if ( memoryObject instanceof ILockable )						addItemToCompareTable(tree, treeItem, "Lockable", String.valueOf(((ILockable)memoryObject).isLocked()), databaseObject.get("lockable")==null ? null : String.valueOf((boolean)databaseObject.get("lockable")));
-		if ( memoryObject instanceof ISketchModel )						addItemToCompareTable(tree, treeItem, "Background", String.valueOf(((ISketchModel)memoryObject).getBackground()), databaseObject.get("background")==null ? null : String.valueOf((int)databaseObject.get("background")));
-		if ( memoryObject instanceof ITextAlignment )					addItemToCompareTable(tree, treeItem, "Text alignment", String.valueOf(((ITextAlignment)memoryObject).getTextAlignment()), databaseObject.get("text_alignment")==null ? null : String.valueOf((int)databaseObject.get("text_alignment")));
-        if ( memoryObject instanceof ITextPosition )					addItemToCompareTable(tree, treeItem, "Text position", String.valueOf(((ITextPosition)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
-		if ( memoryObject instanceof ITextContent )						addItemToCompareTable(tree, treeItem, "Content", ((ITextContent)memoryObject).getContent(), (String)databaseObject.get("content"));
-		if ( memoryObject instanceof IHintProvider )	{				addItemToCompareTable(tree, treeItem, "Hint title", ((IHintProvider)memoryObject).getHintTitle(), (String)databaseObject.get("hint_title"));
-																		addItemToCompareTable(tree, treeItem, "Hint content", ((IHintProvider)memoryObject).getHintContent(), (String)databaseObject.get("hint_content"));
+		if ( memoryObject instanceof ILockable )						areIdentical &= addItemToCompareTable(tree, treeItem, "Lockable", String.valueOf(((ILockable)memoryObject).isLocked()), databaseObject.get("lockable")==null ? null : String.valueOf((boolean)databaseObject.get("lockable")));
+		if ( memoryObject instanceof ISketchModel )						areIdentical &= addItemToCompareTable(tree, treeItem, "Background", String.valueOf(((ISketchModel)memoryObject).getBackground()), databaseObject.get("background")==null ? null : String.valueOf((int)databaseObject.get("background")));
+		if ( memoryObject instanceof ITextAlignment )					areIdentical &= addItemToCompareTable(tree, treeItem, "Text alignment", String.valueOf(((ITextAlignment)memoryObject).getTextAlignment()), databaseObject.get("text_alignment")==null ? null : String.valueOf((int)databaseObject.get("text_alignment")));
+        if ( memoryObject instanceof ITextPosition )					areIdentical &= addItemToCompareTable(tree, treeItem, "Text position", String.valueOf(((ITextPosition)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
+		if ( memoryObject instanceof ITextContent )						areIdentical &= addItemToCompareTable(tree, treeItem, "Content", ((ITextContent)memoryObject).getContent(), (String)databaseObject.get("content"));
+		if ( memoryObject instanceof IHintProvider )	{				areIdentical &= addItemToCompareTable(tree, treeItem, "Hint title", ((IHintProvider)memoryObject).getHintTitle(), (String)databaseObject.get("hint_title"));
+																		areIdentical &= addItemToCompareTable(tree, treeItem, "Hint content", ((IHintProvider)memoryObject).getHintContent(), (String)databaseObject.get("hint_content"));
 		}
 		/* NOT EXPORTED YET
-		if ( component instanceof IHelpHintProvider ) {					addItemToCompareTable(table, treeItem, "help hint title", component==null ? null : ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"));
-																		addItemToCompareTable(table, treeItem, "help hint content", component==null ? null : ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"));
+		if ( component instanceof IHelpHintProvider ) {					areIdentical &= addItemToCompareTable(table, treeItem, "help hint title", component==null ? null : ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"));
+																		areIdentical &= addItemToCompareTable(table, treeItem, "help hint content", component==null ? null : ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"));
 		}
 		*/
-		if ( memoryObject instanceof IIconic )							addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
-		if ( memoryObject instanceof INotesContent )					addItemToCompareTable(tree, treeItem, "Notes", ((INotesContent)memoryObject).getNotes(), (String)databaseObject.get("notes"));
+		if ( memoryObject instanceof IIconic )							areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
+		if ( memoryObject instanceof INotesContent )					areIdentical &= addItemToCompareTable(tree, treeItem, "Notes", ((INotesContent)memoryObject).getNotes(), (String)databaseObject.get("notes"));
 	    refreshDisplay();
 		if ( memoryObject instanceof IDiagramModelConnection ) {
-			addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelConnection)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));			// we do not use getText as it is deprecated
-			addItemToCompareTable(tree, treeItem, "Text position : ", String.valueOf(((IDiagramModelConnection)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelConnection)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));			// we do not use getText as it is deprecated
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Text position : ", String.valueOf(((IDiagramModelConnection)memoryObject).getTextPosition()), databaseObject.get("text_position")==null ? null : String.valueOf((int)databaseObject.get("text_position")));
 			
 			// we show up the bendpoints only if they both exist
 			if ( databaseObject.containsKey("bendpoints") ) {
@@ -1239,22 +1247,22 @@ public class DBGui {
 					    subTreeItem.setText("Bendpoint "+Math.max(indexComponent, indexDatabase)+1);
 					    subTreeItem.setExpanded(false);
 						if ( indexComponent >= componentBendpoints.length ) {			// only the database has got the property
-							addItemToCompareTable(tree, subTreeItem, "Start X", null, String.valueOf(databaseBendpoints[indexDatabase][0]));
-							addItemToCompareTable(tree, subTreeItem, "Start Y", null, String.valueOf(databaseBendpoints[indexDatabase][1]));
-							addItemToCompareTable(tree, subTreeItem, "End X", null, String.valueOf(databaseBendpoints[indexDatabase][2]));
-							addItemToCompareTable(tree, subTreeItem, "End Y", null, String.valueOf(databaseBendpoints[indexDatabase][3]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start X", null, String.valueOf(databaseBendpoints[indexDatabase][0]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start Y", null, String.valueOf(databaseBendpoints[indexDatabase][1]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End X", null, String.valueOf(databaseBendpoints[indexDatabase][2]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End Y", null, String.valueOf(databaseBendpoints[indexDatabase][3]));
 							++indexDatabase;
 						} else if ( indexDatabase >= databaseBendpoints.length ) {		// only the component has got the property
-							addItemToCompareTable(tree, subTreeItem, "Start X", String.valueOf(componentBendpoints[indexComponent][0]), null);
-							addItemToCompareTable(tree, subTreeItem, "Start Y", String.valueOf(componentBendpoints[indexComponent][1]), null);
-							addItemToCompareTable(tree, subTreeItem, "End X", String.valueOf(componentBendpoints[indexComponent][2]), null);
-							addItemToCompareTable(tree, subTreeItem, "End Y", String.valueOf(componentBendpoints[indexComponent][3]), null);
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start X", String.valueOf(componentBendpoints[indexComponent][0]), null);
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start Y", String.valueOf(componentBendpoints[indexComponent][1]), null);
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End X", String.valueOf(componentBendpoints[indexComponent][2]), null);
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End Y", String.valueOf(componentBendpoints[indexComponent][3]), null);
 							++indexComponent;
 						} else {
-							addItemToCompareTable(tree, subTreeItem, "Start X", String.valueOf(componentBendpoints[indexComponent][0]), String.valueOf(databaseBendpoints[indexDatabase][0]));
-							addItemToCompareTable(tree, subTreeItem, "Start Y", String.valueOf(componentBendpoints[indexComponent][1]), String.valueOf(databaseBendpoints[indexDatabase][1]));
-							addItemToCompareTable(tree, subTreeItem, "End X", String.valueOf(componentBendpoints[indexComponent][2]), String.valueOf(databaseBendpoints[indexDatabase][2]));
-							addItemToCompareTable(tree, subTreeItem, "End Y", String.valueOf(componentBendpoints[indexComponent][3]), String.valueOf(databaseBendpoints[indexDatabase][3]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start X", String.valueOf(componentBendpoints[indexComponent][0]), String.valueOf(databaseBendpoints[indexDatabase][0]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "Start Y", String.valueOf(componentBendpoints[indexComponent][1]), String.valueOf(databaseBendpoints[indexDatabase][1]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End X", String.valueOf(componentBendpoints[indexComponent][2]), String.valueOf(databaseBendpoints[indexDatabase][2]));
+							areIdentical &= addItemToCompareTable(tree, subTreeItem, "End Y", String.valueOf(componentBendpoints[indexComponent][3]), String.valueOf(databaseBendpoints[indexDatabase][3]));
 							++indexComponent;
 							++indexDatabase;
 						}
@@ -1300,27 +1308,28 @@ public class DBGui {
 					}
 		
 					if ( compare == 0 ) {				// both have got the same property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), databaseProperties.get(indexDatabase).getValue());
+						areIdentical &= addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), databaseProperties.get(indexDatabase).getValue());
 						++indexComponent;
 						++indexDatabase;
 					} else if ( compare < 0 ) {			// only the component has got the property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), null);
+						areIdentical &= addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexComponent).getKey(), componentProperties.get(indexComponent).getValue(), null);
 						++indexComponent;
 					} else {							// only the database has got the property
-						addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexDatabase).getKey(), null, databaseProperties.get(indexDatabase).getValue());
+						areIdentical &= addItemToCompareTable(tree, propertiesTreeItem, componentProperties.get(indexDatabase).getKey(), null, databaseProperties.get(indexDatabase).getValue());
 						++indexDatabase;
 					}
 				}
 			}
 		}
 		
-		addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
+		//areIdentical &= addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
 		
 		// for view containers, we compare the container checksums of the views themselves without their content 
-        if ( memoryObject instanceof IDiagramModel )
-            addItemToCompareTable(tree, treeItem, "Container checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getContainerChecksum(), (String)databaseObject.get("container_checksum"));
+        //if ( memoryObject instanceof IDiagramModel )
+        //    areIdentical &= addItemToCompareTable(tree, treeItem, "Container checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getContainerChecksum(), (String)databaseObject.get("container_checksum"));
 		
 	    refreshDisplay();
+	    return areIdentical;
 	}
 	
 	Comparator<DBProperty> propertyComparator = new Comparator<DBProperty>() {
@@ -1342,8 +1351,9 @@ public class DBGui {
 	 * Helper function to fill in the compareTable
 	 * @return true if col2 and col3 are equals, false if they differ 
 	 */
-    private static void addItemToCompareTable(Tree tree, TreeItem treeItem, String col1, String col2, String col3) {
+    private static boolean addItemToCompareTable(Tree tree, TreeItem treeItem, String col1, String col2, String col3) {
     	TreeItem subTreeItem;
+    	boolean isIdentical;
     	
     	if ( treeItem != null ) 
     	    subTreeItem = new TreeItem(treeItem, SWT.NULL);
@@ -1355,9 +1365,12 @@ public class DBGui {
 		    if ( treeItem != null )
 		        treeItem.setBackground(DBGui.LIGHT_RED_COLOR);
 			subTreeItem.setBackground(DBGui.LIGHT_RED_COLOR);
-		}
+			isIdentical = false;
+		} else
+			isIdentical = true;
 		
 		refreshDisplay();
+		return isIdentical;
     }
     
     public byte[] createImage(IDiagramModel view, double scale, int margin) {
