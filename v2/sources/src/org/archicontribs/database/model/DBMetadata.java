@@ -108,9 +108,9 @@ public class DBMetadata  {
      */
     //private int rootFolderType;
 
-    public DBMetadata(EObject component) {
-        assert ( component instanceof IIdentifier );
-        this.component = component;
+    public DBMetadata(EObject componentObject) {
+        assert ( componentObject instanceof IIdentifier );
+        this.component = componentObject;
     }
 
     /**
@@ -835,7 +835,7 @@ public class DBMetadata  {
         IFolder oldParentFolder = getParentFolder();
         if ( (oldParentFolder != null) && (oldParentFolder != newParentFolder) ) {
             if ( this.component instanceof IFolder )
-                oldParentFolder.getFolders().remove(this.component);
+                oldParentFolder.getFolders().remove((IFolder)this.component);
             else
                 oldParentFolder.getElements().remove(this.component);
         }
