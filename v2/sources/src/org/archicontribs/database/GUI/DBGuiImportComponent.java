@@ -1589,7 +1589,7 @@ public class DBGuiImportComponent extends DBGui {
         this.tblComponents = new Table(this.grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
         this.tblComponents.setLinesVisible(true);
         this.tblComponents.setHeaderVisible(true);
-        this.tblComponents.setBackground(GROUP_BACKGROUND_COLOR);
+        this.tblComponents.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblComponents.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event event) {

@@ -230,7 +230,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.tblModels = new Table(this.grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
         this.tblModels.setLinesVisible(true);
-        this.tblModels.setBackground(GROUP_BACKGROUND_COLOR);
+        this.tblModels.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblModels.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event e) {
@@ -296,7 +296,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpModelVersions.setLayout(new FormLayout());
 
         this.tblModelVersions = new Table(this.grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
-        this.tblModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
+        this.tblModelVersions.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblModelVersions.setLinesVisible(true);
         this.tblModelVersions.setHeaderVisible(true);
         this.tblModelVersions.addListener(SWT.Selection, new Listener() {

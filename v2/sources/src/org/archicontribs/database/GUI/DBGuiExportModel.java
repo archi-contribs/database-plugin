@@ -189,7 +189,7 @@ public class DBGuiExportModel extends DBGui {
 		this.grpModelVersions.setLayout(new FormLayout());
 
 		this.tblModelVersions = new Table(this.grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
-		this.tblModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
+		this.tblModelVersions.setBackground(TABLE_BACKGROUND_COLOR);
 		this.tblModelVersions.setLinesVisible(true);
 		this.tblModelVersions.setHeaderVisible(true);
 		this.tblModelVersions.addListener(SWT.Selection, new Listener() {
@@ -2131,7 +2131,7 @@ public class DBGuiExportModel extends DBGui {
                     } else {
                         if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" conflicts with the version in the database.");
                         switch ( ((IDBMetadata)eObjectToExport).getDBMetadata().getConflictChoice() ) {
-                            case askUser :
+                            case askUser:
                                 if ( logger.isDebugEnabled() ) logger.debug("The conflict has to be manually resolved by user.");
                                 new TableItem(this.tblListConflicts, SWT.NONE).setText(((IIdentifier)eObjectToExport).getId());
                                 if ( this.tblListConflicts.getItemCount() < 2 )
@@ -2140,17 +2140,18 @@ public class DBGuiExportModel extends DBGui {
                                     this.lblCantExport.setText("Can't export because "+this.tblListConflicts.getItemCount()+" components conflict with newer version in the database :");
                                 incrementText(txtConflicting);
                                 return false;
-                            case exportToDatabase :
+                            case exportToDatabase:
                                 debugMessage = "The "+objectClass+" is tagged to force export to the database. ";
                                 mustExport = true;
                                 break;
-                            case importFromDatabase :
+                            case importFromDatabase:
                                 debugMessage = "The "+objectClass+" is tagged to import from to the database. ";
                                 mustImport = true;
                                 break;
-                            default:    // case doNotExport :
+                            case doNotExport:
                                 if ( logger.isDebugEnabled() ) logger.debug("The "+objectClass+" is tagged \"do not export\", we keep it as it is.");
                                 break;
+                            default:
                         }
                     }
                     break;
@@ -2265,7 +2266,7 @@ public class DBGuiExportModel extends DBGui {
 	
 			this.tblListConflicts = new Table(this.grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
 			this.tblListConflicts.setLinesVisible(true);
-			this.tblListConflicts.setBackground(GROUP_BACKGROUND_COLOR);
+			this.tblListConflicts.setBackground(TABLE_BACKGROUND_COLOR);
 			this.tblListConflicts.addListener(SWT.Selection, new Listener() {
 				@Override
                 public void handleEvent(Event event) {
@@ -2314,7 +2315,7 @@ public class DBGuiExportModel extends DBGui {
 			lblCompare.setLayoutData(fd);
 	
 			this.tblCompareComponent = new Tree(this.grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
-			this.tblCompareComponent.setBackground(GROUP_BACKGROUND_COLOR);
+			this.tblCompareComponent.setBackground(TABLE_BACKGROUND_COLOR);
 			this.tblCompareComponent.setHeaderVisible(true);
 			this.tblCompareComponent.setLinesVisible(true);
 			fd = new FormData();
