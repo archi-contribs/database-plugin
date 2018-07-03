@@ -12,6 +12,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.IHintProvider;
@@ -118,6 +119,7 @@ public class DBChecksum {
 		}
 		if ( eObject instanceof IDiagramModelImageProvider )		append(checksumBuilder, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
 		if ( eObject instanceof IDiagramModelObject ) {				append(checksumBuilder, "fill color", ((IDiagramModelObject)eObject).getFillColor());
+																	append(checksumBuilder, "alpha", ((IDBMetadata)eObject).getDBMetadata().getAlpha());		// from Archi 4.3
 																	IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
 																	append(checksumBuilder, "bounds x", bounds.getX());
 																	append(checksumBuilder, "bounds y", bounds.getY());

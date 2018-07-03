@@ -902,4 +902,27 @@ public class DBMetadata  {
             target.getTargetConnections().add((IDiagramModelConnection)this.component);
         }
     }
+    
+    // alpha (transparency) from Archi 4.3
+    public Integer getAlpha() {
+    	if ( this.component instanceof IDiagramModelObject ) {
+	    	try {
+	    		return ((IDiagramModelObject)this.component).getAlpha();
+	    	} catch (@SuppressWarnings("unused") Exception ign) {
+	    		// in 4.2, getAlpha() does not exist
+	    	}
+	    	return 255;
+    	}
+    	return null;
+    }
+    
+    public void setAlpha(Integer alpha) {
+    	if ( (this.component instanceof IDiagramModelObject) && (alpha != null) && (alpha != getAlpha()) ) {
+	    	try {
+	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
+	    	} catch (@SuppressWarnings("unused") Exception ign) {
+	    		// in 4.2, getAlpha() does not exist
+	    	}
+    	}
+    }
 }

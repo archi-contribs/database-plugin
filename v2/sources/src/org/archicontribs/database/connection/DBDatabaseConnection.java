@@ -44,7 +44,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 208;
+    public static final int databaseVersion = 209;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -357,52 +357,52 @@ public class DBDatabaseConnection implements AutoCloseable {
             setAutoCommit(false);
             
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"database_version");
-            request("CREATE TABLE "+ this.schema +"database_version ("
-                    + "archi_plugin "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL"
+            request("CREATE TABLE " + this.schema +"database_version ("
+                    + "archi_plugin " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL"
                     + ")");
 
             insert(this.schema+"database_version", databaseVersionColumns, DBPlugin.pluginName, databaseVersion);
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"bendpoints");
-            request("CREATE TABLE "+ this.schema +"bendpoints ("
-                    + "parent_id "+ this.OBJECTID +" NOT NULL, "
-                    + "parent_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL, "
-                    + "start_x "+ this.INTEGER +" NOT NULL, "
-                    + "start_y "+ this.INTEGER +" NOT NULL, "
-                    + "end_x "+ this.INTEGER +" NOT NULL, "
-                    + "end_y "+ this.INTEGER +" NOT NULL, "
+            request("CREATE TABLE " + this.schema +"bendpoints ("
+                    + "parent_id " + this.OBJECTID +" NOT NULL, "
+                    + "parent_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL, "
+                    + "start_x " + this.INTEGER +" NOT NULL, "
+                    + "start_y " + this.INTEGER +" NOT NULL, "
+                    + "end_x " + this.INTEGER +" NOT NULL, "
+                    + "end_y " + this.INTEGER +" NOT NULL, "
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"elements");
-            request("CREATE TABLE "+ this.schema +"elements ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "class "+ this.OBJECTID +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "documentation "+ this.TEXT +", "
-                    + "type "+ this.TYPE +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "checkedin_by "+ this.USERNAME +", "
-                    + "checkedin_on "+ this.DATETIME +", "
-                    + "deleted_by "+ this.USERNAME +", "
-                    + "deleted_on "+ this.DATETIME +", "
-                    + "checksum "+ this.OBJECTID +" NOT NULL,"
+            request("CREATE TABLE " + this.schema +"elements ("
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "class " + this.OBJECTID +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "documentation " + this.TEXT + ", "
+                    + "type " + this.TYPE + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
+                    + "checksum " + this.OBJECTID +" NOT NULL,"
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");					
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"elements_in_model");
             request("CREATE TABLE "+this.schema+"elements_in_model ("
-                    + "eim_id "+ this.AUTO_INCREMENT +", "
-                    + "element_id "+ this.OBJECTID +" NOT NULL, "
-                    + "element_version "+ this.INTEGER +" NOT NULL, "
-                    + "parent_folder_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "eim_id " + this.AUTO_INCREMENT + ", "
+                    + "element_id " + this.OBJECTID +" NOT NULL, "
+                    + "element_version " + this.INTEGER +" NOT NULL, "
+                    + "parent_folder_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (eim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -421,27 +421,27 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"folders");
             request("CREATE TABLE "+this.schema+"folders ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "type "+ this.INTEGER +" NOT NULL, "
-                    + "root_type "+ this.INTEGER +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "documentation "+ this.TEXT +", "
-                    + "created_by "+ this.USERNAME +", "
-                    + "created_on "+ this.DATETIME +", "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "type " + this.INTEGER +" NOT NULL, "
+                    + "root_type " + this.INTEGER +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "documentation " + this.TEXT + ", "
+                    + "created_by " + this.USERNAME + ", "
+                    + "created_on " + this.DATETIME + ", "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"folders_in_model");
             request("CREATE TABLE "+this.schema+"folders_in_model ("
-                    + "fim_id "+ this.AUTO_INCREMENT+", "
-                    + "folder_id "+ this.OBJECTID +" NOT NULL, "
-                    + "folder_version "+ this.INTEGER +" NOT NULL, "
-                    + "parent_folder_id "+ this.OBJECTID +", "
-                    + "model_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "fim_id " + this.AUTO_INCREMENT+", "
+                    + "folder_id " + this.OBJECTID +" NOT NULL, "
+                    + "folder_version " + this.INTEGER +" NOT NULL, "
+                    + "parent_folder_id " + this.OBJECTID + ", "
+                    + "model_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (fim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -460,77 +460,77 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"images");
             request("CREATE TABLE "+this.schema+"images ("
-                    + "path "+ this.OBJECTID +" NOT NULL, "
-                    + "image "+ this.IMAGE +" NOT NULL, "
+                    + "path " + this.OBJECTID +" NOT NULL, "
+                    + "image " + this.IMAGE +" NOT NULL, "
                     + this.PRIMARY_KEY+" (path)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"models");
             request("CREATE TABLE "+this.schema+"models ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +" NOT NULL, "
-                    + "note "+ this.TEXT +", "
-                    + "purpose "+ this.TEXT +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "checkedin_by "+ this.USERNAME +", "
-                    + "checkedin_on "+ this.DATETIME +", "
-                    + "deleted_by "+ this.USERNAME +", "
-                    + "deleted_on "+ this.DATETIME +", "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "name " + this.OBJ_NAME +" NOT NULL, "
+                    + "note " + this.TEXT + ", "
+                    + "purpose " + this.TEXT + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"properties");
             request("CREATE TABLE "+this.schema+"properties ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
-                    + "parent_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "value "+ this.TEXT +", "
+                    + "parent_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "value " + this.TEXT + ", "
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
             
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
             request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
-                    + "parent_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "value "+ this.TEXT +", "
+                    + "parent_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "value " + this.TEXT + ", "
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"relationships");
             request("CREATE TABLE "+this.schema+"relationships ("
                     + "id "+this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "class "+ this.OBJECTID +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "documentation "+ this.TEXT +", "
-                    + "source_id "+ this.OBJECTID +", "
-                    + "target_id "+ this.OBJECTID +", "
-                    + "strength "+ this.STRENGTH +", "
-                    + "access_type "+ this.INTEGER +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "checkedin_by "+ this.USERNAME +", "
-                    + "checkedin_on "+ this.DATETIME +", "
-                    + "deleted_by "+ this.USERNAME +", "
-                    + "deleted_on "+ this.DATETIME +", "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "class " + this.OBJECTID +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "documentation " + this.TEXT + ", "
+                    + "source_id " + this.OBJECTID + ", "
+                    + "target_id " + this.OBJECTID + ", "
+                    + "strength " + this.STRENGTH + ", "
+                    + "access_type " + this.INTEGER + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"relationships_in_model");
             request("CREATE TABLE "+this.schema+"relationships_in_model ("
-                    + "rim_id "+ this.AUTO_INCREMENT+", "
-                    + "relationship_id "+ this.OBJECTID +" NOT NULL, "
-                    + "relationship_version "+ this.INTEGER +" NOT NULL, "
-                    + "parent_folder_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_version "+ this.INTEGER +" NOT NULL, "
+                    + "rim_id " + this.AUTO_INCREMENT+", "
+                    + "relationship_id " + this.OBJECTID +" NOT NULL, "
+                    + "relationship_version " + this.INTEGER +" NOT NULL, "
+                    + "parent_folder_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_version " + this.INTEGER +" NOT NULL, "
                     + "rank "+this.INTEGER +" NOT NULL "
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (rim_id)") )
                     + ")");
@@ -550,57 +550,57 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views");
             request("CREATE TABLE "+this.schema+"views ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "class "+ this.OBJECTID +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "documentation "+ this.TEXT +" , "
-                    + "hint_content "+ this.TEXT +", "
-                    + "hint_title "+ this.OBJ_NAME +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "background "+ this.INTEGER +", "
-                    + "connection_router_type "+ this.INTEGER +" NOT NULL, "
-                    + "viewpoint "+ this.OBJECTID +", "
-                    + "screenshot "+ this.IMAGE +", "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
-                    + "container_checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "class " + this.OBJECTID +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "documentation " + this.TEXT +" , "
+                    + "hint_content " + this.TEXT + ", "
+                    + "hint_title " + this.OBJ_NAME + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "background " + this.INTEGER + ", "
+                    + "connection_router_type " + this.INTEGER +" NOT NULL, "
+                    + "viewpoint " + this.OBJECTID + ", "
+                    + "screenshot " + this.IMAGE + ", "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
+                    + "container_checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections");
             request("CREATE TABLE "+this.schema+"views_connections ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "class "+ this.OBJECTID +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "					// connection must store a name because all of them are not linked to a relationship
-                    + "documentation "+ this.TEXT +", "
-                    + "is_locked "+ this.BOOLEAN +", "
-                    + "line_color "+ this.COLOR +", "
-                    + "line_width "+ this.INTEGER +", "
-                    + "font "+ this.FONT +", "
-                    + "font_color "+ this.COLOR +", "
-                    + "relationship_id "+ this.OBJECTID +", "
-                    + "relationship_version "+ this.INTEGER +", "
-                    + "source_object_id "+ this.OBJECTID +", "
-                    + "target_object_id "+ this.OBJECTID +", "
-                    + "text_position "+ this.INTEGER +", "
-                    + "type "+ this.INTEGER +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "class " + this.OBJECTID +" NOT NULL, "
+                    + "container_id " + this.OBJECTID +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "					// connection must store a name because all of them are not linked to a relationship
+                    + "documentation " + this.TEXT + ", "
+                    + "is_locked " + this.BOOLEAN + ", "
+                    + "line_color " + this.COLOR + ", "
+                    + "line_width " + this.INTEGER + ", "
+                    + "font " + this.FONT + ", "
+                    + "font_color " + this.COLOR + ", "
+                    + "relationship_id " + this.OBJECTID + ", "
+                    + "relationship_version " + this.INTEGER + ", "
+                    + "source_object_id " + this.OBJECTID + ", "
+                    + "target_object_id " + this.OBJECTID + ", "
+                    + "text_position " + this.INTEGER + ", "
+                    + "type " + this.INTEGER + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
             request("CREATE TABLE "+this.schema+"views_connections_in_view ("
-                    + "civ_id "+ this.AUTO_INCREMENT+", "
-                    + "connection_id "+ this.OBJECTID +" NOT NULL, "
-                    + "connection_version "+ this.INTEGER +" NOT NULL, "
-                    + "view_id "+ this.OBJECTID +" NOT NULL, "
-                    + "view_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "civ_id " + this.AUTO_INCREMENT+", "
+                    + "connection_id " + this.OBJECTID +" NOT NULL, "
+                    + "connection_version " + this.INTEGER +" NOT NULL, "
+                    + "view_id " + this.OBJECTID +" NOT NULL, "
+                    + "view_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -619,13 +619,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_in_model");
             request("CREATE TABLE "+this.schema+"views_in_model ("
-                    + "vim_id "+ this.AUTO_INCREMENT +", "
-                    + "view_id "+ this.OBJECTID +" NOT NULL, "
-                    + "view_version "+ this.INTEGER +" NOT NULL, "
-                    + "parent_folder_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_id "+ this.OBJECTID +" NOT NULL, "
-                    + "model_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER
+                    + "vim_id " + this.AUTO_INCREMENT + ", "
+                    + "view_id " + this.OBJECTID +" NOT NULL, "
+                    + "view_version " + this.INTEGER +" NOT NULL, "
+                    + "parent_folder_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_id " + this.OBJECTID +" NOT NULL, "
+                    + "model_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (vim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -644,50 +644,51 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects");
             request("CREATE TABLE "+this.schema+"views_objects ("
-                    + "id "+ this.OBJECTID +" NOT NULL, "
-                    + "version "+ this.INTEGER +" NOT NULL, "
-                    + "class "+ this.OBJECTID +" NOT NULL, "
-                    + "container_id "+ this.OBJECTID +" NOT NULL, "
-                    + "element_id "+ this.OBJECTID +", "
-                    + "element_version "+ this.INTEGER +", "
-                    + "diagram_ref_id "+ this.OBJECTID +", "
-                    + "border_color "+ this.COLOR +", "
-                    + "border_type "+ this.INTEGER +", "
-                    + "content "+ this.TEXT +", "
-                    + "documentation "+ this.TEXT +", "
-                    + "hint_content "+ this.TEXT +", "
-                    + "hint_title "+ this.OBJ_NAME +", "
-                    + "is_locked "+ this.BOOLEAN +", "
-                    + "image_path "+ this.OBJECTID +", "
-                    + "image_position "+ this.INTEGER +", "
-                    + "line_color "+ this.COLOR +", "
-                    + "line_width "+ this.INTEGER +", "
-                    + "fill_color "+ this.COLOR +", "
-                    + "font "+ this.FONT +", "
-                    + "font_color "+ this.COLOR +", "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "notes "+ this.TEXT +", "
-                    + "text_alignment "+ this.INTEGER +", "
-                    + "text_position "+ this.INTEGER +", "
-                    + "type "+ this.INTEGER +", "
-                    + "x "+ this.INTEGER +", "
-                    + "y "+ this.INTEGER +", "
-                    + "width "+ this.INTEGER +", "
-                    + "height "+ this.INTEGER +", "
-                    + "created_by "+ this.USERNAME +" NOT NULL, "
-                    + "created_on "+ this.DATETIME +" NOT NULL, "
-                    + "checksum "+ this.OBJECTID +" NOT NULL, "
+                    + "id " + this.OBJECTID +" NOT NULL, "
+                    + "version " + this.INTEGER +" NOT NULL, "
+                    + "class " + this.OBJECTID +" NOT NULL, "
+                    + "container_id " + this.OBJECTID +" NOT NULL, "
+                    + "element_id " + this.OBJECTID + ", "
+                    + "element_version " + this.INTEGER + ", "
+                    + "diagram_ref_id " + this.OBJECTID + ", "
+                    + "border_color " + this.COLOR + ", "
+                    + "border_type " + this.INTEGER + ", "
+                    + "content " + this.TEXT + ", "
+                    + "documentation " + this.TEXT + ", "
+                    + "hint_content " + this.TEXT + ", "
+                    + "hint_title " + this.OBJ_NAME + ", "
+                    + "is_locked " + this.BOOLEAN + ", "
+                    + "image_path " + this.OBJECTID + ", "
+                    + "image_position " + this.INTEGER + ", "
+                    + "line_color " + this.COLOR + ", "
+                    + "line_width " + this.INTEGER + ", "
+                    + "fill_color " + this.COLOR + ", "
+                    + "alpha " + this.INTEGER + ", "
+                    + "font " + this.FONT + ", "
+                    + "font_color " + this.COLOR + ", "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "notes " + this.TEXT + ", "
+                    + "text_alignment " + this.INTEGER + ", "
+                    + "text_position " + this.INTEGER + ", "
+                    + "type " + this.INTEGER + ", "
+                    + "x " + this.INTEGER + ", "
+                    + "y " + this.INTEGER + ", "
+                    + "width " + this.INTEGER + ", "
+                    + "height " + this.INTEGER + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
             request("CREATE TABLE "+this.schema+"views_objects_in_view ("
-                    + "oiv_id "+ this.AUTO_INCREMENT+", "
-                    + "object_id "+ this.OBJECTID +" NOT NULL, "
-                    + "object_version "+ this.INTEGER +" NOT NULL, "
-                    + "view_id "+ this.OBJECTID +" NOT NULL, "
-                    + "view_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "oiv_id " + this.AUTO_INCREMENT+", "
+                    + "object_id " + this.OBJECTID +" NOT NULL, "
+                    + "object_version " + this.INTEGER +" NOT NULL, "
+                    + "view_id " + this.OBJECTID +" NOT NULL, "
+                    + "view_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -966,12 +967,12 @@ public class DBDatabaseConnection implements AutoCloseable {
             
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
             request("CREATE TABLE "+this.schema+"views_connections_in_view ("
-                    + "civ_id "+ this.AUTO_INCREMENT+", "
-                    + "connection_id "+ this.OBJECTID +" NOT NULL, "
-                    + "connection_version "+ this.INTEGER +" NOT NULL, "
-                    + "view_id "+ this.OBJECTID +" NOT NULL, "
-                    + "view_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "civ_id " + this.AUTO_INCREMENT+", "
+                    + "connection_id " + this.OBJECTID +" NOT NULL, "
+                    + "connection_version " + this.INTEGER +" NOT NULL, "
+                    + "view_id " + this.OBJECTID +" NOT NULL, "
+                    + "view_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -997,12 +998,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
             request("CREATE TABLE "+this.schema+"views_objects_in_view ("
-                    + "oiv_id "+ this.AUTO_INCREMENT+", "
-                    + "object_id "+ this.OBJECTID +" NOT NULL, "
-                    + "object_version "+ this.INTEGER +" NOT NULL, "
-                    + "view_id "+ this.OBJECTID +" NOT NULL, "
-                    + "view_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL"
+                    + "oiv_id " + this.AUTO_INCREMENT+", "
+                    + "object_id " + this.OBJECTID +" NOT NULL, "
+                    + "object_version " + this.INTEGER +" NOT NULL, "
+                    + "view_id " + this.OBJECTID +" NOT NULL, "
+                    + "view_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -1056,10 +1057,10 @@ public class DBDatabaseConnection implements AutoCloseable {
             if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
             request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
-                    + "parent_version "+ this.INTEGER +" NOT NULL, "
-                    + "rank "+ this.INTEGER +" NOT NULL, "
-                    + "name "+ this.OBJ_NAME +", "
-                    + "value "+ this.TEXT +", "
+                    + "parent_version " + this.INTEGER +" NOT NULL, "
+                    + "rank " + this.INTEGER +" NOT NULL, "
+                    + "name " + this.OBJ_NAME + ", "
+                    + "value " + this.TEXT + ", "
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
             
@@ -1072,6 +1073,14 @@ public class DBDatabaseConnection implements AutoCloseable {
             DBGui.closePopup();
             
             dbVersion = 208;
+        }
+        
+        // convert from version 208 to 209
+        //      - add alpha column in views_bjects table
+        if ( dbVersion == 208 ) {
+        	addColumn(this.schema+"views_objects", "alpha", this.INTEGER);
+        	
+        	dbVersion = 209;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
