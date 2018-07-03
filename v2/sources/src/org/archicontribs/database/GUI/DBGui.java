@@ -226,10 +226,10 @@ public class DBGui {
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
 		this.dialog.setMinimumSize(800, 700);
 		this.dialog.setSize(1000,700);
-		// the scale factor is managed automatically on windows
-		//int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
-		//this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
-		this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
+		// the scale factor is managed automatically with Java 10
+		int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
+		this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
+		//this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
 		this.dialog.setLayout(new FormLayout());
 		
 	    this.dialog.addListener(SWT.Close, new Listener()

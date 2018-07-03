@@ -44,7 +44,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 									Temporarily remove the Neo4j driver
  * 									Accelerate import and export processes by using multi-threading
  * 									Complete rework of the graphical interface
- * 									Add the ability to import components from other models
+ * 									Add the ability to Import components from database from other models
  * 									Add inline help
  * 
  * v2.0.0.beta2:	19/03/2017		Importing an element now imports its relationships as well
@@ -76,7 +76,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                     Add a popup when nothing needs to be exported
  *                                  Import Model:
  *                                     Create the status page on the export model window
- *                                  Import individual component:
+ *                                  Import components from database:
  *                                     Add the ability to hide existing components in the import component module
  *                                     Add the ability to hide default views in the import component module
  *                                  Get component history:
@@ -85,7 +85,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                     Add a preference entry to automatically close import and export windows on success
  *                                     Add a preference entry to automatically start to export the model to the default database
  *                                     Add a preference entry to automatically download and install the plugin updates
- *                                     Add a preference entry to import individual components in shared or copy mode by default
+ *                                     Add a preference entry to Import components from database in shared or copy mode by default
  *                                  Miscellaneous:
  *                                     Solve bug in the logger where some multi-lines messages were not printed correctly
  *                                     From now on, folders and views have got their own version number
@@ -111,10 +111,10 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                  	Make conflict management more reliable on PostGreSQL databases
  *                                 		Added a preference to remove the dirty flag on the model after a successful export
  *                                 		Solve bug where count of exported components could be erroneous
- *									Import individual component:
- *										Added missing "location" in individual component import window
- *                                  	Add the ability to import several individual components at the same time
- *                                  	The component list in the individual component import window are now sorted alphabetically
+ *									Import components from database:
+ *										Added missing "location" class
+ *                                  	Add the ability to import several components at the same time
+ *                                  	The components are now sorted alphabetically
  *										Solve bug where the same component could be imported several times
  *                                  Miscellaneous:
  * 										Allow to specify a database schema in the database configuration
@@ -125,7 +125,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 
  * v2.0.4: 11/05/2017				Export model:
  * 										Solve bug where export conflicts were not detected correctly on MySQL databases
- *                                  Import individual component:
+ *                                  Import component:
  *                                  	The import type (shared or copy) can now be changed directly on the import window
  *									Preference page:
  *									    Correct traversal order of fields on preference page
@@ -147,7 +147,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										Solve bug when importing a model which has got a shared view which has been updated by another model
  * 										The import SQL request have been rewritten because of Oracle specificity
  * 										A double click on a model's version now launches the import
- *									Import individual components:
+ *									Import components from database:
  *										Solve bug where all the views versions were added in the table, resulting in several entries with the same name
  * 									Database model:
  * 										Added column "element_version" to table "views_objects"
@@ -182,7 +182,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      cleanup properties before import rather than update existing values as several properties can have the same name
  *                                      fix number of images to import
  *                                      fix centering of GUI windows
- * 									Import individual component:
+ * 									Import components from database:
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
  * 										Added message during the import as it may take some time
@@ -215,19 +215,15 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 
  * Known bugs:
  * -----------
- *		Import individual component:
- *		     images are not imported
- *		     view references are not imported correctly
+ *		Import components from database:
  *		     importing elements "in a view" create all the corresponding objects in the top left corner of the view
- *      Miscelanous
- *           the plugin requires too much memory !!!
  *
  * TO-DO list:
  * ----------
- *		Import individual component:
+ *		Import components from database:
  *			allow to import elements recursively
  *		Get component history:
- *			allow to export individual component, or update it from the database, directly from the history window
+ *			allow to export components, or update them from the database, directly from the history window
  *			allow to get the database history
  *          allow to get history for folders and views
  *		Miscellaneous:

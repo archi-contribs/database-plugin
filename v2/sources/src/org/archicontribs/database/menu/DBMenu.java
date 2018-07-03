@@ -400,7 +400,7 @@ public class DBMenu extends ExtensionContributionFactory {
         String label;
 
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-        label = "Import individual component";
+        label = "Import components from database";
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -425,7 +425,7 @@ public class DBMenu extends ExtensionContributionFactory {
         String label;
 
         menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-        label = "Import individual component into view";
+        label = "Import components from database into view";
 
         if ( logger.isDebugEnabled() ) logger.debug("adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(

@@ -220,7 +220,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	}
 
 	/**
-	 * Gets the version and checksum of an individual component from the database and fills its DBMetadata.<br>
+	 * Gets the version and checksum of a component from the database and fills its DBMetadata.<br>
 	 * <br>
 	 * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.<br>
 	 * 

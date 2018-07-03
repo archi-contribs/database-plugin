@@ -19,7 +19,7 @@
       <li>Fix progress bar during download new version of the plugin from GitHub</li>
       <li>Reduce memory leak</li>
    </ul></li>
-   <li>Import individual component:<ul>
+   <li>Import components from database:<ul>
       <li>Added documentation column</li>
       <li>Added popup message during the import</li>
    </ul></li>
@@ -78,7 +78,7 @@
       <li>The import SQL request have been rewritten because of Oracle specificity</li>
       <li>A double click on a model's version now launches the import</li>
    </ul></li>
-   <li>Import individual components:<ul>
+   <li>Import components from database:<ul>
       <li>Solve bug where all the views versions were added in the table, resulting in several entries with the same name</li>
    </ul></li>
    <li>Database model:<ul>
@@ -103,7 +103,7 @@
    <li>Export model:<ul>
       <li>Solve bug where export conflicts were not detected correctly on MySQL databases</li>
    </ul></li>
-   <li>Import individual component:<ul>
+   <li>Import components from database:<ul>
       <li>The import type (shared or copy) can now be changed directly on the import window</li>
    </ul></li>
    <li>Preference page:<ul>
@@ -126,10 +126,10 @@
       <li>Added a preference to remove the dirty flag on the model after a successful export</li>
       <li>Solve bug where count of exported components could be erroneous</li>
       </ul></li>
-   <li>Import individual component:<ul>
-      <li>Added missing "location" in individual component import window</li>
-      <li>Add the ability to import several individual components at the same time</li>
-      <li>The component list in the individual component import window are now sorted alphabetically</li>
+   <li>Import components from database:<ul>
+      <li>Added missing "location" class</li>
+      <li>Add the ability to import several components at the same time</li>
+      <li>The components are now sorted alphabetically</li>
       <li>Solve bug where the same component could be imported several times</li>
       </ul></li>
    <li>Miscellaneous:<ul>
@@ -166,8 +166,7 @@
       <li>Create the status page on the export model window
       <li> Add a popup when nothing needs to be exported
    </ul></li>
-   <li>Import Model:<ul>
-      <li>Import individual component:
+   <li>Import components from database:<ul>
       <li>Add the ability to hide existing components in the import component module
    </ul></li>
    <li>Get component history:<ul>
@@ -177,7 +176,7 @@
       <li>Add a preference entry to automatically close import and export windows on success</li>
       <li>Add a preference entry to automatically start to export the model to the default database</li>
       <li>Add a preference entry to automatically download and install the plugin updates</li>
-      <li>Add a preference entry to import individual components in shared or copy mode by default</li>
+      <li>Add a preference entry to Import components from database in shared or copy mode by default</li>
    </ul></li>
    <li>Miscellaneous:<ul>
       <li>Solve bug in the logger where some multi-lines messages were not printed correctly</li>
@@ -233,7 +232,7 @@
    <li>Temporarily remove the Neo4j driver</li>
    <li>Accelerate import and export processes by using multi-threading</li>
    <li>Complete rework of the graphical interface</li>
-   <li>Add the ability to import components from other models</li>
+   <li>Add the ability to Import components from database</li>
    <li>Add inline help</li>
 </ul>
 

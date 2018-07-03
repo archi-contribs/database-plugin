@@ -65,9 +65,9 @@ import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IFolder;
 
-public class DBGuiImportComponent extends DBGui {
+public class DBGuiImportComponents extends DBGui {
     @SuppressWarnings("hiding")
-    protected static final DBLogger logger = new DBLogger(DBGuiImportComponent.class);
+    protected static final DBLogger logger = new DBLogger(DBGuiImportComponents.class);
 
     protected DBArchimateModel importedModel;
     protected IArchimateDiagramModel selectedView;
@@ -181,7 +181,7 @@ public class DBGuiImportComponent extends DBGui {
      * Creates the GUI to import components
      * @throws Exception 
      */
-    public DBGuiImportComponent(DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
+    public DBGuiImportComponents(DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
         super(title);
 
         this.includeNeo4j = false;
@@ -212,7 +212,7 @@ public class DBGuiImportComponent extends DBGui {
         setBtnAction("Import", new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                DBGuiImportComponent.this.btnDoAction.setEnabled(false);
+                DBGuiImportComponents.this.btnDoAction.setEnabled(false);
                 try {
                     doImport();
                 } catch (Exception err) {
@@ -383,14 +383,14 @@ public class DBGuiImportComponent extends DBGui {
             @Override
             public void modifyText(ModifyEvent event) {
                 try {
-                    if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
-                        if ( DBGuiImportComponent.this.compoElements.isVisible() )
+                    if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
+                        if ( DBGuiImportComponents.this.compoElements.isVisible() )
                             getElements();
                         //else if ( compoContainers.isVisible() )
                         //	getContainers();
                         //else if ( compoFolders.isVisible() )
                         //	getFolders();
-                        else if ( DBGuiImportComponent.this.compoViews.isVisible() )
+                        else if ( DBGuiImportComponents.this.compoViews.isVisible() )
                             getViews();
                     }
                 } catch (Exception err) {
@@ -411,14 +411,14 @@ public class DBGuiImportComponent extends DBGui {
             @Override
             public void handleEvent(Event event) {
                 try {
-                    if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
-                        if ( DBGuiImportComponent.this.compoElements.isVisible() )
+                    if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
+                        if ( DBGuiImportComponents.this.compoElements.isVisible() )
                             getElements();
                         //else if ( compoContainers.isVisible() )
                         //	getContainers();
                         //else if ( compoFolders.isVisible() )
                         //	getFolders();
-                        else if ( DBGuiImportComponent.this.compoViews.isVisible() )
+                        else if ( DBGuiImportComponents.this.compoViews.isVisible() )
                             getViews();
                     }
                 } catch (Exception err) {
@@ -596,9 +596,9 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.productLabel);
-                labelList.add(DBGuiImportComponent.this.dataObjectLabel);
-                labelList.add(DBGuiImportComponent.this.artifactLabel);
+                labelList.add(DBGuiImportComponents.this.productLabel);
+                labelList.add(DBGuiImportComponents.this.dataObjectLabel);
+                labelList.add(DBGuiImportComponents.this.artifactLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -645,27 +645,27 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.capabilityLabel);
-                labelList.add(DBGuiImportComponent.this.courseOfActionLabel);
-                labelList.add(DBGuiImportComponent.this.businessProcessLabel);
-                labelList.add(DBGuiImportComponent.this.businessFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.businessInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.businessEventLabel);
-                labelList.add(DBGuiImportComponent.this.businessServiceLabel);
-                labelList.add(DBGuiImportComponent.this.businessObjectLabel);
-                labelList.add(DBGuiImportComponent.this.contractLabel);
-                labelList.add(DBGuiImportComponent.this.representationLabel);
-                labelList.add(DBGuiImportComponent.this.applicationFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.applicationInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.applicationEventLabel);
-                labelList.add(DBGuiImportComponent.this.applicationServiceLabel);
-                labelList.add(DBGuiImportComponent.this.applicationProcessLabel);
-                labelList.add(DBGuiImportComponent.this.technologyFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.technologyProcessLabel);
-                labelList.add(DBGuiImportComponent.this.technologyInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.technologyEventLabel);
-                labelList.add(DBGuiImportComponent.this.technologyServiceLabel);
-                labelList.add(DBGuiImportComponent.this.materialLabel);
+                labelList.add(DBGuiImportComponents.this.capabilityLabel);
+                labelList.add(DBGuiImportComponents.this.courseOfActionLabel);
+                labelList.add(DBGuiImportComponents.this.businessProcessLabel);
+                labelList.add(DBGuiImportComponents.this.businessFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.businessInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.businessEventLabel);
+                labelList.add(DBGuiImportComponents.this.businessServiceLabel);
+                labelList.add(DBGuiImportComponents.this.businessObjectLabel);
+                labelList.add(DBGuiImportComponents.this.contractLabel);
+                labelList.add(DBGuiImportComponents.this.representationLabel);
+                labelList.add(DBGuiImportComponents.this.applicationFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.applicationInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.applicationEventLabel);
+                labelList.add(DBGuiImportComponents.this.applicationServiceLabel);
+                labelList.add(DBGuiImportComponents.this.applicationProcessLabel);
+                labelList.add(DBGuiImportComponents.this.technologyFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.technologyProcessLabel);
+                labelList.add(DBGuiImportComponents.this.technologyInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.technologyEventLabel);
+                labelList.add(DBGuiImportComponents.this.technologyServiceLabel);
+                labelList.add(DBGuiImportComponents.this.materialLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -712,24 +712,24 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.resourceLabel);
-                labelList.add(DBGuiImportComponent.this.businessActorLabel);
-                labelList.add(DBGuiImportComponent.this.businessRoleLabel);
-                labelList.add(DBGuiImportComponent.this.businessCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.businessInterfaceLabel);
-                labelList.add(DBGuiImportComponent.this.applicationComponentLabel);
-                labelList.add(DBGuiImportComponent.this.applicationCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.applicationInterfaceLabel);
-                labelList.add(DBGuiImportComponent.this.nodeLabel);
-                labelList.add(DBGuiImportComponent.this.deviceLabel);
-                labelList.add(DBGuiImportComponent.this.systemSoftwareLabel);
-                labelList.add(DBGuiImportComponent.this.technologyCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.technologyInterfaceLabel);
-                labelList.add(DBGuiImportComponent.this.pathLabel);
-                labelList.add(DBGuiImportComponent.this.communicationNetworkLabel);
-                labelList.add(DBGuiImportComponent.this.equipmentLabel);
-                labelList.add(DBGuiImportComponent.this.facilityLabel);
-                labelList.add(DBGuiImportComponent.this.distributionNetworkLabel);
+                labelList.add(DBGuiImportComponents.this.resourceLabel);
+                labelList.add(DBGuiImportComponents.this.businessActorLabel);
+                labelList.add(DBGuiImportComponents.this.businessRoleLabel);
+                labelList.add(DBGuiImportComponents.this.businessCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.businessInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.applicationComponentLabel);
+                labelList.add(DBGuiImportComponents.this.applicationCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.applicationInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.nodeLabel);
+                labelList.add(DBGuiImportComponents.this.deviceLabel);
+                labelList.add(DBGuiImportComponents.this.systemSoftwareLabel);
+                labelList.add(DBGuiImportComponents.this.technologyCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.technologyInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.pathLabel);
+                labelList.add(DBGuiImportComponents.this.communicationNetworkLabel);
+                labelList.add(DBGuiImportComponents.this.equipmentLabel);
+                labelList.add(DBGuiImportComponents.this.facilityLabel);
+                labelList.add(DBGuiImportComponents.this.distributionNetworkLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -776,16 +776,16 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.stakeholderLabel);
-                labelList.add(DBGuiImportComponent.this.driverLabel);
-                labelList.add(DBGuiImportComponent.this.assessmentLabel);
-                labelList.add(DBGuiImportComponent.this.goalLabel);
-                labelList.add(DBGuiImportComponent.this.outcomeLabel);
-                labelList.add(DBGuiImportComponent.this.valueLabel);
-                labelList.add(DBGuiImportComponent.this.principleLabel);
-                labelList.add(DBGuiImportComponent.this.requirementLabel);
-                labelList.add(DBGuiImportComponent.this.constaintLabel);
-                labelList.add(DBGuiImportComponent.this.smeaningLabel);
+                labelList.add(DBGuiImportComponents.this.stakeholderLabel);
+                labelList.add(DBGuiImportComponents.this.driverLabel);
+                labelList.add(DBGuiImportComponents.this.assessmentLabel);
+                labelList.add(DBGuiImportComponents.this.goalLabel);
+                labelList.add(DBGuiImportComponents.this.outcomeLabel);
+                labelList.add(DBGuiImportComponents.this.valueLabel);
+                labelList.add(DBGuiImportComponents.this.principleLabel);
+                labelList.add(DBGuiImportComponents.this.requirementLabel);
+                labelList.add(DBGuiImportComponents.this.constaintLabel);
+                labelList.add(DBGuiImportComponents.this.smeaningLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -855,9 +855,9 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.capabilityLabel);
-                labelList.add(DBGuiImportComponent.this.courseOfActionLabel);
-                labelList.add(DBGuiImportComponent.this.resourceLabel);
+                labelList.add(DBGuiImportComponents.this.capabilityLabel);
+                labelList.add(DBGuiImportComponents.this.courseOfActionLabel);
+                labelList.add(DBGuiImportComponents.this.resourceLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -904,19 +904,19 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.productLabel);
-                labelList.add(DBGuiImportComponent.this.businessProcessLabel);
-                labelList.add(DBGuiImportComponent.this.businessFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.businessInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.businessEventLabel);
-                labelList.add(DBGuiImportComponent.this.businessServiceLabel);
-                labelList.add(DBGuiImportComponent.this.businessObjectLabel);
-                labelList.add(DBGuiImportComponent.this.contractLabel);
-                labelList.add(DBGuiImportComponent.this.representationLabel);
-                labelList.add(DBGuiImportComponent.this.businessActorLabel);
-                labelList.add(DBGuiImportComponent.this.businessRoleLabel);
-                labelList.add(DBGuiImportComponent.this.businessCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.businessInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.productLabel);
+                labelList.add(DBGuiImportComponents.this.businessProcessLabel);
+                labelList.add(DBGuiImportComponents.this.businessFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.businessInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.businessEventLabel);
+                labelList.add(DBGuiImportComponents.this.businessServiceLabel);
+                labelList.add(DBGuiImportComponents.this.businessObjectLabel);
+                labelList.add(DBGuiImportComponents.this.contractLabel);
+                labelList.add(DBGuiImportComponents.this.representationLabel);
+                labelList.add(DBGuiImportComponents.this.businessActorLabel);
+                labelList.add(DBGuiImportComponents.this.businessRoleLabel);
+                labelList.add(DBGuiImportComponents.this.businessCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.businessInterfaceLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -963,15 +963,15 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.dataObjectLabel);
-                labelList.add(DBGuiImportComponent.this.applicationFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.applicationInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.applicationEventLabel);
-                labelList.add(DBGuiImportComponent.this.applicationServiceLabel);
-                labelList.add(DBGuiImportComponent.this.applicationProcessLabel);
-                labelList.add(DBGuiImportComponent.this.applicationComponentLabel);
-                labelList.add(DBGuiImportComponent.this.applicationCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.applicationInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.dataObjectLabel);
+                labelList.add(DBGuiImportComponents.this.applicationFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.applicationInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.applicationEventLabel);
+                labelList.add(DBGuiImportComponents.this.applicationServiceLabel);
+                labelList.add(DBGuiImportComponents.this.applicationProcessLabel);
+                labelList.add(DBGuiImportComponents.this.applicationComponentLabel);
+                labelList.add(DBGuiImportComponents.this.applicationCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.applicationInterfaceLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -1018,19 +1018,19 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.artifactLabel);
-                labelList.add(DBGuiImportComponent.this.technologyFunctionLabel);
-                labelList.add(DBGuiImportComponent.this.technologyProcessLabel);
-                labelList.add(DBGuiImportComponent.this.technologyInteractionLabel);
-                labelList.add(DBGuiImportComponent.this.technologyEventLabel);
-                labelList.add(DBGuiImportComponent.this.technologyServiceLabel);
-                labelList.add(DBGuiImportComponent.this.nodeLabel);
-                labelList.add(DBGuiImportComponent.this.deviceLabel);
-                labelList.add(DBGuiImportComponent.this.systemSoftwareLabel);
-                labelList.add(DBGuiImportComponent.this.technologyCollaborationLabel);
-                labelList.add(DBGuiImportComponent.this.technologyInterfaceLabel);
-                labelList.add(DBGuiImportComponent.this.pathLabel);
-                labelList.add(DBGuiImportComponent.this.communicationNetworkLabel);
+                labelList.add(DBGuiImportComponents.this.artifactLabel);
+                labelList.add(DBGuiImportComponents.this.technologyFunctionLabel);
+                labelList.add(DBGuiImportComponents.this.technologyProcessLabel);
+                labelList.add(DBGuiImportComponents.this.technologyInteractionLabel);
+                labelList.add(DBGuiImportComponents.this.technologyEventLabel);
+                labelList.add(DBGuiImportComponents.this.technologyServiceLabel);
+                labelList.add(DBGuiImportComponents.this.nodeLabel);
+                labelList.add(DBGuiImportComponents.this.deviceLabel);
+                labelList.add(DBGuiImportComponents.this.systemSoftwareLabel);
+                labelList.add(DBGuiImportComponents.this.technologyCollaborationLabel);
+                labelList.add(DBGuiImportComponents.this.technologyInterfaceLabel);
+                labelList.add(DBGuiImportComponents.this.pathLabel);
+                labelList.add(DBGuiImportComponents.this.communicationNetworkLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -1077,10 +1077,10 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.materialLabel);
-                labelList.add(DBGuiImportComponent.this.equipmentLabel);
-                labelList.add(DBGuiImportComponent.this.facilityLabel);
-                labelList.add(DBGuiImportComponent.this.distributionNetworkLabel);
+                labelList.add(DBGuiImportComponents.this.materialLabel);
+                labelList.add(DBGuiImportComponents.this.equipmentLabel);
+                labelList.add(DBGuiImportComponents.this.facilityLabel);
+                labelList.add(DBGuiImportComponents.this.distributionNetworkLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -1127,11 +1127,11 @@ public class DBGuiImportComponent extends DBGui {
             public void mouseUp(MouseEvent event) {
                 ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
-                labelList.add(DBGuiImportComponent.this.workpackageLabel);
-                labelList.add(DBGuiImportComponent.this.deliverableLabel);
-                labelList.add(DBGuiImportComponent.this.implementationEventLabel);
-                labelList.add(DBGuiImportComponent.this.plateauLabel);
-                labelList.add(DBGuiImportComponent.this.gapLabel);
+                labelList.add(DBGuiImportComponents.this.workpackageLabel);
+                labelList.add(DBGuiImportComponents.this.deliverableLabel);
+                labelList.add(DBGuiImportComponents.this.implementationEventLabel);
+                labelList.add(DBGuiImportComponents.this.plateauLabel);
+                labelList.add(DBGuiImportComponents.this.gapLabel);
 
                 boolean areAllSet = true;
                 for ( ComponentLabel label: labelList) {
@@ -1553,14 +1553,14 @@ public class DBGuiImportComponent extends DBGui {
             @Override
             public void widgetSelected(SelectionEvent event) {
                 try {
-                    if ( DBGuiImportComponent.this.importConnection.isConnected() ) {
-                        if ( DBGuiImportComponent.this.compoElements.isVisible() )
+                    if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
+                        if ( DBGuiImportComponents.this.compoElements.isVisible() )
                             getElements();
                         //else if ( compoContainers.isVisible() )
                         //  getContainers();
                         //else if ( compoFolders.isVisible() )
                         //    getFolders();
-                        else if ( DBGuiImportComponent.this.compoViews.isVisible() )
+                        else if ( DBGuiImportComponents.this.compoViews.isVisible() )
                             getViews();
                     }
                 } catch (Exception err) {
@@ -1593,19 +1593,19 @@ public class DBGuiImportComponent extends DBGui {
         this.tblComponents.addListener(SWT.Selection, new Listener() {
             @Override
             public void handleEvent(Event event) {
-                if ( DBGuiImportComponent.this.tblComponents.getItemCount() < 2 ) {
-                    DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.tblComponents.getItemCount()+" component matches your criterias");
+                if ( DBGuiImportComponents.this.tblComponents.getItemCount() < 2 ) {
+                    DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.tblComponents.getItemCount()+" component matches your criterias");
                 } else {
-                    DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.tblComponents.getItemCount()+" components match your criterias");
+                    DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.tblComponents.getItemCount()+" components match your criterias");
                 }
 
-                if ( DBGuiImportComponent.this.tblComponents.getSelectionCount() == 0) {
-                    DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.lblComponents.getText()+".");
+                if ( DBGuiImportComponents.this.tblComponents.getSelectionCount() == 0) {
+                    DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.lblComponents.getText()+".");
                 } else {
-                    DBGuiImportComponent.this.lblComponents.setText(DBGuiImportComponent.this.lblComponents.getText()+" ("+DBGuiImportComponent.this.tblComponents.getSelectionCount()+" selected).");
+                    DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.lblComponents.getText()+" ("+DBGuiImportComponents.this.tblComponents.getSelectionCount()+" selected).");
                 }
 
-                DBGuiImportComponent.this.btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
+                DBGuiImportComponents.this.btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
             }
         });
 
@@ -1626,8 +1626,8 @@ public class DBGuiImportComponent extends DBGui {
         this.tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
             @Override
             public void handleEvent(Event event) {
-                if ( DBGuiImportComponent.this.btnDoAction.getEnabled() )
-                    DBGuiImportComponent.this.btnDoAction.notifyListeners(SWT.Selection, new Event());
+                if ( DBGuiImportComponents.this.btnDoAction.getEnabled() )
+                    DBGuiImportComponents.this.btnDoAction.notifyListeners(SWT.Selection, new Event());
             }
         });		
 
@@ -2043,7 +2043,7 @@ public class DBGuiImportComponent extends DBGui {
             this.label.setToolTipText(toolTip);
             this.label.setImage(DBArchimateFactory.getImage(getElementClassname()));
             this.label.addPaintListener(this.redraw);
-            this.label.addListener(SWT.MouseUp, DBGuiImportComponent.this.getElementsListener);
+            this.label.addListener(SWT.MouseUp, DBGuiImportComponents.this.getElementsListener);
             setSelected(false);
         }
 
@@ -2134,7 +2134,7 @@ public class DBGuiImportComponent extends DBGui {
                     break;
 
                 case SWT.MouseHover:
-                    TableItem item = DBGuiImportComponent.this.tblComponents.getItem (new Point (event.x, event.y));
+                    TableItem item = DBGuiImportComponents.this.tblComponents.getItem (new Point (event.x, event.y));
 
                     if (item != null) {
                         Table table = item.getParent();
