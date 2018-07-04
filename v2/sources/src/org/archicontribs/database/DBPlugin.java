@@ -183,6 +183,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      fix number of images to import
  *                                      fix centering of GUI windows
  * 									Import components from database:
+ * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
  * 										Added message during the import as it may take some time
@@ -191,6 +192,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      The categories can now be clicked to select/unselect the whole category
  *                                      The component is imported in the selected folder
  *                                      The element class is pre-selected depending on the selected folder
+ *                                      in case one view is selected for import, show view screenshot if available in the database
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:
