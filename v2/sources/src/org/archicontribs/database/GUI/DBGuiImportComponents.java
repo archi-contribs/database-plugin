@@ -6,7 +6,9 @@
 
 package org.archicontribs.database.GUI;
 
+import java.io.ByteArrayInputStream;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -30,6 +32,7 @@ import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.ModifyEvent;
@@ -40,6 +43,8 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.FormAttachment;
@@ -49,6 +54,7 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -104,6 +110,7 @@ public class DBGuiImportComponents extends DBGui {
 
     Label lblComponents;
     Table tblComponents;
+    Label lblPreview;
 
 
     ComponentLabel resourceLabel;
@@ -1503,6 +1510,7 @@ public class DBGuiImportComponents extends DBGui {
         this.archimateViews = new Button(this.compoViews, SWT.CHECK);
         this.archimateViews.setBackground(GROUP_BACKGROUND_COLOR);
         this.archimateViews.setText("Archimate views");
+        this.archimateViews.setSelection(true);
         fd = new FormData();
         fd.top = new FormAttachment(viewTypeLabel, 5);
         fd.left = new FormAttachment(viewTypeLabel, 20, SWT.LEFT);
@@ -1541,12 +1549,13 @@ public class DBGuiImportComponents extends DBGui {
         this.grpComponent.setLayoutData(fd);
         this.grpComponent.setLayout(new FormLayout());
 
-        this.lblComponents = new Label(this.grpComponent, SWT.NONE);
+        this.lblComponents = new Label(this.grpComponent, SWT.CENTER);
         this.lblComponents.setBackground(GROUP_BACKGROUND_COLOR);
+        this.lblComponents.setText("0 component matches your criterias.");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 10);
-        fd.left = new FormAttachment(10);
-        fd.right = new FormAttachment(100, -10);
+        fd.top = new FormAttachment(0, 5);
+        fd.left = new FormAttachment(0, 5);
+        fd.right = new FormAttachment(70, -5);
         this.lblComponents.setLayoutData(fd);
 
         SelectionListener redrawTblComponents = new SelectionListener() {
@@ -1603,6 +1612,19 @@ public class DBGuiImportComponents extends DBGui {
                     DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.lblComponents.getText()+".");
                 } else {
                     DBGuiImportComponents.this.lblComponents.setText(DBGuiImportComponents.this.lblComponents.getText()+" ("+DBGuiImportComponents.this.tblComponents.getSelectionCount()+" selected).");
+                    
+                    byte[] screenshot = null;
+                    if ( DBGuiImportComponents.this.compoViews.isVisible() && (DBGuiImportComponents.this.tblComponents.getSelectionCount() == 1) ) {
+                    	try ( ResultSet resultViewScreenshot = DBGuiImportComponents.this.importConnection.select("SELECT screenshot FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ? AND version = (SELECT MAX(version) FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ?)", DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id"), DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id")) ) {
+                            if ( resultViewScreenshot.next() )
+                            	screenshot = resultViewScreenshot.getBytes("screenshot");
+                        } catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+                    }
+                    DBGuiImportComponents.this.lblPreview.setData("screenshot", screenshot);
+                    DBGuiImportComponents.this.lblPreview.notifyListeners(SWT.Resize, new Event());
                 }
 
                 DBGuiImportComponents.this.btnDoAction.setEnabled(true);		// as soon a component is selected, we can import it
@@ -1614,7 +1636,40 @@ public class DBGuiImportComponents extends DBGui {
         this.tblComponents.addListener(SWT.MouseMove, this.tooltipListener);
         this.tblComponents.addListener(SWT.MouseHover, this.tooltipListener);
 
-
+        this.lblPreview = new Label(this.grpComponent, SWT.BORDER);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.tblComponents, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.tblComponents, 5);
+        fd.right = new FormAttachment(100, -5);
+        fd.bottom = new FormAttachment(this.tblComponents, 0, SWT.BOTTOM);
+        this.lblPreview.setLayoutData(fd);
+        
+        this.lblPreview.addListener(SWT.Resize, new Listener() {
+            @Override
+			public void handleEvent(Event event) {
+            	Image screenshot = DBGuiImportComponents.this.lblPreview.getImage();
+            	if ( screenshot != null ) {
+            		DBGuiImportComponents.this.lblPreview.setImage(null);
+            		screenshot.dispose();
+            	}
+            	
+            	byte[] screenshotBytes = (byte[]) DBGuiImportComponents.this.lblPreview.getData("screenshot");
+            	if ( screenshotBytes != null ) {
+            		screenshot = new Image(DBGuiImportComponents.this.lblPreview.getDisplay(), new ByteArrayInputStream(screenshotBytes));
+            		ImageData data = screenshot.getImageData();
+            		
+            		double scaleWidth = DBGuiImportComponents.this.lblPreview.getSize().x / (double)data.width;
+            		double scaleHeight = DBGuiImportComponents.this.lblPreview.getSize().y / (double)data.height;
+	            	double scale = (scaleWidth < scaleHeight) ? scaleWidth : scaleHeight;
+	            	
+	                int width = (int) (data.width * scale);
+	                int height = (int) (data.height * scale);
+	                
+	                DBGuiImportComponents.this.lblPreview.setImage(new Image(DBGuiImportComponents.this.lblPreview.getDisplay(), data.scaledTo(width, height)));
+	                screenshot.dispose();
+            	}
+            } // handleEvent
+        }); // Listener
 
         TableColumn colName = new TableColumn(this.tblComponents, SWT.NONE);
         colName.setText("Name");
@@ -1633,18 +1688,18 @@ public class DBGuiImportComponents extends DBGui {
 
         fd = new FormData();
         fd.bottom = new FormAttachment(100, -5);
-        fd.left = new FormAttachment(50, 5);
+        fd.left = new FormAttachment(35, 5);
         this.hideOption.setLayoutData(fd);
 
         fd = new FormData();
         fd.bottom = new FormAttachment(100, -5);
-        fd.right = new FormAttachment(50, -5);
+        fd.right = new FormAttachment(35, -5);
         this.hideAlreadyInModel.setLayoutData(fd);
 
         fd = new FormData();
-        fd.top = new FormAttachment(this.lblComponents, 10);
-        fd.left = new FormAttachment(10);
-        fd.right = new FormAttachment(90);
+        fd.top = new FormAttachment(this.lblComponents, 5);
+        fd.left = new FormAttachment(0, 5);
+        fd.right = new FormAttachment(70, -5);
         fd.bottom = new FormAttachment(this.hideAlreadyInModel, -5);
         this.tblComponents.setLayoutData(fd);
     }
@@ -1746,12 +1801,6 @@ public class DBGuiImportComponents extends DBGui {
             this.lblComponents.setText(this.tblComponents.getItemCount()+" components match your criterias");
         }
 
-        if ( this.tblComponents.getSelectionCount() == 0) {
-            this.lblComponents.setText(this.lblComponents.getText()+".");
-        } else {
-            this.lblComponents.setText(this.lblComponents.getText()+" ("+this.tblComponents.getSelectionCount()+" selected).");
-        }
-
         this.btnDoAction.setEnabled(false);
     }
 
@@ -1823,12 +1872,6 @@ public class DBGuiImportComponents extends DBGui {
 			lblComponents.setText(tblComponents.getItemCount()+" component matches your criterias");
 		} else {
 			lblComponents.setText(tblComponents.getItemCount()+" components match your criterias");
-		}
-
-		if ( tblComponents.getSelectionCount() == 0) {
-			lblComponents.setText(lblComponents.getText()+".");
-		} else {
-			lblComponents.setText(lblComponents.getText()+" ("+tblComponents.getSelectionCount()+" selected).");
 		}
 
 		btnDoAction.setEnabled(false);
@@ -1922,12 +1965,6 @@ public class DBGuiImportComponents extends DBGui {
             this.lblComponents.setText(this.tblComponents.getItemCount()+" component matches your criterias");
         } else {
             this.lblComponents.setText(this.tblComponents.getItemCount()+" components match your criterias");
-        }
-
-        if ( this.tblComponents.getSelectionCount() == 0) {
-            this.lblComponents.setText(this.lblComponents.getText()+".");
-        } else {
-            this.lblComponents.setText(this.lblComponents.getText()+" ("+this.tblComponents.getSelectionCount()+" selected).");
         }
 
         this.btnDoAction.setEnabled(false);
@@ -2166,4 +2203,12 @@ public class DBGuiImportComponents extends DBGui {
             }
         }
     };
+    
+    @Override
+    public void close() {
+        if ( this.lblPreview.getImage() != null )
+        	this.lblPreview.getImage().dispose();
+        
+    	super.close();
+    }
 }
