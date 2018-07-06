@@ -40,7 +40,7 @@ In addition, some improvements are planned but it's not guaranteed that they wil
 ## Changes from the version 2.0.7b:
 * *Import Model*
   * an import model from database context menu entry has been added when no model is selected
-* *Import individual component:*
+* *Import components:*
   * Added documentation column to help distinguish components having the same name
   * Added tootip with properties to help distinguish components having the same name
   * Add popup message during the import as it may take some time
@@ -50,6 +50,7 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * It is now possible to get history from folders and views
   * The components are now imported in the selected folder
   * The class of the selected folder is pre-selected
+  * create new template import mode that mixes copy and shared mode
 * *Export model:*
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
   * In case of exception, the database lock is released before the error message is displayed
