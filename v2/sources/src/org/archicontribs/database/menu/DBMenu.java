@@ -6,10 +6,8 @@
 
 package org.archicontribs.database.menu;
 
-import java.util.Iterator;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
@@ -39,7 +37,6 @@ import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
-
 
 /**
  * This class is used when the user right-click on a graphical object
@@ -273,22 +270,6 @@ public class DBMenu extends ExtensionContributionFactory {
                         break;
 
                     default:
-                        // If all the selected objects are models, we propose to merge them
-                        Iterator<?> itr = selection.iterator();
-                        boolean oneArchimateModel = false;
-                        boolean allArchimateModels = true;
-                        while ( itr.hasNext() ) {
-                            if ( (itr.next() instanceof DBArchimateModel) ) {
-                                oneArchimateModel = true;
-                            } else {
-                                allArchimateModels = false;
-                                break;
-                            }
-                        }
-                        if ( oneArchimateModel && allArchimateModels ) {
-                            additions.addContributionItem(new Separator(), null);
-                            showMergeModels();
-                        }
                 }
             }
         }
@@ -485,28 +466,6 @@ public class DBMenu extends ExtensionContributionFactory {
                 null,                                                       // tooltip 
                 CommandContributionItem.STYLE_PUSH,                         // style
                 null,                                                       // helpContextId
-                true);
-        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
-    }
-
-    private void showMergeModels() {
-        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
-        String label = "Merge models";
-
-        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
-        CommandContributionItemParameter p = new CommandContributionItemParameter(
-                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
-                "org.archicontribs.database.DBMenu",						// id
-                "org.archicontribs.database.mergeModelsCommand",	       	// commandId
-                null,														// parameters
-                menuIcon,													// icon
-                null,														// disabledIcon
-                null,														// hoverIcon
-                label,														// label
-                null,														// mnemonic
-                null,														// tooltip 
-                CommandContributionItem.STYLE_PUSH,							// style
-                null,														// helpContextId
                 true);
         this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
