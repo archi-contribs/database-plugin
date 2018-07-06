@@ -43,6 +43,7 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
 			
 		} else if ( selection instanceof ArchimateElementEditPart ) {					// if the user clicked on a component in a view
 			model = (DBArchimateModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel().getArchimateModel();
+			view = (IArchimateDiagramModel) ((ArchimateElementEditPart)selection).getModel().getDiagramModel();
 			
 		} else if ( selection instanceof IArchimateDiagramModel ) {						// if the user clicked on a view in the tree
 			model = (DBArchimateModel) ((IArchimateDiagramModel)selection).getArchimateModel();
