@@ -14,6 +14,7 @@ import java.util.HashMap;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -70,7 +71,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	 * @param version version of the folder to import (0 if the latest version should be imported)
 	 */
 	public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-		this(connection, model, null, id, version, false);
+		this(connection, model, null, id, version, DBImportMode.templateMode);
 	}
 
 	/**
@@ -79,13 +80,16 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	 * @param model model into which the folder will be imported
 	 * @param folder if a folder is provided, the folder will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the folder to import
-	 * @param version version of the folder to import (0 if the latest version should be imported)
+	 * @param importMode specifies if the folder must be copied or shared
 	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the folder should be its original id 
 	 */
-	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, boolean mustCreateCopy) {
+	@SuppressWarnings("unchecked")
+	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, DBImportMode importMode) {
 		this.model = model;
 		this.id = id;
-		this.mustCreateCopy = mustCreateCopy;
+		
+		// in template mode, the folders are imported in copy mode
+		this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
 
 		if ( logger.isDebugEnabled() ) {
 			if ( this.mustCreateCopy )
@@ -97,6 +101,18 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IFolder", version);
+			
+			// we check if the "shareable" property forces the folder to be copied
+			if ( !this.mustCreateCopy ) {
+				if ( this.newValues.get("properties") != null ) {
+	    			for ( DBProperty prop: (ArrayList<DBProperty>)this.newValues.get("properties")) {
+	    				if ( DBPlugin.areEqual(prop.getKey(), "shareable") && DBPlugin.areEqual(prop.getValue(), "force copy") ) {
+	    					logger.debug("   The \"shareable\" property forces the folder to be copied rather than shared.");
+	    					this.mustCreateCopy = true;
+	    				}
+	    			}
+				}
+			}
 
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == (int)this.newValues.get("root_type")) )
 			    this.newFolder = folder;
@@ -162,16 +178,17 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 			if ( this.mustCreateCopy ) {
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				metadata.setName((String)this.newValues.get("name"));
 			}
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			metadata.setName((String)this.newValues.get("name"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setFolderType((Integer)this.newValues.get("type"));
 			//metadata.setRootFolderType((Integer)this.newValues.get("root_type"));

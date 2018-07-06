@@ -35,6 +35,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.IWorkbench;
@@ -71,8 +72,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnRemoveDirtyFlag;
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
-	private Button btnImportShared;
-	private Button btnShowIdInContextMenu;
+	private Button btnShoIdInContextMenu;
+	private Text txtCopySuffix;
 	
 	DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
@@ -247,41 +248,30 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnKeepPartiallyImportedModel.setLayoutData(fd);
 		
-		this.btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnShowIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnShowIdInContextMenu.setText("Show debugging information in context menu");
-		this.btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
+		this.btnShoIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShoIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnShoIdInContextMenu.setText("Show debugging information in context menu");
+		this.btnShoIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnKeepPartiallyImportedModel, 5);
 		fd.left = new FormAttachment(0, 10);
-		this.btnShowIdInContextMenu.setLayoutData(fd);
+		this.btnShoIdInContextMenu.setLayoutData(fd);
 		
-		Label lblDefaultImportType = new Label(grpMiscellaneous, SWT.NONE);
-		lblDefaultImportType.setText("Default component import type:");
-		lblDefaultImportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		Label lblCopySuffix = new Label(grpMiscellaneous, SWT.NONE);
+		lblCopySuffix.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		lblCopySuffix.setText("Append suffix when import component in copy mode :");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
+		fd.top = new FormAttachment(this.btnShoIdInContextMenu, 5);
 		fd.left = new FormAttachment(0, 10);
-		lblDefaultImportType.setLayoutData(fd);
+		lblCopySuffix.setLayoutData(fd);
 		
-		this.btnImportShared = new Button(grpMiscellaneous, SWT.RADIO);
-		this.btnImportShared.setText("Shared");
-		this.btnImportShared.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.txtCopySuffix = new Text(grpMiscellaneous, SWT.BORDER);
+		this.txtCopySuffix.setText(preferenceStore.getString("copySuffix"));
 		fd = new FormData();
-		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblDefaultImportType, 10);
-		this.btnImportShared.setLayoutData(fd);
-		
-		Button btnImportCopy = new Button(grpMiscellaneous, SWT.RADIO);
-		btnImportCopy.setText("Copy");
-		btnImportCopy.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		fd = new FormData();
-		fd.top = new FormAttachment(lblDefaultImportType, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.btnImportShared, 10);
-		btnImportCopy.setLayoutData(fd);
-		
-		this.btnImportShared.setSelection(preferenceStore.getBoolean("importShared"));
-		btnImportCopy.setSelection(!preferenceStore.getBoolean("importShared"));
+		fd.top = new FormAttachment(lblCopySuffix, 0, SWT.TOP);
+		fd.left = new FormAttachment(lblCopySuffix, 10);
+		fd.right = new FormAttachment(lblCopySuffix, 150, SWT.RIGHT);
+		this.txtCopySuffix.setLayoutData(fd);
 		
 		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
         grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -458,8 +448,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
-    	preferenceStore.setValue("showIdInContextMenu", this.btnShowIdInContextMenu.getSelection());
-    	preferenceStore.setValue("importShared", this.btnImportShared.getSelection());
+    	preferenceStore.setValue("showIdInContextMenu", this.btnShoIdInContextMenu.getSelection());
+    	preferenceStore.setValue("copySuffix", this.txtCopySuffix.getText());
     	
     	if ( this.table != null )
     	    this.table.store();

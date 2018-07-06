@@ -20,6 +20,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -659,7 +660,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id"));
 					if ( element == null ) {
-						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, false, true);
+						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.templateMode, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						element = command.getImported();
@@ -765,7 +766,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id"));
 					if ( relationship == null ) {
-						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, false);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.templateMode);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						relationship = command.getImported();

@@ -15,6 +15,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -83,12 +84,14 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	 * @param model model into which the view connection will be imported
 	 * @param id id of the view connection to import
 	 * @param version version of the view connection to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view connection should be its original id
+	 * @param importMode specifies if the view must be copied or shared
 	 */
-	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
+	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, DBImportMode importMode) {
 		this.model = model;
 		this.id = id;
-		this.mustCreateCopy = mustCreateCopy;
+        
+        // in template mode, the view objects are imported in copy mode
+        this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
 
 		if ( logger.isDebugEnabled() ) {
 			if ( this.mustCreateCopy )
@@ -103,7 +106,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			
             // if the object references a relationship that is not referenced in the model, then we import it
             if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))) == null) ) {
-                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, mustCreateCopy);
+                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, importMode);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
             }
@@ -192,20 +195,20 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedConnection((String)this.newValues.get("id"), metadata.getId());
-				if ( ((String)this.newValues.get("id")).endsWith("c603d0f2a44f") )
-					logger.fatal("**************** importing connection c603d0f2a44f");
+				if ( this.newValues.get("relationship_id") == null )
+				    metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				if ( this.newValues.get("relationship_id") == null )
+				    metadata.setName((String)this.newValues.get("name"));
 			}
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			if ( this.newValues.get("relationship_id") == null )
-			    metadata.setName((String)this.newValues.get("name"));
-			else
+			if ( this.newValues.get("relationship_id") != null )
 			    metadata.setArchimateConcept(this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))));
 			metadata.setLocked(this.newValues.get("is_locked"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));

@@ -16,6 +16,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -98,13 +99,15 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
      * @param connection connection to the database
      * @param model model into which the view object will be imported
      * @param id id of the view object to import
-     * @param version version of the view object to import (0 if the latest version should be imported)
+     * @param importMode specifies if the view must be copied or shared
      * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
      */
-    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy) {
+    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, DBImportMode importMode) {
         this.model = model;
         this.id = id;
-        this.mustCreateCopy = mustCreateCopy;
+        
+        // in template mode, the view objects are imported in copy mode
+        this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
 
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
@@ -135,14 +138,14 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             
             // if the object references an element that is not referenced in the model, then we import it
             if ( (this.newValues.get("element_id") != null) && (this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))) == null) ) {
-                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("element_id"), 0, mustCreateCopy, true);
+                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
                 if ( this.importElementCommand.getException() != null )
                     throw this.importElementCommand.getException();
             }
 
             // if the object is an embedded view but the linked view does not exist in the model, then we import it
             if ( (this.newValues.get("diagram_ref_id") != null) && (model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
-                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, mustCreateCopy, true);
+                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
                 if ( importLinkedViewCommand.getException() != null )
                     throw importLinkedViewCommand.getException();
                 this.importLinkedViewCommands.add(importLinkedViewCommand);
@@ -249,18 +252,20 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 metadata.setId(this.model.getIDAdapter().getNewID());
                 metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
                 this.model.registerCopiedViewObject((String)this.newValues.get("id"), metadata.getId());
+                if ( this.newValues.get("element_id") == null )
+                    metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
             } else {
                 metadata.setId((String)this.newValues.get("id"));
                 metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+                if ( this.newValues.get("element_id") == null )
+                    metadata.setName((String)this.newValues.get("name"));
             }
 
             metadata.getCurrentVersion().set(metadata.getInitialVersion());
             metadata.getDatabaseVersion().set(metadata.getInitialVersion());
             metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-            if ( this.newValues.get("element_id") == null )
-                metadata.setName((String)this.newValues.get("name"));
-            else
+            if ( this.newValues.get("element_id") != null )
                 metadata.setArchimateConcept(this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))));
             metadata.setReferencedModel(this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))));
             metadata.setType((Integer)this.newValues.get("type"));

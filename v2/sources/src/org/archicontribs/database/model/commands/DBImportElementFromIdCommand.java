@@ -16,6 +16,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -81,7 +82,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	 * @param elementVersion version of the element to import (0 if the latest version should be imported)
 	 */
 	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-		this(importConnection, model, null, null, id, version, false, false);
+		this(importConnection, model, null, null, id, version, DBImportMode.templateMode, false);
 	}
 
 	/**
@@ -92,25 +93,24 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	 * @param folder if a folder is provided, the element will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the element to import
 	 * @param version version of the element to import (0 if the latest version should be imported)
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the element should be its original id
+	 * @param importMode specifies if the element must be copied or shared
 	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
 	 */
-	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, boolean mustCreateCopy, boolean mustImportRelationships) {
+	@SuppressWarnings("unchecked")
+	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, DBImportMode importMode, boolean mustImportRelationships) {
 		this.model = model;
 		this.view = view;
 		this.id = id;
-		this.mustCreateCopy = mustCreateCopy;
 		this.mustImportRelationships = mustImportRelationships;
 
-		if ( logger.isDebugEnabled() ) {
-		    String copyOf = this.mustCreateCopy ? " a copy of" : "";
-		    String intoView = (view != null) ? " into view "+view.getId() : "";  
-			logger.debug("   Importing"+copyOf+" element id "+this.id+intoView+".");
-		}
+		if ( logger.isDebugEnabled() )
+			logger.debug("   Importing element id " + this.id + "in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
 
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IArchimateElement", version);
+			
+			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
@@ -134,7 +134,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
 						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), id) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), id) || target != null) ) {
-							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, false);
+							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
 							else
@@ -208,16 +208,17 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedElement((String)this.newValues.get("id"), metadata.getId());
+				metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				metadata.setName((String)this.newValues.get("name"));
 			}
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			metadata.setName((String)this.newValues.get("name"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setType((String)this.newValues.get("type"));
 

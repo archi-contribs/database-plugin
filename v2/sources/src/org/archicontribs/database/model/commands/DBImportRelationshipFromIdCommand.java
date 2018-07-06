@@ -15,6 +15,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateFactory;
@@ -81,7 +82,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	 * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
 	 */
 	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-		this(importConnection, model, null, null, id, version, false);
+		this(importConnection, model, null, null, id, version, DBImportMode.templateMode);
 	}
 
 	/**
@@ -90,24 +91,24 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
 	 * @param folder if a folder is provided, the relationship will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the relationship to import
-	 * @param version version of the relationship to import (0 if the latest version should be imported)
+	 * @param importMode specifies if the relationship must be copied or shared
 	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the relationship should be its original id
 	 */
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, boolean mustCreateCopy) {
+	@SuppressWarnings("unchecked")
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, DBImportMode importMode) {
 		this.model = model;
 		this.view = view;
 		this.id = id;
-		this.mustCreateCopy = mustCreateCopy;
 
-        if ( logger.isDebugEnabled() ) {
-            String copyOf = this.mustCreateCopy ? " a copy of" : "";
-            String intoView = (view != null) ? " into view "+view.getId() : "";  
-            logger.debug("   Importing"+copyOf+" relationship id "+this.id+intoView+".");
-        }
+		if ( logger.isDebugEnabled() )
+			logger.debug("   Importing relationship id " + this.id + "in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
+
 
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
+			
+			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
@@ -176,16 +177,17 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedRelationship((String)this.newValues.get("id"), metadata.getId());
+				metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				metadata.setName((String)this.newValues.get("name"));
 			}
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			metadata.setName((String)this.newValues.get("name"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));
 			metadata.setStrength((String)this.newValues.get("strength"));
 			metadata.setAccessType((Integer)this.newValues.get("access_type"));

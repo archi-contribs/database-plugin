@@ -25,6 +25,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 
@@ -925,7 +926,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                 try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
                         IDiagramModel view;
-                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), false, false);
+                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.templateMode, false);
                         if ( command.canExecute() )
                             command.execute();
                         if ( command.getException() != null )

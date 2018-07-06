@@ -17,7 +17,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
-
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
@@ -211,7 +211,10 @@ public class DBGuiImportComponents extends DBGui {
 		setActiveAction(ACTION.One);
 
 		// we show the option in the bottom
-		setOption("Import type:", "Shared", "The component will be shared between models. All your modifications will be visible by other models.", "Copy", "A copy of the component will be created. All your modifications will remain private to your model and will not be visible by other models.", DBPlugin.INSTANCE.getPreferenceStore().getBoolean("importShared"));
+		setOption("Import type:",
+				"Default template mode", "The components will be copied except if the \"template\" property's value is \"shared\".",
+				"Force shared", "The components will be shared across models. All the modifications done on those components will be visible to other models.",
+				"Force copy mode", "A copy of the components will be created. All your modifications will remain private to your model and will not be visible by other models.");
 
 		// We activate the btnDoAction button: if the user select the "Import" button --> call the doImport() method
 		setBtnAction("Import", new SelectionListener() {
@@ -238,54 +241,54 @@ public class DBGuiImportComponents extends DBGui {
 		// we pre-select components depending on the folder selected
 		if ( this.selectedFolder != null ) {
 			switch ( ((IDBMetadata)this.selectedFolder).getDBMetadata().getRootFolderType() ) {
-			case FolderType.STRATEGY_VALUE:
-				this.lblStrategy.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.STRATEGY_VALUE:
+					this.lblStrategy.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.BUSINESS_VALUE:
-				this.lblBusiness.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.BUSINESS_VALUE:
+					this.lblBusiness.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.APPLICATION_VALUE:
-				this.lblApplication.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.APPLICATION_VALUE:
+					this.lblApplication.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.TECHNOLOGY_VALUE:
-				this.lblTechnology.notifyListeners(SWT.MouseUp, null);      // the null event indicates that the labels must be selected but the elements list must not be gathered from the database
-				this.lblPhysical.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.TECHNOLOGY_VALUE:
+					this.lblTechnology.notifyListeners(SWT.MouseUp, null);      // the null event indicates that the labels must be selected but the elements list must not be gathered from the database
+					this.lblPhysical.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.IMPLEMENTATION_MIGRATION_VALUE:
-				this.lblImplementation.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.IMPLEMENTATION_MIGRATION_VALUE:
+					this.lblImplementation.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.MOTIVATION_VALUE:
-				this.lblMotivation.notifyListeners(SWT.MouseUp, null);
-				break;
+				case FolderType.MOTIVATION_VALUE:
+					this.lblMotivation.notifyListeners(SWT.MouseUp, null);
+					break;
 
-			case FolderType.OTHER_VALUE:
-				// there is no "other" group so no MouseUp listener. The getElements needs to be called manually. 
-				this.locationLabel.setSelected(true);
-				this.locationLabel.redraw();
+				case FolderType.OTHER_VALUE:
+					// there is no "other" group so no MouseUp listener. The getElements needs to be called manually. 
+					this.locationLabel.setSelected(true);
+					this.locationLabel.redraw();
 
-				this.groupingLabel.setSelected(true);
-				this.groupingLabel.redraw();
+					this.groupingLabel.setSelected(true);
+					this.groupingLabel.redraw();
 
-				this.junctionLabel.setSelected(true);
-				this.junctionLabel.redraw();
-				break;
+					this.junctionLabel.setSelected(true);
+					this.junctionLabel.redraw();
+					break;
 
-			case FolderType.DIAGRAMS_VALUE:
-				if ( view == null ) {
-					// if no view is selected, then we suppose we must import a view in the selected folder
-					// if a view is selected, we suppose we must import a component into that view (but we cannot guess which one)
-					this.radioOptionElement.setSelection(false);
-					this.radioOptionView.setSelection(true);
-				}
-				break;
+				case FolderType.DIAGRAMS_VALUE:
+					if ( view == null ) {
+						// if no view is selected, then we suppose we must import a view in the selected folder
+						// if a view is selected, we suppose we must import a component into that view (but we cannot guess which one)
+						this.radioOptionElement.setSelection(false);
+						this.radioOptionView.setSelection(true);
+					}
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 
@@ -1900,7 +1903,7 @@ public class DBGuiImportComponents extends DBGui {
 		//compoContainers.setVisible(false);
 		//compoFolders.setVisible(false);
 		this.compoViews.setVisible(true);
-		
+
 		this.tblComponents.removeAll();
 		Image image = this.lblPreview.getImage();
 		if ( image != null ) {
@@ -1988,7 +1991,7 @@ public class DBGuiImportComponents extends DBGui {
 		} else {
 			this.lblComponents.setText(this.tblComponents.getItemCount()+" components match your criterias");
 		}
-		
+
 		this.btnDoAction.setEnabled(false);
 	}
 
@@ -2008,15 +2011,8 @@ public class DBGuiImportComponents extends DBGui {
 
 
 	void doImport() throws Exception {
-		if ( logger.isDebugEnabled() ) {
-			if ( getOptionValue() )
-				logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component(s).");
-			else
-				logger.debug("Importing a copy of "+this.tblComponents.getSelectionCount()+" component(s).");
-		}
-
-
-
+		if ( logger.isDebugEnabled() )
+			logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component" + ((this.tblComponents.getSelectionCount()>1) ? "s" : "") + " in " + DBImportMode.getLabel(getOptionValue()) + ".");
 
 		CompoundCommand commands = new CompoundCommand();
 		int done = 0;
@@ -2028,7 +2024,7 @@ public class DBGuiImportComponents extends DBGui {
 				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
 
 				if ( this.compoElements.getVisible() ) {
-					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, !getOptionValue(), true); 
+					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true); 
 					if ( command.getException() != null )
 						throw command.getException();
 					command.execute();
@@ -2038,7 +2034,7 @@ public class DBGuiImportComponents extends DBGui {
 				}
 
 				else if ( this.compoViews.getVisible() ) {
-					IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, !getOptionValue(), true);
+					IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true);
 					if ( command.getException() != null )
 						throw command.getException();
 					command.execute();
@@ -2183,45 +2179,45 @@ public class DBGuiImportComponents extends DBGui {
 		@Override
 		public void handleEvent (Event event) {
 			switch (event.type) {
-			case SWT.Dispose:
-			case SWT.KeyDown:
-			case SWT.MouseMove:
-				if (this.tip == null) break;
-				this.tip.dispose ();
-				this.tip = null;
-				this.label = null;
-				break;
+				case SWT.Dispose:
+				case SWT.KeyDown:
+				case SWT.MouseMove:
+					if (this.tip == null) break;
+					this.tip.dispose ();
+					this.tip = null;
+					this.label = null;
+					break;
 
-			case SWT.MouseHover:
-				TableItem item = DBGuiImportComponents.this.tblComponents.getItem (new Point (event.x, event.y));
+				case SWT.MouseHover:
+					TableItem item = DBGuiImportComponents.this.tblComponents.getItem (new Point (event.x, event.y));
 
-				if (item != null) {
-					Table table = item.getParent();
+					if (item != null) {
+						Table table = item.getParent();
 
-					if ( (this.tip != null)  && !this.tip.isDisposed () )
-						this.tip.dispose ();
+						if ( (this.tip != null)  && !this.tip.isDisposed () )
+							this.tip.dispose ();
 
-					if ( item.getData("tooltip") != null ) {
-						this.tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
-						FillLayout layout = new FillLayout ();
-						layout.marginWidth = 2;
-						this.tip.setLayout (layout);
-						this.label = new StyledText (this.tip, SWT.NONE);
-						this.label.setEditable(false);
-						this.label.setText("Properties:\n"+(String)item.getData("tooltip"));
-						StyleRange style = new StyleRange( 0, 11, null, null, SWT.BOLD);
-						style.underline = true;
-						this.label.setStyleRange(style);
-						Point size = this.tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
-						Point pt = table.toDisplay (event.x, event.y);
-						this.tip.setBounds (pt.x, pt.y, size.x, size.y);
-						this.tip.setVisible (true);
+						if ( item.getData("tooltip") != null ) {
+							this.tip = new Shell (table.getShell(), SWT.ON_TOP | SWT.NO_FOCUS | SWT.TOOL);
+							FillLayout layout = new FillLayout ();
+							layout.marginWidth = 2;
+							this.tip.setLayout (layout);
+							this.label = new StyledText (this.tip, SWT.NONE);
+							this.label.setEditable(false);
+							this.label.setText("Properties:\n"+(String)item.getData("tooltip"));
+							StyleRange style = new StyleRange( 0, 11, null, null, SWT.BOLD);
+							style.underline = true;
+							this.label.setStyleRange(style);
+							Point size = this.tip.computeSize (SWT.DEFAULT, SWT.DEFAULT);
+							Point pt = table.toDisplay (event.x, event.y);
+							this.tip.setBounds (pt.x, pt.y, size.x, size.y);
+							this.tip.setVisible (true);
+						}
 					}
-				}
-				break;
+					break;
 
-			default:
-				break;
+				default:
+					break;
 			}
 		}
 	};

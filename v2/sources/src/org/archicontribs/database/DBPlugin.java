@@ -192,7 +192,8 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      The categories can now be clicked to select/unselect the whole category
  *                                      The component is imported in the selected folder
  *                                      The element class is pre-selected depending on the selected folder
- *                                      in case one view is selected for import, show view screenshot if available in the database
+ *                                      In case one view is selected for import, show view screenshot if available in the database
+ *                                      Introduce new template mode that mixes shared and copy modes
  *                                  Import model:
  *                                      Automatically open the default view of the imported models
  * 									Export model:
@@ -285,11 +286,11 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("showZeroValues",          false);
 		preferenceStore.setDefault("compareBeforeExport",     true);
 		preferenceStore.setDefault("deleteIfImportError",     true);
-		preferenceStore.setDefault("importShared",            false);
 		preferenceStore.setDefault("removeDirtyFlag",         false);
 		preferenceStore.setDefault("showIdInContextMenu",     false);
 		preferenceStore.setDefault("traceSQL",                true);
 		preferenceStore.setDefault("checkMaxMemory",          true);
+		preferenceStore.setDefault("copySuffix",              " (copy)");
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
