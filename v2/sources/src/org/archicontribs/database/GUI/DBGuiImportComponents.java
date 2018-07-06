@@ -213,7 +213,7 @@ public class DBGuiImportComponents extends DBGui {
 		// we show the option in the bottom
 		setOption("Import type:",
 				"Default template mode", "The components will be copied except if the \"template\" property's value is \"shared\".",
-				"Force shared", "The components will be shared across models. All the modifications done on those components will be visible to other models.",
+				"Force shared mode", "The components will be shared across models. All the modifications done on those components will be visible to other models.",
 				"Force copy mode", "A copy of the components will be created. All your modifications will remain private to your model and will not be visible by other models.");
 
 		// We activate the btnDoAction button: if the user select the "Import" button --> call the doImport() method

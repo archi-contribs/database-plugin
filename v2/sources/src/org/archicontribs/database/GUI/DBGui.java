@@ -739,8 +739,8 @@ public class DBGui {
 		if ( label != null ) this.lblOption.setText(label);
 
 		if ( option1 == null ) {
-			this.radioOption1.setSelection(false);
-			this.radioOption1.setVisible(false);
+			this.radioOption1.setText("");
+			this.radioOption1.setToolTipText("");
 		} else {
 			this.radioOption1.setText(option1);
 			if ( toolTip1 != null )
@@ -750,8 +750,8 @@ public class DBGui {
 		}
 
 		if ( option2 == null ) {
-			this.radioOption2.setSelection(false);
-			this.radioOption2.setVisible(false);
+			this.radioOption2.setText("");
+			this.radioOption2.setToolTipText("");
 		} else {
 			this.radioOption2.setText(option2);
 			if ( toolTip2 != null ) this.radioOption2.setToolTipText(toolTip2);
@@ -760,13 +760,12 @@ public class DBGui {
 		}
 
 		if ( option3 == null ) {
-			this.radioOption3.setSelection(false);
-			this.radioOption3.setVisible(false);
+			this.radioOption3.setText("");
+			this.radioOption3.setToolTipText("");
 		} else {
-			this.radioOption3.setText(option2);
-			if ( toolTip3 != null ) this.radioOption3.setToolTipText(toolTip2);
+			this.radioOption3.setText(option3);
+			if ( toolTip3 != null ) this.radioOption3.setToolTipText(toolTip3);
 			this.radioOption2.setSelection(!this.radioOption1.getSelection() && !this.radioOption2.getSelection());
-			this.radioOption3.setVisible(true);
 		}
 
 		this.compoBottom.layout();
@@ -798,9 +797,9 @@ public class DBGui {
 
 	protected void showOption() {
 		this.lblOption.setVisible(true);
-		this.radioOption1.setVisible(true);
-		this.radioOption2.setVisible(true);
-		this.radioOption3.setVisible(true);
+		this.radioOption1.setVisible(this.radioOption1.getText().length() != 0);
+		this.radioOption2.setVisible(this.radioOption2.getText().length() != 0);
+		this.radioOption3.setVisible(this.radioOption3.getText().length() != 0);
 	}
 
 	/**
