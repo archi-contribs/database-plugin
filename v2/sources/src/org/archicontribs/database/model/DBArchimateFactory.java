@@ -307,6 +307,7 @@ public class DBArchimateFactory extends ArchimateFactory {
             case "SKETCHMODEL": return ImageFactory.getImage(IArchiImages.ICON_SKETCH);
             case "SKETCHMODELSTICKY": return ImageFactory.getImage(IArchiImages.ICON_STICKY);
             case "SKETCHMODELACTOR": return ImageFactory.getImage(IArchiImages.ICON_ACTOR);
+            case "MODEL": return ImageFactory.getImage(IArchiImages.ICON_APP); 
             default:
                 throw new IllegalArgumentException("The class '" + clazz + "' is not a valid class"); //$NON-NLS-1$ //$NON-NLS-2$
         }
