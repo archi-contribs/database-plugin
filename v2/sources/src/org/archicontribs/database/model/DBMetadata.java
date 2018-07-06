@@ -13,6 +13,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
+import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
@@ -905,7 +906,7 @@ public class DBMetadata  {
     
     // alpha (transparency) from Archi 4.3
     public Integer getAlpha() {
-    	if ( this.component instanceof IDiagramModelObject ) {
+    	if ( (this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) {
 	    	try {
 	    		return ((IDiagramModelObject)this.component).getAlpha();
 	    	} catch (@SuppressWarnings("unused") Exception ign) {
@@ -917,7 +918,7 @@ public class DBMetadata  {
     }
     
     public void setAlpha(Integer alpha) {
-    	if ( (this.component instanceof IDiagramModelObject) && (alpha != null) && (alpha != getAlpha()) ) {
+    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getAlpha()) ) {
 	    	try {
 	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
 	    	} catch (@SuppressWarnings("unused") Exception ign) {
