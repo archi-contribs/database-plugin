@@ -253,7 +253,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
                 this.model.registerCopiedViewObject((String)this.newValues.get("id"), metadata.getId());
                 if ( this.newValues.get("element_id") == null )
-                    metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
+                	metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
             } else {
                 metadata.setId((String)this.newValues.get("id"));
                 metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));

@@ -214,7 +214,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedView((String)this.newValues.get("id"), metadata.getId());
-				metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
+				metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));

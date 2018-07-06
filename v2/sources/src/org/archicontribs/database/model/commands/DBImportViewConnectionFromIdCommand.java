@@ -196,7 +196,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedConnection((String)this.newValues.get("id"), metadata.getId());
 				if ( this.newValues.get("relationship_id") == null )
-				    metadata.setName((String)this.newValues.get("name") + " (copy)");	//TODO: add a preference
+					metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			} else {
 				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
