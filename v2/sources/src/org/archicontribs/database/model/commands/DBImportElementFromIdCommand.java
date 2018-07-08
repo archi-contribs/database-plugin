@@ -104,7 +104,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 		this.mustImportRelationships = mustImportRelationships;
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing element id " + this.id + "in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
+			logger.debug("   Importing element id " + this.id + " in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
 
 		try {
 			// we get the new values from the database to allow execute and redo

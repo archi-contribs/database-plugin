@@ -23,6 +23,7 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
@@ -80,17 +81,16 @@ public class DBGuiImportComponents extends DBGui {
 	private Group grpFilter;
 	private Group grpComponent;
 
+	Composite compoModels;
 	Composite compoElements;
+	Button radioOptionModel;
 	Button radioOptionElement;
 	Button radioOptionView;
 	private Text filterName;
-	private Button ignoreCase;
 	private Button hideOption;             // to hide empty names for elements and relationships, top level folders and default views
 	private Button hideAlreadyInModel;
 
 	DBDatabaseImportConnection importConnection = null;
-
-	//private Composite compoContainers;
 
 	//private Composite compoFolders;
 	//private Button strategyFolders;
@@ -239,7 +239,18 @@ public class DBGuiImportComponents extends DBGui {
 		createGrpComponents();
 
 		// we pre-select components depending on the folder selected
-		if ( this.selectedFolder != null ) {
+		if ( this.selectedFolder == null ) {
+			// if the folder and the view are both null, then, the user selected the model
+			if ( this.selectedView == null ) {
+				this.radioOptionModel.setSelection(true);
+				this.radioOptionElement.setSelection(false);
+				this.radioOptionView.setSelection(false);
+			}
+		} else {
+			this.radioOptionModel.setSelection(false);
+			this.radioOptionElement.setSelection(true);
+			this.radioOptionView.setSelection(false);
+
 			switch ( ((IDBMetadata)this.selectedFolder).getDBMetadata().getRootFolderType() ) {
 				case FolderType.STRATEGY_VALUE:
 					this.lblStrategy.notifyListeners(SWT.MouseUp, null);
@@ -282,6 +293,7 @@ public class DBGuiImportComponents extends DBGui {
 					if ( view == null ) {
 						// if no view is selected, then we suppose we must import a view in the selected folder
 						// if a view is selected, we suppose we must import a component into that view (but we cannot guess which one)
+						this.radioOptionModel.setSelection(false);
 						this.radioOptionElement.setSelection(false);
 						this.radioOptionView.setSelection(true);
 					}
@@ -304,11 +316,14 @@ public class DBGuiImportComponents extends DBGui {
 		this.compoRightBottom.setVisible(true);
 		this.compoRightBottom.layout();
 		try {
-			if ( this.radioOptionElement.getSelection() )
+			this.tblComponents.clearAll();
+			
+			if ( this.radioOptionModel.getSelection() )
+				getModels();
+			else if ( this.radioOptionElement.getSelection() )
 				getElements();
 			else if ( this.radioOptionView.getSelection() )
 				getViews();
-			else this.tblComponents.clearAll();
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "An exception has been raised.", err);
 		}
@@ -336,6 +351,29 @@ public class DBGuiImportComponents extends DBGui {
 		fd.left = new FormAttachment(0, 10);
 		chooseCategory.setLayoutData(fd);
 
+		this.radioOptionModel = new Button(this.grpFilter, SWT.RADIO);
+		this.radioOptionModel.setBackground(GROUP_BACKGROUND_COLOR);
+		this.radioOptionModel.setText("Models");
+		this.radioOptionModel.setSelection(false);
+		this.radioOptionModel.addSelectionListener(new SelectionListener() {
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				if ( DBGuiImportComponents.this.radioOptionModel.getSelection() ) {
+					try {
+						getModels();
+					} catch (Exception err) {
+						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+					}
+				}
+			}
+			@Override
+			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
+		});
+		fd = new FormData();
+		fd.top = new FormAttachment(chooseCategory, 5);
+		fd.left = new FormAttachment(0, 20);
+		this.radioOptionModel.setLayoutData(fd);
+
 		this.radioOptionElement = new Button(this.grpFilter, SWT.RADIO);
 		this.radioOptionElement.setBackground(GROUP_BACKGROUND_COLOR);
 		this.radioOptionElement.setText("Elements");
@@ -355,7 +393,7 @@ public class DBGuiImportComponents extends DBGui {
 			public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(chooseCategory, 5);
+		fd.top = new FormAttachment(this.radioOptionModel, 5);
 		fd.left = new FormAttachment(0, 20);
 		this.radioOptionElement.setLayoutData(fd);
 
@@ -401,13 +439,13 @@ public class DBGuiImportComponents extends DBGui {
 			public void modifyText(ModifyEvent event) {
 				try {
 					if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
-						if ( DBGuiImportComponents.this.compoElements.isVisible() )
+						if ( DBGuiImportComponents.this.radioOptionModel.getSelection() )
+							getModels();
+						if ( DBGuiImportComponents.this.radioOptionElement.getSelection() )
 							getElements();
-						//else if ( compoContainers.isVisible() )
-						//	getContainers();
 						//else if ( compoFolders.isVisible() )
 						//	getFolders();
-						else if ( DBGuiImportComponents.this.compoViews.isVisible() )
+						else if ( DBGuiImportComponents.this.radioOptionView.getSelection () )
 							getViews();
 					}
 				} catch (Exception err) {
@@ -416,38 +454,33 @@ public class DBGuiImportComponents extends DBGui {
 			}
 		});
 
-		this.ignoreCase = new Button(this.grpFilter, SWT.CHECK);
-		this.ignoreCase.setBackground(GROUP_BACKGROUND_COLOR);
-		this.ignoreCase.setText("Ignore case");
-		this.ignoreCase.setSelection(true);
-		fd = new FormData();
-		fd.top = new FormAttachment(this.filterName, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.ignoreCase.setLayoutData(fd);
-		this.ignoreCase.addListener(SWT.MouseUp, new Listener() {
-			@Override
-			public void handleEvent(Event event) {
-				try {
-					if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
-						if ( DBGuiImportComponents.this.compoElements.isVisible() )
-							getElements();
-						//else if ( compoContainers.isVisible() )
-						//	getContainers();
-						//else if ( compoFolders.isVisible() )
-						//	getFolders();
-						else if ( DBGuiImportComponents.this.compoViews.isVisible() )
-							getViews();
-					}
-				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
-				} 
-			}
-		});
-
+		createCompoModels();
 		createCompoElements();
 		//createCompoComposites();
 		//createCompoFolders();
 		createCompoViews();
+	}
+	
+	private void createCompoModels() {
+		this.compoModels = new Composite(this.grpFilter, SWT.NONE);
+		this.compoModels.setBackground(GROUP_BACKGROUND_COLOR);
+		this.compoModels.setVisible(false);
+		FormData fd = new FormData();
+		fd.top = new FormAttachment(0);
+		fd.left = new FormAttachment(0, 135);
+		fd.right = new FormAttachment(100, -10);
+		fd.bottom = new FormAttachment(100, -10);
+		this.compoModels.setLayoutData(fd);
+		this.compoModels.setLayout(new FormLayout());
+		
+		Label title = new Label(this.compoModels, SWT.NONE);
+		title.setText("Please select a model to merge it to your current model ...");
+		title.setBackground(GROUP_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(0);
+		fd.left = new FormAttachment(0);
+		fd.right = new FormAttachment(100);
+		title.setLayoutData(fd);
 	}
 
 	private void createCompoElements() {		
@@ -1391,28 +1424,6 @@ public class DBGuiImportComponents extends DBGui {
 	}
 
 	/*
-	private void createCompoComposites() {
-		compoContainers = new Composite(grpFilter, SWT.NONE);
-		compoContainers.setBackground(GROUP_BACKGROUND_COLOR);
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(0, 135);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
-		compoContainers.setLayoutData(fd);
-		compoContainers.setLayout(new FormLayout());
-
-		Label sorryLabel = new Label(compoContainers, SWT.NONE);
-		sorryLabel.setBackground(GROUP_BACKGROUND_COLOR);
-		sorryLabel.setText("Not yet implemented, sorry ...");
-		fd = new FormData();
-		fd.top = new FormAttachment(35);
-		fd.left = new FormAttachment(0, 30);
-		sorryLabel.setLayoutData(fd);
-	}
-	 */
-
-	/*
 	private void createCompoFolders() {
 		compoFolders = new Composite(grpFilter, SWT.NONE);
 		compoFolders.setBackground(GROUP_BACKGROUND_COLOR);
@@ -1573,13 +1584,13 @@ public class DBGuiImportComponents extends DBGui {
 			public void widgetSelected(SelectionEvent event) {
 				try {
 					if ( DBGuiImportComponents.this.importConnection.isConnected() ) {
-						if ( DBGuiImportComponents.this.compoElements.isVisible() )
+						DBGuiImportComponents.this.tblComponents.clearAll();
+						
+						if ( DBGuiImportComponents.this.radioOptionModel.getSelection() )
+							getModels();
+						else if ( DBGuiImportComponents.this.radioOptionElement.getSelection() )
 							getElements();
-						//else if ( compoContainers.isVisible() )
-						//  getContainers();
-						//else if ( compoFolders.isVisible() )
-						//    getFolders();
-						else if ( DBGuiImportComponents.this.compoViews.isVisible() )
+						else if ( DBGuiImportComponents.this.radioOptionView.getSelection() )
 							getViews();
 					}
 				} catch (Exception err) {
@@ -1714,9 +1725,9 @@ public class DBGuiImportComponents extends DBGui {
 		this.tblComponents.setLayoutData(fd);
 	}
 
-	void getElements() throws Exception {
-		this.compoElements.setVisible(true);
-		//compoContainers.setVisible(false);
+	void getModels() throws Exception {
+		this.compoModels.setVisible(true);
+		this.compoElements.setVisible(false);
 		//compoFolders.setVisible(false);
 		this.compoViews.setVisible(false);
 
@@ -1727,6 +1738,74 @@ public class DBGuiImportComponents extends DBGui {
 			image.dispose();
 		}
 		this.lblPreview.setVisible(false);
+
+		if ( this.selectedDatabase == null )
+			return;
+
+		setMessage("Getting list of models from database ...");
+
+		if ( logger.isDebugEnabled() ) logger.debug("Getting models");
+
+		this.hideAlreadyInModel.setVisible(false);
+		this.hideOption.setVisible(false);
+
+		this.tblComponents.getColumn(1).setText("Purpose");
+		
+		String filterRequest = "";
+		if ( this.filterName.getText().length() != 0 )
+			filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+			
+		try (ResultSet result = this.importConnection.select("SELECT id, version, name, purpose FROM "+this.selectedDatabase.getSchemaPrefix()+"models m WHERE version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"models WHERE id = m.id)" + filterRequest) ) {
+			while (result.next()) {
+				if ( !DBPlugin.areEqual(result.getString("id"), this.importedModel.getId()) ) {
+					StringBuilder tooltipBuilder = new StringBuilder();
+					TableItem item = createTableItem(this.tblComponents, result.getString("id"), "model", result.getString("name"), result.getString("purpose"));
+					logger.trace("Found model "+result.getString("name"));
+					try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+						while ( resultProperties.next() ) {
+							if ( tooltipBuilder.length() != 0 )
+								tooltipBuilder.append("\n");
+							tooltipBuilder.append("   - ");
+							tooltipBuilder.append(resultProperties.getString("name"));
+							tooltipBuilder.append(": ");
+							String value = resultProperties.getString("value");
+							if ( value.length() > 22 )
+								tooltipBuilder.append(value.substring(0,19)+"...");
+							else
+								tooltipBuilder.append(value);
+						}
+					}
+					if ( tooltipBuilder.length() != 0 )
+						item.setData("tooltip", tooltipBuilder.toString());
+				}
+			}
+		}
+		closeMessage();
+
+		if ( this.tblComponents.getItemCount() < 2 ) {
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" model matches your criterias");
+		} else {
+			this.lblComponents.setText(this.tblComponents.getItemCount()+" models match your criterias");
+		}
+
+		this.btnDoAction.setEnabled(false);
+	}
+
+	void getElements() throws Exception {
+		this.compoModels.setVisible(false);
+		this.compoElements.setVisible(true);
+		//compoFolders.setVisible(false);
+		this.compoViews.setVisible(false);
+
+		this.tblComponents.removeAll();
+		Image image = this.lblPreview.getImage();
+		if ( image != null ) {
+			this.lblPreview.setImage(null);
+			image.dispose();
+		}
+		this.lblPreview.setVisible(false);
+		
+		this.tblComponents.getColumn(1).setText("Documentation");
 
 		if ( this.selectedDatabase == null )
 			return;
@@ -1745,6 +1824,8 @@ public class DBGuiImportComponents extends DBGui {
 
 			setMessage("Getting list of elements from the database ...");
 
+			this.hideAlreadyInModel.setVisible(true);
+			this.hideOption.setVisible(true);
 			this.hideOption.setText("Hide components with empty names");
 			String addOn = "";
 			if ( this.hideOption.getSelection() ) {
@@ -1758,24 +1839,12 @@ public class DBGuiImportComponents extends DBGui {
 			addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
 			addOn += " ORDER BY NAME";
 
-			//if ( logger.isTraceEnabled() ) {
-			//	logger.trace("   inList = "+inList.toString());
-			//	logger.trace("   addOn = "+addOn);
-			//}
-
 			if ( inList.length() != 0 ) {
-				@SuppressWarnings("resource")
-				ResultSet result = null;
-				try {
-					if ( this.filterName.getText().length() == 0 )
-						result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")"+addOn, classList);
-					else {
-						if ( this.ignoreCase.getSelection() )
-							result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND UPPER(name) like ?"+addOn, classList, "%"+this.filterName.getText().toUpperCase()+"%");
-						else
-							result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
-					}
-
+				String filterRequest = "";
+				if ( this.filterName.getText().length() != 0 )
+					filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+				
+				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")" + addOn + filterRequest, classList) ) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
@@ -1799,11 +1868,6 @@ public class DBGuiImportComponents extends DBGui {
 								item.setData("tooltip", tooltipBuilder.toString());
 						}
 					}
-				} finally {
-					if ( result != null ) {
-						result.close();
-						result = null;
-					}
 				}
 			}
 
@@ -1821,8 +1885,8 @@ public class DBGuiImportComponents extends DBGui {
 
 	/*
 	private void getFolders() throws Exception {
+		this.compoModels.setVisible(false);
 		compoElements.setVisible(false);
-		compoContainers.setVisible(false);
 		compoFolders.setVisible(true);
 		compoViews.setVisible(false);
 
@@ -1874,18 +1938,16 @@ public class DBGuiImportComponents extends DBGui {
 		addOn += " ORDER BY NAME";
 
 		if ( inList.length() != 0 ) {
-			ResultSet result;
+			String filterRequest = "";
+			if ( this.filterName.getText().length() != 0 )
+				filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
 
-			if ( filterName.getText().length() == 0 )
-				result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")"+addOn, typeList);
-			else
-				result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+") AND name like ?"+addOn, typeList, "%"+filterName.getText()+"%");
-
-			while (result.next()) {
-			    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllFolders().get(result.getString("id"))==null))
-			        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"), result.getString("documentation"));
+			try ( ResultSet result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")" + addOn + filterRequest, typeList)) {
+				while (result.next()) {
+				    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllFolders().get(result.getString("id"))==null))
+				        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"), result.getString("documentation"));
+				}
 			}
-			result.close();
 		}
 
 		if ( tblComponents.getItemCount() < 2 ) {
@@ -1899,8 +1961,8 @@ public class DBGuiImportComponents extends DBGui {
 	 */
 
 	void getViews() throws Exception {
+		this.compoModels.setVisible(false);
 		this.compoElements.setVisible(false);
-		//compoContainers.setVisible(false);
 		//compoFolders.setVisible(false);
 		this.compoViews.setVisible(true);
 
@@ -1911,6 +1973,8 @@ public class DBGuiImportComponents extends DBGui {
 			image.dispose();
 		}
 		this.lblPreview.setVisible(true);
+		
+		this.tblComponents.getColumn(1).setText("Documentation");
 
 		if ( this.selectedDatabase == null )
 			return;
@@ -1935,6 +1999,8 @@ public class DBGuiImportComponents extends DBGui {
 
 			if ( logger.isDebugEnabled() ) logger.debug("Getting views");
 
+			this.hideAlreadyInModel.setVisible(true);
+			this.hideOption.setVisible(true);
 			this.hideOption.setText("Hide default views");
 			String addOn = "";
 			if ( this.hideOption.getSelection() )
@@ -1944,14 +2010,11 @@ public class DBGuiImportComponents extends DBGui {
 			addOn += " ORDER BY NAME";
 
 			if ( inList.length() != 0 ) {
-				@SuppressWarnings("resource")
-				ResultSet result = null;
-				try {
-					if ( this.filterName.getText().length() == 0 )
-						result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")"+addOn, classList);
-					else
-						result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+") AND name like ?"+addOn, classList, "%"+this.filterName.getText()+"%");
-
+				String filterRequest = "";
+				if ( this.filterName.getText().length() != 0 )
+					filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+				
+				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")" + addOn + filterRequest, classList)) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
@@ -1974,11 +2037,6 @@ public class DBGuiImportComponents extends DBGui {
 							if ( tooltipBuilder.length() != 0 )
 								item.setData("tooltip", tooltipBuilder.toString());
 						}
-					}
-				} finally {
-					if ( result != null ) {
-						result.close();
-						result = null;
 					}
 				}
 			}
@@ -2013,7 +2071,7 @@ public class DBGuiImportComponents extends DBGui {
 	void doImport() throws Exception {
 		if ( logger.isDebugEnabled() )
 			logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component" + ((this.tblComponents.getSelectionCount()>1) ? "s" : "") + " in " + DBImportMode.getLabel(getOptionValue()) + ".");
-
+		
 		CompoundCommand commands = new CompoundCommand();
 		int done = 0;
 		try {
@@ -2021,9 +2079,70 @@ public class DBGuiImportComponents extends DBGui {
 				String id = (String)tableItem.getData("id");
 				String name = tableItem.getText(0).trim();
 
-				setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing \""+name+"\".");
-
-				if ( this.compoElements.getVisible() ) {
+				if ( this.radioOptionModel.getSelection() ) {
+					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing model \""+name+"\".");
+					
+					// import folders
+					//TODO : concert root folders !!!
+					
+					// import elements
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing elements from model \""+name+"\".");
+					try ( ResultSet result = this.importConnection.select("SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?)", id, id) ) {
+						while ( result.next() ) {
+							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
+							//TODO : convert root folders !!!
+							IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("element_id"), result.getInt("element_version"), DBImportMode.get(getOptionValue()), false); 
+							if ( command.getException() != null )
+								throw command.getException();
+							command.execute();
+							if ( command.getException() != null )
+								throw command.getException();
+							commands.add((Command)command);
+						}
+					}
+					
+					// import relationships
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing relationships from model \""+name+"\".");
+					try ( ResultSet result = this.importConnection.select("SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?)", id, id) ) {
+						while ( result.next() ) {
+							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
+							//TODO : concert root folders !!!
+							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("relationship_id"), result.getInt("relationship_version"), DBImportMode.get(getOptionValue())); 
+							if ( command.getException() != null )
+								throw command.getException();
+							command.execute();
+							if ( command.getException() != null )
+								throw command.getException();
+							commands.add((Command)command);
+						}
+					}
+					
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Resolving relationships from model \""+name+"\".");
+			        if ( (this.importedModel.getAllSourceRelationshipsToResolve().size() != 0) || (this.importedModel.getAllTargetRelationshipsToResolve().size() != 0) ) {
+			            DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.importedModel);
+			            resolveRelationshipsCommand.execute();
+			            if ( resolveRelationshipsCommand.getException() != null )
+			            	throw resolveRelationshipsCommand.getException();
+			            commands.add(resolveRelationshipsCommand);
+			        }
+					
+					// import views
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing views from model \""+name+"\".");
+					try ( ResultSet result = this.importConnection.select("SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?)", id, id) ) {
+						while ( result.next() ) {
+							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
+							//TODO : concert root folders !!!
+							IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("view_id"), result.getInt("view_version"), DBImportMode.get(getOptionValue()), true); 
+							if ( command.getException() != null )
+								throw command.getException();
+							command.execute();
+							if ( command.getException() != null )
+								throw command.getException();
+							commands.add((Command)command);
+						}
+					}
+				} else if ( this.radioOptionElement.getSelection() ) {
+					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing element \""+name+"\".");
 					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true); 
 					if ( command.getException() != null )
 						throw command.getException();
@@ -2033,7 +2152,8 @@ public class DBGuiImportComponents extends DBGui {
 					commands.add((Command)command);
 				}
 
-				else if ( this.compoViews.getVisible() ) {
+				else if ( this.radioOptionView.getSelection() ) {
+					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing view \""+name+"\".");
 					IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true);
 					if ( command.getException() != null )
 						throw command.getException();
@@ -2042,9 +2162,6 @@ public class DBGuiImportComponents extends DBGui {
 						throw command.getException();
 					commands.add((Command)command);
 				}
-				//else if ( compoContainers.getVisible() )
-				//  database.importContainerFromId(importedModel, id, !getOptionValue());
-				//  database.importFolder(importedModel, id, !getOptionValue());
 			}
 
 			DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.importedModel);

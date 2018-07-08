@@ -70,23 +70,28 @@ public enum DBImportMode {
 	public boolean shouldCreateCopy(ArrayList<DBProperty> properties) {
 		switch ( this.value ) {
 			case DBImportMode.forceSharedModeValue:
+				logger.debug("   Import in forced shared mode.");
 				return false;
 
 			case DBImportMode.forceCopyModeValue:
+				logger.debug("   Import in forced copy mode.");
 				return true;
 
 			case DBImportMode.templateModeValue:
 				if ( properties != null ) {
 					for ( DBProperty prop: properties) {
 						if ( DBPlugin.areEqual(prop.getKey(), "template") && DBPlugin.areEqual(prop.getValue(), "shared") ) {
-							logger.debug("   The \"template\" property specifies the import should be done in shared mode.");
+							logger.debug("   Import in template mode : the \"template\" property requires the shared mode.");
 							return false;
 						}
 					}
 				}
+				logger.debug("   Import in template mode : the \"template\" property does not exist or does not require the shared mode.");
 				return true;
 
-			default: return true;
+			default:
+				logger.debug("   Unknown import mode: defaulting to copy mode.");
+				return true;
 		}
 
 	}

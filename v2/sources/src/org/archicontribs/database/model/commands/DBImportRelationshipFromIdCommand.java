@@ -101,7 +101,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 		this.id = id;
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing relationship id " + this.id + "in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
+			logger.debug("   Importing relationship id " + this.id + " in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
 
 
 		try {

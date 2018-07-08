@@ -803,7 +803,10 @@ public class DBGui {
 	}
 
 	/**
-	 * Returns true if the first option is selected, false if the second option is selected
+	 * Returns the value of the selected option:<br>
+	 * 1 for the first option<br>
+	 * 2 for the second option<br>
+	 * 3 for the third option
 	 */
 	protected int getOptionValue() {
 		if ( this.radioOption1.getSelection() )
