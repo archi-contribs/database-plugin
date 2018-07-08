@@ -166,23 +166,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 23/05/2018				    Fill in the online help
- *                                  Add "import model from database" menu entry on right click when no model has been loaded yet
- *                                  Remove checksums on images as the path is already a kind of checksum
- *                                  Export and import back model's metadata
- *                                  Add option to show or hide zero values on export and import windows
- *                                  Manage the alpha transparency introduced in Archi 4.3
- *                                  Check for max memory available at startup
- *                                  Bug fixes:
- * 										Solve plugin initialization failure that occurred some times
- *                                      Fix progress bar during download new version of the plugin from GitHub
- *                                      Reduce memory leak
- *                                      ignore null images during export
- *                                      better management of the cancel button during the import and export process
- *                                      cleanup properties before import rather than update existing values as several properties can have the same name
- *                                      fix number of images to import
- *                                      fix centering of GUI windows
- * 									Import components from database:
+ * v2.1: 23/05/2018					Import components from database:
  * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
@@ -190,31 +174,62 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										Use commands to allow undo/redo
  *                                      Added a label to explain that the icons can be selected
  *                                      The categories can now be clicked to select/unselect the whole category
- *                                      The component is imported in the selected folder
+ *                                      The component is imported by default in the selected folder
  *                                      The element class is pre-selected depending on the selected folder
  *                                      In case one view is selected for import, show view screenshot if available in the database
  *                                      Introduce new template mode that mixes shared and copy modes
+ *                                      Possibility to import a whole model into another one (merge models)
  *                                  Import model:
- *                                      Automatically open the default view of the imported models
+ *                                      Automatically open the "default view" if any at the end of the import
  * 									Export model:
  *										For relational databases:
- *											Create collaborative mode
- *											Allow to specify the generated view screenshots border width and scale factor
+ *											New collaborative mode that is equal to a pull + push in GitHub
  *										For Neo4J databases:
  *											Create two export modes: native and extended
  *											New option to empty the database before the export
  *											New option to specialize relationships
  *                                      Rewrite version management (check timestamps in addition of the version number)
- *                                      Remove the name, the documentation and the properties from view objects and connections checksums
+ *                                      Remove the name, the documentation and the properties from view objects and connections checksum calculation as they are related to the corresponding concept
+ *                                  Plugin preferences:
+ *                                      The default import mode (shared or copy) has been removed as the default import mode is now the template mode
  *                                      Add an option to compare the model from the database before exporting it
+ *										Allow to specify the generated view screenshots border width and scale factor
+ *										Allow to specify a suffix to add to components imported in copy mode
+ *										Add an option to check for max memory at startup (Xmx should be set to 1g)
+ *										Add an option to show or hide zero values in import and export windows
+ *
+ *										TODO: the export whole model or concepts only cannot be changed once the database is created as it may lead to unexpected result
+ *										TODO: create database admin procedures
+ * 
  *									Get history from database:
  *										Allows to get history for diagrams, canvas and sketches
- *									Add the ability to import an image from the database (on the Image and Block objects in Canvas)
- *                                  Add procedures that can be called by the script plugin
- *                                  Update JDBC drivers
- *                                  	Neo4J to 3.1.0
- *                                  	SQLite to 3.21.0
- *                                  	PostGreSQL to 42.2.1
+ *									Other:
+ *										Fill in the online help
+ *										Add a debug window with the database status rather than showing up this information in the context menu
+ *                                  	Add "import model from database" menu entry on right click when no model has been loaded yet
+ *                                  	Remove checksums on images as the path is already a kind of checksum
+ *                                  	Rewrite debug and trace messages to be more useful
+ *                                  	Some popups have been replaced by messages directly in the import/export window
+ *                                  	Indent debug and trace messages to follow the plugin's logic
+ *                                  	The model metadata (that can be used by other plugins) are now managed
+ *                                  	The objects transparency (introduced in Archi 4.3) is managed
+ *                                  	Check for max memory available at startup (Xmx parameter)
+ *                                  	Add the ability to import an image from the database on Canvas Image and Block objects
+ *                                  	Add procedures that can be called by the script plugin
+ *                                  	Update JDBC drivers
+ *                                  		Neo4J to 3.1.0
+ *                                  		SQLite to 3.21.0
+ *                                  		PostGreSQL to 42.2.1
+ *                                  Bug fixes:
+ * 										Solve initialization failure that occurred some times
+ *                                      Fix progress bar during new version download from GitHub
+ *                                      Reduce memory leak
+ *                                      Canvas Images or Block objects with a null image do not generate errors anymore
+ *                                      Better management of the cancel button during the import and export process
+ *                                      Cleanup properties before import rather than update existing values as several properties can have the same name
+ *                                      Fix number of images to import in the import window
+ *                                      Fix centering of GUI windows especially on HiDPI displays
+ * 									
  * 
  * Known bugs:
  * -----------
@@ -234,7 +249,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *			create a new windows that will show up detailed statistics about the model
  *			add more jdbc drivers (mongodb, odbc, etc ...)
  *          add an option to duplicate a model
- *          add an option to merge models
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
