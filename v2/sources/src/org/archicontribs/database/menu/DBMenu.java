@@ -76,6 +76,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showConvertIds();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showImportComponent();
                                 showExportModel();
                                 break;
 
