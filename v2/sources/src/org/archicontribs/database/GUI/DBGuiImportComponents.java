@@ -10,8 +10,10 @@ import java.io.ByteArrayInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
@@ -23,6 +25,7 @@ import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
@@ -2072,7 +2075,7 @@ public class DBGuiImportComponents extends DBGui {
 		if ( logger.isDebugEnabled() )
 			logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component" + ((this.tblComponents.getSelectionCount()>1) ? "s" : "") + " in " + DBImportMode.getLabel(getOptionValue()) + ".");
 		
-		CompoundCommand commands = new CompoundCommand();
+		CompoundCommand undoRedoCommands = new CompoundCommand();
 		int done = 0;
 		try {
 			for ( TableItem tableItem: this.tblComponents.getSelection() ) {
@@ -2083,37 +2086,76 @@ public class DBGuiImportComponents extends DBGui {
 					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing model \""+name+"\".");
 					
 					// import folders
-					//TODO : concert root folders !!!
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing folders from model \""+name+"\".");
+					Map<String, IFolder> foldersConversionMap = new HashMap<String, IFolder>();
+					try ( ResultSet result = this.importConnection.select("SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.rank", id, id) ) {
+						while ( result.next() ) {
+							if ( result.getInt("type") != 0 ) {
+								// root folders are not imported as they must not be duplicated so we need to keep a conversion table
+								IFolder rootFolder = this.importedModel.getFolder(FolderType.get(result.getInt("type")));
+								logger.debug("   Mapping root folder \""+result.getString("name")+"\"("+result.getString("folder_id")+") to folder \""+rootFolder.getName()+"\"("+rootFolder.getId()+")");
+								foldersConversionMap.put(result.getString("folder_id"), rootFolder);
+							} else {
+								// we check if the parent folder needs to be translated
+								IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
+								if ( parentFolder != null )
+									logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
+								else
+									parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
+								IDBImportFromIdCommand command = new DBImportFolderFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("folder_id"), result.getInt("folder_version"), DBImportMode.get(getOptionValue())); 
+								if ( command.getException() != null )
+									throw command.getException();
+								command.execute();
+								if ( command.getException() != null )
+									throw command.getException();
+								undoRedoCommands.add((Command)command);
+								// if the folder has been copied (thus has got a different id), then we add it to the conversion map
+								IFolder importedFolder = (IFolder)command.getImported();
+								if ( !DBPlugin.areEqual(result.getString("folder_id"), importedFolder.getId()) ) {
+									logger.debug("   Mapping imported folder \""+result.getString("name")+"\"("+result.getString("folder_id")+") to folder \""+importedFolder.getName()+"\"("+importedFolder.getId()+")");
+									foldersConversionMap.put(result.getString("folder_id"), importedFolder);
+								}
+							}
+						}
+					}
 					
 					// import elements
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing elements from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?)", id, id) ) {
+					try ( ResultSet result = this.importConnection.select("SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
-							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							//TODO : convert root folders !!!
+							// we check if the parent folder needs to be translated
+							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
+							if ( parentFolder != null )
+								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
+							else
+								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
 							IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("element_id"), result.getInt("element_version"), DBImportMode.get(getOptionValue()), false); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
 							if ( command.getException() != null )
 								throw command.getException();
-							commands.add((Command)command);
+							undoRedoCommands.add((Command)command);
 						}
 					}
 					
 					// import relationships
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing relationships from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?)", id, id) ) {
+					try ( ResultSet result = this.importConnection.select("SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
-							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							//TODO : concert root folders !!!
+							// we check if the parent folder needs to be translated
+							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
+							if ( parentFolder != null )
+								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
+							else
+								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
 							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("relationship_id"), result.getInt("relationship_version"), DBImportMode.get(getOptionValue())); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
 							if ( command.getException() != null )
 								throw command.getException();
-							commands.add((Command)command);
+							undoRedoCommands.add((Command)command);
 						}
 					}
 					
@@ -2123,24 +2165,37 @@ public class DBGuiImportComponents extends DBGui {
 			            resolveRelationshipsCommand.execute();
 			            if ( resolveRelationshipsCommand.getException() != null )
 			            	throw resolveRelationshipsCommand.getException();
-			            commands.add(resolveRelationshipsCommand);
+			            undoRedoCommands.add(resolveRelationshipsCommand);
 			        }
 					
 					// import views
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing views from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?)", id, id) ) {
+					try ( ResultSet result = this.importConnection.select("SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
-							IFolder parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							//TODO : concert root folders !!!
+							// we check if the parent folder needs to be translated
+							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
+							if ( parentFolder != null )
+								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
+							else
+								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
 							IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("view_id"), result.getInt("view_version"), DBImportMode.get(getOptionValue()), true); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
 							if ( command.getException() != null )
 								throw command.getException();
-							commands.add((Command)command);
+							undoRedoCommands.add((Command)command);
 						}
 					}
+					
+					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Resolving connections from model \""+name+"\".");
+			        if ( (this.importedModel.getAllSourceConnectionsToResolve().size() != 0) || (this.importedModel.getAllTargetConnectionsToResolve().size() != 0) ) {
+			        	DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.importedModel);
+			            resolveConnectionsCommand.execute();
+			            if ( resolveConnectionsCommand.getException() != null )
+			            	throw resolveConnectionsCommand.getException();
+			            undoRedoCommands.add(resolveConnectionsCommand);
+			        }
 				} else if ( this.radioOptionElement.getSelection() ) {
 					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing element \""+name+"\".");
 					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true); 
@@ -2149,7 +2204,7 @@ public class DBGuiImportComponents extends DBGui {
 					command.execute();
 					if ( command.getException() != null )
 						throw command.getException();
-					commands.add((Command)command);
+					undoRedoCommands.add((Command)command);
 				}
 
 				else if ( this.radioOptionView.getSelection() ) {
@@ -2160,7 +2215,7 @@ public class DBGuiImportComponents extends DBGui {
 					command.execute();
 					if ( command.getException() != null )
 						throw command.getException();
-					commands.add((Command)command);
+					undoRedoCommands.add((Command)command);
 				}
 			}
 
@@ -2168,20 +2223,20 @@ public class DBGuiImportComponents extends DBGui {
 			resolveRelationshipsCommand.execute();
 			if ( resolveRelationshipsCommand.getException() != null )
 				throw resolveRelationshipsCommand.getException();
-			commands.add(resolveRelationshipsCommand);
+			undoRedoCommands.add(resolveRelationshipsCommand);
 
 			DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.importedModel);
 			resolveConnectionsCommand.execute();
 			if ( resolveConnectionsCommand.getException() != null )
 				throw resolveConnectionsCommand.getException();
-			commands.add(resolveConnectionsCommand);
+			undoRedoCommands.add(resolveConnectionsCommand);
 
-			((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(commands);
+			((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(undoRedoCommands);
 
 			// we select the imported components in the model tree 
 			List<Object> imported = new ArrayList<Object>();
 
-			Iterator<IDBImportFromIdCommand> iterator = commands.getCommands().iterator();
+			Iterator<IDBImportFromIdCommand> iterator = undoRedoCommands.getCommands().iterator();
 			while ( iterator.hasNext() ) {
 				IDBImportFromIdCommand command = iterator.next();
 

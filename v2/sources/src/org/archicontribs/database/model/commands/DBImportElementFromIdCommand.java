@@ -111,8 +111,13 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			this.newValues = importConnection.getObject(id, "IArchimateElement", version);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
+			
+			if ( this.mustCreateCopy ) {
+				this.newValues.put("id", this.model.getIDAdapter().getNewID());
+				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
+			}
 
-			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
@@ -205,16 +210,14 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
 
 			if ( this.mustCreateCopy ) {
-				metadata.setId(this.model.getIDAdapter().getNewID());
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 				this.model.registerCopiedElement((String)this.newValues.get("id"), metadata.getId());
-				metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			} else {
-				metadata.setId((String)this.newValues.get("id"));
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-				metadata.setName((String)this.newValues.get("name"));
 			}
 
+			metadata.setId((String)this.newValues.get("id"));
+			metadata.setName((String)this.newValues.get("name"));
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());

@@ -391,64 +391,62 @@ public class DBMetadata  {
     
     // defaultFolderType
     public static int getDefaultFolderType(String clazz) {
-    	switch ( clazz ) {
+    	switch ( clazz.toLowerCase() ) {
 	        case "capability":
-	        case "courseOfAction":
+	        case "courseofaction":
 	    	case "resource":
 	        	return FolderType.STRATEGY_VALUE;
 	        	
 	        case "product":
-	        case "businessActor":
-	        case "businessRole":
-	        case "businessCollaboration":
-	        case "businessInterface":
-	        case "businessProcess":
-	        case "businessFunction":
-	        case "businessInteraction":
-	        case "businessEvent":
-	        case "businessService":
-	        case "businessObject":
+	        case "businessactor":
+	        case "businessrole":
+	        case "businesscollaboration":
+	        case "businessinterface":
+	        case "businessprocess":
+	        case "businessfunction":
+	        case "businessinteraction":
+	        case "businessevent":
+	        case "businessservice":
+	        case "businessobject":
 	        case "contract":
 	        case "representation":
 	        	return FolderType.BUSINESS_VALUE;
 
-	        case "applicationComponentLabel":
-	        case "applicationCollaboration":
-	        case "applicationInterface":
-	        case "applicationFunction":
-	        case "applicationInteraction":
-	        case "applicationEvent":
-	        case "applicationService":
-	        case "applicationProcess":
+	        case "applicationcomponentlabel":
+	        case "applicationcollaboration":
+	        case "applicationinterface":
+	        case "applicationfunction":
+	        case "applicationinteraction":
+	        case "applicationevent":
+	        case "applicationservice":
+	        case "applicationprocess":
 	        case "dataObject":
 	        	return FolderType.APPLICATION_VALUE;
 
 	        case "artifact":
-	        case "technologyFunction":
-	        case "technologyProcess":
-	        case "technologyInteraction":
-	        case "technologyEvent":
-	        case "technologyService":
-	        case "technologyCollaboration":
-	        case "technologyInterface":
+	        case "technologyfunction":
+	        case "technologyprocess":
+	        case "technologyinteraction":
+	        case "technologyevent":
+	        case "technologyservice":
+	        case "technologycollaboration":
+	        case "technologyinterface":
 	        case "node":
 	        case "device":
-	        case "systemSoftware":
+	        case "systemsoftware":
 	        case "path":
-	        case "communicationNetwork":
+	        case "communicationnetwork":
 	        	
 	        case "material":
 	        case "equipment":
 	        case "facility":
-	        case "distributionNetwork":
+	        case "distributionnetwork":
 	        case "workpackage":
 	        case "deliverable":
-	        case "implementationEvent":
+	        case "implementationevent":
 	        case "plateau":
 	        case "gap":
 	        	return FolderType.TECHNOLOGY_VALUE;
-	        	
-	        	
 
 	        case "stakeholder":
 	        case "driver":
@@ -467,13 +465,13 @@ public class DBMetadata  {
 	        case "junction":
 	        	return FolderType.OTHER_VALUE;
 	        
-	        case "ArchimateDiagramModel":
-	        case "CanvasModel":
-	        case "SketchModel":
+	        case "archimatediagrammodel":
+	        case "canvasmodel":
+	        case "sketchmodel":
 	        	return FolderType.DIAGRAMS_VALUE;
 	        	
 	        default:
-	        	if ( clazz.endsWith("Relationship") )
+	        	if ( clazz.toLowerCase().endsWith("relationship") )
 	        		return FolderType.RELATIONS_VALUE;
 	        	return 0;
     	}
