@@ -10,7 +10,17 @@ import java.sql.ResultSet;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.connection.DBDatabaseExportConnection;
+import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
+import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
+import org.eclipse.gef.commands.Command;
+import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -34,6 +44,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
@@ -45,15 +56,15 @@ public class DBGuiComponentHistory extends DBGui {
 
 	private Label lblVersions;
 	
-	private Button btnImportDatabaseVersion;
-	private Button btnExportModelVersion;
+	Button btnImportDatabaseVersion;
+	Button btnExportModelVersion;
 	Label lblCompareComponents;
 	
 	Tree tblContent;
 	Table tblVersions;
 	
 	/**
-	 * Creates the GUI to export components and model
+	 * Creates the GUI to show the differences between a component in the model and the database
 	 * @throws Exception 
 	 */
 	public DBGuiComponentHistory(IArchimateModelObject component) throws Exception {
@@ -63,12 +74,7 @@ public class DBGuiComponentHistory extends DBGui {
 		this.includeNeo4j = false;
 		
 		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
-		/*
-		setMessage("Counting model's components");
-		((ArchimateModel)selectedComponent.getArchimateModel()).countAllObjects();
-		if ( logger.isDebugEnabled() ) logger.debug("the model has got "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllElements().size()+" elements and "+((ArchimateModel)selectedComponent.getArchimateModel()).getAllRelationships().size()+" relationships.");
-		closePopup();
-		*/
+
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion+").");		
 		
 		setCompoRight();
@@ -122,6 +128,8 @@ public class DBGuiComponentHistory extends DBGui {
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are identical");
 		        	else
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are different (check highlighted lines):");
+		        	DBGuiComponentHistory.this.btnExportModelVersion.setEnabled(!areIdentical.booleanValue());
+		        	DBGuiComponentHistory.this.btnImportDatabaseVersion.setEnabled(!areIdentical.booleanValue());
 		        }
 		    }
 		});
@@ -182,7 +190,41 @@ public class DBGuiComponentHistory extends DBGui {
 		this.btnImportDatabaseVersion.setEnabled(false);
 		this.btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { /*importFromDatabase();*/ }		//TODO
+            public void widgetSelected(SelectionEvent e) {
+				try (DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(getDatabaseConnection())) {
+					IArchimateModelObject importedComponent = DBGuiComponentHistory.this.selectedComponent;
+					DBArchimateModel importedModel = (DBArchimateModel)importedComponent.getArchimateModel();
+					IFolder parentFolder = (IFolder)importedComponent.eContainer();
+					String id = importedComponent.getId();
+					int version = Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)).intValue();
+					IDBImportFromIdCommand command = null;
+					
+					if ( importedComponent instanceof IArchimateElement )
+						command = new DBImportElementFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.forceSharedMode, true); 
+					else if ( importedComponent instanceof IArchimateRelationship )
+						command = new DBImportRelationshipFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.forceSharedMode);
+					else if ( importedComponent instanceof IFolder )
+						command = new DBImportFolderFromIdCommand(importConnection, importedModel, parentFolder, id, version, DBImportMode.forceSharedMode);
+					else if ( importedComponent instanceof IArchimateDiagramModel || importedComponent instanceof ICanvasModel || importedComponent instanceof ISketchModel )
+						command = new DBImportViewFromIdCommand(importConnection, importedModel, parentFolder, id, version, DBImportMode.forceSharedMode, true);
+					else
+					    throw new Exception("Cannot import components of class "+importedComponent.getClass().getSimpleName());
+
+					if ( command.getException() != null )
+						throw command.getException();
+					command.execute();
+					if ( command.getException() != null )
+						throw command.getException();
+					((CommandStack)importedModel.getAdapter(CommandStack.class)).execute((Command) command);
+					
+					popup(Level.INFO, "The current version of the component has been replaced by the selected version from the database.");
+					
+					connectedToDatabase(true);
+					
+				} catch (Exception err) {
+					popup(Level.ERROR, "Failed to import component.", err);
+				}
+			}
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -197,7 +239,17 @@ public class DBGuiComponentHistory extends DBGui {
 		this.btnExportModelVersion.setEnabled(false);
 		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
 		    @Override
-            public void widgetSelected(SelectionEvent e) { /*exportToDatabase();*/ }      //TODO
+            public void widgetSelected(SelectionEvent e) {
+		    	try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection())) {
+					exportConnection.exportEObject(DBGuiComponentHistory.this.selectedComponent, DBGuiComponentHistory.this);
+					
+					popup(Level.INFO, "The component has been updated in the database.");
+					
+					connectedToDatabase(true);
+				} catch (Exception err) {
+					popup(Level.ERROR, "Failed to export component.", err);
+				}
+		    }
 		    @Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -213,12 +265,25 @@ public class DBGuiComponentHistory extends DBGui {
 	@Override
 	protected void connectedToDatabase(boolean forceCheck) {	
 		this.dialog.setCursor(CURSOR_ARROW);
+		
+		try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection()) ) {
+            exportConnection.getModelVersionFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel());
+            if ( this.selectedComponent instanceof IArchimateElement || this.selectedComponent instanceof IArchimateRelationship || this.selectedComponent instanceof IFolder )
+           		exportConnection.getVersionsFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel());
+            else
+            	exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel(), (IDiagramModel)this.selectedComponent);
+		} catch (Exception e) {
+		    popup(Level.FATAL, "Cannot compare component to the database.", e);
+		    return ;
+		}
+		
 			// if everything goes well, then we search for all the versions of the component
 		if ( logger.isDebugEnabled() ) logger.debug("Searching for all versions of the component");
 
 		this.tblVersions.removeAll();
 		this.tblContent.removeAll();
 		this.btnImportDatabaseVersion.setEnabled(false);
+		this.btnExportModelVersion.setEnabled(false);
 		
 		String tableName = null;
 		if ( this.selectedComponent instanceof IArchimateElement ) 
