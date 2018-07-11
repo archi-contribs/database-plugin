@@ -1329,7 +1329,7 @@ public class DBGui {
 				else
 					propertiesTreeItem = new TreeItem(treeItem, SWT.NONE);
 				propertiesTreeItem.setText("Properties");
-				propertiesTreeItem.setExpanded(false);
+				propertiesTreeItem.setExpanded(true);
 
 				// we get a sorted list of component's properties
 				ArrayList<DBProperty> componentProperties = new ArrayList<DBProperty>();
