@@ -89,31 +89,21 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 		this.model = model;
 		this.id = id;
 		this.mustImportViewContent = mustImportViewContent;
-
-		// in template mode, the views are imported in copy mode
-		this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
 		
-		if ( logger.isDebugEnabled() ) {
-			if ( this.mustCreateCopy )
-				logger.debug("   Importing a copy of view id "+this.id+".");
-			else
-				logger.debug("   Importing view id "+this.id+".");
-		}
+		if ( logger.isDebugEnabled() )
+			logger.debug("   Importing view id " + this.id + " in " + importMode.getLabel() + (mustImportViewContent ? " including its content" : "") + ".");
 
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IDiagramModel", version);
+
+			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
-			// we check if the "shareable" property forces the view to be copied
-			if ( !this.mustCreateCopy ) {
-				if ( this.newValues.get("properties") != null ) {
-	    			for ( DBProperty prop: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-	    				if ( DBPlugin.areEqual(prop.getKey(), "shareable") && DBPlugin.areEqual(prop.getValue(), "force copy") ) {
-	    					logger.debug("   The \"shareable\" property forces the view to be copied rather than shared.");
-	    					this.mustCreateCopy = true;
-	    				}
-	    			}
-				}
+			if ( this.mustCreateCopy ) {
+				String newId = this.model.getIDAdapter().getNewID();
+				this.model.registerCopiedView((String)this.newValues.get("id"), newId);
+				this.newValues.put("id", newId);
+				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
@@ -126,9 +116,9 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				//    we use the importFromId method in order to allow undo and redo
 				try (ResultSet result = (version == 0)
 						? importConnection.select("SELECT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ?) ORDER BY rank", id, id)
-								: importConnection.select("SELECT DISTINCT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
+						: importConnection.select("SELECT DISTINCT object_id, object_version, rank FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
 					while ( result.next() ) {
-					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, model, result.getString("object_id"), (version == 0) ? 0 : result.getInt("object_version"), importMode);
+					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, model, result.getString("object_id"), (version == 0) ? 0 : result.getInt("object_version"), this.mustCreateCopy, importMode);
 					    if ( command.getException() != null )
 					        throw command.getException();
 						this.importViewContentCommands.add(command);
@@ -141,7 +131,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 						? importConnection.select("SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ?) ORDER BY rank", id, id)
 						: importConnection.select("SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", id, version) ) {
 					while ( result.next() ) {
-					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, model, result.getString("connection_id"), (version == 0) ? 0 : result.getInt("connection_version"), importMode);
+					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, model, result.getString("connection_id"), (version == 0) ? 0 : result.getInt("connection_version"), this.mustCreateCopy, importMode);
 					    if ( command.getException() != null )
 					        throw command.getException();
 						this.importViewContentCommands.add(command);
@@ -210,17 +200,13 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 			}
 			DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
 
-			if ( this.mustCreateCopy ) {
-				metadata.setId(this.model.getIDAdapter().getNewID());
+			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-				this.model.registerCopiedView((String)this.newValues.get("id"), metadata.getId());
-				metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
-			} else {
-				metadata.setId((String)this.newValues.get("id"));
+			else
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-				metadata.setName((String)this.newValues.get("name"));
-			}
 
+			metadata.setId((String)this.newValues.get("id"));
+			metadata.setName((String)this.newValues.get("name"));
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());

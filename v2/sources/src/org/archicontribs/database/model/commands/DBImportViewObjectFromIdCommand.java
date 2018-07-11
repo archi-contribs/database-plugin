@@ -99,15 +99,14 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
      * @param connection connection to the database
      * @param model model into which the view object will be imported
      * @param id id of the view object to import
-     * @param importMode specifies if the view must be copied or shared
+     * @param version version of the view object to import
      * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
+     * @param importMode specifies the mode to be used to import missing elements and relationships
      */
-    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, DBImportMode importMode) {
+    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, DBImportMode importMode) {
         this.model = model;
         this.id = id;
-        
-        // in template mode, the view objects are imported in copy mode
-        this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
+        this.mustCreateCopy = mustCreateCopy;
 
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
@@ -119,6 +118,13 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
         try {
             // we get the new values from the database to allow execute and redo
             this.newValues = importConnection.getObject(id, "IDiagramModelObject", version);
+            
+			if ( this.mustCreateCopy ) {
+				String newId = this.model.getIDAdapter().getNewID();
+				this.model.registerCopiedViewObject((String)this.newValues.get("id"), newId);
+				this.newValues.put("id", newId);
+				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
+			}
 
             // if the object contains an image
             if ( this.newValues.get("image_path") != null ) {
@@ -248,24 +254,19 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
 
-            if ( this.mustCreateCopy ) {
-                metadata.setId(this.model.getIDAdapter().getNewID());
+            if ( this.mustCreateCopy )
                 metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-                this.model.registerCopiedViewObject((String)this.newValues.get("id"), metadata.getId());
-                if ( this.newValues.get("element_id") == null )
-                	metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
-            } else {
-                metadata.setId((String)this.newValues.get("id"));
+            else
                 metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-                if ( this.newValues.get("element_id") == null )
-                    metadata.setName((String)this.newValues.get("name"));
-            }
 
             metadata.getCurrentVersion().set(metadata.getInitialVersion());
             metadata.getDatabaseVersion().set(metadata.getInitialVersion());
             metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-            if ( this.newValues.get("element_id") != null )
+            metadata.setId((String)this.newValues.get("id"));
+            if ( this.newValues.get("element_id") == null )
+                metadata.setName((String)this.newValues.get("name"));
+            else
                 metadata.setArchimateConcept(this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))));
             metadata.setReferencedModel(this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))));
             metadata.setType((Integer)this.newValues.get("type"));

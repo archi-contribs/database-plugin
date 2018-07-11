@@ -109,6 +109,13 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
+			
+			if ( this.mustCreateCopy ) {
+				String newId = this.model.getIDAdapter().getNewID();
+				this.model.registerCopiedRelationship((String)this.newValues.get("id"), newId);
+				this.newValues.put("id", newId);
+				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
+			}
 
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
@@ -173,17 +180,13 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 
 			DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
 
-			if ( this.mustCreateCopy ) {
-				metadata.setId(this.model.getIDAdapter().getNewID());
+			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-				this.model.registerCopiedRelationship((String)this.newValues.get("id"), metadata.getId());
-				metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
-			} else {
-				metadata.setId((String)this.newValues.get("id"));
+			else
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-				metadata.setName((String)this.newValues.get("name"));
-			}
-
+			
+			metadata.setId((String)this.newValues.get("id"));
+			metadata.setName((String)this.newValues.get("name"));
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());

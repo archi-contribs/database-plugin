@@ -113,7 +113,9 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
 			if ( this.mustCreateCopy ) {
-				this.newValues.put("id", this.model.getIDAdapter().getNewID());
+				String newId = this.model.getIDAdapter().getNewID();
+				this.model.registerCopiedElement((String)this.newValues.get("id"), newId);
+				this.newValues.put("id", newId);
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
@@ -209,12 +211,10 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 
 			DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
 
-			if ( this.mustCreateCopy ) {
+			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-				this.model.registerCopiedElement((String)this.newValues.get("id"), metadata.getId());
-			} else {
+			else
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-			}
 
 			metadata.setId((String)this.newValues.get("id"));
 			metadata.setName((String)this.newValues.get("name"));

@@ -1751,7 +1751,7 @@ public class DBGuiExportModel extends DBGui {
     		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
     		            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
     		                if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
-    		                DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+    		                DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
                             if ( command.getException() != null )
                                 throw command.getException();
                             command.execute();
@@ -1774,7 +1774,7 @@ public class DBGuiExportModel extends DBGui {
                         DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                         if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
                             if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
-                            DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+                            DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
                             if ( command.getException() != null )
                                 throw command.getException();
                             command.execute();
@@ -2192,9 +2192,9 @@ public class DBGuiExportModel extends DBGui {
 	            else if ( eObjectToExport instanceof IDiagramModel )
 	                importCommand = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false);
 	            else if ( eObjectToExport instanceof IDiagramModelObject )
-	                importCommand = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+	                importCommand = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
 	            else if ( eObjectToExport instanceof IDiagramModelConnection )
-	                importCommand = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+	                importCommand = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, ((IIdentifier)eObjectToExport).getId(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
 	            
 	            if ( importCommand != null ) {
 	                if (importCommand.getException() != null )

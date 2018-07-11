@@ -84,14 +84,13 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	 * @param model model into which the view connection will be imported
 	 * @param id id of the view connection to import
 	 * @param version version of the view connection to import (0 if the latest version should be imported)
+     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
 	 * @param importMode specifies if the view must be copied or shared
 	 */
-	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, DBImportMode importMode) {
+	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, DBImportMode importMode) {
 		this.model = model;
 		this.id = id;
-        
-        // in template mode, the view objects are imported in copy mode
-        this.mustCreateCopy = !(importMode == DBImportMode.forceSharedMode);
+        this.mustCreateCopy = mustCreateCopy;
 
 		if ( logger.isDebugEnabled() ) {
 			if ( this.mustCreateCopy )
@@ -103,6 +102,13 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 		try {
 			// we get the new values from the database to allow execute and redo
 			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
+			
+			if ( this.mustCreateCopy ) {
+				String newId = this.model.getIDAdapter().getNewID();
+				this.model.registerCopiedViewConnection((String)this.newValues.get("id"), newId);
+				this.newValues.put("id", newId);
+				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
+			}
 			
             // if the object references a relationship that is not referenced in the model, then we import it
             if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))) == null) ) {
@@ -191,24 +197,19 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			DBMetadata metadata = ((IDBMetadata)this.importedViewConnection).getDBMetadata();
 
-			if ( this.mustCreateCopy ) {
-				metadata.setId(this.model.getIDAdapter().getNewID());
+			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
-				this.model.registerCopiedConnection((String)this.newValues.get("id"), metadata.getId());
-				if ( this.newValues.get("relationship_id") == null )
-					metadata.setName((String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
-			} else {
-				metadata.setId((String)this.newValues.get("id"));
+			else
 				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
-				if ( this.newValues.get("relationship_id") == null )
-				    metadata.setName((String)this.newValues.get("name"));
-			}
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
 			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
 
-			if ( this.newValues.get("relationship_id") != null )
+			metadata.setId((String)this.newValues.get("id"));
+			if ( this.newValues.get("relationship_id") == null )
+			    metadata.setName((String)this.newValues.get("name"));
+			else
 			    metadata.setArchimateConcept(this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))));
 			metadata.setLocked(this.newValues.get("is_locked"));
 			metadata.setDocumentation((String)this.newValues.get("documentation"));

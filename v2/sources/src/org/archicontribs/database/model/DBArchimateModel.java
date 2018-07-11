@@ -498,14 +498,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
     
     /**
-     * register that a view connection has been copied during the import process. So we keep the its old and new ID.
-     */
-    public void registerCopiedConnection(String oldId, String newId) {
-    	if ( (oldId != null) && (oldId.length() != 0)  && (newId != null) && (newId.length() != 0) )
-    		this.allCopiedViewConnections.put(oldId, newId);
-    }
-    
-    /**
      * register that the source of the relationship the concept with ID = sourceId<br>
      * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveSourceRelationships})<br>
      * <br>
