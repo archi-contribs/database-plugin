@@ -7,6 +7,9 @@
 package org.archicontribs.database.GUI;
 
 import java.sql.ResultSet;
+import java.sql.Timestamp;
+import java.util.Calendar;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -44,7 +47,6 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
-import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
@@ -241,10 +243,10 @@ public class DBGuiComponentHistory extends DBGui {
 		    @Override
             public void widgetSelected(SelectionEvent e) {
 		    	try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection())) {
+		    		((DBArchimateModel)DBGuiComponentHistory.this.selectedComponent.getArchimateModel()).getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 					exportConnection.exportEObject(DBGuiComponentHistory.this.selectedComponent, DBGuiComponentHistory.this);
 					
 					popup(Level.INFO, "The component has been updated in the database.");
-					
 					connectedToDatabase(true);
 				} catch (Exception err) {
 					popup(Level.ERROR, "Failed to export component.", err);
@@ -267,13 +269,9 @@ public class DBGuiComponentHistory extends DBGui {
 		this.dialog.setCursor(CURSOR_ARROW);
 		
 		try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection()) ) {
-            exportConnection.getModelVersionFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel());
-            if ( this.selectedComponent instanceof IArchimateElement || this.selectedComponent instanceof IArchimateRelationship || this.selectedComponent instanceof IFolder )
-           		exportConnection.getVersionsFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel());
-            else
-            	exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase((DBArchimateModel)this.selectedComponent.getArchimateModel(), (IDiagramModel)this.selectedComponent);
+            exportConnection.getVersionFromDatabase(this.selectedComponent);
 		} catch (Exception e) {
-		    popup(Level.FATAL, "Cannot compare component to the database.", e);
+		    popup(Level.FATAL, "Cannot get version of selected component from the database.", e);
 		    return ;
 		}
 		

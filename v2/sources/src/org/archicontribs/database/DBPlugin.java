@@ -200,9 +200,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *
  *										TODO: the export whole model or concepts only cannot be changed once the database is created as it may lead to unexpected result
  *										TODO: create database admin procedures
- * 
  *									Get history from database:
  *										Allows to get history for diagrams, canvas and sketches
+ *										Allows to export/import component to/from the database directly from the history window
  *									Other:
  *										Fill in the online help
  *										Add a debug window with the database status rather than showing up this information in the context menu
@@ -239,13 +239,12 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * TO-DO list:
  * ----------
  *		Import components from database:
- *			allow to import elements recursively
+ *			allow to import elements recursively (with depth limit)
  *		Get component history:
- *			allow to export components, or update them from the database, directly from the history window
- *			allow to get the database history
- *          allow to get history for folders and views
+ *			show view screenshots to ease views comparison
  *		Miscellaneous:
  *			add an option to check for relationships that are in the database but would not be in the in memory model
+ *				--> nearly done with "get history from database". Just needs to compare the list of relationships
  *			create a new windows that will show up detailed statistics about the model
  *			add more jdbc drivers (mongodb, odbc, etc ...)
  *          add an option to duplicate a model
