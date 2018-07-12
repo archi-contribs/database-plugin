@@ -202,7 +202,7 @@ public class DBGuiExportModel extends DBGui {
 				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(canExport);
 				
 				if ( canExport ) {
-                    boolean canChangeMetaData = (DBGuiExportModel.this.exportConnection != null && DBGuiExportModel.this.selectedDatabase.isWholeModelExported() && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
+                    boolean canChangeMetaData = ((DBGuiExportModel.this.exportConnection != null) && (DBGuiExportModel.this.tblModelVersions.getSelection()[0] == DBGuiExportModel.this.tblModelVersions.getItem(0)));
                     
                     DBGuiExportModel.this.txtReleaseNote.setEnabled(canChangeMetaData);
                     DBGuiExportModel.this.txtPurpose.setEnabled(canChangeMetaData);
@@ -1127,12 +1127,10 @@ public class DBGuiExportModel extends DBGui {
         try {
             this.exportConnection.getModelVersionFromDatabase(this.exportedModel);
             this.exportConnection.getVersionsFromDatabase(this.exportedModel);
-            if ( this.selectedDatabase.isWholeModelExported() ) {
-                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-                while ( viewsIterator.hasNext() ) {
-                    IDiagramModel view = viewsIterator.next().getValue();
-                    this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-                }
+            Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+            while ( viewsIterator.hasNext() ) {
+                IDiagramModel view = viewsIterator.next().getValue();
+                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
             }
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
@@ -1524,7 +1522,7 @@ public class DBGuiExportModel extends DBGui {
 		logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
 		logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
 		logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-		if ( this.selectedDatabase.isWholeModelExported() ) {
+		if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 			logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
 			logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
 			logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
@@ -1538,7 +1536,6 @@ public class DBGuiExportModel extends DBGui {
 		this.btnDoAction.setEnabled(false);
 		this.btnCompareModelToDatabase.setEnabled(false);
 
-		// we disable the option between an whole model export or a components only export
 		disableOption();
 
 		// the we disable the name, purpose and release note text fields
@@ -1594,7 +1591,7 @@ public class DBGuiExportModel extends DBGui {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
 				setMessage("Comparing model from the database...");
 				this.exportConnection.getVersionsFromDatabase(this.exportedModel);
-	        	 if ( this.selectedDatabase.isWholeModelExported() ) {
+	        	 if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 	        		 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 	                 while ( viewsIterator.hasNext() ) {
 	                     IDiagramModel view = viewsIterator.next().getValue();
@@ -1618,8 +1615,6 @@ public class DBGuiExportModel extends DBGui {
 		
 		// we export the components
 		try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
-			// if we need to save the whole model (i.e. not only the elements and the relationships) 
-
 		    // We update the model name and purpose in case they've been changed in the export windows
 		    if ( !DBPlugin.areEqual(this.exportedModel.getName(), this.txtModelName.getText()) )
 		        this.exportedModel.setName(this.txtModelName.getText());
@@ -1631,10 +1626,9 @@ public class DBGuiExportModel extends DBGui {
 		        this.exportConnection.emptyNeo4jDB();
 		    }
 		    
-	        if ( this.selectedDatabase.isWholeModelExported() )
+	        if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 	            this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 	            
-            if ( this.selectedDatabase.isWholeModelExported() ) {
 				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
 				if ( this.exportConnection.getFoldersNotInModel().size() == 0 )
 				    logger.info("There is no folder to import.");
@@ -1718,7 +1712,7 @@ public class DBGuiExportModel extends DBGui {
 	        }
 	
 
-	        if ( this.selectedDatabase.isWholeModelExported() ) {
+	        if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 	            if ( this.exportConnection.getViewsNotInModel().size() == 0 )
 	                logger.info("There is no view to import.");
 	            else {
@@ -1834,7 +1828,7 @@ public class DBGuiExportModel extends DBGui {
                 doExportEObject(folder);
             }
 			
-			if ( this.selectedDatabase.isWholeModelExported() ) {
+			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
                 logger.info("Exporting views ...");
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
                 while ( viewsIterator.hasNext() ) {
@@ -1913,7 +1907,7 @@ public class DBGuiExportModel extends DBGui {
 			// the export is successful
 			try  {
 				// we check if something has been really exported				
-				if ( this.selectedDatabase.isWholeModelExported() ) {
+				if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 			        if ( toInt(this.txtNewElementsInModel.getText()) == 0 && toInt(this.txtNewRelationshipsInModel.getText()) == 0 && toInt(this.txtNewFoldersInModel.getText()) == 0 && toInt(this.txtNewViewsInModel.getText()) == 0 && toInt(this.txtNewViewObjectsInModel.getText()) == 0 && toInt(this.txtNewViewConnectionsInModel.getText()) == 0 &&
 			        	 toInt(this.txtUpdatedElementsInModel.getText()) == 0 && toInt(this.txtUpdatedRelationshipsInModel.getText()) == 0 && toInt(this.txtUpdatedFoldersInModel.getText()) == 0 && toInt(this.txtUpdatedViewsInModel.getText()) == 0 && toInt(this.txtUpdatedViewObjectsInModel.getText()) == 0 && toInt(this.txtUpdatedViewConnectionsInModel.getText()) == 0 &&
 			        	 toInt(this.txtNewElementsInDatabase.getText()) == 0 && toInt(this.txtNewRelationshipsInDatabase.getText()) == 0 && toInt(this.txtNewFoldersInDatabase.getText()) == 0 && toInt(this.txtNewViewsInDatabase.getText()) == 0 && toInt(this.txtNewViewObjectsInDatabase.getText()) == 0 && toInt(this.txtNewViewConnectionsInDatabase.getText()) == 0 &&
@@ -2232,7 +2226,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		if ( !mustDelete ) {
 		    // we reference the object as being part of the model
-		    if ( this.selectedDatabase.isWholeModelExported() )
+		    if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 		        this.exportConnection.assignEObjectToModel(eObjectToExport);
 		}
 		
@@ -2498,7 +2492,7 @@ public class DBGuiExportModel extends DBGui {
 			logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
 			logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
 			logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-			if ( this.selectedDatabase.isWholeModelExported() ) {
+			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 				logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
 				logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
 				logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );

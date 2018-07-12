@@ -34,13 +34,12 @@ public class DBDatabaseEntry {
      * @param schemaName name of the schema
      * @param userName account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
      * @param pass password used to connect to the database
-     * @param exportWholeModel true if the whole model (including folders, views, objects and connections) should be exported, or false if only the elements and relationships must be exported. 
      * @param exportViewImages true if screenshots of the views must be exported in the database, false if screenshots are not necessary
      * @param isNeo4jNativeMode true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
      * @param neo4jEmptyDB true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
      * @throws Exception
      */
-    public DBDatabaseEntry(String entryName, String driverName, String serverName, int portValue, String databaseName, String schemaName, String userName, String pass, boolean exportWholeModel, boolean exportViewImages, boolean isNeo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
+    public DBDatabaseEntry(String entryName, String driverName, String serverName, int portValue, String databaseName, String schemaName, String userName, String pass, boolean exportViewImages, boolean isNeo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
         setName(entryName);
         setDriver(driverName);
         setServer(serverName);
@@ -49,9 +48,6 @@ public class DBDatabaseEntry {
         setSchema(schemaName);
         setUsername(userName);
         setPassword(pass);
-
-        //TODO: store this parameter once for all in the database as exporting the elements and relationships only in a database where the previous models have got views is equal to removing the views from the model
-        setWholeModelExported(exportWholeModel);
         setViewSnapshotRequired(exportViewImages);
 
         setNeo4jNativeMode(isNeo4jNativeMode);
@@ -130,11 +126,6 @@ public class DBDatabaseEntry {
 	 * Password used to connect to the database
 	 */
 	@Getter @Setter private String password = "";
-	
-	/**
-	 * Should we export the whole model
-	 */
-	@Getter @Setter private boolean wholeModelExported = false;
 	
 	/**
 	 * Should we export snapshots of the views
@@ -240,8 +231,7 @@ public class DBDatabaseEntry {
 						databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
 						databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
 					}
-					databaseEntry.setWholeModelExported(store.getBoolean(preferenceName+"_export-whole-model_"+String.valueOf(line)));
-					
+				
 					databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
 					store.setDefault(preferenceName+"_views-images-border-width_"+String.valueOf(line), 10);
 					databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
@@ -283,7 +273,6 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_schema_"+String.valueOf(line), databaseEntry.getSchema());
 			store.setValue(preferenceName+"_username_"+String.valueOf(line), databaseEntry.getUsername());
 			store.setValue(preferenceName+"_password_"+String.valueOf(line), databaseEntry.getPassword());
-			store.setValue(preferenceName+"_export-whole-model_"+String.valueOf(line), databaseEntry.isWholeModelExported());
 			store.setValue(preferenceName+"_export-views-images_"+String.valueOf(line), databaseEntry.isViewSnapshotRequired());
 			store.setValue(preferenceName+"_views-images-border-width_"+String.valueOf(line), databaseEntry.getViewsImagesBorderWidth());
 			store.setValue(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), databaseEntry.getViewsImagesScaleFactor());

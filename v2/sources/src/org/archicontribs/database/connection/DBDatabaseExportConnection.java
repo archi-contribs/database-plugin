@@ -273,8 +273,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This method is meant to be called during the export process, before the export of the components as it sets the DBVersion variables used during the export process.
 	 */
 	public void getVersionsFromDatabase(DBArchimateModel model) throws SQLException, RuntimeException {
-		// This method can retrieve versions only if the database contains the whole model tables
-		assert(!this.databaseEntry.isWholeModelExported());
+		// This method can retrieve versions only if the database is a relation one (not neo4j)
+		assert(!DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j"));
 
 		int modelInitialVersion = model.getInitialVersion().getVersion();
 

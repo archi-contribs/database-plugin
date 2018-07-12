@@ -166,7 +166,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 23/05/2018					Import components from database:
+ * v2.1: 12/07/2018					Import components from database:
  * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
@@ -177,13 +177,19 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      The component is imported by default in the selected folder
  *                                      The element class is pre-selected depending on the selected folder
  *                                      In case one view is selected for import, show view screenshot if available in the database
- *                                      Introduce new template mode that mixes shared and copy modes
+ *                                      Introduce new template mode that mixes shared and copy modes depending on each component properties
  *                                      Possibility to import a whole model into another one (merge models)
  *                                  Import model:
- *                                      Automatically open the "default view" if any at the end of the import
+ *                                  	A context menu entry allowin got import a model has been added when no model is selected
+ *                                      Automatically open the default view (if any) at the end of the import
+ *                                      Fix number of images to import
  * 									Export model:
  *										For relational databases:
- *											New collaborative mode that is equal to a pull + push in GitHub
+ *											The export is now in "collaborative mode", which syncs the model with the database:
+ *												- It can be compared to a pull+push to GitHub.
+ * 												- It is slower than the previous mode but allows several people to work on the same model at the same time
+ * 											Allow to specify border width and scale factor for views screenshots
+ *											To simplify, it is no more possible to choose between whole export or elements and relationships only
  *										For Neo4J databases:
  *											Create two export modes: native and extended
  *											New option to empty the database before the export
@@ -197,39 +203,40 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *										Allow to specify a suffix to add to components imported in copy mode
  *										Add an option to check for max memory at startup (Xmx should be set to 1g)
  *										Add an option to show or hide zero values in import and export windows
- *
- *										TODO: the export whole model or concepts only cannot be changed once the database is created as it may lead to unexpected result
- *										TODO: create database admin procedures
  *									Get history from database:
  *										Allows to get history for diagrams, canvas and sketches
  *										Allows to export/import component to/from the database directly from the history window
  *									Other:
- *										Fill in the online help
- *										Add a debug window with the database status rather than showing up this information in the context menu
- *                                  	Add "import model from database" menu entry on right click when no model has been loaded yet
- *                                  	Remove checksums on images as the path is already a kind of checksum
- *                                  	Rewrite debug and trace messages to be more useful
- *                                  	Some popups have been replaced by messages directly in the import/export window
- *                                  	Indent debug and trace messages to follow the plugin's logic
- *                                  	The model metadata (that can be used by other plugins) are now managed
- *                                  	The objects transparency (introduced in Archi 4.3) is managed
- *                                  	Check for max memory available at startup (Xmx parameter)
- *                                  	Add the ability to import an image from the database on Canvas Image and Block objects
- *                                  	Add procedures that can be called by the script plugin
- *                                  	Update JDBC drivers
- *                                  		Neo4J to 3.1.0
- *                                  		SQLite to 3.21.0
- *                                  		PostGreSQL to 42.2.1
- *                                  Bug fixes:
- * 										Solve initialization failure that occurred some times
- *                                      Fix progress bar during new version download from GitHub
- *                                      Reduce memory leak
- *                                      Canvas Images or Block objects with a null image do not generate errors anymore
- *                                      Better management of the cancel button during the import and export process
- *                                      Cleanup properties before import rather than update existing values as several properties can have the same name
- *                                      Fix number of images to import in the import window
- *                                      Fix centering of GUI windows especially on HiDPI displays
- * 									
+ *										Bug fixes:
+ *											Exporting blocks or images objects with no images set does not generate errors anymore
+ * 											Fix plugin initialization failure that occurred some times
+ * 											Fix progress bar during download new version of the plugin from GitHub
+ * 											Increase compiler severity to maximum and resolve all the warnings to improve code resiliency
+ * 											Reduce memory leak
+ * 											Fix centering of GUI windows, especially on hiDPI displays
+ * 											Fix calculation of numbers of images to import
+ *											Better management of the cancel button during the import and export process
+ *											Cleanup properties before import rather than update existing values as several properties can have the same name
+ *											Fix centering of GUI windows especially on HiDPI displays
+ *										Improvements:
+ *											Fill in the online help pages
+ *                                  		Rewrite debug and trace messages to be more useful
+ *											Add the ability to import an image from the database (on the Image and Block objects in Canvas)
+ *                                  		Some annoying popups have been replaced by messages directly in the import/export window
+ *											Remove the name, the documentation and the properties from view objects and connections checksum as they are not related to the view objects and connections themselves, but to the related element or relationship
+ * 											Add procedures that can be called by the script plugin
+ * 											The inline help can be accessed using the interrogation mark on every plugin window.
+ * 											Export and import back the model's "metadata" (may be used by other external tools)
+ * 											Do not calculate checksum on images anymore as the path is already a kind of checksum
+ * 											A new "show debug information" window has been created
+ *                                  		Add "import model from database" menu entry on right click when no model has been loaded yet
+ *                                  		Manage the objects transparency (introduced in Archi 4.3)
+ *                                  		Check for max memory available at startup and suggest to increase it (Xmx parameter) if less than 1 GB
+ *                                  		Add the ability to import an image from the database on Canvas Image and Block objects
+ * 											Update JDBC drivers
+ * 												- Neo4J to 3.1.0
+ * 												- SQLite to 3.21.0
+ *												- PostGreSQL to 42.2.1
  * 
  * Known bugs:
  * -----------
@@ -248,11 +255,12 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *			create a new windows that will show up detailed statistics about the model
  *			add more jdbc drivers (mongodb, odbc, etc ...)
  *          add an option to duplicate a model
+ *			create database admin procedures
  */
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1 beta 8";
+	public static final String pluginVersion = "2.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

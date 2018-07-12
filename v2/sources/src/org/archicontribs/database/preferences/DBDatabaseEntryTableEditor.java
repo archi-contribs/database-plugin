@@ -59,10 +59,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Label lblFile;
 	private Button btnBrowse;
 	private Text txtFile;
-	private Label lblExportType;
-	private Composite compoExportType;
-	private Button btnWholeType;
-	private Button btnComponentsType;
 
 	private Label lblExportViewImages;
 	private Composite compoExportViewImages;
@@ -466,56 +462,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPassword.setLayoutData(fd);
 		this.txtPassword.setVisible(false);
 
-		this.lblExportType = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportType.setText("Export type:");
-		this.lblExportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		fd = new FormData();
-		fd.top = new FormAttachment(this.lblUsername, 4);
-		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
-		this.lblExportType.setLayoutData(fd);
-		this.lblExportType.setVisible(false);
-		this.lblExportType.setToolTipText("Please choose what information should be exported to the database.");
-
-
-		this.compoExportType = new Composite(this.grpDatabases, SWT.NONE);
-		this.compoExportType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.compoExportType.setVisible(false);
-		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportType, 0, SWT.TOP);
-		fd.bottom = new FormAttachment(this.lblExportType, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
-		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
-		this.compoExportType.setLayoutData(fd);
-		RowLayout rl = new RowLayout();
-		rl.marginTop = 0;
-		rl.marginLeft = 0;
-		rl.spacing = 10;
-		this.compoExportType.setLayout(rl);
-
-		this.btnWholeType = new Button(this.compoExportType, SWT.RADIO);
-		this.btnWholeType.setText("Whole model");
-		this.btnWholeType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnWholeType.addSelectionListener(new SelectionListener() {
-			@Override public void widgetSelected(SelectionEvent e) { driverChanged(); }
-			@Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		this.btnWholeType.setToolTipText("The plugin will export the whole model content: elements, relationships, folders, views and images.\n   --> It will therefore be possible to import back your models from the database.");
-
-		this.btnComponentsType = new Button(this.compoExportType, SWT.RADIO);
-		this.btnComponentsType.setText("Elements and relationships only");
-		this.btnComponentsType.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnComponentsType.addSelectionListener(new SelectionListener() {
-			@Override public void widgetSelected(SelectionEvent e) { driverChanged(); }
-			@Override public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
-		this.btnComponentsType.setToolTipText("The plugin will export the elements and relationships only (folders, views and images won't be exported).\n   --> This mode is useful for graph databases for instance, but please be careful, it won't be possible to import your models back from the database.");
-
 		this.lblNeo4jMode = new Label(this.grpDatabases, SWT.NONE);
 		this.lblNeo4jMode.setText("Export graph mode:");
 		this.lblNeo4jMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportType, 4);
-		fd.left = new FormAttachment(this.lblExportType, 0 , SWT.LEFT);
+		fd.top = new FormAttachment(this.lblUsername, 4);
+		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
 		this.lblNeo4jMode.setLayoutData(fd);
 		this.lblNeo4jMode.setVisible(false);
 
@@ -528,7 +480,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jMode.setLayoutData(fd);
-		rl = new RowLayout();
+		RowLayout rl = new RowLayout();
 		rl.marginTop = 0;
 		rl.marginLeft = 0;
 		rl.spacing = 10;
@@ -611,8 +563,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblExportViewImages.setText("Export view spapshots:");
 		this.lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportType, 5);
-		fd.left = new FormAttachment(this.lblExportType, 0 , SWT.LEFT);
+		fd.top = new FormAttachment(this.lblUsername, 5);
+		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
 		this.lblExportViewImages.setLayoutData(fd);
 		this.lblExportViewImages.setVisible(false);
 		this.lblExportViewImages.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
@@ -801,7 +753,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDiscard.setVisible(false);
 
 
-		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportType, this.compoExportViewImages, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
+		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportViewImages, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
 
 		this.grpDatabases.layout();
 	}
@@ -859,8 +811,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblFile.setVisible(isFile);
 		this.txtFile.setVisible(isFile);		
 		this.btnBrowse.setVisible(isFile);
-		this.lblExportType.setVisible(true);
-		this.compoExportType.setVisible(true);
 
 		this.lblNeo4jMode.setVisible(isNeo4j);
 		this.compoNeo4jMode.setVisible(isNeo4j);
@@ -895,13 +845,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPassword.setVisible(!isFile);
 		this.btnShowPassword.setVisible(!isFile);
 		
-		this.lblExportViewImages.setVisible(this.btnWholeType.getSelection() && !isNeo4j);
-		this.compoExportViewImages.setVisible(this.btnWholeType.getSelection() && !isNeo4j);
-
-		FormData fd = new FormData();
-		fd.top = new FormAttachment(isFile ? this.lblFile: this.lblUsername, 8);
-		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
-		this.lblExportType.setLayoutData(fd);
+		this.lblExportViewImages.setVisible(!isNeo4j);
+		this.compoExportViewImages.setVisible(!isNeo4j);
 		
 		if ( this.comboDriver.getText().equalsIgnoreCase("ms-sql") ) {
 			this.txtUsername.setToolTipText("Leave username and password empty to use Windows integrated security");
@@ -987,7 +932,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setSchema(this.txtSchema.getText());
 		databaseEntry.setUsername(this.txtUsername.getText());
 		databaseEntry.setPassword(this.txtPassword.getText());
-		databaseEntry.setWholeModelExported(this.btnWholeType.getSelection());
 		databaseEntry.setViewSnapshotRequired(this.btnExportViewImages.getSelection());
 		databaseEntry.setViewsImagesBorderWidth(Integer.valueOf(this.txtBorderWidth.getText()));
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
@@ -1012,8 +956,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.txtSchema.setText("");
 	        this.txtUsername.setText("");
 	        this.txtPassword.setText("");
-	        this.btnWholeType.setSelection(true);
-	        this.btnComponentsType.setSelection(false);
 	        this.btnNeo4jNativeMode.setSelection(false);
 	        this.btnNeo4jExtendedMode.setSelection(true);
 	        this.btnNeo4jEmptyDB.setSelection(false);
@@ -1036,8 +978,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.txtSchema.setText(databaseEntry.getSchema());
             this.txtUsername.setText(databaseEntry.getUsername());
             this.txtPassword.setText(databaseEntry.getPassword());
-            this.btnWholeType.setSelection(databaseEntry.isWholeModelExported());
-            this.btnComponentsType.setSelection(!databaseEntry.isWholeModelExported());
             this.btnNeo4jNativeMode.setSelection(databaseEntry.isNeo4jNativeMode());
             this.btnNeo4jExtendedMode.setSelection(!databaseEntry.isNeo4jNativeMode());
             this.btnNeo4jEmptyDB.setSelection(databaseEntry.shouldEmptyNeo4jDB());
@@ -1071,9 +1011,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtUsername.setEnabled(editMode);
 		this.btnShowPassword.setEnabled(editMode);
 		this.txtPassword.setEnabled(editMode);
-		
-		this.btnWholeType.setEnabled(editMode);
-		this.btnComponentsType.setEnabled(editMode);
 		
 		this.btnNeo4jNativeMode.setEnabled(editMode);
 		this.btnNeo4jExtendedMode.setEnabled(editMode);
@@ -1153,8 +1090,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.lblFile.setVisible(false);
 			this.txtFile.setVisible(false);		
 			this.btnBrowse.setVisible(false);
-			this.lblExportType.setVisible(false);
-			this.compoExportType.setVisible(false);System.out.println("***************** compoExportType.setvisible(false) ********************");
 			this.lblNeo4jMode.setVisible(false);
 			this.compoNeo4jMode.setVisible(false);
 			this.lblNeo4jEmpty.setVisible(false);
