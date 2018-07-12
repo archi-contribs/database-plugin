@@ -60,7 +60,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Button btnBrowse;
 	private Text txtFile;
 
-	private Label lblExportViewImages;
+	private Label lblExportViewSnapshots;
 	private Composite compoExportViewImages;
 	private Button btnExportViewImages;
 	private Button btnDoNotExportViewImages;
@@ -133,8 +133,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setText("Databases: ");
 		
 		GridData gd = new GridData();
-		gd.heightHint = 320;
-		gd.minimumHeight = 320;
+		gd.heightHint = 300;
+		gd.minimumHeight = 300;
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 		this.grpDatabases.setLayoutData(gd);
@@ -477,7 +477,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jMode, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jMode, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jMode.setLayoutData(fd);
 		RowLayout rl = new RowLayout();
@@ -509,7 +509,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jEmpty, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jEmpty.setLayoutData(fd);
 		rl = new RowLayout();
@@ -541,7 +541,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblNeo4jRelationships, 0, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
+		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jRelationships.setLayoutData(fd);
 		rl = new RowLayout();
@@ -559,23 +559,23 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jTypedRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		
 
-		this.lblExportViewImages = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportViewImages.setText("Export view spapshots:");
-		this.lblExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.lblExportViewSnapshots = new Label(this.grpDatabases, SWT.NONE);
+		this.lblExportViewSnapshots.setText("Export view snapshots:");
+		this.lblExportViewSnapshots.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblUsername, 5);
 		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
-		this.lblExportViewImages.setLayoutData(fd);
-		this.lblExportViewImages.setVisible(false);
-		this.lblExportViewImages.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
+		this.lblExportViewSnapshots.setLayoutData(fd);
+		this.lblExportViewSnapshots.setVisible(false);
+		this.lblExportViewSnapshots.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
 
 		this.compoExportViewImages = new Composite(this.grpDatabases, SWT.NONE);
 		this.compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.compoExportViewImages.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportViewImages, -1, SWT.TOP);
-		fd.bottom = new FormAttachment(this.lblExportViewImages, 5, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 60, SWT.LEFT);
+		fd.top = new FormAttachment(this.lblExportViewSnapshots, -1, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblExportViewSnapshots, 5, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoExportViewImages.setLayoutData(fd);
 		this.compoExportViewImages.setLayout(new FormLayout());
@@ -825,6 +825,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPort.setVisible(!isFile);
 		this.lblDatabase.setVisible(hasDatabaseName);
 		this.txtDatabase.setVisible(hasDatabaseName);
+		
 		if ( hasDatabaseName ) {
 			FormData fd = new FormData();
 			fd.top = new FormAttachment(this.lblDatabase, 8);
@@ -836,6 +837,19 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			fd.left = new FormAttachment(this.lblServer, 0 , SWT.LEFT);
 			this.lblUsername.setLayoutData(fd);
 		}
+		
+		if ( isFile ) {
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(this.lblFile, 5);
+			fd.left = new FormAttachment(this.lblFile, 0 , SWT.LEFT);
+			this.lblExportViewSnapshots.setLayoutData(fd);
+		} else {
+			FormData fd = new FormData();
+			fd.top = new FormAttachment(this.lblUsername, 5);
+			fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
+			this.lblExportViewSnapshots.setLayoutData(fd);
+		}
+		
 		this.grpDatabases.layout();
 		this.lblSchema.setVisible(hasSchema);
 		this.txtSchema.setVisible(hasSchema);
@@ -845,7 +859,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPassword.setVisible(!isFile);
 		this.btnShowPassword.setVisible(!isFile);
 		
-		this.lblExportViewImages.setVisible(!isNeo4j);
+		this.lblExportViewSnapshots.setVisible(!isNeo4j);
 		this.compoExportViewImages.setVisible(!isNeo4j);
 		
 		if ( this.comboDriver.getText().equalsIgnoreCase("ms-sql") ) {
@@ -1109,7 +1123,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.lblPassword.setVisible(false);
 			this.txtPassword.setVisible(false);
 			this.btnShowPassword.setVisible(false);
-			this.lblExportViewImages.setVisible(false);
+			this.lblExportViewSnapshots.setVisible(false);
 			this.compoExportViewImages.setVisible(false);
 
 			this.btnSave.setVisible(false);
