@@ -1,1 +1,0 @@
-CREATE (:archidatabaseplugin {version:"4.0"})
