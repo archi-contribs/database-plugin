@@ -4,7 +4,9 @@
 <toc label="Database plugin" topic="help/html/index.html">
 	<topic href="help/html/pluginObjectives.html" label="Plugin objectives">
  </topic>
- <topic href="help/html/configurePlugin.html" label="Configuring the plugin">
+ <topic href="help/html/installPlugin.html" label="Install the plugin">
+ </topic>
+ <topic href="help/html/configurePlugin.html" label="Configure the plugin">
     <topic href="help/html/configurePlugin.html#1" label="1. Behaviour">
        <topic href="help/html/configurePlugin.html#1.1" label="1.1. Version">
        </topic>
@@ -64,7 +66,7 @@
        </topic>
     </topic>
  </topic> 
-	<topic href="help/html/exportModel.html" label="Exporting a model">
+	<topic href="help/html/exportModel.html" label="Export a model">
     <topic href="help/html/exportModel.html" label="1. The graphical interface">
        <topic href="help/html/exportModel.html" label="1.1 The database selection">
        </topic>
@@ -74,10 +76,10 @@
        </topic>
     </topic>
  </topic>
-	<topic label="Importing a model" href="help/html/importModel.html"/>
- <topic href="help/html/importComponent.html" label="Importing a single component">
+	<topic label="Importi a model" href="help/html/importModel.html"/>
+ <topic href="help/html/importComponent.html" label="Import a single component">
  </topic>
- <topic href="help/html/componentsHistory.html" label="Getting a component&apos;s history">
+ <topic href="help/html/componentsHistory.html" label="Get a component&apos;s history">
  </topic>
  <topic href="help/html/releaseNotes.html" label="Release notes">
  </topic> 

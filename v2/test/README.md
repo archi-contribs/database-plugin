@@ -18,28 +18,20 @@ These points need to be addressed before the release of version 2.1:
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
 
 * General
-  * Improve the inline help and the GitHub wiki that lack a lot of information. Specifically, the algorithms should be described.
+  * Improve the inline help and the GitHub wiki that lack a lot of information (specifically, the algorithms should be more detailed)
   * Optimize the SQL requests
   * Improve import performance by gathering all the objects properties and connections bound points in hashmaps in order to reduce the number of SQL requests generated (but this will increase even more the memory consumption)
-  * Add a "do not share" property that will force the "import individual component" to create a copy of the components. This way, it will be possible to implement, in the same view, some components that will be shared and other duplicated across models. The aim is to allow the creation of templates.
   * Develop a database admin interface with housekeeping (delete a model, delete a specific model's version, list and delete components that are not part of any model, vacuum database, backup database, restore database, creation of indexes for big databases, ...)
   * Allow to replace a component by another one (and moving all the relations to this new component)
   * Allow to change a component's class (verifying the relationships conformity)
   * Now that the sync works, allow the creation of branches rather than a linear version management
   * Add support for new database brands (DB2, Sybase, MongoDB, and more generally ODBC)
-  * Allow to update a model from the database without exporting our own changes
   * Create a window that provide detailed statistics about the model and its content
-  * Add an option to duplicate a model (change model's ID, change all components IDs)
-  * Add an option to merge models
+
 * ''For the "import individual component":''
-  * Allow to recursively import elements that have got relations with the imported element
-* for the "component history":
-  * Allow to export individual component to the database
-  * Allow to update a component from the database without exporting our own changes
+  * Allow to recursively import elements that have got relations with the imported element (with depth limit)
 
 ## Changes from the version 2.0.7b:
-* *Import Model*
-  * an import model from database context menu entry has been added when no model is selected
 * *Import components:*
   * Added documentation column to help distinguish components having the same name
   * Added tootip with properties to help distinguish components having the same name
@@ -50,42 +42,62 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * It is now possible to get history from folders and views
   * The components are now imported in the selected folder
   * The class of the selected folder is pre-selected
-  * create new template import mode that mixes copy and shared mode
+  * Introduce new "template" import mode that mixes copy and shared mode
+  * Possibility to import a whole model into another one (merge models)
+
+* *Import model:*
+  * A context menu entry allowin got import a model has been added when no model is selected
+  * Automatically open the default view (if any) at the end of a successful import
+  * Fix number of images to import
+
 * *Export model:*
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
   * In case of exception, the database lock is released before the error message is displayed
-  * An option has been added to show / not show the model's comparison to the database before the export (showing gives more information to the user but it takes some time on big models)
+  * An option has been added to show / not show the model's comparison to the database before the export (showing comparison gives more information to the user but it takes some time on big models)
   * **For relational databases**:
-    * Create two export modes: standalone and collaborative modes:
-      * **Standalone mode** means the export procedure only export components (it is quicker and adapted when only one person work on a model at one time)
-      * **Collaborative mode** means the export procedure syncs the model with the database (it is slower but adapted when several people are working on the same model at the same time)
+    * The export is now in "collaborative mode", which syncs the model with the database:
+      * It can be compared to a pull+push to GitHub.
+      * It is slower than the previous mode but allows several people to work on the same model at the same time
     * Allow to specify border width and scale factor for views screenshots
+	* To simplify, it is no more possible to choose between whole export or elements and relationships only
   * **For Neo4J databases**:
     * Create two export modes: native and extended:
       * **Native mode** means that Archi relationships are exported as Neo4J relationships (but this mode does not allow to export relationships on relationships)
       * **Extended mode** means that Archi relationships are exported as Neo4J nodes (this mode makes Neo4J diagrams more complex but allow relationships on relationships)
     * New option to empty the database before the export
     * New option to specialize relationships
+
 * *Get history from database:*
-  * Allow to get history for diagrams, canvas and sketches
+  * It is now possible to get history for all the model components (including folders, diagrams, canvas and sketches)
+  * It is now possible to import/export an individual component from the history window
+
 * *Other:*
-  * bug fixes:
-    * Check for null images before export (this shouldn't happen but it does happen)
+  * **bug fixes:**
+    * Exporting blocks or images objects with no images set does not generate errors anymore
     * Fix plugin initialization failure that occurred some times
     * Fix progress bar during download new version of the plugin from GitHub
     * Increase compiler severity to maximum and resolve all the warnings to improve code resiliency
     * Reduce memory leak
     * Fix centering of GUI windows, especially on hiDPI displays
     * Fix calculation of numbers of images to import
-    * Better handling of the cancel button
-  * Improvements:
+    * Better management of the cancel button during the import and export process
+    * Cleanup properties before import rather than update existing values as several properties can have the same name
+    * Fix centering of GUI windows especially on HiDPI displays
+  * **Improvements:**
+    * Fill in the inline help pages
+    * Rewrite debug and trace messages to be more useful
     * Add the ability to import an image from the database (on the Image and Block objects in Canvas)
     * Remove the name, the documentation and the properties from view objects and connections checksum as they are not related to the view objects and connections themselves, but to the related element or relationship
+    * Some annoying popups have been replaced by messages directly in the import/export window
     * Add procedures that can be called by the script plugin
     * The inline help can be accessed using the interrogation mark on every plugin window.
     * Export and import back the model's "metadata" (may be used by other external tools)
-    * Do not calculate checksum on images anymore
-	* A new "show debug information" window has been created
+    * Do not calculate checksum on images anymore as the path is already a kind of checksum
+    * A new "show debug information" window has been created
+    * Add "import model from database" menu entry on right click when no model has been loaded yet
+    * Manage the objects transparency (introduced in Archi 4.3)
+    * Check for max memory available at startup and suggest to increase it (Xmx parameter) if less than 1 GB
+    * Add the ability to import an image from the database on Canvas Image and Block objects
     * Update JDBC drivers
       * Neo4J to 3.1.0
       * SQLite to 3.21.0

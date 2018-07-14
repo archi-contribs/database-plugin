@@ -13,16 +13,17 @@ The main objective of the database plugin, as its name states, is to use a <b>da
 <br>
 The key functionalities are: 
 <ul>
-   <li>Version all the models components<ul>
+   <li>Export to (and import back) models from a SQL database (Microsoft SQL Server, MySQL, Oracle, PostGreSQL, and SQLite are supported so far)</li>
+   <li>Export elements and relationships to a graph database (Neo4j) to ease impact analysis</li>
+   <li>Version the models and all their components:<ul>
       <li style="circle">Keeps a trace of who does what</li>
-      <li style="circle">Allows to roll back any component to any version</li>
+      <li style="circle">Allows to roll back any model or component to any point in time</li>
    </ul></li>
    <li>Allows several people to work on the dame model at the same time<ul>
-      <li style="circle">During export, the updates done by other people are imported</li>
-      <li style="circle">All the conflicts are detected and presented to the used for resolution</li>
+      <li style="circle">During export, the updates done by other people are imported,</li>
+      <li style="circle">All the conflicts are detected and presented to the user for manual resolution.</li>
    </ul></li>
-   <li>Export elements and relationships to a graph database (Neo4j) to ease impact analysis</li>
-   <li>Allow to share components between models. All the updates done on those componennts through one model will be visible in all the models.</li>
+   <li>Allow to share components between models (all the updates done on those components through one model will be visible in all the models)</li>
 </ul>  
 </body>
 </html>

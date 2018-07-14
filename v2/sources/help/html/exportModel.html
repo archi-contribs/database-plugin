@@ -13,40 +13,83 @@
 This page describes the export of a model in a database.<br>
 <img class="image" src="../img/export-gui.png"><br>
 <br>
-<h3 id="1" style="color: blue; text-decoration: underline;">1. The graphical interface</h3>
-The right hand-side of the export window is split in 3 zones:
+<h2 id="graphical_interface">The graphical interface</h2>
+As every window of the database plugin, the export window is cutted in 5 zones:
 <ul>
-   <li>The database selection</li>
-   <li>The versions of the model</li>
-   <li>The model's components</li>
+  <li>The left zone shows the plugin's logo and the list of actions.</li>
+  <li>The right hand-side of the export window is split in 3 zones:
+  <ul>
+    <li>The database selection</li>
+    <li>The versions of the model</li>
+    <li>The model's components</li>
+  </ul></li>
 </ul>
 <br>
-<h4 id="1.1" style="color: blue; text-decoration: underline;">1.1 The database selection</h4>
+<h3 id="database_selection">The database selection</h3>
 This section allows to select the database where the model should be exported. The databases are presented in the order defined on the preference page.<br>
 <br>
 The "set preferences" button allows to directly open the preference page to update the database list or set preferences.<br>  
 <br>
-<h4 id="1.2" style="color: blue; text-decoration: underline;">1.2 The versions of the model</h4>
+<h3 id="versions_of_model">The versions of the model</h3>
 This section lists the versions of the model that already exist in the database.<br>
 <br>
 The "Now" line represents the version that will be exported in the database. It allows to change the model name and purpose, but also to set a release note.<br>
 <br> 
-<h4 id="1.3" style="color: blue; text-decoration: underline;">1.3 The model's components</h4>
+<h3 id="model_components">The model's components</h3>
 This section lists how many components are present in your model.<br>
 <br>
-The plugin maintain several versions of the model and all of its components:
-<ul>
-   <li><b>Current version</b>: means as it is now (as it is shown in Archi)</li>
-   <li><b>Initial version</b>: means as it was when it has been imported from the database, or as it is in the latest database version if the model has been loaded from an Archimate file.</li>
-   <li><b>Database version<b></b></b>: means as it is in the database. As the database keeps the whole history (i.e. all the old versions), we are often talking about the latest database version which means the latest version stored in the database.</li>
-</ul>
-If the "compare model to the database before export" option is set on the preference page, or if one clicks on the "Compare model to the database" button, then the plugin compares all the model's components between the current version and the database version.<br>
+The plugin can also show the comparison between the model as it is in Archi and as it is in the database.<br>
 <br>
-<h3 id="2" style="color: blue; text-decoration: underline;">2. The export process</h3>
-The first action of the plugin is to determine a point in time that will be used to determine what needs to be exported to the database:
+To achieve this comparison, the plugin uses the components ID to check if it already exists in the database:
 <ul>
-   <li>If the model is being exported to the same database it has been imported from, then this point in time is when the model has been imported,</li>
-   <li>If the model is being exported to a different database, or if the model has been loaded from an Archimate file, then this point is time is when the model has been exported forthe mast time in the database.</li> 
+  <li>If the component does not exist in the database:<ul>
+    <li>The component is assumed to be a new component created by Archi, either manually or loaded from an Archimate file <b>--&gt; The component will be created in the database.</b></li>
+  </ul></li>
+  <li>If the component does exist in the database:
+  <ul>
+    <li>The plugin calculates the current checksum and retrieves all the other needed checksums and versions from the database:<ul>
+      <li>The component's "initial version and checksum" that is the latest version in the database that has got the same checksum,</li>
+      <li>The component's "latest version and checksum" that is the latest version in the database that is part of the same model,</li>
+      <li>The component's "latest database version and checksum" that is the latest version in the database whatever the model the component is in.</li>
+    </ul></li>
+    <li>Then it is then possible to compare all the versions and checksums:<ul>
+      <li>If the "latest version" and the "latest database version" are equal, then the component has not been updated by another model (thus, only the "current checksum" and "initial checksum" are relevant):<ul>
+        <li>If the "current checksum" and "initial checksum" are identical then the component is in sync with the database <b>--&gt; it does not need to be exported to the database</b></li>
+        <li>If the "current checksum" and "initial checksum" differ then the component has been updated in Archi <b>--&gt; it needs to be exported to the database</b></li>
+      </ul></li>
+      <li>If the "database version" is zero then the component does not exist anymore in the latest version of the model in the database  <b>--&gt; it needs to be deleted in Archi</b></li>
+      <li>If the "current checksum" is identical to the "latest database checksum" then the component is in sync with the database <b>--&gt; it does not need to be exported to the database</b></li>
+      <li>If the "initial checksum" differs from the the "current checksum" then the component has been updated in Archi</li>
+      <li>If the "initial checksum" differs from the the "database checksum" then the component has been updated in the database<ul>
+        <li>If the component has been updated in Archi but not in the database <b>--&gt; it needs to be exported to the database</b></li>
+        <li>If the component has been updated in the database but not in Archi <b>--&gt; it needs to be updated in Archi with the values from the database</b></li>
+        <li>If the component has been updated in both Archi and the database:<ul>
+          <li>If the "current checksum" and "database checksum" are identical, then the same modifications have been done in Archi and in the database <b>--&gt; it does not need to be exported to the database</b></li>
+          <li>If they differ, then the modifications done in Archi and in the database are different <b>--&gt; there is a conflict that needs to be manually resolved by the user</b></li>
+        </ul></li>
+      </ul></li>
+    </ul></li>
+  </ul></li>
 </ul>
+During this check, the plugin also lists all the components that are referenced in the database version of the model but that are not in Archi <b>--&gt; they will be imported from the database</b>.
+<br>
+The plugin shows the number of components in each situation, either automatically if configured in the preferences, either when the user clicks on the "Compare model to the database" button.<br>
+<br>
+<h2 id="export_process">The export process</h2>
+When the user clicks on the "export" button, the plugin:
+<ol>
+  <li>Recalculates the status of all the components as it may have changed since the last comparison,</li>
+  <li>Imports missing components from the database and update those that have been updated in the database,</li>
+  <li>Exports components that have been updated in Archi,</li>
+  <li>References all the model components as been pat of the model (even those that do not need to be exported),</li>
+  <li>If conflicts are detected, the user is invited to resolve them.</li>
+</ol>
+As the export process may take some time, the databases list is replaced by a progress bar to show the export progress.
+<br>
+At the end of the export process, the progress bar is replaced by a status message with a color that highlights the export status (green if successful, yellow in case of error). In case of any error, the export is rolled-back and the database is left untouched. This behavior allows to guarantee the database coherence.<br>
+<br>
+The export to the database cannot be undone, but in case some components have been imported or updated during the export process, the whole import/update can be undone using Archi undo/redo mechanism (menu Undo/Redo or keys ctrl-Z/ctrl-Y).<br>
+<br>
+<h2 id="conflict_resolution">Conflict resolution</h2>
 </body>
 </html>

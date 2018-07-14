@@ -1,3 +1,6 @@
+.body {
+	counter-reset: h2counter;
+}
 .image {
 	border: 1px solid #0;
 	display: block;
@@ -17,4 +20,76 @@ li.not_selected {
 	background: url('../img/not_selected.png') no-repeat left top;
 	padding-left: 20px;
 	display: block;
+}
+h1 {
+	color: blue;
+	text-decoration: underline;
+	counter-reset: h2counter;
+}
+h2 {
+	color: blue;
+	text-decoration: underline;
+	counter-reset: h3counter;
+}
+h2:before {
+    content: counter(h2counter) ". ";
+    counter-increment: h2counter;
+}
+h3 {
+	color: blue;
+	text-decoration: underline;
+	counter-reset: h4counter;
+}
+h3:before {
+    content: counter(h2counter) "." counter(h3counter) ".  ";
+    counter-increment: h3counter;
+}
+h4 {
+	color: blue;
+	text-decoration: underline;
+	counter-reset: h5counter;
+}
+h4:before {
+    content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) ".  ";
+    counter-increment: h4counter;
+}
+.tg  {
+	border-collapse: collapse;
+	border-spacing: 0;
+	border-color: #aabcfe;
+	margin-left: 10%;
+	margin-right: 10%;
+	width: 80%;
+}
+.tg td {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	padding: 2px 5px;
+	border-style: solid;
+	border-width: 1px;
+	overflow: hidden;
+	word-break: normal;
+	border-color: #aabcfe;
+	color: #669;
+	background-color: #e8edff;
+}
+.tg th {
+	font-family: Arial, sans-serif;
+	font-size: 14px;
+	font-weight: normal;
+	padding: 10px 5px;
+	border-style: solid;
+	border-width: 1px;
+	overflow: hidden;
+	word-break: normal;
+	border-color: #aabcfe;
+	color: #039;
+	background-color: #b9c9fe;
+}
+.tg .tg-header {
+	font-weight: bold;
+	text-align: center
+}
+.tg .tg-center {
+	text-align: center
 }
