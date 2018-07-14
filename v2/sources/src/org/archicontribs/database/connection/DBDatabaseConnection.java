@@ -428,8 +428,12 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "root_type " + this.INTEGER +" NOT NULL, "
                     + "name " + this.OBJ_NAME + " NOT NULL, "
                     + "documentation " + this.TEXT + ", "
-                    + "created_by " + this.USERNAME + ", "
-                    + "created_on " + this.DATETIME + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
                     + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -558,12 +562,16 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "documentation " + this.TEXT +" , "
                     + "hint_content " + this.TEXT + ", "
                     + "hint_title " + this.OBJ_NAME + ", "
-                    + "created_by " + this.USERNAME +" NOT NULL, "
-                    + "created_on " + this.DATETIME +" NOT NULL, "
                     + "background " + this.INTEGER + ", "
                     + "connection_router_type " + this.INTEGER +" NOT NULL, "
                     + "viewpoint " + this.OBJECTID + ", "
                     + "screenshot " + this.IMAGE + ", "
+                    + "created_by " + this.USERNAME +" NOT NULL, "
+                    + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
                     + "checksum " + this.OBJECTID +" NOT NULL, "
                     + "container_checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
@@ -590,6 +598,10 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "type " + this.INTEGER + ", "
                     + "created_by " + this.USERNAME +" NOT NULL, "
                     + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
                     + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -678,6 +690,10 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "height " + this.INTEGER + ", "
                     + "created_by " + this.USERNAME +" NOT NULL, "
                     + "created_on " + this.DATETIME +" NOT NULL, "
+                    + "checkedin_by " + this.USERNAME + ", "
+                    + "checkedin_on " + this.DATETIME + ", "
+                    + "deleted_by " + this.USERNAME + ", "
+                    + "deleted_on " + this.DATETIME + ", "
                     + "checksum " + this.OBJECTID +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -1077,10 +1093,32 @@ public class DBDatabaseConnection implements AutoCloseable {
         }
         
         // convert from version 208 to 209
-        //      - add alpha column in views_bjects table
+        //      - add checkedin_by, checkedin_on, deleted_by and deleted_on columns in folders, views, views_connections and views_objects
+        //             (they're not yet used, but they're created for uniformity purpose)
+        //      - add alpha column in views_objects table
         if ( dbVersion == 208 ) {
-        	addColumn(this.schema+"views_objects", "alpha", this.INTEGER);
+        	addColumn(this.schema+"folders", "checkedin_by", this.USERNAME);
+        	addColumn(this.schema+"folders", "checkedin_on", this.DATETIME);
+        	addColumn(this.schema+"folders", "deleted_by", this.USERNAME);
+        	addColumn(this.schema+"folders", "deleted_on", this.DATETIME);
         	
+        	addColumn(this.schema+"views", "checkedin_by", this.USERNAME);
+        	addColumn(this.schema+"views", "checkedin_on", this.DATETIME);
+        	addColumn(this.schema+"views", "deleted_by", this.USERNAME);
+        	addColumn(this.schema+"views", "deleted_on", this.DATETIME);
+        	
+        	addColumn(this.schema+"views_connections", "checkedin_by", this.USERNAME);
+        	addColumn(this.schema+"views_connections", "checkedin_on", this.DATETIME);
+        	addColumn(this.schema+"views_connections", "deleted_by", this.USERNAME);
+        	addColumn(this.schema+"views_connections", "deleted_on", this.DATETIME);
+        	
+        	addColumn(this.schema+"views_objects", "checkedin_by", this.USERNAME);
+        	addColumn(this.schema+"views_objects", "checkedin_on", this.DATETIME);
+        	addColumn(this.schema+"views_objects", "deleted_by", this.USERNAME);
+        	addColumn(this.schema+"views_objects", "deleted_on", this.DATETIME);
+        	
+        	addColumn(this.schema+"views_objects", "alpha", this.INTEGER);
+
         	dbVersion = 209;
         }
 
