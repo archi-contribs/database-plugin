@@ -224,7 +224,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        }
 
 	        if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
-	                this.AUTO_INCREMENT	= "integer PRIMARY KEY";
+	                this.AUTO_INCREMENT	= "integer NOT NULL";
 	                this.BOOLEAN		= "tinyint(1)";          				// we do not use boolean SQL type as it is not supported by all databases, so we export and import integer instead (0 = false, 1 = true);
 	                this.COLOR			= "varchar(7)";
 	                this.DATETIME		= "timestamp";
@@ -426,7 +426,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "version " + this.INTEGER +" NOT NULL, "
                     + "type " + this.INTEGER +" NOT NULL, "
                     + "root_type " + this.INTEGER +" NOT NULL, "
-                    + "name " + this.OBJ_NAME + ", "
+                    + "name " + this.OBJ_NAME + " NOT NULL, "
                     + "documentation " + this.TEXT + ", "
                     + "created_by " + this.USERNAME + ", "
                     + "created_on " + this.DATETIME + ", "
