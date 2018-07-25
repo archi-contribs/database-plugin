@@ -835,7 +835,7 @@ public class DBMetadata  {
         IFolder oldParentFolder = getParentFolder();
         if ( (oldParentFolder != null) && (oldParentFolder != newParentFolder) ) {
             if ( this.component instanceof IFolder )
-                oldParentFolder.getFolders().remove((IFolder)this.component);
+                oldParentFolder.getFolders().remove(this.component);
             else
                 oldParentFolder.getElements().remove(this.component);
         }
