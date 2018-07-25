@@ -13,20 +13,33 @@
 <br> 										
 <h3 style="color: blue; text-decoration: underline;">v 2.1 (14/03/2018)</h3>
 <ul>
-   <li>Fill in the online help</li>
-   <li>Bug fixes:<ul>
-      <li>Solve plugin initialization failure that occured some times</li>
-      <li>Fix progress bar during download new version of the plugin from GitHub</li>
-      <li>Reduce memory leak</li>
-   </ul></li>
    <li>Import components from database:<ul>
-      <li>Added documentation column</li>
-      <li>Added popup message during the import</li>
+      <li>Rename "import individual component" to "import components"</li>
+      <li>Added documentation column to help distinguish components having the same name</li>
+      <li>Added tooltip with properties to help distinguish components having the same name</li>
+      <li>Added message during the import as it may take some time</li>
+      <li>Use commands to allow undo/redo</li>
+      <li>Added a label to explain that the icons can be selected</li>
+      <li>The categories can now be clicked to select/unselect the whole category</li>
+      <li>The component is imported by default in the selected folder</li>
+      <li>The element class is pre-selected depending on the selected folder</li>
+      <li>In case one view is selected for import, show view screenshot if available in the database</li>
+      <li>Introduce new template mode that mixes shared and copy modes depending on each component properties</li>
+      <li>Possibility to import a whole model into another one (merge models)</li>
+   </ul></li>
+   <li>Import model:<ul>
+      <li>A context menu entry allowing to import a model has been added when no model is selected</li>
+      <li>Automatically open the default view (if any) at the end of the import</li>
+      <li>Fix number of images to import</li>
    </ul></li>
    <li>Export model:<ul>
       <li>For relational databases:<ul>
-         <li>Create two export modes: standalone and collaborative modes</li>
-         <li>Allow to specify the generated view screenshots border width and scale factor</li>
+         <li>The export is now in "collaborative mode", which syncs the model with the database:<ul>
+            <li>It can be compared to a pull+push to GitHub.</li>
+            <li>It is slower than the previous mode but allows several people to work on the same model at the same time</li>
+         </ul></li>
+         <li>Allow to specify border width and scale factor for views screenshots</li>
+         <li>To simplify, it is no more possible to choose between whole export or elements and relationships only</li>
       </ul></li>
       <li>For Neo4J databases:<ul>
          <li>Create two export modes: native and extended</li>
@@ -34,19 +47,54 @@
          <li>New option to specialize relationships</li>
       </ul></li>
       <li>Rewrite version management (check timestamps in addition of the version number)</li>
-      <li>Remove the name from view objects and connections checksums</li>
-      <li>Add an option to compare the model from the database before exporting it<ul>
-         <li>Get history from database:</li>
+      <li>Remove the name, the documentation and the properties from view objects and connections checksum calculation as they are related to the corresponding concept</li>
+   <li>Plugin preferences:<ul>
+      <li>The default import mode (shared or copy) has been removed as the default import mode is now the template mode</li>
+      <li>Add an option to compare the model from the database before exporting it</li>
+      <li>Allow to specify the generated view screenshots border width and scale factor</li>
+      <li>Allow to specify a suffix to add to components imported in copy mode</li>
+      <li>Add an option to check for max memory at startup (Xmx should be set to 1g)</li>
+      <li>Add an option to show or hide zero values in import and export windows</li>
+   </ul></li>
+   <li>Get history from database:<ul>
+      <li>Allows to get history for diagrams, canvas and sketches</li>
+      <li>Allows to export/import component to/from the database directly from the history window</li>
+   </ul></li>
+   <li>Other:<ul>
+      <li>Bug fixes:<ul>
+         <li>Exporting blocks or images objects with no images set does not generate errors anymore</li>
+         <li>Fix plugin initialization failure that occurred some times</li>
+         <li>Fix progress bar during download new version of the plugin from GitHub</li>
+         <li>Increase compiler severity to maximum and resolve all the warnings to improve code resiliency</li>
+         <li>Reduce memory leak</li>
+         <li>Fix centering of GUI windows, especially on hiDPI displays</li>
+         <li>Fix calculation of numbers of images to import</li>
+         <li>Better management of the cancel button during the import and export process</li>
+         <li>Cleanup properties before import rather than update existing values as several properties can have the same name</li>
+         <li>Fix centering of GUI windows especially on HiDPI displays</li>
       </ul></li>
-      <li>Allows to get history for diagrams, canvas and sketches<ul>
+      <li>Improvements:<ul>
+         <li>Fill in the online help pages</li>
+         <li>Rewrite debug and trace messages to be more useful</li>
          <li>Add the ability to import an image from the database (on the Image and Block objects in Canvas)</li>
+         <li>Some annoying popups have been replaced by messages directly in the import/export window</li>
+         <li>Remove the name, the documentation and the properties from view objects and connections checksum as they are not related to the view objects and connections themselves, but to the related element or relationship</li>
          <li>Add procedures that can be called by the script plugin</li>
-         <li>Update JDBC drivers</li>
+         <li>The inline help can be accessed using the interrogation mark on every plugin window.</li>
+         <li>Export and import back the model's "metadata" (may be used by other external tools)</li>
+         <li>Do not calculate checksum on images anymore as the path is already a kind of checksum</li>
+         <li>A new "show debug information" window has been created</li>
+         <li>Add "import model from database" menu entry on right click when no model has been loaded yet</li>
+         <li>Manage the objects transparency (introduced in Archi 4.3)</li>
+         <li>Check for max memory available at startup and suggest to increase it (Xmx parameter) if less than 1 GB</li>
+         <li>Add the ability to import an image from the database on Canvas Image and Block objects</li>
+         <li>Update JDBC drivers<ul>
+            <li>Neo4J to 3.1.0</li>
+            <li>SQLite to 3.21.0</li>
+            <li>PostGreSQL to 42.2.1</li>
+         </ul></li>
       </ul></li>
-      <li>Neo4J to 3.1.0</li>
-      <li>SQLite to 3.21.0</li>
-      <li>PostGreSQL to 42.2.1</li>
-    </ul></li>
+   </ul></li>
 </ul>
 
 <h3 style="color: blue; text-decoration: underline;">v 2.0.7b (01/07/2017)</h3>
