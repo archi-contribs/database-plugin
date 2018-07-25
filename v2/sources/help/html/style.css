@@ -1,6 +1,7 @@
 .body {
 	counter-reset: h2counter;
 }
+
 .image {
 	border: 1px solid #0;
 	display: block;
@@ -11,48 +12,102 @@
 	-webkit-box-shadow: 10px 10px 5px #ccc;
 	-khtml-box-shadow: 10px 10px 5px #ccc;
 }
+
 li.selected {
 	background: url('../img/selected.png') no-repeat left top;
 	padding-left: 20px;
 	display: block;
 }
+
 li.not_selected {
 	background: url('../img/not_selected.png') no-repeat left top;
 	padding-left: 20px;
 	display: block;
 }
+
 h1 {
-	color: blue;
-	text-decoration: underline;
-	counter-reset: h2counter;
+  font-size: 32px;
+  border: 1px solid #888;
+  text-shadow: -1px -1px #fb6, 1px 1px #d60, -3px 0 4px #000;
+  font-family:"Segoe print", Arial, Helvetica, sans-serif;
+  color: blue; 
+  padding:16px;
+  font-weight:lighter;
+  -moz-box-shadow: 2px 2px 6px #888;  
+  -webkit-box-shadow: 2px 2px 6px #888;  
+  box-shadow:2px 2px 6px #888;  
+  #text-align:center;
+  display:block;
+  margin:16px;
+  counter-reset: h2counter;
 }
+
 h2 {
-	color: blue;
-	text-decoration: underline;
-	counter-reset: h3counter;
+  font-size: 24px;
+  border: 1px solid #888;
+  text-shadow: -1px -1px #fb6, 1px 1px #d60, -3px 0 4px #000;
+  font-family:"Segoe print", Arial, Helvetica, sans-serif;
+  color: blue; 
+  padding:0px;
+  font-weight:lighter;
+  -moz-box-shadow: 2px 2px 6px #888;  
+  -webkit-box-shadow: 2px 2px 6px #888;  
+  box-shadow:2px 2px 6px #888;  
+  #text-align:center;
+  display:block;
+  margin:16px;
+  counter-reset: h3counter;
 }
+
 h2:before {
-    content: counter(h2counter) ". ";
+    content: "\00a0\00a0" counter(h2counter) ". ";
     counter-increment: h2counter;
 }
+
 h3 {
-	color: blue;
-	text-decoration: underline;
-	counter-reset: h4counter;
+  font-size: 18px;
+  border: 1px solid #888;
+  text-shadow: -1px -1px #fb6, 1px 1px #d60, -3px 0 4px #000;
+  font-family:"Segoe print", Arial, Helvetica, sans-serif;
+  color: blue; 
+  padding:0px;
+  font-weight:lighter;
+  -moz-box-shadow: 2px 2px 6px #888;  
+  -webkit-box-shadow: 2px 2px 6px #888;  
+  box-shadow:2px 2px 6px #888;  
+  #text-align:center;
+  display:block;
+  margin:16px;
+  counter-reset: h4counter;
 }
+
 h3:before {
-    content: counter(h2counter) "." counter(h3counter) ".  ";
+    content: "\00a0\00a0" counter(h2counter) "." counter(h3counter) ".  ";
     counter-increment: h3counter;
 }
+
 h4 {
-	color: blue;
-	text-decoration: underline;
-	counter-reset: h5counter;
+  font-size: 32px;
+  border: 1px solid #888;
+  text-shadow: -1px -1px #fb6, 1px 1px #d60, -3px 0 4px #000;
+  font-family:"Segoe print", Arial, Helvetica, sans-serif;
+  color: blue; 
+  padding:0px;
+  font-weight:lighter;
+  -moz-box-shadow: 2px 2px 6px #888;  
+  -webkit-box-shadow: 2px 2px 6px #888;  
+  box-shadow:2px 2px 6px #888;  
+  #text-align:center;
+  display:block;
+  margin:16px;
+  counter-reset: h5counter;
 }
+
 h4:before {
-    content: counter(h2counter) "." counter(h3counter) "." counter(h4counter) ".  ";
+    content: "\00a0\00a0" counter(h2counter) "." counter(h3counter) "." counter(h4counter) ".  ";
     counter-increment: h4counter;
 }
+
 .tg  {
 	border-collapse: collapse;
 	border-spacing: 0;
@@ -61,6 +116,7 @@ h4:before {
 	margin-right: 10%;
 	width: 80%;
 }
+
 .tg td {
 	font-family: Arial, sans-serif;
 	font-size: 14px;
@@ -73,6 +129,7 @@ h4:before {
 	color: #669;
 	background-color: #e8edff;
 }
+
 .tg th {
 	font-family: Arial, sans-serif;
 	font-size: 14px;
@@ -86,10 +143,12 @@ h4:before {
 	color: #039;
 	background-color: #b9c9fe;
 }
+
 .tg .tg-header {
 	font-weight: bold;
 	text-align: center
 }
+
 .tg .tg-center {
 	text-align: center
 }
