@@ -1195,7 +1195,7 @@ public class DBGui {
 
 			if ( (String)databaseObject.get("created_by") != null ) {
 				item = new TreeItem(tree, SWT.NONE);
-				item.setText(new String[] {"Created by", DBPlugin.getUserName(), (String)databaseObject.get("created_by")}); 
+				item.setText(new String[] {"Created by", System.getProperty("user.name"), (String)databaseObject.get("created_by")}); 
 			}
 
 			if ( databaseObject.get("created_on") != null ) {

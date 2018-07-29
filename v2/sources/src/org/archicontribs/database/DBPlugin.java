@@ -8,7 +8,6 @@ package org.archicontribs.database;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
@@ -437,14 +436,5 @@ public class DBPlugin extends AbstractUIPlugin {
 				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
 				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md"
 				);
-	}
-	
-	// return user name in UTF 8 when possible
-	public static String getUserName() {
-		try {
-			return new String(System.getProperty("user.name").getBytes("ISO-8859-1"), "UTF-8");
-		} catch (@SuppressWarnings("unused") UnsupportedEncodingException ign) {
-			return System.getProperty("user.name");
-		}
 	}
 }

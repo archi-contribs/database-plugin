@@ -671,7 +671,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,model.getName()
 				,releaseNote
 				,model.getPurpose()
-				,DBPlugin.getUserName()
+				,System.getProperty("user.name")
 				,model.getCurrentVersion().getTimestamp()
 				,model.getCurrentVersion().getChecksum()
 				);
@@ -735,7 +735,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,element.getName()
 					,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
 					,element.getDocumentation()
-					,DBPlugin.getUserName()
+					,System.getProperty("user.name")
 					,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
 					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
 					);
@@ -827,7 +827,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,((IArchimateRelationship)relationship).getTarget().getId()
 					,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
 					,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-					,DBPlugin.getUserName()
+					,System.getProperty("user.name")
 					,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
 					,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
 					);
@@ -880,7 +880,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IDBMetadata)folder).getDBMetadata().getRootFolderType()
 				,folder.getName()
 				,folder.getDocumentation()
-				,DBPlugin.getUserName()
+				,System.getProperty("user.name")
 				,((DBArchimateModel)folder.getArchimateModel()).getCurrentVersion().getTimestamp()
 				,((Folder)folder).getDBMetadata().getCurrentVersion().getChecksum()
 				);
@@ -934,7 +934,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,view.getId()
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
-				,DBPlugin.getUserName()
+				,System.getProperty("user.name")
 				,((DBArchimateModel)view.getArchimateModel()).getCurrentVersion().getTimestamp()
 				,view.getName()
 				,view.getConnectionRouterType()
@@ -1028,7 +1028,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getY() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getWidth() : null)
 				,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
-				,DBPlugin.getUserName()
+				,System.getProperty("user.name")
 				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
 				,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
 				);
@@ -1093,7 +1093,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,viewConnection.getTarget().getId()
 				,viewConnection.getTextPosition()
 				,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : viewConnection.getType())
-				,DBPlugin.getUserName()
+				,System.getProperty("user.name")
 				,((DBArchimateModel)viewConnection.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
 				,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getChecksum()
 				);
