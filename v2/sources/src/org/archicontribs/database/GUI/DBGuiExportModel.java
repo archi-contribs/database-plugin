@@ -915,18 +915,21 @@ public class DBGuiExportModel extends DBGui {
 	@Override
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 	    this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
+	    
+		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+	    
+    	this.lblModelUpdated.setText(isNeo4j ? "Exported" : "Updated");
 
 		// we hide the comparison between the model and the database in case of a neo4j database
-		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 		this.lblModel.setVisible(!isNeo4j);
 		this.lblModelNew.setVisible(!isNeo4j);
 		this.lblModelDeleted.setVisible(!isNeo4j);
-		this.lblModelUpdated.setVisible(!isNeo4j);
+		//this.lblModelUpdated.setVisible(!isNeo4j);
 		this.txtNewElementsInModel.setVisible(!isNeo4j);
-		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
+		//this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
 		this.txtDeletedElementsInModel.setVisible(!isNeo4j);
 		this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
-		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
+		//this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
 		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
 		this.txtNewFoldersInModel.setVisible(!isNeo4j);
 		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
@@ -942,7 +945,6 @@ public class DBGuiExportModel extends DBGui {
         this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j);
 		this.txtNewImagesInModel.setVisible(!isNeo4j);
 		
-        // we hide the database and conflict columns if Neo4J
         this.lblDatabase.setVisible(!isNeo4j);
         this.lblDatabaseNew.setVisible(!isNeo4j);
         this.lblDatabaseDeleted.setVisible(!isNeo4j);
@@ -974,20 +976,20 @@ public class DBGuiExportModel extends DBGui {
         this.txtConflictingViewConnections.setVisible(!isNeo4j);
         this.txtNewImagesInDatabase.setVisible(!isNeo4j);
 		
+		DBGuiExportModel.this.tblModelVersions.removeAll();
+		
+       	// if the first line, then we add the "latest version"
+		TableItem tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
+		tableItem.setText(1, "Now");
+		tableItem.setData("name", this.exportedModel.getName());
+		tableItem.setData("note", "");
+		tableItem.setData("purpose", this.exportedModel.getPurpose());
+		DBGuiExportModel.this.tblModelVersions.setSelection(tableItem);
+		DBGuiExportModel.this.tblModelVersions.notifyListeners(SWT.Selection, new Event());		// activates the name, note and purpose texts
+        
 		// if we're not in a Neo4J database, then we get the latest version and checksum of the model's components in the database
 		try {
 			if ( !isNeo4j ) {
-				DBGuiExportModel.this.tblModelVersions.removeAll();
-				
-               	// if the first line, then we add the "latest version"
-				TableItem tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
-				tableItem.setText(1, "Now");
-				tableItem.setData("name", this.exportedModel.getName());
-				tableItem.setData("note", "");
-				tableItem.setData("purpose", this.exportedModel.getPurpose());
-				DBGuiExportModel.this.tblModelVersions.setSelection(tableItem);
-				DBGuiExportModel.this.tblModelVersions.notifyListeners(SWT.Selection, new Event());		// activates the name, note and purpose texts
-            	
 				for (Hashtable<String, Object> version : DBGuiExportModel.this.exportConnection.getModelVersions(this.exportedModel.getId()) ) {
                 	tableItem = new TableItem(DBGuiExportModel.this.tblModelVersions, SWT.NULL);
         			tableItem.setText(0, (String)version.get("version"));
@@ -1575,18 +1577,17 @@ public class DBGuiExportModel extends DBGui {
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 			return;
 		}
+
+		// we reset the counters as they will be updated by the doExportEObject method
+	    this.txtNewElementsInModel.setText(toString(0));         this.txtUpdatedElementsInModel.setText(toString(0));         this.txtDeletedElementsInModel.setText(toString(0));         this.txtNewElementsInDatabase.setText(toString(0));          this.txtUpdatedElementsInDatabase.setText(toString(0));          this.txtDeletedElementsInDatabase.setText(toString(0));        this.txtConflictingElements.setText(toString(0));
+        this.txtNewRelationshipsInModel.setText(toString(0));    this.txtUpdatedRelationshipsInModel.setText(toString(0));    this.txtDeletedRelationshipsInModel.setText(toString(0));    this.txtNewRelationshipsInDatabase.setText(toString(0));     this.txtUpdatedRelationshipsInDatabase.setText(toString(0));     this.txtDeletedRelationshipsInDatabase.setText(toString(0));   this.txtConflictingRelationships.setText(toString(0));
+        this.txtNewFoldersInModel.setText(toString(0));          this.txtUpdatedFoldersInModel.setText(toString(0));          this.txtDeletedFoldersInModel.setText(toString(0));          this.txtNewFoldersInDatabase.setText(toString(0));           this.txtUpdatedFoldersInDatabase.setText(toString(0));           this.txtDeletedFoldersInDatabase.setText(toString(0));         this.txtConflictingFolders.setText(toString(0));
+        this.txtNewViewsInModel.setText(toString(0));            this.txtUpdatedViewsInModel.setText(toString(0));            this.txtDeletedViewsInModel.setText(toString(0));            this.txtNewViewsInDatabase.setText(toString(0));             this.txtUpdatedViewsInDatabase.setText(toString(0));             this.txtDeletedViewsInDatabase.setText(toString(0));           this.txtConflictingViews.setText(toString(0));
+        this.txtNewViewObjectsInModel.setText(toString(0));      this.txtUpdatedViewObjectsInModel.setText(toString(0));      this.txtDeletedViewObjectsInModel.setText(toString(0));      this.txtNewViewObjectsInDatabase.setText(toString(0));       this.txtUpdatedViewObjectsInDatabase.setText(toString(0));       this.txtDeletedViewObjectsInDatabase.setText(toString(0));     this.txtConflictingViewObjects.setText(toString(0));
+        this.txtNewViewConnectionsInModel.setText(toString(0));  this.txtUpdatedViewConnectionsInModel.setText(toString(0));  this.txtDeletedViewConnectionsInModel.setText(toString(0));  this.txtNewViewConnectionsInDatabase.setText(toString(0));   this.txtUpdatedViewConnectionsInDatabase.setText(toString(0));   this.txtDeletedViewConnectionsInDatabase.setText(toString(0)); this.txtConflictingViewConnections.setText(toString(0));
+        this.txtNewImagesInModel.setText(toString(0));			 this.txtNewImagesInDatabase.setText(toString(0));
 		
 		if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-			// we reset the counters as they will be updated by the doExportEObject method
-		    this.txtNewElementsInModel.setText(toString(0));         this.txtUpdatedElementsInModel.setText(toString(0));         this.txtDeletedElementsInModel.setText(toString(0));         this.txtNewElementsInDatabase.setText(toString(0));          this.txtUpdatedElementsInDatabase.setText(toString(0));          this.txtDeletedElementsInDatabase.setText(toString(0));        this.txtConflictingElements.setText(toString(0));
-	        this.txtNewRelationshipsInModel.setText(toString(0));    this.txtUpdatedRelationshipsInModel.setText(toString(0));    this.txtDeletedRelationshipsInModel.setText(toString(0));    this.txtNewRelationshipsInDatabase.setText(toString(0));     this.txtUpdatedRelationshipsInDatabase.setText(toString(0));     this.txtDeletedRelationshipsInDatabase.setText(toString(0));   this.txtConflictingRelationships.setText(toString(0));
-	        this.txtNewFoldersInModel.setText(toString(0));          this.txtUpdatedFoldersInModel.setText(toString(0));          this.txtDeletedFoldersInModel.setText(toString(0));          this.txtNewFoldersInDatabase.setText(toString(0));           this.txtUpdatedFoldersInDatabase.setText(toString(0));           this.txtDeletedFoldersInDatabase.setText(toString(0));         this.txtConflictingFolders.setText(toString(0));
-	        this.txtNewViewsInModel.setText(toString(0));            this.txtUpdatedViewsInModel.setText(toString(0));            this.txtDeletedViewsInModel.setText(toString(0));            this.txtNewViewsInDatabase.setText(toString(0));             this.txtUpdatedViewsInDatabase.setText(toString(0));             this.txtDeletedViewsInDatabase.setText(toString(0));           this.txtConflictingViews.setText(toString(0));
-	        this.txtNewViewObjectsInModel.setText(toString(0));      this.txtUpdatedViewObjectsInModel.setText(toString(0));      this.txtDeletedViewObjectsInModel.setText(toString(0));      this.txtNewViewObjectsInDatabase.setText(toString(0));       this.txtUpdatedViewObjectsInDatabase.setText(toString(0));       this.txtDeletedViewObjectsInDatabase.setText(toString(0));     this.txtConflictingViewObjects.setText(toString(0));
-	        this.txtNewViewConnectionsInModel.setText(toString(0));  this.txtUpdatedViewConnectionsInModel.setText(toString(0));  this.txtDeletedViewConnectionsInModel.setText(toString(0));  this.txtNewViewConnectionsInDatabase.setText(toString(0));   this.txtUpdatedViewConnectionsInDatabase.setText(toString(0));   this.txtDeletedViewConnectionsInDatabase.setText(toString(0)); this.txtConflictingViewConnections.setText(toString(0));
-	        this.txtNewImagesInModel.setText(toString(0));			 this.txtNewImagesInDatabase.setText(toString(0));
-	
-			
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
 				setMessage("Comparing model from the database...");
@@ -1626,7 +1627,7 @@ public class DBGuiExportModel extends DBGui {
 		        this.exportConnection.emptyNeo4jDB();
 		    }
 		    
-	        if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+	        if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 	            this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 	            
 				// we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported
@@ -1634,6 +1635,7 @@ public class DBGuiExportModel extends DBGui {
 				    logger.info("There is no folder to import.");
 				else {
                     logger.info("Importing new folders ...");
+                    setProgressBarLabel("Importing new folders ...");
     				for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
     				    DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
     				    if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1659,6 +1661,7 @@ public class DBGuiExportModel extends DBGui {
                 logger.info("There is no element to import.");
             else {
     			logger.info("Importing new elements ...");
+    			setProgressBarLabel("Importing new elements ...");
     			for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
     			    DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
     	            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1683,6 +1686,7 @@ public class DBGuiExportModel extends DBGui {
                 logger.info("There is no relationship to import.");
             else {
     			logger.info("Importing new relationships ...");
+    			setProgressBarLabel("Importing new relationships ...");
     	        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
     	            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
     	            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1704,6 +1708,7 @@ public class DBGuiExportModel extends DBGui {
 	        }
 	        
 	        if ( (this.exportedModel.getAllSourceRelationshipsToResolve().size() != 0) || (this.exportedModel.getAllTargetRelationshipsToResolve().size() != 0) ) {
+	        	setProgressBarLabel("Resolving relationships ...");
 	            DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
 	            resolveRelationshipsCommand.execute();
 	            if ( resolveRelationshipsCommand.getException() != null )
@@ -1717,6 +1722,7 @@ public class DBGuiExportModel extends DBGui {
 	                logger.info("There is no view to import.");
 	            else {
 	                logger.info("Importing new views ...");
+	                setProgressBarLabel("Importing new views ...");
 	                for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
 	                    DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
 	                    if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1741,6 +1747,7 @@ public class DBGuiExportModel extends DBGui {
 	                logger.info("There is no view object to import.");
 	            else {
     				logger.info("Importing new views objects ...");
+    				setProgressBarLabel("Importing new views objects ...");
     		        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
     		            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
     		            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1764,6 +1771,7 @@ public class DBGuiExportModel extends DBGui {
 	                logger.info("There is no view connection to import.");
 	            else {
                     logger.info("Importing new views connections ...");
+                    setProgressBarLabel("Importing new views connections ...");
                     for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
                         DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
                         if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
@@ -1785,28 +1793,31 @@ public class DBGuiExportModel extends DBGui {
                 }
                 
                 if ( (this.exportedModel.getAllSourceConnectionsToResolve().size() != 0) || (this.exportedModel.getAllTargetConnectionsToResolve().size() != 0) ) {
+                	setProgressBarLabel("Resolving views connections ...");
                     DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
                     resolveConnectionsCommand.execute();
                     if ( resolveConnectionsCommand.getException() != null )
                     	throw resolveConnectionsCommand.getException();
                     this.exportCommands.add(resolveConnectionsCommand);
                 }
+                
+    			logger.info("Checking if components have been moved to new folder ...");
+    			setProgressBarLabel("checking if components have been moved to new folder ...");
+    			DBSetFolderToLastKnownCommand setFolderCommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
+    			if ( setFolderCommand.getException() != null )
+    			    throw setFolderCommand.getException();
+    			if ( setFolderCommand.needsToBeExecuted() ) {
+    			    logger.info("Moving components to new folders");
+    			    setFolderCommand.execute();
+    	            if ( setFolderCommand.getException() != null )
+    	                throw setFolderCommand.getException();
+    	            this.exportCommands.add(setFolderCommand);
+    			} else
+    			    logger.info("No component to move");
 			}
 			
-			logger.info("Checking if components have been moved to new folder ...");
-			DBSetFolderToLastKnownCommand setFolderCommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
-			if ( setFolderCommand.getException() != null )
-			    throw setFolderCommand.getException();
-			if ( setFolderCommand.needsToBeExecuted() ) {
-			    logger.info("Moving components to new folders");
-			    setFolderCommand.execute();
-	            if ( setFolderCommand.getException() != null )
-	                throw setFolderCommand.getException();
-	            this.exportCommands.add(setFolderCommand);
-			} else
-			    logger.info("No component to move");
-                
 			logger.info("Exporting elements ...");
+			setProgressBarLabel("Exporting elements ...");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
 				IArchimateElement element = elementsIterator.next().getValue();
@@ -1814,6 +1825,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 
 			logger.info("Exporting relationships ...");
+			setProgressBarLabel("Exporting relationships ...");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
 				IArchimateRelationship relationship = relationshipsIterator.next().getValue();
@@ -1821,15 +1833,17 @@ public class DBGuiExportModel extends DBGui {
 			}
 			
             
-            logger.info("Exporting folders ...");
-            Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
-            while ( foldersIterator.hasNext() ) {
-                IFolder folder = foldersIterator.next().getValue();
-                doExportEObject(folder);
-            }
-			
 			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+	            logger.info("Exporting folders ...");
+	            setProgressBarLabel("Exporting folders ...");
+	            Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
+	            while ( foldersIterator.hasNext() ) {
+	                IFolder folder = foldersIterator.next().getValue();
+	                doExportEObject(folder);
+	            }
+				
                 logger.info("Exporting views ...");
+                setProgressBarLabel("Exporting views ...");
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
                 while ( viewsIterator.hasNext() ) {
                     IDiagramModel view = viewsIterator.next().getValue();
@@ -1843,6 +1857,7 @@ public class DBGuiExportModel extends DBGui {
                 }
                 
                 logger.info("Exporting view objects ...");
+                setProgressBarLabel("Exporting view objects ...");
 	            Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 	            while ( viewObjectsIterator.hasNext() ) {
 	                IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
@@ -1852,6 +1867,7 @@ public class DBGuiExportModel extends DBGui {
 	            }
 	            
 				logger.info("Exporting view connections ...");
+				setProgressBarLabel("Exporting view connections ...");
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
@@ -1861,6 +1877,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 				
 				logger.info("Exporting images ...");
+				setProgressBarLabel("Exporting images ...");
 				// no need to use imagesNotInModel as the requested images have been imported at the same time as their view object
 		    	IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: this.exportedModel.getAllImagePaths() ) {

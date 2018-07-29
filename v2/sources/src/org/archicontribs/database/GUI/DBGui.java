@@ -1034,6 +1034,14 @@ public class DBGui {
 
 		resetProgressBar();
 	}
+	
+	public void setProgressBarLabel(String label) {
+		this.lblProgressBar.setText(label);
+	}
+	
+	public String getProgressBarLabel() {
+		return this.lblProgressBar.getText();
+	}
 
 	/**
 	 * Creates the progress bar that will allow to follow the export process
@@ -1076,7 +1084,7 @@ public class DBGui {
 	}
 
 	public void setMessage(String message) {
-		setMessage(message, YELLOW_COLOR);
+		setMessage(message, GROUP_BACKGROUND_COLOR);
 	}
 
 	protected void setMessage(String message, Color background) {
@@ -1424,7 +1432,8 @@ public class DBGui {
 	public byte[] createImage(IDiagramModel view, double scale, int margin) {
 		byte[] imageContent = null;
 
-		setMessage("Creating screenshot of view \""+view.getName()+"\"");
+		String oldLabel = getProgressBarLabel();
+		setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
 
 		try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
 			try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
@@ -1443,7 +1452,7 @@ public class DBGui {
 			logger.error("Failed to close ByteArrayOutputStream", err);
 		}
 
-		closeMessage();
+		setProgressBarLabel(oldLabel);
 
 		return imageContent;
 	}
