@@ -8,8 +8,58 @@
 </head>
 
 <body>
-<h1>Database plugin</h1>
-<h2>Single component import</h2>
-Please enter your text here.
+<h1>Import components from a database</h1>
+This page describes how to import components from a database.<br>
+<br>
+To import a component, you need to right-click on any existing model's component and select the <b><em>Import components from database</em></b> context menu option.
+<br>
+<h2>The graphical interface</h2>
+As every window of the database plugin, the export window is split in 5 zones:
+<ul>
+   <li>The left zone shows the plugin's logo and the list of actions.</li>
+   <li>The right hand-side of the export window is split in 3 zones:<ul>
+      <li>The database selection</li>
+      <li>The class of components to import</li>
+      <li>The components to import</li>
+   </ul></li>
+</ul>
+<h3 id="database_selection">The database selection</h3>
+This section allows to select the database from where the components should be imported. The databases are presented in the order defined on the preference page.<br>
+<br>
+The "set preferences" button allows to directly open the preference page to update the database list or set preferences.<br>  
+<br>
+Please note that the Neo4j databases are not presented here as only exporting is supported to Neo4j databases.
+<br>
+<h3>The class of components to import</h3>
+At this stage, you need to choose if you wish to import a model (i.e. merge a model), an element or a view (at this time, folders are not supported):<br>
+<img class="image" src="../img/import_individual_model.png">
+<br>
+<img class="image" src="../img/import_individual_element.png">
+<br>
+<img class="image" src="../img/import_individual_view.png">
+<br>
+A filter allows to show up the components whose name contain the content of the filter (the case is ignored). It is possible to use the percent sign (%) as a wildcard.<br>
+<br>
+When the <em>elements</em> type is selected, you may choose as well the classes to list in the components table. You may select/unselect a class, a complete row or a complete column by clicking on it. Please be aware that the elements list can become huge, so it would be wise not to select too mny classes at the same time if you've got many elements in your database.<br>
+<br>
+<h3>The components to import</h3>
+The bottom part of the window lists the models, elements or views that correspond to your choice. You may then select one or several of them.<br>
+<br>
+When a view is selected, a screenshot of the view is shown next to the table if the database contains views screenshots.When the mouse stands over a component, then a popup is shown with the component's properties (if it has got any).<br>
+<br>
+To import the selected component(s), you may either double click in the table or click on the "<em>Import</em>" button.<br>
+<h3>The import modes</h3>
+The import mode allows to specify how the components will be imported. Three modes are available:
+<ul>
+   <li><b>Force copy mode</b>: in this mode, all the components will have a new ID that will be distinct from the one in the database. The imported components and the components in the database will therefore be independent: updating the ones will not impact the others.</li>  
+   <li><b>Force shared mode</b>: in this mode, all the components will be imported with their existing ID from the database. All the components will therefore be shared across the models: the updates done on those components in one model will be seen across all the models where they are present.</li>
+   <li><b>Default template mode</b>: in this mode, which allows to mix copy and shared mode, the import mode is distinct for each component and depends on their properties:<ul>
+      <li>If the component has got a property called "<b><em>template</em></b>" with value "<b><em>shared</em></b>": then the component is imported in <b>shared mode</b>,</li>
+      <li>If the component doesn't have a property called "<b><em>template</em></b>", or if its value is not "<b><em>shared</em></b>": then the component is imported in <b>copy mode</b>.</li>
+   </ul></li>
+</ul>
+A "<b><em>(copy)</em></b>" mention is appended to all the components imported in copy mode. This mention can be modified or removed in the plugin's preferences.
+<h3>Undo / redo</h3>
+All the imports can be undone using the <b><em>Ctrl-Z</em></b> key or Archi's menu, and redone using the <b><em>Ctrl-Y</em></b> key or Archi's menu.  
 </body>
 </html>

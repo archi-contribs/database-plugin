@@ -8,8 +8,37 @@
 </head>
 
 <body>
-<h1>Database plugin</h1>
-<h2>Model import</h2>
-Please enter your text here.
+<h1>Import a model from a database</h1>
+<br>
+This page describes how to import a model from a database.<br>
+<br>
+To import a model from a database, you can access the <b><em>File / Import / Import model from database</em></b> menu option of Archi, or if no model exist in Archi, right-click on model's tree area and select the <b><em>Import model from database</em></b> context menu option.<br>
+<h2 id="graphical_interface">The graphical interface</h2>
+As every window of the database plugin, the import window is split in 5 zones:
+<ul>
+  <li>The left zone shows the plugin's logo and the list of actions.</li>
+  <li>The right hand-side of the import window is split in 3 zones:
+  <ul>
+    <li>The database selection</li>
+    <li>The models</li>
+    <li>The model's versions</li>
+  </ul></li>
+</ul>
+<img class="image" src="../img/import-gui.png"><br>
+<h3 id="database_selection">The database selection</h3>
+This section allows to select the database from where the model should be imported. The databases are presented in the order defined on the preference page.<br>
+<br>
+The "set preferences" button allows to directly open the preference page to update the database list or set preferences.<br>  
+<br>
+Please note that the Neo4j databases are not presented here as only exporting is supported to Neo4j databases.
+<br> 
+<h3 id="models">The models</h3>
+The models that are found in the database are presented in alphabetical order. A filter allows to limit the list to models having the specified string in their name (case insensitive). You may use the percent sign (%) as a wildcard.
+<br>
+<h3 id="database_selection">The model's versions</h3>
+Once you select a model, the 
+
+
+
 </body>
 </html>

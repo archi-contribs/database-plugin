@@ -8,13 +8,13 @@
 </head>
 
 <body>
-<h1 style="color: blue; text-decoration: underline;">Database structure</h1>
+<h1>Export a model to a database</h1>
 <br>
-This page describes the export of a model in a database.<br>
-<img class="image" src="../img/export-gui.png"><br>
+This page describes how to export a model in a database.<br>
 <br>
+To export a model to a database, you first need to select the model to export, then either access the <b><em>File / Export / Export model to database</em></b> menu option of Archi, or right-click on the model's name and select the <b><em>Export model to database</em></b> context menu option.<br>
 <h2 id="graphical_interface">The graphical interface</h2>
-As every window of the database plugin, the export window is cutted in 5 zones:
+As every window of the database plugin, the export window is split in 5 zones:
 <ul>
   <li>The left zone shows the plugin's logo and the list of actions.</li>
   <li>The right hand-side of the export window is split in 3 zones:
@@ -24,12 +24,14 @@ As every window of the database plugin, the export window is cutted in 5 zones:
     <li>The model's components</li>
   </ul></li>
 </ul>
+<img class="image" src="../img/export-gui.png"><br>
 <br>
 <h3 id="database_selection">The database selection</h3>
 This section allows to select the database where the model should be exported. The databases are presented in the order defined on the preference page.<br>
 <br>
 The "set preferences" button allows to directly open the preference page to update the database list or set preferences.<br>  
 <br>
+Please note that it is possible to export any model in any database, even if the model has been imported from another database or loaded from an Archimate file.<br>
 <h3 id="versions_of_model">The versions of the model</h3>
 This section lists the versions of the model that already exist in the database.<br>
 <br>
@@ -91,5 +93,9 @@ At the end of the export process, the progress bar is replaced by a status messa
 The export to the database cannot be undone, but in case some components have been imported or updated during the export process, the whole import/update can be undone using Archi undo/redo mechanism (menu Undo/Redo or keys ctrl-Z/ctrl-Y).<br>
 <br>
 <h2 id="conflict_resolution">Conflict resolution</h2>
+<h2>Undo / redo</h2>
+All the imports or updates done during the export process can be undone using the <b><em>Ctrl-Z</em></b> key or Archi's menu, and redone using the <b><em>Ctrl-Y</em></b> key or Archi's menu.<br>
+<br>
+Nevertheless, one a new version is written to the database, it cannot be undone.
 </body>
 </html>
