@@ -21,7 +21,7 @@ As every window of the database plugin, the import window is split in 5 zones:
   <ul>
     <li>The database selection</li>
     <li>The models</li>
-    <li>The model's versions</li>
+    <li>The versions of the selected model</li>
   </ul></li>
 </ul>
 <img class="image" src="../img/import-gui.png"><br>
@@ -30,15 +30,21 @@ This section allows to select the database from where the model should be import
 <br>
 The "set preferences" button allows to directly open the preference page to update the database list or set preferences.<br>  
 <br>
-Please note that the Neo4j databases are not presented here as only exporting is supported to Neo4j databases.
+Please note that the Neo4j databases are not presented here as the plugin uniquely allows exports to Neo4j databases.
 <br> 
 <h3 id="models">The models</h3>
 The models that are found in the database are presented in alphabetical order. A filter allows to limit the list to models having the specified string in their name (case insensitive). You may use the percent sign (%) as a wildcard.
 <br>
-<h3 id="database_selection">The model's versions</h3>
-Once you select a model, the 
-
-
-
+<h3 id="database_selection">The versions of the selected model</h3>
+Once you select a model, the versions of the selected model are displayed.<br>
+<br>
+Once on select a version, it's name, purpose and release note are displayed.<br>
+<br>
+<h2>Importing a model</h2>
+It is possible to import a model by a double-click on the desired version, or by a simple click on the "<b><em>Import</em></b>" button:
+<ul>
+   <li>When a numbered version is selected, the plugin imports the version <u><b>as it was</b></u> when it has been exported. This means that any update done after the export on the model components, through other models, are not taken in account.</li>
+   <li>When the special "<b><em>latest version</em></b>" version is selected, the plugin imports the <u><b>latest version</b></u> of all the model components, even if they've been updated through other models.</li>
+</ul>
 </body>
 </html>
