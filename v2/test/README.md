@@ -6,13 +6,15 @@
 
 `Please dho not forget to fill in an issue if you discover a misbehaviour.`
 
+## Plugin installation
+Download the *org.archicontribs.database_xxx.jar* file in Archi's plugins folder and restart Archi.
 
+As the plugin is a beta release, it is not able to update itself when a new beta release is available. To update the plugin, you need to manually replace the old jar file by the new one.
 
 ## Known bugs or points of attention:
 These points need to be addressed before the release of version 2.1:
 
 * When a component is moved to another folder, it is not seen as a component change. If only folder moves are done, then the export plugin may say that the model is up to date even if it is not.
-* The plugins requires quite a bit of memory for its internal work, often leading to increase the JVM size (set Java parameter -Xmx1024 in Archi.ini file)
 
 ## Planned improvements
 In addition, some improvements are planned but it's not guaranteed that they will be part of the version 2.1:
@@ -33,17 +35,15 @@ In addition, some improvements are planned but it's not guaranteed that they wil
 
 ## Changes from the version 2.0.7b:
 * *Import components:*
-  * Added documentation column to help distinguish components having the same name
+  * Added documentation column in the table to help distinguish components having the same name
   * Added tootip with properties to help distinguish components having the same name
-  * Add popup message during the import as it may take some time
-  * The import can now be undone / redone
+  * Add message during the import as it may take some time
+  * Imports can now be undone / redone
   * A label now explains that the icons can be selected on the import element window
+  * Classes to import are pre-selectionned depending on the folder where the components will be imported to
   * The categories can now be clicked to select/un-select the whole category
-  * It is now possible to get history from folders and views
-  * The components are now imported in the selected folder
-  * The class of the selected folder is pre-selected
+  * It is now possible to import (merge) models
   * Introduce new "template" import mode that mixes copy and shared mode
-  * Possibility to import a whole model into another one (merge models)
 
 * *Import model:*
   * A context menu entry allowin got import a model has been added when no model is selected
@@ -54,16 +54,16 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * Complete rewrite of the comparison management (use timestamps in addition of version number as it is possible to switch from a database to another)
   * In case of exception, the database lock is released before the error message is displayed
   * An option has been added to show / not show the model's comparison to the database before the export (showing comparison gives more information to the user but it takes some time on big models)
-  * **For relational databases**:
+  * *For relational databases*:
     * The export is now in "collaborative mode", which syncs the model with the database:
       * It can be compared to a pull+push to GitHub.
       * It is slower than the previous mode but allows several people to work on the same model at the same time
     * Allow to specify border width and scale factor for views screenshots
 	* To simplify, it is no more possible to choose between whole export or elements and relationships only
-  * **For Neo4J databases**:
+  * *For Neo4J databases*:
     * Create two export modes: native and extended:
-      * **Native mode** means that Archi relationships are exported as Neo4J relationships (but this mode does not allow to export relationships on relationships)
-      * **Extended mode** means that Archi relationships are exported as Neo4J nodes (this mode makes Neo4J diagrams more complex but allow relationships on relationships)
+      * *Native mode* means that Archi relationships are exported as Neo4J relationships (but this mode does not allow to export relationships on relationships)
+      * *Extended mode* means that Archi relationships are exported as Neo4J nodes (this mode makes Neo4J diagrams more complex but allow relationships on relationships)
     * New option to empty the database before the export
     * New option to specialize relationships
 
@@ -72,20 +72,20 @@ In addition, some improvements are planned but it's not guaranteed that they wil
   * It is now possible to import/export an individual component from the history window
 
 * *Other:*
-  * **bug fixes:**
-    * Exporting blocks or images objects with no images set does not generate errors anymore
+  * *bug fixes: *
+    * Fix export blocks and images objects that have got no image set
     * Fix plugin initialization failure that occurred some times
     * Fix progress bar during download new version of the plugin from GitHub
-    * Increase compiler severity to maximum and resolve all the warnings to improve code resiliency
-    * Reduce memory leak
     * Fix centering of GUI windows, especially on hiDPI displays
     * Fix calculation of numbers of images to import
-    * Better management of the cancel button during the import and export process
-    * Cleanup properties before import rather than update existing values as several properties can have the same name
+    * Fix properties updates when several of them have got the same name during sync of existing components
     * Fix centering of GUI windows especially on HiDPI displays
-  * **Improvements:**
+  * *Improvements:*
     * Fill in the inline help pages
     * Rewrite debug and trace messages to be more useful
+    * Increase compiler severity to maximum and resolve all the warnings to improve code resiliency
+    * Reduce memory leak
+    * Better management of the cancel button during the import and export process
     * Add the ability to import an image from the database (on the Image and Block objects in Canvas)
     * Remove the name, the documentation and the properties from view objects and connections checksum as they are not related to the view objects and connections themselves, but to the related element or relationship
     * Some annoying popups have been replaced by messages directly in the import/export window
