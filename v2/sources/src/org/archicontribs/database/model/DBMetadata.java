@@ -907,7 +907,7 @@ public class DBMetadata  {
     	if ( (this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) {
 	    	try {
 	    		return ((IDiagramModelObject)this.component).getAlpha();
-	    	} catch (@SuppressWarnings("unused") Exception ign) {
+	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
 	    		// in 4.2, getAlpha() does not exist
 	    	}
 	    	return 255;
@@ -919,7 +919,7 @@ public class DBMetadata  {
     	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getAlpha()) ) {
 	    	try {
 	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
-	    	} catch (@SuppressWarnings("unused") Exception ign) {
+	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
 	    		// in 4.2, getAlpha() does not exist
 	    	}
     	}
