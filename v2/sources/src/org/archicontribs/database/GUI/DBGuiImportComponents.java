@@ -9,10 +9,12 @@ package org.archicontribs.database.GUI;
 import java.io.ByteArrayInputStream;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.Collator;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.apache.log4j.Level;
@@ -1698,9 +1700,13 @@ public class DBGuiImportComponents extends DBGui {
 		TableColumn colName = new TableColumn(this.tblComponents, SWT.NONE);
 		colName.setText("Name");
 		colName.setWidth(150);
+		colName.addListener(SWT.Selection, this.sortListener);
+		
+		
 		TableColumn colDocumentation = new TableColumn(this.tblComponents, SWT.NONE);
 		colDocumentation.setText("Documentation");
 		colDocumentation.setWidth(300);
+		colDocumentation.addListener(SWT.Selection, this.sortListener);
 
 		this.tblComponents.addListener(SWT.MouseDoubleClick, new Listener() {
 			@Override
@@ -2401,4 +2407,61 @@ public class DBGuiImportComponents extends DBGui {
 
 		super.close();
 	}
+	
+	private Listener sortListener = new Listener() {
+		@Override
+		public void handleEvent(Event e) {
+			TableColumn sortedColumn = (TableColumn) e.widget;
+			Table table = sortedColumn.getParent();
+			table.setSortColumn(sortedColumn);
+			Integer sortDirection = (Integer)sortedColumn.getData("sortDirection");
+        	if ( sortDirection == null || sortDirection == SWT.DOWN )
+        		sortDirection=SWT.UP;
+        	else
+        		sortDirection=SWT.DOWN;
+        	sortedColumn.setData("sortDirection",sortDirection);
+        	table.setSortDirection(sortDirection);
+        	
+			int columnIndex = 0;
+			for ( int i = 0; i < table.getColumns().length; ++i ) {
+				if ( table.getColumn(i).equals(sortedColumn) ) {
+					columnIndex = i;
+					break;
+				}
+			}
+			
+			TableItem[] items = table.getItems();
+			Collator collator = Collator.getInstance(Locale.getDefault());
+			
+			for (int i = 1; i < items.length; i++) {
+				String value1 = items[i].getText(columnIndex);
+				for (int j = 0; j < i; j++) {
+					String value2 = items[j].getText(columnIndex);
+					if ( (sortDirection == SWT.UP && collator.compare(value1, value2) < 0) || (sortDirection == SWT.DOWN && collator.compare(value1, value2) > 0)) {
+						// we save the old values
+						String name = items[i].getText(0);
+						String documentation = items[i].getText(1);
+						String tooltip = (String) items[i].getData("tooltip");
+						Image image = items[i].getImage();
+						
+						// we delete the old row
+						items[i].dispose();
+						
+						// we create the new one
+						TableItem item = new TableItem(table, SWT.NONE, j);
+						
+						// and restore the saved values
+						item.setText(0, name);
+						item.setText(1, documentation);
+						item.setData("tooltip", tooltip);
+						item.setImage(image);
+						
+						// at last, we refresh the items list
+						items = table.getItems();
+						break;
+					}
+				}
+			}
+		}
+	};
 }
