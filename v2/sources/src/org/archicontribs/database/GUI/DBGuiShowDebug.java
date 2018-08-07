@@ -11,6 +11,7 @@ import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -25,13 +26,15 @@ import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
-import com.archimatetool.model.IDiagramModelImage;
-import com.archimatetool.model.IDiagramModelImageProvider;
+import com.archimatetool.model.IDiagramModelArchimateObject;
+import com.archimatetool.model.IIdentifier;
 
 public class DBGuiShowDebug extends DBGui {
     //private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
     
-    private IArchimateModelObject selectedObject;
+    private EObject selectedObject;
+    private DBMetadata selectedMetadata;
+    private DBArchimateModel model;
     
     private DBDatabaseExportConnection connection = null;
     
@@ -67,11 +70,22 @@ public class DBGuiShowDebug extends DBGui {
      * @param oj the component which we want the debug information
      * @param title the title of the window
      */
-    public DBGuiShowDebug(IArchimateModelObject obj, String title) {
+    public DBGuiShowDebug(EObject obj, String title) {
         // We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
         super(title);
         
         this.selectedObject = obj;
+        // in Archi 4.2 and previous, we need to separate the two cases
+        if ( obj instanceof IArchimateModelObject ) {
+        	this.model = (DBArchimateModel) ((IArchimateModelObject)obj).getArchimateModel();
+        	this.selectedMetadata = ((IDBMetadata)obj).getDBMetadata();
+        } else if ( obj instanceof IDiagramModelArchimateObject ) {
+        	this.model = (DBArchimateModel) ((IDiagramModelArchimateObject)obj).getArchimateConcept().getArchimateModel();
+        	this.selectedMetadata = ((IDBMetadata)obj).getDBMetadata();
+        } else {
+        	popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
+        	return;
+        }
         
         if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing debug information about "+((IDBMetadata)obj).getDBMetadata().getDebugName());
         
@@ -331,24 +345,19 @@ public class DBGuiShowDebug extends DBGui {
         super.run();
         
         try {
-            ((DBArchimateModel)this.selectedObject.getArchimateModel()).countObject(this.selectedObject, true, null);
+            this.model.countObject(this.selectedObject, true, null);
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent )
-                ((DBArchimateModel)this.selectedObject.getArchimateModel()).countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true, null);
+                this.model.countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true, null);
         } catch (Exception e) {
             popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
             close();
             return;
         }
         
-        this.selectedComponentNameValueLbl.setText(this.selectedObject.getName());
-        this.selectedComponentIdValueLbl.setText(this.selectedObject.getId());
+        this.selectedComponentNameValueLbl.setText(this.selectedMetadata.getName());
+        this.selectedComponentIdValueLbl.setText(this.selectedMetadata.getId());
         this.selectedComponentClassValueLbl.setText(this.selectedObject.getClass().getSimpleName());
-        String imagePath = null;
-        if ( this.selectedObject instanceof IDiagramModelImageProvider )  
-            imagePath = ((IDiagramModelImageProvider)this.selectedObject).getImagePath() == null ? "(null)" : ((IDiagramModelImageProvider)this.selectedObject).getImagePath();
-        else if ( this.selectedObject instanceof IDiagramModelImage )  
-            imagePath = ((IDiagramModelImage)this.selectedObject).getImagePath() == null ? "(null)" : ((IDiagramModelImage)this.selectedObject).getImagePath();
-        
+        String imagePath = this.selectedMetadata.getImagePath();
         if ( imagePath == null ) {
             this.selectedComponentImagePathLbl.setVisible(false);
             this.selectedComponentImagePathValueLbl.setVisible(false);
@@ -365,7 +374,6 @@ public class DBGuiShowDebug extends DBGui {
             fd.top = new FormAttachment(this.selectedComponentImagePathLbl, 2);
             fd.left = new FormAttachment(0, 70);
             this.selectedComponentDatabaseStatusLbl.setLayoutData(fd);
-            
             this.selectedComponentImagePathValueLbl.setText(imagePath);
         }
         
@@ -446,7 +454,7 @@ public class DBGuiShowDebug extends DBGui {
                 metadata.getInitialVersion().reset();
                 metadata.getDatabaseVersion().reset();
                 metadata.getLatestDatabaseVersion().reset();
-                this.connection.getVersionFromDatabase(this.selectedObject);
+                this.connection.getVersionFromDatabase((IIdentifier)this.selectedObject);
                 
                 if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
                     IArchimateConcept concept = ((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept();
@@ -464,28 +472,26 @@ public class DBGuiShowDebug extends DBGui {
         }
         
         if ( this.selectedObject instanceof DBArchimateModel ) {
-            DBArchimateModel model = (DBArchimateModel)this.selectedObject;
-            
             TableItem item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Initial");
-            item.setText(1, String.valueOf(model.getInitialVersion().getVersion()));
-            item.setText(2, model.getInitialVersion().getContainerChecksum());
+            item.setText(1, String.valueOf(this.model.getInitialVersion().getVersion()));
+            item.setText(2, this.model.getInitialVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getInitialVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getInitialVersion().getTimestamp().toString());
+            item.setText(4, this.model.getInitialVersion().getTimestamp() == DBVersion.NEVER ? "" : this.model.getInitialVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Current");
-            item.setText(1, String.valueOf(model.getCurrentVersion().getVersion()));
-            item.setText(2, model.getCurrentVersion().getContainerChecksum());
+            item.setText(1, String.valueOf(this.model.getCurrentVersion().getVersion()));
+            item.setText(2, this.model.getCurrentVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getCurrentVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getCurrentVersion().getTimestamp().toString());
+            item.setText(4, this.model.getCurrentVersion().getTimestamp() == DBVersion.NEVER ? "" : this.model.getCurrentVersion().getTimestamp().toString());
             
             item = new TableItem(this.selectedComponentDebugTable, SWT.NONE);
             item.setText(0, "Database");
-            item.setText(1, String.valueOf(model.getDatabaseVersion().getVersion()));
-            item.setText(2, model.getDatabaseVersion().getContainerChecksum());
+            item.setText(1, String.valueOf(this.model.getDatabaseVersion().getVersion()));
+            item.setText(2, this.model.getDatabaseVersion().getContainerChecksum());
             item.setText(3, "");
-            item.setText(4, model.getDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : model.getDatabaseVersion().getTimestamp().toString());
+            item.setText(4, this.model.getDatabaseVersion().getTimestamp() == DBVersion.NEVER ? "" : this.model.getDatabaseVersion().getTimestamp().toString());
         } else {
             DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
             
