@@ -130,7 +130,7 @@ public class DBGuiComponentHistory extends DBGui {
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are identical");
 		        	else
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are different (check highlighted lines):");
-		        	DBGuiComponentHistory.this.btnExportModelVersion.setEnabled(!areIdentical.booleanValue());
+		        	DBGuiComponentHistory.this.btnExportModelVersion.setEnabled(!areIdentical.booleanValue() && DBGuiComponentHistory.this.tblVersions.getSelectionIndex() == 0);
 		        	DBGuiComponentHistory.this.btnImportDatabaseVersion.setEnabled(!areIdentical.booleanValue());
 		        }
 		    }
@@ -237,7 +237,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.btnExportModelVersion = new Button(grpComponents, SWT.NONE);
 		this.btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-		this.btnExportModelVersion.setText("Export to the database");
+		this.btnExportModelVersion.setText("Export your version to the database");
 		this.btnExportModelVersion.setEnabled(false);
 		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
 		    @Override
