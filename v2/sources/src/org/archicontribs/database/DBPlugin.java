@@ -311,6 +311,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("traceSQL",                true);
 		preferenceStore.setDefault("checkMaxMemory",          true);
 		preferenceStore.setDefault("copySuffix",              " (copy)");
+		preferenceStore.setDefault("defaultImportMode",       "template");
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
 		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");

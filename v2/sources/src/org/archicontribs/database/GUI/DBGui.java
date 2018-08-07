@@ -741,31 +741,34 @@ public class DBGui {
 		if ( option1 == null ) {
 			this.radioOption1.setText("");
 			this.radioOption1.setToolTipText("");
+			this.radioOption1.setVisible(false);
 		} else {
 			this.radioOption1.setText(option1);
-			if ( toolTip1 != null )
-				this.radioOption1.setToolTipText(toolTip1);
 			this.radioOption1.setSelection(option1Selected);
 			this.radioOption1.setVisible(true);
+			if ( toolTip1 != null ) this.radioOption1.setToolTipText(toolTip1);
 		}
 
 		if ( option2 == null ) {
 			this.radioOption2.setText("");
 			this.radioOption2.setToolTipText("");
+			this.radioOption2.setVisible(true);
 		} else {
 			this.radioOption2.setText(option2);
-			if ( toolTip2 != null ) this.radioOption2.setToolTipText(toolTip2);
 			this.radioOption2.setSelection(option2Selected);
 			this.radioOption2.setVisible(true);
+			if ( toolTip2 != null ) this.radioOption2.setToolTipText(toolTip2);
 		}
 
 		if ( option3 == null ) {
 			this.radioOption3.setText("");
 			this.radioOption3.setToolTipText("");
+			this.radioOption3.setVisible(false);
 		} else {
 			this.radioOption3.setText(option3);
+			this.radioOption3.setSelection(option3Selected);
+			this.radioOption3.setVisible(true);
 			if ( toolTip3 != null ) this.radioOption3.setToolTipText(toolTip3);
-			this.radioOption2.setSelection(option3Selected);
 		}
 
 		this.compoBottom.layout();

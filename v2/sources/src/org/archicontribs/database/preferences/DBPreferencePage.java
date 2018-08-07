@@ -74,6 +74,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnKeepPartiallyImportedModel;
 	private Button btnShoIdInContextMenu;
 	private Text txtCopySuffix;
+	private Button btnTemplateImportMode;
+	private Button btnSharedImportMode;
+	private Button btnCopyImportMode;
 	
 	DBLogger logger = new DBLogger(DBPreferencePage.class);
 	
@@ -259,7 +262,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
 		Label lblCopySuffix = new Label(grpMiscellaneous, SWT.NONE);
 		lblCopySuffix.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblCopySuffix.setText("Append suffix when import component in copy mode :");
+		lblCopySuffix.setText("Append suffix when import component in copy mode:");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnShoIdInContextMenu, 5);
 		fd.left = new FormAttachment(0, 10);
@@ -277,6 +280,41 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
         grpHelp.setLayout(new FormLayout());
         grpHelp.setText("Online help: ");
+        
+        Label lblDefaultImportMode = new Label(grpMiscellaneous, SWT.NONE);
+        lblDefaultImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        lblDefaultImportMode.setText("Default components import mode:");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblCopySuffix, 5);
+		fd.left = new FormAttachment(0, 10);
+		lblDefaultImportMode.setLayoutData(fd);
+		
+		this.btnTemplateImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnTemplateImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnTemplateImportMode.setText("Template mode");
+		this.btnTemplateImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("template"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDefaultImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblDefaultImportMode, 30);
+		this.btnTemplateImportMode.setLayoutData(fd);
+		
+		this.btnSharedImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnSharedImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnSharedImportMode.setText("Force shared mode");
+		this.btnSharedImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("shared"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnTemplateImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.btnTemplateImportMode, 10);
+		this.btnSharedImportMode.setLayoutData(fd);
+		
+		this.btnCopyImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnCopyImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnCopyImportMode.setText("Force copy mode");
+		this.btnCopyImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("copy"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnSharedImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.btnSharedImportMode, 10);
+		this.btnCopyImportMode.setLayoutData(fd);
         
         gd = new GridData();
         //gd.heightHint = 40;
@@ -450,6 +488,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", this.btnShoIdInContextMenu.getSelection());
     	preferenceStore.setValue("copySuffix", this.txtCopySuffix.getText());
+    	preferenceStore.setValue("defaultImportMode", this.btnTemplateImportMode.getSelection() ? "template" : (this.btnSharedImportMode.getSelection() ? "shared" : "copy"));
     	
     	if ( this.table != null )
     	    this.table.store();
