@@ -735,7 +735,7 @@ public class DBGui {
 		this.radioOption3.setSelection(realSelectedOption == 2);
 	}
 
-	protected void setOption(String label, String option1, String toolTip1, String option2, String toolTip2, String option3, String toolTip3) {
+	protected void setOption(String label, String option1, boolean option1Selected, String toolTip1, String option2, boolean option2Selected, String toolTip2, String option3, boolean option3Selected, String toolTip3) {
 		if ( label != null ) this.lblOption.setText(label);
 
 		if ( option1 == null ) {
@@ -745,7 +745,7 @@ public class DBGui {
 			this.radioOption1.setText(option1);
 			if ( toolTip1 != null )
 				this.radioOption1.setToolTipText(toolTip1);
-			this.radioOption1.setSelection(true);
+			this.radioOption1.setSelection(option1Selected);
 			this.radioOption1.setVisible(true);
 		}
 
@@ -755,7 +755,7 @@ public class DBGui {
 		} else {
 			this.radioOption2.setText(option2);
 			if ( toolTip2 != null ) this.radioOption2.setToolTipText(toolTip2);
-			this.radioOption2.setSelection(!this.radioOption1.getSelection());
+			this.radioOption2.setSelection(option2Selected);
 			this.radioOption2.setVisible(true);
 		}
 
@@ -765,7 +765,7 @@ public class DBGui {
 		} else {
 			this.radioOption3.setText(option3);
 			if ( toolTip3 != null ) this.radioOption3.setToolTipText(toolTip3);
-			this.radioOption2.setSelection(!this.radioOption1.getSelection() && !this.radioOption2.getSelection());
+			this.radioOption2.setSelection(option3Selected);
 		}
 
 		this.compoBottom.layout();
