@@ -42,6 +42,9 @@ import com.archimatetool.model.util.Logger;
  */
 public class DBImportElementFromIdCommand extends Command implements IDBImportFromIdCommand {
 	private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
+	
+	private static int createdViewObjectXLocation = 0;
+	private static int createdViewObjectYLocation = 0;
 
 	private IArchimateElement importedElement = null;
 	private IDiagramModelArchimateObject createdViewObject = null;
@@ -231,6 +234,12 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 
 			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
 				this.createdViewObject = ArchimateDiagramModelFactory.createDiagramModelArchimateObject(this.importedElement);
+				this.createdViewObject.getBounds().setLocation(createdViewObjectXLocation, createdViewObjectYLocation);
+				createdViewObjectXLocation += this.createdViewObject.getBounds().getWidth() + 10;
+				if ( createdViewObjectXLocation > 800 ) {
+				    createdViewObjectYLocation += this.createdViewObject.getBounds().getHeight() + 10;
+				    createdViewObjectXLocation = 0;
+				}
 				this.view.getChildren().add(this.createdViewObject);
 				this.model.countObject(this.createdViewObject, false, null);
 			}
@@ -319,5 +328,10 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	@Override
 	public Exception getException() {
 		return this.exception;
+	}
+	
+	public static void resetCreatedViewObjectsLocation() {
+	    createdViewObjectXLocation = 0;
+	    createdViewObjectYLocation = 0;
 	}
 }

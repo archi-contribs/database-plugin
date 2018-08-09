@@ -310,6 +310,9 @@ public class DBGuiImportComponents extends DBGui {
 		}
 
 		getDatabases(false);
+		
+		// we reset the location of the imported view objects if any
+		DBImportElementFromIdCommand.resetCreatedViewObjectsLocation();
 	}
 
 	/**
