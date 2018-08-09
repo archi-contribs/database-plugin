@@ -143,8 +143,6 @@ public class DBGuiExportModel extends DBGui {
 	public void run() {
 	    super.run();
 	    
-	    refreshDisplay();
-	    
         try {
     	    setMessage("Counting model's components");
             this.exportedModel.countAllObjects();

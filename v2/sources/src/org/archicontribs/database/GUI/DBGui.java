@@ -548,6 +548,8 @@ public class DBGui {
 	 * @throws Exception 
 	 */
 	protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
+	    refreshDisplay();
+	    
 		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(mustIncludeNeo4j);
 		if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
 			popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
@@ -599,6 +601,7 @@ public class DBGui {
 	 */
 	protected void databaseSelected() {
 		setMessage("Connecting to the database ...");
+	    refreshDisplay();
 
 		databaseSelectedCleanup();
 
