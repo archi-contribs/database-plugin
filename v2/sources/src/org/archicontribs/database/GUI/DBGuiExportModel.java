@@ -153,7 +153,7 @@ public class DBGuiExportModel extends DBGui {
             closeMessage();
         }
         
-        if ( logger.isDebugEnabled() ) logger.debug("the model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
+        if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
         
         this.txtTotalElements.setText(toString(this.exportedModel.getAllElements().size()));
         this.txtTotalRelationships.setText(toString(this.exportedModel.getAllRelationships().size()));
@@ -1975,7 +1975,7 @@ public class DBGuiExportModel extends DBGui {
 	}
 	
 	void copyExportedVersionToCurrentVersion() {
-		if ( logger.isDebugEnabled() ) logger.debug("updating current versions from exported versions");
+		if ( logger.isDebugEnabled() ) logger.debug("Updating current versions from exported versions");
 		
 	    this.exportedModel.getInitialVersion().set(this.exportedModel.getCurrentVersion());
         

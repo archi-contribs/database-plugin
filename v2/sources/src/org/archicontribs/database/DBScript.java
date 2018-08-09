@@ -110,7 +110,7 @@ public class DBScript {
 	            
 	            modelToImport.resolveSourceAndTargetConnections();
 	    
-	            if ( logger.isDebugEnabled() ) logger.debug("importing the images ...");
+	            if ( logger.isDebugEnabled() ) logger.debug("Importing the images ...");
 	            for (String path: connection.getAllImagePaths())
 	                connection.importImage(modelToImport, path);
 	        } catch ( Exception e) {

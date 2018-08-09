@@ -762,7 +762,7 @@ public class DBGuiImportModel extends DBGui {
 
             closeMessage();
 
-            logger.info("importing images ...");
+            logger.info("Importing images ...");
             for (String path: this.importConnection.getAllImagePaths()) {
                 this.importConnection.importImage(this.modelToImport, path);
                 this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));

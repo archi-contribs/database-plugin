@@ -1910,7 +1910,7 @@ public class DBGuiImportComponents extends DBGui {
 		}
 		this.lblPreview.setVisible(false);
 
-		if ( logger.isTraceEnabled() ) logger.trace("getting folders");
+		if ( logger.isTraceEnabled() ) logger.trace("Getting folders");
 
 		StringBuilder inList = new StringBuilder();
 		ArrayList<String> typeList = new ArrayList<String>();

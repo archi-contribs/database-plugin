@@ -363,9 +363,9 @@ public class DBPlugin extends AbstractUIPlugin {
 			pluginsFolder = (new File(pluginsFilename+File.separator+"..")).getCanonicalPath();
 
 			if ( logger.isDebugEnabled() ) {
-				logger.debug("plugin's package  = "+pluginsPackage);
-				logger.debug("plugin's folder   = "+pluginsFolder);
-				logger.debug("plugin's filename = "+pluginsFilename);
+				logger.debug("Plugin's package  = "+pluginsPackage);
+				logger.debug("Plugin's folder   = "+pluginsFolder);
+				logger.debug("Plugin's filename = "+pluginsFilename);
 			}
 
 			if ( !pluginsFilename.endsWith(".jar") ) {
@@ -386,7 +386,7 @@ public class DBPlugin extends AbstractUIPlugin {
 					}
 					
 					try {
-						if ( logger.isDebugEnabled() ) logger.debug("deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
+						if ( logger.isDebugEnabled() ) logger.debug("Deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
 						Files.delete(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"));
 					} catch ( @SuppressWarnings("unused") IOException e ) {
 						DBGui.popup(Level.ERROR, "Failed to delete file \""+pluginsFolder+File.separator+"databasePlugin.new\"\n\nYou need to delete it manually.");

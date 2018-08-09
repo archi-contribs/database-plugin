@@ -609,7 +609,7 @@ public class DBGui {
 
 		// we get the databaseEntry corresponding to the selected combo entry
 		this.selectedDatabase = this.databaseEntries.get(this.comboDatabases.getSelectionIndex());
-		if ( logger.isDebugEnabled() ) logger.debug("selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername()+", "+this.selectedDatabase.getPassword()+")");
+		if ( logger.isDebugEnabled() ) logger.debug("Selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername()+", "+this.selectedDatabase.getPassword()+")");
 
 		// then we connect to the database.
 		try {
@@ -967,7 +967,7 @@ public class DBGui {
 	 * The exception stacktrace is also printed on the standard error stream
 	 */
 	public static int question(String msg, String[] buttonLabels) {
-		if ( logger.isDebugEnabled() ) logger.debug("question: "+msg);
+		if ( logger.isDebugEnabled() ) logger.debug("Question: "+msg);
 
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
@@ -982,7 +982,7 @@ public class DBGui {
 			}
 		});
 
-		if ( logger.isDebugEnabled() ) logger.debug("answer: "+buttonLabels[questionResult]);
+		if ( logger.isDebugEnabled() ) logger.debug("Answer: "+buttonLabels[questionResult]);
 		return questionResult;
 	}
 
@@ -1179,7 +1179,7 @@ public class DBGui {
 	protected Boolean fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
 		assert ( memoryObject!=null );
 
-		logger.debug("showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
+		logger.debug("Showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
 
 		// we get the database version of the component
 		HashMap<String, Object> databaseObject;

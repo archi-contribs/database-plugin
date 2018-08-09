@@ -357,7 +357,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             setAutoCommit(false);
             
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"database_version");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"database_version");
             request("CREATE TABLE " + this.schema +"database_version ("
                     + "archi_plugin " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL"
@@ -365,7 +365,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             insert(this.schema+"database_version", databaseVersionColumns, DBPlugin.pluginName, databaseVersion);
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"bendpoints");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"bendpoints");
             request("CREATE TABLE " + this.schema +"bendpoints ("
                     + "parent_id " + this.OBJECTID +" NOT NULL, "
                     + "parent_version " + this.INTEGER +" NOT NULL, "
@@ -377,7 +377,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"elements");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"elements");
             request("CREATE TABLE " + this.schema +"elements ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -395,7 +395,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");					
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"elements_in_model");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"elements_in_model");
             request("CREATE TABLE "+this.schema+"elements_in_model ("
                     + "eim_id " + this.AUTO_INCREMENT + ", "
                     + "element_id " + this.OBJECTID +" NOT NULL, "
@@ -407,11 +407,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (eim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_elements");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_elements");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_elements_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_elements_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_elements_in_model");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_elements_in_model");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_elements_in_model "
                         + "BEFORE INSERT ON "+this.schema+"elements_in_model "
                         + "FOR EACH ROW "
@@ -420,7 +420,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                         + "END;");
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"folders");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"folders");
             request("CREATE TABLE "+this.schema+"folders ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -438,7 +438,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"folders_in_model");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"folders_in_model");
             request("CREATE TABLE "+this.schema+"folders_in_model ("
                     + "fim_id " + this.AUTO_INCREMENT+", "
                     + "folder_id " + this.OBJECTID +" NOT NULL, "
@@ -450,11 +450,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (fim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_folders_in_model");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_folders_in_model");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_folders_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_folders_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_folders_in_model");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_folders_in_model");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_folders_in_model "
                         + "BEFORE INSERT ON "+this.schema+"folders_in_model "
                         + "FOR EACH ROW "
@@ -463,14 +463,14 @@ public class DBDatabaseConnection implements AutoCloseable {
                         + "END;");
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"images");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"images");
             request("CREATE TABLE "+this.schema+"images ("
                     + "path " + this.OBJECTID +" NOT NULL, "
                     + "image " + this.IMAGE +" NOT NULL, "
                     + this.PRIMARY_KEY+" (path)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"models");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"models");
             request("CREATE TABLE "+this.schema+"models ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -487,7 +487,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"properties");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"properties");
             request("CREATE TABLE "+this.schema+"properties ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
                     + "parent_version " + this.INTEGER +" NOT NULL, "
@@ -497,7 +497,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
             
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"metadata");
             request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
                     + "parent_version " + this.INTEGER +" NOT NULL, "
@@ -507,7 +507,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"relationships");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"relationships");
             request("CREATE TABLE "+this.schema+"relationships ("
                     + "id "+this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -528,7 +528,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"relationships_in_model");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"relationships_in_model");
             request("CREATE TABLE "+this.schema+"relationships_in_model ("
                     + "rim_id " + this.AUTO_INCREMENT+", "
                     + "relationship_id " + this.OBJECTID +" NOT NULL, "
@@ -540,11 +540,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (rim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_relationships");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_relationships");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_relationships_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_relationships_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_relationships_in_model");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_relationships_in_model");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_relationships_in_model "
                         + "BEFORE INSERT ON "+this.schema+"relationships_in_model "
                         + "FOR EACH ROW "
@@ -553,7 +553,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                         + "END;");
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views");
             request("CREATE TABLE "+this.schema+"views ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -577,7 +577,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_connections");
             request("CREATE TABLE "+this.schema+"views_connections ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -606,7 +606,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_connections_in_view");
             request("CREATE TABLE "+this.schema+"views_connections_in_view ("
                     + "civ_id " + this.AUTO_INCREMENT+", "
                     + "connection_id " + this.OBJECTID +" NOT NULL, "
@@ -617,11 +617,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_connections_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_connections_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_connections_in_view");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
                         + "FOR EACH ROW "
@@ -630,7 +630,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                         + "END;");
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_in_model");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_in_model");
             request("CREATE TABLE "+this.schema+"views_in_model ("
                     + "vim_id " + this.AUTO_INCREMENT + ", "
                     + "view_id " + this.OBJECTID +" NOT NULL, "
@@ -642,11 +642,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (vim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_in_model");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_in_model");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_in_model "
                         + "BEFORE INSERT ON "+this.schema+"views_in_model "
                         + "FOR EACH ROW "
@@ -655,7 +655,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                         + "END;");
             }
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_objects");
             request("CREATE TABLE "+this.schema+"views_objects ("
                     + "id " + this.OBJECTID +" NOT NULL, "
                     + "version " + this.INTEGER +" NOT NULL, "
@@ -698,7 +698,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_objects_in_view");
             request("CREATE TABLE "+this.schema+"views_objects_in_view ("
                     + "oiv_id " + this.AUTO_INCREMENT+", "
                     + "object_id " + this.OBJECTID +" NOT NULL, "
@@ -709,11 +709,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_objects_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_objects_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_objects_in_view");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
                         + "FOR EACH ROW "
@@ -982,7 +982,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
             
             
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_connections_in_view");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_connections_in_view");
             request("CREATE TABLE "+this.schema+"views_connections_in_view ("
                     + "civ_id " + this.AUTO_INCREMENT+", "
                     + "connection_id " + this.OBJECTID +" NOT NULL, "
@@ -993,11 +993,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_connections_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_connections_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_connections_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_connections_in_view");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
                         + "FOR EACH ROW "
@@ -1007,13 +1007,13 @@ public class DBDatabaseConnection implements AutoCloseable {
             }
 
             // we fill in the views_connections_in_view table
-            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
+            if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
             request("INSERT INTO "+this.schema+"views_connections_in_view "
                     +"(connection_id, connection_version, view_id, view_version, rank) "
                     +"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_connections"
                     );
 
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"views_objects_in_view");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_objects_in_view");
             request("CREATE TABLE "+this.schema+"views_objects_in_view ("
                     + "oiv_id " + this.AUTO_INCREMENT+", "
                     + "object_id " + this.OBJECTID +" NOT NULL, "
@@ -1024,11 +1024,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("creating sequence "+this.schema+"seq_views_objects_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_objects_in_view");
                 request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
                 request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("creating trigger "+this.schema+"trigger_views_objects_in_view");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_objects_in_view");
                 request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
                         + "FOR EACH ROW "
@@ -1038,8 +1038,8 @@ public class DBDatabaseConnection implements AutoCloseable {
             }
 
             // we fill in the views_objects_in_view table
-            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_objects table to "+this.schema+"views_objects_in_view table");
-            if ( logger.isDebugEnabled() ) logger.debug("copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
+            if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_objects table to "+this.schema+"views_objects_in_view table");
+            if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
             request("INSERT INTO "+this.schema+"views_objects_in_view "
                     +"(object_id, object_version, view_id, view_version, rank) "
                     +"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_objects"
@@ -1071,7 +1071,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( dbVersion == 207 ) {
             DBGui.popup("Please wait while converting data.");
             
-            if ( logger.isDebugEnabled() ) logger.debug("creating table "+this.schema+"metadata");
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"metadata");
             request("CREATE TABLE "+this.schema+"metadata ("
                     + "parent_id "+this.OBJECTID +" NOT NULL, "
                     + "parent_version " + this.INTEGER +" NOT NULL, "

@@ -246,12 +246,11 @@ public class DBCheckForUpdate {
 			if ( logger.isDebugEnabled() ) logger.debug("Download finished");
 
 		} catch (Exception e) {
-			logger.info("here");
 			if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForUpdate.this.updateProgressbar = null; }});
 			try {
 				if ( tmpFilename != null ) Files.deleteIfExists(FileSystems.getDefault().getPath(tmpFilename));
 			} catch (IOException e1) {
-				logger.error("cannot delete file \""+tmpFilename+"\"", e1);
+				logger.error("Cannot delete file \""+tmpFilename+"\"", e1);
 			}
 			if ( verbose )
 				DBGui.popup(Level.ERROR, "Failed to download the new version of the database plugin.", e);
@@ -265,7 +264,7 @@ public class DBCheckForUpdate {
 		//install new plugin
 
 		// we rename the tmpFilename to its definitive filename
-		if ( logger.isDebugEnabled() ) logger.debug("renaming \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+		if ( logger.isDebugEnabled() ) logger.debug("Renaming \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
 		try {
 			Files.move(FileSystems.getDefault().getPath(tmpFilename), FileSystems.getDefault().getPath(newPluginFilename), StandardCopyOption.REPLACE_EXISTING);
 		} catch (@SuppressWarnings("unused") IOException ign) {
@@ -297,7 +296,7 @@ public class DBCheckForUpdate {
      */
     ProgressBar progressbarPopup(String msg) {
         if (logger.isDebugEnabled())
-            logger.debug("new progressbarPopup(\"" + msg + "\")");
+            logger.debug("New progressbarPopup(\"" + msg + "\")");
         
 		final FontData SYSTEM_FONT = this.display.getSystemFont().getFontData()[0];
 	    final Color    LIGHT_BLUE  = new Color(this.display, 240, 248, 255);
