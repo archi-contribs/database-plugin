@@ -53,9 +53,9 @@ The import mode allows to specify how the components will be imported. Three mod
 <ul>
    <li><b>Force copy mode</b>: in this mode, all the components will have a new ID that will be distinct from the one in the database. The imported components and the components in the database will therefore be independent: updating the ones will not impact the others.</li>  
    <li><b>Force shared mode</b>: in this mode, all the components will be imported with their existing ID from the database. All the components will therefore be shared across the models: the updates done on those components in one model will be seen across all the models where they are present.</li>
-   <li><b>Default template mode</b>: in this mode, which allows to mix copy and shared mode, the import mode is distinct for each component and depends on their properties:<ul>
-      <li>If the component has got a property called "<b><em>template</em></b>" with value "<b><em>shared</em></b>": then the component is imported in <b>shared mode</b>,</li>
-      <li>If the component doesn't have a property called "<b><em>template</em></b>", or if its value is not "<b><em>shared</em></b>": then the component is imported in <b>copy mode</b>.</li>
+   <li><b>Template mode</b>: in this mode, which allows to mix copy and shared mode, the import mode is distinct for each component and depends on their properties:<ul>
+      <li>If the component has got a property called "<b><em>template</em></b>" with value "<b><em>copy</em></b>": then the component is imported in <b>copy mode</b>,</li>
+      <li>If the component doesn't have a property called "<b><em>template</em></b>", or if its value is not "<b><em>copy</em></b>": then the component is imported in <b>shared mode</b>.</li>
    </ul></li>
 </ul>
 A "<b><em>(copy)</em></b>" mention is appended to all the components imported in copy mode. This mention can be modified or removed in the plugin's preferences.

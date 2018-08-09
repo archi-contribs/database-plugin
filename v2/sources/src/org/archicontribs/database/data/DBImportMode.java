@@ -80,18 +80,18 @@ public enum DBImportMode {
 			case DBImportMode.templateModeValue:
 				if ( properties != null ) {
 					for ( DBProperty prop: properties) {
-						if ( DBPlugin.areEqual(prop.getKey(), "template") && DBPlugin.areEqual(prop.getValue(), "shared") ) {
-							logger.debug("   Import in template mode : the \"template\" property requires the shared mode.");
-							return false;
+						if ( DBPlugin.areEqual(prop.getKey(), "template") && DBPlugin.areEqual(prop.getValue(), "copy") ) {
+							logger.debug("   Import in template mode : the \"template\" property requires the copy mode.");
+							return true;
 						}
 					}
 				}
-				logger.debug("   Import in template mode : the \"template\" property does not exist or does not require the shared mode.");
-				return true;
+				logger.debug("   Import in template mode : the \"template\" property does not exist or does not require the copy mode.");
+				return false;
 
 			default:
-				logger.debug("   Unknown import mode: defaulting to copy mode.");
-				return true;
+				logger.debug("   Unknown import mode: defaulting to shared mode.");
+				return false;
 		}
 
 	}
