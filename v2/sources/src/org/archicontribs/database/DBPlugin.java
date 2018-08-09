@@ -165,7 +165,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 12/07/2018					Import components from database:
+ * v2.1: 09/08/2018					Import components from database:
  * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
@@ -174,9 +174,9 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *                                      Added a label to explain that the icons can be selected
  *                                      The categories can now be clicked to select/unselect the whole category
  *                                      The component is imported by default in the selected folder
- *                                      The element class is pre-selected depending on the selected folder
+ *                                      The element classes are pre-selected depending on the selected folder
  *                                      In case one view is selected for import, show view screenshot if available in the database
- *                                      Introduce new template mode that mixes shared and copy modes depending on each component properties
+ *                                      Introduce new template mode that mixes shared and copy modes depending on on the "template" property of each component
  *                                      Possibility to import a whole model into another one (merge models)
  *                                  Import model:
  *                                  	A context menu entry allowin got import a model has been added when no model is selected
@@ -193,10 +193,10 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  *											Create two export modes: native and extended
  *											New option to empty the database before the export
  *											New option to specialize relationships
- *                                      Rewrite version management (check timestamps in addition of the version number)
+ *                                      Rewrite version management
  *                                      Remove the name, the documentation and the properties from view objects and connections checksum calculation as they are related to the corresponding concept
  *                                  Plugin preferences:
- *                                      The default import mode (shared or copy) has been removed as the default import mode is now the template mode
+ *                                      Add an option to specify the default import mode for individual components (template mode, force shared mode or force copy mode)
  *                                      Add an option to compare the model from the database before exporting it
  *										Allow to specify the generated view screenshots border width and scale factor
  *										Allow to specify a suffix to add to components imported in copy mode
@@ -259,7 +259,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1 beta 9.1";
+	public static final String pluginVersion = "2.1 beta 9.2";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
