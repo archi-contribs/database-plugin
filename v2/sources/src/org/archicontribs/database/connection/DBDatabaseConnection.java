@@ -638,7 +638,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "parent_folder_id " + this.OBJECTID +" NOT NULL, "
                     + "model_id " + this.OBJECTID +" NOT NULL, "
                     + "model_version " + this.INTEGER +" NOT NULL, "
-                    + "rank " + this.INTEGER
+                    + "rank " + this.INTEGER +" NOT NULL"
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (vim_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
