@@ -73,18 +73,6 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	private IArchimateConcept oldTarget = null;
 	private ArrayList<DBProperty> oldProperties = null;
 
-
-	/**
-	 * Imports a relationship into the model<br>
-	 * @param connection connection to the database
-	 * @param model model into which the relationship will be imported
-	 * @param relationshipId id of the relationship to import
-	 * @param relationshipVersion version of the relationship to import (0 if the latest version should be imported)
-	 */
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-		this(importConnection, model, null, null, id, version, DBImportMode.templateMode);
-	}
-
 	/**
 	 * Imports a relationship into the model<br>
 	 * @param model model into which the relationship will be imported

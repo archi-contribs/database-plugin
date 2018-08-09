@@ -14,7 +14,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
-
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -112,8 +111,114 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	@Getter private HashMap<String, DBMetadata> viewConnectionsNotInModel = new LinkedHashMap<String, DBMetadata>();	// must keep the order
 	@Getter private HashMap<String, DBMetadata> imagesNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> imagesNotInDatabase = new HashMap<String, DBMetadata>();
+	
 
 	public void getModelVersionFromDatabase(DBArchimateModel model) throws SQLException {
+        String modelId = model.getId();
+
+        if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
+        model.getCurrentVersion().reset();
+        try ( ResultSet resultLatestVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
+            // we get the latest model version from the database
+            if ( resultLatestVersion.next() && (resultLatestVersion.getObject("version") != null) ) {
+                // if the version is found, then the model exists in the database
+                model.getDatabaseVersion().setVersion(resultLatestVersion.getInt("version"));
+                model.getDatabaseVersion().setChecksum(resultLatestVersion.getString("checksum"));
+                model.getDatabaseVersion().setTimestamp(resultLatestVersion.getTimestamp("created_on"));
+
+                // we check if the model has been imported from (or last exported to) this database
+                if ( !model.getInitialVersion().getTimestamp().equals(DBVersion.NEVER) ) {
+                    try ( ResultSet resultCurrentVersion = select("SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
+                        if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
+                            // if the version is found, then the model has been imported from or last exported to the database 
+                            model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
+                            model.getInitialVersion().setChecksum(resultCurrentVersion.getString("checksum"));
+                        }
+                    }
+                }
+                logger.debug("The model already exists in the database:");
+            } else {
+                model.getDatabaseVersion().setVersion(0);
+
+                logger.debug("The model does not exist in the database");
+            }
+
+            model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion());
+
+            if ( logger.isDebugEnabled() ) {
+                logger.debug("   Initial version = " + model.getInitialVersion().getVersion());
+                logger.debug("   Current version = " + model.getCurrentVersion().getVersion());
+                logger.debug("   Database version = "+ model.getDatabaseVersion().getVersion());
+            }
+        }
+	}
+	
+	
+    /**
+     * Gets the version and checksum of a specific component from the database and fills its DBMetadata.<br>
+     * <br>
+     * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.<br>
+     */
+    public void getVersionFromDatabase(IIdentifier component) throws Exception {
+        assert (component != null);
+        
+        String tableName;
+
+        if ( component instanceof IArchimateElement ) tableName = getSchema()+"elements";
+        else if ( component instanceof IArchimateRelationship ) tableName = getSchema()+"relationships";
+        else if ( component instanceof IFolder ) tableName = getSchema()+"folders";
+        else if ( component instanceof IDiagramModel ) tableName = getSchema()+"views";
+        else if ( component instanceof IDiagramModelObject  ) tableName = getSchema()+"views_objects";
+        else if ( component instanceof IDiagramModelConnection  ) tableName = getSchema()+"views_connections";
+        else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+
+        DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
+        metadata.getCurrentVersion().setVersion(0);
+        metadata.getInitialVersion().reset();
+        metadata.getDatabaseVersion().reset();
+        metadata.getLatestDatabaseVersion().reset();
+        
+        String containerChecksumColumn = (component instanceof IDiagramModel) ? ", container_checksum" : "";
+        
+        try ( ResultSet result = select("SELECT version, checksum"+containerChecksumColumn+", created_on FROM "+tableName+" WHERE id = ? ORDER BY version DESC", component.getId()) ) {
+            boolean isFound = false;
+            boolean isLatest = true;
+            int version = 0;
+            String checksum = null;
+            String containerChecksum = null;
+            Timestamp createdOn = null;
+            
+            while ( result.next() ) {
+                version = result.getInt("version");
+                checksum = result.getString("checksum");
+                containerChecksum = (component instanceof IDiagramModel ? result.getString("container_checksum") : null);
+                createdOn = result.getTimestamp("created_on");
+                isFound = true;
+
+                if ( isLatest ) {
+                    //TODO: the databaseVersion is wrong as there is no SQL join with any component_in_model table
+                    //TODO: so using using this method will not detect the "deleted from model" condition
+                    metadata.getDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+                    metadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+                    isLatest = false;
+                }
+                if ( (metadata.getInitialVersion().getVersion() == 0) && DBPlugin.areEqual(checksum, metadata.getCurrentVersion().getChecksum()) ) {
+                    metadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn);
+                    metadata.getCurrentVersion().setVersion(version);
+                    metadata.getCurrentVersion().setTimestamp(createdOn);
+                    break;
+                }   
+            }
+            
+            // if the component has been found but **not** with the same checksum, then we set its initial version to the first version in the database in order to detect the conflicts 
+            if ( isFound && (metadata.getInitialVersion().getVersion() == 0) ) {
+                metadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn);
+                metadata.getCurrentVersion().setVersion(version);
+            }
+        }
+    }
+
+	public void getAllVersionFromDatabase(DBArchimateModel model) throws SQLException {
 		// we reset the variables
 		this.elementsNotInModel.clear();
 		this.relationshipsNotInModel.clear();
@@ -124,169 +229,24 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		this.imagesNotInModel.clear();
 		this.imagesNotInDatabase.clear();
 
+		getModelVersionFromDatabase(model);
+		
 		String modelId = model.getId();
-
-		// we reset all the versions
-		Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
-		while (ite.hasNext()) {
-			DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-			metadata.getCurrentVersion().setVersion(0);
-			metadata.getInitialVersion().reset();
-			metadata.getDatabaseVersion().reset();
-			metadata.getLatestDatabaseVersion().reset();
-		}
-
-		Iterator<Map.Entry<String, IArchimateRelationship>> itr = model.getAllRelationships().entrySet().iterator();
-		while (itr.hasNext()) {
-			DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-			metadata.getCurrentVersion().setVersion(0);
-			metadata.getInitialVersion().reset();
-			metadata.getDatabaseVersion().reset();
-			metadata.getLatestDatabaseVersion().reset();
-		}
-
-		Iterator<Map.Entry<String, IFolder>> itf = model.getAllFolders().entrySet().iterator();
-		while (itf.hasNext()) {
-			DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-			metadata.getCurrentVersion().setVersion(0);
-			metadata.getInitialVersion().reset();
-			metadata.getDatabaseVersion().reset();
-			metadata.getLatestDatabaseVersion().reset();
-		}
-
-		Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
-		while (itv.hasNext()) {
-			DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-			metadata.getCurrentVersion().setVersion(0);
-			metadata.getInitialVersion().reset();
-			metadata.getDatabaseVersion().reset();
-			metadata.getLatestDatabaseVersion().reset();
-		}
-		
-		Iterator<Map.Entry<String, IDiagramModelObject>> ito = model.getAllViewObjects().entrySet().iterator();
-		while (ito.hasNext()) {
-		    DBMetadata metadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
-		    metadata.getCurrentVersion().setVersion(0);
-		    metadata.getInitialVersion().reset();
-		    metadata.getDatabaseVersion().reset();
-		    metadata.getLatestDatabaseVersion().reset();
-		}
-
-		Iterator<Map.Entry<String, IDiagramModelConnection>> itc = model.getAllViewConnections().entrySet().iterator();
-		while (itc.hasNext()) {
-		    DBMetadata metadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
-		    metadata.getCurrentVersion().setVersion(0);
-		    metadata.getInitialVersion().reset();
-		    metadata.getDatabaseVersion().reset();
-		    metadata.getLatestDatabaseVersion().reset();
-		}
-
-		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
-		model.getCurrentVersion().reset();
-		try ( ResultSet resultLatestVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
-			// we get the latest model version from the database
-			if ( resultLatestVersion.next() && (resultLatestVersion.getObject("version") != null) ) {
-				// if the version is found, then the model exists in the database
-				model.getDatabaseVersion().setVersion(resultLatestVersion.getInt("version"));
-				model.getDatabaseVersion().setChecksum(resultLatestVersion.getString("checksum"));
-				model.getDatabaseVersion().setTimestamp(resultLatestVersion.getTimestamp("created_on"));
-
-				// we check if the model has been imported from (or last exported to) this database
-				if ( !model.getInitialVersion().getTimestamp().equals(DBVersion.NEVER) ) {
-					try ( ResultSet resultCurrentVersion = select("SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
-						if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
-							// if the version is found, then the model has been imported from or last exported to the database 
-							model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
-							model.getInitialVersion().setChecksum(resultCurrentVersion.getString("checksum"));
-						}
-					}
-				}
-				logger.debug("The model already exists in the database:");
-			} else {
-				model.getDatabaseVersion().setVersion(0);
-
-				logger.debug("The model does not exist in the database");
-			}
-
-
-			model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion() );
-
-			if ( logger.isDebugEnabled() ) {
-				logger.debug("   Initial version = "+model.getInitialVersion().getVersion());
-				logger.debug("   Current version = "+model.getCurrentVersion().getVersion());
-				logger.debug("   Database version = "+model.getDatabaseVersion().getVersion());
-			}
-		}
-	}
-
-	/**
-	 * Gets the version and checksum of a component from the database and fills its DBMetadata.<br>
-	 * <br>
-	 * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.<br>
-	 * 
-	 */
-	public void getVersionFromDatabase(IIdentifier component) throws Exception {
-		assert (component != null);
-		String tableName;
-
-		if ( component instanceof IArchimateElement ) tableName = getSchema()+"elements";
-		else if ( component instanceof IArchimateRelationship ) tableName = getSchema()+"relationships";
-		else if ( component instanceof IFolder ) tableName = getSchema()+"folders";
-		else if ( component instanceof IDiagramModel ) tableName = getSchema()+"views";
-		else if ( component instanceof IDiagramModelObject  ) tableName = getSchema()+"views_objects";
-		else if ( component instanceof IDiagramModelConnection  ) tableName = getSchema()+"views_connections";
-		else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
-
-		DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
-		boolean isLatest = true;
-		
-		String containerChecksum = (component instanceof IDiagramModel) ? ", container_checksum" : "";
-
-		try ( ResultSet result = select("SELECT version, checksum"+containerChecksum+", created_on FROM "+tableName+" WHERE id = ? ORDER BY version DESC", component.getId()) ) {
-			while ( result.next() ) {
-				if ( isLatest ) {
-				    if ( component instanceof IDiagramModel )
-				        metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("container_checksum"), result.getString("checksum"), result.getTimestamp("created_on"));
-				    else
-				        metadata.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
-					metadata.getLatestDatabaseVersion().set(metadata.getDatabaseVersion());
-					isLatest = false;
-				}
-				if ( DBPlugin.areEqual(result.getString("checksum"), metadata.getCurrentVersion().getChecksum()) ) {
-					if ( component instanceof IDiagramModel )
-						metadata.getInitialVersion().set(result.getInt("version"), result.getString("container_checksum"), result.getString("checksum"), result.getTimestamp("created_on"));
-					else
-						metadata.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
-					metadata.getCurrentVersion().setVersion(result.getInt("version"));
-					metadata.getCurrentVersion().setTimestamp(result.getTimestamp("created_on"));
-					break;
-				}   
-			}
-		}
-	}
-
-	/**
-	 * Gets the versions and checksum of one model's components from the database and fills their DBMetadata.<br>
-	 * <br>
-	 * Components that are not in the current model are set in elementsNotInModel, relationshipsNotInModel, foldersNotInModel and viewsNotInModel.<br>
-	 * <br>
-	 * This method is meant to be called during the export process, before the export of the components as it sets the DBVersion variables used during the export process.
-	 */
-	public void getVersionsFromDatabase(DBArchimateModel model) throws SQLException, RuntimeException {
-		// This method can retrieve versions only if the database is a relation one (not neo4j)
-		assert(!DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j"));
-
 		int modelInitialVersion = model.getInitialVersion().getVersion();
+		int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 
 		// if the model is brand new, there is no point to check for its content in the database
-		if ( modelInitialVersion != 0 ) {
-			String modelId = model.getId();
-			int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
-			
-			// we get the components versions from the database.
-
+        if ( !DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j") && (modelInitialVersion != 0) ) {
 			// elements
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the elements from the database");
+	        Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
+	        while (ite.hasNext()) {
+	            DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
+	            metadata.getCurrentVersion().setVersion(0);
+	            metadata.getInitialVersion().reset();
+	            metadata.getDatabaseVersion().reset();
+	            metadata.getLatestDatabaseVersion().reset();
+	        }
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"elements"
@@ -296,11 +256,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							,modelId
 							,modelDatabaseVersion
 					) ) {
-				String previousId = null;
+                DBMetadata currentComponent = null;
 				DBMetadata previousComponent = null;
+                String previousId = null;
+	            int version = 0;
+	            String checksum = null;
+	            Timestamp createdOn = null;
 				while ( result.next() ) {
-					DBMetadata currentComponent;
 					String currentId = result.getString("id");
+		            version = result.getInt("version");
+		            checksum = result.getString("checksum");
+		            createdOn = result.getTimestamp("created_on");
 
 					if ( DBPlugin.areEqual(currentId, previousId) )
 						currentComponent = previousComponent;
@@ -312,26 +278,34 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
 						currentComponent = new DBMetadata(null);
-						this.elementsNotInModel.put(result.getString("id"), currentComponent);
+						this.elementsNotInModel.put(currentId, currentComponent);
 					}
 
 					if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 						// if the component is part of the model, we compare with the model's version
-						if ( result.getInt("model_version") == modelInitialVersion )
-							currentComponent.getInitialVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+						if ( result.getInt("model_version") == modelInitialVersion ) {
+							currentComponent.getInitialVersion().set(version, checksum, createdOn);
+			                currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
+						}
 						if ( result.getInt("model_version") == modelDatabaseVersion )
-							currentComponent.getDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
+							currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
 					}
 
 					// components are sorted by version (so also by timestamp) so the latest found is the latest in time
 					currentComponent.getLatestDatabaseVersion().set(result.getInt("version"), result.getString("checksum"), result.getTimestamp("created_on"));
-
-					currentComponent.getCurrentVersion().setVersion(result.getInt("version"));
 				}
 			}
 
 			// relationships
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the relationships from the database");
+	        Iterator<Map.Entry<String, IArchimateRelationship>> itr = model.getAllRelationships().entrySet().iterator();
+	        while (itr.hasNext()) {
+	            DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
+	            metadata.getCurrentVersion().setVersion(0);
+	            metadata.getInitialVersion().reset();
+	            metadata.getDatabaseVersion().reset();
+	            metadata.getLatestDatabaseVersion().reset();
+	        }
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"relationships"
@@ -377,6 +351,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 			// folders
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the folders from the database");
+	        Iterator<Map.Entry<String, IFolder>> itf = model.getAllFolders().entrySet().iterator();
+	        while (itf.hasNext()) {
+	            DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
+	            metadata.getCurrentVersion().setVersion(0);
+	            metadata.getInitialVersion().reset();
+	            metadata.getDatabaseVersion().reset();
+	            metadata.getLatestDatabaseVersion().reset();
+	        }
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"folders"
@@ -421,6 +403,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the views from the database");
+            Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
+            while (itv.hasNext()) {
+                DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
+                metadata.getCurrentVersion().setVersion(0);
+                metadata.getInitialVersion().reset();
+                metadata.getDatabaseVersion().reset();
+                metadata.getLatestDatabaseVersion().reset();
+            }
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"views"
@@ -503,35 +493,23 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( model.getInitialVersion().getVersion() != 0 ) {
 			String viewId = view.getId();
 			
-			Iterator<Map.Entry<String, IDiagramModelObject>> itvo = model.getAllViewObjects().entrySet().iterator();
-			while (itvo.hasNext()) {
-				IDiagramModelObject object = itvo.next().getValue();
-				if ( object.getDiagramModel() == view ) {
-					DBMetadata metadata = ((IDBMetadata)object).getDBMetadata();
-					metadata.getCurrentVersion().setVersion(0);
-					metadata.getInitialVersion().reset();
-					metadata.getDatabaseVersion().reset();
-					metadata.getLatestDatabaseVersion().reset();
-				}
-			}
-	
-			Iterator<Map.Entry<String, IDiagramModelConnection>> itvc = model.getAllViewConnections().entrySet().iterator();
-			while (itvc.hasNext()) {
-				IDiagramModelConnection cnct = itvc.next().getValue();
-				if ( cnct.getDiagramModel() == view ) {
-					DBMetadata metadata = ((IDBMetadata)cnct).getDBMetadata();
-					metadata.getCurrentVersion().setVersion(0);
-					metadata.getInitialVersion().reset();
-					metadata.getDatabaseVersion().reset();
-					metadata.getLatestDatabaseVersion().reset();
-				}
-			}
 	
 			int viewInitialVersion = ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion();
 			int viewDatabaseVersion = ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion();
 	
 			// view objects
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view objects from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
+            Iterator<Map.Entry<String, IDiagramModelObject>> itvo = model.getAllViewObjects().entrySet().iterator();
+            while (itvo.hasNext()) {
+                IDiagramModelObject object = itvo.next().getValue();
+                if ( object.getDiagramModel() == view ) {
+                    DBMetadata metadata = ((IDBMetadata)object).getDBMetadata();
+                    metadata.getCurrentVersion().setVersion(0);
+                    metadata.getInitialVersion().reset();
+                    metadata.getDatabaseVersion().reset();
+                    metadata.getLatestDatabaseVersion().reset();
+                }
+            }			
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_objects"
@@ -585,6 +563,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	
 			// view connections
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view connections from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
+            Iterator<Map.Entry<String, IDiagramModelConnection>> itvc = model.getAllViewConnections().entrySet().iterator();
+            while (itvc.hasNext()) {
+                IDiagramModelConnection cnct = itvc.next().getValue();
+                if ( cnct.getDiagramModel() == view ) {
+                    DBMetadata metadata = ((IDBMetadata)cnct).getDBMetadata();
+                    metadata.getCurrentVersion().setVersion(0);
+                    metadata.getInitialVersion().reset();
+                    metadata.getDatabaseVersion().reset();
+                    metadata.getLatestDatabaseVersion().reset();
+                }
+            }
 			try ( ResultSet result = select(
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_connections"

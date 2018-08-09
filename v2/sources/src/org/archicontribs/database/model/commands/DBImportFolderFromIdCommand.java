@@ -62,18 +62,6 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
 
-
-	/**
-	 * Imports a folder into the model<br>
-	 * @param connection connection to the database
-	 * @param model model into which the folder will be imported
-	 * @param id id of the folder to import
-	 * @param version version of the folder to import (0 if the latest version should be imported)
-	 */
-	public DBImportFolderFromIdCommand(DBDatabaseImportConnection connection, DBArchimateModel model, String id, int version) {
-		this(connection, model, null, id, version, DBImportMode.templateMode);
-	}
-
 	/**
 	 * Imports a folder into the model<br>
 	 * @param connection connection to the database

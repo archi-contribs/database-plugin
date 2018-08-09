@@ -78,17 +78,6 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	 * Imports an element into the model<br>
 	 * @param connection connection to the database
 	 * @param model model into which the element will be imported
-	 * @param elementId id of the element to import
-	 * @param elementVersion version of the element to import (0 if the latest version should be imported)
-	 */
-	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version) {
-		this(importConnection, model, null, null, id, version, DBImportMode.templateMode, false);
-	}
-
-	/**
-	 * Imports an element into the model<br>
-	 * @param connection connection to the database
-	 * @param model model into which the element will be imported
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
 	 * @param folder if a folder is provided, the element will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the element to import
