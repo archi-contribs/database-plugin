@@ -597,6 +597,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			    DBDatabaseEntryTableEditor.this.lblScaleFactor.setEnabled(true);
 			    DBDatabaseEntryTableEditor.this.txtScaleFactor.setEnabled(true);
 			    DBDatabaseEntryTableEditor.this.lblScaleFactorPercent.setEnabled(true);
+			    
+                DBDatabaseEntryTableEditor.this.lblBorderWidth.setVisible(true);
+                DBDatabaseEntryTableEditor.this.txtBorderWidth.setVisible(true);
+                DBDatabaseEntryTableEditor.this.lblBorderWidthPixels.setVisible(true);
+                DBDatabaseEntryTableEditor.this.lblScaleFactor.setVisible(true);
+                DBDatabaseEntryTableEditor.this.txtScaleFactor.setVisible(true);
+                DBDatabaseEntryTableEditor.this.lblScaleFactorPercent.setVisible(true);
 			}
 
 			@Override
@@ -622,6 +629,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			    DBDatabaseEntryTableEditor.this.lblScaleFactor.setEnabled(false);
 			    DBDatabaseEntryTableEditor.this.txtScaleFactor.setEnabled(false);
 			    DBDatabaseEntryTableEditor.this.lblScaleFactorPercent.setEnabled(false);
+			    
+                DBDatabaseEntryTableEditor.this.lblBorderWidth.setVisible(false);
+                DBDatabaseEntryTableEditor.this.txtBorderWidth.setVisible(false);
+                DBDatabaseEntryTableEditor.this.lblBorderWidthPixels.setVisible(false);
+                DBDatabaseEntryTableEditor.this.lblScaleFactor.setVisible(false);
+                DBDatabaseEntryTableEditor.this.txtScaleFactor.setVisible(false);
+                DBDatabaseEntryTableEditor.this.lblScaleFactorPercent.setVisible(false);
 			}
 
 			@Override
@@ -1035,12 +1049,18 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	    
 	    this.btnExportViewImages.setEnabled(editMode);
 	    this.btnDoNotExportViewImages.setEnabled(editMode);
-	    this.lblBorderWidth.setEnabled(editMode && shouldExportViewSnapshots);
-	    this.txtBorderWidth.setEnabled(editMode && shouldExportViewSnapshots);
-	    this.lblBorderWidthPixels.setEnabled(editMode && shouldExportViewSnapshots);
-	    this.lblScaleFactor.setEnabled(editMode && shouldExportViewSnapshots);
-	    this.txtScaleFactor.setEnabled(editMode && shouldExportViewSnapshots);
-	    this.lblScaleFactorPercent.setEnabled(editMode && shouldExportViewSnapshots);
+	    this.lblBorderWidth.setEnabled(editMode);
+	    this.lblBorderWidth.setVisible(shouldExportViewSnapshots);
+	    this.txtBorderWidth.setEnabled(editMode);
+	    this.txtBorderWidth.setVisible(shouldExportViewSnapshots);
+	    this.lblBorderWidthPixels.setEnabled(editMode);
+	    this.lblBorderWidthPixels.setVisible(shouldExportViewSnapshots);
+	    this.lblScaleFactor.setEnabled(editMode);
+	    this.lblScaleFactor.setVisible(shouldExportViewSnapshots);
+	    this.txtScaleFactor.setEnabled(editMode);
+	    this.txtScaleFactor.setVisible(shouldExportViewSnapshots);
+	    this.lblScaleFactorPercent.setEnabled(editMode);
+	    this.lblScaleFactorPercent.setVisible(shouldExportViewSnapshots);
 
 		driverChanged();
 
