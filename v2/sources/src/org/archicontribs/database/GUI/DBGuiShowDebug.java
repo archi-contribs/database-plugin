@@ -27,6 +27,8 @@ import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateObject;
+import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IIdentifier;
 
 public class DBGuiShowDebug extends DBGui {
@@ -445,11 +447,19 @@ public class DBGuiShowDebug extends DBGui {
         
         // we get the version and checksum from the database
         try {
-            this.connection.getVersionFromDatabase((IIdentifier)this.selectedObject);
-            
+        	if ( this.selectedObject instanceof IArchimateModelObject )
+        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
+        	else if ( this.selectedObject instanceof IDiagramModelObject )
+        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelObject)this.selectedObject).getDiagramModel().getArchimateModel());
+        	else if ( this.selectedObject instanceof IDiagramModelConnection )
+        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelConnection)this.selectedObject).getDiagramModel().getArchimateModel());
+        	
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
+            	this.connection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getDiagramModel());
                 this.connection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
             }
+            
+            this.connection.getVersionFromDatabase((IIdentifier)this.selectedObject);
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;

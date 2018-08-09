@@ -1797,7 +1797,7 @@ public class DBGuiExportModel extends DBGui {
                 }
                 
     			logger.info("Checking if components have been moved to new folder ...");
-    			setProgressBarLabel("checking if components have been moved to new folder ...");
+    			setProgressBarLabel("Checking if components have been moved to new folder ...");
     			DBSetFolderToLastKnownCommand setFolderCommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
     			if ( setFolderCommand.getException() != null )
     			    throw setFolderCommand.getException();
@@ -1808,7 +1808,7 @@ public class DBGuiExportModel extends DBGui {
     	                throw setFolderCommand.getException();
     	            this.exportCommands.add(setFolderCommand);
     			} else
-    			    logger.info("No component to move");
+    			    logger.info("There is no component to move to a new folder.");
 			}
 			
 			logger.info("Exporting elements ...");
@@ -1977,54 +1977,42 @@ public class DBGuiExportModel extends DBGui {
 	void copyExportedVersionToCurrentVersion() {
 		if ( logger.isDebugEnabled() ) logger.debug("updating current versions from exported versions");
 		
-	    this.exportedModel.getInitialVersion().setVersion(this.exportedModel.getCurrentVersion().getVersion());
-        this.exportedModel.getInitialVersion().setChecksum(this.exportedModel.getCurrentVersion().getChecksum());
-        this.exportedModel.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
+	    this.exportedModel.getInitialVersion().set(this.exportedModel.getCurrentVersion());
         
         Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
         
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
         
         Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
         
         Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
-            dbMetadata.getInitialVersion().setTimestamp(this.exportedModel.getCurrentVersion().getTimestamp());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
         
         Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
         while (ito.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)ito.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
         
         Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
         while (itc.hasNext()) {
             DBMetadata dbMetadata = ((IDBMetadata)itc.next().getValue()).getDBMetadata();
-            dbMetadata.getInitialVersion().setVersion(dbMetadata.getCurrentVersion().getVersion());
-            dbMetadata.getInitialVersion().setChecksum(dbMetadata.getCurrentVersion().getChecksum());
+            dbMetadata.getInitialVersion().set(dbMetadata.getCurrentVersion());
         }
 	}
 	
