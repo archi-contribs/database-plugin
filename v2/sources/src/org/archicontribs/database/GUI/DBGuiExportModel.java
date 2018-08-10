@@ -2432,19 +2432,24 @@ public class DBGuiExportModel extends DBGui {
 	protected void tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE requiredChoice) {
 		CONFLICT_CHOICE effectiveChoice = requiredChoice;
 		EObject component = this.exportedModel.getAllElements().get(this.tblListConflicts.getSelection()[0].getText());
-		if ( component == null ) component = this.exportedModel.getAllRelationships().get(this.tblListConflicts.getSelection()[0].getText());
+		if ( component == null )
+			component = this.exportedModel.getAllRelationships().get(this.tblListConflicts.getSelection()[0].getText());
 		if ( component == null ) {
 			component = this.exportedModel.getAllFolders().get(this.tblListConflicts.getSelection()[0].getText());
-			if ( component == null ) component = this.exportedModel.getAllViews().get(this.tblListConflicts.getSelection()[0].getText());
-			if ( component == null ) {
-				popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
-				return;
-			}
-
 			if ( effectiveChoice == CONFLICT_CHOICE.importFromDatabase ) {
 				logger.debug("Importing from database is not allowed for "+component.getClass().getSimpleName());
 				effectiveChoice = CONFLICT_CHOICE.askUser;
 			}
+		}
+		if ( component == null )
+			component = this.exportedModel.getAllViews().get(this.tblListConflicts.getSelection()[0].getText());
+		if ( component == null )
+			component = this.exportedModel.getAllViewObjects().get(this.tblListConflicts.getSelection()[0].getText());
+		if ( component == null )
+			component = this.exportedModel.getAllViewConnections().get(this.tblListConflicts.getSelection()[0].getText());
+		if ( component == null ) {
+			popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
+			return;
 		}
 
 		((IDBMetadata)component).getDBMetadata().setConflictChoice(effectiveChoice);
