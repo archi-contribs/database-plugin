@@ -1857,7 +1857,7 @@ public class DBGuiExportModel extends DBGui {
 	            while ( viewObjectsIterator.hasNext() ) {
 	                IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
 	        		// we do not export the view object if its parent view has not been exported
-	        		if ( ((IDBMetadata)viewObject.getDiagramModel()).getDBMetadata().isHasBeenExported() )
+	        		if ( ((IDBMetadata)viewObject.getDiagramModel()).getDBMetadata().hasBeenExported() )
 	        			doExportEObject(viewObject);
 	            }
 	            
@@ -1867,7 +1867,7 @@ public class DBGuiExportModel extends DBGui {
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 	        		// we do not export the view connection if its parent view has not been exported
-	        		if ( ((IDBMetadata)viewConnection.getDiagramModel()).getDBMetadata().isHasBeenExported() )
+	        		if ( ((IDBMetadata)viewConnection.getDiagramModel()).getDBMetadata().hasBeenExported() )
 	        			doExportEObject(viewConnection);
 				}
 				

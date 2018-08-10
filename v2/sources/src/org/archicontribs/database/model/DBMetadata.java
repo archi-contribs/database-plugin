@@ -93,7 +93,10 @@ public class DBMetadata  {
     /**
      * Used by remember is the component has been exported
      */
-    @Getter @Setter private boolean hasBeenExported = false;
+    @Setter private boolean hasBeenExported = false;
+    public boolean hasBeenExported() {
+    	return this.hasBeenExported;
+    }
 
     /**
      * Used by views, set to false if some components are removed during the export process so their checksum needs to be recalculated
