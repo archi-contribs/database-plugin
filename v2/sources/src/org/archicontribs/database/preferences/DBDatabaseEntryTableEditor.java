@@ -560,14 +560,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 
 		this.lblExportViewSnapshots = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportViewSnapshots.setText("Export view snapshots:");
+		this.lblExportViewSnapshots.setText("Export views screenshot:");
 		this.lblExportViewSnapshots.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblUsername, 5);
 		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
 		this.lblExportViewSnapshots.setLayoutData(fd);
 		this.lblExportViewSnapshots.setVisible(false);
-		this.lblExportViewSnapshots.setToolTipText("Please select if you wish to export a screenshot (jpg) of your views in the database.");
+		this.lblExportViewSnapshots.setToolTipText("Please select if you wish to export a screenshot (png) of your views in the database.");
 
 		this.compoExportViewImages = new Composite(this.grpDatabases, SWT.NONE);
 		this.compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
