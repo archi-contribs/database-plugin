@@ -1765,7 +1765,7 @@ public class DBGuiImportComponents extends DBGui {
 		
 		String filterRequest = "";
 		if ( this.filterName.getText().length() != 0 )
-			filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+			filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 			
 		try (ResultSet result = this.importConnection.select("SELECT id, version, name, purpose FROM "+this.selectedDatabase.getSchemaPrefix()+"models m WHERE version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"models WHERE id = m.id)" + filterRequest) ) {
 			while (result.next()) {
@@ -1854,9 +1854,9 @@ public class DBGuiImportComponents extends DBGui {
 			if ( inList.length() != 0 ) {
 				String filterRequest = "";
 				if ( this.filterName.getText().length() != 0 )
-					filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+					filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 				
-				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")" + addOn + filterRequest, classList) ) {
+				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList) ) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
@@ -1952,9 +1952,9 @@ public class DBGuiImportComponents extends DBGui {
 		if ( inList.length() != 0 ) {
 			String filterRequest = "";
 			if ( this.filterName.getText().length() != 0 )
-				filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+				filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 
-			try ( ResultSet result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")" + addOn + filterRequest, typeList)) {
+			try ( ResultSet result = database.select("SELECT id, name, documentation FROM "+selectedDatabase.getSchemaPrefix()+"folders WHERE root_type IN ("+inList.toString()+")" + filterRequest + addOn, typeList)) {
 				while (result.next()) {
 				    if ( !hideAlreadyInModel.getSelection() || (importedModel.getAllFolders().get(result.getString("id"))==null))
 				        createTableItem(tblComponents, result.getString("id"), "Folder", result.getString("name"), result.getString("documentation"));
@@ -2024,9 +2024,9 @@ public class DBGuiImportComponents extends DBGui {
 			if ( inList.length() != 0 ) {
 				String filterRequest = "";
 				if ( this.filterName.getText().length() != 0 )
-					filterRequest = " AND UPPER(name) like '"+this.filterName.getText().toUpperCase()+"%'";
+					filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 				
-				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")" + addOn + filterRequest, classList)) {
+				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList)) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
