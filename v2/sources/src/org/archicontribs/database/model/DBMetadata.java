@@ -91,24 +91,14 @@ public class DBMetadata  {
     @Getter DBVersion latestDatabaseVersion = new DBVersion();
 
     /**
-     * Used by remember is the component has been exported
+     * Used to remember if the component has been exported
      */
-    @Setter private boolean hasBeenExported = false;
-    public boolean hasBeenExported() {
-    	return this.hasBeenExported;
-    }
+    @Getter @Setter private boolean exported = false;
 
     /**
      * Used by views, set to false if some components are removed during the export process so their checksum needs to be recalculated
      */
     @Getter @Setter private boolean checksumValid = true;
-
-    /**
-     * If the component is a folder, stores the type of its root folder<br>
-     * This is needed to determine what class of eObjects it is able to store<br>
-     * Folders created by the user have got a type of 0 (zero) but the root folder they are in limit the kind of objects they can store   
-     */
-    //private int rootFolderType;
 
     public DBMetadata(EObject componentObject) {
         assert ( componentObject instanceof IIdentifier );
