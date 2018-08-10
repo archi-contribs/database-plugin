@@ -77,7 +77,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 		this.id = id;
 		
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing folder id " + this.id + " in " + importMode.getLabel()+".");
+			logger.debug("   Importing folder id " + " version " + version + " in " + importMode.getLabel()+".");
 		
 		try {
 			// we get the new values from the database to allow execute and redo

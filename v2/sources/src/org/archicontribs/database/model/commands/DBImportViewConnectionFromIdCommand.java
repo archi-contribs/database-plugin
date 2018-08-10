@@ -94,9 +94,9 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 		if ( logger.isDebugEnabled() ) {
 			if ( this.mustCreateCopy )
-				logger.debug("   Importing a copy of view connection id "+this.id+".");
+				logger.debug("   Importing a copy of view connection id "+this.id + " version " + version +".");
 			else
-				logger.debug("   Importing view connection id "+this.id+".");
+				logger.debug("   Importing view connection id "+this.id + " version " + version +".");
 		}
 
 		try {

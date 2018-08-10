@@ -110,9 +110,9 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
-                logger.debug("   Importing a copy of view object id "+this.id+".");
+                logger.debug("   Importing a copy of view object id "+this.id+" version "+version+".");
             else
-                logger.debug("   Importing view object id "+this.id+".");
+                logger.debug("   Importing view object id "+this.id+" version "+version+".");
         }
 
         try {
