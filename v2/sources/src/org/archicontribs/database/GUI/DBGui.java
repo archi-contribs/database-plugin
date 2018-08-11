@@ -990,6 +990,11 @@ public class DBGui {
 		this.grpDatabase.setVisible(false);
 		this.grpDatabase.setData("visible", false);
 	}
+	
+	protected void showGrpDatabase() {
+		this.grpDatabase.setVisible(true);
+		this.grpDatabase.setData("visible", true);
+	}
 
 	protected void setBtnAction(String label, SelectionListener listener) {
 		this.btnDoAction.setText(label);
@@ -1042,8 +1047,14 @@ public class DBGui {
 		resetProgressBar();
 	}
 	
+	public void hideProgressBar() {
+		this.grpProgressBar.setVisible(false);
+		this.grpProgressBar.setData("visible", false);
+	}
+	
 	public void setProgressBarLabel(String label) {
 		this.lblProgressBar.setText(label);
+		refreshDisplay();
 	}
 	
 	public String getProgressBarLabel() {
