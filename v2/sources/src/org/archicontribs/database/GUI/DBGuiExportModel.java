@@ -1018,7 +1018,7 @@ public class DBGuiExportModel extends DBGui {
             setMessage("Comparing model from the database...");
             boolean upToDate = false;
             try {
-                upToDate = DBGuiExportModel.this.compareModelToDatabase();
+                upToDate = compareModelToDatabase();
             } catch (Exception err) {
                 popup(Level.ERROR, "Failed to compare the model to the database.", err);
             }
@@ -1137,6 +1137,35 @@ public class DBGuiExportModel extends DBGui {
             doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
             return false;
         }
+        
+		// we create the view screenshots if the database is configured to export them
+		hideGrpDatabase();
+		createProgressBar("Checking if view screenshots are required", 1, this.exportedModel.getAllViews().size());
+		Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+		while ( viewsIterator.hasNext() ) {
+			increaseProgressBar();
+			IDiagramModel view = viewsIterator.next().getValue();
+			DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+			if ( this.exportConnection.getDatabaseEntry().isViewSnapshotRequired() ) {
+				if ( metadata.getScreenshot() == null ) {
+					if ( metadata.isScreenshotSaved() )
+						metadata.restoreSavedScreenshot();
+					else {
+						setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+						metadata.setScreenshot(createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor()/100.0, this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth()));
+						setProgressBarLabel("Checking if view screenshots are required");
+					}
+				}
+			} else {
+				if ( metadata.getScreenshot() != null )
+					metadata.saveScreenshot();
+			}
+			
+			// we recalculate the view checksum using the screenshot (or not)
+			metadata.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
+		}
+		hideProgressBar();
+		showGrpDatabase();
         
         if ( logger.isDebugEnabled() ) logger.debug("Calculating number of new, updated and deleted components (forceExport = "+shallWeForceExport()+").");
         
@@ -2161,7 +2190,7 @@ public class DBGuiExportModel extends DBGui {
 		if ( mustExport ) {
 		    if ( logger.isDebugEnabled() )  logger.debug(debugMessage);
 		    
-			this.exportConnection.exportEObject(eObjectToExport, this);
+			this.exportConnection.exportEObject(eObjectToExport);
 			
             if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
             	incrementText(txtNewInModel);
@@ -2524,6 +2553,20 @@ public class DBGuiExportModel extends DBGui {
 	
 	private boolean shallWeForceExport() {
 		return DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+	}
+	
+	@Override
+	public void close() {
+		// we remove the view screenshots to same memory
+		Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+		while ( viewsIterator.hasNext() ) {
+			increaseProgressBar();
+			IDiagramModel view = viewsIterator.next().getValue();
+			DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+			metadata.resetScreenshot();
+		}
+		
+		super.close();
 	}
 
 	Button btnDoNotExport;

@@ -89,6 +89,25 @@ public class DBMetadata  {
      * Latest version of the component in the database whichever the model that modified the component 
      */
     @Getter DBVersion latestDatabaseVersion = new DBVersion();
+    
+    /**
+     * Screenshot of the view (if the component is a view)
+     */
+    @Getter @Setter byte[] screenshot = null;
+    
+    /**
+     * Backup of the Screenshot of the view (if the component is a view)
+     */
+    private byte[] screenshotBackup = null;
+    public void saveScreenshot() { this.screenshotBackup = this.screenshot ; this.screenshot = null; }
+    public void restoreSavedScreenshot() { this.screenshot = this.screenshotBackup ; this.screenshotBackup = null; }
+    public boolean isScreenshotSaved() { return this.screenshotBackup != null; }
+    public void resetScreenshot() { this.screenshot = null; this.screenshotBackup = null; }
+    
+    /**
+     * Screenshot of the view in the database (if the component is a view)
+     */
+    @Getter @Setter byte[] databaseScreenshot = null;
 
     /**
      * Used to remember if the component has been exported

@@ -11,6 +11,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
@@ -54,6 +55,8 @@ import com.archimatetool.model.ITextPosition;
 
 
 public class DBChecksum {
+	protected static final DBLogger logger = new DBLogger(DBChecksum.class);
+	
 	private static final char startOfText = (char)2;
 	private static final char endOfText = (char)3;
 	
@@ -101,7 +104,9 @@ public class DBChecksum {
 		}
 		if ( eObject instanceof IFolder )							append(checksumBuilder, "folder type", ((IFolder)eObject).getType().getLiteral());
 		if ( eObject instanceof IArchimateDiagramModel )			append(checksumBuilder, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
-		if ( eObject instanceof IDiagramModel )						append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
+		if ( eObject instanceof IDiagramModel )	{					append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
+																	append(checksumBuilder, "screenshot", ((IDBMetadata)eObject).getDBMetadata().getScreenshot() == null ? "" : new String(((IDBMetadata)eObject).getDBMetadata().getScreenshot()));
+		}
 		else if ( eObject instanceof IDiagramModelContainer )		append(checksumBuilder, "container", ((IIdentifier)((IDiagramModelContainer)eObject).eContainer()).getId());
 		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
 		if ( eObject instanceof IDiagramModelNote )					append(checksumBuilder, "border type", ((IDiagramModelNote)eObject).getBorderType());
@@ -154,6 +159,8 @@ public class DBChecksum {
 																		append(checksumBuilder, "property value", prop.getValue());
 		        													}
 		}
+		
+		logger.trace("***** "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" : checksumBuilder = "+checksumBuilder.length()+"   checksum = "+calculateChecksum(checksumBuilder));
 		
 		return calculateChecksum(checksumBuilder);
 	}

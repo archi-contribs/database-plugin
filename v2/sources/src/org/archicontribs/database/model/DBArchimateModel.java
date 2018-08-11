@@ -282,7 +282,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         int len = 0;
 
         if ( mustCalculateChecksum ) {
-            //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets) 
+            //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets)
+        	if ( eObject instanceof IDiagramModel ) {
+        		// we reset the screenshots
+        		((IDBMetadata)eObject).getDBMetadata().resetScreenshot();
+        	}
             checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             len = checksumBuilder.length();
         }
@@ -355,6 +359,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "CanvasModelConnection":
             case "DiagramModelArchimateConnection":
             case "DiagramModelConnection":			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
+            
+            										// we clear up the view screenshot
+            										((IDBMetadata)eObject).getDBMetadata().setScreenshot(null);
+            										((IDBMetadata)eObject).getDBMetadata().setDatabaseScreenshot(null);
             
                                                     if ( mustCalculateChecksum && (this.viewChecksum != null) ) {
                                                         this.viewChecksum.append(checksumBuilder.toString());

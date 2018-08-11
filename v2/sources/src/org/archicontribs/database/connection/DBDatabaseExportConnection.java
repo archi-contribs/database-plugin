@@ -17,7 +17,6 @@ import java.util.Map;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -201,7 +200,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         	modelDatabaseVersion = model.getDatabaseVersion().getVersion();
         }
         else if ( component instanceof IDiagramModel ) {
-        	request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+        	request = "SELECT id, name, version, screenshot, checksum, container_checksum, created_on, model_id, model_version"
         			+ " FROM "+this.schema+"views"
         			+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
         			+ " WHERE id = ?"
@@ -212,7 +211,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         	modelDatabaseVersion = model.getDatabaseVersion().getVersion();
         }
         else if ( component instanceof IDiagramModelObject  ) {
-        	request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+        	request = "SELECT id, name, version, schecksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schema+"views_objects"
 					+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id = ?"
@@ -265,6 +264,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
 				metadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+				
+				if ( component instanceof IDiagramModel )
+					metadata.setDatabaseScreenshot(result.getBytes("screenshot"));
 			}
 		}
     }
@@ -475,7 +477,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 metadata.getLatestDatabaseVersion().reset();
             }
 			try ( ResultSet result = select(
-					"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+					"SELECT id, name, version, screenshot, checksum, container_checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"views"
 							+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
 							+ " WHERE id IN (SELECT id FROM "+this.schema+"views JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ? AND model_version = ?)"
@@ -518,6 +520,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 					// components are sorted by version (so also by timestamp) so the latest found is the latest in time
 					currentComponent.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+					
+					currentComponent.setDatabaseScreenshot(result.getBytes("screenshot"));
 					
 					previousComponent = currentComponent;
 					previousId = currentId;
@@ -740,11 +744,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Export a component to the database
 	 */
-	public void exportEObject(EObject eObject, DBGui gui) throws Exception {
+	public void exportEObject(EObject eObject) throws Exception {
 		if ( eObject instanceof IArchimateElement ) 			exportElement((IArchimateElement)eObject);
 		else if ( eObject instanceof IArchimateRelationship ) 	exportRelationship((IArchimateRelationship)eObject);
 		else if ( eObject instanceof IFolder ) 					exportFolder((IFolder)eObject);
-		else if ( eObject instanceof IDiagramModel ) 			exportView((IDiagramModel)eObject, gui);
+		else if ( eObject instanceof IDiagramModel ) 			exportView((IDiagramModel)eObject);
 		else if ( eObject instanceof IDiagramModelObject )		exportViewObject((IDiagramModelComponent)eObject);
 		else if ( eObject instanceof IDiagramModelConnection )	exportViewConnection((IDiagramModelConnection)eObject);
 		else
@@ -974,18 +978,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	/**
 	 * Export a view into the database.
 	 */
-	private void exportView(IDiagramModel view, DBGui gui) throws Exception {
+	private void exportView(IDiagramModel view) throws Exception {
 		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "checksum", "container_checksum"};
 
 		// if the view is exported, the we increase its exportedVersion
 		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)view).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
-
-		byte[] viewImage = null;
-
-		if ( this.databaseEntry.isViewSnapshotRequired() )
-			viewImage = gui.createImage(view, this.databaseEntry.getViewsImagesScaleFactor()/100.0, this.databaseEntry.getViewsImagesBorderWidth());
 
 		insert(this.schema+"views", ViewsColumns
 				,view.getId()
@@ -1000,12 +999,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((view instanceof IHintProvider) ? ((IHintProvider)view).getHintTitle() : null)
 				,((view instanceof IArchimateDiagramModel) ? ((IArchimateDiagramModel)view).getViewpoint() : null)
 				,((view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null)
-				,viewImage
+				,((IDBMetadata)view).getDBMetadata().getScreenshot()
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum()
 				,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum()
 				);
-
-		viewImage = null;		// to force memory release
 
 		exportProperties(view);
 	}

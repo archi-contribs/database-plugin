@@ -244,7 +244,7 @@ public class DBGuiComponentHistory extends DBGui {
             public void widgetSelected(SelectionEvent e) {
 		    	try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection())) {
 		    		((DBArchimateModel)DBGuiComponentHistory.this.selectedComponent.getArchimateModel()).getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
-					exportConnection.exportEObject(DBGuiComponentHistory.this.selectedComponent, DBGuiComponentHistory.this);
+					exportConnection.exportEObject(DBGuiComponentHistory.this.selectedComponent);
 					
 					popup(Level.INFO, "The component has been updated in the database.");
 					connectedToDatabase(true);
