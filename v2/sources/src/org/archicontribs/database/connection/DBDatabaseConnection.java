@@ -50,7 +50,7 @@ public class DBDatabaseConnection implements AutoCloseable {
     /**
      * the databaseEntry corresponding to the connection
      */
-    protected DBDatabaseEntry databaseEntry = null;
+    @Getter protected DBDatabaseEntry databaseEntry = null;
     @Getter protected String schema = "";
 
     /**
