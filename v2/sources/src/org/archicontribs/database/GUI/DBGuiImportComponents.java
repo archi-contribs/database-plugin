@@ -2081,6 +2081,9 @@ public class DBGuiImportComponents extends DBGui {
 
 
 	void doImport() throws Exception {
+        // We rename the "close" button to "cancel"
+        this.btnClose.setText("Cancel");
+        
 		if ( logger.isDebugEnabled() )
 			logger.debug("Importing "+this.tblComponents.getSelectionCount()+" component" + ((this.tblComponents.getSelectionCount()>1) ? "s" : "") + " in " + DBImportMode.getLabel(getOptionValue()) + ".");
 		
@@ -2097,33 +2100,81 @@ public class DBGuiImportComponents extends DBGui {
 					// import folders
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing folders from model \""+name+"\".");
 					Map<String, IFolder> foldersConversionMap = new HashMap<String, IFolder>();
+					
+					Map<String, String> translatedFolders = new HashMap<String, String>();
+					
 					try ( ResultSet result = this.importConnection.select("SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.rank", id, id) ) {
 						while ( result.next() ) {
-							if ( result.getInt("type") != 0 ) {
-								// root folders are not imported as they must not be duplicated so we need to keep a conversion table
-								IFolder rootFolder = this.importedModel.getFolder(FolderType.get(result.getInt("type")));
-								logger.debug("   Mapping root folder \""+result.getString("name")+"\"("+result.getString("folder_id")+") to folder \""+rootFolder.getName()+"\"("+rootFolder.getId()+")");
-								foldersConversionMap.put(result.getString("folder_id"), rootFolder);
-							} else {
-								// we check if the parent folder needs to be translated
-								IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
-								if ( parentFolder != null )
-									logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
-								else
-									parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-								IDBImportFromIdCommand command = new DBImportFolderFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("folder_id"), result.getInt("folder_version"), DBImportMode.get(getOptionValue())); 
-								if ( command.getException() != null )
-									throw command.getException();
-								command.execute();
-								if ( command.getException() != null )
-									throw command.getException();
-								undoRedoCommands.add((Command)command);
-								// if the folder has been copied (thus has got a different id), then we add it to the conversion map
-								IFolder importedFolder = (IFolder)command.getImported();
-								if ( !DBPlugin.areEqual(result.getString("folder_id"), importedFolder.getId()) ) {
-									logger.debug("   Mapping imported folder \""+result.getString("name")+"\"("+result.getString("folder_id")+") to folder \""+importedFolder.getName()+"\"("+importedFolder.getId()+")");
-									foldersConversionMap.put(result.getString("folder_id"), importedFolder);
+							// we check if we already know how to convert this folder
+							String convertedFolderId = translatedFolders.get(result.getString("folder_id"));
+							
+							if ( convertedFolderId == null ) {
+								// if the folder is not known, we calculate its path in order to check if the same path already exist in the current model
+								String folderPath;
+								String folderId = result.getString("folder_id");
+								int folderType = result.getInt("type");
+								boolean isRootFolder = (folderType != 0);
+								
+								if ( isRootFolder )
+									// for root folders, the path is directl the name of the folder 
+									folderPath = result.getString("name");
+								else {
+									// for other folders, we recursively get the name of the parent folders until a root folder is found
+									StringBuilder folderPathBuilder = new StringBuilder();
+									while ( !isRootFolder ) {
+										try (ResultSet subResult = this.importConnection.select("SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) AND fim.folder_id = ?", id, id, folderId) ) {
+											if ( folderPathBuilder.length() == 0 )
+												folderPathBuilder.append(subResult.getString("name"));
+											else {
+												folderPathBuilder.insert(0, "\0");			// we ensure that the separator cannot be part of a folder name
+												folderPathBuilder.insert(0, subResult.getString("name"));
+											}
+											folderId = subResult.getString("parent_folder_id");
+											folderType = subResult.getInt("type");
+											isRootFolder = (folderType != 0);
+										}
+									}
+									folderPath = folderPathBuilder.toString();
 								}
+								
+								// we search for the corresponding path in the current model
+								IFolder parentFolder = null;
+								for ( String subFolderName: folderPath.split("[\0]") ) {
+									if ( parentFolder == null ) {
+										// root folders are get by their type
+										parentFolder = this.importedModel.getFolder(FolderType.get(folderType));
+									} else {
+										// other folders are get by their name
+										IFolder folder = null;
+										for ( IFolder subFolder: parentFolder.getFolders() ) {
+											if ( (folder == null) && subFolder.getName().equals(subFolderName) ) {
+												folder = subFolder;
+											}
+										}
+										
+										if ( folder == null ) {
+											// if we're here, this means that we did not find the folder path in the model
+											// so we import the folder
+											IDBImportFromIdCommand command = new DBImportFolderFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("folder_id"), result.getInt("folder_version"), DBImportMode.get(getOptionValue())); 
+											if ( command.getException() != null )
+												throw command.getException();
+											command.execute();
+											if ( command.getException() != null )
+												throw command.getException();
+											undoRedoCommands.add((Command)command);
+											
+											parentFolder = (IFolder) command.getImported();
+										} else
+											parentFolder = folder;
+									}
+								}
+								
+								if ( parentFolder == null )
+									throw new Exception("Failed to get folder for path "+folderPath.replaceAll("[\0]", "/"));
+								convertedFolderId = parentFolder.getId();
+								if ( logger.isTraceEnabled() ) logger.trace("Creating translation for path "+folderPath.replaceAll("[\0]", "/")+" to "+((IDBMetadata)parentFolder).getDBMetadata().getDebugName());
+								//TODO: get folder properties from the database !!!
+								translatedFolders.put(result.getString("folder_id"), convertedFolderId);
 							}
 						}
 					}
@@ -2267,6 +2318,8 @@ public class DBGuiImportComponents extends DBGui {
 		} finally {
 			// we do not catch the exception if any, but we need to close the popup
 			closeMessage();
+	        // We rename the "cancel" button to "close"
+	        this.btnClose.setText("Close");
 		}
 	}
 
