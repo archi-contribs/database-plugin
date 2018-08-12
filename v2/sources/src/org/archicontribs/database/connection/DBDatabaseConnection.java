@@ -45,7 +45,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 209;
+    public static final int databaseVersion = 210;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -566,6 +566,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "connection_router_type " + this.INTEGER +" NOT NULL, "
                     + "viewpoint " + this.OBJECTID + ", "
                     + "screenshot " + this.IMAGE + ", "
+                    + "screenshot_scale_factor " + this.INTEGER + ", "
+                    + "screenshot_border_width " + this.INTEGER + ", "
                     + "created_by " + this.USERNAME +" NOT NULL, "
                     + "created_on " + this.DATETIME +" NOT NULL, "
                     + "checkedin_by " + this.USERNAME + ", "
@@ -1120,6 +1122,15 @@ public class DBDatabaseConnection implements AutoCloseable {
         	addColumn(this.schema+"views_objects", "alpha", this.INTEGER);
 
         	dbVersion = 209;
+        }
+        
+        // convert from version 209 to 210
+        //      - add screenshot_scale_factor and screenshot_border_width in views table
+        if ( dbVersion == 209 ) {
+        	addColumn(this.schema+"views", "screenshot_scale_factor", this.INTEGER);
+        	addColumn(this.schema+"views", "screenshot_border_width", this.INTEGER);
+        	
+        	dbVersion = 210;
         }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");

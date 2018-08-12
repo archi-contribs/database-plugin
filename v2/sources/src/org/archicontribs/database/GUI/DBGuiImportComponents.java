@@ -482,7 +482,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.compoModels.setLayout(new FormLayout());
 		
 		Label title = new Label(this.compoModels, SWT.NONE);
-		title.setText("Please select a model to merge it to your current model ...");
+		title.setText("Please select a model to merge in your current model ...");
 		title.setBackground(GROUP_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(0);

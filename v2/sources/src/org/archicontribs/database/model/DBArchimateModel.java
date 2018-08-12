@@ -279,14 +279,14 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @SuppressWarnings("null")
     public String countObject(EObject eObject, boolean mustCalculateChecksum, IDiagramModel parentDiagram) throws Exception {
         StringBuilder checksumBuilder = null;
+        DBMetadata objectMetadata = (eObject instanceof IDBMetadata) ? ((IDBMetadata)eObject).getDBMetadata() : null;
         int len = 0;
 
+        //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets)
         if ( mustCalculateChecksum ) {
-            //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets)
-        	if ( eObject instanceof IDiagramModel ) {
-        		// we reset the screenshots
-        		((IDBMetadata)eObject).getDBMetadata().resetScreenshot();
-        	}
+        	// we delete the existing screenshot in order to force its re-creation during export (if required) as its content may have changed by external factors (preferences, specialization plugin, etc...)
+        	if ( eObject instanceof IDiagramModel )
+        		objectMetadata.getScreenshot().dispose();
             checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             len = checksumBuilder.length();
         }
@@ -298,9 +298,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             
 										            if ( mustCalculateChecksum ) {
 										            	String checksum = checksumBuilder.toString();
-										            	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksum);
-										                ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
-										                ((IDBMetadata)eObject).getDBMetadata().setChecksumValid(true);
+										            	objectMetadata.getCurrentVersion().setContainerChecksum(checksum);
+										            	objectMetadata.getCurrentVersion().setChecksum(checksum);
+										            	objectMetadata.setChecksumValid(true);
 										                this.viewChecksum = new StringBuilder(checksumBuilder.toString());
 										            }
 										            
@@ -324,7 +324,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "SketchModelSticky":				this.allViewObjects.put(((IIdentifier)eObject).getId(), (IDiagramModelObject)eObject);
 										            
 									                if ( mustCalculateChecksum ) {
-									                	((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
+									                	objectMetadata.getCurrentVersion().setContainerChecksum(checksumBuilder.toString());
 									                	if ( this.viewChecksum != null )
 									                	    this.viewChecksum.append(checksumBuilder.toString());
 									                }
@@ -359,10 +359,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             case "CanvasModelConnection":
             case "DiagramModelArchimateConnection":
             case "DiagramModelConnection":			this.allViewConnections.put(((IIdentifier)eObject).getId(), (IDiagramModelConnection)eObject);
-            
-            										// we clear up the view screenshot
-            										((IDBMetadata)eObject).getDBMetadata().setScreenshot(null);
-            										((IDBMetadata)eObject).getDBMetadata().setDatabaseScreenshot(null);
             
                                                     if ( mustCalculateChecksum && (this.viewChecksum != null) ) {
                                                         this.viewChecksum.append(checksumBuilder.toString());
@@ -415,7 +411,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             // if the checksumBuilder contains a single checksum, then we get it
             // else, we calculate a new checksum from the list of checksums
             String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
-            ((IDBMetadata)eObject).getDBMetadata().getCurrentVersion().setChecksum(checksum);
+            objectMetadata.getCurrentVersion().setChecksum(checksum);
             return checksum;
         }
 

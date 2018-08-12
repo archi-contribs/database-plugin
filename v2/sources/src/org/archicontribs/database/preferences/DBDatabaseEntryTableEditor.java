@@ -694,7 +694,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactor.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.lblBorderWidthPixels, 40);
+		fd.left = new FormAttachment(this.lblBorderWidthPixels, 35);
 		this.lblScaleFactor.setLayoutData(fd);
 		this.lblScaleFactor.setToolTipText("Please choose the scale factor to resize the views images.");
 		

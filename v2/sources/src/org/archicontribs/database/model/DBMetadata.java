@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.data.DBScreenshot;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
 
@@ -90,25 +91,13 @@ public class DBMetadata  {
      */
     @Getter DBVersion latestDatabaseVersion = new DBVersion();
     
+    // special variables and methods to handle screenshots if component is a IDiagramModel
+    
     /**
      * Screenshot of the view (if the component is a view)
      */
-    @Getter @Setter byte[] screenshot = null;
+    @Getter @Setter DBScreenshot screenshot = null;
     
-    /**
-     * Backup of the Screenshot of the view (if the component is a view)
-     */
-    private byte[] screenshotBackup = null;
-    public void saveScreenshot() { this.screenshotBackup = this.screenshot ; this.screenshot = null; }
-    public void restoreSavedScreenshot() { this.screenshot = this.screenshotBackup ; this.screenshotBackup = null; }
-    public boolean isScreenshotSaved() { return this.screenshotBackup != null; }
-    public void resetScreenshot() { this.screenshot = null; this.screenshotBackup = null; }
-    
-    /**
-     * Screenshot of the view in the database (if the component is a view)
-     */
-    @Getter @Setter byte[] databaseScreenshot = null;
-
     /**
      * Used to remember if the component has been exported
      */
@@ -122,6 +111,9 @@ public class DBMetadata  {
     public DBMetadata(EObject componentObject) {
         assert ( componentObject instanceof IIdentifier );
         this.component = componentObject;
+        
+        if ( componentObject instanceof IDiagramModel )
+        	this.screenshot = new DBScreenshot();
     }
 
     /**

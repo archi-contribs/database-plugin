@@ -29,6 +29,7 @@ import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBProperty;
+import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
@@ -71,6 +72,7 @@ import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
+import com.archimatetool.editor.diagram.util.ModelReferencedImage;
 import com.archimatetool.editor.ui.ImageFactory;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
@@ -204,11 +206,11 @@ public class DBGui {
 
 	private Group grpDatabase;
 
-	protected Group grpProgressBar;
+	protected Group grpProgressBar = null;
 	protected Label lblProgressBar;
 	private ProgressBar progressBar;
 
-	protected Group grpMessage;
+	protected Group grpMessage = null;
 	private CLabel lblMessage;
 
 
@@ -1021,7 +1023,6 @@ public class DBGui {
 			this.lblProgressBar = new Label(this.grpProgressBar, SWT.CENTER);
 			this.lblProgressBar.setBackground(GROUP_BACKGROUND_COLOR);
 			this.lblProgressBar.setFont(TITLE_FONT);
-			this.lblProgressBar.setText(label);
 			fd = new FormData();
 			fd.top = new FormAttachment(0, -5);
 			fd.left = new FormAttachment(0);
@@ -1035,14 +1036,19 @@ public class DBGui {
 			fd.right = new FormAttachment(75);
 			fd.height = 15;
 			this.progressBar.setLayoutData(fd);
-			this.progressBar.setMinimum(min);
-			this.progressBar.setMaximum(max);
-
-			this.compoRightTop.layout();
 		}
 
 		this.grpProgressBar.setVisible(true);
 		this.grpProgressBar.setData("visible", true);
+		
+		this.lblProgressBar.setText(label);
+		
+		this.progressBar.setMinimum(min);
+		this.progressBar.setMaximum(max);
+		
+		
+		this.compoRightTop.layout();
+		refreshDisplay();
 
 		resetProgressBar();
 	}
@@ -1050,6 +1056,7 @@ public class DBGui {
 	public void hideProgressBar() {
 		this.grpProgressBar.setVisible(false);
 		this.grpProgressBar.setData("visible", false);
+		refreshDisplay();
 	}
 	
 	public void setProgressBarLabel(String label) {
@@ -1088,6 +1095,7 @@ public class DBGui {
 			fd.right = new FormAttachment(100);
 			fd.bottom = new FormAttachment(100);
 			this.lblMessage.setLayoutData(fd);
+			refreshDisplay();
 		}
 
 		this.grpMessage.setVisible(true);
@@ -1446,22 +1454,32 @@ public class DBGui {
 		return isIdentical;
 	}
 
-	public byte[] createImage(IDiagramModel view, double scale, int margin) {
+	public byte[] createImage(IDiagramModel view, int scalePercent, int margin) {
 		byte[] imageContent = null;
+		DBMetadata metadata = ((IDBMetadata)view).getDBMetadata(); 
 
 		String oldLabel = getProgressBarLabel();
-		setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+		logger.debug("Creating screenshot of view \""+view.getName()+"\"");
 
 		try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
 			try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
 				ImageLoader saver = new ImageLoader();
-				Image image = DiagramUtils.createImage(view, scale, margin);
+				ModelReferencedImage viewImage = DiagramUtils.createModelReferencedImage(view, scalePercent/100.0, margin);
+				Image image = viewImage.getImage();
 
 				saver.data = new ImageData[] { image.getImageData(ImageFactory.getDeviceZoom()) };
-				saver.save(writeOut, SWT.IMAGE_PNG);
-
 				image.dispose();
+				
+				saver.save(writeOut, SWT.IMAGE_PNG);
 				imageContent = out.toByteArray();
+				
+				org.eclipse.draw2d.geometry.Rectangle bounds = viewImage.getBounds();
+	            bounds.performScale(ImageFactory.getDeviceZoom() / 100); // Account for device zoom level
+				
+				metadata.getScreenshot().setScreenshotBytes(imageContent);
+				metadata.getScreenshot().setScaleFactor(scalePercent);
+				metadata.getScreenshot().setBorderWidth(margin);
+				metadata.getScreenshot().setBounds(bounds);
 			} catch (IOException err) {
 				logger.error("Failed to close DataOutputStream", err);
 			}
@@ -1470,7 +1488,7 @@ public class DBGui {
 		}
 
 		setProgressBarLabel(oldLabel);
-
+		
 		return imageContent;
 	}
 
@@ -1478,7 +1496,7 @@ public class DBGui {
 	 * Refreshes the display
 	 */
 	public static void refreshDisplay() {
-		while ( Display.getCurrent().readAndDispatch() ) {
+		while ( DBGui.display.readAndDispatch() ) {
 			// nothing to do
 		}
 	}

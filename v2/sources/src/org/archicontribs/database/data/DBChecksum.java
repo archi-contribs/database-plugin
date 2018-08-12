@@ -105,7 +105,7 @@ public class DBChecksum {
 		if ( eObject instanceof IFolder )							append(checksumBuilder, "folder type", ((IFolder)eObject).getType().getLiteral());
 		if ( eObject instanceof IArchimateDiagramModel )			append(checksumBuilder, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
 		if ( eObject instanceof IDiagramModel )	{					append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
-																	append(checksumBuilder, "screenshot", ((IDBMetadata)eObject).getDBMetadata().getScreenshot() == null ? "" : new String(((IDBMetadata)eObject).getDBMetadata().getScreenshot()));
+																	append(checksumBuilder, "screenshot", ((IDBMetadata)eObject).getDBMetadata().getScreenshot().getBytes());
 		}
 		else if ( eObject instanceof IDiagramModelContainer )		append(checksumBuilder, "container", ((IIdentifier)((IDiagramModelContainer)eObject).eContainer()).getId());
 		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
@@ -160,8 +160,6 @@ public class DBChecksum {
 		        													}
 		}
 		
-		logger.trace("***** "+((IDBMetadata)eObject).getDBMetadata().getDebugName()+" : checksumBuilder = "+checksumBuilder.length()+"   checksum = "+calculateChecksum(checksumBuilder));
-		
 		return calculateChecksum(checksumBuilder);
 	}
 	
@@ -175,6 +173,18 @@ public class DBChecksum {
 		String sValue = (value == null ? "" : value);
 
 	    sb.append(startOfText+sValue+endOfText);
+	}
+	
+	/**
+	 * Adds the value to the StringBuilder that will be used to calculate the checksum.
+	 * @param sb StringBuilder that will be used to calculate the checksum
+	 * @param name was used for log purpose but is not used anymore
+	 * @param value value to add
+	 */
+	public static void append(StringBuilder sb, String name, byte[] value) {
+		String sValue = (value == null ? "" : new String(value));
+
+	    append(sb, name, sValue);
 	}
 	
 	/**
