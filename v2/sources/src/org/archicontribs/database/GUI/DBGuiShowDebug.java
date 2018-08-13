@@ -5,12 +5,8 @@
  */
 package org.archicontribs.database.GUI;
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
-import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
@@ -484,13 +480,15 @@ public class DBGuiShowDebug extends DBGui {
             } else
                 metadata.getScreenshot().setScreenshotActive(false);
             
-            // we recalculate the view checksum using the screenshot (or not)
+            // we recalculate the view checksum
             try {
-                metadata.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.selectedObject));
-            } catch (NoSuchAlgorithmException|UnsupportedEncodingException err) {
-                popup(Level.ERROR, "Failed to calculate checksum.", err);
-                return;
-            }
+            	// we force the presence of the view in the allView map in order to keep the screenshot in the checksum calculation
+            	this.model.getAllViews().put(((IDiagramModel)this.selectedObject).getId(), (IDiagramModel)this.selectedObject);
+				this.model.countObject(this.selectedObject, true, null);
+			} catch (Exception err) {
+				popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
+				return;
+			}
         }
         
         DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();

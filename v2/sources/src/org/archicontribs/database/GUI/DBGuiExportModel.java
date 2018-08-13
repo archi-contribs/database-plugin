@@ -145,6 +145,7 @@ public class DBGuiExportModel extends DBGui {
 	    
         try {
     	    setMessage("Counting model's components");
+    	    this.exportedModel.resetCounters();
             this.exportedModel.countAllObjects();
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to count model's components", err);
@@ -1161,7 +1162,7 @@ public class DBGuiExportModel extends DBGui {
 				metadata.getScreenshot().setScreenshotActive(false);
 			
 			// we recalculate the view checksum using the screenshot (or not)
-			metadata.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
+			this.exportedModel.countObject(view, true, null);
 		}
 		hideProgressBar();
 		showGrpDatabase();
@@ -1884,6 +1885,9 @@ public class DBGuiExportModel extends DBGui {
                         }
                     	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
                     }
+                    
+                    // we recalculate the checksum
+                    this.exportedModel.countObject(view,  true, null);
                     
                     ((IDBMetadata)view).getDBMetadata().setExported(doExportEObject(view));
                 }

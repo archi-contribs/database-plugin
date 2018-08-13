@@ -284,8 +284,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets)
         if ( mustCalculateChecksum ) {
-        	// we delete the existing screenshot in order to force its re-creation during export (if required) as its content may have changed by external factors (preferences, specialization plugin, etc...)
-        	if ( eObject instanceof IDiagramModel )
+        	// if the eObject isa view and if it is not yet in the allViews map, then we empty the existing screenshot
+        	if ( eObject instanceof IDiagramModel && (this.allViews.get(((IIdentifier)eObject).getId()) == null) )
         		objectMetadata.getScreenshot().dispose();
             checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             len = checksumBuilder.length();
