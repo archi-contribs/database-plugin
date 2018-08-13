@@ -1876,6 +1876,11 @@ public class DBGuiExportModel extends DBGui {
                     // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
                     if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
                     	this.exportedModel.countObject(view, true, view);
+                    	if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
+                            setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+                            createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
+                            setProgressBarLabel("Exporting views ...");
+                        }
                     	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
                     }
                     
