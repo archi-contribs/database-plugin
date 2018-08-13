@@ -5,8 +5,12 @@
  */
 package org.archicontribs.database.GUI;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
+import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
@@ -463,6 +467,30 @@ public class DBGuiShowDebug extends DBGui {
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;
+        }
+        
+        // in case of a view, we check if we need to recreate the screenshot
+        if ( this.selectedObject instanceof IDiagramModel ) {
+            DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
+            if ( this.connection.getDatabaseEntry().isViewSnapshotRequired() ) {
+                if ( (metadata.getScreenshot().getBytes() == null)
+                        || (metadata.getScreenshot().getScaleFactor() != this.connection.getDatabaseEntry().getViewsImagesScaleFactor())
+                        || (metadata.getScreenshot().getBodrderWidth() != this.connection.getDatabaseEntry().getViewsImagesBorderWidth())
+                        ) {
+                    logger.debug("Creating screenshot of view \""+((IDiagramModel)this.selectedObject).getName()+"\"");
+                    createImage((IDiagramModel)this.selectedObject, this.connection.getDatabaseEntry().getViewsImagesScaleFactor(), this.connection.getDatabaseEntry().getViewsImagesBorderWidth());
+                }
+                metadata.getScreenshot().setScreenshotActive(true);
+            } else
+                metadata.getScreenshot().setScreenshotActive(false);
+            
+            // we recalculate the view checksum using the screenshot (or not)
+            try {
+                metadata.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.selectedObject));
+            } catch (NoSuchAlgorithmException|UnsupportedEncodingException err) {
+                popup(Level.ERROR, "Failed to calculate checksum.", err);
+                return;
+            }
         }
         
         DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();

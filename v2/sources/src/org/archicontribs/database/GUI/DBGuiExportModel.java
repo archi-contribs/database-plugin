@@ -1879,6 +1879,7 @@ public class DBGuiExportModel extends DBGui {
                     	if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
                             setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
                             createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
+                            ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
                             setProgressBarLabel("Exporting views ...");
                         }
                     	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
