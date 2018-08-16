@@ -1078,7 +1078,10 @@ public class DBGui {
      * Sets the min and max values of the progressBar and reset its selection to zero
      */
     protected void setProgressBarMinAndMax(int min, int max) {
-        this.progressBar.setMinimum(min); this.progressBar.setMaximum(max);
+        if ( this.lblProgressBar != null ) {
+            this.progressBar.setMinimum(min);
+            this.progressBar.setMaximum(max);
+        }
         resetProgressBar();
     }
 
@@ -1086,7 +1089,8 @@ public class DBGui {
      * Resets the progressBar to zero in the SWT thread (thread safe method)
      */
     protected void resetProgressBar() {
-        this.progressBar.setSelection(0);
+        if ( this.lblProgressBar != null )
+            this.progressBar.setSelection(0);
         refreshDisplay();
     }
 
@@ -1094,7 +1098,8 @@ public class DBGui {
      * Increases the progressBar selection in the SWT thread (thread safe method)
      */
     protected void increaseProgressBar() {
-        this.progressBar.setSelection(this.progressBar.getSelection()+1);
+        if ( this.lblProgressBar != null )
+            this.progressBar.setSelection(this.progressBar.getSelection()+1);
         refreshDisplay();
     }
 
