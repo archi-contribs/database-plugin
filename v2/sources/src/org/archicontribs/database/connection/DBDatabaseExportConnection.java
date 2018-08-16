@@ -285,8 +285,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int modelInitialVersion = model.getInitialVersion().getVersion();
 		int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 
-		// if the model is brand new, there is no point to check for its content in the database
-        if ( !DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j") && (modelInitialVersion != 0) ) {
+        if ( !DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j") ) {
 			// elements
 			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the elements from the database");
 	        Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
@@ -1122,7 +1121,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
 
-		// if the viewConnection is exported, the we increase its exportedVersion
+		// if the viewConnection is exported, then we increase its exportedVersion
 		((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
 
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)viewConnection).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");

@@ -432,7 +432,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	
 	public static void checkForUpdate(boolean verbose) {
 		@SuppressWarnings("unused")
-		DBCheckForUpdate dbCheckForUpdate = new DBCheckForUpdate(
+		DBCheckForPluginUpdate dbCheckForUpdate = new DBCheckForPluginUpdate(
 				verbose,
 				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
 				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md"

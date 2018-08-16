@@ -131,8 +131,9 @@ public class DBGuiExportModel extends DBGui {
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
+	    this.btnDoAction.setEnabled(false);
 
-		// We rename the "close" button to "cancel"
+		// We rename the close button to "Cancel"
 		this.btnClose.setText("Cancel");
 
 		// We activate the Eclipse Help framework
@@ -144,8 +145,6 @@ public class DBGuiExportModel extends DBGui {
 	    super.run();
 	    
         try {
-    	    setMessage("Counting model's components");
-    	    this.exportedModel.resetCounters();
             this.exportedModel.countAllObjects();
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to count model's components", err);
@@ -154,7 +153,7 @@ public class DBGuiExportModel extends DBGui {
             closeMessage();
         }
         
-        if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships.");
+        if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships and "+this.exportedModel.getAllFolders().size()+" folders and "+this.exportedModel.getAllViews().size()+" views and "+this.exportedModel.getAllViewObjects().size()+" objects and "+this.exportedModel.getAllViewConnections().size()+" connections.");
         
         this.txtTotalElements.setText(toString(this.exportedModel.getAllElements().size()));
         this.txtTotalRelationships.setText(toString(this.exportedModel.getAllRelationships().size()));
@@ -1003,18 +1002,18 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 		
+        this.btnCompareModelToDatabase.setVisible(!isNeo4j);
+		
 		if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("exportWithDefaultValues") ) {
 		    // if the exportWithDefaultValues preference is set, then we automatically start the export
 			logger.debug("Automatically start export as specified in preferences.");
+			this.btnDoAction.setEnabled(true);
 			this.btnDoAction.notifyListeners(SWT.Selection, new Event());
 			return;
 		}
-		
-        this.btnCompareModelToDatabase.setVisible(!isNeo4j);
         
 		if ( !isNeo4j && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("compareBeforeExport") ) {
 		    // if the compareBeforeExport is set
-            setMessage("Comparing model from the database...");
             boolean upToDate = false;
             try {
                 upToDate = compareModelToDatabase();
@@ -1109,8 +1108,6 @@ public class DBGuiExportModel extends DBGui {
 		this.txtNewViewsInModel.setText(toString(0));			this.txtUpdatedViewsInModel.setText(toString(0));			this.txtNewViewsInDatabase.setText(toString(0));			this.txtUpdatedViewsInDatabase.setText(toString(0));			this.txtConflictingViews.setText(toString(0));
 		this.txtNewViewObjectsInModel.setText(toString(0));     this.txtUpdatedViewObjectsInModel.setText(toString(0));     this.txtNewViewObjectsInDatabase.setText(toString(0));      this.txtUpdatedViewObjectsInDatabase.setText(toString(0));      this.txtConflictingViewObjects.setText(toString(0));
 		this.txtNewViewConnectionsInModel.setText(toString(0)); this.txtUpdatedViewConnectionsInModel.setText(toString(0)); this.txtNewViewConnectionsInDatabase.setText(toString(0));  this.txtUpdatedViewConnectionsInDatabase.setText(toString(0));  this.txtConflictingViewConnections.setText(toString(0));
-		
-		this.btnDoAction.setText("Export");
 	}
 	
 	/**
@@ -1122,6 +1119,8 @@ public class DBGuiExportModel extends DBGui {
 		// We do not verify the content of neo4j database, we just export the components
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			return true;
+		
+		this.btnDoAction.setEnabled(false);
 		
         setMessage("Comparing model from the database...");
         
@@ -1531,11 +1530,10 @@ public class DBGuiExportModel extends DBGui {
         		toInt(this.txtUpdatedElementsInDatabase.getText()) == 0 && toInt(this.txtUpdatedRelationshipsInDatabase.getText()) == 0 && toInt(this.txtUpdatedFoldersInDatabase.getText()) == 0 && toInt(this.txtUpdatedViewsInDatabase.getText()) == 0 &&  toInt(this.txtUpdatedViewObjectsInDatabase.getText()) == 0 && toInt(this.txtUpdatedViewConnectionsInDatabase.getText()) == 0 &&
    		        toInt(this.txtDeletedElementsInDatabase.getText()) == 0 && toInt(this.txtDeletedRelationshipsInDatabase.getText()) == 0 && toInt(this.txtDeletedFoldersInDatabase.getText()) == 0 && toInt(this.txtDeletedViewsInDatabase.getText()) == 0 && toInt(this.txtDeletedViewObjectsInDatabase.getText()) == 0 && toInt(this.txtDeletedViewConnectionsInDatabase.getText()) == 0 &&
         		toInt(this.txtConflictingElements.getText()) == 0 && toInt(this.txtConflictingRelationships.getText()) == 0 && toInt(this.txtConflictingFolders.getText()) == 0 && toInt(this.txtConflictingViews.getText()) == 0 && toInt(this.txtConflictingViewObjects.getText()) == 0 && toInt(this.txtConflictingViewConnections.getText()) == 0 ) {
-            this.btnDoAction.setEnabled(false);
-            this.btnDoAction.setText("Export");
-            
             return true;
         }
+        
+        this.btnDoAction.setEnabled(true);
         
         return false;
 	}
@@ -1546,6 +1544,11 @@ public class DBGuiExportModel extends DBGui {
 	 * This method is called when the user clicks on the "Export" button
 	 */
 	protected void export() {
+        // we disable the export button to avoid a second click
+        this.btnDoAction.setEnabled(false);
+        this.btnCompareModelToDatabase.setEnabled(false);
+        disableOption();
+        
 		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size();
 		
 		logger.info("Exporting model: ");
@@ -1560,14 +1563,7 @@ public class DBGuiExportModel extends DBGui {
 			logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
 			logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
 			progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size();
-		}
-			
-
-		// we disable the export button to avoid a second click
-		this.btnDoAction.setEnabled(false);
-		this.btnCompareModelToDatabase.setEnabled(false);
-
-		disableOption();
+		}	
 
 		// the we disable the name, purpose and release note text fields
 		this.txtModelName.setEnabled(false);
