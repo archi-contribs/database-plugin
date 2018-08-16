@@ -54,10 +54,10 @@ import org.json.simple.parser.JSONParser;
  * 
  * @author Herve Jouin
  */
-public class DBCheckForUpdate {
-    static final DBLogger logger = new DBLogger(DBCheckForUpdate.class);
+public class DBCheckForPluginUpdate {
+    static final DBLogger logger = new DBLogger(DBCheckForPluginUpdate.class);
     
-    private Display  display        	      = Display.getDefault();    
+    private Display  display = Display.getDefault();    
     
 	ProgressBar updateProgressbar = null;
 	int updateDownloaded = 0;
@@ -71,7 +71,7 @@ public class DBCheckForUpdate {
 	 * @param pluginApiUrl
 	 * @param releaseNoteUrl
 	 */
-	public DBCheckForUpdate(boolean verbose, String pluginApiUrl, String releaseNoteUrl) {
+	public DBCheckForPluginUpdate(boolean verbose, String pluginApiUrl, String releaseNoteUrl) {
 		if ( verbose )
 			DBGui.popup("Checking for a new database plugin version on GitHub ...");
 		else
@@ -186,7 +186,7 @@ public class DBCheckForUpdate {
 
 			boolean ask = true;
 			while ( ask ) {
-				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
+				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
 				switch ( this.answer ) {
 					case 0: ask = false ; break;  // Yes
 					case 1: return ;              // No
@@ -197,7 +197,7 @@ public class DBCheckForUpdate {
 				}
 			}
 
-			this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar = progressbarPopup("Downloading new version of the database plugin ..."); }});
+			this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar = progressbarPopup("Downloading new version of the database plugin ..."); }});
 
 			URLConnection conn = new URL(entry.getValue()).openConnection();
 			String FileType = conn.getContentType();
@@ -224,7 +224,7 @@ public class DBCheckForUpdate {
 			if (fileLength == -1)
 				throw new IOException("Failed to get file size.");
 
-			this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar.setMaximum(fileLength); }});
+			this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.setMaximum(fileLength); }});
 
 			try ( InputStream in = conn.getInputStream() ) {
 				try ( FileOutputStream fos = new FileOutputStream(new File(tmpFilename)) ) {               
@@ -236,7 +236,7 @@ public class DBCheckForUpdate {
 					while ((n=in.read(buff)) !=-1) {
 						fos.write(buff, 0, n);
 						this.updateDownloaded +=n;
-						this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar.setSelection(DBCheckForUpdate.this.updateDownloaded); }});
+						this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.setSelection(DBCheckForPluginUpdate.this.updateDownloaded); }});
 						//if ( logger.isTraceEnabled() ) logger.trace(updateDownloaded+"/"+fileLength);
 					}
 					fos.flush();
@@ -246,7 +246,7 @@ public class DBCheckForUpdate {
 			if ( logger.isDebugEnabled() ) logger.debug("Download finished");
 
 		} catch (Exception e) {
-			if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForUpdate.this.updateProgressbar = null; }});
+			if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForPluginUpdate.this.updateProgressbar = null; }});
 			try {
 				if ( tmpFilename != null ) Files.deleteIfExists(FileSystems.getDefault().getPath(tmpFilename));
 			} catch (IOException e1) {
@@ -259,7 +259,7 @@ public class DBCheckForUpdate {
 			return;
 		}
 
-		if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForUpdate.this.updateProgressbar = null;}});
+		if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForPluginUpdate.this.updateProgressbar = null;}});
 
 		//install new plugin
 
