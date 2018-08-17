@@ -998,10 +998,20 @@ public class DBGui {
 		this.grpDatabase.setData("visible", true);
 	}
 
+	private SelectionListener actionListener = null;
 	protected void setBtnAction(String label, SelectionListener listener) {
 		this.btnDoAction.setText(label);
-		this.btnDoAction.addSelectionListener(listener);
-		this.btnDoAction.setVisible(true);
+	    this.btnDoAction.setVisible(true);
+	      
+		if ( this.actionListener != null ) {
+		    this.btnDoAction.removeSelectionListener(this.actionListener);
+		    this.actionListener = null;
+		}
+		
+		if ( listener != null ) {
+		    this.actionListener = listener;
+		    this.btnDoAction.addSelectionListener(this.actionListener);
+		}
 	}
 
 	/**

@@ -49,6 +49,11 @@
             id="org.archicontribs.database.componentImportCommand"
             name="componentImportCommand">
       </command>
+            <command
+            defaultHandler="org.archicontribs.database.menu.DBMenuElementReplaceHandler"
+            id="org.archicontribs.database.elementReplaceCommand"
+            name="elementReplaceCommand">
+      </command>
       <command
             defaultHandler="org.archicontribs.database.menu.DBMenuModelImportHandler"
             id="org.archicontribs.database.modelImportCommand"

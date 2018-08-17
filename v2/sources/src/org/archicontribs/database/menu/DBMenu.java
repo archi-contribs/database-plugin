@@ -121,6 +121,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     additions.addContributionItem(new Separator(), null);
                                 }
                                 showGetHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
+                                showReplaceElement(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
                                 break;
 
                                 // when the user right clicks in a diagram and a relationship is selected
@@ -264,6 +265,8 @@ public class DBMenu extends ExtensionContributionFactory {
                                         additions.addContributionItem(new Separator(), null);
                                     }
                                     showGetHistory((IArchimateConcept)obj);
+                                    if ( obj instanceof IArchimateElement )
+                                        showReplaceElement((IArchimateElement)obj);
                                 } else {
                                     if ( logger.isDebugEnabled() ) logger.debug("No specific menu to show for this class ...");
                                 }
@@ -423,6 +426,32 @@ public class DBMenu extends ExtensionContributionFactory {
                 null,														// tooltip 
                 CommandContributionItem.STYLE_PUSH,							// style
                 null,														// helpContextId
+                true);
+        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
+    }
+    
+    private void showReplaceElement(IArchimateElement element) {
+        ImageDescriptor menuIcon;
+
+        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/replace.png"), null));
+        String label = "Replace "+element.eClass().getName()+" \""+element.getName()+"\"";
+        if ( label.length() > 100 )
+            label = label.substring(0, 100);
+
+        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
+        CommandContributionItemParameter p = new CommandContributionItemParameter(
+                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
+                "org.archicontribs.database.DBMenu",                        // id
+                "org.archicontribs.database.elementReplaceCommand",         // commandId
+                null,                                                       // parameters
+                menuIcon,                                                   // icon
+                null,                                                       // disabledIcon
+                null,                                                       // hoverIcon
+                label,                                                      // label
+                null,                                                       // mnemonic
+                null,                                                       // tooltip 
+                CommandContributionItem.STYLE_PUSH,                         // style
+                null,                                                       // helpContextId
                 true);
         this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
     }
