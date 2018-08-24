@@ -165,7 +165,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 09/08/2018					Import components from database:
+ * v2.1: 22/08/2018					Import components from database:
  * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
@@ -236,11 +236,6 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
  * 												- Neo4J to 3.1.0
  * 												- SQLite to 3.21.0
  *												- PostGreSQL to 42.2.1
- * 
- * Known bugs:
- * -----------
- *		Import components from database:
- *		     importing elements "in a view" create all the corresponding objects in the top left corner of the view
  *
  * TO-DO list:
  * ----------
@@ -259,7 +254,7 @@ import org.eclipse.ui.preferences.ScopedPreferenceStore;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1 beta 9.4";
+	public static final String pluginVersion = "2.1 beta 9.6";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
