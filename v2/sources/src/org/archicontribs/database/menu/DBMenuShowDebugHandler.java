@@ -23,7 +23,6 @@ import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModelObject;
-import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
@@ -44,28 +43,23 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
             component = (IArchimateModelObject)selection;
         } else if ( selection instanceof EditPart ) {
             // if the user clicked on a graphical object in a view
-            if ( ((EditPart)selection).getModel() instanceof IArchimateModelObject ) 
-            	component = (IArchimateModelObject) ((EditPart)selection).getModel();
-            else  if ( ((EditPart)selection).getModel() instanceof IDiagramModelArchimateObject ) 
-            	component = (IDiagramModelArchimateObject) ((EditPart)selection).getModel();
-            else {
-            	logger.error("Component "+((EditPart)selection).getModel()+" is not a IArchimateModelObject nor a IDiagramModelArchimateObject.");
-            	return null;
-            }
+            component = (EObject) ((EditPart)selection).getModel();
         } else {
             DBGui.popup(Level.ERROR, "Do not know which component you selected.");
             return null;
         }
         
-        if ( logger.isDebugEnabled() ) {
-            logger.debug("Showing debbuging information for "+((IDBMetadata)component).getDBMetadata().getDebugName());
-        }
-
-        try {
-            DBGuiShowDebug showDebug = new DBGuiShowDebug(component, "Debugging information");
-            showDebug.run();
-        } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Failed to show debugging information.", e);
+        if ( component instanceof IDBMetadata ) {
+            if ( logger.isDebugEnabled() ) {
+                logger.debug("Showing debbuging information for "+((IDBMetadata)component).getDBMetadata().getDebugName());
+            }
+            
+            try {
+                DBGuiShowDebug showDebug = new DBGuiShowDebug(component, "Debugging information");
+                showDebug.run();
+            } catch (Exception e) {
+                DBGui.popup(Level.ERROR,"Failed to show debugging information.", e);
+            }
         }
         
         return null;
