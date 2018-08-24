@@ -43,9 +43,11 @@ import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.editor.views.tree.ITreeModelView;
+import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IFolder;
 
 public class DBGuiImportModel extends DBGui {
     @SuppressWarnings("hiding")
@@ -844,11 +846,14 @@ public class DBGuiImportModel extends DBGui {
 	                
 	                // we select the view folder in order to show the model folders in the tree
 	                elements = new ArrayList<Object>();
-	                elements.add(this.modelToImport.getDefaultFolderForObject(this.modelToImport.getAllViews().entrySet().iterator().next().getValue()));
-	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
+	                IFolder viewsFolder = this.modelToImport.getFolder(FolderType.DIAGRAMS);
+	                if ( viewsFolder != null ) {
+	                    elements.add(viewsFolder);
+	                    treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
+	                }
 	        
 	                // We select back the model in the tree
-	                elements = new ArrayList<Object>();
+	                elements.clear();
 	                elements.add(this.modelToImport);
 	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
 	            }

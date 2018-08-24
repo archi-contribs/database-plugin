@@ -1125,12 +1125,18 @@ public class DBGuiExportModel extends DBGui {
         setMessage("Comparing model from the database...");
         
         try {
+            // we compare the elements, relationships, folders and views
             this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
+            
+            // we compare the objects and connections of existing views
             Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-            while ( viewsIterator.hasNext() ) {
-                IDiagramModel view = viewsIterator.next().getValue();
-                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-            }
+            while ( viewsIterator.hasNext() )
+                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, ((IDBMetadata)viewsIterator.next().getValue()).getDBMetadata());
+
+            // we also need to compare the objects and connections that are in the views that will be imported into the model
+            Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.exportConnection.getViewsNotInModel().entrySet().iterator();
+            while ( viewsNotInModelIterator.hasNext() )
+                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, viewsNotInModelIterator.next().getValue());
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
@@ -1565,7 +1571,7 @@ public class DBGuiExportModel extends DBGui {
 			progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size();
 		}	
 
-		// the we disable the name, purpose and release note text fields
+		// then we disable the name, purpose and release note text fields
 		this.txtModelName.setEnabled(false);
 		this.txtPurpose.setEnabled(false);
 		this.txtReleaseNote.setEnabled(false);
@@ -1616,12 +1622,20 @@ public class DBGuiExportModel extends DBGui {
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
 				setMessage("Comparing model from the database...");
-				this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
-				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-	            while ( viewsIterator.hasNext() ) {
-	                IDiagramModel view = viewsIterator.next().getValue();
-	                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
-	        	 }
+				
+	            // we compare the elements, relationships, folders and views
+	            this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
+	            
+	            // we compare the objects and connections of existing views
+	            Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+	            while ( viewsIterator.hasNext() )
+	                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, ((IDBMetadata)viewsIterator.next().getValue()).getDBMetadata());
+
+	            // we also need to compare the objects and connections that are in the views that will be imported into the model
+	            Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.exportConnection.getViewsNotInModel().entrySet().iterator();
+	            while ( viewsNotInModelIterator.hasNext() )
+	                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, viewsNotInModelIterator.next().getValue());
+
 				closeMessage();
 			} catch (SQLException err ) {
 				closeMessage();
@@ -1879,7 +1893,6 @@ public class DBGuiExportModel extends DBGui {
                             ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
                             setProgressBarLabel("Exporting views ...");
                         }
-                    	this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, view);
                     }
                     
                     // we recalculate the checksum

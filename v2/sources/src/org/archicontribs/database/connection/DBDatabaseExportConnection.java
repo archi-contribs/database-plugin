@@ -323,7 +323,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.elementsNotInModel.put(currentId, currentComponent);
 					}
 
@@ -382,7 +382,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.relationshipsNotInModel.put(currentId, currentComponent);
 					}
 
@@ -441,7 +441,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.foldersNotInModel.put(currentId, currentComponent);
 					}
 
@@ -500,7 +500,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.viewsNotInModel.put(currentId, currentComponent);
 					}
 
@@ -533,7 +533,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					) ) {
 				while ( result.next() ) {
 					if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
-						this.imagesNotInModel.put(result.getString("image_path"), new DBMetadata(null));
+						this.imagesNotInModel.put(result.getString("image_path"), new DBMetadata());
 					}
 				}
 			}
@@ -550,27 +550,27 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					// the image is in the database
 				} else {
 					// the image is not in the database
-					this.imagesNotInDatabase.put(path, new DBMetadata(null));
+					this.imagesNotInDatabase.put(path, new DBMetadata());
 				}
 			}
 		}
 	}
 
-	public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, IDiagramModel view) throws SQLException, RuntimeException {
+	public void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, DBMetadata viewMetadata) throws SQLException, RuntimeException {
 		// if the model is brand new, there is no point to check for its content in the database
 		if ( model.getInitialVersion().getVersion() != 0 ) {
-			String viewId = view.getId();
+			String viewId = viewMetadata.getId();
 			
 	
-			int viewInitialVersion = ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion();
-			int viewDatabaseVersion = ((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion();
+			int viewInitialVersion = viewMetadata.getInitialVersion().getVersion();
+			int viewDatabaseVersion = viewMetadata.getLatestDatabaseVersion().getVersion();
 	
 			// view objects
-			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view objects from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
+			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view objects from the database for "+viewMetadata.getDebugName());
             Iterator<Map.Entry<String, IDiagramModelObject>> itvo = model.getAllViewObjects().entrySet().iterator();
             while (itvo.hasNext()) {
                 IDiagramModelObject object = itvo.next().getValue();
-                if ( object.getDiagramModel() == view ) {
+                if ( object.getDiagramModel().getId().equals(viewMetadata.getId()) ) {
                     DBMetadata metadata = ((IDBMetadata)object).getDBMetadata();
                     metadata.getCurrentVersion().setVersion(0);
                     metadata.getInitialVersion().reset();
@@ -605,7 +605,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.viewObjectsNotInModel.put(currentId, currentComponent);
 					}
 	
@@ -629,11 +629,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 	
 			// view connections
-			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view connections from the database for "+((IDBMetadata)view).getDBMetadata().getDebugName());
+			if ( logger.isDebugEnabled() ) logger.debug("Getting versions of view connections from the database for "+viewMetadata.getDebugName());
             Iterator<Map.Entry<String, IDiagramModelConnection>> itvc = model.getAllViewConnections().entrySet().iterator();
             while (itvc.hasNext()) {
                 IDiagramModelConnection cnct = itvc.next().getValue();
-                if ( cnct.getDiagramModel() == view ) {
+                if ( cnct.getDiagramModel().getId().equals(viewMetadata.getId()) ) {
                     DBMetadata metadata = ((IDBMetadata)cnct).getDBMetadata();
                     metadata.getCurrentVersion().setVersion(0);
                     metadata.getInitialVersion().reset();
@@ -668,7 +668,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	
 					// the loop returns all the versions of all the model components
 					if ( currentComponent == null ) {
-						currentComponent = new DBMetadata(null);
+						currentComponent = new DBMetadata(currentId);
 						this.viewConnectionsNotInModel.put(currentId, currentComponent);
 					}
 	

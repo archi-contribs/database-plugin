@@ -67,6 +67,11 @@ public class DBMetadata  {
      * This property is set during the component initialization and is used to calculate the component checksum
      */
     private EObject component;
+    
+    /**
+     * Id of the object that is stored before the component has been imported from the database
+     */
+    private String id = null;
 
     /**
      * Version of the component as it was during last import/export, or zero if it was loaded from an archimate file
@@ -114,6 +119,16 @@ public class DBMetadata  {
         
         if ( componentObject instanceof IDiagramModel )
         	this.screenshot = new DBScreenshot();
+    }
+    
+    public DBMetadata(String componentId) {
+        this.component = null;
+        this.id = componentId;
+    }
+    
+    public DBMetadata() {
+        this.component = null;
+        this.id = null;
     }
 
     /**
@@ -277,7 +292,11 @@ public class DBMetadata  {
      * @return getclass().getSimpleName()+":\""+getName()+"\""
      */
     public String getFullName() {
-        return new StringBuilder(this.component.getClass().getSimpleName()).append(":\""+((INameable)this.component).getName()+"\"").toString();
+        // if the component does not exist, this means that it has not been imported yet form the database. then, we return the id that has been stored
+        if ( this.component == null )
+            return this.id;
+        
+        return new StringBuilder(this.component.getClass().getSimpleName()).append(":\""+getName()+"\"").toString();
     }
 
     /**
@@ -285,7 +304,7 @@ public class DBMetadata  {
      * @return getclass().getSimpleName()+":\""+getName()+"\"("+getId()+")"
      */
     public String getDebugName() {
-        return new StringBuilder(getFullName()).append("("+((IIdentifier)this.component).getId()+")").toString();
+        return new StringBuilder(getFullName()).append("("+getId()+")").toString();
     }
 
     //   H E L P E R   M E T H O D S
@@ -516,14 +535,24 @@ public class DBMetadata  {
     
     // Name
     public String getId() {
+        // if the component has not be imported (yet) from the database, we return the id that has been previously stored
+        if ( this.component == null )
+            return this.id;
+        
         if ( this.component instanceof IIdentifier )
             return ((IIdentifier)this.component).getId();
+        
         return null;
     }
 
     public void setId(String id) {
-        if ( (this.component instanceof IIdentifier) && (id != null) && !DBPlugin.areEqual(((IIdentifier)this.component).getId(), id) )
-            ((IIdentifier)this.component).setId(id);
+        // if the component has not be imported (yet) from the database, we store its id in a local variable
+        if ( this.component == null )
+            this.id = id;
+        else {
+            if ( (this.component instanceof IIdentifier) && (id != null) && !DBPlugin.areEqual(((IIdentifier)this.component).getId(), id) )
+                ((IIdentifier)this.component).setId(id);
+        }
     }
 
     // Name
