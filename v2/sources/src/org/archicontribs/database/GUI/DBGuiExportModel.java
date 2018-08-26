@@ -246,7 +246,7 @@ public class DBGuiExportModel extends DBGui {
 		this.txtModelName.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblModelName, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblModelName, 80, SWT.LEFT);
+		fd.left = new FormAttachment(lblModelName, 10);
 		fd.right = new FormAttachment(100, -10);
 		this.txtModelName.setLayoutData(fd);
 
@@ -300,9 +300,8 @@ public class DBGuiExportModel extends DBGui {
         this.grpComponents.setFont(GROUP_TITLE_FONT);
         this.grpComponents.setText("Your model's components: ");
         FormData fd = new FormData();
-        fd.top = new FormAttachment(100, -240);
-        fd.left = new FormAttachment(0);
-        fd.right = new FormAttachment(100);
+        fd.top = new FormAttachment(100, -265);
+        fd.left = new FormAttachment(0);        fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
         this.grpComponents.setLayoutData(fd);
         this.grpComponents.setLayout(new FormLayout());
@@ -878,11 +877,13 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewImagesInDatabase.setLayoutData(fd);
         
         /* * * * * */
-        this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.WRAP);
+        // TODO: SWT.MULTI on Linux vs SWT.WRAP on Windows
+        // TODO: get height of font to calculate height of widgets 
+        this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.MULTI | SWT.WRAP);
         this.btnCompareModelToDatabase.setText("Compare model to\nthe database");
         fd = new FormData();
         fd.top = new FormAttachment(100, -40);
-        fd.left = new FormAttachment(100, -120);
+        fd.left = new FormAttachment(100, -140);
         fd.right = new FormAttachment(100, -5);
         fd.bottom = new FormAttachment(100, -5);
         this.btnCompareModelToDatabase.setLayoutData(fd);

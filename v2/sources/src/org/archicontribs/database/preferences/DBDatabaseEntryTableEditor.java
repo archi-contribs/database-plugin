@@ -133,8 +133,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setText("Databases: ");
 		
 		GridData gd = new GridData();
-		gd.heightHint = 300;
-		gd.minimumHeight = 300;
+		gd.heightHint = 400;
+		gd.minimumHeight = 400;
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 		this.grpDatabases.setLayoutData(gd);
@@ -263,7 +263,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtName = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblName, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblName, 30);
+		fd.left = new FormAttachment(this.lblName, 45);
 		fd.right = new FormAttachment(this.tblDatabases, -20, SWT.RIGHT);
 		this.txtName.setLayoutData(fd);
 		this.txtName.setVisible(false);
@@ -354,7 +354,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPort.setTextLimit(5);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblPort, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblPort, 30);
+		fd.left = new FormAttachment(this.lblPort, 45);
 		fd.width = 40;
 		this.txtPort.setLayoutData(fd);
 		this.txtPort.setVisible(false);
@@ -575,7 +575,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblExportViewSnapshots, -1, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblExportViewSnapshots, 5, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
+		fd.left = new FormAttachment(this.lblExportViewSnapshots, 20);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoExportViewImages.setLayoutData(fd);
 		this.compoExportViewImages.setLayout(new FormLayout());
@@ -649,16 +649,16 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblBorderWidth.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.btnDoNotExportViewImages, 40);
+		fd.left = new FormAttachment(this.btnDoNotExportViewImages, 34);
 		this.lblBorderWidth.setLayoutData(fd);
 		this.lblBorderWidth.setToolTipText("Please select the border width, in pixels, to add around the exported views images.");
 		
-		this.txtBorderWidth = new Text(this.compoExportViewImages, SWT.RIGHT | SWT.BORDER);
+		this.txtBorderWidth = new Text(this.compoExportViewImages, SWT.BORDER);
 		this.txtBorderWidth.setText("10");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(this.lblBorderWidth, 3);
-		fd.right = new FormAttachment(this.lblBorderWidth, 25, SWT.RIGHT);
+		fd.left = new FormAttachment(this.lblBorderWidth, 5);
+		fd.right = new FormAttachment(this.lblBorderWidth, 35, SWT.RIGHT);
 		this.txtBorderWidth.setLayoutData(fd);
 		this.txtBorderWidth.setToolTipText("Please choose the border width, in pixels, to add around the exported views images (between 0 and 50).");
 		this.txtBorderWidth.addVerifyListener(new VerifyListener() {
@@ -684,8 +684,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblBorderWidthPixels.setText("px");
 		this.lblBorderWidthPixels.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.txtBorderWidth, 3);
+		fd.top = new FormAttachment(this.lblBorderWidth, 0, SWT.TOP);
+		fd.left = new FormAttachment(this.txtBorderWidth, 5);
 		this.lblBorderWidthPixels.setLayoutData(fd);
 		this.lblBorderWidthPixels.setToolTipText("Please choose the scale factor to resize the views images.");
 		
@@ -694,16 +694,16 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactor.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.lblBorderWidthPixels, 35);
+		fd.left = new FormAttachment(this.lblBorderWidthPixels, 25);
 		this.lblScaleFactor.setLayoutData(fd);
 		this.lblScaleFactor.setToolTipText("Please choose the scale factor to resize the views images.");
 		
-		this.txtScaleFactor = new Text(this.compoExportViewImages, SWT.RIGHT | SWT.BORDER);
+		this.txtScaleFactor = new Text(this.compoExportViewImages, SWT.BORDER);
 		this.txtScaleFactor.setText("100");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
-		fd.left = new FormAttachment(this.lblScaleFactor, 3);
-		fd.right = new FormAttachment(this.lblScaleFactor, 30, SWT.RIGHT);
+		fd.left = new FormAttachment(this.lblScaleFactor, 5);
+		fd.right = new FormAttachment(this.lblScaleFactor, 50, SWT.RIGHT);
 		this.txtScaleFactor.setLayoutData(fd);
 		this.txtScaleFactor.setToolTipText("Please choose the scale factor to resize the views images (between 10% and 500%).");
 		this.txtScaleFactor.addVerifyListener(new VerifyListener() {
@@ -729,8 +729,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactorPercent.setText("%");
 		this.lblScaleFactorPercent.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.txtScaleFactor, 3);
+		fd.top = new FormAttachment(this.lblScaleFactor, 0, SWT.TOP);
+		fd.left = new FormAttachment(this.txtScaleFactor, 5);
 		this.lblScaleFactorPercent.setLayoutData(fd);
 		this.lblScaleFactorPercent.setToolTipText("Please choose the scale factor to resize the views images.");
 		
@@ -1165,7 +1165,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Called when the "browse" button has been pressed
 	 */
 	void browseCallback() {
-		FileDialog dlg = new FileDialog(Display.getDefault().getActiveShell(), SWT.SINGLE);
+		FileDialog dlg = new FileDialog(Display.getDefault().getActiveShell(), SWT.SINGLE | SWT.SAVE);
 		dlg.setFileName(this.txtFile.getText());
 		dlg.setFilterExtensions(new String[]{"*.sqlite", "*.sqlite2", "*.sqlite3", "*.db", "*.*"});
 		if (dlg.open() != null) {

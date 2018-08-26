@@ -137,7 +137,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 60);
+        fd.left = new FormAttachment(this.selectedComponentNameLbl, 70);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentNameValueLbl.setLayoutData(fd);
         
@@ -154,7 +154,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentIdLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 60);
+        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentIdValueLbl.setLayoutData(fd);
         
@@ -171,7 +171,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentClassValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentClassLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 60);
+        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentClassValueLbl.setLayoutData(fd);
         
@@ -188,7 +188,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentImagePathValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentImagePathLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 60);
+        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentImagePathValueLbl.setLayoutData(fd);
         
@@ -205,7 +205,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentDatabaseStatusValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 60);
+        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentDatabaseStatusValueLbl.setLayoutData(fd);
         
@@ -252,7 +252,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptNameLbl.setText("Name:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptLbl, 5);
-        fd.left = new FormAttachment(0, 70);
+        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptNameLbl.setLayoutData(fd);
         
         this.correspondingConceptNameValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -269,7 +269,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptIdLbl.setText("Id:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptNameLbl, 2);
-        fd.left = new FormAttachment(0, 70);
+        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptIdLbl.setLayoutData(fd);
         
         this.correspondingConceptIdValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -286,7 +286,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptClassLbl.setText("Class:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptIdLbl, 2);
-        fd.left = new FormAttachment(0, 70);
+        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptClassLbl.setLayoutData(fd);
         
         this.correspondingConceptClassValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -309,7 +309,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptDatabaseStatusValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 60);
+        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.correspondingConceptDatabaseStatusValueLbl.setLayoutData(fd);
         

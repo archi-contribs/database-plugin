@@ -271,7 +271,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.txtCopySuffix = new Text(grpMiscellaneous, SWT.BORDER);
 		this.txtCopySuffix.setText(preferenceStore.getString("copySuffix"));
 		fd = new FormData();
-		fd.top = new FormAttachment(lblCopySuffix, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblCopySuffix, -2, SWT.TOP);
 		fd.left = new FormAttachment(lblCopySuffix, 10);
 		fd.right = new FormAttachment(lblCopySuffix, 150, SWT.RIGHT);
 		this.txtCopySuffix.setLayoutData(fd);
@@ -322,7 +322,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         gd.grabExcessHorizontalSpace = true;
         grpHelp.setLayoutData(gd);
         
-        Label btnHelp = new Label(grpHelp, SWT.NONE);
+        Label btnHelp = new Label(grpHelp, SWT.MULTI);
+        btnHelp.setText("          \n          ");
+        //btnHelp.setBounds(11,10,30,30);
         btnHelp.addListener(SWT.MouseEnter, new Listener() { @Override public void handleEvent(Event event) { DBPreferencePage.this.mouseOverHelpButton = true; btnHelp.redraw(); } });
         btnHelp.addListener(SWT.MouseExit, new Listener() { @Override public void handleEvent(Event event) { DBPreferencePage.this.mouseOverHelpButton = false; btnHelp.redraw(); } });
         btnHelp.addPaintListener(new PaintListener() {
@@ -336,7 +338,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBPreferencePage.this.logger.isDebugEnabled() ) DBPreferencePage.this.logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
         fd = new FormData(30,30);
         fd.top = new FormAttachment(0, 11);
+        fd.bottom = new FormAttachment(0, 41);
         fd.left = new FormAttachment(0, 10);
+        fd.right= new FormAttachment(0, 40);
         btnHelp.setLayoutData(fd);
         
         Label helpLbl1 = new Label(grpHelp, SWT.NONE);
