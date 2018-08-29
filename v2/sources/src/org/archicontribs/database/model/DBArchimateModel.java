@@ -6,6 +6,8 @@
 
 package org.archicontribs.database.model;
 
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +28,7 @@ import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.ModelVersion;
 
 import lombok.Getter;
@@ -373,21 +376,22 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										
 			case "Folder":							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
-										            // TODO: SUB FOLDERS AND ELEMENTS ARE NOT SORTED AND MAY BE DIFFERENT FROM ONE ARCHI INSTANCE TO ANOTHER !!!
-										            // so we do not use sub folders or elements in the checksum calculation anymore
-										            // at the moment, this is not important as we do not allow to share folders between models
-										            // but a solution needs to be found !!!
-										
-										            for ( IFolder subFolder: ((IFolder)eObject).getFolders() ) {
+										            // We sort the sub folders in order to guarantee the checksum changes when a sub-folder changes
+			                                        List<IFolder> sortedFolder = new ArrayList<IFolder>(((IFolder)eObject).getFolders());
+			                                        sortedFolder.sort(this.folderComparator);
+										            for ( IFolder subFolder: sortedFolder ) {
 														// we fix the folder type
 														subFolder.setType(FolderType.USER);
 										                countObject(subFolder, mustCalculateChecksum, parentDiagram);
-										                //SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
+										                if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
 										            }
 										
-										            for ( EObject child: ((IFolder)eObject).getElements() ) {
+	                                                  // We sort the sub folders in order to guarantee the checksum changes when an element changes
+                                                    List<EObject> sortedChild = new ArrayList<EObject>(((IFolder)eObject).getElements());
+                                                    sortedChild.sort(this.objectComparator);
+										            for ( EObject child: sortedChild ) {
 										                countObject(child, mustCalculateChecksum, parentDiagram);
-										                //SEE WARNING -- if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
+										                if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 										            }
 										            break;
             case "Property":
@@ -416,6 +420,20 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         return null;
     }
+    
+    private Comparator<IFolder> folderComparator = new Comparator<IFolder>() {
+        @Override
+        public int compare(IFolder f1, IFolder f2) {
+            return f1.getName().compareTo(f2.getName());
+        }
+    };
+    
+    private Comparator<EObject> objectComparator = new Comparator<EObject>() {
+        @Override
+        public int compare(EObject o1, EObject o2) {
+            return ((INameable)o1).getName().compareTo(((INameable)o2).getName());
+        }
+    };
     
     /**
      * register that an element has been copied during the import process. So we keep the its old and new ID.
