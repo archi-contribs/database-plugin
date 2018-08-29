@@ -1336,7 +1336,7 @@ public class DBGui {
 
         if ( memoryObject instanceof IFontAttribute ) {
             areIdentical &= addItemToCompareTable(tree, treeItem, "Font", ((IFontAttribute)memoryObject).getFont(), (String)databaseObject.get("font"));
-            areIdentical &= addItemToCompareTable(tree, treeItem, "Font color", ((IFontAttribute)memoryObject).getFontColor(), (String)databaseObject.get("font color"));
+            areIdentical &= addItemToCompareTable(tree, treeItem, "Font color", ((IFontAttribute)memoryObject).getFontColor(), (String)databaseObject.get("font_color"));
         }
 
         if ( memoryObject instanceof ILineObject ) {
