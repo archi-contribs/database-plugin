@@ -523,8 +523,6 @@ public class DBGui {
         fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
         fd.right = new FormAttachment(this.btnDoAction, -20);
         this.radioOption3.setLayoutData(fd);
-        //this.radioOption3.addListener(SWT.Selection, new Listener() { @Override
-        //public void handleEvent(Event event) { if ( getDatabaseConnection().isConnected() && DBGui.this.radioOption1.getSelection() ) connectedToDatabase(false); } });
 
         this.radioOption2 = new Button(this.compoBottom, SWT.RADIO);
         this.radioOption2.setBackground(COMPO_BACKGROUND_COLOR);
@@ -533,8 +531,6 @@ public class DBGui {
         fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
         fd.right = new FormAttachment(this.radioOption3, -10);
         this.radioOption2.setLayoutData(fd);
-        //this.radioOption2.addListener(SWT.Selection, new Listener() { @Override
-        //public void handleEvent(Event event) { if ( getDatabaseConnection().isConnected() && DBGui.this.radioOption1.getSelection() ) connectedToDatabase(false); } });
 
         this.radioOption1 = new Button(this.compoBottom, SWT.RADIO);
         this.radioOption1.setBackground(COMPO_BACKGROUND_COLOR);
@@ -543,8 +539,6 @@ public class DBGui {
         fd.top = new FormAttachment(this.btnDoAction, 0, SWT.CENTER);
         fd.right = new FormAttachment(this.radioOption2, -10);
         this.radioOption1.setLayoutData(fd);
-        //this.radioOption1.addListener(SWT.Selection, new Listener() { @Override
-        //public void handleEvent(Event event) { if ( getDatabaseConnection().isConnected() && DBGui.this.radioOption2.getSelection() ) connectedToDatabase(false); } });
 
         this.lblOption = new Label(this.compoBottom, SWT.NONE);
         this.lblOption.setBackground(COMPO_BACKGROUND_COLOR);
@@ -660,7 +654,7 @@ public class DBGui {
      * This method is called by the databaseSelected method. It allows to do some actions when a new database is selected. 
      */
     protected void databaseSelectedCleanup() {
-        //to be overriden
+        //to be overridden
     }
 
     /** 
@@ -668,7 +662,7 @@ public class DBGui {
      * @param forceCheckDatabase true when the database should be checked. 
      */
     protected void connectedToDatabase(boolean forceCheckDatabase) {
-        // to be overriden
+        // to be overridden
         enableOption();
         this.btnDoAction.setEnabled(true);
     }
@@ -677,7 +671,7 @@ public class DBGui {
      * This method is called by the databaseSelected method. It allows to do some actions when the connection to a new database is failed.
      */
     protected void notConnectedToDatabase() {
-        // to be overriden
+        // to be overridden
         disableOption();
         this.btnDoAction.setEnabled(false);
     }
@@ -1243,7 +1237,6 @@ public class DBGui {
             databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
         } catch (Exception err) {
             DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
-            //TODO: shall we exit to the status page with status=error ???
             return null;
         }
 
@@ -1378,12 +1371,17 @@ public class DBGui {
         }
 
         /* NOT EXPORTED YET
-		if ( component instanceof IHelpHintProvider ) {					areIdentical &= addItemToCompareTable(table, treeItem, "help hint title", component==null ? null : ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"));
-																		areIdentical &= addItemToCompareTable(table, treeItem, "help hint content", component==null ? null : ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"));
+		if ( component instanceof IHelpHintProvider ) {
+		    areIdentical &= addItemToCompareTable(table, treeItem, "help hint title", component==null ? null : ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"));
+			areIdentical &= addItemToCompareTable(table, treeItem, "help hint content", component==null ? null : ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"));
 		}
          */
-        if ( memoryObject instanceof IIconic )							areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
-        if ( memoryObject instanceof INotesContent )					areIdentical &= addItemToCompareTable(tree, treeItem, "Notes", ((INotesContent)memoryObject).getNotes(), (String)databaseObject.get("notes"));
+        
+        if ( memoryObject instanceof IIconic )
+            areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
+        
+        if ( memoryObject instanceof INotesContent )
+            areIdentical &= addItemToCompareTable(tree, treeItem, "Notes", ((INotesContent)memoryObject).getNotes(), (String)databaseObject.get("notes"));
 
         if ( memoryObject instanceof IDiagramModelConnection ) {
             areIdentical &= addItemToCompareTable(tree, treeItem, "Type", String.valueOf(((IDiagramModelConnection)memoryObject).getType()), databaseObject.get("type")==null ? null : String.valueOf((int)databaseObject.get("type")));			// we do not use getText as it is deprecated
@@ -1496,12 +1494,6 @@ public class DBGui {
                 }
             }
         }
-
-        //areIdentical &= addItemToCompareTable(tree, treeItem, "Checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getChecksum(), (String)databaseObject.get("checksum"));
-
-        // for view containers, we compare the container checksums of the views themselves without their content 
-        //if ( memoryObject instanceof IDiagramModel )
-        //    areIdentical &= addItemToCompareTable(tree, treeItem, "Container checksum", ((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getContainerChecksum(), (String)databaseObject.get("container_checksum"));
 
         refreshDisplay();
         return areIdentical;
