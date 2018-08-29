@@ -1281,6 +1281,7 @@ public class DBGui {
                 areIdentical &= addItemToCompareTable(tree, treeItem, "Access type", String.valueOf(((IAccessRelationship)memoryObject).getAccessType()), String.valueOf((int)databaseObject.get("access_type")));
         }
 
+        // TODO: get folders subfolders and elements from the database in order to compare them
         if ( memoryObject instanceof IFolder )
             areIdentical &= addItemToCompareTable(tree, treeItem, "Folder type", ((IFolder)memoryObject).getType().getLiteral(), FolderType.get((int)databaseObject.get("type")).getLiteral());
 
