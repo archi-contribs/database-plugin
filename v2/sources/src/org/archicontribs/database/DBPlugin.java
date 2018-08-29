@@ -220,7 +220,7 @@ import lombok.Getter;
  * 											Fix calculation of numbers of images to import
  *											Better management of the cancel button during the import and export process
  *											Cleanup properties before import rather than update existing values as several properties can have the same name
- *											Fix centering of GUI windows especially on HiDPI displays
+ *											Fix display on HiDPI displays
  *										Improvements:
  *											Fill in the online help pages
  *                                  		Rewrite debug and trace messages to be more useful
@@ -258,7 +258,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1 beta 9.6";
+	public static final String pluginVersion = "2.1 beta 9.6.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
