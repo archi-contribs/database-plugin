@@ -356,7 +356,7 @@ public class DBGuiImportComponents extends DBGui {
 		chooseCategory.setText("Category:");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 20);
-		fd.left = new FormAttachment(0, 10);
+		fd.left = new FormAttachment(0, getDefaultMargin());
 		chooseCategory.setLayoutData(fd);
 
 		this.radioOptionModel = new Button(this.grpFilter, SWT.RADIO);
@@ -432,14 +432,14 @@ public class DBGuiImportComponents extends DBGui {
 		chooseName.setFont(BOLD_FONT);
 		chooseName.setText("Name filter:");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.radioOptionView, 10);
-		fd.left = new FormAttachment(0, 10);
+		fd.top = new FormAttachment(this.radioOptionView, getDefaultMargin());
+		fd.left = new FormAttachment(0, getDefaultMargin());
 		chooseName.setLayoutData(fd);
 
 		this.filterName = new Text(this.grpFilter, SWT.NONE);
 		fd = new FormData();
 		fd.top = new FormAttachment(chooseName, 5);
-		fd.left = new FormAttachment(0, 10);
+		fd.left = new FormAttachment(0, getDefaultMargin());
 		fd.right = new FormAttachment(0, 125);
 		this.filterName.setLayoutData(fd);
 		this.filterName.addModifyListener(new ModifyListener() {
@@ -476,8 +476,8 @@ public class DBGuiImportComponents extends DBGui {
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		this.compoModels.setLayoutData(fd);
 		this.compoModels.setLayout(new FormLayout());
 		
@@ -498,8 +498,8 @@ public class DBGuiImportComponents extends DBGui {
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		this.compoElements.setLayoutData(fd);
 		this.compoElements.setLayout(new FormLayout());
 
@@ -1438,8 +1438,8 @@ public class DBGuiImportComponents extends DBGui {
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		compoFolders.setLayoutData(fd);
 		compoFolders.setLayout(new FormLayout());
 
@@ -1523,8 +1523,8 @@ public class DBGuiImportComponents extends DBGui {
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0, 135);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		this.compoViews.setLayoutData(fd);
 		this.compoViews.setLayout(new FormLayout());
 
@@ -1571,7 +1571,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.grpComponent.setFont(GROUP_TITLE_FONT);
 		this.grpComponent.setText("Select the component to import: ");
 		FormData fd = new FormData();
-		fd.top = new FormAttachment(this.grpFilter, 10);
+		fd.top = new FormAttachment(this.grpFilter, getDefaultMargin());
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(100);

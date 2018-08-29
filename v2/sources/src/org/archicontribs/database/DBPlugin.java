@@ -13,6 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.text.Collator;
+import java.util.Locale;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.core.runtime.preferences.InstanceScope;
@@ -20,6 +22,8 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+
+import lombok.Getter;
 
 
 /**
@@ -279,6 +283,11 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static String[] allSQLTables = { "archimatediagrammodel", "archimateelement", "bendpoint", "canvasmodel", "canvasmodelblock", "canvasmodelimage", "canvasmodelsticky", "connection", "diagrammodelarchimateobject", "diagrammodelreference", "folder", "model", "property", "relationship", "sketchmodel", "sketchmodelactor", "sketchmodelsticky"};
 
 	static DBLogger logger;
+	
+	/**
+	 * Returns true is runs on Windows operating system, false for all other operating systems
+	 */
+	@Getter private static boolean WindowsOperatingSystem = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("windows");
 
 	/**
 	 * The DBPlugin class is instantiated when Archi starts<b>

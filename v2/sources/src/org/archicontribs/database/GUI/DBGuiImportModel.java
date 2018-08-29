@@ -200,8 +200,8 @@ public class DBGuiImportModel extends DBGui {
         lblListModels.setBackground(GROUP_BACKGROUND_COLOR);
         lblListModels.setText("Filter:");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 10);
-        fd.left = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(0, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         lblListModels.setLayoutData(fd);
 
         this.txtFilterModels = new Text(this.grpModels, SWT.BORDER);
@@ -225,7 +225,7 @@ public class DBGuiImportModel extends DBGui {
         fd = new FormData();
         fd.top = new FormAttachment(lblListModels, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblListModels, 5);
-        fd.right = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtFilterModels.setLayoutData(fd);
 
 
@@ -275,10 +275,10 @@ public class DBGuiImportModel extends DBGui {
             }
         });
         fd = new FormData();
-        fd.top = new FormAttachment(lblListModels, 10);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(100, -10);
-        fd.bottom = new FormAttachment(100, -10);
+        fd.top = new FormAttachment(lblListModels, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(100, -getDefaultMargin());
+        fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.tblModels.setLayoutData(fd);
 
         TableColumn colModelName = new TableColumn(this.tblModels, SWT.NONE);
@@ -322,9 +322,9 @@ public class DBGuiImportModel extends DBGui {
             }
         });
         fd = new FormData();
-        fd.top = new FormAttachment(0, 10);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(100, -10);
+        fd.top = new FormAttachment(0, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(50);
         this.tblModelVersions.setLayoutData(fd);
 
@@ -344,8 +344,8 @@ public class DBGuiImportModel extends DBGui {
         this.lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblModelName.setText("Model name:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.tblModelVersions, 10);
-        fd.left = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(this.tblModelVersions, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblModelName.setLayoutData(fd);
 
         this.txtModelName = new Text(this.grpModelVersions, SWT.BORDER);
@@ -353,16 +353,16 @@ public class DBGuiImportModel extends DBGui {
         this.txtModelName.setEnabled(false);
         fd = new FormData();
         fd.top = new FormAttachment(this.lblModelName);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(100, -10);
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtModelName.setLayoutData(fd);
 
         this.lblPurpose = new Label(this.grpModelVersions, SWT.NONE);
         this.lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblPurpose.setText("Purpose:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, 10);
-        fd.left = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblPurpose.setLayoutData(fd);
 
         this.txtPurpose = new Text(this.grpModelVersions, SWT.BORDER);
@@ -370,8 +370,8 @@ public class DBGuiImportModel extends DBGui {
         this.txtPurpose.setEnabled(false);
         fd = new FormData();
         fd.top = new FormAttachment(this.lblPurpose);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(100, -10);
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(80, -5);
         this.txtPurpose.setLayoutData(fd);
 
@@ -379,8 +379,8 @@ public class DBGuiImportModel extends DBGui {
         this.lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblReleaseNote.setText("Release note:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtPurpose, 10);
-        fd.left = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblReleaseNote.setLayoutData(fd);
 
         this.txtReleaseNote = new Text(this.grpModelVersions, SWT.BORDER);
@@ -388,9 +388,9 @@ public class DBGuiImportModel extends DBGui {
         this.txtReleaseNote.setEnabled(false);
         fd = new FormData();
         fd.top = new FormAttachment(this.lblReleaseNote);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(100, -10);
-        fd.bottom = new FormAttachment(100, -10);
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(100, -getDefaultMargin());
+        fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.txtReleaseNote.setLayoutData(fd);
     }
 
@@ -403,8 +403,12 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
         this.grpComponents.setText("Your model's components: ");
+        
+        // we calculate the required height of the grpComponents group
+        int requiredHeight = 9 * (getDefaultLabelHeight() + getDefaultMargin());
+        
         FormData fd = new FormData();
-        fd.top = new FormAttachment(100, -220);
+        fd.top = new FormAttachment(100, -requiredHeight);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
@@ -423,7 +427,7 @@ public class DBGuiImportModel extends DBGui {
         lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
         lblRelationships.setText("Relationships:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblElements, 10);
+        fd.top = new FormAttachment(lblElements, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblRelationships.setLayoutData(fd);
 
@@ -431,7 +435,7 @@ public class DBGuiImportModel extends DBGui {
         lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
         lblFolders.setText("Folders:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblRelationships, 10);
+        fd.top = new FormAttachment(lblRelationships, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblFolders.setLayoutData(fd);
 
@@ -439,7 +443,7 @@ public class DBGuiImportModel extends DBGui {
         lblViews.setBackground(GROUP_BACKGROUND_COLOR);
         lblViews.setText("Views:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblFolders, 10);
+        fd.top = new FormAttachment(lblFolders, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViews.setLayoutData(fd);
 
@@ -447,7 +451,7 @@ public class DBGuiImportModel extends DBGui {
         lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
         lblViewObjects.setText("Objects:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViews, 10);
+        fd.top = new FormAttachment(lblViews, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViewObjects.setLayoutData(fd);
 
@@ -455,7 +459,7 @@ public class DBGuiImportModel extends DBGui {
         lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
         lblViewConnections.setText("Connections:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViewObjects, 10);
+        fd.top = new FormAttachment(lblViewObjects, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViewConnections.setLayoutData(fd);
 
@@ -463,7 +467,7 @@ public class DBGuiImportModel extends DBGui {
         lblImages.setBackground(GROUP_BACKGROUND_COLOR);
         lblImages.setText("Images:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViewConnections, 10);
+        fd.top = new FormAttachment(lblViewConnections, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblImages.setLayoutData(fd);
 
@@ -473,9 +477,9 @@ public class DBGuiImportModel extends DBGui {
         lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
         lblTotal.setText("Total");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(20, 10);
-        fd.right = new FormAttachment(40, -10);
+        fd.top = new FormAttachment(0);
+        fd.left = new FormAttachment(20, getDefaultMargin());
+        fd.right = new FormAttachment(40, -getDefaultMargin());
         lblTotal.setLayoutData(fd);
 
         Label lblImported = new Label(this.grpComponents, SWT.CENTER);
@@ -483,8 +487,8 @@ public class DBGuiImportModel extends DBGui {
         lblImported.setText("Imported");
         fd = new FormData();
         fd.top = new FormAttachment(0, 5);
-        fd.left = new FormAttachment(40, 10);
-        fd.right = new FormAttachment(60, -10);
+        fd.left = new FormAttachment(40, getDefaultMargin());
+        fd.right = new FormAttachment(60, -getDefaultMargin());
         lblImported.setLayoutData(fd);
 
         /* * * * * */
@@ -623,49 +627,49 @@ public class DBGuiImportModel extends DBGui {
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
-        fd.bottom = new FormAttachment(this.grpComponents, -10);
+        fd.bottom = new FormAttachment(this.grpComponents, -getDefaultMargin());
         this.grpModelVersions.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(0, 10);
-        fd.left = new FormAttachment(0, 10);
-        fd.right = new FormAttachment(40, -10);
-        fd.bottom = new FormAttachment(100, -10);
+        fd.top = new FormAttachment(0, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        fd.right = new FormAttachment(40, -getDefaultMargin());
+        fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.tblModelVersions.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(0, 10);
+        fd.top = new FormAttachment(0, getDefaultMargin());
         fd.left = new FormAttachment(40, 0);
         this.lblModelName.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.lblModelName, 0, SWT.CENTER);
         fd.left = new FormAttachment(this.lblModelName, 80, SWT.LEFT);
-        fd.right = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtModelName.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, 10);
+        fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
         fd.left = new FormAttachment(40, 0);
         this.lblPurpose.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtModelName, 5);
         fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(55, -5);
         this.txtPurpose.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtPurpose, 10);
+        fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
         fd.left = new FormAttachment(40, 0);
         this.lblReleaseNote.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, 5);
         fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -10);
-        fd.bottom = new FormAttachment(100, -10);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
+        fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.txtReleaseNote.setLayoutData(fd);
         
         this.compoRightBottom.layout();

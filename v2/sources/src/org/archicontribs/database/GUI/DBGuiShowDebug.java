@@ -252,7 +252,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptNameLbl.setText("Name:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptLbl, 5);
-        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptNameLbl.setLayoutData(fd);
         
         this.correspondingConceptNameValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -269,7 +269,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptIdLbl.setText("Id:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptNameLbl, 2);
-        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptIdLbl.setLayoutData(fd);
         
         this.correspondingConceptIdValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -286,7 +286,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptClassLbl.setText("Class:");
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptIdLbl, 2);
-        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptClassLbl.setLayoutData(fd);
         
         this.correspondingConceptClassValueLbl = new Label(this.grpDebug, SWT.NONE);
@@ -309,7 +309,7 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptDatabaseStatusValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(correspondingConceptNameLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         fd.right = new FormAttachment(100, -20);
         this.correspondingConceptDatabaseStatusValueLbl.setLayoutData(fd);
         

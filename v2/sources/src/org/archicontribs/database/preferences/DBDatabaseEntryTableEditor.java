@@ -108,6 +108,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	private Button btnCheck;
 	private Button btnDiscard;
 	private Button btnSave;
+	
+    private int defaultMargin = 10;
+    private int defaultLabelHeight;
+    private int defaultButtonHeight;
 
 	/**
 	 * Creates a table field editor.
@@ -132,9 +136,30 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.grpDatabases.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.grpDatabases.setText("Databases: ");
 		
+	    /*
+         * We calculate the default height of a Label widget
+         */
+        Label label = new Label(this.grpDatabases, SWT.NONE);
+        label.setText("Test");
+        this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+        label.dispose();
+        
+        /*
+         * We calculate the default height of a Text widget
+         */
+        Button button = new Button(this.grpDatabases, SWT.NONE);
+        button.setText("Test");
+        this.defaultButtonHeight = button.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+        button.dispose();
+		
+		// we calculate the required height of the group:
+		//    height of the databases table  = height of 5 text widgets
+		//    height of the database details = height of 7 text widets
+		int requiredHeight = 5 * (this.defaultButtonHeight + this.defaultMargin/2) + 7 * (this.defaultLabelHeight + this.defaultMargin);
+		
 		GridData gd = new GridData();
-		gd.heightHint = 400;
-		gd.minimumHeight = 400;
+		gd.heightHint = requiredHeight;
+		gd.minimumHeight = requiredHeight;
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 		this.grpDatabases.setLayoutData(gd);
@@ -142,7 +167,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnUp = new Button(this.grpDatabases, SWT.NONE);
 		this.btnUp.setText("^");
 		FormData fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
+		fd.top = new FormAttachment(0, this.defaultMargin);
 		fd.left = new FormAttachment(100, -70);
 		fd.right = new FormAttachment(100, -40);
 		this.btnUp.setLayoutData(fd);
@@ -157,9 +182,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDown = new Button(this.grpDatabases, SWT.NONE);
 		this.btnDown.setText("v");
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
+		fd.top = new FormAttachment(this.btnUp, 0, SWT.TOP);
 		fd.left = new FormAttachment(100, -35);
-		fd.right = new FormAttachment(100, -5);
+		fd.right = new FormAttachment(100, -this.defaultMargin);
 		this.btnDown.setLayoutData(fd);
 		this.btnDown.addSelectionListener(new SelectionListener() {
 			@Override
@@ -172,9 +197,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNew = new Button(this.grpDatabases, SWT.NONE);
 		this.btnNew.setText("New");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnUp, 5);
+		fd.top = new FormAttachment(this.btnUp, this.defaultMargin/2);
 		fd.left = new FormAttachment(100, -70);
-		fd.right = new FormAttachment(100, -5);
+		fd.right = new FormAttachment(100, -this.defaultMargin);
 		this.btnNew.setLayoutData(fd);
 		this.btnNew.addSelectionListener(new SelectionListener() {
 			@Override
@@ -186,7 +211,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnEdit = new Button(this.grpDatabases, SWT.NONE);
 		this.btnEdit.setText("Edit");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnNew, 5);
+		fd.top = new FormAttachment(this.btnNew, this.defaultMargin/2);
 		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
 		this.btnEdit.setLayoutData(fd);
@@ -201,7 +226,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnCheck = new Button(this.grpDatabases, SWT.NONE);
 		this.btnCheck.setText("Check");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnEdit, 5);
+		fd.top = new FormAttachment(this.btnEdit, this.defaultMargin/2);
 		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
 		this.btnCheck.setLayoutData(fd);
@@ -216,7 +241,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnRemove = new Button(this.grpDatabases, SWT.NONE);
 		this.btnRemove.setText("Remove");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCheck, 5);
+		fd.top = new FormAttachment(this.btnCheck, this.defaultMargin/2);
 		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
 		this.btnRemove.setLayoutData(fd);
@@ -272,7 +297,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblDriver.setText("Driver:");
 		this.lblDriver.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblName, 8);
+		fd.top = new FormAttachment(this.lblName, this.defaultMargin);
 		fd.left = new FormAttachment(this.lblName, 0 , SWT.LEFT);
 		this.lblDriver.setLayoutData(fd);
 		this.lblDriver.setVisible(false);
@@ -297,7 +322,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblFile.setText("File:");
 		this.lblFile.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDriver, 8);
+		fd.top = new FormAttachment(this.lblDriver, this.defaultMargin);
 		fd.left = new FormAttachment(this.lblDriver, 0 , SWT.LEFT);
 		this.lblFile.setLayoutData(fd);
 		this.lblFile.setVisible(false);
@@ -328,7 +353,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblServer.setText("Server or IP:");
 		this.lblServer.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDriver, 8);
+		fd.top = new FormAttachment(this.lblDriver, this.defaultMargin);
 		fd.left = new FormAttachment(this.lblDriver, 0 , SWT.LEFT);
 		this.lblServer.setLayoutData(fd);
 		this.lblServer.setVisible(false);
@@ -382,7 +407,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblDatabase.setText("Database:");
 		this.lblDatabase.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblServer, 8);
+		fd.top = new FormAttachment(this.lblServer, this.defaultMargin);
 		fd.left = new FormAttachment(this.lblServer, 0 , SWT.LEFT);
 		this.lblDatabase.setLayoutData(fd);
 		this.lblDatabase.setVisible(false);
@@ -416,7 +441,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblUsername.setText("Username:");
 		this.lblUsername.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDatabase, 8);
+		fd.top = new FormAttachment(this.lblDatabase, this.defaultMargin);
 		fd.left = new FormAttachment(this.lblDatabase, 0 , SWT.LEFT);
 		this.lblUsername.setLayoutData(fd);
 		this.lblUsername.setVisible(false);
@@ -842,12 +867,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 		if ( hasDatabaseName ) {
 			FormData fd = new FormData();
-			fd.top = new FormAttachment(this.lblDatabase, 8);
+			fd.top = new FormAttachment(this.lblDatabase, this.defaultMargin);
 			fd.left = new FormAttachment(this.lblDatabase, 0 , SWT.LEFT);
 			this.lblUsername.setLayoutData(fd);
 		} else {
 			FormData fd = new FormData();
-			fd.top = new FormAttachment(this.lblServer, 8);
+			fd.top = new FormAttachment(this.lblServer, this.defaultMargin);
 			fd.left = new FormAttachment(this.lblServer, 0 , SWT.LEFT);
 			this.lblUsername.setLayoutData(fd);
 		}

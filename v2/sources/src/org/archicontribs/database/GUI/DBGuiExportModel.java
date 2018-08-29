@@ -183,7 +183,7 @@ public class DBGuiExportModel extends DBGui {
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
-		fd.bottom = new FormAttachment(this.grpComponents, -10);
+		fd.bottom = new FormAttachment(this.grpComponents, -getDefaultMargin());
 		this.grpModelVersions.setLayoutData(fd);
 		this.grpModelVersions.setLayout(new FormLayout());
 
@@ -215,10 +215,10 @@ public class DBGuiExportModel extends DBGui {
 			}
 		});
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
-		fd.left = new FormAttachment(0, 10);
-		fd.right = new FormAttachment(40, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.top = new FormAttachment(0, getDefaultMargin());
+		fd.left = new FormAttachment(0, getDefaultMargin());
+		fd.right = new FormAttachment(40, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		this.tblModelVersions.setLayoutData(fd);
 
 		TableColumn colVersion = new TableColumn(this.tblModelVersions, SWT.NONE);
@@ -237,7 +237,7 @@ public class DBGuiExportModel extends DBGui {
 		lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
 		lblModelName.setText("Model name:");
 		fd = new FormData();
-		fd.top = new FormAttachment(0, 10);
+		fd.top = new FormAttachment(0, getDefaultMargin());
 		fd.left = new FormAttachment(40, 0);
 		lblModelName.setLayoutData(fd);
 
@@ -246,25 +246,25 @@ public class DBGuiExportModel extends DBGui {
 		this.txtModelName.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(lblModelName, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblModelName, 10);
-		fd.right = new FormAttachment(100, -10);
+		fd.left = new FormAttachment(lblModelName, getDefaultMargin());
+		fd.right = new FormAttachment(100, -getDefaultMargin());
 		this.txtModelName.setLayoutData(fd);
 
 		Label lblPurpose = new Label(this.grpModelVersions, SWT.NONE);
 		lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
 		lblPurpose.setText("Purpose:");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.txtModelName, 10);
+		fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
 		fd.left = new FormAttachment(lblModelName, 0, SWT.LEFT);
 		lblPurpose.setLayoutData(fd);
 
-		this.txtPurpose = new Text(this.grpModelVersions, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		this.txtPurpose = new Text(this.grpModelVersions, (DBPlugin.isWindowsOperatingSystem() ? SWT.WRAP : SWT.MULTI) | SWT.BORDER | SWT.V_SCROLL);
 		this.txtPurpose.setText(this.exportedModel.getPurpose());
 		this.txtPurpose.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.txtModelName, 5);
 		fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
-		fd.right = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
 		fd.bottom = new FormAttachment(55, -5);
 		this.txtPurpose.setLayoutData(fd);
 
@@ -272,18 +272,18 @@ public class DBGuiExportModel extends DBGui {
 		lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
 		lblReleaseNote.setText("Release note:");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.txtPurpose, 10);
+		fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
 		fd.left = new FormAttachment(lblPurpose, 0, SWT.LEFT);
 		lblReleaseNote.setLayoutData(fd);
 
-		this.txtReleaseNote = new Text(this.grpModelVersions, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL);
+		this.txtReleaseNote = new Text(this.grpModelVersions, (DBPlugin.isWindowsOperatingSystem() ? SWT.WRAP : SWT.MULTI) | SWT.BORDER | SWT.V_SCROLL);
 		//txtReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
 		this.txtReleaseNote.setEnabled(false);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.txtPurpose, 5);
 		fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
-		fd.right = new FormAttachment(100, -10);
-		fd.bottom = new FormAttachment(100, -10);
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		this.txtReleaseNote.setLayoutData(fd);
 	}
 
@@ -299,9 +299,14 @@ public class DBGuiExportModel extends DBGui {
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
         this.grpComponents.setText("Your model's components: ");
+        
+        // we calculate the required height
+        int requiredHeight = 9 * (getDefaultLabelHeight() + getDefaultMargin()) + 2 * getDefaultMargin();
+        
         FormData fd = new FormData();
-        fd.top = new FormAttachment(100, -265);
-        fd.left = new FormAttachment(0);        fd.right = new FormAttachment(100);
+        fd.top = new FormAttachment(100, -requiredHeight);
+        fd.left = new FormAttachment(0);
+        fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
         this.grpComponents.setLayoutData(fd);
         this.grpComponents.setLayout(new FormLayout());
@@ -310,7 +315,7 @@ public class DBGuiExportModel extends DBGui {
         lblElements.setBackground(GROUP_BACKGROUND_COLOR);
         lblElements.setText("Elements:");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 25);
+        fd.top = new FormAttachment(0, 2*getDefaultLabelHeight()+getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblElements.setLayoutData(fd);
 
@@ -318,7 +323,7 @@ public class DBGuiExportModel extends DBGui {
         lblRelationships.setBackground(GROUP_BACKGROUND_COLOR);
         lblRelationships.setText("Relationships:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblElements, 10);
+        fd.top = new FormAttachment(lblElements, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblRelationships.setLayoutData(fd);
 
@@ -326,7 +331,7 @@ public class DBGuiExportModel extends DBGui {
         lblFolders.setBackground(GROUP_BACKGROUND_COLOR);
         lblFolders.setText("Folders:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblRelationships, 10);
+        fd.top = new FormAttachment(lblRelationships, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblFolders.setLayoutData(fd);
 
@@ -334,7 +339,7 @@ public class DBGuiExportModel extends DBGui {
         lblViews.setBackground(GROUP_BACKGROUND_COLOR);
         lblViews.setText("Views:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblFolders, 10);
+        fd.top = new FormAttachment(lblFolders, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViews.setLayoutData(fd);
 
@@ -342,7 +347,7 @@ public class DBGuiExportModel extends DBGui {
         lblViewObjects.setBackground(GROUP_BACKGROUND_COLOR);
         lblViewObjects.setText("Objects:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViews, 10);
+        fd.top = new FormAttachment(lblViews, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViewObjects.setLayoutData(fd);
 
@@ -350,7 +355,7 @@ public class DBGuiExportModel extends DBGui {
         lblViewConnections.setBackground(GROUP_BACKGROUND_COLOR);
         lblViewConnections.setText("Connections:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViewObjects, 10);
+        fd.top = new FormAttachment(lblViewObjects, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblViewConnections.setLayoutData(fd);
 
@@ -358,7 +363,7 @@ public class DBGuiExportModel extends DBGui {
         lblImages.setBackground(GROUP_BACKGROUND_COLOR);
         lblImages.setText("Images:");
         fd = new FormData();
-        fd.top = new FormAttachment(lblViewConnections, 10);
+        fd.top = new FormAttachment(lblViewConnections, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblImages.setLayoutData(fd);
 
@@ -368,7 +373,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblTotal.setText("Total");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(0, getDefaultLabelHeight());
         fd.left = new FormAttachment(20, 0);
         fd.right = new FormAttachment(28, 0);
         this.lblTotal.setLayoutData(fd);
@@ -377,7 +382,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblModel.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblModel.setText("Archi");
         fd = new FormData();
-        fd.top = new FormAttachment(0, -8);
+        fd.top = new FormAttachment(0, -5);
         fd.left = new FormAttachment(33, 0);
         fd.right = new FormAttachment(57, 0);
         this.lblModel.setLayoutData(fd);
@@ -386,7 +391,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblModelNew.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblModelNew.setText("New");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(33, 0);
         fd.right = new FormAttachment(41, -2);
         this.lblModelNew.setLayoutData(fd);
@@ -395,7 +400,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblModelUpdated.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblModelUpdated.setText("Updated");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(41, 1);
         fd.right = new FormAttachment(49, -1);
         this.lblModelUpdated.setLayoutData(fd);
@@ -404,16 +409,37 @@ public class DBGuiExportModel extends DBGui {
         this.lblModelDeleted.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblModelDeleted.setText("Deleted");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(49, 2);
         fd.right = new FormAttachment(57, 0);
         this.lblModelDeleted.setLayoutData(fd);
+        
+        Label horizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblModel, 2);
+        fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
+        horizontalSeparator.setLayoutData(fd);
+        
+        Label verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
+        fd.left = new FormAttachment(horizontalSeparator);
+        verticalSeparator.setLayoutData(fd);
+        
+        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
+        fd.right = new FormAttachment(horizontalSeparator);
+        verticalSeparator.setLayoutData(fd);
         
         this.lblDatabase = new Label(this.grpComponents, SWT.CENTER);
         this.lblDatabase.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblDatabase.setText("Database");
         fd = new FormData();
-        fd.top = new FormAttachment(0, -8);
+        fd.top = new FormAttachment(this.lblModel, 0, SWT.TOP);
         fd.left = new FormAttachment(62, 0);
         fd.right = new FormAttachment(86, 0);
         this.lblDatabase.setLayoutData(fd);
@@ -422,7 +448,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblDatabaseNew.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblDatabaseNew.setText("New");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(62, 0);
         fd.right = new FormAttachment(70, -2);
         this.lblDatabaseNew.setLayoutData(fd);
@@ -431,7 +457,7 @@ public class DBGuiExportModel extends DBGui {
         this.lblDatabaseUpdated.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblDatabaseUpdated.setText("Updated");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(70, 1);
         fd.right = new FormAttachment(78, -2);
         this.lblDatabaseUpdated.setLayoutData(fd);
@@ -440,16 +466,37 @@ public class DBGuiExportModel extends DBGui {
         this.lblDatabaseDeleted.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblDatabaseDeleted.setText("Deleted");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(78, 1);
         fd.right = new FormAttachment(86, 0);
         this.lblDatabaseDeleted.setLayoutData(fd);
+        
+        horizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblDatabase, 2);
+        fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
+        horizontalSeparator.setLayoutData(fd);
+        
+        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
+        fd.left = new FormAttachment(horizontalSeparator);
+        verticalSeparator.setLayoutData(fd);
+        
+        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
+        fd.right = new FormAttachment(horizontalSeparator);
+        verticalSeparator.setLayoutData(fd);
         
         this.lblConflicts = new Label(this.grpComponents, SWT.CENTER);
         this.lblConflicts.setBackground(GROUP_BACKGROUND_COLOR);
         this.lblConflicts.setText("Conflicts");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
         fd.left = new FormAttachment(91, 0);
         fd.right = new FormAttachment(99, 0);
         this.lblConflicts.setLayoutData(fd);
@@ -879,11 +926,9 @@ public class DBGuiExportModel extends DBGui {
         /* * * * * */
         // TODO: SWT.MULTI on Linux vs SWT.WRAP on Windows
         // TODO: get height of font to calculate height of widgets 
-        this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.MULTI | SWT.WRAP);
-        this.btnCompareModelToDatabase.setText("Compare model to\nthe database");
+        this.btnCompareModelToDatabase = new Button(this.grpComponents, DBPlugin.isWindowsOperatingSystem() ? SWT.WRAP : SWT.MULTI);
+        this.btnCompareModelToDatabase.setText("Compare model to the database");
         fd = new FormData();
-        fd.top = new FormAttachment(100, -40);
-        fd.left = new FormAttachment(100, -140);
         fd.right = new FormAttachment(100, -5);
         fd.bottom = new FormAttachment(100, -5);
         this.btnCompareModelToDatabase.setLayoutData(fd);
@@ -2308,8 +2353,8 @@ public class DBGuiExportModel extends DBGui {
 			this.lblCantExport.setBackground(GROUP_BACKGROUND_COLOR);
 			this.lblCantExport.setText("Can't export because some components conflict with newer version in the database:");
 			fd = new FormData();
-			fd.top = new FormAttachment(0, 10);
-			fd.left = new FormAttachment(0, 10);
+			fd.top = new FormAttachment(0, getDefaultMargin());
+			fd.left = new FormAttachment(0, getDefaultMargin());
 			this.lblCantExport.setLayoutData(fd);
 	
 			this.tblListConflicts = new Table(this.grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
@@ -2348,7 +2393,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 			});
 			fd = new FormData();
-			fd.top = new FormAttachment(this.lblCantExport, 10);
+			fd.top = new FormAttachment(this.lblCantExport, getDefaultMargin());
 			fd.left = new FormAttachment(25);
 			fd.right = new FormAttachment(75);
 			fd.bottom = new FormAttachment(40);
@@ -2359,7 +2404,7 @@ public class DBGuiExportModel extends DBGui {
 			lblCompare.setText("Please verify your version against the latest version in the database:");
 			fd = new FormData();
 			fd.top = new FormAttachment(this.tblListConflicts, 20);
-			fd.left = new FormAttachment(0, 10);
+			fd.left = new FormAttachment(0, getDefaultMargin());
 			lblCompare.setLayoutData(fd);
 	
 			this.tblCompareComponent = new Tree(this.grpConflict, SWT.BORDER | SWT.FULL_SELECTION | SWT.HIDE_SELECTION | SWT.V_SCROLL);
@@ -2367,9 +2412,9 @@ public class DBGuiExportModel extends DBGui {
 			this.tblCompareComponent.setHeaderVisible(true);
 			this.tblCompareComponent.setLinesVisible(true);
 			fd = new FormData();
-			fd.top = new FormAttachment(lblCompare, 10);
-			fd.left = new FormAttachment(0,10);
-			fd.right = new FormAttachment(100, -10);
+			fd.top = new FormAttachment(lblCompare, getDefaultMargin());
+			fd.left = new FormAttachment(0, getDefaultMargin());
+			fd.right = new FormAttachment(100, -getDefaultMargin());
 			fd.bottom = new FormAttachment(100, -40);
 			this.tblCompareComponent.setLayoutData(fd);
 	
@@ -2407,8 +2452,8 @@ public class DBGuiExportModel extends DBGui {
                 public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 			});
 			fd = new FormData(80,25);
-			fd.right = new FormAttachment(100, -10);
-			fd.bottom = new FormAttachment(100, -10);
+			fd.right = new FormAttachment(100, -getDefaultMargin());
+			fd.bottom = new FormAttachment(100, -getDefaultMargin());
 			this.btnImportDatabaseVersion.setLayoutData(fd);
 	
 			this.btnExportMyVersion = new Button(this.grpConflict, SWT.NONE);
@@ -2433,8 +2478,8 @@ public class DBGuiExportModel extends DBGui {
                 public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 			});
 			fd = new FormData(80,25);
-			fd.right = new FormAttachment(this.btnImportDatabaseVersion, -10);
-			fd.bottom = new FormAttachment(100, -10);
+			fd.right = new FormAttachment(this.btnImportDatabaseVersion, -getDefaultMargin());
+			fd.bottom = new FormAttachment(100, -getDefaultMargin());
 			this.btnExportMyVersion.setLayoutData(fd);
 	
 			this.btnDoNotExport = new Button(this.grpConflict, SWT.NONE);
@@ -2458,8 +2503,8 @@ public class DBGuiExportModel extends DBGui {
                 public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 			});
 			fd = new FormData(80,25);
-			fd.right = new FormAttachment(this.btnExportMyVersion, -10);
-			fd.bottom = new FormAttachment(100, -10);
+			fd.right = new FormAttachment(this.btnExportMyVersion, -getDefaultMargin());
+			fd.bottom = new FormAttachment(100, -getDefaultMargin());
 			this.btnDoNotExport.setLayoutData(fd);
 	
 			this.checkRememberChoice = new Button(this.grpConflict, SWT.CHECK);

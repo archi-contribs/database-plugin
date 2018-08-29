@@ -103,6 +103,8 @@ import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
+import lombok.Getter;
+
 /**
  * This class manages the GUI of the plugin.
  * 
@@ -212,6 +214,12 @@ public class DBGui {
 
 	protected Group grpMessage = null;
 	private CLabel lblMessage;
+	
+	/** Default height of a Label widget */
+	@Getter private int defaultLabelHeight;
+
+	/** Default margin between widgets */
+	@Getter private int defaultMargin = 10;
 
 
 	/**
@@ -234,6 +242,14 @@ public class DBGui {
 		this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
 		//this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
 		this.dialog.setLayout(new FormLayout());
+		
+		/**
+		 * Calculate the default height of a Label widget
+		 */
+		Label label = new Label(this.dialog, SWT.NONE);
+		label.setText("Test");
+		this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+		label.dispose();
 
 		this.dialog.addListener(SWT.Close, new Listener()
 		{

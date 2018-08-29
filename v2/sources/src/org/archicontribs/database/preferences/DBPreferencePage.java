@@ -182,7 +182,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		grpMiscellaneous.setLayout(new FormLayout());
 		
 		gd = new GridData();
-		//gd.heightHint = 80;
 		gd.horizontalAlignment = GridData.FILL;
 		gd.grabExcessHorizontalSpace = true;
 		grpMiscellaneous.setLayoutData(gd);
