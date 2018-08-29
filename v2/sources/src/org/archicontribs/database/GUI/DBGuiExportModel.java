@@ -924,9 +924,7 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewImagesInDatabase.setLayoutData(fd);
         
         /* * * * * */
-        // TODO: SWT.MULTI on Linux vs SWT.WRAP on Windows
-        // TODO: get height of font to calculate height of widgets 
-        this.btnCompareModelToDatabase = new Button(this.grpComponents, DBPlugin.isWindowsOperatingSystem() ? SWT.WRAP : SWT.MULTI);
+        this.btnCompareModelToDatabase = new Button(this.grpComponents, SWT.PUSH);
         this.btnCompareModelToDatabase.setText("Compare model to the database");
         fd = new FormData();
         fd.right = new FormAttachment(100, -5);
