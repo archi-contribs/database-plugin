@@ -47,6 +47,8 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
@@ -97,7 +99,7 @@ public class DBGuiComponentHistory extends DBGui {
 		Group grpComponents = new Group(this.compoRightBottom, SWT.NONE);
 		grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		grpComponents.setFont(GROUP_TITLE_FONT);
-		grpComponents.setText("Component history: ");
+		grpComponents.setText("History of "+this.selectedComponent.getClass().getSimpleName() + "\"" + this.selectedComponent.getName() + "\"");
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
@@ -292,6 +294,10 @@ public class DBGuiComponentHistory extends DBGui {
         	tableName = "views";
         else if ( this.selectedComponent instanceof IFolder )
         	tableName = "folders";
+        else if ( this.selectedComponent instanceof IDiagramModelObject )
+            tableName = "views_objects";
+        else if ( this.selectedComponent instanceof IDiagramModelConnection )
+            tableName = "views_connections";
         else {
 		    popup(Level.FATAL, "Cannot get history for components of class "+this.selectedComponent.getClass().getSimpleName());
 		    return ;

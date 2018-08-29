@@ -6,6 +6,8 @@
 
 package org.archicontribs.database.menu;
 
+import java.util.HashMap;
+
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.eclipse.core.runtime.FileLocator;
@@ -22,20 +24,27 @@ import org.eclipse.ui.menus.ExtensionContributionFactory;
 import org.eclipse.ui.menus.IContributionRoot;
 import org.eclipse.ui.services.IServiceLocator;
 
+import com.archimatetool.canvas.editparts.CanvasBlockEditPart;
 import com.archimatetool.canvas.editparts.CanvasDiagramPart;
+import com.archimatetool.canvas.editparts.CanvasStickyEditPart;
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.editor.diagram.editparts.ArchimateDiagramPart;
 import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
 import com.archimatetool.editor.diagram.editparts.ArchimateRelationshipEditPart;
 import com.archimatetool.editor.diagram.editparts.DiagramConnectionEditPart;
+import com.archimatetool.editor.diagram.editparts.diagram.DiagramImageEditPart;
+import com.archimatetool.editor.diagram.editparts.diagram.GroupEditPart;
+import com.archimatetool.editor.diagram.editparts.diagram.NoteEditPart;
+import com.archimatetool.editor.diagram.sketch.editparts.SketchActorEditPart;
 import com.archimatetool.editor.diagram.sketch.editparts.SketchDiagramPart;
+import com.archimatetool.editor.diagram.sketch.editparts.SketchGroupEditPart;
+import com.archimatetool.editor.diagram.sketch.editparts.StickyEditPart;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
-import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
-import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
+import com.archimatetool.model.INameable;
 import com.archimatetool.model.ISketchModel;
 
 /**
@@ -120,6 +129,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((ArchimateElementEditPart)obj).getModel());
                                 showGetHistory(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
                                 showReplaceElement(((ArchimateElementEditPart)obj).getModel().getArchimateElement());
                                 break;
@@ -131,6 +141,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((ArchimateRelationshipEditPart)obj).getModel());
                                 showGetHistory(((ArchimateRelationshipEditPart)obj).getModel().getArchimateRelationship());
                                 break;
 
@@ -140,7 +151,8 @@ public class DBMenu extends ExtensionContributionFactory {
                                 if ( showDebugInContextMenu ) {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
-                                }	    				
+                                }
+                                showGetHistory(((CanvasBlockEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks in a canvas' sticky
@@ -150,6 +162,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((CanvasStickyEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a connection
@@ -169,6 +182,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((DiagramImageEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a group
@@ -178,6 +192,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((GroupEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a note
@@ -187,6 +202,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((NoteEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a sketch actor
@@ -196,6 +212,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((SketchActorEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a sketch group
@@ -205,6 +222,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((SketchGroupEditPart)obj).getModel());
                                 break;
 
                                 // when the user right clicks on a sticky
@@ -214,6 +232,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                     showDebug();
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory(((StickyEditPart)obj).getModel());
                                 break;	
 
                                 // when the user right clicks on a diagram in the model tree
@@ -280,44 +299,21 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
 
-    private void showGetHistory(IArchimateModelObject component) {
-        String clazz = component.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
-        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
-        String label = "Get history for "+component.eClass().getName()+" \""+component.getName()+"\"";
+    private void showGetHistory(INameable component) {
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/history.png"), null));
+        String label = "Get history of "+component.eClass().getName()+" \""+component.getName()+"\"";
         if ( label.length() > 100 )
             label = label.substring(0, 100);
+        
+        HashMap<String, String> parameters = new HashMap<String, String>();
+        parameters.put("mustConsiderConcept", (component instanceof IArchimateConcept ? "yes" : "no"));
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
                 "org.archicontribs.database.DBMenu",						// id
                 "org.archicontribs.database.componentHistoryCommand",       // commandId
-                null,														// parameters
-                menuIcon,													// icon
-                null,														// disabledIcon
-                null,														// hoverIcon
-                label,														// label
-                null,														// mnemonic
-                null,														// tooltip 
-                CommandContributionItem.STYLE_PUSH,							// style
-                null,														// helpContextId
-                true);
-        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
-    }
-
-    private void showGetHistory(IDiagramModelConnection connection) {
-        String clazz = connection.eClass().getName().replaceAll("(.)([A-Z])", "$1 $2").trim().toLowerCase().replace(" ", "-");	// we generate the class name, the same way than used in Archi icons names
-        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/archimate/"+clazz+".png"), null));
-        String label = "Get history for "+connection.eClass().getName()+" \""+connection.getName()+"\"";
-        if ( label.length() > 100 )
-            label = label.substring(0, 100);
-
-        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
-        CommandContributionItemParameter p = new CommandContributionItemParameter(
-                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),		// serviceLocator
-                "org.archicontribs.database.DBMenu",						// id
-                "org.archicontribs.database.componentHistoryCommand",       // commandId
-                null,														// parameters
+                parameters,													// parameters
                 menuIcon,													// icon
                 null,														// disabledIcon
                 null,														// hoverIcon
@@ -331,11 +327,8 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
     private void showImportModel() {
-        ImageDescriptor menuIcon;
-        String label;
-
-        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-        label = "Import model from database";
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
+        String label = "Import model from database";
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -356,11 +349,8 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
     private void showExportModel() {
-        ImageDescriptor menuIcon;
-        String label;
-
-        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/export.png"), null));
-        label = "Export model to database";
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/export.png"), null));
+        String label = "Export model to database";
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -381,11 +371,8 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
     private void showImportComponent() {
-        ImageDescriptor menuIcon;
-        String label;
-
-        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-        label = "Import components from database";
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
+        String label = "Import components from database";
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -406,11 +393,8 @@ public class DBMenu extends ExtensionContributionFactory {
     }
 
     private void showImportComponentIntoView() {
-        ImageDescriptor menuIcon;
-        String label;
-
-        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
-        label = "Import components from database into view";
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/import.png"), null));
+        String label = "Import components from database into view";
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
         CommandContributionItemParameter p = new CommandContributionItemParameter(
@@ -431,9 +415,7 @@ public class DBMenu extends ExtensionContributionFactory {
     }
     
     private void showReplaceElement(IArchimateElement element) {
-        ImageDescriptor menuIcon;
-
-        menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/replace.png"), null));
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/replace.png"), null));
         String label = "Replace "+element.eClass().getName()+" \""+element.getName()+"\"";
         if ( label.length() > 100 )
             label = label.substring(0, 100);
@@ -457,7 +439,7 @@ public class DBMenu extends ExtensionContributionFactory {
     }
     
     private void showDebug() {
-        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
+        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("org.archicontribs.database"), new Path("img/16x16/debug.png"), null));
         String label = "Show debugging information";
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);

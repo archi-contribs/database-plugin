@@ -10,20 +10,17 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGuiComponentHistory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.gef.editparts.AbstractEditPart;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import com.archimatetool.canvas.model.ICanvasModel;
-import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
-import com.archimatetool.model.IArchimateConcept;
-import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModelObject;
-import com.archimatetool.model.IFolder;
-import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.IDiagramModelArchimateComponent;
 
 public class DBMenuComponentHistoryHandler extends AbstractHandler {
     private static final DBLogger logger = new DBLogger(DBMenu.class);
@@ -31,33 +28,34 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
 	@Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
-        IArchimateModelObject component;
-
-        if ( selection instanceof IArchimateConcept ) {										// if the component is selected in the tree
-            component = (IArchimateConcept)selection;
-        } else if ( selection instanceof ArchimateElementEditPart ) {						// if the component is selected in a view
-            component = ((ArchimateElementEditPart)selection).getModel().getArchimateConcept();
-        } else if ( selection instanceof IArchimateDiagramModel ) {							// if the user clicked on a view in the tree
-        	component = (IArchimateDiagramModel)selection;
-        } else if ( selection instanceof ICanvasModel ) {									// if the user clicked on a view in the tree
-        	component = (ICanvasModel)selection;
-        } else if ( selection instanceof ISketchModel ) {									// if the user clicked on a view in the tree
-        	component = (ISketchModel)selection;
-        } else if ( selection instanceof IFolder ) {										// if the user clicked on a folder in the tree
-        	component = (IFolder)selection;
-        } else {
-            DBGui.popup(Level.ERROR, "Do not know which component you selected.");
+        Object selectedObject;
+        
+        if ( selection instanceof AbstractEditPart ) {
+            selectedObject = ((AbstractEditPart)selection).getModel();
+            
+            if ( DBPlugin.areEqual(event.getParameter("mustConsiderConcept"), "yes") && (selectedObject instanceof IDiagramModelArchimateComponent) )
+               selectedObject = ((IDiagramModelArchimateComponent)selectedObject).getArchimateConcept();
+        } else
+            selectedObject = selection;
+        
+        if( selectedObject instanceof IArchimateModelObject ) {
+            IArchimateModelObject selectedComponent = (IArchimateModelObject) selectedObject;
+            if ( logger.isDebugEnabled() ) logger.debug("Showing database history of component " + ((IDBMetadata)selectedComponent).getDBMetadata().getDebugName());
+    
+            try {
+                DBGuiComponentHistory componentHistory = new DBGuiComponentHistory(selectedComponent);
+                componentHistory.run();
+            } catch (Exception e) {
+                DBGui.popup(Level.ERROR,"Cannot get history from database.", e);
+            }
+        }
+        else {
+            // in all other cases, we do not know how to get its history from the database
+            DBGui.popup(Level.ERROR, "Cannot get history of a "+selectedObject.getClass().getSimpleName());
             return null;
         }
 
-        if ( logger.isDebugEnabled() ) logger.debug("Showing history for component "+((IDBMetadata)component).getDBMetadata().getDebugName());
 
-        try {
-            DBGuiComponentHistory componentHistory = new DBGuiComponentHistory(component);
-            componentHistory.run();
-        } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Cannot import model", e);
-        }
         return null;
     }
 }

@@ -43,6 +43,16 @@
             defaultHandler="org.archicontribs.database.menu.DBMenuComponentHistoryHandler"
             id="org.archicontribs.database.componentHistoryCommand"
             name="componentHistoryCommand">
+         <commandParameter
+               id="org.archicontribs.database.componentHistoryCommand.mustConsiderConceptParameter"
+               name="mustConsiderConcept"
+               optional="false">
+         </commandParameter>
+         <commandParameter
+               id="mustConsiderConcept"
+               name="mustConsiderConcept"
+               optional="false">
+         </commandParameter>
       </command>
       <command
             defaultHandler="org.archicontribs.database.menu.DBMenuComponentImportHandler"
