@@ -282,7 +282,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         DBMetadata objectMetadata = (eObject instanceof IDBMetadata) ? ((IDBMetadata)eObject).getDBMetadata() : null;
         int len = 0;
 
-        //TODO: find a way to avoid to calculate the checksum twice for connections (they are counted twice: as sources and targets)
         if ( mustCalculateChecksum ) {
         	// if the eObject isa view and if it is not yet in the allViews map, then we empty the existing screenshot
         	if ( eObject instanceof IDiagramModel && (this.allViews.get(((IIdentifier)eObject).getId()) == null) )
@@ -347,7 +346,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										                        this.viewChecksum.append(subChecksum);
 										                }
 										                
-										                // we count only the source connections in order to wount them only once
+										                // we count only the source connections in order to count them only once
 										                //for ( EObject target: ((IConnectable)eObject).getTargetConnections() ) {
 										                //    String subChecksum = countObject(target, mustCalculateChecksum, parentDiagram);
 										                //    if ( mustCalculateChecksum )
