@@ -1648,8 +1648,7 @@ public class DBGuiImportComponents extends DBGui {
 							if ( resultViewScreenshot.next() )
 								screenshot = resultViewScreenshot.getBytes("screenshot");
 						} catch (SQLException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							logger.error("Failed to get the view screenshot from the database",e);
 						}
 					}
 					DBGuiImportComponents.this.lblPreview.setData("screenshot", screenshot);
