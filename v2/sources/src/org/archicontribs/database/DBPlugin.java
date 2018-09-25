@@ -169,7 +169,7 @@ import lombok.Getter;
  * 										
  * v2.0.7b: 01/07/2017				Solve Neo4J errors
  * 
- * v2.1: 22/08/2018					Import components from database:
+ * v2.1: 25/09/2018					Import components from database:
  * 										Rename "import individual component" to "import components"
  * 										Added documentation column to help distinguish components having the same name
  *                                      Added tooltip with properties to help distinguish components having the same name
@@ -183,7 +183,7 @@ import lombok.Getter;
  *                                      Introduce new template mode that mixes shared and copy modes depending on on the "template" property of each component
  *                                      Possibility to import a whole model into another one (merge models)
  *                                  Import model:
- *                                  	A context menu entry allowin got import a model has been added when no model is selected
+ *                                  	A context menu entry allowing to import a model has been added when no model is selected
  *                                      Automatically open the default view (if any) at the end of the import
  *                                      Fix number of images to import
  * 									Export model:
@@ -204,7 +204,7 @@ import lombok.Getter;
  *                                      Add an option to compare the model from the database before exporting it
  *										Allow to specify the generated view screenshots border width and scale factor
  *										Allow to specify a suffix to add to components imported in copy mode
- *										Add an option to check for max memory at startup (Xmx should be set to 1g)
+ *										Add an option to check for max memory at startup (xmx should be set to 1g)
  *										Add an option to show or hide zero values in import and export windows
  *									Get history from database:
  *										Allows to get history for diagrams, canvas and sketches
@@ -234,7 +234,7 @@ import lombok.Getter;
  * 											A new "show debug information" window has been created
  *                                  		Add "import model from database" menu entry on right click when no model has been loaded yet
  *                                  		Manage the objects transparency (introduced in Archi 4.3)
- *                                  		Check for max memory available at startup and suggest to increase it (Xmx parameter) if less than 1 GB
+ *                                  		Check for max memory available at startup and suggest to increase it (xmx parameter) if less than 1 GB
  *                                  		Add the ability to import an image from the database on Canvas Image and Block objects
  * 											Update JDBC drivers
  * 												- Neo4J to 3.1.0
@@ -258,7 +258,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1 beta 9.6.1";
+	public static final String pluginVersion = "2.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
