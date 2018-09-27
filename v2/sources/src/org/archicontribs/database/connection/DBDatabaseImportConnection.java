@@ -310,7 +310,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countFoldersToImport = resultFolders.getInt("countFolders");
 			this.countFoldersImported = 0;
 		}
-		this.importFoldersRequest = selectFoldersRequest + " ORDER BY folders_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		this.importFoldersRequest = selectFoldersRequest + " ORDER BY rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schema+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
 		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, documentation, background, connection_router_type, hint_content, hint_title, viewpoint, created_on, checksum, container_checksum, rank"
@@ -322,7 +322,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countViewsToImport = resultViews.getInt("countViews");
 			this.countViewsImported = 0;
 		}
-		this.importViewsRequest = selectViewsRequest + " ORDER BY views_in_model.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		this.importViewsRequest = selectViewsRequest + " ORDER BY rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
 		String selectViewsObjectsRequest = "SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, hint_content, hint_title, is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, checksum"

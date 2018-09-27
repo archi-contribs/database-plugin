@@ -1,3 +1,6 @@
+v2.1.1: 27/09/2018
+* Fix import order from PostGreSQL databases
+
 v2.1: 25/09/2018
 * Import components from database:
   * Rename "import individual component" to "import components"

@@ -241,6 +241,8 @@ import lombok.Getter;
  * 												- SQLite to 3.21.0
  *												- PostGreSQL to 42.2.1
  *
+ * v2.1.1: 27/09/2018
+ *                                  Fix import order from PostGreSQL databases
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -258,7 +260,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1";
+	public static final String pluginVersion = "2.1.1";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
