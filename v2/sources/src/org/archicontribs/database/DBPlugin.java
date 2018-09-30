@@ -243,6 +243,9 @@ import lombok.Getter;
  *
  * v2.1.1: 27/09/2018
  *                                  Fix import order from PostGreSQL databases
+ *                                  
+ * v2.1.2: 30/09/2018				Revert replace CREATE by MERGE in Neo4J requests
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -260,7 +263,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.1";
+	public static final String pluginVersion = "2.1.2";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
