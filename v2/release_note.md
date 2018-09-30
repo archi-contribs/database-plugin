@@ -1,3 +1,20 @@
+v2.1.2: 30/09/2018
+* Revert "merge" instead of "create" for Neo4j databases
+
+### TODO list
+* Import individual component:
+  * allow to import elements recursively
+* Get component history:
+  * show view screenshots to ease views comparison
+* Miscellaneous:
+  *    add an option to check for relationships that are in the database but would not be in the in memory model
+  *       --> nearly done with "get history from database". Just needs to compare the list of relationships
+  *    create a new windows that will show up detailed statistics about the model
+  *    add more jdbc drivers (mongodb, odbc, etc ...)
+  * add an option to duplicate a model
+  *    create database admin procedures
+
+----------
 v2.1.1: 27/09/2018
 * Fix import order from PostGreSQL databases
 
@@ -73,21 +90,7 @@ v2.1: 25/09/2018
     * Neo4J to 3.1.0
     * SQLite to 3.21.0
     * PostGreSQL to 42.2.1
-
-### TODO list
-* Import individual component:
-  * allow to import elements recursively
-* Get component history:
-  * show view screenshots to ease views comparison
-* Miscellaneous:
-  *    add an option to check for relationships that are in the database but would not be in the in memory model
-  *       --> nearly done with "get history from database". Just needs to compare the list of relationships
-  *    create a new windows that will show up detailed statistics about the model
-  *    add more jdbc drivers (mongodb, odbc, etc ...)
-  * add an option to duplicate a model
-  *    create database admin procedures
-
-----------
+	
 ### v2.0.7b: 01/07/2017
 * Fix Neo4J errors
 
