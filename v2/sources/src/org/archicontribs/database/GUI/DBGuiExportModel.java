@@ -414,26 +414,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(57, 0);
         this.lblModelDeleted.setLayoutData(fd);
         
-        Label horizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
+        this.modelHorizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.lblModel, 2);
         fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
         fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
-        horizontalSeparator.setLayoutData(fd);
+        this.modelHorizontalSeparator.setLayoutData(fd);
         
-        Label verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        this.modelVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
         fd = new FormData();
-        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
-        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
-        fd.left = new FormAttachment(horizontalSeparator);
-        verticalSeparator.setLayoutData(fd);
+        fd.top = new FormAttachment(this.modelHorizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(this.modelHorizontalSeparator, 4, SWT.BOTTOM);
+        fd.left = new FormAttachment(this.modelHorizontalSeparator);
+        this.modelVerticalSeparatorLeft.setLayoutData(fd);
         
-        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        this.modelVerticalSeparatorRight = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
         fd = new FormData();
-        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
-        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
-        fd.right = new FormAttachment(horizontalSeparator);
-        verticalSeparator.setLayoutData(fd);
+        fd.top = new FormAttachment(this.modelHorizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(this.modelHorizontalSeparator, 4, SWT.BOTTOM);
+        fd.right = new FormAttachment(this.modelHorizontalSeparator);
+        this.modelVerticalSeparatorRight.setLayoutData(fd);
         
         this.lblDatabase = new Label(this.grpComponents, SWT.CENTER);
         this.lblDatabase.setBackground(GROUP_BACKGROUND_COLOR);
@@ -471,26 +471,26 @@ public class DBGuiExportModel extends DBGui {
         fd.right = new FormAttachment(86, 0);
         this.lblDatabaseDeleted.setLayoutData(fd);
         
-        horizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
+        this.databaseHorizontalSeparator = new Label(this.grpComponents, SWT.HORIZONTAL | SWT.SEPARATOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.lblDatabase, 2);
         fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
         fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
-        horizontalSeparator.setLayoutData(fd);
+        this.databaseHorizontalSeparator.setLayoutData(fd);
         
-        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        this.databaseVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
         fd = new FormData();
-        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
-        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
-        fd.left = new FormAttachment(horizontalSeparator);
-        verticalSeparator.setLayoutData(fd);
+        fd.top = new FormAttachment(this.databaseHorizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(this.databaseHorizontalSeparator, 4, SWT.BOTTOM);
+        fd.left = new FormAttachment(this.databaseHorizontalSeparator);
+        this.databaseVerticalSeparatorLeft.setLayoutData(fd);
         
-        verticalSeparator = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+        this.databaseVerticalSeparatorRight = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
         fd = new FormData();
-        fd.top = new FormAttachment(horizontalSeparator, -4, SWT.TOP);
-        fd.bottom = new FormAttachment(horizontalSeparator, 4, SWT.BOTTOM);
-        fd.right = new FormAttachment(horizontalSeparator);
-        verticalSeparator.setLayoutData(fd);
+        fd.top = new FormAttachment(this.databaseHorizontalSeparator, -4, SWT.TOP);
+        fd.bottom = new FormAttachment(this.databaseHorizontalSeparator, 4, SWT.BOTTOM);
+        fd.right = new FormAttachment(this.databaseHorizontalSeparator);
+        this.databaseVerticalSeparatorRight.setLayoutData(fd);
         
         this.lblConflicts = new Label(this.grpComponents, SWT.CENTER);
         this.lblConflicts.setBackground(GROUP_BACKGROUND_COLOR);
@@ -958,18 +958,23 @@ public class DBGuiExportModel extends DBGui {
 	    
 		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 	    
-    	this.lblModelUpdated.setText(isNeo4j ? "Exported" : "Updated");
+    	this.lblModelNew.setText(isNeo4j ? "Exported" : "Updated");
+    	
+    	this.modelHorizontalSeparator.setVisible(!isNeo4j);
+    	this.modelVerticalSeparatorRight.setVisible(!isNeo4j);
+    	this.modelVerticalSeparatorRight.setVisible(!isNeo4j);
+    	
+    	this.databaseHorizontalSeparator.setVisible(!isNeo4j);
+    	this.databaseVerticalSeparatorRight.setVisible(!isNeo4j);
+    	this.databaseVerticalSeparatorRight.setVisible(!isNeo4j);
 
 		// we hide the comparison between the model and the database in case of a neo4j database
 		this.lblModel.setVisible(!isNeo4j);
-		this.lblModelNew.setVisible(!isNeo4j);
 		this.lblModelDeleted.setVisible(!isNeo4j);
-		//this.lblModelUpdated.setVisible(!isNeo4j);
-		this.txtNewElementsInModel.setVisible(!isNeo4j);
-		//this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
+		this.lblModelUpdated.setVisible(!isNeo4j);
+		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);
 		this.txtDeletedElementsInModel.setVisible(!isNeo4j);
-		this.txtNewRelationshipsInModel.setVisible(!isNeo4j);
-		//this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
+		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);
 		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);
 		this.txtNewFoldersInModel.setVisible(!isNeo4j);
 		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);
@@ -2661,6 +2666,13 @@ public class DBGuiExportModel extends DBGui {
 	private Label lblDatabaseUpdated;
 	private Label lblDatabaseDeleted;
 	private Label lblConflicts;
+	
+	private Label modelHorizontalSeparator;
+	private Label modelVerticalSeparatorLeft;
+	private Label modelVerticalSeparatorRight;
+	private Label databaseHorizontalSeparator;
+	private Label databaseVerticalSeparatorLeft;
+	private Label databaseVerticalSeparatorRight;
 
     private Text txtTotalElements;
     private Text txtNewElementsInModel;
