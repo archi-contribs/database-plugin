@@ -68,7 +68,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
@@ -1365,18 +1364,6 @@ public class DBGui {
 
         if ( memoryObject instanceof ITextContent )
             areIdentical &= addItemToCompareTable(tree, treeItem, "Content", ((ITextContent)memoryObject).getContent(), (String)databaseObject.get("content"));
-
-        if ( memoryObject instanceof IHintProvider ) {
-            areIdentical &= addItemToCompareTable(tree, treeItem, "Hint title", ((IHintProvider)memoryObject).getHintTitle(), (String)databaseObject.get("hint_title"));
-            areIdentical &= addItemToCompareTable(tree, treeItem, "Hint content", ((IHintProvider)memoryObject).getHintContent(), (String)databaseObject.get("hint_content"));
-        }
-
-        /* NOT EXPORTED YET
-		if ( component instanceof IHelpHintProvider ) {
-		    areIdentical &= addItemToCompareTable(table, treeItem, "help hint title", component==null ? null : ((IHelpHintProvider)component).getHelpHintTitle(), (String)hashResult.get("xxxxx"));
-			areIdentical &= addItemToCompareTable(table, treeItem, "help hint content", component==null ? null : ((IHelpHintProvider)component).getHelpHintContent(), (String)hashResult.get("xxxxx"));
-		}
-         */
         
         if ( memoryObject instanceof IIconic )
             areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));

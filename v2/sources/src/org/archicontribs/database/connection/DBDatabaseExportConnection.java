@@ -26,7 +26,6 @@ import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
@@ -973,7 +972,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Export a view into the database.
 	 */
 	private void exportView(IDiagramModel view) throws Exception {
-		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "hint_content", "hint_title", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "checksum", "container_checksum"};
+		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "checksum", "container_checksum"};
 
 		// if the view is exported, the we increase its exportedVersion
 		((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
@@ -989,8 +988,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,view.getName()
 				,view.getConnectionRouterType()
 				,view.getDocumentation()
-				,((view instanceof IHintProvider) ? ((IHintProvider)view).getHintContent() : null)
-				,((view instanceof IHintProvider) ? ((IHintProvider)view).getHintTitle() : null)
 				,((view instanceof IArchimateDiagramModel) ? ((IArchimateDiagramModel)view).getViewpoint() : null)
 				,((view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null)
 				,((IDBMetadata)view).getDBMetadata().getScreenshot().getBytes()
@@ -1039,7 +1036,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * The rank allows to order the views during the import process.
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "hint_content", "hint_title", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
+		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
 
 		// if the viewObject is exported, the we increase its exportedVersion
 		((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
@@ -1058,9 +1055,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((viewObject instanceof IDiagramModelNote) ? ((IDiagramModelNote)viewObject).getBorderType() : null)
 				,((viewObject instanceof ITextContent) ? ((ITextContent)viewObject).getContent() : null)
 				,((viewObject instanceof IDocumentable && !(viewObject instanceof IDiagramModelArchimateComponent)) ? ((IDocumentable)viewObject).getDocumentation() : null)        // They have got there own documentation. The others use the documentation of the corresponding ArchimateConcept
-				,((viewObject instanceof IHintProvider) ? ((IHintProvider)viewObject).getHintContent() : null)
-				,((viewObject instanceof IHintProvider) ? ((IHintProvider)viewObject).getHintTitle() : null)
-				//TODO: add helpHintcontent and helpHintTitle
 				,((viewObject instanceof ILockable) ? (((ILockable)viewObject).isLocked()?1:0) : null)
 				,((viewObject instanceof IDiagramModelImageProvider) ? ((IDiagramModelImageProvider)viewObject).getImagePath() : null)
 				,((viewObject instanceof IIconic) ? ((IIconic)viewObject).getImagePosition() : null)

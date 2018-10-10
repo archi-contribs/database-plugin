@@ -75,8 +75,6 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
     private Integer oldBorderType = null;
     private String oldContent = null;
     private String oldName = null;
-    private String oldHintContent = null;
-    private String oldHintTitle = null;
     private Boolean oldIsLocked = null;
     private String oldImagePath = null;
     private Integer oldImagePosition = null;
@@ -222,8 +220,6 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 this.oldBorderColor = metadata.getBorderColor();
                 this.oldBorderType = metadata.getBorderType();
                 this.oldContent = metadata.getContent();
-                this.oldHintContent = metadata.getHintContent();
-                this.oldHintTitle = metadata.getHintTitle();
                 this.oldIsLocked = metadata.isLocked();
                 this.oldImagePath = metadata.getImagePath();
                 this.oldImagePosition = metadata.getImagePosition();
@@ -274,8 +270,6 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             metadata.setBorderType((Integer)this.newValues.get("border_type"));
             metadata.setContent((String)this.newValues.get("content"));
             metadata.setDocumentation((String)this.newValues.get("documentation"));
-            metadata.setHintContent((String)this.newValues.get("hint_content"));
-            metadata.setHintTitle((String)this.newValues.get("hint_title"));
             metadata.setLocked(this.newValues.get("is_locked"));
             metadata.setImagePosition((Integer)this.newValues.get("image_position"));
             metadata.setLineColor((String)this.newValues.get("line_color"));
@@ -375,8 +369,6 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             metadata.setBorderType(this.oldBorderType);
             metadata.setContent(this.oldContent);
 
-            metadata.setHintContent(this.oldHintContent);
-            metadata.setHintTitle(this.oldHintTitle);
             metadata.setLocked(this.oldIsLocked);
             metadata.setImagePath(this.oldImagePath);            // TODO: find a way to remove the image from the model if it is not used anymore
             metadata.setImagePosition(this.oldImagePosition);

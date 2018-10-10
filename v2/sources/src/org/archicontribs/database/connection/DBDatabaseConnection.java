@@ -27,9 +27,11 @@ import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
+import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
-
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IDiagramModelContainer;
+import com.archimatetool.model.IDiagramModelObject;
 
 import lombok.Getter;
 
@@ -45,7 +47,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 210;
+    public static final int databaseVersion = 211;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -331,6 +333,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	            else
 	                throw new SQLException("The database needs to be upgraded.");
 	        }
+    	} catch (SQLException err) {
+    		rollback();
+    		throw err;
 	    } finally {
 			if ( dbGui != null )
 				dbGui.closeMessage();
@@ -560,8 +565,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "class " + this.OBJECTID +" NOT NULL, "
                     + "name " + this.OBJ_NAME + ", "
                     + "documentation " + this.TEXT +" , "
-                    + "hint_content " + this.TEXT + ", "
-                    + "hint_title " + this.OBJ_NAME + ", "
                     + "background " + this.INTEGER + ", "
                     + "connection_router_type " + this.INTEGER +" NOT NULL, "
                     + "viewpoint " + this.OBJECTID + ", "
@@ -619,16 +622,16 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_connections_in_view");
-                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-                request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_connections_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_connections_in_view");
-                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_connections_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_connections_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
                         + "FOR EACH ROW "
                         + "BEGIN"
-                        + "  SELECT "+this.schema+"seq_views_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+                        + "  SELECT "+this.schema+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
                         + "END;");
             }
 
@@ -670,8 +673,6 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "border_type " + this.INTEGER + ", "
                     + "content " + this.TEXT + ", "
                     + "documentation " + this.TEXT + ", "
-                    + "hint_content " + this.TEXT + ", "
-                    + "hint_title " + this.OBJ_NAME + ", "
                     + "is_locked " + this.BOOLEAN + ", "
                     + "image_path " + this.OBJECTID + ", "
                     + "image_position " + this.INTEGER + ", "
@@ -711,16 +712,16 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_objects_in_view");
-                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-                request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_objects_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_objects_in_view");
-                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_objects_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_objects_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
                         + "FOR EACH ROW "
                         + "BEGIN"
-                        + "  SELECT "+this.schema+"seq_views_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+                        + "  SELECT "+this.schema+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
                         + "END;");
             }
 
@@ -837,28 +838,40 @@ public class DBDatabaseConnection implements AutoCloseable {
         requestString.append(tableName);
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) || DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) ) 
             requestString.append(" ADD ");
+        else if (  DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+        	requestString.append(" ADD ( ");
         else
             requestString.append(" ADD COLUMN ");
         requestString.append(columnName);
         requestString.append(" ");
         requestString.append(columnType);
         
-        if ( !canBeNull )
-            requestString.append(" NOT NULL");
-        
-        if ( defaultValue == null ) {
-            request(requestString.toString());
-        } else {
+        if ( defaultValue != null ) {
             requestString.append(" DEFAULT ");
             if ( defaultValue instanceof Integer )
                 requestString.append(defaultValue);
-            else {
+            else if ( defaultValue instanceof Timestamp ) {
+            	if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+            		requestString.append("TO_DATE(");
+            	requestString.append("'");
+            	requestString.append(defaultValue.toString().substring(0, 19));		// we remove the milliseconds
+            	requestString.append("'");
+            	if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+            		requestString.append(",'YYYY-MM-DD HH24:MI.SS')");
+            } else {
                 requestString.append("'");
                 requestString.append(defaultValue);
                 requestString.append("'");
             }
-            request(requestString.toString());
         }
+        
+        if ( !canBeNull )
+            requestString.append(" NOT NULL");
+        
+        if (  DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+        	requestString.append(" )");
+        
+        request(requestString.toString());
     }
 
     /**
@@ -974,13 +987,23 @@ public class DBDatabaseConnection implements AutoCloseable {
             addColumn(this.schema+"views_connections", "created_by", this.USERNAME, false, "databasePlugin");			// we set dummy value to satisfy the NOT NULL condition
             addColumn(this.schema+"views_connections", "created_on", this.DATETIME, false, now);						// we set dummy value to satisfy the NOT NULL condition
         	
-            request("UPDATE "+this.schema+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_connections c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_connections.id = j.id");
-            		
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+            	request("UPDATE "+this.schema+"views_connections c SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schema+"views WHERE id = c.view_id AND version = c.view_version)");
+            else
+            	request("UPDATE "+this.schema+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_connections c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_connections.id = j.id");
+            
+            
+            
+            
+            
             
             addColumn(this.schema+"views_objects", "created_by", this.USERNAME, false, "databasePlugin");				// we set dummy value to satisfy the NOT NULL condition
             addColumn(this.schema+"views_objects", "created_on", this.DATETIME, false, now);							// we set dummy value to satisfy the NOT NULL condition
             
-            request("UPDATE "+this.schema+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_objects c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_objects.id = j.id");
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+            	request("UPDATE "+this.schema+"views_objects o SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schema+"views WHERE id = o.view_id AND version = o.view_version)");
+            else
+            	request("UPDATE "+this.schema+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_objects c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_objects.id = j.id");
 
             
             
@@ -995,16 +1018,16 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (civ_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_connections_in_view");
-                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-                request("CREATE SEQUENCE "+this.schema+"seq_views_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_connections_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_connections_in_view");
-                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_connections_in_view "
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_connections_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_connections_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
                         + "FOR EACH ROW "
                         + "BEGIN"
-                        + "  SELECT "+this.schema+"seq_views_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+                        + "  SELECT "+this.schema+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
                         + "END;");
             }
 
@@ -1026,16 +1049,16 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + (this.AUTO_INCREMENT.endsWith("PRIMARY KEY") ? "" : (", "+this.PRIMARY_KEY+" (oiv_id)") )
                     + ")");
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views_objects_in_view");
-                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-                request("CREATE SEQUENCE "+this.schema+"seq_views_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+                if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_objects_in_view");
+                request("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+                request("CREATE SEQUENCE "+this.schema+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_objects_in_view");
-                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_objects_in_view "
+                if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_objects_in_view");
+                request("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_objects_in_view "
                         + "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
                         + "FOR EACH ROW "
                         + "BEGIN"
-                        + "  SELECT "+this.schema+"seq_views_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+                        + "  SELECT "+this.schema+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
                         + "END;");
             }
 
@@ -1132,11 +1155,64 @@ public class DBDatabaseConnection implements AutoCloseable {
         	
         	dbVersion = 210;
         }
+        
+        // convert from version 210 to 211
+        //      - remove hint_title and hint_content from the views and views_objects table
+        if ( dbVersion == 210 ) {
+            dropColumn(this.schema+"views", "hint_title");
+            dropColumn(this.schema+"views", "hint_content");
+            
+            dropColumn(this.schema+"views_objects", "hint_title");
+            dropColumn(this.schema+"views_objects", "hint_content");
+            
+            // we need to recalculate the checksums
+            DBGui.popup("Please wait while re-calculating checksums on views_objects and views tables.");
+            
+            DBArchimateModel tempModel = new DBArchimateModel();
+            
+            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
+                try ( ResultSet result = select("SELECT id, version FROM "+this.schema+"views") ) {
+                    while ( result.next() ) {
+                        IDiagramModel view;
+                        DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.forceSharedMode, false);
+                        if ( command.canExecute() )
+                            command.execute();
+                        if ( command.getException() != null )
+                            throw command.getException();
+                        
+                        view = command.getImported();
+                        
+                        tempModel.countObject(view, true, null);
+                        
+                        request("UPDATE "+this.schema+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
+                        
+                        for ( IDiagramModelObject obj: view.getChildren() ) {
+                        	updateChecksum(obj);
+                        }
+                    }
+                }
+            }
+            tempModel = null;
+            
+            DBGui.closePopup();
+        	
+        	dbVersion = 211;
+        }
 
         request("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
         commit();
 
         setAutoCommit(true);
+    }
+    
+    private void updateChecksum(IDiagramModelObject obj) throws SQLException {
+        request("UPDATE "+this.schema+"views_object SET checksum = ? WHERE id = ? AND version = ?", ((IDBMetadata)obj).getDBMetadata().getCurrentVersion().getChecksum(), obj.getId(), ((IDBMetadata)obj).getDBMetadata().getInitialVersion().getVersion());
+        
+        if ( obj instanceof IDiagramModelContainer ) {
+        	for ( IDiagramModelObject subObj: ((IDiagramModelContainer)obj).getChildren() ) {
+        		updateChecksum(subObj);
+        	}
+        }
     }
 
     /**
@@ -1369,8 +1445,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                 table.put("created_by", result.getString("created_by"));
                 table.put("created_on", result.getTimestamp("created_on"));
                 table.put("name", result.getString("name"));
-                table.put("note", result.getString("note"));
-                table.put("purpose", result.getString("purpose"));
+                table.put("note", result.getString("note") == null ? "" : result.getString("note"));
+                table.put("purpose", result.getString("purpose") == null ? "" : result.getString("purpose"));
                 list.add(table);
             }
         }       

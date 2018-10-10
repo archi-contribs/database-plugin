@@ -68,8 +68,6 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 	private Integer oldConnectionRouterType = null;
 	private String oldViewpoint = null;
 	private Integer oldBackground = null;
-	private String oldHintContent = null;
-	private String oldHintTitle = null;
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
 
@@ -186,8 +184,6 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				this.oldConnectionRouterType = metadata.getConnectionRouterType();
 				this.oldViewpoint = metadata.getViewpoint();
 				this.oldBackground = metadata.getBackground();
-				this.oldHintContent = metadata.getHintContent();
-				this.oldHintTitle = metadata.getHintTitle();
 
 				this.oldProperties = new ArrayList<DBProperty>();
 				for ( IProperty prop: this.importedView.getProperties() ) {
@@ -215,8 +211,6 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 			metadata.setConnectionRouterType((Integer)this.newValues.get("connection_router_type"));
 			metadata.setViewpoint((String)this.newValues.get("viewpoint"));
 			metadata.setBackground((Integer)this.newValues.get("background"));
-			metadata.setHintContent((String)this.newValues.get("hint_content"));
-			metadata.setHintTitle((String)this.newValues.get("hint_title"));
 
 			this.importedView.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
@@ -290,8 +284,6 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				metadata.setConnectionRouterType(this.oldConnectionRouterType);
 				metadata.setViewpoint(this.oldViewpoint);
 				metadata.setBackground(this.oldBackground);
-				metadata.setHintContent(this.oldHintContent);
-				metadata.setHintTitle(this.oldHintTitle);
 
 				metadata.setParentFolder(this.oldFolder);
 

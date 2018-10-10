@@ -16,10 +16,8 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
-import com.archimatetool.help.hints.IHelpHintProvider;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModel;
@@ -144,12 +142,6 @@ public class DBChecksum {
 		if ( eObject instanceof ITextAlignment )					append(checksumBuilder, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
         if ( eObject instanceof ITextPosition )						append(checksumBuilder, "text position", ((ITextPosition)eObject).getTextPosition());
 		if ( eObject instanceof ITextContent )						append(checksumBuilder, "content", ((ITextContent)eObject).getContent());
-		if ( eObject instanceof IHintProvider )	{					append(checksumBuilder, "hint title", ((IHintProvider)eObject).getHintTitle());
-																	append(checksumBuilder, "hint content", ((IHintProvider)eObject).getHintContent());
-		}
-		if ( eObject instanceof IHelpHintProvider ) {				append(checksumBuilder, "help hint title", ((IHelpHintProvider)eObject).getHelpHintTitle());
-																	append(checksumBuilder, "help hint content", ((IHelpHintProvider)eObject).getHelpHintContent());
-		}
 		if ( eObject instanceof IIconic )							append(checksumBuilder, "image position", ((IIconic)eObject).getImagePosition());
 		if ( eObject instanceof INotesContent )						append(checksumBuilder, "notes", ((INotesContent)eObject).getNotes());
 		if ( eObject instanceof IProperties &&
