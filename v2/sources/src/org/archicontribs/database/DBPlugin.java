@@ -246,6 +246,11 @@ import lombok.Getter;
  *                                  
  * v2.1.2: 30/09/2018				Revert replace CREATE by MERGE in Neo4J requests
  * 
+ * v2.1.3: 10/10/2018				Fix Oracle objects names were longer than the 30 character limit
+ * 									Fix Oracle error ORA-00932 when using CLOB in joined requests
+ * 									Update Oracle driver to 18c
+ * 									Remove the hint_title and hint_content columns from views and views_objects tables as they do not need to be exported
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:

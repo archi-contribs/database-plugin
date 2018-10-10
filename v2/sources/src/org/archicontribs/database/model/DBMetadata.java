@@ -16,7 +16,6 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.canvas.model.IHintProvider;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
@@ -566,31 +565,6 @@ public class DBMetadata  {
     	// we do not set the name if the component is a view object linked to an element or a relationship (as the name is set with the element or the relationship)
         if ( (this.component instanceof INameable && !(this.component instanceof IDiagramModelArchimateObject || this.component instanceof IDiagramModelArchimateConnection)) && (name != null) && !DBPlugin.areEqual(((INameable)this.component).getName(), name) )
             ((INameable)this.component).setName(name);
-    }
-
-    // HintContent
-    public String getHintContent() {
-        if ( this.component instanceof IHintProvider )   
-            return ((IHintProvider)this.component).getHintContent();
-        return null;
-    }
-
-
-    public void setHintContent(String hintContent) {
-        if ( (this.component instanceof IHintProvider) && (hintContent != null) && !DBPlugin.areEqual(((IHintProvider)this.component).getHintContent(), hintContent) )   
-            ((IHintProvider)this.component).setHintContent(hintContent);
-    }
-
-    // HintTitle
-    public String getHintTitle() {
-        if ( this.component instanceof IHintProvider )  
-            return ((IHintProvider)this.component).getHintTitle();
-        return null;
-    }
-
-    public void setHintTitle(String hintTitle) {
-        if ( (this.component instanceof IHintProvider) && (hintTitle != null) && !DBPlugin.areEqual(((IHintProvider)this.component).getHintTitle(), hintTitle) )  
-            ((IHintProvider)this.component).setHintTitle(hintTitle);
     }
 
     // Locked
