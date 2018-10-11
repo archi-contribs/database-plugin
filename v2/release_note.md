@@ -1,5 +1,8 @@
 v2.1.2: 30/09/2018
-* Revert "merge" instead of "create" for Neo4j databases
+* Fix Oracle objects names to be less than 30 characters long
+* Fix Oracle error ORA-00932 when using CLOB in joined requests
+* Update Oracle driver to 18c
+* Remove the hint_title and hint_content columns from views and views_objects tables as they do not need to be exported
 
 ### TODO list
 * Import individual component:
@@ -15,6 +18,9 @@ v2.1.2: 30/09/2018
   *    create database admin procedures
 
 ----------
+v2.1.2: 30/09/2018
+* Revert "merge" instead of "create" for Neo4j databases
+
 v2.1.1: 27/09/2018
 * Fix import order from PostGreSQL databases
 
