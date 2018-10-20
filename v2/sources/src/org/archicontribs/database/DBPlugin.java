@@ -251,6 +251,8 @@ import lombok.Getter;
  * 									Update Oracle driver to 18c
  * 									Remove the hint_title and hint_content columns from views and views_objects tables as they do not need to be exported
  * 
+ * v2.1.4: 20/10/2018				Fix version number
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -268,7 +270,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.2";
+	public static final String pluginVersion = "2.1.4";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
