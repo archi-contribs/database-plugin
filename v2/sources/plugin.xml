@@ -7,7 +7,7 @@
       <exportHandler
             class="org.archicontribs.database.DBExporter"
             id="org.archicontribs.database.DBExporter"
-            label="Export model to database">
+            label="Export model to database    Ctrl+Shift+E">
       </exportHandler>
    </extension>
    <extension
@@ -15,7 +15,7 @@
       <importHandler
             class="org.archicontribs.database.DBImporter"
             id="org.archicontribs.database.DBImporter"
-            label="import model from database">
+            label="import model from database    Ctrl+Shift+I">
       </importHandler>
    </extension>
    <extension
@@ -112,6 +112,19 @@
             class="org.archicontribs.database.menu.DBMenu"
             locationURI="popup:SketchEditorContextMenuProvider?after=additions">
       </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.archicontribs.database.modelExportCommand"
+            schemeId="com.archimatetool.editor.keybindings"
+            sequence="ctrl+shift+E">
+      </key>
+      <key
+            commandId="org.archicontribs.database.modelImportCommand"
+            schemeId="com.archimatetool.editor.keybindings"
+            sequence="ctrl+shift+I">
+      </key>
    </extension>
    <extension
          point="org.eclipse.help.toc">

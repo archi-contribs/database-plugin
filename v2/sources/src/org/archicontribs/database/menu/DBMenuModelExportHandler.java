@@ -23,16 +23,20 @@ public class DBMenuModelExportHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
-		DBArchimateModel model = (DBArchimateModel)selection;
 		
-		if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
-
-        try {
-        	DBGuiExportModel exportModel = new DBGuiExportModel(model, "Export model");
-        	exportModel.run();
-        } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Cannot export model", e);
-        }
+		// we check if a model is selected
+		if ( selection instanceof DBArchimateModel ) {
+			DBArchimateModel model = (DBArchimateModel)selection;
+			
+			if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
+	
+	        try {
+	        	DBGuiExportModel exportModel = new DBGuiExportModel(model, "Export model");
+	        	exportModel.run();
+	        } catch (Exception e) {
+	            DBGui.popup(Level.ERROR,"Cannot export model", e);
+	        }
+		}
         
 		return null;
 	}

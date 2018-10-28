@@ -253,6 +253,8 @@ import lombok.Getter;
  * 
  * v2.1.4: 20/10/2018				Fix version number
  * 
+ * v2.1.5: 28/10/2018				add key bindings to export model and import model commands 
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
