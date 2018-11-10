@@ -118,12 +118,12 @@
       <key
             commandId="org.archicontribs.database.modelExportCommand"
             schemeId="com.archimatetool.editor.keybindings"
-            sequence="ctrl+shift+E">
+            sequence="M1+M2+E">
       </key>
       <key
             commandId="org.archicontribs.database.modelImportCommand"
             schemeId="com.archimatetool.editor.keybindings"
-            sequence="ctrl+shift+I">
+            sequence="M1+M2+I">
       </key>
    </extension>
    <extension
