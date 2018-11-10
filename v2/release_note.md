@@ -1,5 +1,8 @@
-v2.1.4: 20/10/2018
-* Fix version number
+v2.1.5: 10/11/2018
+* Add key bindings to export model and import model commands
+* Fix screen scale calculation divide by zero exception on some environments
+* Fix model's checksum is reset during export
+* Check if auto commit mode before rollbacking transaction
 
 ### TODO list
 * Import individual component:
@@ -7,14 +10,16 @@ v2.1.4: 20/10/2018
 * Get component history:
   * show view screenshots to ease views comparison
 * Miscellaneous:
-  *    add an option to check for relationships that are in the database but would not be in the in memory model
-  *       --> nearly done with "get history from database". Just needs to compare the list of relationships
-  *    create a new windows that will show up detailed statistics about the model
-  *    add more jdbc drivers (mongodb, odbc, etc ...)
-  * add an option to duplicate a model
-  *    create database admin procedures
+  * add an option to check for relationships that are in the database but would not be in the in memory model
+    * --> nearly done with "get history from database". Just needs to compare the list of relationships
+  * create a new windows that will show up detailed statistics about the model
+  * add more jdbc drivers (mongodb, odbc, etc ...)
+  * create database admin procedures
 
 ----------
+v2.1.4: 20/10/2018
+* Fix version number
+
 v2.1.3: 30/09/2018
 * Fix Oracle objects names to be less than 30 characters long
 * Fix Oracle error ORA-00932 when using CLOB in joined requests
