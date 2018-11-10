@@ -38,7 +38,7 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
         } else
             selectedObject = selection;
         
-        if( selectedObject instanceof IArchimateModelObject ) {
+        if ( selectedObject instanceof IArchimateModelObject ) {
             IArchimateModelObject selectedComponent = (IArchimateModelObject) selectedObject;
             if ( logger.isDebugEnabled() ) logger.debug("Showing database history of component " + ((IDBMetadata)selectedComponent).getDBMetadata().getDebugName());
     
