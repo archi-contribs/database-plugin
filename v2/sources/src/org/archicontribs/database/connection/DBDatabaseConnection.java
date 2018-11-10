@@ -179,7 +179,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             if ( logger.isDebugEnabled() ) logger.debug("Closing database connection.");
             // if some transactions have not been committed before calling this close method, then they must be rolled back
             try {
-                this.connection.rollback();
+                rollback();
             } catch (@SuppressWarnings("unused") SQLException ign) {
                 // nothing to do
             }
@@ -1369,7 +1369,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	            } catch (SQLException err) {
 	                if ( savepoint != null ) {
 	                    try {
-	                        this.connection.rollback(savepoint);
+	                        rollback(savepoint);
 	                        if ( logger.isTraceEnabled() ) logger.trace("Rolled back to savepoint");
 	                    } catch (SQLException e2) { logger.error("Failed to rollback to savepoint", e2); }
 	                }
@@ -1473,8 +1473,16 @@ public class DBDatabaseConnection implements AutoCloseable {
     /**
      * Rollbacks the current transaction
      */
+    public void rollback(Savepoint savepoint) throws SQLException {
+        if ( this.connection.getAutoCommit() ) {
+        	if ( logger.isDebugEnabled() ) logger.debug("Do not rollback as database is in auto commit mode.");
+        } else {
+        	if ( logger.isDebugEnabled() ) logger.debug("Rollbacking database transaction.");
+        	this.connection.rollback(savepoint);
+        }
+    }
+    
     public void rollback() throws SQLException {
-        if ( logger.isDebugEnabled() ) logger.debug("Rollbacking database transaction.");
-        this.connection.rollback();
+    	rollback(null);
     }
 }
