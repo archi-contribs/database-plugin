@@ -245,6 +245,8 @@ public class DBGui {
         } catch ( @SuppressWarnings("unused") HeadlessException ign) {
         	// nothing to do
         }
+        if ( scaleFactor == 0 )
+        	scaleFactor = 1;		// just in case
         this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
         //this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
         this.dialog.setLayout(new FormLayout());
