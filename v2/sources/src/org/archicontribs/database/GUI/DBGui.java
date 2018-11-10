@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.GUI;
 
+import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -236,8 +237,14 @@ public class DBGui {
         this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
         this.dialog.setMinimumSize(800, 700);
         this.dialog.setSize(1024,768);
-        // the scale factor is managed automatically with Java 10
-        int scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
+        
+        int scaleFactor = 1;
+        try {
+        	if ( (Toolkit.getDefaultToolkit().getScreenResolution() != 0) && (this.dialog.getDisplay().getDPI() != null) && (this.dialog.getDisplay().getDPI().x != 0) )
+        		scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
+        } catch ( @SuppressWarnings("unused") HeadlessException ign) {
+        	// nothing to do
+        }
         this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
         //this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
         this.dialog.setLayout(new FormLayout());
@@ -1185,7 +1192,7 @@ public class DBGui {
 
 
     public void closeMessage() {
-        if ( this.grpMessage != null ) {
+        if ( (this.grpMessage != null) && !this.grpMessage.isDisposed() ) {
             this.grpMessage.setVisible(false);
 
             if (this.grpProgressBar != null && (this.grpProgressBar.getData("visible") != null) )
