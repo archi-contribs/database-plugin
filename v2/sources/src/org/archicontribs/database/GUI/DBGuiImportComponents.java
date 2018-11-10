@@ -2069,8 +2069,8 @@ public class DBGuiImportComponents extends DBGui {
 	private static TableItem createTableItem(Table table, String id, String className, String name, String documentation) {
 		TableItem item = new TableItem(table, SWT.NONE);
 		item.setData("id", id);
-		item.setText(0, "   "+name);
-		item.setText(1, "   "+documentation);
+		item.setText(0, "  "+name);
+		if ( documentation != null ) item.setText(1, documentation);
 		if ( className.toUpperCase().startsWith("CANVAS") )
 			item.setImage(DBCanvasFactory.getImage(className));
 		else
@@ -2507,7 +2507,7 @@ public class DBGuiImportComponents extends DBGui {
 						
 						// and restore the saved values
 						item.setText(0, name);
-						item.setText(1, documentation);
+						if ( documentation != null ) item.setText(1, documentation);
 						item.setData("tooltip", tooltip);
 						item.setImage(image);
 						
