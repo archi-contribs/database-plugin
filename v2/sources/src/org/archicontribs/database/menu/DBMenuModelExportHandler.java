@@ -14,8 +14,12 @@ import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.gef.editparts.AbstractEditPart;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.handlers.HandlerUtil;
+
+import com.archimatetool.model.IArchimateModelObject;
+import com.archimatetool.model.IDiagramModelArchimateComponent;
 
 public class DBMenuModelExportHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
@@ -23,15 +27,23 @@ public class DBMenuModelExportHandler extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Object selection = ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
+		DBArchimateModel exportedModel = null;
 		
 		// we check if a model is selected
-		if ( selection instanceof DBArchimateModel ) {
-			DBArchimateModel model = (DBArchimateModel)selection;
-			
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+model.getName());
+		if ( selection instanceof DBArchimateModel )
+			exportedModel = (DBArchimateModel)selection;
+		else if ( selection instanceof AbstractEditPart ) {
+            Object selectedObject = ((AbstractEditPart)selection).getModel();
+            if ( selectedObject instanceof IDiagramModelArchimateComponent )
+            	exportedModel = (DBArchimateModel) ((IDiagramModelArchimateComponent)selectedObject).getArchimateConcept().getArchimateModel();
+		} else if ( selection instanceof IArchimateModelObject )
+        	exportedModel = (DBArchimateModel) ((IArchimateModelObject) selection).getArchimateModel();
+		
+		if ( exportedModel != null ) {
+			if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+exportedModel.getName());
 	
 	        try {
-	        	DBGuiExportModel exportModel = new DBGuiExportModel(model, "Export model");
+	        	DBGuiExportModel exportModel = new DBGuiExportModel(exportedModel, "Export model");
 	        	exportModel.run();
 	        } catch (Exception e) {
 	            DBGui.popup(Level.ERROR,"Cannot export model", e);
