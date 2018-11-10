@@ -958,7 +958,7 @@ public class DBGuiExportModel extends DBGui {
 	    
 		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 	    
-    	this.lblModelNew.setText(isNeo4j ? "Exported" : "Updated");
+    	this.lblModelNew.setText(isNeo4j ? "Exported" : "New");
     	
     	this.modelHorizontalSeparator.setVisible(!isNeo4j);
     	this.modelVerticalSeparatorRight.setVisible(!isNeo4j);
