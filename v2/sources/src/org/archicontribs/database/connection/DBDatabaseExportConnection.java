@@ -115,7 +115,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         String modelId = model.getId();
 
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
-        model.getCurrentVersion().reset();
+        // model.getCurrentVersion().reset();
         try ( ResultSet resultLatestVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
             // we get the latest model version from the database
             if ( resultLatestVersion.next() && (resultLatestVersion.getObject("version") != null) ) {
@@ -718,7 +718,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			model.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 		else
 			model.getCurrentVersion().setTimestamp(this.lastTransactionTimestamp);
-
+		
 		insert(this.schema+"models", modelsColumns
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
