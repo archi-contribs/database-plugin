@@ -1,8 +1,6 @@
-v2.1.5: 10/11/2018
-* Add key bindings to export model and import model commands
-* Fix screen scale calculation divide by zero exception on some environments
-* Fix model's checksum is reset during export
-* Check if auto commit mode before rollbacking transaction
+v2.1.6: 13/11/2018
+* Fix savepoint name expected error during rollback
+* Fix import of recursive referenced views
 
 ### TODO list
 * Import individual component:
@@ -17,6 +15,12 @@ v2.1.5: 10/11/2018
   * create database admin procedures
 
 ----------
+v2.1.5: 10/11/2018
+* Add key bindings to export model and import model commands
+* Fix screen scale calculation divide by zero exception on some environments
+* Fix model's checksum is reset during export
+* Check if auto commit mode before rollbacking transaction
+
 v2.1.4: 20/10/2018
 * Fix version number
 
