@@ -256,7 +256,10 @@ import lombok.Getter;
  * v2.1.5: 10/11/2018				Add key bindings to export model and import model commands
  * 									Fix screen scale calculation divide by zero exception on some environments
  * 									Fix model's checksum is reset during export
- * 									Check if auto commit mode before rollbacking transaction   
+ * 									Check if auto commit mode before rollbacking transaction
+ * 
+ * v2.1.6: 13/11/2018				Fix savepoint name expected error during rollback
+ * 									Fix import of recursive referenced views
  * 
  * TO-DO list:
  * ----------
@@ -275,7 +278,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.5";
+	public static final String pluginVersion = "2.1.6";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
