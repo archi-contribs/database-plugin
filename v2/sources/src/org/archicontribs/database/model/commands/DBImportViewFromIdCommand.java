@@ -90,6 +90,8 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 		
 		if ( logger.isDebugEnabled() )
 			logger.debug("   Importing view id " + this.id + " version " + version + " in " + importMode.getLabel() + (mustImportViewContent ? " including its content" : "") + ".");
+		
+		importConnection.declareAsImported(id);
 
 		try {
 			// we get the new values from the database to allow execute and redo

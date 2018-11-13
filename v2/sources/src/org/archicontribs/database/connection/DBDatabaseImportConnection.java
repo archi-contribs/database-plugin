@@ -1141,4 +1141,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			((IDBMetadata)view).getDBMetadata().setParentFolder(parentFolder);
 		}
 	}
+	
+	private HashSet<String> alreadyImported = new HashSet<String>();
+	public void declareAsImported(String id) {
+		this.alreadyImported.add(id);
+	}
+	public boolean isAlreadyImported(String id) {
+		return this.alreadyImported.contains(id);
+	}
 }

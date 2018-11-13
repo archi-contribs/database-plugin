@@ -147,12 +147,16 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                     throw this.importElementCommand.getException();
             }
 
-            // if the object is an embedded view but the linked view does not exist in the model, then we import it
-            if ( (this.newValues.get("diagram_ref_id") != null) && (model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
-                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
-                if ( importLinkedViewCommand.getException() != null )
-                    throw importLinkedViewCommand.getException();
-                this.importLinkedViewCommands.add(importLinkedViewCommand);
+            // if the object is an embedded view and reference another view than itself and the referenced view does not exist in the model, then we import it
+            if ( (this.newValues.get("diagram_ref_id") != null) && !this.newValues.get("diagram_ref_id").equals(this.newValues.get("element_id")) && (model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
+            	if ( !importConnection.isAlreadyImported((String)this.newValues.get("diagram_ref_id")) ) {
+	                importConnection.declareAsImported((String)this.newValues.get("diagram_ref_id"));
+	                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
+	                if ( importLinkedViewCommand.getException() != null )
+	                    throw importLinkedViewCommand.getException();
+	                this.importLinkedViewCommands.add(importLinkedViewCommand);
+            	} else
+            		logger.trace("Referenced diagram has been previously imported. We do not re-import it.");
             }
 
             if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
