@@ -1478,7 +1478,10 @@ public class DBDatabaseConnection implements AutoCloseable {
         	if ( logger.isDebugEnabled() ) logger.debug("Do not rollback as database is in auto commit mode.");
         } else {
         	if ( logger.isDebugEnabled() ) logger.debug("Rollbacking database transaction.");
-        	this.connection.rollback(savepoint);
+        	if ( savepoint == null )
+        		this.connection.rollback();
+        	else
+        		this.connection.rollback(savepoint);
         }
     }
     
