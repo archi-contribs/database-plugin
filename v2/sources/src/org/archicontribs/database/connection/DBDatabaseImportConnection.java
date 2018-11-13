@@ -261,6 +261,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("   importing model");
 		// reseting the model's counters
 		model.resetCounters();
+		
+	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
+	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
+	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
+	    this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
 
 		if ( model.getInitialVersion().getVersion() == 0 ) {
 			try ( ResultSet result = select("SELECT MAX(version) AS version FROM "+this.schema+"models WHERE id = ?", model.getId()) ) {
