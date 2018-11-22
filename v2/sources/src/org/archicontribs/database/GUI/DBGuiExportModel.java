@@ -1658,22 +1658,10 @@ public class DBGuiExportModel extends DBGui {
 			return;
 		}
 
-		// we reset the counters as they will be updated by the doExportEObject method
-	    this.txtNewElementsInModel.setText(toString(0));         this.txtUpdatedElementsInModel.setText(toString(0));         this.txtDeletedElementsInModel.setText(toString(0));         this.txtNewElementsInDatabase.setText(toString(0));          this.txtUpdatedElementsInDatabase.setText(toString(0));          this.txtDeletedElementsInDatabase.setText(toString(0));        this.txtConflictingElements.setText(toString(0));
-        this.txtNewRelationshipsInModel.setText(toString(0));    this.txtUpdatedRelationshipsInModel.setText(toString(0));    this.txtDeletedRelationshipsInModel.setText(toString(0));    this.txtNewRelationshipsInDatabase.setText(toString(0));     this.txtUpdatedRelationshipsInDatabase.setText(toString(0));     this.txtDeletedRelationshipsInDatabase.setText(toString(0));   this.txtConflictingRelationships.setText(toString(0));
-        this.txtNewFoldersInModel.setText(toString(0));          this.txtUpdatedFoldersInModel.setText(toString(0));          this.txtDeletedFoldersInModel.setText(toString(0));          this.txtNewFoldersInDatabase.setText(toString(0));           this.txtUpdatedFoldersInDatabase.setText(toString(0));           this.txtDeletedFoldersInDatabase.setText(toString(0));         this.txtConflictingFolders.setText(toString(0));
-        this.txtNewViewsInModel.setText(toString(0));            this.txtUpdatedViewsInModel.setText(toString(0));            this.txtDeletedViewsInModel.setText(toString(0));            this.txtNewViewsInDatabase.setText(toString(0));             this.txtUpdatedViewsInDatabase.setText(toString(0));             this.txtDeletedViewsInDatabase.setText(toString(0));           this.txtConflictingViews.setText(toString(0));
-        this.txtNewViewObjectsInModel.setText(toString(0));      this.txtUpdatedViewObjectsInModel.setText(toString(0));      this.txtDeletedViewObjectsInModel.setText(toString(0));      this.txtNewViewObjectsInDatabase.setText(toString(0));       this.txtUpdatedViewObjectsInDatabase.setText(toString(0));       this.txtDeletedViewObjectsInDatabase.setText(toString(0));     this.txtConflictingViewObjects.setText(toString(0));
-        this.txtNewViewConnectionsInModel.setText(toString(0));  this.txtUpdatedViewConnectionsInModel.setText(toString(0));  this.txtDeletedViewConnectionsInModel.setText(toString(0));  this.txtNewViewConnectionsInDatabase.setText(toString(0));   this.txtUpdatedViewConnectionsInDatabase.setText(toString(0));   this.txtDeletedViewConnectionsInDatabase.setText(toString(0)); this.txtConflictingViewConnections.setText(toString(0));
-        this.txtNewImagesInModel.setText(toString(0));			 this.txtNewImagesInDatabase.setText(toString(0));
-		
 		if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
 			try {
 				// we need to recalculate the latest versions in the database in case someone updated the database since the last check
-				setMessage("Comparing model from the database...");
-				
-	            // we compare the elements, relationships, folders and views
-	            this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
+				compareModelToDatabase();
 	            
 	            // we compare the objects and connections of existing views
 	            Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
@@ -1686,7 +1674,7 @@ public class DBGuiExportModel extends DBGui {
 	                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, viewsNotInModelIterator.next().getValue());
 
 				closeMessage();
-			} catch (SQLException err ) {
+			} catch (Exception err ) {
 				closeMessage();
 				popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 				setActiveAction(STATUS.Error);
@@ -1694,6 +1682,15 @@ public class DBGuiExportModel extends DBGui {
 				return;
 			}
 		}
+		
+	    // we reset the counters as they will be updated by the doExportEObject method
+        this.txtNewElementsInModel.setText(toString(0));         this.txtUpdatedElementsInModel.setText(toString(0));         this.txtDeletedElementsInModel.setText(toString(0));         this.txtNewElementsInDatabase.setText(toString(0));          this.txtUpdatedElementsInDatabase.setText(toString(0));          this.txtDeletedElementsInDatabase.setText(toString(0));        this.txtConflictingElements.setText(toString(0));
+        this.txtNewRelationshipsInModel.setText(toString(0));    this.txtUpdatedRelationshipsInModel.setText(toString(0));    this.txtDeletedRelationshipsInModel.setText(toString(0));    this.txtNewRelationshipsInDatabase.setText(toString(0));     this.txtUpdatedRelationshipsInDatabase.setText(toString(0));     this.txtDeletedRelationshipsInDatabase.setText(toString(0));   this.txtConflictingRelationships.setText(toString(0));
+        this.txtNewFoldersInModel.setText(toString(0));          this.txtUpdatedFoldersInModel.setText(toString(0));          this.txtDeletedFoldersInModel.setText(toString(0));          this.txtNewFoldersInDatabase.setText(toString(0));           this.txtUpdatedFoldersInDatabase.setText(toString(0));           this.txtDeletedFoldersInDatabase.setText(toString(0));         this.txtConflictingFolders.setText(toString(0));
+        this.txtNewViewsInModel.setText(toString(0));            this.txtUpdatedViewsInModel.setText(toString(0));            this.txtDeletedViewsInModel.setText(toString(0));            this.txtNewViewsInDatabase.setText(toString(0));             this.txtUpdatedViewsInDatabase.setText(toString(0));             this.txtDeletedViewsInDatabase.setText(toString(0));           this.txtConflictingViews.setText(toString(0));
+        this.txtNewViewObjectsInModel.setText(toString(0));      this.txtUpdatedViewObjectsInModel.setText(toString(0));      this.txtDeletedViewObjectsInModel.setText(toString(0));      this.txtNewViewObjectsInDatabase.setText(toString(0));       this.txtUpdatedViewObjectsInDatabase.setText(toString(0));       this.txtDeletedViewObjectsInDatabase.setText(toString(0));     this.txtConflictingViewObjects.setText(toString(0));
+        this.txtNewViewConnectionsInModel.setText(toString(0));  this.txtUpdatedViewConnectionsInModel.setText(toString(0));  this.txtDeletedViewConnectionsInModel.setText(toString(0));  this.txtNewViewConnectionsInDatabase.setText(toString(0));   this.txtUpdatedViewConnectionsInDatabase.setText(toString(0));   this.txtDeletedViewConnectionsInDatabase.setText(toString(0)); this.txtConflictingViewConnections.setText(toString(0));
+        this.txtNewImagesInModel.setText(toString(0));           this.txtNewImagesInDatabase.setText(toString(0));
 		
 		// we initialize the delayedCommand used to allow rollback of elements and relationships deletion
 		// it is delayed because we want to delete the elements and relationships after they've been exported (as the getAllElements and getAllRelationships cannot be changed during the export loop)
@@ -2262,12 +2259,16 @@ public class DBGuiExportModel extends DBGui {
 		if ( mustExport ) {
 		    if ( logger.isDebugEnabled() )  logger.debug(debugMessage);
 		    
-			this.exportConnection.exportEObject(eObjectToExport);
-			
-            if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion() == 0 )
-            	incrementText(txtNewInModel);
+		    if ( ((IDBMetadata)eObjectToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isNewInModel )
+                incrementText(txtNewInModel);
             else
                 incrementText(txtUpdatedInModel);
+            
+		    if ( DBPlugin.areEqual(((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getChecksum()) ) {
+                if ( logger.isTraceEnabled() ) logger.trace("   No need to effectively export as the checksum is identical to the one in the database ...");
+                ((IDBMetadata)eObjectToExport).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)eObjectToExport).getDBMetadata().getLatestDatabaseVersion().getVersion());
+		    } else            
+			    this.exportConnection.exportEObject(eObjectToExport);
             
             exported = true;
 		}
