@@ -143,10 +143,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
             model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion());
 
-            if ( logger.isDebugEnabled() ) {
-                logger.debug("   Initial version = " + model.getInitialVersion().getVersion());
-                logger.debug("   Current version = " + model.getCurrentVersion().getVersion());
-                logger.debug("   Database version = "+ model.getDatabaseVersion().getVersion());
+            if ( logger.isTraceEnabled() ) {
+                logger.trace("   Initial version = " + model.getInitialVersion().getVersion());
+                logger.trace("   Current version = " + model.getCurrentVersion().getVersion());
+                logger.trace("   Database version = "+ model.getDatabaseVersion().getVersion());
             }
         }
 	}
@@ -265,6 +265,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				metadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
 			}
 		}
+        if ( logger.isTraceEnabled() ) {
+            logger.trace("   Initial version = " + metadata.getInitialVersion().getVersion());
+            logger.trace("   Current version = " + metadata.getCurrentVersion().getVersion());
+            logger.trace("   Database version = "+ metadata.getDatabaseVersion().getVersion());
+            logger.trace("   Latest db version = "+ metadata.getLatestDatabaseVersion().getVersion());
+        }
     }
 
 	public void getAllVersionFromDatabase(DBArchimateModel model) throws SQLException {
