@@ -140,8 +140,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 }
             }
             
-            // if the object references an element that is not referenced in the model, then we import it
-            if ( (this.newValues.get("element_id") != null) && (this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))) == null) ) {
+            // if the object references an element, then we import it
+            if ( (this.newValues.get("element_id") != null) ) {
                 this.importElementCommand = new DBImportElementFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
                 if ( this.importElementCommand.getException() != null )
                     throw this.importElementCommand.getException();
