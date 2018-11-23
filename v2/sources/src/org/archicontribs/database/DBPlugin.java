@@ -261,6 +261,13 @@ import lombok.Getter;
  * v2.1.6: 13/11/2018				Fix savepoint name expected error during rollback
  * 									Fix import of recursive referenced views
  * 
+ * v2.1.7: 21/11/2018               Import components from database:
+ *                                     updating a view from the database now updates the elements and relationships referenced in the view
+ *                                  Fixes:
+ *                                     Fix version calculation during export
+ *                                     Fix SQL requests when the database plugin is called by the script plugin
+ *                                     Fix label position in debug window
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -278,7 +285,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.6";
+	public static final String pluginVersion = "2.1.7";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

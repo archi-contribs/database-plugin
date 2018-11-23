@@ -1,9 +1,13 @@
-v2.1.6: 13/11/2018
-* Fix savepoint name expected error during rollback
-* Fix import of recursive referenced views
+v2.1.7: 23/11/2018
+* Import components from database:
+  * updating a view from the database now updates the elements and relationships referenced in the view
+* Fixes:
+  * Fix version calculation during export
+  * Fix SQL requests when the database plugin is called by the script plugin
+  * Fix label position in debug window
 
 ### TODO list
-* Import individual component:
+* Import components from database:
   * allow to import elements recursively
 * Get component history:
   * show view screenshots to ease views comparison
@@ -12,9 +16,13 @@ v2.1.6: 13/11/2018
     * --> nearly done with "get history from database". Just needs to compare the list of relationships
   * create a new windows that will show up detailed statistics about the model
   * add more jdbc drivers (mongodb, odbc, etc ...)
-  * create database admin procedures
+  * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.6: 13/11/2018
+* Fix savepoint name expected error during rollback
+* Fix import of recursive referenced views
+
 v2.1.5: 10/11/2018
 * Add key bindings to export model and import model commands
 * Fix screen scale calculation divide by zero exception on some environments
