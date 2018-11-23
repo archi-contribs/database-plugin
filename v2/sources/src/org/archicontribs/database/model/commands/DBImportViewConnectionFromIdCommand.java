@@ -110,8 +110,8 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 			
-            // if the object references a relationship that is not referenced in the model, then we import it
-            if ( (this.newValues.get("relationship_id") != null) && (this.model.getAllRelationships().get(this.model.getNewRelationshipId((String)this.newValues.get("relationship_id"))) == null) ) {
+            // if the object references a relationship, then we import it
+            if ( this.newValues.get("relationship_id") != null ) {
                 this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, importMode);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
