@@ -268,6 +268,9 @@ import lombok.Getter;
  *                                     Fix SQL requests when the database plugin is called by the script plugin
  *                                     Fix label position in debug window
  * 
+ * v2.1.8: 12/02/2018				Fixes:
+ * 										Fix import of images when initiated by script plugin
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -285,7 +288,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.7";
+	public static final String pluginVersion = "2.1.8";
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

@@ -1,10 +1,5 @@
-v2.1.7: 23/11/2018
-* Import components from database:
-  * updating a view from the database now updates the elements and relationships referenced in the view
-* Fixes:
-  * Fix version calculation during export
-  * Fix SQL requests when the database plugin is called by the script plugin
-  * Fix label position in debug window
+v2.1.8: 12/02/2018
+* Fix import of images when initiated by script plugin
 
 ### TODO list
 * Import components from database:
@@ -19,6 +14,14 @@ v2.1.7: 23/11/2018
   * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.7: 23/11/2018
+* Import components from database:
+  * updating a view from the database now updates the elements and relationships referenced in the view
+* Fixes:
+  * Fix version calculation during export
+  * Fix SQL requests when the database plugin is called by the script plugin
+  * Fix label position in debug window
+
 v2.1.6: 13/11/2018
 * Fix savepoint name expected error during rollback
 * Fix import of recursive referenced views
