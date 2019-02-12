@@ -8,6 +8,7 @@ import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
 
+import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
@@ -58,12 +59,16 @@ public class DBScript {
 	                throw new RuntimeException("A model with name \""+modelName+"\" is already opened.");
 	        }
 	
-	        // at last, we import the model
+	        // we create the model
 	        DBArchimateModel modelToImport = (DBArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
 	        modelToImport.setId(modelId);
 	        modelToImport.setName(modelName);
 	        
+	        // awe create the model's archive manager
+	        modelToImport.setAdapter(IArchiveManager.class, IArchiveManager.FACTORY.createArchiveManager(modelToImport));
+	        
 	        try {
+	        	// at last, we import the model
 	            connection.importModel(modelToImport);
 	        
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the folders ...");
