@@ -7,6 +7,7 @@
 package org.archicontribs.database.preferences;
 
 import java.io.File;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -49,21 +50,21 @@ import org.eclipse.swt.widgets.Text;
  * 
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
-	private Group grpDatabases;
+	Group grpDatabases;
 
 	Table tblDatabases;
-	private Label lblName;
-	private Text txtName;
-	private Label lblDriver;
-	private Combo comboDriver;
-	private Label lblFile;
-	private Button btnBrowse;
-	private Text txtFile;
+	Label lblName;
+	Text txtName;
+	Label lblDriver;
+	Combo comboDriver;
+	Label lblFile;
+	Button btnBrowse;
+	Text txtFile;
 
-	private Label lblExportViewSnapshots;
-	private Composite compoExportViewImages;
-	private Button btnExportViewImages;
-	private Button btnDoNotExportViewImages;
+	Label lblExportViewsScreenshot;
+	Composite compoExportViewsScreenshot;
+	Button btnExportViewsScreenshot;
+	Button btnDoNotExportViewsScreenshot;
 	
 	Label lblBorderWidth;
 	Text txtBorderWidth;
@@ -73,45 +74,49 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	Text txtScaleFactor;
 	Label lblScaleFactorPercent;
 	
-	private Label lblNeo4jMode;
-	private Composite compoNeo4jMode;
-	private Button btnNeo4jNativeMode;
-	private Button btnNeo4jExtendedMode;
-	private Label lblNeo4jEmpty;
-	private Composite compoNeo4jEmpty;
-	private Button btnNeo4jEmptyDB;
-	private Button btnNeo4jDoNotEmptyDB;
-	private Label lblNeo4jRelationships;
-	private Composite compoNeo4jRelationships;
-	private Button btnNeo4jStandardRelationships;
-	private Button btnNeo4jTypedRelationships;
-	private Label lblServer;
-	private Text txtServer;
-	private Label lblPort;
-	private Text txtPort;
-	private Label lblDatabase;
-	private Text txtDatabase;
-	private Label lblSchema;
-	private Text txtSchema;
-	private Label lblUsername;
-	private Text txtUsername;
-	private Label lblPassword;
-	private Button btnShowPassword;
-	private Text txtPassword;
+	Label lblNeo4jMode;
+	Composite compoNeo4jMode;
+	Button btnNeo4jNativeMode;
+	Button btnNeo4jExtendedMode;
+	Label lblNeo4jEmpty;
+	Composite compoNeo4jEmpty;
+	Button btnNeo4jEmptyDB;
+	Button btnNeo4jDoNotEmptyDB;
+	Label lblNeo4jRelationships;
+	Composite compoNeo4jRelationships;
+	Button btnNeo4jStandardRelationships;
+	Button btnNeo4jTypedRelationships;
+	Label lblServer;
+	Text txtServer;
+	Label lblPort;
+	Text txtPort;
+	Label lblDatabase;
+	Text txtDatabase;
+	Label lblSchema;
+	Text txtSchema;
+	Label lblUsername;
+	Text txtUsername;
+	Label lblPassword;
+	Button btnShowPassword;
+	Text txtPassword;
+	Label lblExpertMode;
+	Button btnExpertMode;
+	Label lblJdbc;
+    Text txtJdbc;
 
-	private Button btnUp;
-	private Button btnNew;
-	private Button btnRemove;
-	private Button btnEdit;
-	private Button btnDown;
+	Button btnUp;
+	Button btnNew;
+	Button btnRemove;
+	Button btnEdit;
+	Button btnDown;
 
-	private Button btnCheck;
-	private Button btnDiscard;
-	private Button btnSave;
+	Button btnCheck;
+	Button btnDiscard;
+	Button btnSave;
 	
-    private int defaultMargin = 10;
-    private int defaultLabelHeight;
-    private int defaultButtonHeight;
+    int defaultMargin = 10;
+    int defaultLabelHeight;
+    int defaultButtonHeight;
 
 	/**
 	 * Creates a table field editor.
@@ -154,8 +159,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 		// we calculate the required height of the group:
 		//    height of the databases table  = height of 5 text widgets
-		//    height of the database details = height of 7 text widets
-		int requiredHeight = 5 * (this.defaultButtonHeight + this.defaultMargin/2) + 7 * (this.defaultLabelHeight + this.defaultMargin);
+		//    height of the database details = height of 8 text widets
+		int requiredHeight = 5 * (this.defaultButtonHeight + this.defaultMargin/2) + 8 * (this.defaultLabelHeight + this.defaultMargin);
 		
 		GridData gd = new GridData();
 		gd.heightHint = requiredHeight;
@@ -168,8 +173,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnUp.setText("^");
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0, this.defaultMargin);
-		fd.left = new FormAttachment(100, -70);
-		fd.right = new FormAttachment(100, -40);
+		fd.left = new FormAttachment(100, -80);
+		fd.right = new FormAttachment(100, -45);
 		this.btnUp.setLayoutData(fd);
 		this.btnUp.addSelectionListener(new SelectionListener() {
 			@Override
@@ -183,7 +188,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDown.setText("v");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnUp, 0, SWT.TOP);
-		fd.left = new FormAttachment(100, -35);
+		fd.left = new FormAttachment(100, -40);
 		fd.right = new FormAttachment(100, -this.defaultMargin);
 		this.btnDown.setLayoutData(fd);
 		this.btnDown.addSelectionListener(new SelectionListener() {
@@ -198,12 +203,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNew.setText("New");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnUp, this.defaultMargin/2);
-		fd.left = new FormAttachment(100, -70);
+		fd.left = new FormAttachment(100, -80);
 		fd.right = new FormAttachment(100, -this.defaultMargin);
 		this.btnNew.setLayoutData(fd);
 		this.btnNew.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { newCallback(); }
+            public void widgetSelected(SelectionEvent e) { try { newCallback(); } catch (SQLException ign) { /* */ } }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -217,7 +222,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnEdit.setLayoutData(fd);
 		this.btnEdit.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { setDatabaseDetails(true); }
+            public void widgetSelected(SelectionEvent e) { try { setDatabaseDetails(true); } catch (SQLException ign) { /* */} }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -247,7 +252,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnRemove.setLayoutData(fd);
 		this.btnRemove.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { removeCallback(); }
+            public void widgetSelected(SelectionEvent e) { try { removeCallback(); } catch (SQLException ign) { /* */ } }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -270,8 +275,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		});
 		this.tblDatabases.addListener(SWT.Selection, new Listener() {
 			@Override
-            public void handleEvent(Event e) {
-				setDatabaseDetails(false);
+            public void handleEvent(Event e) { 
+			    try {
+                    setDatabaseDetails(false);
+                } catch (SQLException ign) {
+                    /* */
+                }
 			}
 		});
 		new TableColumn(this.tblDatabases, SWT.NONE);
@@ -287,7 +296,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.txtName = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblName, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblName, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblName, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.lblName, 45);
 		fd.right = new FormAttachment(this.tblDatabases, -20, SWT.RIGHT);
 		this.txtName.setLayoutData(fd);
@@ -306,7 +316,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.comboDriver.setItems(DBDatabase.DRIVER_NAMES);
 		this.comboDriver.setText(DBDatabase.DRIVER_NAMES[0]);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDriver, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblDriver, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblDriver, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
 		this.comboDriver.setLayoutData(fd);
 		this.comboDriver.setVisible(false);
@@ -317,7 +328,69 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 				e.doit = true;
 			}
 		});
+		
+		this.lblExpertMode = new Label(this.grpDatabases, SWT.NONE);
+		this.lblExpertMode.setText("Expert mode:");
+        this.lblExpertMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblDriver, 0, SWT.CENTER);
+        fd.left = new FormAttachment(45, 10);
+        this.lblExpertMode.setLayoutData(fd);
+        this.lblExpertMode.setVisible(false);
 
+        this.btnExpertMode = new Button(this.grpDatabases, SWT.CHECK);
+        this.btnExpertMode.setSelection(false);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblExpertMode, 0, SWT.CENTER);
+        fd.left = new FormAttachment(this.lblExpertMode, 5);
+        this.btnExpertMode.setLayoutData(fd);
+        this.btnExpertMode.addSelectionListener(new SelectionListener() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                boolean isExpertMode = DBDatabaseEntryTableEditor.this.btnExpertMode.getSelection();
+                boolean isFile = DBDatabaseEntryTableEditor.this.comboDriver.getText().equalsIgnoreCase("sqlite");
+                boolean isNeo4j = DBDatabaseEntryTableEditor.this.comboDriver.getText().equalsIgnoreCase("neo4j");
+                boolean hasDatabaseName = !isFile && !isNeo4j;
+                boolean hasSchema = DBDatabase.get(DBDatabaseEntryTableEditor.this.comboDriver.getText()).hasSchema();
+                
+                DBDatabaseEntryTableEditor.this.lblJdbc.setVisible(isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtJdbc.setVisible(isExpertMode);
+                
+                DBDatabaseEntryTableEditor.this.lblFile.setVisible(isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtFile.setVisible(isFile && !isExpertMode);       
+                DBDatabaseEntryTableEditor.this.btnBrowse.setVisible(isFile && !isExpertMode);
+                
+                DBDatabaseEntryTableEditor.this.lblServer.setVisible(!isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtServer.setVisible(!isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.lblPort.setVisible(!isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtPort.setVisible(!isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.lblDatabase.setVisible(hasDatabaseName && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtDatabase.setVisible(hasDatabaseName && !isExpertMode);
+                
+                DBDatabaseEntryTableEditor.this.lblSchema.setVisible(hasSchema && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.txtSchema.setVisible(hasSchema && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.lblUsername.setVisible(!isFile);
+                DBDatabaseEntryTableEditor.this.txtUsername.setVisible(!isFile);
+                DBDatabaseEntryTableEditor.this.lblPassword.setVisible(!isFile);
+                DBDatabaseEntryTableEditor.this.txtPassword.setVisible(!isFile);
+                DBDatabaseEntryTableEditor.this.btnShowPassword.setVisible(!isFile);
+                
+                // if the txtJdbc is empty, we generate it
+                if ( DBDatabaseEntryTableEditor.this.txtJdbc.getText().isEmpty() ) {
+                    try {
+                        DBDatabaseEntryTableEditor.this.txtJdbc.setText(DBDatabaseEntry.getJdbcConnectionString(DBDatabaseEntryTableEditor.this.comboDriver.getText(), DBDatabaseEntryTableEditor.this.txtServer.getText(), Integer.parseInt(DBDatabaseEntryTableEditor.this.txtPort.getText()), DBDatabaseEntryTableEditor.this.txtDatabase.getText(), DBDatabaseEntryTableEditor.this.txtUsername.getText(), DBDatabaseEntryTableEditor.this.txtPassword.getText()));
+                    } catch (NumberFormatException | SQLException ign) {
+                        /* */
+                    }
+                }
+                
+                DBDatabaseEntryTableEditor.this.grpDatabases.layout();
+            }
+            @Override
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+        });
+        this.btnExpertMode.setVisible(false);
+        
 		this.lblFile = new Label(this.grpDatabases, SWT.NONE);
 		this.lblFile.setText("File:");
 		this.lblFile.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -330,7 +403,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnBrowse = new Button(this.grpDatabases, SWT.NONE);
 		this.btnBrowse.setText("Browse");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblFile, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblFile, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblFile, 3, SWT.BOTTOM);
 		fd.right = new FormAttachment(this.tblDatabases, -30, SWT.RIGHT);
 		this.btnBrowse.setLayoutData(fd);
 		this.btnBrowse.addSelectionListener(new SelectionListener() {
@@ -343,24 +417,44 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.txtFile = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblFile, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblFile, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblFile, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnBrowse, -10);
 		this.txtFile.setLayoutData(fd);
 		this.txtFile.setVisible(false);
+		
+		this.lblJdbc = new Label(this.grpDatabases, SWT.NONE);
+		this.lblJdbc.setText("JDBC string:");
+        this.lblJdbc.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblDriver, this.defaultMargin);
+        fd.left = new FormAttachment(this.lblDriver, 0 , SWT.LEFT);
+        this.lblJdbc.setLayoutData(fd);
+        this.lblJdbc.setVisible(false);
+        
+        this.txtJdbc = new Text(this.grpDatabases, SWT.BORDER);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.lblJdbc, -3, SWT.TOP);
+        fd.bottom = new FormAttachment(this.lblJdbc, 3, SWT.BOTTOM);
+        fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
+        fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
+        this.txtJdbc.setLayoutData(fd);
+        this.txtJdbc.setVisible(false);
 
 		this.lblServer = new Label(this.grpDatabases, SWT.NONE);
 		this.lblServer.setText("Server or IP:");
 		this.lblServer.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDriver, this.defaultMargin);
-		fd.left = new FormAttachment(this.lblDriver, 0 , SWT.LEFT);
+		fd.top = new FormAttachment(this.comboDriver, this.defaultMargin);
+		fd.left = new FormAttachment(this.lblFile, 0 , SWT.LEFT);
 		this.lblServer.setLayoutData(fd);
 		this.lblServer.setVisible(false);
 
 		this.txtServer = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblServer, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblServer, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblServer, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
 		fd.right = new FormAttachment(45, -20);
 		this.txtServer.setLayoutData(fd);
@@ -378,8 +472,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.txtPort = new Text(this.grpDatabases, SWT.BORDER);
 		this.txtPort.setTextLimit(5);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblPort, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblPort, 45);
+		fd.top = new FormAttachment(this.lblPort, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblPort, 3, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.btnExpertMode, 0, SWT.LEFT);
 		fd.width = 40;
 		this.txtPort.setLayoutData(fd);
 		this.txtPort.setVisible(false);
@@ -414,7 +509,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.txtDatabase = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblDatabase, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblDatabase, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblDatabase, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
 		fd.right = new FormAttachment(45, -20);
 		this.txtDatabase.setLayoutData(fd);
@@ -425,13 +521,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblSchema.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblDatabase, 9, SWT.CENTER);
-		fd.left = new FormAttachment(this.txtDatabase, 30);
+		fd.left = new FormAttachment(this.lblExpertMode, 0, SWT.LEFT);
 		this.lblSchema.setLayoutData(fd);
 		this.lblSchema.setVisible(false);
 
 		this.txtSchema = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblSchema, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblSchema, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblSchema, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtPort, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.tblDatabases, -20, SWT.RIGHT);
 		this.txtSchema.setLayoutData(fd);
@@ -448,7 +545,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.txtUsername = new Text(this.grpDatabases, SWT.BORDER);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblUsername, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblUsername, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblUsername, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.txtName, 0, SWT.LEFT);
 		fd.right = new FormAttachment(45, -20);
 		this.txtUsername.setLayoutData(fd);
@@ -469,7 +567,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnShowPassword.setImage(DBGui.LOCK_ICON);
 		this.btnShowPassword.setSelection(true);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblPassword, 0, SWT.CENTER);
+		fd.top = new FormAttachment(this.lblPassword, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblPassword, 3, SWT.BOTTOM);
 		fd.right = new FormAttachment(this.tblDatabases, -20, SWT.RIGHT);
 		this.btnShowPassword.setLayoutData(fd);
 		this.btnShowPassword.addSelectionListener(new SelectionListener() {
@@ -481,12 +580,13 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnShowPassword.setVisible(false);
 		
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblPassword, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.txtPort, 0, SWT.LEFT);
+		fd.top = new FormAttachment(this.lblPassword, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblPassword, 3, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.btnExpertMode, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnShowPassword);
 		this.txtPassword.setLayoutData(fd);
 		this.txtPassword.setVisible(false);
-
+		        
 		this.lblNeo4jMode = new Label(this.grpDatabases, SWT.NONE);
 		this.lblNeo4jMode.setText("Export graph mode:");
 		this.lblNeo4jMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -584,36 +684,36 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jTypedRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		
 
-		this.lblExportViewSnapshots = new Label(this.grpDatabases, SWT.NONE);
-		this.lblExportViewSnapshots.setText("Export views screenshot:");
-		this.lblExportViewSnapshots.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.lblExportViewsScreenshot = new Label(this.grpDatabases, SWT.NONE);
+		this.lblExportViewsScreenshot.setText("Export views screenshot:");
+		this.lblExportViewsScreenshot.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.lblUsername, 5);
 		fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
-		this.lblExportViewSnapshots.setLayoutData(fd);
-		this.lblExportViewSnapshots.setVisible(false);
-		this.lblExportViewSnapshots.setToolTipText("Please select if you wish to export a screenshot (png) of your views in the database.");
+		this.lblExportViewsScreenshot.setLayoutData(fd);
+		this.lblExportViewsScreenshot.setVisible(false);
+		this.lblExportViewsScreenshot.setToolTipText("Please select if you wish to export a screenshot (png) of your views in the database.");
 
-		this.compoExportViewImages = new Composite(this.grpDatabases, SWT.NONE);
-		this.compoExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.compoExportViewImages.setVisible(false);
+		this.compoExportViewsScreenshot = new Composite(this.grpDatabases, SWT.NONE);
+		this.compoExportViewsScreenshot.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.compoExportViewsScreenshot.setVisible(false);
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblExportViewSnapshots, -1, SWT.TOP);
-		fd.bottom = new FormAttachment(this.lblExportViewSnapshots, 5, SWT.BOTTOM);
-		fd.left = new FormAttachment(this.lblExportViewSnapshots, 20);
+		fd.top = new FormAttachment(this.lblExportViewsScreenshot, -1, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblExportViewsScreenshot, 5, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.lblExportViewsScreenshot, 20);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
-		this.compoExportViewImages.setLayoutData(fd);
-		this.compoExportViewImages.setLayout(new FormLayout());
+		this.compoExportViewsScreenshot.setLayoutData(fd);
+		this.compoExportViewsScreenshot.setLayout(new FormLayout());
 
-		this.btnExportViewImages = new Button(this.compoExportViewImages, SWT.RADIO);
-		this.btnExportViewImages.setText("Yes");
-		this.btnExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnExportViewsScreenshot = new Button(this.compoExportViewsScreenshot, SWT.RADIO);
+		this.btnExportViewsScreenshot.setText("Yes");
+		this.btnExportViewsScreenshot.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
 		fd.left = new FormAttachment(0);
-		this.btnExportViewImages.setLayoutData(fd);
-		this.btnExportViewImages.setToolTipText("The plugin will create views screenshots (jpg) and export them to the database.");
-		this.btnExportViewImages.addSelectionListener(new SelectionListener() {
+		this.btnExportViewsScreenshot.setLayoutData(fd);
+		this.btnExportViewsScreenshot.setToolTipText("The plugin will create views screenshots (jpg) and export them to the database.");
+		this.btnExportViewsScreenshot.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 			    DBDatabaseEntryTableEditor.this.lblBorderWidth.setEnabled(true);
@@ -637,15 +737,15 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			}
 		});
 
-		this.btnDoNotExportViewImages = new Button(this.compoExportViewImages, SWT.RADIO);
-		this.btnDoNotExportViewImages.setText("No");
-		this.btnDoNotExportViewImages.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnDoNotExportViewsScreenshot = new Button(this.compoExportViewsScreenshot, SWT.RADIO);
+		this.btnDoNotExportViewsScreenshot.setText("No");
+		this.btnDoNotExportViewsScreenshot.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.btnExportViewImages, 10);
-		this.btnDoNotExportViewImages.setLayoutData(fd);
-		this.btnDoNotExportViewImages.setToolTipText("The plugin won't create any view screenshot.");
-		this.btnDoNotExportViewImages.addSelectionListener(new SelectionListener() {
+		fd.left = new FormAttachment(this.btnExportViewsScreenshot, 10);
+		this.btnDoNotExportViewsScreenshot.setLayoutData(fd);
+		this.btnDoNotExportViewsScreenshot.setToolTipText("The plugin won't create any view screenshot.");
+		this.btnDoNotExportViewsScreenshot.addSelectionListener(new SelectionListener() {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 			    DBDatabaseEntryTableEditor.this.lblBorderWidth.setEnabled(false);
@@ -669,16 +769,16 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			}
 		});
 
-		this.lblBorderWidth = new Label(this.compoExportViewImages, SWT.NONE);
+		this.lblBorderWidth = new Label(this.compoExportViewsScreenshot, SWT.NONE);
 		this.lblBorderWidth.setText("Border width:");
 		this.lblBorderWidth.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(5);
-		fd.left = new FormAttachment(this.btnDoNotExportViewImages, 34);
+		fd.left = new FormAttachment(this.btnDoNotExportViewsScreenshot, 34);
 		this.lblBorderWidth.setLayoutData(fd);
 		this.lblBorderWidth.setToolTipText("Please select the border width, in pixels, to add around the exported views images.");
 		
-		this.txtBorderWidth = new Text(this.compoExportViewImages, SWT.BORDER);
+		this.txtBorderWidth = new Text(this.compoExportViewsScreenshot, SWT.BORDER);
 		this.txtBorderWidth.setText("10");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
@@ -705,7 +805,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        }
 		});
 		
-		this.lblBorderWidthPixels = new Label(this.compoExportViewImages, SWT.NONE);
+		this.lblBorderWidthPixels = new Label(this.compoExportViewsScreenshot, SWT.NONE);
 		this.lblBorderWidthPixels.setText("px");
 		this.lblBorderWidthPixels.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
@@ -714,7 +814,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblBorderWidthPixels.setLayoutData(fd);
 		this.lblBorderWidthPixels.setToolTipText("Please choose the scale factor to resize the views images.");
 		
-		this.lblScaleFactor = new Label(this.compoExportViewImages, SWT.NONE);
+		this.lblScaleFactor = new Label(this.compoExportViewsScreenshot, SWT.NONE);
 		this.lblScaleFactor.setText("Scale factor:");
 		this.lblScaleFactor.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
@@ -723,7 +823,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactor.setLayoutData(fd);
 		this.lblScaleFactor.setToolTipText("Please choose the scale factor to resize the views images.");
 		
-		this.txtScaleFactor = new Text(this.compoExportViewImages, SWT.BORDER);
+		this.txtScaleFactor = new Text(this.compoExportViewsScreenshot, SWT.BORDER);
 		this.txtScaleFactor.setText("100");
 		fd = new FormData();
 		fd.top = new FormAttachment(0);
@@ -750,7 +850,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        }
 		});
 		
-		this.lblScaleFactorPercent = new Label(this.compoExportViewImages, SWT.NONE);
+		this.lblScaleFactorPercent = new Label(this.compoExportViewsScreenshot, SWT.NONE);
 		this.lblScaleFactorPercent.setText("%");
 		this.lblScaleFactorPercent.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		fd = new FormData();
@@ -759,7 +859,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblScaleFactorPercent.setLayoutData(fd);
 		this.lblScaleFactorPercent.setToolTipText("Please choose the scale factor to resize the views images.");
 		
-		this.compoExportViewImages.layout();
+		this.compoExportViewsScreenshot.layout();
 		
 		this.btnSave = new Button(this.grpDatabases, SWT.NONE);
 		this.btnSave.setText("Save");
@@ -770,7 +870,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnSave.setLayoutData(fd);
 		this.btnSave.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { saveCallback(); }
+            public void widgetSelected(SelectionEvent e) { try { saveCallback(); } catch (SQLException ign) { /* */ } }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -785,14 +885,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDiscard.setLayoutData(fd);
 		this.btnDiscard.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { setDatabaseDetails(false); }
+            public void widgetSelected(SelectionEvent e) { try { setDatabaseDetails(false); } catch (SQLException ign) { /* */ } }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		this.btnDiscard.setVisible(false);
 
 
-		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportViewImages, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
+		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportViewsScreenshot, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
 
 		this.grpDatabases.layout();
 	}
@@ -827,7 +927,11 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		for ( TableItem tableItem : this.tblDatabases.getItems() )
 			databaseEntries.add((DBDatabaseEntry)tableItem.getData());
 
-		DBDatabaseEntry.setAllIntoPreferenceStore(databaseEntries);
+		try {
+		    DBDatabaseEntry.setAllIntoPreferenceStore(databaseEntries);
+		} catch (SQLException err) {
+		    DBGui.popup(Level.ERROR, "Failed to store databases information.", err);
+		}
 	}
 
 	/*
@@ -842,14 +946,21 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 * Invoked when the selection in the driver combo has changed.
 	 */
 	protected void driverChanged() {
+	    boolean isExpertMode = this.btnExpertMode.getSelection();
 		boolean isFile = this.comboDriver.getText().equalsIgnoreCase("sqlite");
 		boolean isNeo4j = this.comboDriver.getText().equalsIgnoreCase("neo4j");
 		boolean hasDatabaseName = !isFile && !isNeo4j;
 		boolean hasSchema = DBDatabase.get(this.comboDriver.getText()).hasSchema();
 		
-		this.lblFile.setVisible(isFile);
-		this.txtFile.setVisible(isFile);		
-		this.btnBrowse.setVisible(isFile);
+		this.lblExpertMode.setVisible(true);
+		this.btnExpertMode.setVisible(true);
+		
+		this.lblJdbc.setVisible(isExpertMode);
+		this.txtJdbc.setVisible(isExpertMode);
+		
+		this.lblFile.setVisible(isFile && !isExpertMode);
+		this.txtFile.setVisible(isFile && !isExpertMode);		
+		this.btnBrowse.setVisible(isFile && !isExpertMode);
 
 		this.lblNeo4jMode.setVisible(isNeo4j);
 		this.compoNeo4jMode.setVisible(isNeo4j);
@@ -858,12 +969,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblNeo4jRelationships.setVisible(isNeo4j);
 		this.compoNeo4jRelationships.setVisible(isNeo4j);
 		
-		this.lblServer.setVisible(!isFile);
-		this.txtServer.setVisible(!isFile);
-		this.lblPort.setVisible(!isFile);
-		this.txtPort.setVisible(!isFile);
-		this.lblDatabase.setVisible(hasDatabaseName);
-		this.txtDatabase.setVisible(hasDatabaseName);
+		this.lblServer.setVisible(!isFile && !isExpertMode);
+		this.txtServer.setVisible(!isFile && !isExpertMode);
+		this.lblPort.setVisible(!isFile && !isExpertMode);
+		this.txtPort.setVisible(!isFile && !isExpertMode);
+		this.lblDatabase.setVisible(hasDatabaseName && !isExpertMode);
+		this.txtDatabase.setVisible(hasDatabaseName && !isExpertMode);
 		
 		if ( hasDatabaseName ) {
 			FormData fd = new FormData();
@@ -877,19 +988,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.lblUsername.setLayoutData(fd);
 		}
 		
-		if ( isFile ) {
-			FormData fd = new FormData();
-			fd.top = new FormAttachment(this.lblFile, 5);
-			fd.left = new FormAttachment(this.lblFile, 0 , SWT.LEFT);
-			this.lblExportViewSnapshots.setLayoutData(fd);
-		} else {
-			FormData fd = new FormData();
-			fd.top = new FormAttachment(this.lblUsername, 5);
-			fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
-			this.lblExportViewSnapshots.setLayoutData(fd);
-		}
-		
-		this.grpDatabases.layout();
 		this.lblSchema.setVisible(hasSchema);
 		this.txtSchema.setVisible(hasSchema);
 		this.lblUsername.setVisible(!isFile);
@@ -897,9 +995,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblPassword.setVisible(!isFile);
 		this.txtPassword.setVisible(!isFile);
 		this.btnShowPassword.setVisible(!isFile);
-		
-		this.lblExportViewSnapshots.setVisible(!isNeo4j);
-		this.compoExportViewImages.setVisible(!isNeo4j);
+	    
+		this.lblExportViewsScreenshot.setVisible(!isNeo4j);
+		this.compoExportViewsScreenshot.setVisible(!isNeo4j);
 		
 		if ( this.comboDriver.getText().equalsIgnoreCase("ms-sql") ) {
 			this.txtUsername.setToolTipText("Leave username and password empty to use Windows integrated security");
@@ -917,7 +1015,19 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.txtPort.addModifyListener(this.setPortListener);
 		}
 
-		this.grpDatabases.layout();
+        if ( isFile ) {
+            FormData fd = new FormData();
+            fd.top = new FormAttachment(this.lblFile, this.defaultMargin);
+            fd.left = new FormAttachment(this.lblFile, 0 , SWT.LEFT);
+            this.lblExportViewsScreenshot.setLayoutData(fd);
+        } else {
+            FormData fd = new FormData();
+            fd.top = new FormAttachment(this.lblUsername, this.defaultMargin);
+            fd.left = new FormAttachment(this.lblUsername, 0 , SWT.LEFT);
+            this.lblExportViewsScreenshot.setLayoutData(fd);
+        }
+        
+        this.grpDatabases.layout();
 	}
 
 	/*
@@ -931,8 +1041,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "new" button has been pressed
+	 * @throws SQLException 
 	 */
-	void newCallback() {
+	void newCallback() throws SQLException {
 		// we unselect all the lines of the tblDatabases table
 		this.tblDatabases.deselectAll();
 		
@@ -942,8 +1053,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "save" button has been pressed
+	 * @throws SQLException 
 	 */
-	void saveCallback() {
+	void saveCallback() throws SQLException {
 		if ( this.txtName.getText().isEmpty() ) {
 		    DBGui.popup(Level.ERROR, "Please provide a name for your configuration.");
 			return;
@@ -970,11 +1082,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
         this.tblDatabases.notifyListeners(SWT.Selection, new Event());
         
 		setDatabaseDetails(false);
-
-		
 	}
 
-	private DBDatabaseEntry getDatabaseDetails(DBDatabaseEntry entry) throws NumberFormatException, Exception {
+	DBDatabaseEntry getDatabaseDetails(DBDatabaseEntry entry) throws NumberFormatException, Exception {
 	    DBDatabaseEntry databaseEntry = entry==null ? new DBDatabaseEntry() : entry;
 
 		databaseEntry.setName(this.txtName.getText());
@@ -985,17 +1095,19 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setSchema(this.txtSchema.getText());
 		databaseEntry.setUsername(this.txtUsername.getText());
 		databaseEntry.setPassword(this.txtPassword.getText());
-		databaseEntry.setViewSnapshotRequired(this.btnExportViewImages.getSelection());
+		databaseEntry.setViewSnapshotRequired(this.btnExportViewsScreenshot.getSelection());
 		databaseEntry.setViewsImagesBorderWidth(Integer.valueOf(this.txtBorderWidth.getText()));
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
 		databaseEntry.setShouldEmptyNeo4jDB(this.btnNeo4jEmptyDB.getSelection());
 		databaseEntry.setNeo4jTypedRelationship(this.btnNeo4jTypedRelationships.getSelection());
+		databaseEntry.setExpertMode(this.btnExpertMode.getSelection());
+		databaseEntry.setJdbcConnectionString(this.txtJdbc.getText());
 
 		return databaseEntry;
 	}
 
-	void setDatabaseDetails(boolean editMode) {
+	void setDatabaseDetails(boolean editMode) throws SQLException {
 		DBDatabaseEntry databaseEntry = null;
 		boolean shouldExportViewSnapshots = false;
 
@@ -1009,16 +1121,18 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        this.txtSchema.setText("");
 	        this.txtUsername.setText("");
 	        this.txtPassword.setText("");
+	        this.btnExpertMode.setSelection(false);
+	        this.txtJdbc.setText("");
 	        this.btnNeo4jNativeMode.setSelection(false);
 	        this.btnNeo4jExtendedMode.setSelection(true);
 	        this.btnNeo4jEmptyDB.setSelection(false);
 	        this.btnNeo4jDoNotEmptyDB.setSelection(true);
 	        this.btnNeo4jStandardRelationships.setSelection(true);
 	        this.btnNeo4jTypedRelationships.setSelection(false);
-	        this.btnExportViewImages.setSelection(false);
+	        this.btnExportViewsScreenshot.setSelection(false);
 			this.txtBorderWidth.setText("10");
 			this.txtScaleFactor.setText("100");
-	        this.btnDoNotExportViewImages.setSelection(true);
+	        this.btnDoNotExportViewsScreenshot.setSelection(true);
 		} else {
 			databaseEntry = (DBDatabaseEntry)this.tblDatabases.getItem(this.tblDatabases.getSelectionIndex()).getData();
 
@@ -1031,14 +1145,16 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.txtSchema.setText(databaseEntry.getSchema());
             this.txtUsername.setText(databaseEntry.getUsername());
             this.txtPassword.setText(databaseEntry.getPassword());
+            this.btnExpertMode.setSelection(databaseEntry.isExpertMode());
+            this.txtJdbc.setText(databaseEntry.getJdbcConnectionString());
             this.btnNeo4jNativeMode.setSelection(databaseEntry.isNeo4jNativeMode());
             this.btnNeo4jExtendedMode.setSelection(!databaseEntry.isNeo4jNativeMode());
             this.btnNeo4jEmptyDB.setSelection(databaseEntry.shouldEmptyNeo4jDB());
             this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.shouldEmptyNeo4jDB());
             this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.isNeo4jTypedRelationship());
             this.btnNeo4jTypedRelationships.setSelection(databaseEntry.isNeo4jTypedRelationship());
-            this.btnExportViewImages.setSelection(databaseEntry.isViewSnapshotRequired());
-            this.btnDoNotExportViewImages.setSelection(!databaseEntry.isViewSnapshotRequired());
+            this.btnExportViewsScreenshot.setSelection(databaseEntry.isViewSnapshotRequired());
+            this.btnDoNotExportViewsScreenshot.setSelection(!databaseEntry.isViewSnapshotRequired());
             this.txtBorderWidth.setText(String.valueOf(databaseEntry.getViewsImagesBorderWidth()));
             this.txtScaleFactor.setText(String.valueOf(databaseEntry.getViewsImagesScaleFactor()));
             
@@ -1054,9 +1170,14 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 	    this.lblDriver.setVisible(true);
 	    this.comboDriver.setVisible(true);
-		this.comboDriver.setEnabled(editMode);				
+		this.comboDriver.setEnabled(editMode);
+		
+		this.lblExpertMode.setVisible(true);
+		this.btnExpertMode.setVisible(true);
+		this.btnExpertMode.setEnabled(editMode);
 		
 		this.txtFile.setEnabled(editMode);
+		this.txtJdbc.setEnabled(editMode);
 		this.txtServer.setEnabled(editMode);
 		this.txtPort.setEnabled(editMode);
 		this.txtDatabase.setEnabled(editMode);
@@ -1072,8 +1193,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jStandardRelationships.setEnabled(editMode);
 		this.btnNeo4jTypedRelationships.setEnabled(editMode);
 	    
-	    this.btnExportViewImages.setEnabled(editMode);
-	    this.btnDoNotExportViewImages.setEnabled(editMode);
+	    this.btnExportViewsScreenshot.setEnabled(editMode);
+	    this.btnDoNotExportViewsScreenshot.setEnabled(editMode);
 	    this.lblBorderWidth.setEnabled(editMode);
 	    this.lblBorderWidth.setVisible(shouldExportViewSnapshots);
 	    this.txtBorderWidth.setEnabled(editMode);
@@ -1126,8 +1247,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "remove" button has been pressed
+	 * @throws SQLException 
 	 */
-	void removeCallback() {
+	void removeCallback() throws SQLException {
 		// setPresentsDefaultValue(false);
 		int index = this.tblDatabases.getSelectionIndex();
 
@@ -1168,8 +1290,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.lblPassword.setVisible(false);
 			this.txtPassword.setVisible(false);
 			this.btnShowPassword.setVisible(false);
-			this.lblExportViewSnapshots.setVisible(false);
-			this.compoExportViewImages.setVisible(false);
+			this.lblExportViewsScreenshot.setVisible(false);
+			this.compoExportViewsScreenshot.setVisible(false);
 
 			this.btnSave.setVisible(false);
 			this.btnDiscard.setVisible(false);
@@ -1240,8 +1362,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	
 	/**
 	 * If we are in edit mode, then ask the user is if wants to save or discard
+	 * @throws SQLException 
 	 */
-	public void close() {
+	public void close() throws SQLException {
 		if ( this.txtName.isVisible() && this.txtName.isEnabled() ) {
 			if ( DBGui.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 ) {
 				saveCallback();
@@ -1249,7 +1372,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		}
 	}
 	
-	private ModifyListener setPortListener = new ModifyListener() {
+	ModifyListener setPortListener = new ModifyListener() {
 		@Override
 		public void modifyText(ModifyEvent e) {
 			((Text)e.widget).setData("manualPort", ((Text)e.widget).getText());

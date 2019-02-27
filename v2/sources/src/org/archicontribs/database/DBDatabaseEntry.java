@@ -1,5 +1,6 @@
 package org.archicontribs.database;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,36 +25,6 @@ public class DBDatabaseEntry {
     public DBDatabaseEntry() {
     }
 
-    /**
-     * Created a database entry
-     * @param entryName name of the entry (just a bulk of letters, can contain spaces)
-     * @param driverName name of the driver required to connect to the database (must be one of {@link DBDatabase}) 
-     * @param serverName IP address or DNS name of the server where the database stands
-     * @param portValue TCP port on which the database is listening to 
-     * @param databaseName name of the database
-     * @param schemaName name of the schema
-     * @param userName account used to connect to the database (on MS-SQL databases, an empty username and password allows to switch to the Windows Integrated Security) 
-     * @param pass password used to connect to the database
-     * @param exportViewImages true if screenshots of the views must be exported in the database, false if screenshots are not necessary
-     * @param isNeo4jNativeMode true if Archi relationships must be exported as Neo4J relationships (but relationships on relationships is not permitted), or false if Archi relationships are exported as nodes (relationships on relationships are supported, but the Neo4J requests are more complex)
-     * @param neo4jEmptyDB true if the Neo4J database must be emptied before the export, or false if Neo4J database content must be kept
-     * @throws Exception
-     */
-    public DBDatabaseEntry(String entryName, String driverName, String serverName, int portValue, String databaseName, String schemaName, String userName, String pass, boolean exportViewImages, boolean isNeo4jNativeMode, boolean neo4jEmptyDB) throws Exception {
-        setName(entryName);
-        setDriver(driverName);
-        setServer(serverName);
-        setPort(portValue);
-        setDatabase(databaseName);
-        setSchema(schemaName);
-        setUsername(userName);
-        setPassword(pass);
-        setViewSnapshotRequired(exportViewImages);
-
-        setNeo4jNativeMode(isNeo4jNativeMode);
-        setShouldEmptyNeo4jDB(neo4jEmptyDB);
-    }
-
 	/**
 	 * Name of the database Entry 
 	 */
@@ -65,6 +36,18 @@ public class DBDatabaseEntry {
 	 * must be one of @DBDatabase.VALUES
 	 */
 	@Getter private String driver = "";
+	
+    public String getDriverClass() throws SQLException {
+        switch (this.getDriver()) {
+            case "postgresql":  return "org.postgresql.Driver";
+            case "ms-sql":      return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
+            case "mysql":       return "com.mysql.jdbc.Driver";
+            case "neo4j":       return "org.neo4j.jdbc.Driver";
+            case "oracle":      return "oracle.jdbc.driver.OracleDriver";
+            case "sqlite":      return "org.sqlite.JDBC";
+            default:            throw new SQLException("Unknonwn driver " + this.getDriver());        // just in case;
+        }   
+    }
 	
 	/**
      * Driver to use to access the database<br>
@@ -192,7 +175,81 @@ public class DBDatabaseEntry {
 			return "CQL";
 		return "SQL";
 	}
+	
+    
+    /**
+     * Standard mode (in which the JDBC connection string is calculated from fields)
+     * Expert mode (in wich the JDBC connection string is provided by the user)
+     */
+    @Getter @Setter private boolean expertMode = false;
+    
+    /**
+     * in Standard mode, the JDBC string is calculated from the individual strings
+     * in Export mode, the JDBC string is provided as is
+     */
+    @Setter private String jdbcConnectionString;
+    
+    public String getJdbcConnectionString() throws SQLException {
+        if ( ! isExpertMode() ) {
+            switch (this.getDriver()) {
+                case "postgresql":
+                    this.jdbcConnectionString = "jdbc:postgresql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
+                    break;
+                case "ms-sql":
+                    this.jdbcConnectionString = "jdbc:sqlserver://" + this.getServer() + ":" + this.getPort() + ";databaseName=" + this.getDatabase();
+                    if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getPassword()) )
+                        this.jdbcConnectionString += ";integratedSecurity=true";
+                    break;
+                case "mysql":
+                    this.jdbcConnectionString = "jdbc:mysql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
+                    break;
+                case "neo4j":
+                    this.jdbcConnectionString = "jdbc:neo4j:bolt://" + this.getServer() + ":" + this.getPort();
+                    break;
+                case "oracle":
+                    this.jdbcConnectionString = "jdbc:oracle:thin:@" + this.getServer() + ":" + this.getPort() + ":" + this.getDatabase();
+                    break;
+                case "sqlite":
+                    this.jdbcConnectionString = "jdbc:sqlite:"+this.getServer();
+                    break;
+                default:
+                    throw new SQLException("Unknonwn driver " + this.getDriver());        // just in case
+            }
+        }
+        return this.jdbcConnectionString;
+    }
+    
+    static public String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password) throws SQLException {
+        String jdbcString = "";
 
+        switch (driverName) {
+            case "postgresql":
+                jdbcString = "jdbc:postgresql://" + serverName + ":" + port + "/" + databaseName;
+                break;
+            case "ms-sql":
+                jdbcString = "jdbc:sqlserver://" + serverName + ":" + port + ";databaseName=" + databaseName;
+                if ( DBPlugin.isEmpty(username) && DBPlugin.isEmpty(password) )
+                    jdbcString += ";integratedSecurity=true";
+                break;
+            case "mysql":
+                jdbcString = "jdbc:mysql://" + serverName + ":" + port + "/" + databaseName;
+                break;
+            case "neo4j":
+                jdbcString = "jdbc:neo4j:bolt://" + serverName + ":" + port;
+                break;
+            case "oracle":
+                jdbcString = "jdbc:oracle:thin:@" + serverName + ":" + port + ":" + databaseName;
+                break;
+            case "sqlite":
+                jdbcString = "jdbc:sqlite:"+serverName;
+                break;
+            default:
+                throw new SQLException("Unknonwn driver " + driverName);        // just in case
+        }
+
+        return jdbcString;
+    }
+    
 	/**
 	 * Gets all the database entries from the preference store
 	 * 
@@ -241,6 +298,9 @@ public class DBDatabaseEntry {
 					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 					databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
 					databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
+					
+					databaseEntry.setExpertMode(store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line)));
+					databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
 
 					databaseEntries.add(databaseEntry);
 				} catch (Exception e) {
@@ -255,8 +315,9 @@ public class DBDatabaseEntry {
 	 * Persist the database entries in the preference store
 	 * 
 	 * @param databaseEntries List of the database entries to persist in the preference store
+	 * @throws SQLException 
 	 */
-	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) {
+	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Recording databases in preference store");
 
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
@@ -279,6 +340,8 @@ public class DBDatabaseEntry {
 			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.isNeo4jNativeMode());
 			store.setValue(preferenceName+"_neo4j-empty-database_"+String.valueOf(line), databaseEntry.shouldEmptyNeo4jDB());
 			store.setValue(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line), databaseEntry.isNeo4jTypedRelationship());
+			store.setValue(preferenceName+"_isExpertMode_"+String.valueOf(line), databaseEntry.isExpertMode());
+			store.setValue(preferenceName+"_jdbcConnectionString_"+String.valueOf(line), databaseEntry.getJdbcConnectionString());
 		}
 	}
 

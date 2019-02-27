@@ -8,6 +8,8 @@ package org.archicontribs.database.preferences;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.sql.SQLException;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -145,10 +147,11 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		versionValue.setLayoutData(fd);
 		
 		Button checkUpdateButton = new Button(grpVersion, SWT.NONE);
-		checkUpdateButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		//checkUpdateButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		checkUpdateButton.setText("Check for update");
 		fd = new FormData();
-		fd.top = new FormAttachment(versionValue, 0, SWT.CENTER);
+		fd.top = new FormAttachment(versionValue, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(versionValue, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(versionValue, 100);
 		checkUpdateButton.setLayoutData(fd);
 		checkUpdateButton.addSelectionListener(new SelectionListener() {
@@ -270,7 +273,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.txtCopySuffix = new Text(grpMiscellaneous, SWT.BORDER);
 		this.txtCopySuffix.setText(preferenceStore.getString("copySuffix"));
 		fd = new FormData();
-		fd.top = new FormAttachment(lblCopySuffix, -2, SWT.TOP);
+		fd.top = new FormAttachment(lblCopySuffix, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(lblCopySuffix, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(lblCopySuffix, 10);
 		fd.right = new FormAttachment(lblCopySuffix, 150, SWT.RIGHT);
 		this.txtCopySuffix.setLayoutData(fd);
@@ -477,7 +481,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     @Override
     public boolean performOk() {
     	if ( this.table != null )
-    	    this.table.close();
+            try { this.table.close(); } catch (@SuppressWarnings("unused") SQLException ign) { /* */ }
     	
     	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving preferences in preference store");
     	

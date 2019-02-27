@@ -100,45 +100,15 @@ public class DBDatabaseConnection implements AutoCloseable {
 
         if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+": driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.databaseEntry.getSchema()+", username="+this.databaseEntry.getUsername());
 
-        String clazz = null;
-        String connectionString = null;
-
-        switch (this.databaseEntry.getDriver()) {
-            case "postgresql":
-                clazz = "org.postgresql.Driver";
-                connectionString = "jdbc:postgresql://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + "/" + this.databaseEntry.getDatabase();
-                break;
-            case "ms-sql":
-                clazz = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-                connectionString = "jdbc:sqlserver://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + ";databaseName=" + this.databaseEntry.getDatabase();
-                if ( DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) )
-                    connectionString += ";integratedSecurity=true";
-                break;
-            case "mysql":
-                clazz = "com.mysql.jdbc.Driver";
-                connectionString = "jdbc:mysql://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + "/" + this.databaseEntry.getDatabase();
-                break;
-            case "neo4j":
-                clazz = "org.neo4j.jdbc.Driver";
-                connectionString = "jdbc:neo4j:bolt://" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort();
-                break;
-            case "oracle":
-                clazz = "oracle.jdbc.driver.OracleDriver";
-                connectionString = "jdbc:oracle:thin:@" + this.databaseEntry.getServer() + ":" + this.databaseEntry.getPort() + ":" + this.databaseEntry.getDatabase();
-                break;
-            case "sqlite":
-                clazz = "org.sqlite.JDBC";
-                connectionString = "jdbc:sqlite:"+this.databaseEntry.getServer();
-                break;
-            default:
-                throw new SQLException("Unknonwn driver " + this.databaseEntry.getDriver());        // just in case
-        }
-
+        String clazz = this.databaseEntry.getDriverClass();
         if ( logger.isDebugEnabled() ) logger.debug("JDBC class = " + clazz);
-        Class.forName(clazz);
-
+        
+        String connectionString = this.databaseEntry.getJdbcConnectionString();
         if ( logger.isDebugEnabled() ) logger.debug("JDBC connection string = " + connectionString);
+
         try {
+            // we load the jdbc class
+            Class.forName(clazz);
             if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Connecting with Windows integrated security");
                 this.connection = DriverManager.getConnection(connectionString);
@@ -152,7 +122,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             // so we need to trap this exception and change the error message
             // For JDBC people, this is not a bug but a functionality :( 
             if ( DBPlugin.areEqual(e.getMessage(), "JDBC URL is not correct.\nA valid URL format is: 'jdbc:neo4j:http://<host>:<port>'") ) {
-                if ( this.databaseEntry.getDriver().equals(DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) )	// integrated authentication
+                if ( this.databaseEntry.getDriver().equals(DBDatabase.MSSQL.getDriverName()) )	// if SQL Server, we update the message for integrated authentication
                     throw new SQLException("Please verify the database configuration in the preferences.\n\nPlease also check that you installed the \"sqljdbc_auth.dll\" file in the JRE bin folder to enable the SQL Server integrated security mode.");
                 throw new SQLException("Please verify the database configuration in the preferences.");
             }
