@@ -1,5 +1,5 @@
-v2.1.8: 12/02/2018
-* Fix import of images when initiated by script plugin
+v2.1.9: 27/02/2018
+* Add expert mode where the jdbc connection string can be manually edited
 
 ### TODO list
 * Import components from database:
@@ -14,6 +14,9 @@ v2.1.8: 12/02/2018
   * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.8: 12/02/2018
+* Fix import of images when initiated by script plugin
+
 v2.1.7: 23/11/2018
 * Import components from database:
   * updating a view from the database now updates the elements and relationships referenced in the view
