@@ -1,5 +1,5 @@
-v2.1.9: 27/02/2018
-* Add expert mode where the jdbc connection string can be manually edited
+v2.1.10: 23/04/2019
+* Fix unclosed cursors on Oracle databases
 
 ### TODO list
 * Import components from database:
@@ -14,6 +14,9 @@ v2.1.9: 27/02/2018
   * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.9: 27/02/2018
+* Add expert mode where the jdbc connection string can be manually edited
+
 v2.1.8: 12/02/2018
 * Fix import of images when initiated by script plugin
 
