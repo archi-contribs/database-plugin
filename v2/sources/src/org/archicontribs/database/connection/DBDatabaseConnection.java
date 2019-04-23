@@ -1266,8 +1266,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         assert ( isConnected() );
 
         ResultSet result = null;
-        try {
-        	PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+        try (PreparedStatement pstmt = this.connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY)) {
             constructStatement(pstmt, request, parameters);
             result = pstmt.executeQuery();
         } catch (SQLException err) {
