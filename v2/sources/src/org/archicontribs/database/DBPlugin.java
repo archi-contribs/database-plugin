@@ -273,7 +273,10 @@ import lombok.Getter;
  * 
  * v2.1.9: 25/02/2019               Add expert mode where the jdbc connection string can be set manually
  * 
- * v2.1.10: 23/04/2019				Fix unclosed cursors issue on Oracle database 
+ * v2.1.10: 23/04/2019				Fix unclosed cursors issue on Oracle database
+ * 
+ * v2.1.11: 25/04/2019				Fix version comparison when a part of it is greater or equal to 10
+ * 									Fix issues on SQL requests introduced in plugin version 2.1.10
  * 
  * TO-DO list:
  * ----------
@@ -292,7 +295,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.1.10");
+	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.1.11");
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

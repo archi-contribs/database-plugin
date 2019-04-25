@@ -1,5 +1,6 @@
-v2.1.10: 23/04/2019
-* Fix unclosed cursors on Oracle databases
+v2.1.11: 26/04/2019
+* Fix version comparison when a part of it is greater or equal to 10
+* Fix issues on SQL requests introduced in plugin version 2.1.10
 
 ### TODO list
 * Import components from database:
@@ -14,6 +15,9 @@ v2.1.10: 23/04/2019
   * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.10: 23/04/2019
+* Fix unclosed cursors on Oracle databases
+
 v2.1.9: 27/02/2018
 * Add expert mode where the jdbc connection string can be manually edited
 
