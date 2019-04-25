@@ -292,7 +292,7 @@ import lombok.Getter;
 public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
-	public static final String pluginVersion = "2.1.10";
+	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.1.10");
 	public static final String pluginName = "DatabasePlugin";
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 

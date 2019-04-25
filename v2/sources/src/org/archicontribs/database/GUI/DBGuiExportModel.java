@@ -108,7 +108,7 @@ public class DBGuiExportModel extends DBGui {
         this.exportedModel = model;
 		this.includeNeo4j = true;
 		
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+this.exportedModel.getName()+"\" (plugin version "+DBPlugin.pluginVersion+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+this.exportedModel.getName()+"\" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");
 
 		createGrpComponents();
 		createGrpModel();

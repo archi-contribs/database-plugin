@@ -95,7 +95,7 @@ public class DBGuiImportModel extends DBGui {
     public DBGuiImportModel(String title) throws Exception {
         super(title);
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.pluginVersion+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.pluginVersion.getVersion()+").");
 
         createAction(ACTION.One, "1 - Choose model");
         createAction(ACTION.Two, "2 - Import model");

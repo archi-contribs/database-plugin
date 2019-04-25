@@ -138,7 +138,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		versionLbl.setLayoutData(fd);
 		
 		Label versionValue = new Label(grpVersion, SWT.NONE);
-		versionValue.setText(DBPlugin.pluginVersion);
+		versionValue.setText(DBPlugin.pluginVersion.getVersion());
 		versionValue.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		versionValue.setFont(DBGui.BOLD_FONT);
 		fd = new FormData();

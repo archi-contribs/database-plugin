@@ -61,7 +61,7 @@ public class DBGuiImportImage extends DBGui {
         // We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
         super(title);
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing an image \""+model.getName()+"\" (plugin version "+DBPlugin.pluginVersion+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing an image \""+model.getName()+"\" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");
         
         createGrpImages();
         
