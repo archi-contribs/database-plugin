@@ -66,10 +66,10 @@ public class DBStatement implements AutoCloseable {
 			if ( DBPlugin.areEqual(this.driverName, DBDatabase.POSTGRESQL.getDriverName()) )
 				savepoint = this.connection.setSavepoint();
 			
-			if ( this.statement != null && this.statement.isClosed() )
+			if ( this.statement != null && !this.statement.isClosed() )
 				rowCount = this.statement.executeUpdate(this.request);
 			else
-				if ( this.preparedStatement != null && this.preparedStatement.isClosed() )
+				if ( this.preparedStatement != null && !this.preparedStatement.isClosed() )
 					rowCount = this.preparedStatement.executeUpdate();
 		} catch (SQLException err) {
 			if ( savepoint != null ) {
