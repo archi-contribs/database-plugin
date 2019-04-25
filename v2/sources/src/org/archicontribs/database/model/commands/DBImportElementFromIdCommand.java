@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.model.commands;
 
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,6 +15,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
@@ -119,7 +119,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			if ( this.mustImportRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
 				// We import the relationships that source or target the element
-				try ( ResultSet resultRelationship = importConnection.select("SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
+				try ( DBSelect resultRelationship = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
 					while ( resultRelationship.next() ) {
 					    IArchimateRelationship relationship = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("id")));
 					    

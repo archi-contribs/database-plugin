@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.model.commands;
 
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -16,6 +15,7 @@ import java.util.List;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
@@ -128,7 +128,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( this.newValues.get("image_path") != null ) {
                 IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
                 if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
-                    try ( ResultSet imageResult = importConnection.select("SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
+                    try ( DBSelect imageResult = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
                         if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
                             logger.debug("   Importing image "+this.newValues.get("image_path")+" (size = "+this.newImageContent.length+")");

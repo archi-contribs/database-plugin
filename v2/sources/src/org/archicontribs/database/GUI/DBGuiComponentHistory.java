@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.GUI;
 
-import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.Calendar;
 
@@ -15,6 +14,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
@@ -303,7 +303,7 @@ public class DBGuiComponentHistory extends DBGui {
 		    return ;
 		}
 	
-		try ( ResultSet result = getDatabaseConnection().select("SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId()) ) {
+		try ( DBSelect result = new DBSelect(getDatabaseConnection().getDatabaseEntry().getName(), getDatabaseConnection().getConnection(),"SELECT version, created_by, created_on FROM "+this.selectedDatabase.getSchemaPrefix()+tableName+" where id = ? ORDER BY version DESC", this.selectedComponent.getId()) ) {
 			while ( result.next() ) {
 			    TableItem tableItem = new TableItem(this.tblVersions, SWT.NULL);
 			    tableItem.setText(0, String.valueOf(result.getInt("version")));

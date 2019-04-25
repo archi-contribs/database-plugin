@@ -5,11 +5,11 @@
  */
 package org.archicontribs.database.model.commands;
 
-import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
@@ -34,7 +34,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
     
     public DBSetFolderToLastKnownCommand(DBArchimateModel model, DBDatabaseImportConnection importConnection) {
         try {
-            try ( ResultSet result = importConnection.select("SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
+            try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
                     + " FROM "+importConnection.getSchema()+"elements_in_model m1"
                     + " JOIN "+importConnection.getSchema()+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
@@ -55,7 +55,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
             }
     
             // relationships
-            try ( ResultSet result = importConnection.select("SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
+            try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
                     + " FROM "+importConnection.getSchema()+"relationships_in_model m1"
                     + " JOIN "+importConnection.getSchema()+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
@@ -76,7 +76,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
             }
     
             // folders
-            try ( ResultSet result = importConnection.select("SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
+            try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
                     + " FROM "+importConnection.getSchema()+"folders_in_model m1"
                     + " JOIN "+importConnection.getSchema()+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
@@ -97,7 +97,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
             }
     
             // views
-            try ( ResultSet result = importConnection.select("SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
+            try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
                     + " FROM "+importConnection.getSchema()+"views_in_model m1"
                     + " JOIN "+importConnection.getSchema()+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"

@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.connection;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -116,7 +115,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
         // model.getCurrentVersion().reset();
-        try ( ResultSet resultLatestVersion = select("SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
+        try ( DBSelect resultLatestVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
             // we get the latest model version from the database
             if ( resultLatestVersion.next() && (resultLatestVersion.getObject("version") != null) ) {
                 // if the version is found, then the model exists in the database
@@ -126,7 +125,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
                 // we check if the model has been imported from (or last exported to) this database
                 if ( !model.getInitialVersion().getTimestamp().equals(DBVersion.NEVER) ) {
-                    try ( ResultSet resultCurrentVersion = select("SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
+                    try ( DBSelect resultCurrentVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
                         if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
                             // if the version is found, then the model has been imported from or last exported to the database 
                             model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
@@ -240,7 +239,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         metadata.getDatabaseVersion().reset();
         metadata.getLatestDatabaseVersion().reset();
         
-        try ( ResultSet result = select(request, component.getId()) ) {
+        try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, request, component.getId()) ) {
             int version = 0;
             String checksum = null;
             String containerChecksum = null;
@@ -301,7 +300,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            metadata.getDatabaseVersion().reset();
 	            metadata.getLatestDatabaseVersion().reset();
 	        }
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"elements"
 							+ " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
@@ -360,7 +359,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            metadata.getDatabaseVersion().reset();
 	            metadata.getLatestDatabaseVersion().reset();
 	        }
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"relationships"
 							+ " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
@@ -419,7 +418,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	            metadata.getDatabaseVersion().reset();
 	            metadata.getLatestDatabaseVersion().reset();
 	        }
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"folders"
 							+ " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
@@ -477,7 +476,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 metadata.getDatabaseVersion().reset();
                 metadata.getLatestDatabaseVersion().reset();
             }
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
 							+ " FROM "+this.schema+"views"
 							+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
@@ -529,7 +528,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			
 			// we check if the latest version of the model has got images that are not in the model
 			if ( logger.isDebugEnabled() ) logger.debug("Checking missing images from the database");
-			try ( ResultSet result = select ("SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
 					+ "JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
 					+ "JOIN "+this.schema+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
 					+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
@@ -550,7 +549,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		// at last, we check if all the images in the model are in the database
 		if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
 		for ( String path: model.getAllImagePaths() ) {
-			try ( ResultSet result = select("SELECT path from "+this.schema+"images where path = ?", path) ) {
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path from "+this.schema+"images where path = ?", path) ) {
 				if ( result.next() && result.getObject("path") != null ) {
 					// the image is in the database
 				} else {
@@ -583,7 +582,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     metadata.getLatestDatabaseVersion().reset();
                 }
             }			
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_objects"
 							+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
@@ -646,7 +645,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     metadata.getLatestDatabaseVersion().reset();
                 }
             }
-			try ( ResultSet result = select(
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 					"SELECT id, name, version, checksum, created_on, view_id, view_version"
 							+ " FROM "+this.schema+"views_connections"
 							+ " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
@@ -703,7 +702,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	public void emptyNeo4jDB() throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("Emptying Neo4J database.");
-		request("MATCH (n) DETACH DELETE n");
+		executeRequest("MATCH (n) DETACH DELETE n");
 	}
 
 
@@ -778,7 +777,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
 			// TODO: USE MERGE instead to replace existing nodes
-			request("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
+			executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
 					,element.getId()
 					,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
 					,element.getClass().getSimpleName()
@@ -845,7 +844,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			// TODO: USE MERGE instead to replace existing nodes
 			if ( this.databaseEntry.isNeo4jNativeMode() ) {
 				if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
-					request("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
+					executeRequest("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
 							,((IArchimateRelationship)relationship).getSource().getId()
 							,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getCurrentVersion().getVersion()
 							,((IArchimateRelationship)relationship).getTarget().getId()
@@ -861,7 +860,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							);
 				}
 			} else {
-				request("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
+				executeRequest("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
 						,((IArchimateRelationship)relationship).getSource().getId()
 						,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getCurrentVersion().getVersion()
 						,((IArchimateRelationship)relationship).getTarget().getId()
@@ -1199,7 +1198,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		for ( int propRank = 0 ; propRank < parent.getProperties().size(); ++propRank) {
 			IProperty prop = parent.getProperties().get(propRank);
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-				request("MATCH (parent {id:?, version:?}) CREATE (prop:property {rank:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
+				executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {rank:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
 						,((IIdentifier)parent).getId()
 						,exportedVersion
 						,propRank
@@ -1227,7 +1226,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		for ( int propRank = 0 ; propRank < parent.getMetadata().getEntries().size(); ++propRank) {
 			IProperty prop = parent.getMetadata().getEntries().get(propRank);
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-				request("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
+				executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
 						,parent.getId()
 						,parent.getCurrentVersion().getVersion()
 						,propRank
@@ -1251,7 +1250,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( image == null ) 
 			return false;
 
-		try ( ResultSet result = select("SELECT path FROM "+this.schema+"images WHERE path = ?", path) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path FROM "+this.schema+"images WHERE path = ?", path) ) {
 			if ( !result.next() ) {
 				// if the image is not yet in the db, we insert it
 				String[] databaseColumns = {"path", "image"};

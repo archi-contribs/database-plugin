@@ -7,7 +7,6 @@
 package org.archicontribs.database.GUI;
 
 import java.io.ByteArrayInputStream;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.Collator;
 import java.util.ArrayList;
@@ -21,9 +20,10 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
-import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBArchimateFactory;
+import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
@@ -1644,7 +1644,7 @@ public class DBGuiImportComponents extends DBGui {
 
 					byte[] screenshot = null;
 					if ( DBGuiImportComponents.this.compoViews.isVisible() && (DBGuiImportComponents.this.tblComponents.getSelectionCount() == 1) ) {
-						try ( ResultSet resultViewScreenshot = DBGuiImportComponents.this.importConnection.select("SELECT screenshot FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ? AND version = (SELECT MAX(version) FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ?)", DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id"), DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id")) ) {
+						try ( DBSelect resultViewScreenshot = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT screenshot FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ? AND version = (SELECT MAX(version) FROM "+DBGuiImportComponents.this.selectedDatabase.getSchemaPrefix()+"views WHERE id = ?)", DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id"), DBGuiImportComponents.this.tblComponents.getSelection()[0].getData("id")) ) {
 							if ( resultViewScreenshot.next() )
 								screenshot = resultViewScreenshot.getBytes("screenshot");
 						} catch (SQLException e) {
@@ -1766,13 +1766,13 @@ public class DBGuiImportComponents extends DBGui {
 		if ( this.filterName.getText().length() != 0 )
 			filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 			
-		try (ResultSet result = this.importConnection.select("SELECT id, version, name, purpose FROM "+this.selectedDatabase.getSchemaPrefix()+"models m WHERE version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"models WHERE id = m.id)" + filterRequest) ) {
+		try (DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT id, version, name, purpose FROM "+this.selectedDatabase.getSchemaPrefix()+"models m WHERE version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"models WHERE id = m.id)" + filterRequest) ) {
 			while (result.next()) {
 				if ( !DBPlugin.areEqual(result.getString("id"), this.importedModel.getId()) ) {
 					StringBuilder tooltipBuilder = new StringBuilder();
 					TableItem item = createTableItem(this.tblComponents, result.getString("id"), "model", result.getString("name"), result.getString("purpose"));
 					logger.trace("Found model "+result.getString("name"));
-					try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+					try ( DBSelect resultProperties = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
 						while ( resultProperties.next() ) {
 							if ( tooltipBuilder.length() != 0 )
 								tooltipBuilder.append("\n");
@@ -1855,13 +1855,13 @@ public class DBGuiImportComponents extends DBGui {
 				if ( this.filterName.getText().length() != 0 )
 					filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 				
-				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList) ) {
+				try (DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"elements e WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList) ) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllElements().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
 							TableItem item = createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 
-							try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+							try ( DBSelect resultProperties = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
 								while ( resultProperties.next() ) {
 									if ( tooltipBuilder.length() != 0 )
 										tooltipBuilder.append("\n");
@@ -2025,13 +2025,13 @@ public class DBGuiImportComponents extends DBGui {
 				if ( this.filterName.getText().length() != 0 )
 					filterRequest = " AND UPPER(name) like '%"+this.filterName.getText().toUpperCase()+"%'";
 				
-				try (ResultSet result = this.importConnection.select("SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList)) {
+				try (DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT id, version, class, name, documentation FROM "+this.selectedDatabase.getSchemaPrefix()+"views v WHERE class IN ("+inList.toString()+")" + filterRequest + addOn, classList)) {
 					while (result.next()) {
 						if ( !this.hideAlreadyInModel.getSelection() || (this.importedModel.getAllViews().get(result.getString("id"))==null)) {
 							StringBuilder tooltipBuilder = new StringBuilder();
 							TableItem item = createTableItem(this.tblComponents, result.getString("id"), result.getString("Class"), result.getString("name"), result.getString("documentation"));
 
-							try ( ResultSet resultProperties = this.importConnection.select("SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
+							try ( DBSelect resultProperties = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT name, value FROM "+this.selectedDatabase.getSchemaPrefix()+"properties WHERE parent_id = ? AND parent_version = ?", result.getString("id"), result.getInt("version")) ) {
 								while ( resultProperties.next() ) {
 									if ( tooltipBuilder.length() != 0 )
 										tooltipBuilder.append("\n");
@@ -2102,7 +2102,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					Map<String, String> translatedFolders = new HashMap<String, String>();
 					
-					try ( ResultSet result = this.importConnection.select("SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.rank", id, id) ) {
 						while ( result.next() ) {
 							// we check if we already know how to convert this folder
 							String convertedFolderId = translatedFolders.get(result.getString("folder_id"));
@@ -2121,7 +2121,7 @@ public class DBGuiImportComponents extends DBGui {
 									// for other folders, we recursively get the name of the parent folders until a root folder is found
 									StringBuilder folderPathBuilder = new StringBuilder();
 									while ( !isRootFolder ) {
-										try (ResultSet subResult = this.importConnection.select("SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) AND fim.folder_id = ?", id, id, folderId) ) {
+										try (DBSelect subResult = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) AND fim.folder_id = ?", id, id, folderId) ) {
 											if ( folderPathBuilder.length() == 0 )
 												folderPathBuilder.append(subResult.getString("name"));
 											else {
@@ -2180,7 +2180,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import elements
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing elements from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
@@ -2200,7 +2200,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import relationships
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing relationships from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
@@ -2229,7 +2229,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import views
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing views from model \""+name+"\".");
-					try ( ResultSet result = this.importConnection.select("SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
