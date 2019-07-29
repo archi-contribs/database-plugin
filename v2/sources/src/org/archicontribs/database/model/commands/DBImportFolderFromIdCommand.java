@@ -26,6 +26,7 @@ import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
+import com.archimatetool.model.util.UUIDFactory;
 
 /**
  * Command for importing a folder from it's ID.
@@ -86,7 +87,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportFro
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
 			if ( this.mustCreateCopy ) {
-				this.newValues.put("id", this.model.getIDAdapter().getNewID());
+				this.newValues.put("id", UUIDFactory.createID(null));
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 			

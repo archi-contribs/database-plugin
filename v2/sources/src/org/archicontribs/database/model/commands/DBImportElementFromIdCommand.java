@@ -34,6 +34,7 @@ import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
+import com.archimatetool.model.util.UUIDFactory;
 
 /**
  * Command for importing an element from it's ID.
@@ -105,7 +106,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
 			if ( this.mustCreateCopy ) {
-				String newId = this.model.getIDAdapter().getNewID();
+				String newId = UUIDFactory.createID(null);
 				this.model.registerCopiedElement((String)this.newValues.get("id"), newId);
 				this.newValues.put("id", newId);
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));

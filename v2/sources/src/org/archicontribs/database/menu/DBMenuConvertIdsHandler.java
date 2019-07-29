@@ -30,7 +30,7 @@ import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.util.IDAdapter;
+import com.archimatetool.model.util.UUIDFactory;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -53,7 +53,6 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
     @Override
     public Object execute(ExecutionEvent event) throws ExecutionException {
         DBArchimateModel model = (DBArchimateModel) ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
-        IDAdapter adapter = new IDAdapter();
         int idsReplaced = 0;
 
         DBGui.popup("Checking IDs ...");
@@ -62,48 +61,48 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
             model.countAllObjects();
             
             if ( model.getId().length() != 36 ) {
-                model.setId(adapter.getNewID());
+                model.setId(UUIDFactory.createID(model));
                 ++idsReplaced;
             }
 
             for (IFolder folder: model.getAllFolders().values() ) {
                 if ( folder.getId().length() != 36 ) {
-                    folder.setId(adapter.getNewID());
+                    folder.setId(UUIDFactory.createID(folder));
                     ++idsReplaced;
                 }
             }
 
             for (IArchimateElement element: model.getAllElements().values() ) {
                 if ( element.getId().length() != 36 ) {
-                    element.setId(adapter.getNewID());
+                    element.setId(UUIDFactory.createID(element));
                     ++idsReplaced;
                 }
             }
 
             for (IArchimateRelationship relationship: model.getAllRelationships().values() ) {
                 if ( relationship.getId().length() != 36 ) {
-                    relationship.setId(adapter.getNewID());
+                    relationship.setId(UUIDFactory.createID(relationship));
                     ++idsReplaced;
                 }
             }
 
             for (IDiagramModel view: model.getAllViews().values() ) {
                 if ( view.getId().length() != 36 ) {
-                    view.setId(adapter.getNewID());
+                    view.setId(UUIDFactory.createID(view));
                     ++idsReplaced;
                 }
             }
             
             for (IDiagramModelComponent viewObject: model.getAllViewObjects().values() ) {
                 if ( viewObject.getId().length() != 36 ) {
-                    viewObject.setId(adapter.getNewID());
+                    viewObject.setId(UUIDFactory.createID(viewObject));
                     ++idsReplaced;
                 }
             }
             
             for (IDiagramModelConnection viewConnection: model.getAllViewConnections().values() ) {
                 if ( viewConnection.getId().length() != 36 ) {
-                    viewConnection.setId(adapter.getNewID());
+                    viewConnection.setId(UUIDFactory.createID(viewConnection));
                     ++idsReplaced;
                 }
             }
