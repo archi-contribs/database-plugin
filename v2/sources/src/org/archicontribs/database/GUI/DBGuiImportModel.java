@@ -330,7 +330,7 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colVersion = new TableColumn(this.tblModelVersions, SWT.NONE);
         colVersion.setText("#");
-        colVersion.setWidth(20);
+        colVersion.setWidth(40);
 
         TableColumn colCreatedOn = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedOn.setText("Date");
@@ -338,7 +338,7 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colCreatedBy = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedBy.setText("Author");
-        colCreatedBy.setWidth(125);
+        colCreatedBy.setWidth(150);
 
         this.lblModelName = new Label(this.grpModelVersions, SWT.NONE);
         this.lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
