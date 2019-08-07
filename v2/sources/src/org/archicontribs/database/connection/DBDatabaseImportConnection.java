@@ -479,11 +479,13 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				
 				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+element.getClass().getSimpleName()+" \""+element.getName()+"\" version "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion());
 
-				IFolder folder;
-				if ( this.currentResultSetElements.getString("parent_folder_id") == null ) {
-					folder = model.getDefaultFolderForObject(element);
-				} else {
-					folder = model.getAllFolders().get(this.currentResultSetElements.getString("parent_folder_id"));
+				IFolder folder = null;
+				if ( this.currentResultSetElements.getString("parent_folder_id") != null ) {
+				    folder = model.getAllFolders().get(this.currentResultSetElements.getString("parent_folder_id"));
+				}
+				
+				if ( folder == null ) {
+				    folder = model.getDefaultFolderForObject(element);
 				}
 				folder.getElements().add(element);
 
@@ -533,12 +535,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				
 				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion());
 
-				IFolder folder;
+				IFolder folder = null;
 				if ( this.currentResultSetRelationships.getString("parent_folder_id") == null ) {
-					folder = model.getDefaultFolderForObject(relationship);
-				} else {
-					folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
+				    folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
 				}
+				
+				if ( folder == null ) {
+				    folder = model.getDefaultFolderForObject(relationship);
+				}
+				
 				folder.getElements().add(relationship);
 
 				IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
