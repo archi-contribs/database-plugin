@@ -814,7 +814,7 @@ public class DBGuiImportModel extends DBGui {
         if ( this.grpProgressBar != null ) this.grpProgressBar.setVisible(false);
 
         setActiveAction(ACTION.Three);
-        this.btnClose.setText("close");
+        this.btnClose.setText("Close");
         
         Color statusColor = GREEN_COLOR;
         

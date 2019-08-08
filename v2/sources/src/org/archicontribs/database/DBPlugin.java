@@ -321,6 +321,15 @@ public class DBPlugin extends AbstractUIPlugin {
 
 	static DBLogger logger;
 	
+    /**
+     * Choices available when a conflict is detected in the database<br>
+     * <li><b>askUser</b> Ask the user what he wishes to do</li>
+     * <li><b>doNotExport</b> Do not export to the database</li>
+     * <li><b>exportToDatabase</b> Export to the database</li>
+     * <li><b>importFromDatabase</b> Replace the component with the version in the database</li>
+     */
+    public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase}
+	
 	/**
 	 * Returns true is runs on Windows operating system, false for all other operating systems
 	 */

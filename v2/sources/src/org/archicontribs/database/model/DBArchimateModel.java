@@ -12,6 +12,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import org.archicontribs.database.DBLogger;
+import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
 import org.eclipse.emf.ecore.EObject;
@@ -182,6 +183,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @Getter private Map<String, String> allCopiedViewConnections = new LinkedHashMap<String, String>();
     
     /**
+     * List of all conflicts in the model and the option chosen by the user.<br>
+     */
+    @Getter private Map<String, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<String, CONFLICT_CHOICE>();
+    
+    /**
      * List of all the image paths in the model.
      */
     public List<String> getAllImagePaths() {
@@ -214,6 +220,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allViewObjects.clear();
         this.allViewConnections.clear();
         this.allFolders.clear();
+        this.allConflicts.clear();
     }
 
     /**

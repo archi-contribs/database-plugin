@@ -80,14 +80,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 
 	/**
-	 * duplicates a connection to a JDBC database to allow switching between importConnection and exportConnection
+	 * duplicates a connection to a JDBC database to allow switching between DBDatabaseExportConnection and DBDatabaseImportConnection
 	 */
-	public DBDatabaseImportConnection(DBDatabaseConnection databaseConnection) {
+	public DBDatabaseImportConnection(DBDatabaseExportConnection exportConnection) {
 		super();
-		assert(databaseConnection != null);
-		super.databaseEntry = databaseConnection.databaseEntry;
-		super.schema = databaseConnection.schema;
-		super.connection = databaseConnection.connection;
+		assert(exportConnection != null);
+		super.databaseEntry = exportConnection.databaseEntry;
+		super.schema = exportConnection.schema;
+		super.connection = exportConnection.connection;
 		this.isExportConnectionDuplicate = true;
 		
 		this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
@@ -95,6 +95,23 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
 		this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
 	}
+	
+	 /**
+     * duplicates a connection to a JDBC database to allow switching between DBDatabaseConnection and DBDatabaseImportConnection
+     */
+    public DBDatabaseImportConnection(DBDatabaseConnection databaseConnection) {
+        super();
+        assert(databaseConnection != null);
+        super.databaseEntry = databaseConnection.databaseEntry;
+        super.schema = databaseConnection.schema;
+        super.connection = databaseConnection.connection;
+        this.isExportConnectionDuplicate = false;
+        
+        this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
+        this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
+        this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
+        this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
+    }
 
 	/**
 	 * ResultSet of the current transaction (used by import process to allow the loop to be managed outside the DBdatabase class)

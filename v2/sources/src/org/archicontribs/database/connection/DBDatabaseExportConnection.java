@@ -89,16 +89,28 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	}
 
 	/**
-	 * duplicates a connection to a JDBC database to allow switching between importConnection and exportConnection
+	 * duplicates a connection to a JDBC database to allow switching between DBDatabaseImportConnection and DBDatabaseExportConnection
 	 */
-	public DBDatabaseExportConnection(DBDatabaseConnection databaseConnection) {
+	public DBDatabaseExportConnection(DBDatabaseImportConnection importConnection) {
 		super();
-		assert(databaseConnection != null);
-		super.databaseEntry = databaseConnection.databaseEntry;
-		super.schema = databaseConnection.schema;
-		super.connection = databaseConnection.connection;
+		assert(importConnection != null);
+		super.databaseEntry = importConnection.databaseEntry;
+		super.schema = importConnection.schema;
+		super.connection = importConnection.connection;
 		this.isImportconnectionDuplicate = true;
 	}
+	
+	 /**
+     * duplicates a connection to a JDBC database to allow switching between DBDatabaseConnection and DBDatabaseExportConnection
+     */
+    public DBDatabaseExportConnection(DBDatabaseConnection databaseConnection) {
+        super();
+        assert(databaseConnection != null);
+        super.databaseEntry = databaseConnection.databaseEntry;
+        super.schema = databaseConnection.schema;
+        super.connection = databaseConnection.connection;
+        this.isImportconnectionDuplicate = false;
+    }
 
 	@Getter private HashMap<String, DBMetadata> elementsNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> relationshipsNotInModel = new HashMap<String, DBMetadata>();
@@ -143,9 +155,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             model.getCurrentVersion().setVersion(model.getDatabaseVersion().getVersion());
 
             if ( logger.isTraceEnabled() ) {
-                logger.trace("   Initial version = " + model.getInitialVersion().getVersion());
-                logger.trace("   Current version = " + model.getCurrentVersion().getVersion());
-                logger.trace("   Database version = "+ model.getDatabaseVersion().getVersion());
+                logger.trace("         Initial version = " + model.getInitialVersion().getVersion());
+                logger.trace("         Current version = " + model.getCurrentVersion().getVersion());
+                logger.trace("         Database version = "+ model.getDatabaseVersion().getVersion());
             }
         }
 	}
@@ -265,10 +277,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 		}
         if ( logger.isTraceEnabled() ) {
-            logger.trace("   Initial version = " + metadata.getInitialVersion().getVersion());
-            logger.trace("   Current version = " + metadata.getCurrentVersion().getVersion());
-            logger.trace("   Database version = "+ metadata.getDatabaseVersion().getVersion());
-            logger.trace("   Latest db version = "+ metadata.getLatestDatabaseVersion().getVersion());
+            logger.trace("         Initial version = " + metadata.getInitialVersion().getVersion());
+            logger.trace("         Current version = " + metadata.getCurrentVersion().getVersion());
+            logger.trace("         Database version = "+ metadata.getDatabaseVersion().getVersion());
+            logger.trace("         Latest db version = "+ metadata.getLatestDatabaseVersion().getVersion());
         }
     }
 

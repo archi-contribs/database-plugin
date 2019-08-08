@@ -131,20 +131,6 @@ public class DBMetadata  {
     }
 
     /**
-     * Choices available when a conflict is detected in the database<br>
-     * <li><b>askUser</b> Ask the user what he wishes to do</li>
-     * <li><b>doNotExport</b> Do not export to the database</li>
-     * <li><b>exportToDatabase</b> Export to the database</li>
-     * <li><b>importFromDatabase</b> Replace the component with the version in the database</li>
-     */
-    public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase}
-    /**
-     * Stores the action that need to be done in case of a database conflict
-     * @see CONFLICT_CHOICE
-     */
-    @Getter @Setter private CONFLICT_CHOICE conflictChoice = CONFLICT_CHOICE.askUser;
-
-    /**
      * Gives a status of the component regarding it's database version:<br>
      * <li><b>isSynced</b></li> The component exists in both the database and the model, and they are in sync
      * <li><b>isNewInModel</b></li> The component exists in the model but not in the database<br>

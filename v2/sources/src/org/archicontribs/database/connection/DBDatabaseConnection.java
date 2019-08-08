@@ -143,13 +143,13 @@ public class DBDatabaseConnection implements AutoCloseable {
         if ( this.connection == null || this.connection.isClosed() ) {
             if ( logger.isDebugEnabled() ) logger.debug("The database connection is already closed.");
         } else {
-            if ( logger.isDebugEnabled() ) logger.debug("Closing database connection.");
             // if some transactions have not been committed before calling this close method, then they must be rolled back
             try {
                 rollback();
-            } catch (@SuppressWarnings("unused") SQLException ign) {
-                // nothing to do
+            } catch (SQLException err) {
+                logger.error("Failed to rollback the database transactions.", err);
             }
+            if ( logger.isDebugEnabled() ) logger.debug("Closing database connection.");
             this.connection.close();
         }
         this.connection = null;
@@ -920,7 +920,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             DBGui.popup("Please wait while calculating new checksum on views table.");
             
             DBArchimateModel tempModel = new DBArchimateModel();
-            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
+            try ( DBDatabaseImportConnection importConnection = (DBDatabaseImportConnection)this ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
                 try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
@@ -1138,7 +1138,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             
             DBArchimateModel tempModel = new DBArchimateModel();
             
-            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
+            try ( DBDatabaseImportConnection importConnection = (DBDatabaseImportConnection)this ) {
                 try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
                         IDiagramModel view;
@@ -1311,14 +1311,18 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Rollbacks the current transaction
      */
     public void rollback(Savepoint savepoint) throws SQLException {
-        if ( this.connection.getAutoCommit() ) {
-        	if ( logger.isDebugEnabled() ) logger.debug("Do not rollback as database is in auto commit mode.");
+        if ( this.connection == null ) {
+            logger.warn("Cannot rollback as there is no database connection opened.");
         } else {
-        	if ( logger.isDebugEnabled() ) logger.debug("Rollbacking database transaction.");
-        	if ( savepoint == null )
-        		this.connection.rollback();
-        	else
-        		this.connection.rollback(savepoint);
+            if ( this.connection.getAutoCommit() ) {
+            	if ( logger.isDebugEnabled() ) logger.debug("Do not rollback as database is in auto commit mode.");
+            } else {
+            	if ( logger.isDebugEnabled() ) logger.debug("Rollbacking database transaction.");
+            	if ( savepoint == null )
+            		this.connection.rollback();
+            	else
+            		this.connection.rollback(savepoint);
+            }
         }
     }
     

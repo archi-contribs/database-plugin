@@ -117,7 +117,7 @@ public class DBGui {
 
     protected List<DBDatabaseEntry> databaseEntries;
     protected DBDatabaseEntry selectedDatabase;
-    private DBDatabaseImportConnection connection;
+    DBDatabaseImportConnection connection;
 
     protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
     protected Shell dialog;
@@ -1082,9 +1082,11 @@ public class DBGui {
     }
 
     public void hideProgressBar() {
-        this.grpProgressBar.setVisible(false);
-        this.grpProgressBar.setData("visible", false);
-        refreshDisplay();
+        if ( this.progressBar != null ) {
+            this.grpProgressBar.setVisible(false);
+            this.grpProgressBar.setData("visible", false);
+            refreshDisplay();
+        }
     }
 
     public void setProgressBarLabel(String label) {
