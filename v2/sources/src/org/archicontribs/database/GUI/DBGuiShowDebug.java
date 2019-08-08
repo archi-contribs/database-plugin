@@ -38,7 +38,7 @@ public class DBGuiShowDebug extends DBGui {
     private DBMetadata selectedMetadata;
     private DBArchimateModel model;
     
-    private DBDatabaseExportConnection connection = null;
+    private DBDatabaseExportConnection exportConnection = null;
     
     private Group grpDebug;
     
@@ -445,23 +445,23 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentDebugTable.removeAll();
         this.correspondingConceptDebugTable.removeAll();
         
-        this.connection = new DBDatabaseExportConnection(getDatabaseConnection());
+        this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
         
         // we get the version and checksum from the database
         try {
         	if ( this.selectedObject instanceof IArchimateModelObject )
-        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
+        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
         	else if ( this.selectedObject instanceof IDiagramModelObject )
-        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelObject)this.selectedObject).getDiagramModel().getArchimateModel());
+        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelObject)this.selectedObject).getDiagramModel().getArchimateModel());
         	else if ( this.selectedObject instanceof IDiagramModelConnection )
-        		this.connection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelConnection)this.selectedObject).getDiagramModel().getArchimateModel());
+        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelConnection)this.selectedObject).getDiagramModel().getArchimateModel());
         	
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
-            	this.connection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getDiagramModel());
-                this.connection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
+            	this.exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getDiagramModel());
+                this.exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
             }
             
-            this.connection.getVersionFromDatabase((IIdentifier)this.selectedObject);
+            this.exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
         } catch (Exception err) {
             popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;
