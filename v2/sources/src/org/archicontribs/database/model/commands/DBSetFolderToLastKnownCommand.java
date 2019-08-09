@@ -26,7 +26,7 @@ import com.archimatetool.model.util.Logger;
  * <br>
  * This methods does nothing if the model is the latest in the database
  */
-public class DBSetFolderToLastKnownCommand extends Command {
+public class DBSetFolderToLastKnownCommand extends Command  implements IDBCommand {
     private Exception exception = null;
     
     private Map<EObject, IFolder> oldObjectsFolders = new HashMap<EObject, IFolder>();
@@ -140,6 +140,7 @@ public class DBSetFolderToLastKnownCommand extends Command {
         return (this.newObjectsFolders.size() != 0) || (this.oldObjectsFolders.size() != 0);
     }
     
+    @Override
     public Exception getException() {
         return this.exception;
     }

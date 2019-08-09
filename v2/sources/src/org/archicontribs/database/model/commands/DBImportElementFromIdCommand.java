@@ -41,7 +41,7 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportElementFromIdCommand extends Command implements IDBImportFromIdCommand {
+public class DBImportElementFromIdCommand extends Command implements IDBImportCommand {
 	private static final DBLogger logger = new DBLogger(DBImportElementFromIdCommand.class);
 	
 	private static int createdViewObjectXLocation = 0;
@@ -51,7 +51,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 	private IDiagramModelArchimateObject createdViewObject = null;
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-	private List<IDBImportFromIdCommand> importRelationshipCommands = new ArrayList<IDBImportFromIdCommand>();
+	private List<IDBImportCommand> importRelationshipCommands = new ArrayList<IDBImportCommand>();
 	private Exception exception = null;
 
 	private DBArchimateModel model = null;
@@ -134,7 +134,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
 						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), id) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), id) || target != null) ) {
-							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
+							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
 							else
@@ -249,7 +249,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportFr
 				this.model.countObject(this.importedElement, false, null);
 
 			// if some relationships must be imported
-			for (IDBImportFromIdCommand childCommand: this.importRelationshipCommands) {
+			for (IDBImportCommand childCommand: this.importRelationshipCommands) {
 				if ( childCommand.canExecute() )
 					childCommand.execute();
 

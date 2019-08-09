@@ -40,7 +40,7 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportRelationshipFromIdCommand extends Command implements IDBImportFromIdCommand {
+public class DBImportRelationshipFromIdCommand extends Command implements IDBImportCommand {
 	private static final DBLogger logger = new DBLogger(DBImportRelationshipFromIdCommand.class);
 
 	private IArchimateRelationship importedRelationship = null;

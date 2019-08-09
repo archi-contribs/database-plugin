@@ -25,12 +25,13 @@ import com.archimatetool.model.IDiagramModelObject;
  * 
  * @author Herve Jouin
  */
-public class DBDeleteDiagramObjectCommand extends Command {
+public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand {
     private IDiagramModelContainer viewObjectParent;
     private IDiagramModelObject viewObject;
     private IArchimateModel model;
     private int viewObjectIndex;
     private ArrayList<IDiagramModelObject> viewObjectChildren;
+    private Exception exception = null;
     
     public DBDeleteDiagramObjectCommand(IArchimateModel model, IDiagramModelObject object) {
         this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
@@ -52,34 +53,42 @@ public class DBDeleteDiagramObjectCommand extends Command {
     @Override
     public void execute() {
         // Ensure viewObjectIndex is stored just before execute because if this is part of a composite delete action, then the index positions will have changed
-        this.viewObjectIndex = this.viewObjectParent.getChildren().indexOf(this.viewObject); 
-        if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
-            // we move the viewObject children to the viewObjectParent
-            if ( this.viewObject instanceof IDiagramModelContainer ) {
-                for ( IDiagramModelObject child: ((IDiagramModelContainer)this.viewObject).getChildren() )
-                    this.viewObjectChildren.add(child);
-                
-                for ( IDiagramModelObject child: this.viewObjectChildren )
-                    this.viewObjectParent.getChildren().add(child);
+        try {
+            this.viewObjectIndex = this.viewObjectParent.getChildren().indexOf(this.viewObject); 
+            if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
+                // we move the viewObject children to the viewObjectParent
+                if ( this.viewObject instanceof IDiagramModelContainer ) {
+                    for ( IDiagramModelObject child: ((IDiagramModelContainer)this.viewObject).getChildren() )
+                        this.viewObjectChildren.add(child);
+                    
+                    for ( IDiagramModelObject child: this.viewObjectChildren )
+                        this.viewObjectParent.getChildren().add(child);
+                }
+                ((IDBMetadata)((IDiagramModelComponent)this.viewObject).getDiagramModel()).getDBMetadata().setChecksumValid(false);
+                ((DBArchimateModel)this.model).getAllViewObjects().remove(this.viewObject.getId());
+                this.viewObjectParent.getChildren().remove(this.viewObject);
             }
-            ((IDBMetadata)((IDiagramModelComponent)this.viewObject).getDiagramModel()).getDBMetadata().setChecksumValid(false);
-            ((DBArchimateModel)this.model).getAllViewObjects().remove(this.viewObject.getId());
-            this.viewObjectParent.getChildren().remove(this.viewObject);
+        } catch (Exception e) {
+            this.exception = e;
         }
     }
     
     @Override
     public void undo() {
         // Add the Child at old index position
-        if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
-            this.viewObjectParent.getChildren().add(this.viewObjectIndex, this.viewObject);
-            
-            // we restore the children to the viewObject
-            for ( IDiagramModelObject child: this.viewObjectChildren ) {
-                this.viewObjectParent.getChildren().remove(child);
-                ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
+        try {
+            if ( this.viewObjectIndex != -1 ) {        // might have already been deleted by another process
+                this.viewObjectParent.getChildren().add(this.viewObjectIndex, this.viewObject);
+                
+                // we restore the children to the viewObject
+                for ( IDiagramModelObject child: this.viewObjectChildren ) {
+                    this.viewObjectParent.getChildren().remove(child);
+                    ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
+                }
+                ((DBArchimateModel)this.model).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
             }
-            ((DBArchimateModel)this.model).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
+        } catch (Exception e) {
+            this.exception = e;
         }
     }
 
@@ -88,5 +97,10 @@ public class DBDeleteDiagramObjectCommand extends Command {
         this.viewObjectParent = null;
         this.viewObject = null;
         this.viewObjectChildren = null;
+    }
+
+    @Override
+    public Exception getException() {
+        return this.exception;
     }
 }

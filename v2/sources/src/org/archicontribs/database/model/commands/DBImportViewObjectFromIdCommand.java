@@ -42,7 +42,7 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewObjectFromIdCommand extends CompoundCommand implements IDBImportFromIdCommand {
+public class DBImportViewObjectFromIdCommand extends CompoundCommand implements IDBImportCommand {
     private static final DBLogger logger = new DBLogger(DBImportViewObjectFromIdCommand.class);
 
     private EObject importedViewObject = null; 

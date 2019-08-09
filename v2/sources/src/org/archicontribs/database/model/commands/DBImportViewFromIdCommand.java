@@ -39,13 +39,13 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewFromIdCommand extends Command implements IDBImportFromIdCommand {
+public class DBImportViewFromIdCommand extends Command implements IDBImportCommand {
 	private static final DBLogger logger = new DBLogger(DBImportViewFromIdCommand.class);
 
 	private IDiagramModel importedView= null; 
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-	private List<IDBImportFromIdCommand> importViewContentCommands = new ArrayList<IDBImportFromIdCommand>();
+	private List<IDBImportCommand> importViewContentCommands = new ArrayList<IDBImportCommand>();
 	private Exception exception;
 
 	private DBArchimateModel model = null;
@@ -234,7 +234,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportFromI
 				this.model.countObject(this.importedView, false, null);
 
 			// if some content must be imported
-			for (IDBImportFromIdCommand childCommand: this.importViewContentCommands) {
+			for (IDBImportCommand childCommand: this.importViewContentCommands) {
 				childCommand.execute();
 
 				if ( childCommand.getException() != null )

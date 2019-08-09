@@ -41,7 +41,7 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportViewConnectionFromIdCommand extends CompoundCommand implements IDBImportFromIdCommand{
+public class DBImportViewConnectionFromIdCommand extends CompoundCommand implements IDBImportCommand {
 	private static final DBLogger logger = new DBLogger(DBImportViewConnectionFromIdCommand.class);
 
 	private IDiagramModelConnection importedViewConnection = null; 

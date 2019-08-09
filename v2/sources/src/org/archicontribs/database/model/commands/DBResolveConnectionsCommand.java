@@ -6,7 +6,6 @@
 package org.archicontribs.database.model.commands;
 
 import org.archicontribs.database.model.DBArchimateModel;
-import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.Command;
 
 /**
@@ -14,7 +13,7 @@ import org.eclipse.gef.commands.Command;
  * 
  * @author Herve Jouin
  */
-public class DBResolveConnectionsCommand extends Command implements IDBImportFromIdCommand {
+public class DBResolveConnectionsCommand extends Command implements IDBCommand {
     private DBArchimateModel model = null;
     
     private Exception exception = null;
@@ -45,13 +44,6 @@ public class DBResolveConnectionsCommand extends Command implements IDBImportFro
 	public void undo() {
     	this.commandHasBeenExecuted = false;
     }
-    
-    // redo is same as execute
-
-	@Override
-	public EObject getImported() {
-		return null;
-	}
 
 	@Override
 	public Exception getException() {

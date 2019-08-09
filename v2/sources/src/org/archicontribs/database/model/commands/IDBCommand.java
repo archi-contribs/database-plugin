@@ -1,8 +1,6 @@
 package org.archicontribs.database.model.commands;
 
-import org.eclipse.emf.ecore.EObject;
-
-public interface IDBImportFromIdCommand {
+public interface IDBCommand {
     public boolean canExecute();
     public void execute();
     
@@ -11,8 +9,6 @@ public interface IDBImportFromIdCommand {
     
     public boolean canRedo();
     public void redo();
-    
-    public EObject getImported();
     
     public Exception getException();
     

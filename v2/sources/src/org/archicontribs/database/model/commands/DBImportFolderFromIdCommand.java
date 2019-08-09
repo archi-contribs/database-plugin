@@ -33,7 +33,7 @@ import com.archimatetool.model.util.UUIDFactory;
  * 
  * @author Herve Jouin
  */
-public class DBImportFolderFromIdCommand extends Command implements IDBImportFromIdCommand {
+public class DBImportFolderFromIdCommand extends Command implements IDBImportCommand {
 	private static final DBLogger logger = new DBLogger(DBImportFolderFromIdCommand.class);
 
 	private IFolder importedFolder= null; 

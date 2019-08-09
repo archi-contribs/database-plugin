@@ -16,13 +16,14 @@ import com.archimatetool.model.IDiagramModelConnection;
 /**
  * Delete Diagram Connection Command<br>
  * <br>
- * This class is a copy of the {@link com.archimatetool.editor.diagram.commands.DeleteDiagramConnectionCommand} written by Phillip Beauvoir
+ * This class is based on {@link com.archimatetool.editor.diagram.commands.DeleteDiagramConnectionCommand} written by Phillip Beauvoir
  * 
  * @author Herve Jouin
  */
-public class DBDeleteDiagramConnectionCommand extends Command {
+public class DBDeleteDiagramConnectionCommand extends Command implements IDBCommand {
     private IDiagramModelConnection fConnection;
     private IArchimateModel fModel;
+    Exception exception = null;
     
     /** 
      * Create a command that will disconnect a connection from its endpoints.
@@ -35,20 +36,33 @@ public class DBDeleteDiagramConnectionCommand extends Command {
     
     @Override
     public void execute() {
-        ((DBArchimateModel)this.fModel).getAllViewConnections().remove(this.fConnection.getId());
-        ((IDBMetadata)(this.fConnection).getDiagramModel()).getDBMetadata().setChecksumValid(false);
-        this.fConnection.disconnect();
+        try {
+            ((DBArchimateModel)this.fModel).getAllViewConnections().remove(this.fConnection.getId());
+            ((IDBMetadata)(this.fConnection).getDiagramModel()).getDBMetadata().setChecksumValid(false);
+            this.fConnection.disconnect();
+        } catch ( Exception e ) {
+            this.exception = e;
+        }
     }
     
     @Override
     public void undo() {
-        this.fConnection.reconnect();
-        ((DBArchimateModel)this.fModel).getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
+        try {
+            this.fConnection.reconnect();
+            ((DBArchimateModel)this.fModel).getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
+        } catch (Exception e) {
+            this.exception = e;
+        }
     }
 
 
     @Override
     public void dispose() {
         this.fConnection = null;
+    }
+
+    @Override
+    public Exception getException() {
+        return this.exception;
     }
 }
