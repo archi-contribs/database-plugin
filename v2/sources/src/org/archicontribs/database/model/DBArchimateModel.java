@@ -275,7 +275,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         }
 
         for (IFolder folder: getFolders() ) {
-            countObject(folder, true, null);
+            countObject(folder, true);
         }
     }
 
@@ -287,7 +287,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @return the concatenation of the checksums of all the eObject components
      */
     @SuppressWarnings("null")
-    public String countObject(EObject eObject, boolean mustCalculateChecksum, IDiagramModel parentDiagram) throws Exception {
+    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws Exception {
         StringBuilder checksumBuilder = null;
         DBMetadata objectMetadata = (eObject instanceof IDBMetadata) ? ((IDBMetadata)eObject).getDBMetadata() : null;
         int len = 0;
@@ -314,7 +314,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            }
 										            
 										            for ( EObject child: ((IDiagramModel)eObject).getChildren() )
-										                countObject(child, mustCalculateChecksum, (IDiagramModel)eObject);
+										                countObject(child, mustCalculateChecksum);
 										            
 										            if ( mustCalculateChecksum ) {
 										                checksumBuilder = new StringBuilder(this.viewChecksum.toString());
@@ -340,7 +340,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 									                
 										            if ( eObject instanceof IDiagramModelContainer ) {
 									                	for ( EObject child: ((IDiagramModelContainer)eObject).getChildren() ) {
-									                	    String subChecksum = countObject(child, mustCalculateChecksum, parentDiagram);
+									                	    String subChecksum = countObject(child, mustCalculateChecksum);
 									                	    if ( mustCalculateChecksum ) {
 									                	        checksumBuilder.append(subChecksum);
 									                	        if ( this.viewChecksum != null )
@@ -351,7 +351,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            
 										            if ( eObject instanceof IConnectable) {
 										                for ( EObject source: ((IConnectable)eObject).getSourceConnections() ) {
-										                    String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
+										                    String subChecksum = countObject(source, mustCalculateChecksum);
 										                    if ( mustCalculateChecksum && (this.viewChecksum != null) )
 										                        this.viewChecksum.append(subChecksum);
 										                }
@@ -374,7 +374,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                                                     }
             
                                                     for ( EObject source: ((IDiagramModelConnection)eObject).getSourceConnections() ) {
-                                                        String subChecksum = countObject(source, mustCalculateChecksum, parentDiagram);
+                                                        String subChecksum = countObject(source, mustCalculateChecksum);
                                                         if ( mustCalculateChecksum && (this.viewChecksum != null) )
                                                             this.viewChecksum.append(subChecksum);
                                                     }
@@ -389,7 +389,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            for ( IFolder subFolder: sortedFolder ) {
 														// we fix the folder type
 														subFolder.setType(FolderType.USER);
-										                countObject(subFolder, mustCalculateChecksum, parentDiagram);
+										                countObject(subFolder, mustCalculateChecksum);
 										                if ( mustCalculateChecksum ) checksumBuilder.append(subFolder.getId());
 										            }
 										
@@ -397,7 +397,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                                                     List<EObject> sortedChild = new ArrayList<EObject>(((IFolder)eObject).getElements());
                                                     sortedChild.sort(this.objectComparator);
 										            for ( EObject child: sortedChild ) {
-										                countObject(child, mustCalculateChecksum, parentDiagram);
+										                countObject(child, mustCalculateChecksum);
 										                if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 										            }
 										            break;

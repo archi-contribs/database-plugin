@@ -336,7 +336,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( view!= null )
                 ((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
 
-            this.model.countObject(this.importedViewObject, false, null);
+            this.model.countObject(this.importedViewObject, false);
 
         } catch (Exception err) {
             Logger.logError("Got Exception "+err.getMessage());

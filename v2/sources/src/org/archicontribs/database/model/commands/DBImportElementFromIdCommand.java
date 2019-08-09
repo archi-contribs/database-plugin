@@ -242,11 +242,11 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				    createdViewObjectXLocation = 0;
 				}
 				this.view.getChildren().add(this.createdViewObject);
-				this.model.countObject(this.createdViewObject, false, null);
+				this.model.countObject(this.createdViewObject, false);
 			}
 
 			if ( this.isNew )
-				this.model.countObject(this.importedElement, false, null);
+				this.model.countObject(this.importedElement, false);
 
 			// if some relationships must be imported
 			for (IDBImportCommand childCommand: this.importRelationshipCommands) {

@@ -183,7 +183,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 				metadata.setParentFolder(this.newFolder);
 
 			if ( this.isNew )
-				this.model.countObject(this.importedFolder, false, null);
+				this.model.countObject(this.importedFolder, false);
 
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());

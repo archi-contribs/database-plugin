@@ -231,7 +231,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				metadata.setParentFolder(this.newFolder);
 
 			if ( this.isNew )
-				this.model.countObject(this.importedView, false, null);
+				this.model.countObject(this.importedView, false);
 
 			// if some content must be imported
 			for (IDBImportCommand childCommand: this.importViewContentCommands) {

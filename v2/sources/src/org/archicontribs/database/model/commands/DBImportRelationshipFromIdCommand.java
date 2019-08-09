@@ -246,7 +246,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				metadata.setParentFolder(this.newFolder);
 
 			if ( this.isNew )
-				this.model.countObject(this.importedRelationship, false, null);
+				this.model.countObject(this.importedRelationship, false);
 
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());

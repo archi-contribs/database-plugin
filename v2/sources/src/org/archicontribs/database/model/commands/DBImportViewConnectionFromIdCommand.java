@@ -280,7 +280,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			if ( view!= null )
 				((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
 
-			this.model.countObject(this.importedViewConnection, false, null);
+			this.model.countObject(this.importedViewConnection, false);
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());
 			this.importedViewConnection = null;
