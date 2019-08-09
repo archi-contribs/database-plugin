@@ -11,6 +11,7 @@ import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.model.IArchimateModel;
+import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelConnection;
 
 /**
@@ -37,8 +38,10 @@ public class DBDeleteDiagramConnectionCommand extends Command implements IDBComm
     @Override
     public void execute() {
         try {
+            IDiagramModel diagramModel = this.fConnection.getDiagramModel();
+            if ( diagramModel != null )
+                ((IDBMetadata)diagramModel).getDBMetadata().setChecksumValid(false);
             ((DBArchimateModel)this.fModel).getAllViewConnections().remove(this.fConnection.getId());
-            ((IDBMetadata)(this.fConnection).getDiagramModel()).getDBMetadata().setChecksumValid(false);
             this.fConnection.disconnect();
         } catch ( Exception e ) {
             this.exception = e;
