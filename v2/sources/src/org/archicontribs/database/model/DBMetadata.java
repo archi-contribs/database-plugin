@@ -144,7 +144,7 @@ public class DBMetadata  {
      * <li><b><strike>isNewInDatabase</strike></b></li> The component does not exist in the model but has been created in the database<br>
      * <li><b><strike>isDeletedInModel</strike></b></li> The component does not exist in the model because it has been deleted from the model
      */
-    public enum DATABASE_STATUS {isSynced, isNewInModel, isNewInDatabase, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, IsConflicting}
+    public enum DATABASE_STATUS {isSynced, isNewInModel, isNewInDatabase, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, isConflicting}
 
     /**
      * Gets the status of the component<br>
@@ -202,7 +202,7 @@ public class DBMetadata  {
             if ( getComponent() instanceof IFolder )
                 return DATABASE_STATUS.isUpdatedInModel;
             
-            return DATABASE_STATUS.IsConflicting;
+            return DATABASE_STATUS.isConflicting;
         }
 
         // if we're here, it means that the component has been updated either in the model, either in the database
