@@ -82,6 +82,27 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     public boolean isTheLatestModelIntheDatabase() {
         return (this.currentVersion.getVersion() - this.initialVersion.getVersion()) == 1;
     }
+    
+    /**
+     * Search a component in the getAllElements(), getAllRelationships(), getAllFolders(), getAllViews(), getAllViewObjects(), getAllViewConnections()
+     * 
+     * @param id
+     * @return the component
+     */
+    public EObject searchComponentFromId(String idOfTheComponent) {
+		EObject obj = getAllElements().get(idOfTheComponent);
+		if ( obj == null )
+			obj = getAllRelationships().get(idOfTheComponent);
+		if ( obj == null )
+			obj = getAllFolders().get(idOfTheComponent);
+		if ( obj == null )
+			obj = getAllViews().get(idOfTheComponent);
+		if ( obj == null )
+			obj = getAllViewObjects().get(idOfTheComponent);
+		if ( obj == null )
+			obj = getAllViewConnections().get(idOfTheComponent);
+		return obj;
+    }
 
     /**
      * List of all elements in the model.<br>
@@ -185,7 +206,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all conflicts in the model and the option chosen by the user.<br>
      */
-    @Getter private Map<String, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<String, CONFLICT_CHOICE>();
+    @Getter private Map<EObject, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<EObject, CONFLICT_CHOICE>();
     
     /**
      * List of all the image paths in the model.

@@ -1095,6 +1095,7 @@ public class DBGui {
         this.grpProgressBar.setData("visible", true);
 
         this.lblProgressBar.setText(label);
+        logger.info(label);
 
         this.progressBar.setMinimum(min);
         this.progressBar.setMaximum(max);
@@ -1117,8 +1118,10 @@ public class DBGui {
     public void setProgressBarLabel(String label) {
         if ( this.lblProgressBar == null )
             createProgressBar(label, 0, 100);
-        else
+        else {
             this.lblProgressBar.setText(label);
+            logger.info(label);
+        }
         refreshDisplay();
     }
 
