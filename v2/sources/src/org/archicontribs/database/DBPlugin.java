@@ -14,6 +14,7 @@ import java.nio.file.LinkOption;
 import java.nio.file.Paths;
 import java.text.Collator;
 import java.util.Locale;
+import java.util.UUID;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
@@ -487,5 +488,19 @@ public class DBPlugin extends AbstractUIPlugin {
 				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
 				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md"
 				);
+	}
+	
+	/**
+	 * Generates a new ID for any Archi component
+	 * 
+	 * @return Archi ID
+	 */
+	public static String createID() {
+		// until Archi 4.4: the ID was created using model.getIDAdapter().getNewID()
+		// Archi 4.5 updated the ArchimateModel class to remove the getIDAdapter() method and introduces a new UUIDFactory class with a createID() method.
+		
+		// as I wish my plugin works for both versions, I decided to write my own method (based on UUIDFactory.createID())
+		
+		return UUID.randomUUID().toString();
 	}
 }

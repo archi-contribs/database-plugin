@@ -35,7 +35,6 @@ import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
-import com.archimatetool.model.util.UUIDFactory;
 
 /**
  * Command for importing a view object from it's ID.
@@ -119,7 +118,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             this.newValues = importConnection.getObject(id, "IDiagramModelObject", version);
             
 			if ( this.mustCreateCopy ) {
-				String newId = UUIDFactory.createID(null);
+				String newId = DBPlugin.createID();
 				this.model.registerCopiedViewObject((String)this.newValues.get("id"), newId);
 				this.newValues.put("id", newId);
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
