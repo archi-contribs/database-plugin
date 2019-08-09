@@ -137,21 +137,17 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     /**
      * Closes connection to the database
+     * <br>The current transaction must be commited or rolled back before the close. 
      */
     @Override
     public void close() throws SQLException {
         if ( this.connection == null || this.connection.isClosed() ) {
             if ( logger.isDebugEnabled() ) logger.debug("The database connection is already closed.");
         } else {
-            // if some transactions have not been committed before calling this close method, then they must be rolled back
-            try {
-                rollback();
-            } catch (SQLException err) {
-                logger.error("Failed to rollback the database transactions.", err);
-            }
-            if ( logger.isDebugEnabled() ) logger.debug("Closing database connection.");
+            if ( logger.isDebugEnabled() ) logger.debug("Closing the database connection.");
             this.connection.close();
         }
+        
         this.connection = null;
         this.databaseEntry = null;
     }
@@ -1150,7 +1146,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                         
                         view = command.getImported();
                         
-                        tempModel.countObject(view, true, null);
+                        tempModel.countObject(view, true);
                         
                         executeRequest("UPDATE "+this.schema+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
                         

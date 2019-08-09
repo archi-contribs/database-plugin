@@ -786,7 +786,7 @@ public class DBGuiImportModel extends DBGui {
             }
         } catch (Exception err) {
         	closeMessage();
-            if ( hasBeenClosed() ) {
+            if ( isClosedByUser() ) {
                 // we close the partially imported model
                 CommandStack stack = (CommandStack)this.modelToImport.getAdapter(CommandStack.class);
                 stack.markSaveLocation();
@@ -804,8 +804,10 @@ public class DBGuiImportModel extends DBGui {
             return;
         }
 
-        setActiveAction(STATUS.Ok);
-        doShowResult(null);
+        if ( (this.dialog != null) && !this.dialog.isDisposed() ) {
+            setActiveAction(STATUS.Ok);
+            doShowResult(null);
+        }
         return;
     }
 

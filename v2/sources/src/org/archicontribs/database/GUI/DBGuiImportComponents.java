@@ -32,7 +32,7 @@ import org.archicontribs.database.model.commands.DBImportRelationshipFromIdComma
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
-import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
+import org.archicontribs.database.model.commands.IDBImportCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.gef.commands.CompoundCommand;
@@ -2154,7 +2154,7 @@ public class DBGuiImportComponents extends DBGui {
 										if ( folder == null ) {
 											// if we're here, this means that we did not find the folder path in the model
 											// so we import the folder
-											IDBImportFromIdCommand command = new DBImportFolderFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("folder_id"), result.getInt("folder_version"), DBImportMode.get(getOptionValue())); 
+											IDBImportCommand command = new DBImportFolderFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("folder_id"), result.getInt("folder_version"), DBImportMode.get(getOptionValue())); 
 											if ( command.getException() != null )
 												throw command.getException();
 											command.execute();
@@ -2188,7 +2188,7 @@ public class DBGuiImportComponents extends DBGui {
 								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
 							else
 								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("element_id"), result.getInt("element_version"), DBImportMode.get(getOptionValue()), false); 
+							IDBImportCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("element_id"), result.getInt("element_version"), DBImportMode.get(getOptionValue()), false); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
@@ -2208,7 +2208,7 @@ public class DBGuiImportComponents extends DBGui {
 								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
 							else
 								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							IDBImportFromIdCommand command = new DBImportRelationshipFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("relationship_id"), result.getInt("relationship_version"), DBImportMode.get(getOptionValue())); 
+							IDBImportCommand command = new DBImportRelationshipFromIdCommand(this.importConnection, this.importedModel, null, parentFolder, result.getString("relationship_id"), result.getInt("relationship_version"), DBImportMode.get(getOptionValue())); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
@@ -2237,7 +2237,7 @@ public class DBGuiImportComponents extends DBGui {
 								logger.debug("   Translating parent folder to \""+parentFolder.getName()+"\"("+parentFolder.getId()+")");
 							else
 								parentFolder = this.importedModel.getAllFolders().get(result.getString("parent_folder_id"));
-							IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("view_id"), result.getInt("view_version"), DBImportMode.get(getOptionValue()), true); 
+							IDBImportCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, parentFolder, result.getString("view_id"), result.getInt("view_version"), DBImportMode.get(getOptionValue()), true); 
 							if ( command.getException() != null )
 								throw command.getException();
 							command.execute();
@@ -2257,7 +2257,7 @@ public class DBGuiImportComponents extends DBGui {
 			        }
 				} else if ( this.radioOptionElement.getSelection() ) {
 					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing element \""+name+"\".");
-					IDBImportFromIdCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true); 
+					IDBImportCommand command = new DBImportElementFromIdCommand(this.importConnection, this.importedModel, this.selectedView, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true); 
 					if ( command.getException() != null )
 						throw command.getException();
 					command.execute();
@@ -2268,7 +2268,7 @@ public class DBGuiImportComponents extends DBGui {
 
 				else if ( this.radioOptionView.getSelection() ) {
 					setMessage("("+(++done)+"/"+this.tblComponents.getSelectionCount()+") Importing view \""+name+"\".");
-					IDBImportFromIdCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true);
+					IDBImportCommand command = new DBImportViewFromIdCommand(this.importConnection, this.importedModel, this.selectedFolder, id, 0, DBImportMode.get(getOptionValue()), true);
 					if ( command.getException() != null )
 						throw command.getException();
 					command.execute();
@@ -2295,9 +2295,9 @@ public class DBGuiImportComponents extends DBGui {
 			// we select the imported components in the model tree 
 			List<Object> imported = new ArrayList<Object>();
 
-			Iterator<IDBImportFromIdCommand> iterator = undoRedoCommands.getCommands().iterator();
+			Iterator<IDBImportCommand> iterator = undoRedoCommands.getCommands().iterator();
 			while ( iterator.hasNext() ) {
-				IDBImportFromIdCommand command = iterator.next();
+				IDBImportCommand command = iterator.next();
 
 				if ( command.getImported() != null )
 					imported.add(command.getImported());

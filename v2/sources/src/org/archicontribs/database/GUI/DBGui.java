@@ -104,6 +104,7 @@ import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
 import lombok.Getter;
+import lombok.Setter;
 
 /**
  * This class manages the GUI of the plugin.
@@ -113,7 +114,7 @@ import lombok.Getter;
 public class DBGui {
     protected static final DBLogger logger = new DBLogger(DBGui.class);
 
-    private boolean hasBeenClosed = false;
+    @Getter @Setter private boolean closedByUser = false;
 
     protected List<DBDatabaseEntry> databaseEntries;
     protected DBDatabaseEntry selectedDatabase;
@@ -264,9 +265,21 @@ public class DBGui {
             @Override
             public void handleEvent(Event event)
             {
-                setHasBeenClosed(true);
-                close();
-                event.doit = true;
+                boolean doIt = true;
+                if ( DBGui.this.btnClose.getText().equals("Cancel") ) {
+                    doIt = question("Are you sure you wish to cancel ?");
+                }
+                
+                if ( doIt ) {
+                    setClosedByUser(true);
+                    try {
+                        rollbackAndCloseConnection();
+                    } catch (SQLException e) {
+                        popup(Level.ERROR, "Failed to rollback and close the database connection.", e);
+                    }
+                    close();
+                    event.doit = true;
+                }
             }
         });
 
@@ -504,9 +517,21 @@ public class DBGui {
         this.btnClose.addSelectionListener(new SelectionListener() {
             @Override
             public void widgetSelected(SelectionEvent event) {
-                setHasBeenClosed(true);
-                close();
-                event.doit = true;
+                boolean doIt = true;
+                if ( DBGui.this.btnClose.getText().equals("Cancel") ) {
+                    doIt = question("Are you sure you wish to cancel ?");
+                }
+                
+                if ( doIt ) {
+                    setClosedByUser(true);
+                    try {
+                        rollbackAndCloseConnection();
+                    } catch (SQLException e) {
+                        popup(Level.ERROR, "Failed to rollback and close the database connection.", e);
+                    }
+                    close();
+                    event.doit = true;
+                }
             }
             @Override
             public void widgetDefaultSelected(SelectionEvent event) { widgetSelected(event); }
@@ -1217,14 +1242,27 @@ public class DBGui {
         this.dialog.dispose();
         this.dialog = null;
 
-        if ( this.connection != null ) {
-            try {
-                this.connection.close();
-            } catch (SQLException e) { logger.error("Failed to close database connection", e); }
-            this.connection = null;
-        }
-
         restoreCursors();
+    }
+    
+    public void commitAndCloseConnection() throws SQLException {
+        if ( this.connection != null ) {
+            // in case some transactions have been started, we commit them
+            this.connection.commit();
+            
+             this.connection.close();
+             this.connection = null;
+        }
+    }
+    
+    public void rollbackAndCloseConnection() throws SQLException {
+        if ( this.connection != null ) {
+            // in case some transactions have been started, we roll them back
+            this.connection.rollback();
+
+             this.connection.close();
+             this.connection = null;
+        }
     }
 
     public boolean isDisposed() {
@@ -1620,13 +1658,5 @@ public class DBGui {
 
     protected DBDatabaseConnection getDatabaseConnection() {
         return this.connection;
-    }
-
-    public synchronized boolean hasBeenClosed() {
-        return this.hasBeenClosed;
-    }
-
-    public synchronized void setHasBeenClosed(boolean closed) {
-        this.hasBeenClosed = closed;
     }
 }

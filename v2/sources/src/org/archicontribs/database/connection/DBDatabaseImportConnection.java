@@ -453,7 +453,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				importProperties(folder);
 
 				// we reference this folder for future use (storing sub-folders or components into it ...)
-				model.countObject(folder, false, null);
+				model.countObject(folder, false);
 				++this.countFoldersImported;
 				return true;
 			}
@@ -509,7 +509,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				importProperties(element);
 
 				// we reference the element for future use (establishing relationships, creating views objects, ...)
-				model.countObject(element, false, null);
+				model.countObject(element, false);
 				++this.countElementsImported;
 				return true;
 			}
@@ -586,7 +586,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				importProperties(relationship);
 
-				model.countObject(relationship, false, null);
+				model.countObject(relationship, false);
 
 				++this.countRelationshipsImported;
 				return true;
@@ -642,7 +642,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				importProperties(view);
 
 				// we reference the view for future use
-				model.countObject(view, false, null);
+				model.countObject(view, false);
 				++this.countViewsImported;
 				return true;
 			}
@@ -742,7 +742,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				// we reference the view for future use
-				model.countObject(eObject, false, null);
+				model.countObject(eObject, false);
 				++this.countViewObjectsImported;
 
 				// if the object contains an image, we store its path to import it later
@@ -856,7 +856,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				}
 
 				// we reference the connection for future use
-				model.countObject(eObject, false, null);
+				model.countObject(eObject, false);
 				++this.countViewConnectionsImported;
 
 				// If the connection has got properties but does not have a linked relationship, then it may have distinct properties

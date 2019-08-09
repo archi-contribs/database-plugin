@@ -5,6 +5,8 @@
  */
 package org.archicontribs.database.GUI;
 
+import java.sql.SQLException;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.data.DBVersion;
@@ -347,9 +349,9 @@ public class DBGuiShowDebug extends DBGui {
         super.run();
         
         try {
-            this.model.countObject(this.selectedObject, true, null);
+            this.model.countObject(this.selectedObject, true);
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent )
-                this.model.countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true, null);
+                this.model.countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true);
         } catch (Exception e) {
             popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
             close();
@@ -462,7 +464,7 @@ public class DBGuiShowDebug extends DBGui {
             }
             
             this.exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
-        } catch (Exception err) {
+        } catch (SQLException err) {
             popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;
         }
@@ -486,7 +488,7 @@ public class DBGuiShowDebug extends DBGui {
             try {
             	// we force the presence of the view in the allView map in order to keep the screenshot in the checksum calculation
             	this.model.getAllViews().put(((IDiagramModel)this.selectedObject).getId(), (IDiagramModel)this.selectedObject);
-				this.model.countObject(this.selectedObject, true, null);
+				this.model.countObject(this.selectedObject, true);
 			} catch (Exception err) {
 				popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
 				return;

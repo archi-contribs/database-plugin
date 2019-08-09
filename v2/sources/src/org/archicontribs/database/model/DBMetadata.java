@@ -65,7 +65,7 @@ public class DBMetadata  {
      * Component that contains the DBMetadata<br>
      * This property is set during the component initialization and is used to calculate the component checksum
      */
-    private EObject component;
+    @Getter private EObject component;
     
     /**
      * Id of the object that is stored before the component has been imported from the database
@@ -144,7 +144,7 @@ public class DBMetadata  {
      * <li><b><strike>isNewInDatabase</strike></b></li> The component does not exist in the model but has been created in the database<br>
      * <li><b><strike>isDeletedInModel</strike></b></li> The component does not exist in the model because it has been deleted from the model
      */
-    public enum DATABASE_STATUS {isSynced, isNewInModel, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, IsConflicting}
+    public enum DATABASE_STATUS {isSynced, isNewInModel, isNewInDatabase, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, IsConflicting}
 
     /**
      * Gets the status of the component<br>
@@ -152,7 +152,11 @@ public class DBMetadata  {
      */
     public DATABASE_STATUS getDatabaseStatus() {
         if ( this.initialVersion.getVersion() == 0 ) {
-            // if the initialVersion is zero, it means that the component does not exist in the database version of the model, thus it is a new component in the model
+            if ( getComponent() == null ) {
+                // the component does not exist in the model, thus it is new in the database
+                return DATABASE_STATUS.isNewInDatabase;
+            }
+            // The component does exist in the model but has not been found in the database, thus it is a new component in the model
             return DATABASE_STATUS.isNewInModel;
         }
         
@@ -190,10 +194,14 @@ public class DBMetadata  {
         // if both versions of the component (in the model and in the database) have been updated
         // then they are conflicting ...
         // ... except if the modifications are the same
+        // ... except if the component is a folder (there is no conflict on folders as the conflicts are managed using their content)
         if ( modifiedInModel && modifiedInDatabase ) {
             if ( DBPlugin.areEqual(currentChecksum, databaseChecksum) )
                 return DATABASE_STATUS.isSynced;
 
+            if ( getComponent() instanceof IFolder )
+                return DATABASE_STATUS.isUpdatedInModel;
+            
             return DATABASE_STATUS.IsConflicting;
         }
 
@@ -277,11 +285,16 @@ public class DBMetadata  {
      * @return getclass().getSimpleName()+":\""+getName()+"\""
      */
     public String getFullName() {
-        // if the component does not exist, this means that it has not been imported yet form the database. then, we return the id that has been stored
-        if ( this.component == null )
-            return this.id;
+        String name = getName(); 
         
-        return new StringBuilder(this.component.getClass().getSimpleName()).append(":\""+getName()+"\"").toString();
+        // if the component does not exist, this just return its name
+        if ( this.component == null ) {
+            if ( name == null )
+                return "null:\"null\"";
+            return name;
+        }
+
+        return new StringBuilder(this.component.getClass().getSimpleName()).append(":\""+name+"\"").toString();
     }
 
     /**

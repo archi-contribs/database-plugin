@@ -21,7 +21,7 @@ import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
-import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
+import org.archicontribs.database.model.commands.IDBImportCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.swt.SWT;
@@ -77,7 +77,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.includeNeo4j = false;
 		
-		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true, null);
+		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
 
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");		
 		
@@ -201,7 +201,7 @@ public class DBGuiComponentHistory extends DBGui {
 					IFolder parentFolder = (IFolder)importedComponent.eContainer();
 					String id = importedComponent.getId();
 					int version = Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)).intValue();
-					IDBImportFromIdCommand command = null;
+					IDBImportCommand command = null;
 					
 					if ( importedComponent instanceof IArchimateElement )
 						command = new DBImportElementFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.forceSharedMode, true); 

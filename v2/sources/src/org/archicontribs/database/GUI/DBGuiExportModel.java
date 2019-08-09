@@ -7,6 +7,7 @@
 package org.archicontribs.database.GUI;
 
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -40,7 +41,8 @@ import org.archicontribs.database.model.commands.DBImportViewObjectFromIdCommand
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
 import org.archicontribs.database.model.commands.DBSetFolderToLastKnownCommand;
-import org.archicontribs.database.model.commands.IDBImportFromIdCommand;
+import org.archicontribs.database.model.commands.IDBCommand;
+import org.archicontribs.database.model.commands.IDBImportCommand;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
@@ -1167,10 +1169,10 @@ public class DBGuiExportModel extends DBGui {
         this.txtConflictingViewConnections.setVisible(!isNeo4j);
         this.txtNewImagesInDatabase.setVisible(!isNeo4j);
 
-        this.txtNewElementsInModel.setText(this.ZERO);		this.txtUpdatedElementsInModel.setText(this.ZERO);		this.txtNewElementsInDatabase.setText(this.ZERO);			this.txtUpdatedElementsInDatabase.setText(this.ZERO);			this.txtConflictingElements.setText(this.ZERO);
-        this.txtNewRelationshipsInModel.setText(this.ZERO);	this.txtUpdatedRelationshipsInModel.setText(this.ZERO);	this.txtNewRelationshipsInDatabase.setText(this.ZERO);	this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);	this.txtConflictingRelationships.setText(this.ZERO);
-        this.txtNewFoldersInModel.setText(this.ZERO);			this.txtUpdatedFoldersInModel.setText(this.ZERO);			this.txtNewFoldersInDatabase.setText(this.ZERO);			this.txtUpdatedFoldersInDatabase.setText(this.ZERO);			this.txtConflictingFolders.setText(this.ZERO);
-        this.txtNewViewsInModel.setText(this.ZERO);			this.txtUpdatedViewsInModel.setText(this.ZERO);			this.txtNewViewsInDatabase.setText(this.ZERO);			this.txtUpdatedViewsInDatabase.setText(this.ZERO);			this.txtConflictingViews.setText(this.ZERO);
+        this.txtNewElementsInModel.setText(this.ZERO);		  this.txtUpdatedElementsInModel.setText(this.ZERO);		this.txtNewElementsInDatabase.setText(this.ZERO);			this.txtUpdatedElementsInDatabase.setText(this.ZERO);			this.txtConflictingElements.setText(this.ZERO);
+        this.txtNewRelationshipsInModel.setText(this.ZERO);	  this.txtUpdatedRelationshipsInModel.setText(this.ZERO);	this.txtNewRelationshipsInDatabase.setText(this.ZERO);	this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);	this.txtConflictingRelationships.setText(this.ZERO);
+        this.txtNewFoldersInModel.setText(this.ZERO);		  this.txtUpdatedFoldersInModel.setText(this.ZERO);			this.txtNewFoldersInDatabase.setText(this.ZERO);			this.txtUpdatedFoldersInDatabase.setText(this.ZERO);			this.txtConflictingFolders.setText(this.ZERO);
+        this.txtNewViewsInModel.setText(this.ZERO);			  this.txtUpdatedViewsInModel.setText(this.ZERO);			this.txtNewViewsInDatabase.setText(this.ZERO);			this.txtUpdatedViewsInDatabase.setText(this.ZERO);			this.txtConflictingViews.setText(this.ZERO);
         this.txtNewViewObjectsInModel.setText(this.ZERO);     this.txtUpdatedViewObjectsInModel.setText(this.ZERO);     this.txtNewViewObjectsInDatabase.setText(this.ZERO);      this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);      this.txtConflictingViewObjects.setText(this.ZERO);
         this.txtNewViewConnectionsInModel.setText(this.ZERO); this.txtUpdatedViewConnectionsInModel.setText(this.ZERO); this.txtNewViewConnectionsInDatabase.setText(this.ZERO);  this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);  this.txtConflictingViewConnections.setText(this.ZERO);
     }
@@ -1190,16 +1192,6 @@ public class DBGuiExportModel extends DBGui {
         try {
             // we compare the elements, relationships, folders and views
             this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
-
-            // we compare the objects and connections of existing views
-            Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-            while ( viewsIterator.hasNext() )
-                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, ((IDBMetadata)viewsIterator.next().getValue()).getDBMetadata());
-
-            // we also need to compare the objects and connections that are in the views that will be imported into the model
-            Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.exportConnection.getViewsNotInModel().entrySet().iterator();
-            while ( viewsNotInModelIterator.hasNext() )
-                this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, viewsNotInModelIterator.next().getValue());
         } catch (SQLException err ) {
             popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
             setActiveAction(STATUS.Error);
@@ -1230,12 +1222,12 @@ public class DBGuiExportModel extends DBGui {
                 metadata.getScreenshot().setScreenshotActive(false);
 
             // we recalculate the view checksum using the screenshot (or not)
-            this.exportedModel.countObject(view, true, null);
+            this.exportedModel.countObject(view, true);
         }
         hideProgressBar();
         showGrpDatabase();
         setMessage("Calculating number of new, updated and deleted components.");
-        
+
         int total = 0;
 
         int nbNew = 0;
@@ -1249,10 +1241,6 @@ public class DBGuiExportModel extends DBGui {
         while (ite.hasNext()) {
             IArchimateElement element = ite.next().getValue();
             DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(element);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1319,10 +1307,6 @@ public class DBGuiExportModel extends DBGui {
         while (itr.hasNext()) {
             IArchimateRelationship relationship = itr.next().getValue();
             DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(relationship);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1388,10 +1372,6 @@ public class DBGuiExportModel extends DBGui {
         while (itf.hasNext()) {
             IFolder folder = itf.next().getValue();
             DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(folder);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1408,7 +1388,6 @@ public class DBGuiExportModel extends DBGui {
                 case IsConflicting:
                     // There is no conflict for folders: conflicts are managed with their content
                     // If a folder has been updated both in the model and the database, then we export a new version
-                    metadata.getCurrentVersion().setVersion(metadata.getDatabaseVersion().getVersion() + 1);
                     ++nbUpdated;
                     break;
                 case isSynced:
@@ -1447,10 +1426,6 @@ public class DBGuiExportModel extends DBGui {
         while (itv.hasNext()) {
             IDiagramModel view = itv.next().getValue();
             DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(view);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1465,10 +1440,20 @@ public class DBGuiExportModel extends DBGui {
                     ++nbDeletedInDb;
                     break;
                 case IsConflicting:
-                    // There is no conflict for views: the conflicts are managed with their content
-                    // If a view has been updated both in the model and the database, then we export a new version
-                    metadata.getCurrentVersion().setVersion(metadata.getDatabaseVersion().getVersion() + 1);
-                    ++nbUpdated;
+                    if ( this.exportedModel.getAllConflicts().get(view.getId()) == null )
+                        this.exportedModel.getAllConflicts().put(view.getId(), CONFLICT_CHOICE.askUser);
+                    switch ( this.exportedModel.getAllConflicts().get(view.getId()) ) {
+                        case doNotExport:   // nothing to do
+                            break;
+                        case exportToDatabase:
+                            ++nbUpdated;
+                            break;
+                        case importFromDatabase:
+                            ++nbUpdatedInDb;
+                            break;
+                        default:    // askUSer
+                            ++nbConflict;
+                    }
                     break;
                 case isSynced:
                     // nothing to do
@@ -1506,10 +1491,6 @@ public class DBGuiExportModel extends DBGui {
         while (ito.hasNext()) {
             IDiagramModelObject imo = ito.next().getValue();
             DBMetadata metadata = ((IDBMetadata)imo).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(imo);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1575,10 +1556,6 @@ public class DBGuiExportModel extends DBGui {
         while (itc.hasNext()) {
             IDiagramModelConnection imc = itc.next().getValue();
             DBMetadata metadata = ((IDBMetadata)imc).getDBMetadata();
-            if ( metadata.getDatabaseStatus() == DATABASE_STATUS.isNewInModel ) {
-                // if the component is new in the model, we check if it already exist in other models in the database
-                this.exportConnection.getVersionFromDatabase(imc);
-            }
             switch ( metadata.getDatabaseStatus() ) {
                 case isNewInModel:
                     ++nbNew;
@@ -1636,21 +1613,22 @@ public class DBGuiExportModel extends DBGui {
         if ( updateTextFields ) {
             this.txtNewImagesInModel.setText(toString(this.exportConnection.getImagesNotInDatabase().size()));
             this.txtNewImagesInDatabase.setText(toString(this.exportConnection.getImagesNotInModel().size()));
+
+            // we log the values uniquely if the updateTextFields has been requestes, else the values are zero
+            logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
+            logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+            logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
+            logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
+            if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+                logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
+                logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
+                logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
+                logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
+                logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
+            }
         }
 
         closeMessage();
-
-        logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-        logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
-        logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-        logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-        if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-            logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
-            logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
-            logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
-            logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-            logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
-        }
 
         if ( total == 0 ) { 
             logger.info("The model does not need to be exported to the database.");
@@ -1697,11 +1675,19 @@ public class DBGuiExportModel extends DBGui {
 
         // We hide the grpDatabase and create a progressBar instead 
         hideGrpDatabase();
-        createProgressBar("Exporting components ...", 0, progressBarWidth);
+        createProgressBar("Exporting model to the database ...", 0, progressBarWidth);
         createGrpConflict();
+        
+        // We update the model name and purpose in case they've been changed in the export windows
+        if ( !DBPlugin.areEqual(this.exportedModel.getName(), this.txtModelName.getText()) )
+            this.exportedModel.setName(this.txtModelName.getText());
+
+        if ( !DBPlugin.areEqual(this.exportedModel.getPurpose(), this.txtPurpose.getText()) )
+            this.exportedModel.setPurpose(this.txtPurpose.getText());
 
         // we calculate the new model checksum
         try {
+            logger.debug("Calculating model's checksum.");
             this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
         } catch (NoSuchAlgorithmException | UnsupportedEncodingException err) {
             popup(Level.FATAL, "Failed to calculate the model's checksum.", err);
@@ -1729,220 +1715,235 @@ public class DBGuiExportModel extends DBGui {
         this.txtNewViewConnectionsInModel.setText(this.ZERO);  this.txtUpdatedViewConnectionsInModel.setText(this.ZERO);  this.txtDeletedViewConnectionsInModel.setText(this.ZERO);  this.txtNewViewConnectionsInDatabase.setText(this.ZERO);   this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);   this.txtDeletedViewConnectionsInDatabase.setText(this.ZERO); this.txtConflictingViewConnections.setText(this.ZERO);
         this.txtNewImagesInModel.setText(this.ZERO);           this.txtNewImagesInDatabase.setText(this.ZERO);
 
-        if ( !isNeo4JDatabase ) {
-            // we initialize the compoundCommand that will be used to import new components from the database
-            this.undoableCommands = new CompoundCommand();
+        String errorMessage = null;                                 // used to adapt the error message in case an exception is raised
+        // we export the model
+        try {
+            if ( !isNeo4JDatabase ) {
 
-            try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
-                // we first recalculate the latest versions of the components from the database in case someone updated the database since the last check
+                // we first recalculate the latest versions of the components from the database
+                // in case someone updated the database since the last check
                 boolean upToDate = compareModelToDatabase(false);
 
                 if ( upToDate ) {
-                    hideProgressBar();
-                    popup(Level.INFO, "Your database is already up to date.");
-                    DBGuiExportModel.this.btnClose.setText("Close");
+                    rollbackAndCloseConnection();
+                    setActiveAction(STATUS.Ok);
+                    doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
                     return;
                 }
 
                 // we then import components (if any)
+                //      commands are executed immediately, but added in the undoableCommands coumpound command
+                //      in order to be undone if necessary
 
-                // IMPORT FOLDERS (we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported)
-                if ( this.exportConnection.getFoldersNotInModel().size() == 0 )
-                    logger.info("There is no folder to import.");
-                else {
-                    logger.info("Importing new folders ...");
-                    setProgressBarLabel("Importing new folders ...");
-                    for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
-                            DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewFoldersInDatabase);
-                            incrementText(this.txtTotalFolders);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedFoldersInModel);
+                setProgressBarLabel("Importing new components from the database ...");
+                errorMessage = "Failed to import new components from the database.";
+                this.undoableCommands = new CompoundCommand();
+
+                try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
+                    // IMPORT FOLDERS (we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported)
+                    if ( this.exportConnection.getFoldersNotInModel().size() == 0 )
+                        logger.info("There is no folder to import.");
+                    else {
+                        logger.info("Importing new folders ...");
+                        setProgressBarLabel("Importing new folders ...");
+                        for (String id : this.exportConnection.getFoldersNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it in the model.");
+                                DBImportFolderFromIdCommand command = new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewFoldersInDatabase);
+                                incrementText(this.txtTotalFolders);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedFoldersInModel);
+                            }
                         }
                     }
-                }
-
-                // IMPORT ELEMENTS
-                if ( this.exportConnection.getElementsNotInModel().size() == 0 )
-                    logger.info("There is no element to import.");
-                else {
-                    logger.info("Importing new elements ...");
-                    setProgressBarLabel("Importing new elements ...");
-                    for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
-                            DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewElementsInDatabase);
-                            incrementText(this.txtTotalElements);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedElementsInModel);
+    
+                    // IMPORT ELEMENTS
+                    if ( this.exportConnection.getElementsNotInModel().size() == 0 )
+                        logger.info("There is no element to import.");
+                    else {
+                        logger.info("Importing new elements ...");
+                        setProgressBarLabel("Importing new elements ...");
+                        for (String id : this.exportConnection.getElementsNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it in the model.");
+                                DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewElementsInDatabase);
+                                incrementText(this.txtTotalElements);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedElementsInModel);
+                            }
                         }
                     }
-                }
-
-                // IMPORT RELATIONSHIPS
-                if ( this.exportConnection.getRelationshipsNotInModel().size() == 0 )
-                    logger.info("There is no relationship to import.");
-                else {
-                    logger.info("Importing new relationships ...");
-                    setProgressBarLabel("Importing new relationships ...");
-                    for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
-                            DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewRelationshipsInDatabase);
-                            incrementText(this.txtTotalRelationships);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedRelationshipsInModel);
+    
+                    // IMPORT RELATIONSHIPS
+                    if ( this.exportConnection.getRelationshipsNotInModel().size() == 0 )
+                        logger.info("There is no relationship to import.");
+                    else {
+                        logger.info("Importing new relationships ...");
+                        setProgressBarLabel("Importing new relationships ...");
+                        for (String id : this.exportConnection.getRelationshipsNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it in the model.");
+                                DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewRelationshipsInDatabase);
+                                incrementText(this.txtTotalRelationships);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedRelationshipsInModel);
+                            }
                         }
                     }
-                }
-
-                // RESOLVE RELATIONSHIPS
-                if ( (this.exportedModel.getAllSourceRelationshipsToResolve().size() != 0) || (this.exportedModel.getAllTargetRelationshipsToResolve().size() != 0) ) {
-                    setProgressBarLabel("Resolving relationships ...");
-                    DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
-                    resolveRelationshipsCommand.execute();
-                    if ( resolveRelationshipsCommand.getException() != null )
-                        throw resolveRelationshipsCommand.getException();
-                    this.undoableCommands.add(resolveRelationshipsCommand);
-                }
-
-                // IMPORT VIEWS
-                if ( this.exportConnection.getViewsNotInModel().size() == 0 )
-                    logger.info("There is no view to import.");
-                else {
-                    logger.info("Importing new views ...");
-                    setProgressBarLabel("Importing new views ...");
-                    for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
-                            DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewViewsInDatabase);
-                            incrementText(this.txtTotalViews);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedViewsInModel);
+    
+                    // RESOLVE RELATIONSHIPS
+                    if ( (this.exportedModel.getAllSourceRelationshipsToResolve().size() != 0) || (this.exportedModel.getAllTargetRelationshipsToResolve().size() != 0) ) {
+                        setProgressBarLabel("Resolving relationships ...");
+                        DBResolveRelationshipsCommand resolveRelationshipsCommand = new DBResolveRelationshipsCommand(this.exportedModel);
+                        resolveRelationshipsCommand.execute();
+                        if ( resolveRelationshipsCommand.getException() != null )
+                            throw resolveRelationshipsCommand.getException();
+                        this.undoableCommands.add(resolveRelationshipsCommand);
+                    }
+    
+                    setProgressBarLabel("Importing new components from the database ...");
+    
+                    // IMPORT VIEWS
+                    if ( this.exportConnection.getViewsNotInModel().size() == 0 )
+                        logger.info("There is no view to import.");
+                    else {
+                        logger.info("Importing new views ...");
+                        setProgressBarLabel("Importing new views ...");
+                        for (String id : this.exportConnection.getViewsNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
+                                DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewViewsInDatabase);
+                                incrementText(this.txtTotalViews);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedViewsInModel);
+                            }
                         }
                     }
-                }
-
-                // IMPORT VIEW OBJECTS
-                if ( this.exportConnection.getViewObjectsNotInModel().size() == 0 )
-                    logger.info("There is no view object to import.");
-                else {
-                    logger.info("Importing new views objects ...");
-                    setProgressBarLabel("Importing new views objects ...");
-                    for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
-                            DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewViewObjectsInDatabase);
-                            incrementText(this.txtTotalViewObjects);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedViewObjectsInModel);
+    
+                    // IMPORT VIEW OBJECTS
+                    if ( this.exportConnection.getViewObjectsNotInModel().size() == 0 )
+                        logger.info("There is no view object to import.");
+                    else {
+                        logger.info("Importing new views objects ...");
+                        setProgressBarLabel("Importing new views objects ...");
+                        for (String id : this.exportConnection.getViewObjectsNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
+                                DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewViewObjectsInDatabase);
+                                incrementText(this.txtTotalViewObjects);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedViewObjectsInModel);
+                            }
                         }
                     }
-                }
-
-                // IMPORT VIEW CONNECTIONS
-                if ( this.exportConnection.getViewConnectionsNotInModel().size() == 0 )
-                    logger.info("There is no view connection to import.");
-                else {
-                    logger.info("Importing new views connections ...");
-                    setProgressBarLabel("Importing new views connections ...");
-                    for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
-                        DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
-                        if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
-                            DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            command.execute();
-                            if ( command.getException() != null )
-                                throw command.getException();
-                            this.undoableCommands.add(command);
-                            incrementText(this.txtNewViewConnectionsInDatabase);
-                            incrementText(this.txtTotalViewConnections);
-                        } else {
-                            if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been deleted from the model.");
-                            incrementText(this.txtDeletedViewConnectionsInModel);
+    
+                    // IMPORT VIEW CONNECTIONS
+                    if ( this.exportConnection.getViewConnectionsNotInModel().size() == 0 )
+                        logger.info("There is no view connection to import.");
+                    else {
+                        logger.info("Importing new views connections ...");
+                        setProgressBarLabel("Importing new views connections ...");
+                        for (String id : this.exportConnection.getViewConnectionsNotInModel().keySet() ) {
+                            DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
+                            if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
+                                DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode);
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                command.execute();
+                                if ( command.getException() != null )
+                                    throw command.getException();
+                                this.undoableCommands.add(command);
+                                incrementText(this.txtNewViewConnectionsInDatabase);
+                                incrementText(this.txtTotalViewConnections);
+                            } else {
+                                if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been deleted from the model.");
+                                incrementText(this.txtDeletedViewConnectionsInModel);
+                            }
                         }
                     }
-                }
-
-                // RESOLVE CONNECTIONS
-                if ( (this.exportedModel.getAllSourceConnectionsToResolve().size() != 0) || (this.exportedModel.getAllTargetConnectionsToResolve().size() != 0) ) {
-                    setProgressBarLabel("Resolving views connections ...");
-                    DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
-                    resolveConnectionsCommand.execute();
-                    if ( resolveConnectionsCommand.getException() != null )
-                        throw resolveConnectionsCommand.getException();
-                    this.undoableCommands.add(resolveConnectionsCommand);
-                }
-
-                // MOVE COMPONENTS TO NEW FOLDER
-                logger.info("Checking if components have been moved to new folder ...");
-                setProgressBarLabel("Checking if components have been moved to new folder ...");
-                DBSetFolderToLastKnownCommand setFolderCommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
-                if ( setFolderCommand.getException() != null )
-                    throw setFolderCommand.getException();
-                if ( setFolderCommand.needsToBeExecuted() ) {
-                    logger.info("Moving components to new folders");
-                    setFolderCommand.execute();
+    
+                    // RESOLVE CONNECTIONS
+                    if ( (this.exportedModel.getAllSourceConnectionsToResolve().size() != 0) || (this.exportedModel.getAllTargetConnectionsToResolve().size() != 0) ) {
+                        setProgressBarLabel("Resolving views connections ...");
+                        DBResolveConnectionsCommand resolveConnectionsCommand = new DBResolveConnectionsCommand(this.exportedModel);
+                        resolveConnectionsCommand.execute();
+                        if ( resolveConnectionsCommand.getException() != null )
+                            throw resolveConnectionsCommand.getException();
+                        this.undoableCommands.add(resolveConnectionsCommand);
+                    }
+                    
+                    // MOVE COMPONENTS TO NEW FOLDER
+                    logger.info("Checking if components have been moved to new folder ...");
+                    setProgressBarLabel("Checking if components have been moved to new folder ...");
+                    DBSetFolderToLastKnownCommand setFolderCommand = new DBSetFolderToLastKnownCommand(this.exportedModel, importConnection);
                     if ( setFolderCommand.getException() != null )
                         throw setFolderCommand.getException();
-                    this.undoableCommands.add(setFolderCommand);
-                } else
-                    logger.info("There is no component to move to a new folder.");
+                    if ( setFolderCommand.needsToBeExecuted() ) {
+                        logger.info("Moving components to new folders");
+                        setFolderCommand.execute();
+                        if ( setFolderCommand.getException() != null )
+                            throw setFolderCommand.getException();
+                        this.undoableCommands.add(setFolderCommand);
+                    } else
+                        logger.info("There is no component to move to a new folder.");
+                    
+                } catch (SQLException e ) {
+                    throw e;
+                }
 
                 // if new components have been imported, we may now need to recalculate the checksums of folders and views
-                setMessage("Recalculating checksums");
+                setProgressBarLabel("Recalculating checksums of updated folders and views ...");
+
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
                 while ( foldersIterator.hasNext() ) {
                     IFolder folder = foldersIterator.next().getValue();
-                    this.exportedModel.countObject(folder,  true, null);
+                    this.exportedModel.countObject(folder,  true);
                 }
 
                 Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
@@ -1950,67 +1951,33 @@ public class DBGuiExportModel extends DBGui {
                     IDiagramModel view = viewsIterator.next().getValue();
                     // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
                     if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-                        this.exportedModel.countObject(view, true, view);
+                        this.exportedModel.countObject(view, true);
                         if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
                             setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
                             createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
                             ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
-                            setProgressBarLabel("Exporting views ...");
+                            setProgressBarLabel("Importing new components from the database ...");
                         }
                     }
 
                     // we recalculate the checksum
-                    this.exportedModel.countObject(view,  true, null);
+                    this.exportedModel.countObject(view,  true);
                 }
                 
-                closeMessage();
-            } catch (Exception e ) {
-                closeMessage();
-                popup(Level.FATAL, "Failed to import new components from the database.", e);
-                setActiveAction(STATUS.Error);
-                doShowResult(STATUS.Error, "Error while exporting model.\n"+e.getMessage());
-                return;
+                logger.info("Exporting model itslef ...");
+                setProgressBarLabel("Exporting model itself ...");
+                this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
+                
+            } else {   // if ( !isNeo4JDatabase )
+                if ( this.selectedDatabase.shouldEmptyNeo4jDB() ) {
+                    errorMessage = "Failed to empty the Neo4J database.";
+                    this.exportConnection.emptyNeo4jDB();
+                }
             }
 
-            // we compare the objects and connections of existing views
-            //Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-            //while ( viewsIterator.hasNext() )
-            //    this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, ((IDBMetadata)viewsIterator.next().getValue()).getDBMetadata());
+            errorMessage = "Failed to export components to the database.";
+            setProgressBarLabel("Exporting model to the database ...");
 
-            // we also need to compare the objects and connections that are in the views that will be imported into the model
-            //Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.exportConnection.getViewsNotInModel().entrySet().iterator();
-            //while ( viewsNotInModelIterator.hasNext() )
-            //    this.exportConnection.getViewObjectsAndConnectionsVersionsFromDatabase(this.exportedModel, viewsNotInModelIterator.next().getValue());
-
-
-        }
-
-        // we initialize the delayedCommand used to allow rollback of elements and relationships deletion
-        // it is delayed because we want to delete the elements and relationships after they've been exported (as the getAllElements and getAllRelationships cannot be changed during the export loop)
-
-        //this.stack = (CommandStack)this.exportedModel.getAdapter(CommandStack.class);
-
-
-        // we export the components
-        // we register the compoundCommand to the model's stack to allow undo/redo
-        //if ( !this.exportCommands.isEmpty() ) {
-        //    exportCommandsHaveBeenExecuted = true;
-        //    this.stack.execute(this.exportCommands);
-        //}
-
-        // We update the model name and purpose in case they've been changed in the export windows
-        //TODO: check if they are the same in the database
-        if ( !DBPlugin.areEqual(this.exportedModel.getName(), this.txtModelName.getText()) )
-            this.exportedModel.setName(this.txtModelName.getText());
-
-        if ( !DBPlugin.areEqual(this.exportedModel.getPurpose(), this.txtPurpose.getText()) )
-            this.exportedModel.setPurpose(this.txtPurpose.getText());
-
-        try {
-            if ( isNeo4JDatabase && this.selectedDatabase.shouldEmptyNeo4jDB() ) {
-                this.exportConnection.emptyNeo4jDB();
-            }
-            
             // Export the model components to the database
 
             // EXPORT ELEMENTS
@@ -2030,6 +1997,11 @@ public class DBGuiExportModel extends DBGui {
                 IArchimateRelationship relationship = relationshipsIterator.next().getValue();
                 doExportEObject(relationship, isNeo4JDatabase);
             }
+            
+            // we delete the components from the model that have been deleted in the database
+            if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                this.stack.execute(this.undoableCommands);
+            }
 
 
             if ( !isNeo4JDatabase ) {
@@ -2038,15 +2010,9 @@ public class DBGuiExportModel extends DBGui {
                 Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
                 while ( foldersIterator.hasNext() ) {
                     IFolder folder = foldersIterator.next().getValue();
+                    // we recalculate the checksum in case components have been removed or imported
+                    this.exportedModel.countObject(folder, true);
                     doExportEObject(folder, isNeo4JDatabase);
-                }
-
-                logger.info("Exporting views ...");
-                setProgressBarLabel("Exporting views ...");
-                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-                while ( viewsIterator.hasNext() ) {
-                    IDiagramModel view = viewsIterator.next().getValue();
-                    ((IDBMetadata)view).getDBMetadata().setExported(doExportEObject(view, isNeo4JDatabase));
                 }
 
                 logger.info("Exporting view objects ...");
@@ -2068,6 +2034,30 @@ public class DBGuiExportModel extends DBGui {
                     if ( ((IDBMetadata)viewConnection.getDiagramModel()).getDBMetadata().isExported() )
                         doExportEObject(viewConnection, isNeo4JDatabase);
                 }
+                
+                // we delete the components from the model that have been deleted in the database
+                if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                    this.stack.execute(this.undoableCommands);
+                }
+                
+                logger.info("Exporting views ...");
+                setProgressBarLabel("Exporting views ...");
+                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+                while ( viewsIterator.hasNext() ) {
+                    IDiagramModel view = viewsIterator.next().getValue();
+                    // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
+                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
+                        this.exportedModel.countObject(view, true);
+                        if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
+                            setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+                            createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
+                            ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
+                            setProgressBarLabel("Exporting views ...");
+                        }
+                    }
+                    
+                    ((IDBMetadata)view).getDBMetadata().setExported(doExportEObject(view, isNeo4JDatabase));
+                }
 
                 logger.info("Exporting images ...");
                 setProgressBarLabel("Exporting images ...");
@@ -2078,36 +2068,54 @@ public class DBGuiExportModel extends DBGui {
                         incrementText(this.txtNewImagesInModel);
                     increaseProgressBar();
                 }
-            }
-        } catch (Exception err) {
-            if ( hasBeenClosed() )
-                popup(Level.WARN, "The export has been cancelled.");
-            else {
-                setActiveAction(STATUS.Error);
-                SQLException SQLError = null;
-                try  {
-                    // we rollback any update done on the model
-                    if ( this.undoableCommands != null )
-                        this.undoableCommands.undo();
-
-                    // we close the connection, which rollbacks any running transaction if any
-                    this.exportConnection.close();
-
-                    doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-                    popup(Level.FATAL, "An error occurred while exporting the components.\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", err);
-                } catch (SQLException err2) {
-                    SQLError = err2;
+                
+                // we delete the components from the model that have been deleted in the database
+                if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                    this.stack.execute(this.undoableCommands);
                 }
-                if ( SQLError != null ) {
-                    doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-                    popup(Level.FATAL, "An error occurred while exporting the components.", err);
+            }
+        } catch (Exception exportError) {
+            //TODO: we need a better management of the cancel by user action
+            if ( !isClosedByUser() ) {
+                setActiveAction(STATUS.Error);
 
-                    doShowResult(STATUS.Error, "Error while exporting model.\n"+SQLError.getMessage());
-                    popup(Level.FATAL, "The transaction failed to rollback and the database is left in an unknown state.\n\nPlease check carrefully your database !", SQLError);
+                // we close the connection, which rollbacks any running transaction if any
+                try {
+                    rollbackAndCloseConnection();
+                    
+                    doShowResult(STATUS.Error, errorMessage + "\n"+exportError.getMessage());
+                    popup(Level.ERROR, errorMessage + "\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", exportError);
+                } catch (SQLException closeDBError) {
+                    doShowResult(STATUS.Error, "Error while exporting model.\n"+exportError.getMessage()+"\nThe transaction failed to roll back, please check your database carrefully !");
+                    
+                    popup(Level.FATAL, "An error occurred while exporting the components."+exportError);
+                    popup(Level.FATAL, "An exceoption has been detected during the rollback and closure of the database transaction.\n\nThe database is left in an unknown state.\n\nPlease check carrefully your database !", closeDBError);
+                }
+
+                // we rollback any update done on the model
+                if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                    this.stack.undo();
+                    // this.undoableCommands.undo();
+                    for ( Object cmd: this.undoableCommands.getCommands() ) {
+                        try {
+                            Method getException = IDBCommand.class.getMethod("getException()");
+                            Exception e = (Exception) getException.invoke(cmd);
+                            if ( e != null ) {
+                                popup(Level.FATAL, "Failed to restore the model as it was before the export. Please verify it carefully.", e);
+                                // a single message is sufficient to alert the user
+                                break;
+                            }
+                        } catch (Exception e) {
+                            logger.error("Failed to verify exception from undoableCommands.", e);
+                        }
+                    }
                 }
             }
             return;
         }
+        
+        // if we're here, it means that no exception has been raised during the export process
+        // we check if conflicts must be manually solved.
 
         if ( logger.isDebugEnabled() ) logger.debug("Found "+this.tblListConflicts.getItemCount()+" components conflicting with database");
         if ( this.tblListConflicts.getItemCount() == 0 ) {
@@ -2123,16 +2131,14 @@ public class DBGuiExportModel extends DBGui {
                             toInt(this.txtDeletedElementsInDatabase.getText()) == 0 && toInt(this.txtDeletedRelationshipsInDatabase.getText()) == 0 && toInt(this.txtDeletedFoldersInDatabase.getText()) == 0 && toInt(this.txtDeletedViewsInDatabase.getText()) == 0 && toInt(this.txtDeletedViewObjectsInDatabase.getText()) == 0 && toInt(this.txtDeletedViewConnectionsInDatabase.getText()) == 0 &&
                             toInt(this.txtConflictingElements.getText()) == 0 && toInt(this.txtConflictingRelationships.getText()) == 0 && toInt(this.txtConflictingFolders.getText()) == 0 && toInt(this.txtConflictingViews.getText()) == 0 && toInt(this.txtConflictingViewObjects.getText()) == 0 && toInt(this.txtConflictingViewConnections.getText()) == 0 &&
                             this.exportedModel.getCurrentVersion().getChecksum().equals(this.exportedModel.getInitialVersion().getChecksum()) ) {
-                        this.exportConnection.rollback();
-                        this.exportConnection.setAutoCommit(true);
+                        rollbackAndCloseConnection();
                         setActiveAction(STATUS.Ok);
                         doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
                         return;
                     }
                 }
 
-                this.exportConnection.commit();
-                this.exportConnection.setAutoCommit(true);
+                commitAndCloseConnection();
                 setActiveAction(STATUS.Ok);
 
                 // Once the export is finished, we copy the exportedVersion to the currentVersion
@@ -2362,7 +2368,7 @@ public class DBGuiExportModel extends DBGui {
         }
 
         if ( mustImport ) {
-            IDBImportFromIdCommand importCommand = null;
+            IDBImportCommand importCommand = null;
 
             if ( logger.isDebugEnabled() ) logger.debug(debugMessage);
 
@@ -2524,7 +2530,7 @@ public class DBGuiExportModel extends DBGui {
 
             this.btnImportDatabaseVersion = new Button(this.grpConflict, SWT.NONE);
             this.btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
-            this.btnImportDatabaseVersion.setText("Import");
+            this.btnImportDatabaseVersion.setText("Import database version");
             this.btnImportDatabaseVersion.setEnabled(false);
             this.btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
                 @Override
@@ -2550,7 +2556,7 @@ public class DBGuiExportModel extends DBGui {
 
             this.btnExportMyVersion = new Button(this.grpConflict, SWT.NONE);
             this.btnExportMyVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-            this.btnExportMyVersion.setText("Export");
+            this.btnExportMyVersion.setText("Export model's version to database");
             this.btnExportMyVersion.setEnabled(false);
             this.btnExportMyVersion.addSelectionListener(new SelectionListener() {
                 @Override
@@ -2575,7 +2581,7 @@ public class DBGuiExportModel extends DBGui {
             this.btnExportMyVersion.setLayoutData(fd);
 
             this.btnDoNotExport = new Button(this.grpConflict, SWT.NONE);
-            this.btnDoNotExport.setText("Do not export");
+            this.btnDoNotExport.setText("Do nothing");
             this.btnDoNotExport.setEnabled(false);
             this.btnDoNotExport.addSelectionListener(new SelectionListener() {
                 @Override
