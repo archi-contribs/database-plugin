@@ -1187,455 +1187,459 @@ public class DBGuiExportModel extends DBGui {
         if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
             return true;
 
-        setMessage("Comparing model with the database...");
-
         try {
-            // we compare the elements, relationships, folders and views
-            this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
-        } catch (SQLException err ) {
-            popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
-            setActiveAction(STATUS.Error);
-            doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
-            return false;
-        }
-
-        // we create the view screenshots if the database is configured to export them
-        closeMessage();
-        hideGrpDatabase();
-        createProgressBar("Checking if view screenshots are required", 1, this.exportedModel.getAllViews().size());
-        Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-        while ( viewsIterator.hasNext() ) {
-            increaseProgressBar();
-            IDiagramModel view = viewsIterator.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
-            if ( this.exportConnection.getDatabaseEntry().isViewSnapshotRequired() ) {
-                if ( (metadata.getScreenshot().getBytes() == null)
-                        || (metadata.getScreenshot().getScaleFactor() != this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor())
-                        || (metadata.getScreenshot().getBodrderWidth() != this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth())
-                        ) {
-                    setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
-                    createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-                    setProgressBarLabel("Checking if view screenshots are required");
+            setMessage("Comparing model with the database...");
+    
+            try {
+                // we compare the elements, relationships, folders and views
+                this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
+            } catch (SQLException err ) {
+                popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+                setActiveAction(STATUS.Error);
+                doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+                return false;
+            }
+    
+            // we create the view screenshots if the database is configured to export them
+            closeMessage();
+            hideGrpDatabase();
+            createProgressBar("Checking if view screenshots are required", 1, this.exportedModel.getAllViews().size());
+            Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+            while ( viewsIterator.hasNext() ) {
+                increaseProgressBar();
+                IDiagramModel view = viewsIterator.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+                if ( this.exportConnection.getDatabaseEntry().isViewSnapshotRequired() ) {
+                    if ( (metadata.getScreenshot().getBytes() == null)
+                            || (metadata.getScreenshot().getScaleFactor() != this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor())
+                            || (metadata.getScreenshot().getBodrderWidth() != this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth())
+                            ) {
+                        setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+                        createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
+                        setProgressBarLabel("Checking if view screenshots are required");
+                    }
+                    metadata.getScreenshot().setScreenshotActive(true);
+                } else
+                    metadata.getScreenshot().setScreenshotActive(false);
+    
+                // we recalculate the view checksum using the screenshot (or not)
+                this.exportedModel.countObject(view, true);
+            }
+            hideProgressBar();
+            showGrpDatabase();
+            setMessage("Calculating number of new, updated and deleted components.");
+    
+            int total = 0;
+    
+            int nbNew = 0;
+            int nbNewInDb = 0;
+            int nbUpdated = 0;
+            int nbUpdatedInDb = 0;
+            int nbConflict = 0;
+            int nbDeleted = 0;
+            int nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
+            while (ite.hasNext()) {
+                IArchimateElement element = ite.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        if ( this.exportedModel.getAllConflicts().get(element.getId()) == null )
+                            this.exportedModel.getAllConflicts().put(element.getId(), CONFLICT_CHOICE.askUser);
+                        switch ( this.exportedModel.getAllConflicts().get(element.getId()) ) {
+                            case doNotExport:   // nothing to do
+                                break;
+                            case exportToDatabase:
+                                ++nbUpdated;
+                                break;
+                            case importFromDatabase:
+                                ++nbUpdatedInDb;
+                                break;
+                            default:    // askUSer
+                                ++nbConflict;
+                        }
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
                 }
-                metadata.getScreenshot().setScreenshotActive(true);
-            } else
-                metadata.getScreenshot().setScreenshotActive(false);
-
-            // we recalculate the view checksum using the screenshot (or not)
-            this.exportedModel.countObject(view, true);
-        }
-        hideProgressBar();
-        showGrpDatabase();
-        setMessage("Calculating number of new, updated and deleted components.");
-
-        int total = 0;
-
-        int nbNew = 0;
-        int nbNewInDb = 0;
-        int nbUpdated = 0;
-        int nbUpdatedInDb = 0;
-        int nbConflict = 0;
-        int nbDeleted = 0;
-        int nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
-        while (ite.hasNext()) {
-            IArchimateElement element = ite.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    if ( this.exportedModel.getAllConflicts().get(element.getId()) == null )
-                        this.exportedModel.getAllConflicts().put(element.getId(), CONFLICT_CHOICE.askUser);
-                    switch ( this.exportedModel.getAllConflicts().get(element.getId()) ) {
-                        case doNotExport:   // nothing to do
-                            break;
-                        case exportToDatabase:
-                            ++nbUpdated;
-                            break;
-                        case importFromDatabase:
-                            ++nbUpdatedInDb;
-                            break;
-                        default:    // askUSer
-                            ++nbConflict;
-                    }
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
             }
-        }
-        // we distinguish the elements new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getElementsNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if ( updateTextFields ) {
-            this.txtNewElementsInModel.setText(toString(nbNew));
-            this.txtNewElementsInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedElementsInModel.setText(toString(nbUpdated));
-            this.txtUpdatedElementsInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingElements.setText(toString(nbConflict));
-            this.txtDeletedElementsInModel.setText(toString(nbDeleted));
-            this.txtDeletedElementsInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        nbNew = 0;
-        nbNewInDb = 0;
-        nbUpdated = 0;
-        nbUpdatedInDb = 0;
-        nbConflict = 0;
-        nbDeleted = 0;
-        nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
-        while (itr.hasNext()) {
-            IArchimateRelationship relationship = itr.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    if ( this.exportedModel.getAllConflicts().get(relationship.getId()) == null )
-                        this.exportedModel.getAllConflicts().put(relationship.getId(), CONFLICT_CHOICE.askUser);
-                    switch ( this.exportedModel.getAllConflicts().get(relationship.getId()) ) {
-                        case doNotExport:   // nothing to do
-                            break;
-                        case exportToDatabase:
-                            ++nbUpdated;
-                            break;
-                        case importFromDatabase:
-                            ++nbUpdatedInDb;
-                            break;
-                        default:    // askUSer
-                            ++nbConflict;
-                    }
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
+            // we distinguish the elements new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getElementsNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
+    
             }
-        }
-        // we distinguish the relationships new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getRelationshipsNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if( updateTextFields ) {
-            this.txtNewRelationshipsInModel.setText(toString(nbNew));
-            this.txtNewRelationshipsInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedRelationshipsInModel.setText(toString(nbUpdated));
-            this.txtUpdatedRelationshipsInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingRelationships.setText(toString(nbConflict));
-            this.txtDeletedRelationshipsInModel.setText(toString(nbDeleted));
-            this.txtDeletedRelationshipsInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        nbNew = 0;
-        nbNewInDb = 0;
-        nbUpdated = 0;
-        nbUpdatedInDb = 0;
-        nbConflict = 0;
-        nbDeleted = 0;
-        nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
-        while (itf.hasNext()) {
-            IFolder folder = itf.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    // There is no conflict for folders: conflicts are managed with their content
-                    // If a folder has been updated both in the model and the database, then we export a new version
-                    ++nbUpdated;
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if ( updateTextFields ) {
+                this.txtNewElementsInModel.setText(toString(nbNew));
+                this.txtNewElementsInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedElementsInModel.setText(toString(nbUpdated));
+                this.txtUpdatedElementsInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingElements.setText(toString(nbConflict));
+                this.txtDeletedElementsInModel.setText(toString(nbDeleted));
+                this.txtDeletedElementsInDatabase.setText(toString(nbDeletedInDb));
             }
-        }
-        // we distinguish the folders new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getFoldersNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if ( updateTextFields ) {
-            this.txtNewFoldersInModel.setText(toString(nbNew));
-            this.txtNewFoldersInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedFoldersInModel.setText(toString(nbUpdated));
-            this.txtUpdatedFoldersInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingFolders.setText(toString(nbConflict));
-            this.txtDeletedFoldersInModel.setText(toString(nbDeleted));
-            this.txtDeletedFoldersInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        nbNew = 0;
-        nbNewInDb = 0;
-        nbUpdated = 0;
-        nbUpdatedInDb = 0;
-        nbConflict = 0;
-        nbDeleted = 0;
-        nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
-        while (itv.hasNext()) {
-            IDiagramModel view = itv.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    if ( this.exportedModel.getAllConflicts().get(view.getId()) == null )
-                        this.exportedModel.getAllConflicts().put(view.getId(), CONFLICT_CHOICE.askUser);
-                    switch ( this.exportedModel.getAllConflicts().get(view.getId()) ) {
-                        case doNotExport:   // nothing to do
-                            break;
-                        case exportToDatabase:
-                            ++nbUpdated;
-                            break;
-                        case importFromDatabase:
-                            ++nbUpdatedInDb;
-                            break;
-                        default:    // askUSer
-                            ++nbConflict;
-                    }
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
+    
+            nbNew = 0;
+            nbNewInDb = 0;
+            nbUpdated = 0;
+            nbUpdatedInDb = 0;
+            nbConflict = 0;
+            nbDeleted = 0;
+            nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
+            while (itr.hasNext()) {
+                IArchimateRelationship relationship = itr.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        if ( this.exportedModel.getAllConflicts().get(relationship.getId()) == null )
+                            this.exportedModel.getAllConflicts().put(relationship.getId(), CONFLICT_CHOICE.askUser);
+                        switch ( this.exportedModel.getAllConflicts().get(relationship.getId()) ) {
+                            case doNotExport:   // nothing to do
+                                break;
+                            case exportToDatabase:
+                                ++nbUpdated;
+                                break;
+                            case importFromDatabase:
+                                ++nbUpdatedInDb;
+                                break;
+                            default:    // askUSer
+                                ++nbConflict;
+                        }
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
+                }
             }
-        }
-        // we distinguish the views new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getViewsNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if ( updateTextFields ) {
-            this.txtNewViewsInModel.setText(toString(nbNew));
-            this.txtNewViewsInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedViewsInModel.setText(toString(nbUpdated));
-            this.txtUpdatedViewsInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingViews.setText(toString(nbConflict));
-            this.txtDeletedViewsInModel.setText(toString(nbDeleted));
-            this.txtDeletedViewsInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        nbNew = 0;
-        nbNewInDb = 0;
-        nbUpdated = 0;
-        nbUpdatedInDb = 0;
-        nbConflict = 0;
-        nbDeleted = 0;
-        nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
-        while (ito.hasNext()) {
-            IDiagramModelObject imo = ito.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)imo).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    if ( this.exportedModel.getAllConflicts().get(imo.getId()) == null )
-                        this.exportedModel.getAllConflicts().put(imo.getId(), CONFLICT_CHOICE.askUser);
-                    switch ( this.exportedModel.getAllConflicts().get(imo.getId()) ) {
-                        case doNotExport:   // nothing to do
-                            break;
-                        case exportToDatabase:
-                            ++nbUpdated;
-                            break;
-                        case importFromDatabase:
-                            ++nbUpdatedInDb;
-                            break;
-                        default:    // askUSer
-                            ++nbConflict;
-                    }
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
+            // we distinguish the relationships new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getRelationshipsNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
             }
-        }
-        // we distinguish the viewObjects new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getViewObjectsNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if ( updateTextFields ) {
-            this.txtNewViewObjectsInModel.setText(toString(nbNew));
-            this.txtNewViewObjectsInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedViewObjectsInModel.setText(toString(nbUpdated));
-            this.txtUpdatedViewObjectsInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingViewObjects.setText(toString(nbConflict));
-            this.txtDeletedViewObjectsInModel.setText(toString(nbDeleted));
-            this.txtDeletedViewObjectsInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        nbNew = 0;
-        nbNewInDb = 0;
-        nbUpdated = 0;
-        nbUpdatedInDb = 0;
-        nbConflict = 0;
-        nbDeleted = 0;
-        nbDeletedInDb = 0;
-        Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
-        while (itc.hasNext()) {
-            IDiagramModelConnection imc = itc.next().getValue();
-            DBMetadata metadata = ((IDBMetadata)imc).getDBMetadata();
-            switch ( metadata.getDatabaseStatus() ) {
-                case isNewInModel:
-                    ++nbNew;
-                    break;
-                case isUpadtedInDatabase:
-                    ++nbUpdatedInDb;
-                    break;
-                case isUpdatedInModel:
-                    ++nbUpdated;
-                    break;
-                case isDeletedInDatabase:
-                    ++nbDeletedInDb;
-                    break;
-                case IsConflicting:
-                    if ( this.exportedModel.getAllConflicts().get(imc.getId()) == null )
-                        this.exportedModel.getAllConflicts().put(imc.getId(), CONFLICT_CHOICE.askUser);
-                    switch ( this.exportedModel.getAllConflicts().get(imc.getId()) ) {
-                        case doNotExport:   // nothing to do
-                            break;
-                        case exportToDatabase:
-                            ++nbUpdated;
-                            break;
-                        case importFromDatabase:
-                            ++nbUpdatedInDb;
-                            break;
-                        default:    // askUSer
-                            ++nbConflict;
-                    }
-                    break;
-                case isSynced:
-                    // nothing to do
-                    break;
-                default:
-                    // should never be here
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if( updateTextFields ) {
+                this.txtNewRelationshipsInModel.setText(toString(nbNew));
+                this.txtNewRelationshipsInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedRelationshipsInModel.setText(toString(nbUpdated));
+                this.txtUpdatedRelationshipsInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingRelationships.setText(toString(nbConflict));
+                this.txtDeletedRelationshipsInModel.setText(toString(nbDeleted));
+                this.txtDeletedRelationshipsInDatabase.setText(toString(nbDeletedInDb));
             }
-        }
-        // we distinguish the ViewConnections new in the database from those deleted from memory
-        for ( DBMetadata metadata: this.exportConnection.getViewConnectionsNotInModel().values() ) {
-            if ( metadata.getInitialVersion().getVersion() != 0 )
-                ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
-            else
-                ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
-        }
-        total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
-        if ( updateTextFields ) {
-            this.txtNewViewConnectionsInModel.setText(toString(nbNew));
-            this.txtNewViewConnectionsInDatabase.setText(toString(nbNewInDb));
-            this.txtUpdatedViewConnectionsInModel.setText(toString(nbUpdated));
-            this.txtUpdatedViewConnectionsInDatabase.setText(toString(nbUpdatedInDb));
-            this.txtConflictingViewConnections.setText(toString(nbConflict));
-            this.txtDeletedViewConnectionsInModel.setText(toString(nbDeleted));
-            this.txtDeletedViewConnectionsInDatabase.setText(toString(nbDeletedInDb));
-        }
-
-        if ( updateTextFields ) {
-            this.txtNewImagesInModel.setText(toString(this.exportConnection.getImagesNotInDatabase().size()));
-            this.txtNewImagesInDatabase.setText(toString(this.exportConnection.getImagesNotInModel().size()));
-
-            // we log the values uniquely if the updateTextFields has been requestes, else the values are zero
-            logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-            logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
-            logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-            logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-            if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-                logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
-                logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
-                logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
-                logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-                logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
+    
+            nbNew = 0;
+            nbNewInDb = 0;
+            nbUpdated = 0;
+            nbUpdatedInDb = 0;
+            nbConflict = 0;
+            nbDeleted = 0;
+            nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
+            while (itf.hasNext()) {
+                IFolder folder = itf.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        // There is no conflict for folders: conflicts are managed with their content
+                        // If a folder has been updated both in the model and the database, then we export a new version
+                        ++nbUpdated;
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
+                }
             }
+            // we distinguish the folders new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getFoldersNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
+            }
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if ( updateTextFields ) {
+                this.txtNewFoldersInModel.setText(toString(nbNew));
+                this.txtNewFoldersInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedFoldersInModel.setText(toString(nbUpdated));
+                this.txtUpdatedFoldersInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingFolders.setText(toString(nbConflict));
+                this.txtDeletedFoldersInModel.setText(toString(nbDeleted));
+                this.txtDeletedFoldersInDatabase.setText(toString(nbDeletedInDb));
+            }
+    
+            nbNew = 0;
+            nbNewInDb = 0;
+            nbUpdated = 0;
+            nbUpdatedInDb = 0;
+            nbConflict = 0;
+            nbDeleted = 0;
+            nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
+            while (itv.hasNext()) {
+                IDiagramModel view = itv.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        if ( this.exportedModel.getAllConflicts().get(view.getId()) == null )
+                            this.exportedModel.getAllConflicts().put(view.getId(), CONFLICT_CHOICE.askUser);
+                        switch ( this.exportedModel.getAllConflicts().get(view.getId()) ) {
+                            case doNotExport:   // nothing to do
+                                break;
+                            case exportToDatabase:
+                                ++nbUpdated;
+                                break;
+                            case importFromDatabase:
+                                ++nbUpdatedInDb;
+                                break;
+                            default:    // askUSer
+                                ++nbConflict;
+                        }
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
+                }
+            }
+            // we distinguish the views new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getViewsNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
+            }
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if ( updateTextFields ) {
+                this.txtNewViewsInModel.setText(toString(nbNew));
+                this.txtNewViewsInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedViewsInModel.setText(toString(nbUpdated));
+                this.txtUpdatedViewsInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingViews.setText(toString(nbConflict));
+                this.txtDeletedViewsInModel.setText(toString(nbDeleted));
+                this.txtDeletedViewsInDatabase.setText(toString(nbDeletedInDb));
+            }
+    
+            nbNew = 0;
+            nbNewInDb = 0;
+            nbUpdated = 0;
+            nbUpdatedInDb = 0;
+            nbConflict = 0;
+            nbDeleted = 0;
+            nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
+            while (ito.hasNext()) {
+                IDiagramModelObject imo = ito.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)imo).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        if ( this.exportedModel.getAllConflicts().get(imo.getId()) == null )
+                            this.exportedModel.getAllConflicts().put(imo.getId(), CONFLICT_CHOICE.askUser);
+                        switch ( this.exportedModel.getAllConflicts().get(imo.getId()) ) {
+                            case doNotExport:   // nothing to do
+                                break;
+                            case exportToDatabase:
+                                ++nbUpdated;
+                                break;
+                            case importFromDatabase:
+                                ++nbUpdatedInDb;
+                                break;
+                            default:    // askUSer
+                                ++nbConflict;
+                        }
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
+                }
+            }
+            // we distinguish the viewObjects new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getViewObjectsNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
+            }
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if ( updateTextFields ) {
+                this.txtNewViewObjectsInModel.setText(toString(nbNew));
+                this.txtNewViewObjectsInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedViewObjectsInModel.setText(toString(nbUpdated));
+                this.txtUpdatedViewObjectsInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingViewObjects.setText(toString(nbConflict));
+                this.txtDeletedViewObjectsInModel.setText(toString(nbDeleted));
+                this.txtDeletedViewObjectsInDatabase.setText(toString(nbDeletedInDb));
+            }
+    
+            nbNew = 0;
+            nbNewInDb = 0;
+            nbUpdated = 0;
+            nbUpdatedInDb = 0;
+            nbConflict = 0;
+            nbDeleted = 0;
+            nbDeletedInDb = 0;
+            Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
+            while (itc.hasNext()) {
+                IDiagramModelConnection imc = itc.next().getValue();
+                DBMetadata metadata = ((IDBMetadata)imc).getDBMetadata();
+                switch ( metadata.getDatabaseStatus() ) {
+                    case isNewInModel:
+                        ++nbNew;
+                        break;
+                    case isUpadtedInDatabase:
+                        ++nbUpdatedInDb;
+                        break;
+                    case isUpdatedInModel:
+                        ++nbUpdated;
+                        break;
+                    case isDeletedInDatabase:
+                        ++nbDeletedInDb;
+                        break;
+                    case IsConflicting:
+                        if ( this.exportedModel.getAllConflicts().get(imc.getId()) == null )
+                            this.exportedModel.getAllConflicts().put(imc.getId(), CONFLICT_CHOICE.askUser);
+                        switch ( this.exportedModel.getAllConflicts().get(imc.getId()) ) {
+                            case doNotExport:   // nothing to do
+                                break;
+                            case exportToDatabase:
+                                ++nbUpdated;
+                                break;
+                            case importFromDatabase:
+                                ++nbUpdatedInDb;
+                                break;
+                            default:    // askUSer
+                                ++nbConflict;
+                        }
+                        break;
+                    case isSynced:
+                        // nothing to do
+                        break;
+                    default:
+                        // should never be here
+                }
+            }
+            // we distinguish the ViewConnections new in the database from those deleted from memory
+            for ( DBMetadata metadata: this.exportConnection.getViewConnectionsNotInModel().values() ) {
+                if ( metadata.getInitialVersion().getVersion() != 0 )
+                    ++nbDeleted;        // if the component did exist in the InitialVersion of the model, then it has been deleted from the model
+                else
+                    ++nbNewInDb;        // else, the component has been created in the database since the model has been loaded
+            }
+            total += nbNew + nbNewInDb + nbUpdated + nbUpdatedInDb + nbDeleted + nbDeletedInDb + nbConflict;
+            if ( updateTextFields ) {
+                this.txtNewViewConnectionsInModel.setText(toString(nbNew));
+                this.txtNewViewConnectionsInDatabase.setText(toString(nbNewInDb));
+                this.txtUpdatedViewConnectionsInModel.setText(toString(nbUpdated));
+                this.txtUpdatedViewConnectionsInDatabase.setText(toString(nbUpdatedInDb));
+                this.txtConflictingViewConnections.setText(toString(nbConflict));
+                this.txtDeletedViewConnectionsInModel.setText(toString(nbDeleted));
+                this.txtDeletedViewConnectionsInDatabase.setText(toString(nbDeletedInDb));
+            }
+    
+            if ( updateTextFields ) {
+                this.txtNewImagesInModel.setText(toString(this.exportConnection.getImagesNotInDatabase().size()));
+                this.txtNewImagesInDatabase.setText(toString(this.exportConnection.getImagesNotInModel().size()));
+    
+                // we log the values uniquely if the updateTextFields has been requestes, else the values are zero
+                logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
+                logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+                logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
+                logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
+                if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+                    logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
+                    logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
+                    logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
+                    logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
+                    logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
+                }
+            }
+    
+            closeMessage();
+    
+            if ( total == 0 ) { 
+                logger.info("The model does not need to be exported to the database.");
+                return true;
+            }
+    
+            logger.info("The model needs to be exported to the database.");
+        } finally {
+            closeMessage();
         }
-
-        closeMessage();
-
-        if ( total == 0 ) { 
-            logger.info("The model does not need to be exported to the database.");
-            return true;
-        }
-
-        logger.info("The model needs to be exported to the database.");
         return false;
     }
 
@@ -1660,11 +1664,6 @@ public class DBGuiExportModel extends DBGui {
 
         boolean isNeo4JDatabase = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
 
-        int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size();
-        if ( !isNeo4JDatabase ) {
-            progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size();
-        }
-
         // we force the modelVersion and component groups to be visible (in case we come from the conflict resolution)
         this.grpComponents.setVisible(true);
         this.grpModelVersions.setVisible(true);
@@ -1673,11 +1672,6 @@ public class DBGuiExportModel extends DBGui {
         setActiveAction(STATUS.Ok);
         setActiveAction(ACTION.Two);
 
-        // We hide the grpDatabase and create a progressBar instead 
-        hideGrpDatabase();
-        createProgressBar("Exporting model to the database ...", 0, progressBarWidth);
-        createGrpConflict();
-        
         // We update the model name and purpose in case they've been changed in the export windows
         if ( !DBPlugin.areEqual(this.exportedModel.getName(), this.txtModelName.getText()) )
             this.exportedModel.setName(this.txtModelName.getText());
@@ -1695,6 +1689,61 @@ public class DBGuiExportModel extends DBGui {
             doShowResult(STATUS.Error, "Failed to calculate the model's checksum.\n"+err.getMessage());
             return;
         }
+        
+        if ( !isNeo4JDatabase ) {
+            try {
+                // we first compare the model to the database, in case someone updated the database since the last check
+                boolean upToDate = compareModelToDatabase(false);
+    
+                if ( upToDate ) {
+                    setActiveAction(STATUS.Ok);
+                    doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
+                    return;
+                }
+            } catch (Exception exportError) {
+                setActiveAction(STATUS.Error);
+    
+                doShowResult(STATUS.Error, "Failed to compare the model with the database."+exportError.getMessage());
+                popup(Level.ERROR, "Failed to compare the model with the database.", exportError);
+                
+                return;
+            }
+        
+        
+            //////////////////////////// PHASE 1 : the user must resolve the conflicts
+            setMessage("Checking for conflicts ...");
+        
+            hideGrpDatabase();
+            createGrpConflict();
+        
+            Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
+            while ( elementsIterator.hasNext() ) {
+                IArchimateElement element = elementsIterator.next().getValue();
+                if ( ((IDBMetadata)element).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.IsConflicting ) {
+                    this.exportedModel.getAllConflicts().put(((IIdentifier)element).getId(), CONFLICT_CHOICE.askUser);
+                    new TableItem(this.tblListConflicts, SWT.NONE).setText(element.getId());
+            }
+        
+        this.tblListConflicts.setSelection(0);
+        try {
+            this.tblListConflicts.notifyListeners(SWT.Selection, new Event());      // shows up the tblListConflicts table and calls fillInCompareTable()
+        } catch (Exception err) {
+            popup(Level.ERROR, "Failed to compare component with its database version.", err);
+            setActiveAction(STATUS.Error);
+            doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
+            return;
+        }
+        
+        
+        
+        int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size();
+        if ( !isNeo4JDatabase ) {
+            progressBarWidth += this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size() + ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size();
+        }
+        
+        // We hide the grpDatabase and create a progressBar instead 
+
+        createProgressBar("Exporting model to the database ...", 0, progressBarWidth);
 
         // then, we start a new database transaction
         try {
@@ -1937,33 +1986,6 @@ public class DBGuiExportModel extends DBGui {
                     throw e;
                 }
 
-                // if new components have been imported, we may now need to recalculate the checksums of folders and views
-                setProgressBarLabel("Recalculating checksums of updated folders and views ...");
-
-                Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
-                while ( foldersIterator.hasNext() ) {
-                    IFolder folder = foldersIterator.next().getValue();
-                    this.exportedModel.countObject(folder,  true);
-                }
-
-                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-                while ( viewsIterator.hasNext() ) {
-                    IDiagramModel view = viewsIterator.next().getValue();
-                    // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
-                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-                        this.exportedModel.countObject(view, true);
-                        if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
-                            setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
-                            createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-                            ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
-                            setProgressBarLabel("Importing new components from the database ...");
-                        }
-                    }
-
-                    // we recalculate the checksum
-                    this.exportedModel.countObject(view,  true);
-                }
-                
                 logger.info("Exporting model itslef ...");
                 setProgressBarLabel("Exporting model itself ...");
                 this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
@@ -2003,18 +2025,27 @@ public class DBGuiExportModel extends DBGui {
                 this.stack.execute(this.undoableCommands);
             }
 
-
             if ( !isNeo4JDatabase ) {
-                logger.info("Exporting folders ...");
-                setProgressBarLabel("Exporting folders ...");
-                Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
-                while ( foldersIterator.hasNext() ) {
-                    IFolder folder = foldersIterator.next().getValue();
-                    // we recalculate the checksum in case components have been removed or imported
-                    this.exportedModel.countObject(folder, true);
-                    doExportEObject(folder, isNeo4JDatabase);
+                
+                logger.info("Exporting views ...");
+                setProgressBarLabel("Exporting views ...");
+                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+                while ( viewsIterator.hasNext() ) {
+                    IDiagramModel view = viewsIterator.next().getValue();
+                    // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
+                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
+                        this.exportedModel.countObject(view, true);
+                        if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
+                            setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
+                            createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
+                            ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
+                            setProgressBarLabel("Exporting views ...");
+                        }
+                    }
+                    
+                    ((IDBMetadata)view).getDBMetadata().setExported(doExportEObject(view, isNeo4JDatabase));
                 }
-
+                
                 logger.info("Exporting view objects ...");
                 setProgressBarLabel("Exporting view objects ...");
                 Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
@@ -2040,23 +2071,25 @@ public class DBGuiExportModel extends DBGui {
                     this.stack.execute(this.undoableCommands);
                 }
                 
-                logger.info("Exporting views ...");
-                setProgressBarLabel("Exporting views ...");
-                Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-                while ( viewsIterator.hasNext() ) {
-                    IDiagramModel view = viewsIterator.next().getValue();
-                    // if the checksum of the view has been changed by imported, updated or deleted components, then we recalculate its checksum
-                    if ( !((IDBMetadata)view).getDBMetadata().isChecksumValid() ) {
-                        this.exportedModel.countObject(view, true);
-                        if ( ((IDBMetadata)view).getDBMetadata().getScreenshot().isScreenshotActive() ) {
-                            setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
-                            createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-                            ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(view));
-                            setProgressBarLabel("Exporting views ...");
-                        }
-                    }
-                    
-                    ((IDBMetadata)view).getDBMetadata().setExported(doExportEObject(view, isNeo4JDatabase));
+                // we delete the components from the model that have been deleted in the database
+                if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                    this.stack.execute(this.undoableCommands);
+                }
+                
+               
+                // we delete the components from the model that have been deleted in the database
+                if ( (this.undoableCommands != null) && !this.undoableCommands.isEmpty() ) {
+                    this.stack.execute(this.undoableCommands);
+                }
+                
+                logger.info("Exporting folders ...");
+                setProgressBarLabel("Exporting folders ...");
+                Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
+                while ( foldersIterator.hasNext() ) {
+                    IFolder folder = foldersIterator.next().getValue();
+                    // we recalculate the checksum in case components have been removed or imported
+                    this.exportedModel.countObject(folder, true);
+                    doExportEObject(folder, isNeo4JDatabase);
                 }
 
                 logger.info("Exporting images ...");
