@@ -81,27 +81,27 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	/**
 	 * Imports a view connection into the model<br>
 	 * @param importConnection connection to the database
-	 * @param model model into which the view connection will be imported
-	 * @param id id of the view connection to import
-	 * @param version version of the view connection to import (0 if the latest version should be imported)
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
+	 * @param archimateModel model into which the view connection will be imported
+	 * @param idToImport id of the view connection to import
+	 * @param versionToImport version of the view connection to import (0 if the latest version should be imported)
+     * @param mustCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
 	 * @param importMode specifies if the view must be copied or shared
 	 */
-	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, DBImportMode importMode) {
-		this.model = model;
-		this.id = id;
-        this.mustCreateCopy = mustCreateCopy;
+	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String idToImport, int versionToImport, boolean mustCopy, DBImportMode importMode) {
+		this.model = archimateModel;
+		this.id = idToImport;
+        this.mustCreateCopy = mustCopy;
 
 		if ( logger.isDebugEnabled() ) {
 			if ( this.mustCreateCopy )
-				logger.debug("   Importing a copy of view connection id "+this.id + " version " + version +".");
+				logger.debug("   Importing a copy of view connection id "+this.id + " version " + versionToImport +".");
 			else
-				logger.debug("   Importing view connection id "+this.id + " version " + version +".");
+				logger.debug("   Importing view connection id "+this.id + " version " + versionToImport +".");
 		}
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IDiagramModelConnection", version);
+			this.newValues = importConnection.getObject(idToImport, "IDiagramModelConnection", versionToImport);
 			
 			if ( this.mustCreateCopy ) {
 				String newId = DBPlugin.createID();
@@ -112,7 +112,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			
             // if the object references a relationship, then we import it
             if ( this.newValues.get("relationship_id") != null ) {
-                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("relationship_id"), 0, importMode);
+                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, archimateModel, null, null, (String)this.newValues.get("relationship_id"), 0, importMode);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
             }

@@ -543,13 +543,17 @@ public class DBMetadata  {
         return null;
     }
 
-    public void setId(String id) {
+    /**
+     * Sets the Id of the underlying archimate component
+     * @param newId
+     */
+    public void setId(String newId) {
         // if the component has not be imported (yet) from the database, we store its id in a local variable
         if ( this.component == null )
-            this.id = id;
+            this.id = newId;
         else {
-            if ( (this.component instanceof IIdentifier) && (id != null) && !DBPlugin.areEqual(((IIdentifier)this.component).getId(), id) )
-                ((IIdentifier)this.component).setId(id);
+            if ( (this.component instanceof IIdentifier) && (newId != null) && !DBPlugin.areEqual(((IIdentifier)this.component).getId(), newId) )
+                ((IIdentifier)this.component).setId(newId);
         }
     }
 
@@ -827,7 +831,7 @@ public class DBMetadata  {
         IFolder oldParentFolder = getParentFolder();
         if ( (oldParentFolder != null) && (oldParentFolder != newParentFolder) ) {
             if ( this.component instanceof IFolder )
-                oldParentFolder.getFolders().remove(this.component);
+                oldParentFolder.getFolders().remove((IFolder)this.component);
             else
                 oldParentFolder.getElements().remove(this.component);
         }

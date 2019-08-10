@@ -1260,13 +1260,15 @@ public class DBGuiExportModel extends DBGui {
 						case importFromDatabase:
 							++nbUpdatedInDb;
 							break;
-						default:    // askUSer
+						case askUser:
+						default:
 							++nbConflict;
 					}
 					break;
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -1326,6 +1328,7 @@ public class DBGuiExportModel extends DBGui {
 						case importFromDatabase:
 							++nbUpdatedInDb;
 							break;
+						case askUser:
 						default:    // askUSer
 							++nbConflict;
 					}
@@ -1333,6 +1336,7 @@ public class DBGuiExportModel extends DBGui {
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -1387,6 +1391,7 @@ public class DBGuiExportModel extends DBGui {
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -1445,6 +1450,7 @@ public class DBGuiExportModel extends DBGui {
 						case importFromDatabase:
 							++nbUpdatedInDb;
 							break;
+						case askUser:
 						default:    // askUSer
 							++nbConflict;
 					}
@@ -1452,6 +1458,7 @@ public class DBGuiExportModel extends DBGui {
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -1510,6 +1517,7 @@ public class DBGuiExportModel extends DBGui {
 						case importFromDatabase:
 							++nbUpdatedInDb;
 							break;
+						case askUser:
 						default:    // askUSer
 							++nbConflict;
 					}
@@ -1517,6 +1525,7 @@ public class DBGuiExportModel extends DBGui {
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -1575,6 +1584,7 @@ public class DBGuiExportModel extends DBGui {
 						case importFromDatabase:
 							++nbUpdatedInDb;
 							break;
+						case askUser:
 						default:    // askUSer
 							++nbConflict;
 					}
@@ -1582,6 +1592,7 @@ public class DBGuiExportModel extends DBGui {
 				case isSynced:
 					// nothing to do
 					break;
+				case isNewInDatabase:
 				default:
 					// should never be here
 			}
@@ -2124,6 +2135,11 @@ public class DBGuiExportModel extends DBGui {
 						case isUpdatedInModel:
 							doExport(componentToExport, this.txtUpdatedElementsInModel);
 							break;
+						case isConflicting:
+						case isDeletedInDatabase:
+						case isNewInDatabase:
+						case isSynced:
+						case isUpadtedInDatabase:
 						default:
 							// all other cases have been managed upwards
 					}
@@ -2148,6 +2164,11 @@ public class DBGuiExportModel extends DBGui {
 						case isUpdatedInModel:
 							doExport(componentToExport, this.txtUpdatedRelationshipsInModel);
 							break;
+						case isConflicting:
+						case isDeletedInDatabase:
+						case isNewInDatabase:
+						case isSynced:
+						case isUpadtedInDatabase:
 						default:
 							// all other cases have been managed upwards
 					}
@@ -2169,6 +2190,11 @@ public class DBGuiExportModel extends DBGui {
 						case isUpdatedInModel:
 							doExport(componentToExport, this.txtUpdatedFoldersInModel);
 							break;
+						case isConflicting:
+						case isDeletedInDatabase:
+						case isNewInDatabase:
+						case isSynced:
+						case isUpadtedInDatabase:
 						default:
 							// all other cases have been managed upwards
 					}
@@ -2191,6 +2217,11 @@ public class DBGuiExportModel extends DBGui {
 						case isUpdatedInModel:
 							txtFieldToIncrement = this.txtUpdatedViewsInModel;
 							break;
+						case isConflicting:
+						case isDeletedInDatabase:
+						case isNewInDatabase:
+						case isSynced:
+						case isUpadtedInDatabase:
 						default:
 							// all other cases have been managed upwards
 					}
@@ -2223,6 +2254,11 @@ public class DBGuiExportModel extends DBGui {
 							case isUpdatedInModel:
 								doExport(componentToExport, this.txtUpdatedViewObjectsInModel);
 								break;
+							case isConflicting:
+							case isDeletedInDatabase:
+							case isNewInDatabase:
+							case isSynced:
+							case isUpadtedInDatabase:
 							default:
 								// all other cases have been managed upwards
 						}
@@ -2246,6 +2282,11 @@ public class DBGuiExportModel extends DBGui {
 							case isUpdatedInModel:
 								doExport(componentToExport, this.txtUpdatedViewConnectionsInModel);
 								break;
+							case isConflicting:
+							case isDeletedInDatabase:
+							case isNewInDatabase:
+							case isSynced:
+							case isUpadtedInDatabase:
 							default:
 								// all other cases have been managed upwards
 						}

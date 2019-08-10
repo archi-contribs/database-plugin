@@ -20,10 +20,10 @@ public class DBBendpoint
     @Getter @Setter private int endX;
     @Getter @Setter private int endY;
     
-    public DBBendpoint(int startX, int startY, int endX, int endY) {
-        this.startX = startX;
-        this.endX = endX;
-        this.startY = startY;
-        this.endY = endY;
+    public DBBendpoint(int theStartX, int theStartY, int theEndX, int theEndY) {
+        this.startX = theStartX;
+        this.endX = theEndX;
+        this.startY = theStartY;
+        this.endY = theEndY;
     }
 }

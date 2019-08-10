@@ -66,23 +66,22 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 	/**
 	 * Imports a folder into the model<br>
 	 * @param importConnection connection to the database
-	 * @param model model into which the folder will be imported
+	 * @param archimateModel model into which the folder will be imported
 	 * @param folder if a folder is provided, the folder will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
-	 * @param id id of the folder to import
- 	 * @param version version of the folder to import
+	 * @param idToImport id of the folder to import
+ 	 * @param versionToImport version of the folder to import
 	 * @param importMode specifies if the folder must be copied or shared
 	 */
-	@SuppressWarnings("unchecked")
-	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, DBImportMode importMode) {
-		this.model = model;
-		this.id = id;
+	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode) {
+		this.model = archimateModel;
+		this.id = idToImport;
 		
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing folder id " + " version " + version + " in " + importMode.getLabel()+".");
+			logger.debug("   Importing folder id " + idToImport + " version " + versionToImport + " in " + importMode.getLabel()+".");
 		
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IFolder", version);
+			this.newValues = importConnection.getObject(idToImport, "IFolder", versionToImport);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
@@ -94,7 +93,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == (int)this.newValues.get("root_type")) )
 			    this.newFolder = folder;
 			else
-			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IFolder", this.id);
+			    this.newFolder = importConnection.getLastKnownFolder(archimateModel, "IFolder", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import folder");
@@ -111,7 +110,6 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void execute() {
 		if ( this.commandHasBeenExecuted )

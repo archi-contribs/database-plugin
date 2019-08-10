@@ -56,7 +56,8 @@ public enum DBDatabase {
         return this.hasSchema;
     }
 	
-    private DBDatabase(int value, String driverName, int defaultPort, boolean hasSchema) {
+    @SuppressWarnings("hiding")
+	private DBDatabase(int value, String driverName, int defaultPort, boolean hasSchema) {
         this.value = value;
         this.driverName = driverName.toLowerCase();
         this.defaultPort = defaultPort;

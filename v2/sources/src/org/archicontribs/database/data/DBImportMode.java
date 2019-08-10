@@ -44,9 +44,9 @@ public enum DBImportMode {
 	public static final int forceSharedModeValue = 2;
 	public static final int forceCopyModeValue = 3;
 
-	private DBImportMode(int value, String label) {
-		this.value = value;
-		this.label = label;
+	private DBImportMode(int v, String l) {
+		this.value = v;
+		this.label = l;
 	}
 
 	public static String getLabel(int value) {

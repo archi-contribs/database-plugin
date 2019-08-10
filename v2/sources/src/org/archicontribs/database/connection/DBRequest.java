@@ -17,8 +17,8 @@ public class DBRequest extends DBStatement {
 	@Getter private int rowCount = 0;
 	
 	@SafeVarargs
-	public <T> DBRequest(String driverName, Connection connection, String request, T... parameters) throws SQLException {
-		super(driverName, connection, request, parameters);
+	public <T> DBRequest(String theDriverName, Connection theConnection, String theRequest, T... theParameters) throws SQLException {
+		super(theDriverName, theConnection, theRequest, theParameters);
 		
 		this.rowCount = executeUpdate();
 	}

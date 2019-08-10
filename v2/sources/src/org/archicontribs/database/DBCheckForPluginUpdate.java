@@ -293,6 +293,8 @@ public class DBCheckForPluginUpdate {
     /**
      * Shows up an on screen popup with a progressbar<br>
      * it is the responsibility of the caller to dismiss the popup
+     * @param msg Message to show in the progressbar
+     * @return 
      */
     ProgressBar progressbarPopup(String msg) {
         if (logger.isDebugEnabled())

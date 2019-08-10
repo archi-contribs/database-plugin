@@ -21,14 +21,14 @@ public class DBSelect extends DBStatement {
 	@Getter ResultSet result = null;
 	
 	@SafeVarargs
-	public <T> DBSelect(String driverName, Connection connection, String request, T... parameters) throws SQLException {
-        super(driverName, connection, request, parameters);
+	public <T> DBSelect(String theDriverName, Connection theConnection, String theRequest, T... theParameters) throws SQLException {
+        super(theDriverName, theConnection, theRequest, theParameters);
 
         try {
             this.result = executeQuery();
         } catch (Exception err) {
             // in case of an SQLException, we log the raw request to ease the debug process
-            if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request: "+request);
+            if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request: "+theRequest);
             throw err;
         }
 	}

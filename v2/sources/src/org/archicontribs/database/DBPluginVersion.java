@@ -2,13 +2,26 @@ package org.archicontribs.database;
 
 import lombok.Getter;
 
+/**
+ * Holds and manipulates a version under the form x.y.z[.t...] where x, y, z, t are integers. 
+ * @author Herve Jouin *
+ */
 public class DBPluginVersion implements Comparable<DBPluginVersion> {
     @Getter private String version;
     
-    public DBPluginVersion(String version) {
-    	this.version = version;
+    /**
+     * Initialize a {@link DBPluginVersion}
+     * @param v value of the version
+     */
+    public DBPluginVersion(String v) {
+    	this.version = v;
     }
 
+    /**
+     * Compares the current version to a new one
+     * @param versionToCompare the version to compare to
+     * @return 0 if identical<br>1 if current version is greater<br>-1 if current version is lower
+     */
     @Override public int compareTo(DBPluginVersion versionToCompare) {
         if( versionToCompare == null )
             return 1;
@@ -28,6 +41,11 @@ public class DBPluginVersion implements Comparable<DBPluginVersion> {
         return 0;
     }
 
+    /**
+     * Compares the current version to a new one
+     * @param versionToCompare the version to compare to
+     * @return true if identical, false if different
+     */
     @Override public boolean equals(Object versionToCompare) {
         if(this == versionToCompare)
             return true;

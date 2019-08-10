@@ -75,25 +75,26 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 
 	/**
 	 * Imports a relationship into the model<br>
-	 * @param model model into which the relationship will be imported
-	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param importConnection connection to the database
+	 * @param archimateModel model into which the relationship will be imported
+	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
 	 * @param folder if a folder is provided, the relationship will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
-	 * @param id id of the relationship to import
+	 * @param idToImport id of the relationship to import
+	 * @param versionToImport version of the relationship to import (0 if the latest found in the database should be imported) 
 	 * @param importMode specifies if the relationship must be copied or shared
 	 */
-	@SuppressWarnings("unchecked")
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, DBImportMode importMode) {
-		this.model = model;
-		this.view = view;
-		this.id = id;
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode) {
+		this.model = archimateModel;
+		this.view = archimateDiagramModel;
+		this.id = idToImport;
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing relationship id " + this.id + " version " + version + " in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
+			logger.debug("   Importing relationship id " + idToImport + " version " + versionToImport + " in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+((IDBMetadata)archimateDiagramModel).getDBMetadata().getDebugName() : "."));
 
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IArchimateRelationship", version);
+			this.newValues = importConnection.getObject(idToImport, "IArchimateRelationship", versionToImport);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			

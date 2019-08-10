@@ -58,7 +58,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 	private String id;
 	private boolean mustCreateCopy;
-	private boolean mustImportRelationships;
+	private boolean mustImportTheRelationships;
 	private boolean isNew;
 
 	// new values that are retrieved from the database
@@ -80,27 +80,26 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	/**
 	 * Imports an element into the model<br>
 	 * @param importConnection connection to the database
-	 * @param model model into which the element will be imported
-	 * @param view if a view is provided, then an ArchimateObject will be automatically created
+	 * @param archimateModel model into which the element will be imported
+	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
 	 * @param folder if a folder is provided, the element will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
-	 * @param id id of the element to import
-	 * @param version version of the element to import (0 if the latest version should be imported)
+	 * @param idToImport id of the element to import
+	 * @param versionToImport version of the element to import (0 if the latest version should be imported)
 	 * @param importMode specifies if the element must be copied or shared
 	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
 	 */
-	@SuppressWarnings("unchecked")
-	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String id, int version, DBImportMode importMode, boolean mustImportRelationships) {
-		this.model = model;
-		this.view = view;
-		this.id = id;
-		this.mustImportRelationships = mustImportRelationships;
+	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportRelationships) {
+		this.model = archimateModel;
+		this.view = archimateDiagramModel;
+		this.id = idToImport;
+		this.mustImportTheRelationships = mustImportRelationships;
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing element id " + this.id + " version " + version +" in " + importMode.getLabel() + ((view != null) ? " into view."+view.getId() : "."));
+			logger.debug("   Importing element id " + this.id + " version " + versionToImport +" in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+archimateDiagramModel.getId() : "."));
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(id, "IArchimateElement", version);
+			this.newValues = importConnection.getObject(idToImport, "IArchimateElement", versionToImport);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			
@@ -116,7 +115,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
 
-			if ( this.mustImportRelationships ) {
+			if ( this.mustImportTheRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
 				// We import the relationships that source or target the element
 				try ( DBSelect resultRelationship = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
@@ -132,7 +131,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 					    	target = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("target_id")));
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
-						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), id) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), id) || target != null) ) {
+						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), idToImport) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), idToImport) || target != null) ) {
 							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
@@ -163,7 +162,6 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 		return (this.model != null) && (this.id != null) && (this.exception == null);
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public void execute() {
 		if ( this.commandHasBeenExecuted )
@@ -330,6 +328,9 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 		return this.exception;
 	}
 	
+	/**
+	 * Resets the X and Y location of the created viewObject
+	 */
 	public static void resetCreatedViewObjectsLocation() {
 	    createdViewObjectXLocation = 0;
 	    createdViewObjectYLocation = 0;

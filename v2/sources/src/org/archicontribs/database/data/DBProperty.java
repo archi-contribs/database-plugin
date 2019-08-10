@@ -18,9 +18,14 @@ public class DBProperty
     @Getter @Setter private String key;
     @Getter @Setter private String value;
 
-    public DBProperty(String key, String value)
+    /**
+     * Initialize the {@link DBProperty} with the provided key and value
+     * @param theKey
+     * @param theValue
+     */
+    public DBProperty(String theKey, String theValue)
     {
-        this.key = key;
-        this.value = value;
+        this.key = theKey;
+        this.value = theValue;
     }
 }

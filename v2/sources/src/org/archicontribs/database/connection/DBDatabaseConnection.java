@@ -175,10 +175,10 @@ public class DBDatabaseConnection implements AutoCloseable {
     /**
      * Checks the database structure
      * @param dbGui the dialog that holds the graphical interface
-     * @throws SQLException if the connection to the database failed
+     * @throws Exception 
      * @returns true if the database structure is correct, false if not
      */
-    public void checkDatabase(DBGui dbGui) throws SQLException {
+    public void checkDatabase(DBGui dbGui) throws Exception {
     	try {
 			if ( dbGui != null )
 				dbGui.setMessage("Checking the database structure...");
@@ -301,7 +301,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	            else
 	                throw new SQLException("The database needs to be upgraded.");
 	        }
-    	} catch (SQLException err) {
+    	} catch (Exception err) {
     		rollback();
     		throw err;
 	    } finally {

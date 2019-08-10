@@ -28,20 +28,20 @@ public class DBStatement implements AutoCloseable {
 	String request = null;
 
 	@SafeVarargs
-	public <T> DBStatement(String driverName, Connection connection, String request, T... parameters) throws SQLException {
-		this.driverName = driverName;
-		this.connection = connection;
-		this.request = request;
+	public <T> DBStatement(String theDriverName, Connection theConnection, String theRequest, T... theParameters) throws SQLException {
+		this.driverName = theDriverName;
+		this.connection = theConnection;
+		this.request = theRequest;
 		try {
-			if ( parameters.length == 0 )
-				this.statement = connection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+			if ( theParameters.length == 0 )
+				this.statement = theConnection.createStatement(ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
 			else {
-				this.preparedStatement = connection.prepareStatement(request, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
-				constructStatement(parameters);
+				this.preparedStatement = theConnection.prepareStatement(theRequest, ResultSet.TYPE_FORWARD_ONLY, ResultSet.CONCUR_READ_ONLY);
+				constructStatement(theParameters);
 			}
 		} catch (SQLException err) {
 			// in case of an SQLException, we log the raw request to ease the debug process
-			if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request: "+request);
+			if ( logger.isTraceEnabled() ) logger.trace("SQL Exception for database request: "+theRequest);
 			throw err;
 		}
 

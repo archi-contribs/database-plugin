@@ -25,7 +25,6 @@ import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.emf.common.util.CommonUtil.StringPool.SubstringAccessUnit;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IIconic;
@@ -86,13 +85,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Opens a connection to a JDBC database using all the connection details
+     * @param dbEntry 
+     * @throws ClassNotFoundException 
+     * @throws SQLException 
      */
-    public DBDatabaseExportConnection(DBDatabaseEntry databaseEntry) throws ClassNotFoundException, SQLException {
-        super(databaseEntry);
+    public DBDatabaseExportConnection(DBDatabaseEntry dbEntry) throws ClassNotFoundException, SQLException {
+        super(dbEntry);
     }
 
     /**
      * duplicates a connection to a JDBC database to allow switching between DBDatabaseImportConnection and DBDatabaseExportConnection
+     * @param importConnection 
      */
     public DBDatabaseExportConnection(DBDatabaseImportConnection importConnection) {
         super();
@@ -105,6 +108,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * duplicates a connection to a JDBC database to allow switching between DBDatabaseConnection and DBDatabaseExportConnection
+     * @param databaseConnection 
      */
     public DBDatabaseExportConnection(DBDatabaseConnection databaseConnection) {
         super();
@@ -177,7 +181,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.
      * <br>
      * @param component
-     * @throws Exception
+     * @throws SQLException
      */
     public void getVersionFromDatabase(IIdentifier component) throws SQLException {
         assert (component != null);
@@ -925,6 +929,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Exports the model metadata into the database
+     * @param model 
+     * @param releaseNote 
+     * @throws Exception 
      */
     public void exportModel(DBArchimateModel model, String releaseNote) throws Exception {
         final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checksum"};
@@ -958,6 +965,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export a component to the database
+     * @param eObject 
+     * @throws Exception 
      */
     public void exportEObject(EObject eObject) throws Exception {
         if ( eObject instanceof IArchimateElement ) 			exportElement((IArchimateElement)eObject);
@@ -970,6 +979,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             throw new Exception("Do not know how to export "+eObject.getClass().getSimpleName());
     }
 
+    /**
+     * @param eObject
+     * @throws Exception
+     */
     public void assignEObjectToModel(EObject eObject) throws Exception {
         if ( eObject instanceof IArchimateElement )				assignElementToModel((IArchimateElement)eObject);
         else if ( eObject instanceof IArchimateRelationship )	assignRelationshipToModel((IArchimateRelationship)eObject);

@@ -16,14 +16,28 @@ import lombok.Getter;
  * 
  * @author Herve Jouin
  */
+@SuppressWarnings("hiding")
 public class DBVersion {
+    /**
+     * value used to represent the "NEVER" concept
+     */
     public static Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
-    public DBVersion(DBVersion version) {
-        set(version);
+    @Getter private int version;
+    
+    /**
+     * Initialize the {@link DBVersion} with another DBVersion that will be copied
+     * @param versionToCopy
+     */
+    public DBVersion(DBVersion versionToCopy) {
+        set(versionToCopy);
     }
     
-    public DBVersion(int version, String containerChecksum, String checksum, Timestamp timestamp) {
+    /**
+     * Initialize the {@link DBVersion} with another DBVersion that will be copied
+     * @param versionToCopy
+     */
+	public DBVersion(int version, String containerChecksum, String checksum, Timestamp timestamp) {
         set(version, containerChecksum, checksum, timestamp);
     }
     
@@ -78,7 +92,6 @@ public class DBVersion {
         setTimestamp(timestamp);
     }
     
-    @Getter private int version;
     public void setVersion(int version) {
         this.version = (version<0 ? 0 : version);
     }

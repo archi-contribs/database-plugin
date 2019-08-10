@@ -94,17 +94,17 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
     /**
      * Imports a view object into the model<br>
-     * @param connection connection to the database
-     * @param model model into which the view object will be imported
-     * @param id id of the view object to import
+     * @param importConnection connection to the database
+     * @param archimateModel model into which the view object will be imported
+     * @param idToImport id of the view object to import
      * @param version version of the view object to import
-     * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
+     * @param mustCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
      * @param importMode specifies the mode to be used to import missing elements and relationships
      */
-    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, String id, int version, boolean mustCreateCopy, DBImportMode importMode) {
-        this.model = model;
-        this.id = id;
-        this.mustCreateCopy = mustCreateCopy;
+    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String idToImport, int version, boolean mustCopy, DBImportMode importMode) {
+        this.model = archimateModel;
+        this.id = idToImport;
+        this.mustCreateCopy = mustCopy;
 
         if ( logger.isDebugEnabled() ) {
             if ( this.mustCreateCopy )
@@ -115,7 +115,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
         try {
             // we get the new values from the database to allow execute and redo
-            this.newValues = importConnection.getObject(id, "IDiagramModelObject", version);
+            this.newValues = importConnection.getObject(idToImport, "IDiagramModelObject", version);
             
 			if ( this.mustCreateCopy ) {
 				String newId = DBPlugin.createID();
@@ -126,8 +126,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             // if the object contains an image
             if ( this.newValues.get("image_path") != null ) {
-                IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
-                if ( !archiveMgr.getLoadedImagePaths().contains(this.newValues.get("image_path")) ) {
+                IArchiveManager archiveMgr = (IArchiveManager)archimateModel.getAdapter(IArchiveManager.class);
+                if ( !archiveMgr.getLoadedImagePaths().contains((String)this.newValues.get("image_path")) ) {
                     try ( DBSelect imageResult = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
                         if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
@@ -142,16 +142,16 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             
             // if the object references an element, then we import it
             if ( this.newValues.get("element_id") != null ) {
-                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, model, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
+                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, archimateModel, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
                 if ( this.importElementCommand.getException() != null )
                     throw this.importElementCommand.getException();
             }
 
             // if the object is an embedded view and reference another view than itself and the referenced view does not exist in the model, then we import it
-            if ( (this.newValues.get("diagram_ref_id") != null) && !this.newValues.get("diagram_ref_id").equals(this.newValues.get("element_id")) && (model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
+            if ( (this.newValues.get("diagram_ref_id") != null) && !this.newValues.get("diagram_ref_id").equals(this.newValues.get("element_id")) && (archimateModel.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
             	if ( !importConnection.isAlreadyImported((String)this.newValues.get("diagram_ref_id")) ) {
 	                importConnection.declareAsImported((String)this.newValues.get("diagram_ref_id"));
-	                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, model, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
+	                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, archimateModel, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
 	                if ( importLinkedViewCommand.getException() != null )
 	                    throw importLinkedViewCommand.getException();
 	                this.importLinkedViewCommands.add(importLinkedViewCommand);
@@ -295,7 +295,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
                     if ( this.oldContainer != null ) {
                         if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)this.oldContainer).getDBMetadata().getDebugName());
-                        this.oldContainer.getChildren().remove(this.importedViewObject);
+                        this.oldContainer.getChildren().remove((IDiagramModelObject)this.importedViewObject);
                     }
 
                     if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
@@ -352,7 +352,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
         if ( this.isNew ) {
             // if the view object has been created by the execute() method, we just delete it
             IDiagramModelContainer container = (IDiagramModelContainer)this.importedViewObject.eContainer();
-            container.getChildren().remove(this.importedViewObject);
+            container.getChildren().remove((IDiagramModelObject)this.importedViewObject);
 
             this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
         } else {

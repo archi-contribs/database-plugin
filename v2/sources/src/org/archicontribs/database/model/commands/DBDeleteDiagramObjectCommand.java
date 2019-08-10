@@ -33,11 +33,11 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
     private ArrayList<IDiagramModelObject> viewObjectChildren;
     private Exception exception = null;
     
-    public DBDeleteDiagramObjectCommand(IArchimateModel model, IDiagramModelObject object) {
+    public DBDeleteDiagramObjectCommand(IArchimateModel archimateModel, IDiagramModelObject object) {
         this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
         this.viewObject = object;
         this.viewObjectChildren = new ArrayList<IDiagramModelObject>();
-        this.model = model;
+        this.model = archimateModel;
     }
 
     @Override

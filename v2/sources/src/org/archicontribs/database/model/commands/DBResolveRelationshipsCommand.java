@@ -19,8 +19,8 @@ public class DBResolveRelationshipsCommand extends Command implements IDBCommand
     private Exception exception = null;
     private boolean commandHasBeenExecuted = false;
     
-    public DBResolveRelationshipsCommand(DBArchimateModel model) {
-        this.model = model;
+    public DBResolveRelationshipsCommand(DBArchimateModel archimateModel) {
+        this.model = archimateModel;
     }
     
     @Override

@@ -6,6 +6,8 @@
 
 package org.archicontribs.database.model;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.LinkedHashMap;
@@ -36,16 +38,19 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * This class extends the <b>ArchimateModel</b> class.<br>
- * It adds a version and various counters about the components included in the model.
- * 
+ * This class extends the {@link com.archimatetool.model.impl.ArchimateModel ArchimateModel} class.
+ * <br>
+ * The following features are implemented:
+ * </p>
+ * @see #latestVersionImported
  * @author Herve Jouin 
- * @see com.archimatetool.model.impl.ArchimateModel
- * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateModel {
     private static final DBLogger logger = new DBLogger(DBArchimateModel.class);
 
+    /**
+     * Creates a new {@link DBArchimateModel} that extends an {@link com.archimatetool.model.impl.ArchimateModel ArchimateModel}. 
+     */
     public DBArchimateModel() {
         super();
         if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
@@ -77,7 +82,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @Getter private DBVersion databaseVersion = new DBVersion();
     
     /**
-     * Determines it the model is the latest one in the database by comparing its currentVersion to the initialVersion
+     * @return true if the model is the latest one in the database by comparing its {@link #currentVersion} to its {@link #initialVersion}
      */
     public boolean isTheLatestModelIntheDatabase() {
         return (this.currentVersion.getVersion() - this.initialVersion.getVersion()) == 1;
@@ -209,7 +214,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @Getter private Map<EObject, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<EObject, CONFLICT_CHOICE>();
     
     /**
-     * List of all the image paths in the model.
+     * @return the list of all the image paths in the model.
      */
     public List<String> getAllImagePaths() {
         return ((IArchiveManager)getAdapter(IArchiveManager.class)).getLoadedImagePaths();
@@ -245,7 +250,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
 
     /**
-     * Gets the folder that contains the component
+     * Checks if a component is part of one of the model's folders.
+     * @param eObject the component to search for
      * @return the folder that contains the component, null if no folder contains it.
      */
     public IFolder getFolder(EObject eObject) {
@@ -253,7 +259,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
 
     /**
-     * check if the eObject is part of the folder, on calls itself recursively for every sub-folder
+     * Check if a component is part of a folder or one of its sub folders.
+     * @param eObject the component to search for
+     * @param folder root folder to recursively search in
      * @return the folder that contains the component, null if no folder contains it.
      */
     private IFolder getFolder(EObject eObject, IFolder folder) {
@@ -277,6 +285,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * Counts the number of objects in the model.<br>
      * At the same time, we calculate the current checksums
+     * @throws Exception 
      */
     public void countAllObjects() throws Exception {
         resetCounters();
@@ -305,10 +314,15 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * Adds a specific object in the corresponding counter<br>
      * At the same time, we calculate the current checksums
+     * @param eObject 
+     * @param mustCalculateChecksum 
      * @return the concatenation of the checksums of all the eObject components
+     * @throws Exception 
+     * @throws UnsupportedEncodingException 
+     * @throws NoSuchAlgorithmException 
      */
     @SuppressWarnings("null")
-    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws Exception {
+    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws Exception, NoSuchAlgorithmException, UnsupportedEncodingException {
         StringBuilder checksumBuilder = null;
         DBMetadata objectMetadata = (eObject instanceof IDBMetadata) ? ((IDBMetadata)eObject).getDBMetadata() : null;
         int len = 0;
