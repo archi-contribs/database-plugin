@@ -86,7 +86,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * Search a component in the getAllElements(), getAllRelationships(), getAllFolders(), getAllViews(), getAllViewObjects(), getAllViewConnections()
      * 
-     * @param id
+     * @param idOfTheComponent
      * @return the component
      */
     public EObject searchComponentFromId(String idOfTheComponent) {
@@ -548,7 +548,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that the source of the relationship the concept with ID = sourceId<br>
-     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveSourceRelationships})<br>
+     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link #resolveSourceAndTargetRelationships()})<br>
      * <br>
      * As all the elements are imported before the relationships, the source of the relationship is another relationship (else, the element would have been existing in the model) 
      * @param relationship
@@ -562,11 +562,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
     /**
      * register that the target of the relationship the concept with ID = sourceId<br>
-     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link resolveTargetRelationships})<br>
+     * It is registered as it may not be imported in the model when the relationship is created, so it will need to be resolved later (see {@link #resolveSourceAndTargetRelationships()})<br>
      * <br>
      * As all the elements are imported before the relationships, the target of the relationship is another relationship (else, the element would have been existing in the model) 
      * @param relationship
-     * @param sourceId
+     * @param targetId
      * @throws Exception
      */
     public void registerTargetRelationship(IArchimateRelationship relationship, String targetId) throws Exception {
@@ -575,7 +575,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
     
     /**
-     * resolves the source and target relationships (see {@link registerSourceRelationship})
+     * resolves the source and target relationships (see {@link #registerSourceRelationship(IArchimateRelationship relationship, String sourceId)} and @{link registerTargetRelationship(IArchimateRelationship relationship, String targetId)})
      * @throws Exception 
      */
     public void resolveSourceAndTargetRelationships() throws Exception {

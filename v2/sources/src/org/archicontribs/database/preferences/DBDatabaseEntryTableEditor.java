@@ -1327,7 +1327,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	/**
 	 * Moves the currently selected item up or down.
 	 *
-	 * @param direction:
+	 * @param direction
 	 *            <code>true</code> if the item should move up, and
 	 *            <code>false</code> if it should move down
 	 */

@@ -42,7 +42,7 @@ public class DBLogger {
 
 	/**
 	 * Creates a proxy to to the Log4J logger class
-	 * @param clazz: Class that will be reported on the log lines
+	 * @param clazz Class that will be reported on the log lines
 	 */
 	public <T> DBLogger(Class<T> clazz) {
 		if ( ! initialised ) {
@@ -58,6 +58,7 @@ public class DBLogger {
 	
 	/**
 	 * Configure the logger
+	 * @throws Exception 
 	 */
 	public void configure() throws Exception {
 		LinkedProperties properties = getLoggerProperties();
@@ -130,53 +131,77 @@ public class DBLogger {
 	
 	/**
 	 * Logs a fatal message
+	 * @param message 
 	 */
 	public void fatal(String message)									{ log(this.getClass(), Level.FATAL, message, null); }
 	
 	/**
 	 * Logs a fatal message
+	 * @param message 
+	 * @param t 
 	 */
     public void fatal(String message, Throwable t)						{ log(this.getClass(), Level.FATAL, message, t); }
 	/**
 	 * Logs a fatal message
+	 * @param clazz 
+	 * @param message 
 	 */
     public <T> void fatal(Class<T> clazz, String message)				{ log(clazz, Level.FATAL, message, null); }
 	/**
 	 * Logs a fatal message
+	 * @param clazz 
+	 * @param message 
+	 * @param t 
 	 */
     public <T> void fatal(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.FATAL, message, t); }
     
 	/**
 	 * Logs an error message
+	 * @param message 
 	 */
     public void error(String message)									{ log(this.getClass(), Level.ERROR, message, null); }
 	/**
 	 * Logs an error message
+	 * @param message 
+	 * @param t 
 	 */
     public void error(String message, Throwable t)						{ log(this.getClass(), Level.ERROR, message, t); }
 	/**
 	 * Logs an error message
+	 * @param clazz 
+	 * @param message 
 	 */
     public <T> void error(Class<T> clazz, String message)				{ log(clazz, Level.ERROR, message, null); }
 	/**
 	 * Logs an error message
+	 * @param clazz 
+	 * @param message 
+	 * @param t 
 	 */
     public <T> void error(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.ERROR, message, t); }
 	
 	/**
 	 * Logs a warn message
+	 * @param message 
 	 */
     public void warn(String message)									{ log(this.getClass(), Level.WARN, message, null); }
 	/**
 	 * Logs a warn message
+	 * @param message 
+	 * @param t 
 	 */
     public void warn(String message, Throwable t)						{ log(this.getClass(), Level.WARN, message, t); }
 	/**
 	 * Logs a warn message
+	 * @param clazz 
+	 * @param message 
 	 */
     public <T> void warn(Class<T> clazz, String message)				{ log(clazz, Level.WARN, message, null); }
 	/**
 	 * Logs a warn message
+	 * @param clazz 
+	 * @param message 
+	 * @param t 
 	 */
     public <T> void warn(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.WARN, message, t); }
     

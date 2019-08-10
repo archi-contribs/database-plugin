@@ -80,7 +80,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 	 * @param folder if a folder is provided, the view will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the view to import
 	 * @param importMode specifies if the view must be copied or shared
-	 * @param mustCreateCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view should be its original id 
+
 	 */
 	@SuppressWarnings("unchecked")
 	public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel model, IFolder folder, String id, int version, DBImportMode importMode, boolean mustImportViewContent) {

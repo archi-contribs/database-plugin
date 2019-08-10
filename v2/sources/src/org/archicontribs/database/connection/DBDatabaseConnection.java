@@ -77,10 +77,10 @@ public class DBDatabaseConnection implements AutoCloseable {
     /**
      * Opens a connection to a JDBC database using all the connection details
      */
-    protected DBDatabaseConnection(DBDatabaseEntry databaseEntry) throws ClassNotFoundException, SQLException {
-        assert(databaseEntry != null);
-        this.databaseEntry = databaseEntry;
-        this.schema = databaseEntry.getSchemaPrefix();
+    protected DBDatabaseConnection(DBDatabaseEntry dbEntry) throws SQLException {
+        assert(dbEntry != null);
+        this.databaseEntry = dbEntry;
+        this.schema = dbEntry.getSchemaPrefix();
         openConnection();
     }
 
@@ -91,7 +91,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     }
 
-    private void openConnection() throws ClassNotFoundException, SQLException {
+    private void openConnection() throws SQLException {
         if ( isConnected() )
             close();
 
@@ -124,7 +124,9 @@ public class DBDatabaseConnection implements AutoCloseable {
                 throw new SQLException("Please verify the database configuration in the preferences.");
             }
             throw e;
-        }
+        } catch (ClassNotFoundException e) {
+			throw new SQLException(e);
+		}
 
         if ( logger.isDebugEnabled() ) {
             if ( DBPlugin.isEmpty(this.schema) ) {
@@ -152,28 +154,31 @@ public class DBDatabaseConnection implements AutoCloseable {
         this.databaseEntry = null;
     }
 
-    public boolean isConnected() {
-        try {
-            return this.connection != null && !this.connection.isClosed();
-        } catch ( @SuppressWarnings("unused") SQLException ign ) {
-            // nothing to do
-        }
-        return false;
+    /**
+     * Gets the status of the database connection. You may also be interested in {@link #isConnected()}
+     * @return true if the connection is connected, false if the connection is closed
+     * @throws SQLException 
+     */
+    public boolean isConnected() throws SQLException {
+    	return this.connection != null && !this.connection.isClosed();
     }
     
     /**
-     * You may prefer {@link isConnected}
+     * Gets the status of the database connection. You may also be interested in {@link #isConnected()}
+     * @return true if the connection is closed, false if the connection is connected
+     * @throws SQLException 
      */
     public boolean isClosed() throws SQLException {
-        return this.connection.isClosed();
+        return (this.connection == null) || this.connection.isClosed();
     }
 
     /**
-     * Checks the database structure<br>
-     * @throws SQLExcetion if the connection to the database failed
+     * Checks the database structure
+     * @param dbGui the dialog that holds the graphical interface
+     * @throws SQLException if the connection to the database failed
      * @returns true if the database structure is correct, false if not
      */
-    public void checkDatabase(DBGui dbGui) throws Exception {
+    public void checkDatabase(DBGui dbGui) throws SQLException {
     	try {
 			if ( dbGui != null )
 				dbGui.setMessage("Checking the database structure...");
@@ -311,7 +316,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Creates the necessary tables in the database
      * @throws ClassNotFoundException 
      */
-    private void createTables(DBGui dbGui) throws SQLException, ClassNotFoundException {
+    private void createTables(DBGui dbGui) throws SQLException {
         final String[] databaseVersionColumns = {"archi_plugin", "version"};
         
         try {

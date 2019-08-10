@@ -126,8 +126,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Gets a component from the database and convert the result into a HashMap<br>
 	 * Mainly used in DBGui to compare a component to its database version.
-	 * @param component: component to get
-	 * @param version: version of the component to get (0 to get the latest version) 
+	 * @param component component to get
+	 * @param version version of the component to get (0 to get the latest version) 
 	 * @return HashMap containing the object data
 	 * @throws Exception
 	 */
@@ -148,9 +148,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Gets a component from the database and convert the result into a HashMap<br>
 	 * Mainly used in DBGui to compare a component to its database version.
-	 * @param id: id of component to get
-	 * @param clazz: class of component to get
-	 * @param version: version of the component to get (0 to get the latest version) 
+	 * @param id id of component to get
+	 * @param clazz class of component to get
+	 * @param version version of the component to get (0 to get the latest version) 
 	 * @return HashMap containing the object data
 	 * @throws Exception
 	 */

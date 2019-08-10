@@ -71,7 +71,7 @@ public class DBGuiShowDebug extends DBGui {
     /**
      * Creates the GUI that shows the debug information
      * 
-     * @param oj the component which we want the debug information
+     * @param obj the component which we want the debug information
      * @param title the title of the window
      */
     public DBGuiShowDebug(EObject obj, String title) {

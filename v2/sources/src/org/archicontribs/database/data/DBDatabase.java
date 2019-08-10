@@ -76,7 +76,7 @@ public enum DBDatabase {
     
     /**
      * Gets the database properties from its numeric value
-     * @param numeric value
+     * @param value numeric value
      * @return the database properties
      */
     public static DBDatabase get(int value) {
@@ -95,7 +95,6 @@ public enum DBDatabase {
 
     /**
      * Gets the database driver name
-     * @param driverName
      * @return the driver name
      */
     @Override

@@ -80,7 +80,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 	/**
 	 * Imports a view connection into the model<br>
-	 * @param connection connection to the database
+	 * @param importConnection connection to the database
 	 * @param model model into which the view connection will be imported
 	 * @param id id of the view connection to import
 	 * @param version version of the view connection to import (0 if the latest version should be imported)

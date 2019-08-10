@@ -6,9 +6,7 @@
 
 package org.archicontribs.database.GUI;
 
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
@@ -29,8 +27,8 @@ import org.archicontribs.database.data.DBCompoundCommand;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
+import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
@@ -43,13 +41,9 @@ import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
 import org.archicontribs.database.model.commands.DBSetFolderToLastKnownCommand;
 import org.archicontribs.database.model.commands.IDBCommand;
-import org.archicontribs.database.model.commands.IDBImportCommand;
 import org.eclipse.emf.ecore.EObject;
-import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
-import org.eclipse.gef.commands.CompoundCommand;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.SWTException;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.FormAttachment;
@@ -75,13 +69,10 @@ import com.archimatetool.editor.model.commands.DeleteFolderCommand;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModel;
-import com.archimatetool.model.IDiagramModelArchimateConnection;
-import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.INameable;
 
 /**
  * This class holds the methods requires to export a model in a database
@@ -106,6 +97,9 @@ public class DBGuiExportModel extends DBGui {
 
 	/**
 	 * Creates the GUI to export components and model
+	 * @param model to export
+	 * @param title of the dialog
+	 * @throws Exception 
 	 */
 	public DBGuiExportModel(DBArchimateModel model, String title) throws Exception {
 		// We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites

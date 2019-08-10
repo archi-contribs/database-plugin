@@ -79,7 +79,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 	/**
 	 * Imports an element into the model<br>
-	 * @param connection connection to the database
+	 * @param importConnection connection to the database
 	 * @param model model into which the element will be imported
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
 	 * @param folder if a folder is provided, the element will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.

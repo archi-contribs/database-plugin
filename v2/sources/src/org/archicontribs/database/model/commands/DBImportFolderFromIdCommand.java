@@ -65,7 +65,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 
 	/**
 	 * Imports a folder into the model<br>
-	 * @param connection connection to the database
+	 * @param importConnection connection to the database
 	 * @param model model into which the folder will be imported
 	 * @param folder if a folder is provided, the folder will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
 	 * @param id id of the folder to import
