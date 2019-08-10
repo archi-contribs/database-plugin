@@ -25,6 +25,7 @@ import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.CommonUtil.StringPool.SubstringAccessUnit;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IIconic;
@@ -1058,6 +1059,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
             String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
             // TODO: USE MERGE instead to replace existing nodes
+            
+            // we remove the "Relationship" suffix from the relationship name
+            String relationshipName = relationship.getClass().getSimpleName();
+            if ( relationshipName.endsWith("Relationship") )
+            	relationshipName = relationshipName.substring(0, relationshipName.length() - 12);
+            
             if ( this.databaseEntry.isNeo4jNativeMode() ) {
                 if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
                     executeRequest("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
