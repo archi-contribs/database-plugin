@@ -1074,7 +1074,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                             ,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getCurrentVersion().getVersion()
                             ,relationship.getId()
                             ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
-                            ,relationship.getClass().getSimpleName()
+                            ,relationshipName
                             ,relationship.getName()
                             ,relationship.getDocumentation()
                             ,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
