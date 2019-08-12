@@ -29,7 +29,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 		doImport(null);
 	}
 	/**
-	 * Exports the model into the database.<br>
+	 * Imports the model from the database.<br>
      * This method is called when the user clicks on the "Import / Import from database" menu entry of Archi
 	 */
 	@Override
