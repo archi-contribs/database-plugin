@@ -316,8 +316,13 @@ public class DBPlugin extends AbstractUIPlugin {
 	/** Title od the plugin's windows */
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
-	public static String pluginsFolder;
+	/** Name of the plugin's package */
 	public static String pluginsPackage;
+	
+	/** folder where the plugin is isntalled */
+	public static String pluginsFolder;
+	
+	/** Name of the plugin's JAR file */
 	public static String pluginsFilename;
 
 	/**

@@ -20,8 +20,9 @@ import lombok.Setter;
 public class DBDatabaseEntry {
 	private static final DBLogger logger = new DBLogger(DBDatabaseEntry.class);
 
-	public static final String preferenceName = "databases";
-	
+    /**
+     * Creates a new DBDatabaseEntry.
+     */
     public DBDatabaseEntry() {
     }
 
@@ -37,6 +38,10 @@ public class DBDatabaseEntry {
 	 */
 	@Getter private String driver = "";
 	
+    /**
+     * @return the class of the JDBC driver
+     * @throws SQLException
+     */
     public String getDriverClass() throws SQLException {
         switch (this.getDriver()) {
             case "postgresql":  return "org.postgresql.Driver";
@@ -52,9 +57,10 @@ public class DBDatabaseEntry {
 	/**
      * Driver to use to access the database<br>
      * <br>
-     * @param driverName must be one of @DBDatabase.VALUES
+     * @param driverName must be one of {@link DBDatabase.VALUES}
+	 * @throws SQLException when the driver is not recognized
      */
-    public void setDriver(String driverName) throws Exception {
+    public void setDriver(String driverName) throws SQLException {
         // we ensure that the driver is known
         this.driver = null;
         for ( DBDatabase db: DBDatabase.VALUES ) {
@@ -63,7 +69,7 @@ public class DBDatabaseEntry {
                 return;
             }
         }
-        throw new Exception("Unknown driver "+driverName);
+        throw new SQLException("Unknown driver "+driverName);
     }
 	
 	/**
@@ -81,7 +87,8 @@ public class DBDatabaseEntry {
 	/**
      * TCP port on which the database listens to<br>
      * <br>
-     * @value port should be between 0 and 65535 
+	 * @param portValue should be between 0 and 65535 
+	 * @throws Exception if the port is negative or greater than 65535
      */
     public void setPort(int portValue) throws Exception {
         // we ensure that the port is > 0 and < 65536
@@ -101,7 +108,7 @@ public class DBDatabaseEntry {
 	@Getter @Setter private String schema = "";
 	
 	/**
-	 * Usename used to connect to the database
+	 * Username used to connect to the database
 	 */
 	@Getter @Setter private String username = "";
 	
@@ -134,8 +141,10 @@ public class DBDatabaseEntry {
 	 * In case of Neo4J database, should we empty the database before export
 	 */
 	@Setter private boolean shouldEmptyNeo4jDB = false;
+	
 	/**
-     * In case of Neo4J database, should we empty the database before export
+     * In case of a Neo4J database
+     * @return true if the plugin should empty the database before exporting the Archi components
      */
 	public boolean shouldEmptyNeo4jDB() {
 	    return this.shouldEmptyNeo4jDB;
@@ -159,7 +168,7 @@ public class DBDatabaseEntry {
 	}
 
 	/**
-	 * if the schema is set, returns the schema name followed by a dot, directly usable in SQL requests
+	 * @return if the schema is set, returns the schema name followed by a dot, directly usable in SQL requests
 	 */
 	public String getSchemaPrefix() {
 		if ( this.schema.isEmpty() )
@@ -189,6 +198,12 @@ public class DBDatabaseEntry {
      */
     @Setter private String jdbcConnectionString;
     
+    /**
+     * in Standard mode, the JDBC string is calculated from the individual strings
+     * in Export mode, the JDBC string is provided as is
+     * @return the JDBC connection string
+     * @throws SQLException if the JDBC driver is unknown
+     */
     public String getJdbcConnectionString() throws SQLException {
         if ( ! isExpertMode() ) {
             switch (this.getDriver()) {
@@ -219,6 +234,17 @@ public class DBDatabaseEntry {
         return this.jdbcConnectionString;
     }
     
+    /**
+     * Calculates a JDBC connection string 
+     * @param driverName 
+     * @param serverName 
+     * @param port 
+     * @param databaseName 
+     * @param username 
+     * @param password 
+     * @return the JDBC connection string
+     * @throws SQLException if the JDBC driver is unknown
+     */
     static public String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password) throws SQLException {
         String jdbcString = "";
 
@@ -257,6 +283,8 @@ public class DBDatabaseEntry {
 	 * @return List of the database entries
 	 */
 	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
+		final String preferenceName = "databases";		// prefix used in preference file
+		
 		if ( logger.isDebugEnabled() ) logger.debug("Getting databases preferences from preference store");
 		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();     
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
@@ -318,6 +346,8 @@ public class DBDatabaseEntry {
 	 * @throws SQLException 
 	 */
 	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) throws SQLException {
+		final String preferenceName = "databases";		// prefix used in preference file
+		
 		if ( logger.isDebugEnabled() ) logger.debug("Recording databases in preference store");
 
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();

@@ -48,6 +48,7 @@ import org.eclipse.swt.widgets.Text;
 /**
  * A field editor that manages the list of databases configurations
  * 
+ * @author Herve Jouin
  */
 public class DBDatabaseEntryTableEditor extends FieldEditor {
 	Group grpDatabases;
@@ -120,6 +121,9 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Creates a table field editor.
+	 * @param name 
+	 * @param labelText 
+	 * @param parent 
 	 */
 	public DBDatabaseEntryTableEditor(String name, String labelText, Composite parent) {
 		init(name, labelText);

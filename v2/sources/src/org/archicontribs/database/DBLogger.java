@@ -207,57 +207,82 @@ public class DBLogger {
     
 	/**
 	 * Logs an info message
+	 * @param message to print in the log file
 	 */
     public void info(String message)									{ log(this.getClass(), Level.INFO, message, null); }
 	/**
 	 * Logs an info message
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
     public void info(String message, Throwable t)						{ log(this.getClass(), Level.INFO, message, t); }
 	/**
 	 * Logs an info message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
 	 */
     public <T> void info(Class<T> clazz, String message)				{ log(clazz, Level.INFO, message, null); }
 	/**
 	 * Logs an info message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
     public <T> void info(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.INFO, message, t); }
     
 	/**
 	 * Logs a debug message
+	 * @param message to print in the log file
 	 */
     public void debug(String message)									{ log(this.getClass(), Level.DEBUG, message, null); }
 	/**
 	 * Logs a debug message
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
 	public void debug(String message, Throwable t)						{ log(this.getClass(), Level.DEBUG, message, t); }
 	/**
 	 * Logs a debug message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
 	 */
     public <T> void debug(Class<T> clazz, String message)				{ log(clazz, Level.DEBUG, message, null); }
 	/**
 	 * Logs a debug message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
     public <T> void debug(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.DEBUG, message, t); }
     
 	/**
 	 * Logs a trace message
+	 * @param message to print in the log file
 	 */
     public void trace(String message)									{ log(this.getClass(), Level.TRACE, message, null); }
 	/**
 	 * Logs a trace message
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
     public void trace(String message, Throwable t)						{ log(this.getClass(), Level.TRACE, message, t); }
 	/**
 	 * Logs a trace message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
 	 */
     public <T> void trace(Class<T> clazz, String message)				{ log(clazz, Level.TRACE, message, null); }
 	/**
 	 * Logs a trace message
+	 * @param clazz class for which the message is printed to the log file
+	 * @param message to print in the log file
+	 * @param t exception to add to the log file
 	 */
     public <T> void trace(Class<T> clazz, String message, Throwable t)	{ log(clazz, Level.TRACE, message, t); }
 
 	/**
-	 * Get the initialised state of the logger
+	 * Get the initialized state of the logger
+	 * @return true if the logger is initialized, false if it needs to be initialized
 	 */
     public static boolean isInitialised() {
     	return initialised;
@@ -265,6 +290,8 @@ public class DBLogger {
     
 	/**
 	 * Gets the logger properties
+	 * @return the logger properties
+	 * @throws Exception if the properties cannot be get
 	 */
 	private LinkedProperties getLoggerProperties() throws Exception {
 		//LogManager.resetConfiguration();
@@ -349,21 +376,21 @@ public class DBLogger {
 	}
 	
 	/**
-	 * Returns true if the logger is configured to print trace messages
+	 * @return true if the logger is configured to print trace messages
 	 */
 	public boolean isTraceEnabled() {
 		return initialised && this.logger.isTraceEnabled();
 	}
 	
 	/**
-	 * Returns true if the logger is configured to print debug messages
+	 * @return true if the logger is configured to print debug messages
 	 */
 	public boolean isDebugEnabled() {
 		return initialised && this.logger.isDebugEnabled();
 	}
 	
 	/**
-     * Returns true if the logger is configured to print SQL requests
+     * @return true if the logger is configured to print SQL requests
      */
     public boolean isTraceSQLEnabled() {
 	    return isTraceEnabled() && DBPlugin.INSTANCE.getPreferenceStore().getBoolean("traceSQL");

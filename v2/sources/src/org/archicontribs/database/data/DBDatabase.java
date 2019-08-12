@@ -13,24 +13,30 @@ import lombok.Getter;
  * @author Herve Jouin
  */
 public enum DBDatabase {
-	MSSQL(0, "ms-sql", 1433, true),
-	MYSQL(1, "mysql", 3306, false),
-	NEO4J(2, "neo4j", 7687, false),
-	ORACLE(3, "oracle", 1521, true),
-	POSTGRESQL(4, "postgresql", 5432, true),
-	SQLITE(5, "sqlite", 0, false);
+	/** Microsoft SQL */	MSSQL(0, "ms-sql", 1433, true),
+	/** MySQL         */	MYSQL(1, "mysql", 3306, false),
+	/** Neo4J         */	NEO4J(2, "neo4j", 7687, false),
+	/** Oracle        */	ORACLE(3, "oracle", 1521, true),
+	/** PostGreSQL    */	POSTGRESQL(4, "postgresql", 5432, true),
+	/** SQLite        */	SQLITE(5, "sqlite", 0, false);
 	
-	public static final int NEO4J_VALUE = 0;
-	public static final int MSSQL_VALUE = 1;
-	public static final int MYSQL_VALUE = 2;
-	public static final int ORACLE_VALUE = 3;
-	public static final int POSTGRESQL_VALUE = 4;
-	public static final int SQLITE_VALUE = 5;
+	/** Microsoft SQL */	public static final int MSSQL_VALUE = 0;
+	/** MySQL         */	public static final int MYSQL_VALUE = 1;
+	/** Neo4J         */	public static final int NEO4J_VALUE = 2;
+	/** Oracle        */	public static final int ORACLE_VALUE = 3;
+	/** PostGreSQL    */	public static final int POSTGRESQL_VALUE = 4;
+	/** SQLite        */	public static final int SQLITE_VALUE = 5;
 	
     private static final DBDatabase[] VALUES_ARRAY = new DBDatabase[] {MSSQL, MYSQL, NEO4J, ORACLE, POSTGRESQL, SQLITE};
     
+    /**
+     * Numerical values affected to database drivers
+     */
     public static final List<DBDatabase> VALUES = Collections.unmodifiableList(Arrays.asList(VALUES_ARRAY));
     
+    /**
+     * List of database drivers
+     */
     public static final String[] DRIVER_NAMES = new String[] {MSSQL.getDriverName(), MYSQL.getDriverName(), NEO4J.getDriverName(), ORACLE.getDriverName(), POSTGRESQL.getDriverName(), SQLITE.getDriverName()};
     
     /**
@@ -48,20 +54,20 @@ public enum DBDatabase {
 	 */
 	@Getter private final int defaultPort;
 	
-	/**
-	 * true is the database can handle schemas, false if it can't
-	 */
 	private final boolean hasSchema;
+	
+	/**
+	 * @return true is the database handles schemas, false if not.
+	 */
     public boolean hasSchema() {
         return this.hasSchema;
     }
 	
-    @SuppressWarnings("hiding")
-	private DBDatabase(int value, String driverName, int defaultPort, boolean hasSchema) {
-        this.value = value;
-        this.driverName = driverName.toLowerCase();
-        this.defaultPort = defaultPort;
-        this.hasSchema = hasSchema;
+	private DBDatabase(int val, String name, int port, boolean schema) {
+        this.value = val;
+        this.driverName = name.toLowerCase();
+        this.defaultPort = port;
+        this.hasSchema = schema;
     }
     
     /**
