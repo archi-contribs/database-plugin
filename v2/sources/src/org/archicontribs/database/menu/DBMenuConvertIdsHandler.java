@@ -7,6 +7,7 @@
 package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
@@ -30,7 +31,6 @@ import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.util.UUIDFactory;
 
 import java.awt.Graphics2D;
 import java.awt.image.BufferedImage;
@@ -61,48 +61,48 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
             model.countAllObjects();
             
             if ( model.getId().length() != 36 ) {
-                model.setId(UUIDFactory.createID(model));
+                model.setId(DBPlugin.createID(model));
                 ++idsReplaced;
             }
 
             for (IFolder folder: model.getAllFolders().values() ) {
                 if ( folder.getId().length() != 36 ) {
-                    folder.setId(UUIDFactory.createID(folder));
+                    folder.setId(DBPlugin.createID(folder));
                     ++idsReplaced;
                 }
             }
 
             for (IArchimateElement element: model.getAllElements().values() ) {
                 if ( element.getId().length() != 36 ) {
-                    element.setId(UUIDFactory.createID(element));
+                    element.setId(DBPlugin.createID(element));
                     ++idsReplaced;
                 }
             }
 
             for (IArchimateRelationship relationship: model.getAllRelationships().values() ) {
                 if ( relationship.getId().length() != 36 ) {
-                    relationship.setId(UUIDFactory.createID(relationship));
+                    relationship.setId(DBPlugin.createID(relationship));
                     ++idsReplaced;
                 }
             }
 
             for (IDiagramModel view: model.getAllViews().values() ) {
                 if ( view.getId().length() != 36 ) {
-                    view.setId(UUIDFactory.createID(view));
+                    view.setId(DBPlugin.createID(view));
                     ++idsReplaced;
                 }
             }
             
             for (IDiagramModelComponent viewObject: model.getAllViewObjects().values() ) {
                 if ( viewObject.getId().length() != 36 ) {
-                    viewObject.setId(UUIDFactory.createID(viewObject));
+                    viewObject.setId(DBPlugin.createID(viewObject));
                     ++idsReplaced;
                 }
             }
             
             for (IDiagramModelConnection viewConnection: model.getAllViewConnections().values() ) {
                 if ( viewConnection.getId().length() != 36 ) {
-                    viewConnection.setId(UUIDFactory.createID(viewConnection));
+                    viewConnection.setId(DBPlugin.createID(viewConnection));
                     ++idsReplaced;
                 }
             }

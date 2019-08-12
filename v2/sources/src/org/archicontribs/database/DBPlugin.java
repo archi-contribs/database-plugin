@@ -12,7 +12,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Paths;
-import java.text.Collator;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -23,6 +22,8 @@ import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
+
+import com.archimatetool.model.IIdentifier;
 
 import lombok.Getter;
 
@@ -303,10 +304,16 @@ import lombok.Getter;
  *			create database admin procedures
  */
 public class DBPlugin extends AbstractUIPlugin {
+	/** ID of the plugin */
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
+	/** version of the plugin */
 	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.1.11");
+	
+	/** Name ofthe plugin */
 	public static final String pluginName = "DatabasePlugin";
+	
+	/** Title od the plugin's windows */
 	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
 
 	public static String pluginsFolder;
@@ -317,7 +324,6 @@ public class DBPlugin extends AbstractUIPlugin {
 	 * static instance that allow to keep information between calls of the plugin
 	 */
 	public static DBPlugin INSTANCE;
-	public static Collator collator = Collator.getInstance();
 
 	/**
 	 * PreferenceStore allowing to store the plugin configuration.
@@ -338,7 +344,12 @@ public class DBPlugin extends AbstractUIPlugin {
      * <li><b>exportToDatabase</b> Export to the database</li>
      * <li><b>importFromDatabase</b> Replace the component with the version in the database</li>
      */
-    public enum CONFLICT_CHOICE {askUser, doNotExport, exportToDatabase, importFromDatabase}
+    public enum CONFLICT_CHOICE {
+    	/** Ask the user what he wishes to do                      */	askUser,
+    	/** Do not export to the database                          */	doNotExport,
+    	/** Export to the database                                 */	exportToDatabase,
+    	/** Replace the component with the version in the database */	importFromDatabase
+    }
 	
 	/**
 	 * Returns true is runs on Windows operating system, false for all other operating systems
@@ -469,8 +480,12 @@ public class DBPlugin extends AbstractUIPlugin {
 	}
 
 	/**
-	 * Check if two strings are equals<br>
+	 * Check if two strings are equals
+	 * <br><br>
 	 * Replaces string.equals() to avoid nullPointerException
+	 * @param str1 first string to compare
+	 * @param str2 secong string to compare
+	 * @return true if the strings are both null or have the same content, false if they are different
 	 */
 	public static boolean areEqual(String str1, String str2) {
 		if ( str1 == null )
@@ -483,13 +498,20 @@ public class DBPlugin extends AbstractUIPlugin {
 	}
 	
 	/**
-	 * Check if a string  is null or empty<b>
+	 * Check if a string  is null or empty
+	 * <br><br>
 	 * Replaces string.isEmpty() to avoid nullPointerException
+	 * @param str string to check
+	 * @return true if the string is null or empty, false if the string contains at least one char
 	 */
 	public static boolean isEmpty(String str) {
 		return (str==null) || str.isEmpty();
 	}
 	
+	/**
+	 * Checks on GitHub if a new version of the plugin is available
+	 * @param verbose
+	 */
 	public static void checkForUpdate(boolean verbose) {
 		@SuppressWarnings("unused")
 		DBCheckForPluginUpdate dbCheckForUpdate = new DBCheckForPluginUpdate(
@@ -505,6 +527,16 @@ public class DBPlugin extends AbstractUIPlugin {
 	 * @return Archi ID
 	 */
 	public static String createID() {
+		return createID(null);
+	}
+	
+	/**
+	 * Generates a new ID for a given Archi component
+	 * @param obj object for which the ID should be generated
+	 * 
+	 * @return Archi ID
+	 */
+	public static String createID(IIdentifier obj) {
 		// until Archi 4.4: the ID was created using model.getIDAdapter().getNewID()
 		// Archi 4.5 updated the ArchimateModel class to remove the getIDAdapter() method and introduces a new UUIDFactory class with a createID() method.
 		

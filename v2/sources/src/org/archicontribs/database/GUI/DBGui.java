@@ -12,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -1507,6 +1508,7 @@ public class DBGui {
                 ArrayList<DBProperty> databaseProperties = (ArrayList<DBProperty>)databaseObject.get("properties");
                 Collections.sort(databaseProperties, this.propertyComparator);
 
+                Collator collator = Collator.getInstance();
                 int indexComponent = 0;
                 int indexDatabase = 0;
                 int compare;
@@ -1517,7 +1519,7 @@ public class DBGui {
                         if ( indexDatabase >= databaseProperties.size() )
                             compare = -1;
                         else
-                            compare = DBPlugin.collator.compare(componentProperties.get(indexComponent).getKey(), databaseProperties.get(indexDatabase).getKey());
+                            compare = collator.compare(componentProperties.get(indexComponent).getKey(), databaseProperties.get(indexDatabase).getKey());
                     }
 
                     if ( compare == 0 ) {				// both have got the same property
@@ -1542,14 +1544,14 @@ public class DBGui {
     Comparator<DBProperty> propertyComparator = new Comparator<DBProperty>() {
         @Override
         public int compare(final DBProperty row1, final DBProperty row2) {
-            return DBPlugin.collator.compare(row1.getKey(),row2.getKey());
+            return Collator.getInstance().compare(row1.getKey(),row2.getKey());
         }
     };
 
     Comparator<Integer[]> integerComparator = new Comparator<Integer[]>() {
         @Override
         public int compare(final Integer[] row1, final Integer[] row2) {
-            return DBPlugin.collator.compare(row1[0],row2[0]);
+            return Collator.getInstance().compare(row1[0],row2[0]);
         }
     };
 
