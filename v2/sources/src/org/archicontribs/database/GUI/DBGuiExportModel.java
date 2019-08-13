@@ -2356,7 +2356,7 @@ public class DBGuiExportModel extends DBGui {
 			commitAndCloseConnection();
 			setActiveAction(STATUS.Ok);
 			// Once the export is finished, we copy the exportedVersion to the currentVersion for all the model's components
-			copyExportedVersionToCurrentVersion();
+			copyCurrentVersionToInitialVersion();
 
 			doShowResult(STATUS.Ok, "*** Export successful ***");
 		} catch (Exception err) {
@@ -2372,8 +2372,8 @@ public class DBGuiExportModel extends DBGui {
 		incrementText(txtFieldToIncrement);
 	}
 
-	void copyExportedVersionToCurrentVersion() {
-		if ( logger.isDebugEnabled() ) logger.debug("Updating current versions from exported versions");
+	void copyCurrentVersionToInitialVersion() {
+		if ( logger.isDebugEnabled() ) logger.debug("Copying current version to initial version.");
 
 		this.exportedModel.getInitialVersion().set(this.exportedModel.getCurrentVersion());
 
