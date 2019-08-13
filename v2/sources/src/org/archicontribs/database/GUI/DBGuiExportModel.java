@@ -2094,7 +2094,7 @@ public class DBGuiExportModel extends DBGui {
 					errorMessage = "Failed to recalculate checksums.";
 
 					// recalculate the checksum. This does not update the versions, so the database status remains.
-					this.exportedModel.countObject(this.exportedModel, true);
+					this.exportedModel.countAllObjects();
 				}
 			}
 
@@ -2143,6 +2143,7 @@ public class DBGuiExportModel extends DBGui {
 						default:
 							// all other cases have been managed upwards
 					}
+					this.exportConnection.assignEObjectToModel(componentToExport);
 				}
 				incrementText(this.txtTotalElements);
 				increaseProgressBar();
@@ -2172,6 +2173,7 @@ public class DBGuiExportModel extends DBGui {
 						default:
 							// all other cases have been managed upwards
 					}
+					this.exportConnection.assignEObjectToModel(componentToExport);
 				}
 				incrementText(this.txtTotalRelationships);
 				increaseProgressBar();
@@ -2198,6 +2200,7 @@ public class DBGuiExportModel extends DBGui {
 						default:
 							// all other cases have been managed upwards
 					}
+					this.exportConnection.assignEObjectToModel(componentToExport);
 					incrementText(this.txtTotalFolders);
 					increaseProgressBar();
 				}
@@ -2236,6 +2239,7 @@ public class DBGuiExportModel extends DBGui {
 					} else
 						metadata.setExported(false);
 
+					this.exportConnection.assignEObjectToModel(componentToExport);
 					incrementText(this.txtTotalViews);
 					increaseProgressBar();
 				}
@@ -2264,6 +2268,7 @@ public class DBGuiExportModel extends DBGui {
 						}
 					}
 					
+					this.exportConnection.assignEObjectToModel(componentToExport);
 					incrementText(this.txtTotalViewObjects);
 					increaseProgressBar();
 				}
@@ -2292,6 +2297,7 @@ public class DBGuiExportModel extends DBGui {
 						}
 					}
 					
+					this.exportConnection.assignEObjectToModel(componentToExport);
 					incrementText(this.txtTotalViewConnections);
 					increaseProgressBar();
 				}
@@ -2342,8 +2348,8 @@ public class DBGuiExportModel extends DBGui {
 							// a single message is sufficient to alert the user
 							break;
 						}
-					} catch (Exception e) {
-						logger.error("Failed to verify exception from undoableCommands.", e);
+					} catch (@SuppressWarnings("unused") Exception ign) {
+						// nothing to do if the command does not have manage exceptions
 					}
 				}
 			}
