@@ -1871,7 +1871,7 @@ public class DBGuiExportModel extends DBGui {
 
 			//////////////////////////// PHASE 4 : we import the new components from the database
 			if ( !isNeo4JDatabase ) {
-				// the commands are run in real time, and bat are also added in the undoableCommands compound command because we want to be able to undo them
+				// the commands are run in real time, but they are also added in the undoableCommands compound command because we want to be able to undo them
 				// they all implement the a getException() method that allow to check if an exception has been raised during the import
 
 				int progressBarWidth = this.exportConnection.getFoldersNotInModel().size() + this.exportConnection.getElementsNotInModel().size() + this.exportConnection.getRelationshipsNotInModel().size() + this.exportConnection.getViewsNotInModel().size() + this.exportConnection.getViewObjectsNotInModel().size() + this.exportConnection.getViewConnectionsNotInModel().size();
@@ -1884,10 +1884,10 @@ public class DBGuiExportModel extends DBGui {
 				}
 
 				if ( progressBarWidth == 0 )
-					logger.info("There is no component to import from the database, nor deleted in the model.");
+					logger.info("There is no component to import from the databasel.");
 				else {
-					createProgressBar("Importing new components from the database ...", 0, progressBarWidth);
-					errorMessage = "Failed to import new components from the database.";
+					createProgressBar("Importing components from the database ...", 0, progressBarWidth);
+					errorMessage = "Failed to import components from the database.";
 
 					try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
 						// IMPORT FOLDERS (we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported)
@@ -1904,7 +1904,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewFoldersInDatabase);
 									incrementText(this.txtTotalFolders);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedFoldersInModel);
 								}
 							}
@@ -1924,7 +1924,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewElementsInDatabase);
 									incrementText(this.txtTotalElements);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedElementsInModel);
 								}
 							}
@@ -1944,7 +1944,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewRelationshipsInDatabase);
 									incrementText(this.txtTotalRelationships);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedRelationshipsInModel);
 								}
 							}
@@ -1964,7 +1964,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewViewsInDatabase);
 									incrementText(this.txtTotalViews);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedViewsInModel);
 								}
 							}
@@ -1984,7 +1984,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewViewObjectsInDatabase);
 									incrementText(this.txtTotalViewObjects);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedViewObjectsInModel);
 								}
 							}
@@ -2004,11 +2004,13 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtNewViewConnectionsInDatabase);
 									incrementText(this.txtTotalViewConnections);
 								} else {
-									if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been deleted from the model.");
+									if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" is not imported as it has been deleted from the model.");
 									incrementText(this.txtDeletedViewConnectionsInModel);
 								}
 							}
 						}
+						
+						// xxxx
 						
 						conflictsIterator = this.exportedModel.getAllConflicts().entrySet().iterator();
 						while ( conflictsIterator.hasNext() ) {
@@ -2134,11 +2136,14 @@ public class DBGuiExportModel extends DBGui {
 						case isUpdatedInModel:
 							doExport(componentToExport, this.txtUpdatedElementsInModel);
 							break;
+						case isUpadtedInDatabase:
+							logger.error("xxxxxxxxxx on aurait du importer "+((IArchimateElement)componentToExport).getId());
+							break;
 						case isConflicting:
 						case isDeletedInDatabase:
 						case isNewInDatabase:
 						case isSynced:
-						case isUpadtedInDatabase:
+						//case isUpadtedInDatabase:
 						default:
 							// all other cases have been managed upwards
 					}
