@@ -1275,9 +1275,9 @@ public class DBDatabaseConnection implements AutoCloseable {
     public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
         ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
 
-        try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT version, created_by, created_on, name, note, purpose FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
+        try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT version, created_by, created_on, name, note, purpose, checksum FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
             while ( result.next() ) {
-                if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\"");
+                if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\" checksum=\""+result.getString("checksum")+"\"");
                 Hashtable<String, Object> table = new Hashtable<String, Object>();
                 table.put("version", result.getString("version"));
                 table.put("created_by", result.getString("created_by"));

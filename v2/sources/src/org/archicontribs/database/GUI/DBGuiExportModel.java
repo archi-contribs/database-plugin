@@ -1182,6 +1182,10 @@ public class DBGuiExportModel extends DBGui {
 		// We do not verify the content of neo4j database, we just export the components
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			return true;
+		
+		logger.debug("Comparing model to the database.");
+		
+		this.exportConnection.getModelVersionFromDatabase(this.exportedModel);
 
 		try {
 			// we compare the elements, relationships, folders and views
@@ -1197,10 +1201,10 @@ public class DBGuiExportModel extends DBGui {
 		closeMessage();
 		hideGrpDatabase();
 		createProgressBar("Checking if view screenshots are required", 1, this.exportedModel.getAllViews().size());
-		Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-		while ( viewsIterator.hasNext() ) {
+		Iterator<Entry<String, IDiagramModel>> screenshotsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+		while ( screenshotsIterator.hasNext() ) {
 			increaseProgressBar();
-			IDiagramModel view = viewsIterator.next().getValue();
+			IDiagramModel view = screenshotsIterator.next().getValue();
 			DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
 			if ( this.exportConnection.getDatabaseEntry().isViewSnapshotRequired() ) {
 				if ( (metadata.getScreenshot().getBytes() == null)
@@ -1231,9 +1235,9 @@ public class DBGuiExportModel extends DBGui {
 		int nbConflict = 0;
 		int nbDeleted = 0;
 		int nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IArchimateElement>> ite = this.exportedModel.getAllElements().entrySet().iterator();
-		while (ite.hasNext()) {
-			IArchimateElement element = ite.next().getValue();
+		Iterator<Map.Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
+		while (elementsIterator.hasNext()) {
+			IArchimateElement element = elementsIterator.next().getValue();
 			DBMetadata metadata = ((IDBMetadata)element).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
@@ -1299,9 +1303,9 @@ public class DBGuiExportModel extends DBGui {
 		nbConflict = 0;
 		nbDeleted = 0;
 		nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IArchimateRelationship>> itr = this.exportedModel.getAllRelationships().entrySet().iterator();
-		while (itr.hasNext()) {
-			IArchimateRelationship relationship = itr.next().getValue();
+		Iterator<Map.Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
+		while (relationshipsIterator.hasNext()) {
+			IArchimateRelationship relationship = relationshipsIterator.next().getValue();
 			DBMetadata metadata = ((IDBMetadata)relationship).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
@@ -1366,9 +1370,9 @@ public class DBGuiExportModel extends DBGui {
 		nbConflict = 0;
 		nbDeleted = 0;
 		nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IFolder>> itf = this.exportedModel.getAllFolders().entrySet().iterator();
-		while (itf.hasNext()) {
-			IFolder folder = itf.next().getValue();
+		Iterator<Map.Entry<String, IFolder>> folderIterator = this.exportedModel.getAllFolders().entrySet().iterator();
+		while (folderIterator.hasNext()) {
+			IFolder folder = folderIterator.next().getValue();
 			DBMetadata metadata = ((IDBMetadata)folder).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
@@ -1421,9 +1425,9 @@ public class DBGuiExportModel extends DBGui {
 		nbConflict = 0;
 		nbDeleted = 0;
 		nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IDiagramModel>> itv = this.exportedModel.getAllViews().entrySet().iterator();
-		while (itv.hasNext()) {
-			IDiagramModel view = itv.next().getValue();
+		Iterator<Map.Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
+		while (viewsIterator.hasNext()) {
+			IDiagramModel view = viewsIterator.next().getValue();
 			DBMetadata metadata = ((IDBMetadata)view).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
@@ -1488,10 +1492,10 @@ public class DBGuiExportModel extends DBGui {
 		nbConflict = 0;
 		nbDeleted = 0;
 		nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IDiagramModelObject>> ito = this.exportedModel.getAllViewObjects().entrySet().iterator();
-		while (ito.hasNext()) {
-			IDiagramModelObject imo = ito.next().getValue();
-			DBMetadata metadata = ((IDBMetadata)imo).getDBMetadata();
+		Iterator<Map.Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
+		while (viewObjectsIterator.hasNext()) {
+			IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
+			DBMetadata metadata = ((IDBMetadata)viewObject).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
 					++nbNew;
@@ -1506,9 +1510,9 @@ public class DBGuiExportModel extends DBGui {
 					++nbDeletedInDb;
 					break;
 				case isConflicting:
-					if ( this.exportedModel.getAllConflicts().get(imo) == null )
-						this.exportedModel.getAllConflicts().put(imo, CONFLICT_CHOICE.askUser);
-					switch ( this.exportedModel.getAllConflicts().get(imo) ) {
+					if ( this.exportedModel.getAllConflicts().get(viewObject) == null )
+						this.exportedModel.getAllConflicts().put(viewObject, CONFLICT_CHOICE.askUser);
+					switch ( this.exportedModel.getAllConflicts().get(viewObject) ) {
 						case doNotExport:   // nothing to do
 							break;
 						case exportToDatabase:
@@ -1555,10 +1559,10 @@ public class DBGuiExportModel extends DBGui {
 		nbConflict = 0;
 		nbDeleted = 0;
 		nbDeletedInDb = 0;
-		Iterator<Map.Entry<String, IDiagramModelConnection>> itc = this.exportedModel.getAllViewConnections().entrySet().iterator();
-		while (itc.hasNext()) {
-			IDiagramModelConnection imc = itc.next().getValue();
-			DBMetadata metadata = ((IDBMetadata)imc).getDBMetadata();
+		Iterator<Map.Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
+		while (viewConnectionsIterator.hasNext()) {
+			IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
+			DBMetadata metadata = ((IDBMetadata)viewConnection).getDBMetadata();
 			switch ( metadata.getDatabaseStatus() ) {
 				case isNewInModel:
 					++nbNew;
@@ -1573,9 +1577,9 @@ public class DBGuiExportModel extends DBGui {
 					++nbDeletedInDb;
 					break;
 				case isConflicting:
-					if ( this.exportedModel.getAllConflicts().get(imc) == null )
-						this.exportedModel.getAllConflicts().put(imc, CONFLICT_CHOICE.askUser);
-					switch ( this.exportedModel.getAllConflicts().get(imc) ) {
+					if ( this.exportedModel.getAllConflicts().get(viewConnection) == null )
+						this.exportedModel.getAllConflicts().put(viewConnection, CONFLICT_CHOICE.askUser);
+					switch ( this.exportedModel.getAllConflicts().get(viewConnection) ) {
 						case doNotExport:   // nothing to do
 							break;
 						case exportToDatabase:
