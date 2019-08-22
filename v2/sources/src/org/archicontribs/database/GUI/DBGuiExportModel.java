@@ -1184,8 +1184,6 @@ public class DBGuiExportModel extends DBGui {
 			return true;
 		
 		logger.debug("Comparing model to the database.");
-		
-		this.exportConnection.getModelVersionFromDatabase(this.exportedModel);
 
 		try {
 			// we compare the elements, relationships, folders and views
