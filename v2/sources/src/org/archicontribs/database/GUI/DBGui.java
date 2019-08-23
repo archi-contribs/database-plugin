@@ -238,7 +238,7 @@ public class DBGui {
         this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
         this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
         this.dialog.setMinimumSize(800, 700);
-        this.dialog.setSize(1024,768);
+        this.dialog.setSize(1024, 700);
         
         int scaleFactor = 1;
         try {
