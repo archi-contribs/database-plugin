@@ -341,7 +341,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         int modelInitialVersion = model.getInitialVersion().getVersion();
         int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 
-        // elements
+        //////////////////// ELEMENTS
+        // we reset the version
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the elements from the database");
         Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
@@ -351,6 +352,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             metadata.getDatabaseVersion().reset();
             metadata.getLatestDatabaseVersion().reset();
         }
+        // we get all the elements that are part of the latest version of the model in the database and compare them to the actual model
         try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
                         + " FROM "+this.schema+"elements"
@@ -360,11 +362,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         ,modelId
                         ,modelDatabaseVersion
                 ) ) {
+        	
+        	// the loop 
             DBMetadata currentComponent = null;
             DBMetadata previousComponent = null;
+            String currentId = null;
             String previousId = null;
             while ( result.next() ) {
-                String currentId = result.getString("id");
+                currentId = result.getString("id");
                 int version = result.getInt("version");
                 String checksum = result.getString("checksum");
                 Timestamp createdOn = result.getTimestamp("created_on");
@@ -415,6 +420,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
                 logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
             }
+            IArchimateModelObject object = model.getAllElements().get(currentId);
+            currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+            
+            if ( currentComponent == null ) {
+                currentComponent = new DBMetadata(currentId);
+                this.elementsNotInModel.put(currentId, currentComponent);
+                logger.trace("   Getting version of "+currentComponent.getDebugName()+" (is in the database, but not in the model)");
+            } else
+                logger.trace("   Getting version of "+currentComponent.getDebugName()+" (is in the database and in the model)");
         }
 
         // If some elements have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
