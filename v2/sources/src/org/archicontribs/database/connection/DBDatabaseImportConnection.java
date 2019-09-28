@@ -279,6 +279,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// reseting the model's counters
 		model.resetCounters();
 		
+		// we remember the database used to import the model
+		model.setImportDatabase(this.databaseEntry.getName());
+		
 	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
 	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
 	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";

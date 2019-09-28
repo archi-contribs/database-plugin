@@ -588,24 +588,41 @@ public class DBGui {
         this.dialog.layout();
         refreshDisplay();
     }
-
+    
     /**
-     * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
+     * Gets the list of configured databases, fill-in the comboDatabases and select the database provided
+     * @param mustIncludeNeo4j if true, include the Neo4J databases in the list, if false, do not include them in the list
+     * @param defaultDatabaseName Indicated which database is the default one (the first database will be selected, if the database is not found or if null)
      * @throws Exception 
      */
-    protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
+    protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseName) throws Exception {
         refreshDisplay();
 
         this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(mustIncludeNeo4j);
         if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
             popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
         } else {
+        	int databaseToSelect = 0;
+        	int line = 0;
             for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
-                this.comboDatabases.add(databaseEntry.getName());
+            	String databaseName = databaseEntry.getName();
+                this.comboDatabases.add(databaseName);
+                if ( databaseName.equals(defaultDatabaseName) )
+                	databaseToSelect = line;
+                ++line;
             }
-            this.comboDatabases.select(0);
+            this.comboDatabases.select(databaseToSelect);
             this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
         }
+    }
+
+    /**
+     * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
+     * @param mustIncludeNeo4j if true, include the Neo4J databases in the list, if false, do not include them in the list
+     * @throws Exception 
+     */
+    protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
+        getDatabases(mustIncludeNeo4j, null);
     }
 
     /**

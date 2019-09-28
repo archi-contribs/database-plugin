@@ -90,6 +90,7 @@ public class DBGuiImportModel extends DBGui {
 
     /**
      * Creates the GUI to import a model
+     * @param title Title of the window
      * @throws Exception 
      */
     public DBGuiImportModel(String title) throws Exception {
