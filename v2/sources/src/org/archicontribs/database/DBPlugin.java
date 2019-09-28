@@ -282,7 +282,8 @@ import lombok.Getter;
  * 
  * v2.2: 10/08/2019					Rewrite of the export process
  * 									Rewrite of the conflict management process
- * 									Remove the "Relationship" suffix on the relationships names during Neo4J exports 
+ * 									Remove the "Relationship" suffix on the relationships names during Neo4J exports
+ *									Fix number of model components during export when components are updated or deleted from the database  
  * 									Update the JDBC drivers
  * 										MySQL		--> 8.0.17
  * 										Neo4J		--> 3.4.0

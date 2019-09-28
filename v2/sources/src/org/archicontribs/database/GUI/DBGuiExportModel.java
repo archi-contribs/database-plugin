@@ -1819,6 +1819,7 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)element).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.add(new DeleteArchimateElementCommand(element));
 						incrementText(this.txtDeletedElementsInDatabase);
+						decrementText(this.txtTotalElements);
 					}
 				}
 
@@ -1828,6 +1829,7 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)relationship).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.add(new DeleteArchimateRelationshipCommand(relationship));
 						incrementText(this.txtDeletedRelationshipsInDatabase);
+						decrementText(this.txtTotalRelationships);
 					}
 				}
 
@@ -1837,7 +1839,8 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)folder).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.add(new DeleteFolderCommand(folder));
 						incrementText(this.txtDeletedFoldersInDatabase);
-					}
+						decrementText(this.txtTotalFolders);
+					}s
 				}
 
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
@@ -1846,6 +1849,7 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)view).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.add(new DeleteDiagramModelCommand(view));
 						incrementText(this.txtDeletedViewsInDatabase);
+						decrementText(this.txtTotalViews);
 					}
 				}
 
@@ -1855,6 +1859,7 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)viewObject).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.checkAndAdd(new DBDeleteDiagramObjectCommand(this.exportedModel, viewObject));
 						incrementText(this.txtDeletedViewObjectsInDatabase);
+						decrementText(this.txtTotalViewObjects);
 					}
 				}
 
@@ -1864,6 +1869,7 @@ public class DBGuiExportModel extends DBGui {
 					if ( ((IDBMetadata)viewConnection).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
 						undoableCommands.checkAndAdd(new DBDeleteDiagramConnectionCommand(this.exportedModel, viewConnection));
 						incrementText(this.txtDeletedViewConnectionsInDatabase);
+						decrementText(this.txtTotalViewConnections);
 					}
 				}
 
@@ -1943,7 +1949,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The folder id "+folder.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, folder.getId(), 0, DBImportMode.forceSharedMode));
 								incrementText(this.txtUpdatedFoldersInDatabase);
-								incrementText(this.txtTotalFolders);
 							}
 						}
 						
@@ -1976,7 +1981,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The element id "+element.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, element.getId(), 0, DBImportMode.forceSharedMode, false));
 								incrementText(this.txtUpdatedElementsInDatabase);
-								incrementText(this.txtTotalElements);
 							}
 						}
 	
@@ -2008,7 +2012,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+relationship.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, relationship.getId(), 0, DBImportMode.forceSharedMode));
 								incrementText(this.txtUpdatedRelationshipsInDatabase);
-								incrementText(this.txtTotalRelationships);
 							}
 						}
 	
@@ -2040,7 +2043,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The view id "+view.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, view.getId(), 0, DBImportMode.forceSharedMode, false));
 								incrementText(this.txtUpdatedViewsInDatabase);
-								incrementText(this.txtTotalViews);
 							}
 						}
 	
@@ -2072,7 +2074,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The view object id "+viewObject.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, viewObject.getId(), 0, false, DBImportMode.forceSharedMode));
 								incrementText(this.txtUpdatedViewObjectsInDatabase);
-								incrementText(this.txtTotalViewObjects);
 							}
 						}
 	
@@ -2104,7 +2105,6 @@ public class DBGuiExportModel extends DBGui {
 								if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+viewConnection.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, viewConnection.getId(), 0, false, DBImportMode.forceSharedMode));
 								incrementText(this.txtUpdatedViewConnectionsInDatabase);
-								incrementText(this.txtTotalViewConnections);
 							}
 						}
 						
@@ -2123,27 +2123,18 @@ public class DBGuiExportModel extends DBGui {
 								if ( componentToImport instanceof IArchimateElement ) {
 									command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode, false);
 									incrementText(this.txtUpdatedElementsInDatabase);
-									incrementText(this.txtTotalElements);
-								}
-								if ( componentToImport instanceof IArchimateRelationship ) {
+								} else if ( componentToImport instanceof IArchimateRelationship ) {
 									command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode);
 									incrementText(this.txtUpdatedRelationshipsInDatabase);
-									incrementText(this.txtTotalRelationships);
-								}
-								if ( componentToImport instanceof IDiagramModel) {
+								} else if ( componentToImport instanceof IDiagramModel) {
 									command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode, false);
 									incrementText(this.txtUpdatedViewsInDatabase);
-									incrementText(this.txtTotalViews);
-								}
-								if ( componentToImport instanceof IDiagramModelObject ) {
+								} else if ( componentToImport instanceof IDiagramModelObject ) {
 									command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, id, latestDatabaseVersion, false, DBImportMode.forceSharedMode);
 									incrementText(this.txtUpdatedViewObjectsInDatabase);
-									incrementText(this.txtTotalViewObjects);
-								}
-								if ( componentToImport instanceof IDiagramModelConnection ) {
+								} else if ( componentToImport instanceof IDiagramModelConnection ) {
 									command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, id, latestDatabaseVersion, false, DBImportMode.forceSharedMode);
 									incrementText(this.txtUpdatedViewConnectionsInDatabase);
-									incrementText(this.txtTotalViewConnections);
 								}
 								
 								if ( logger.isDebugEnabled() ) logger.debug("The conflicting "+metadata.getDebugName()+" conflicts with the database, but the conflict resolution has been set to "+CONFLICT_CHOICE.importFromDatabase);
