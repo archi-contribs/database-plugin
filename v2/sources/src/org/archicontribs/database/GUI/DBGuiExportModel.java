@@ -1840,7 +1840,7 @@ public class DBGuiExportModel extends DBGui {
 						undoableCommands.add(new DeleteFolderCommand(folder));
 						incrementText(this.txtDeletedFoldersInDatabase);
 						decrementText(this.txtTotalFolders);
-					}s
+					}
 				}
 
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
