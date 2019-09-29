@@ -32,6 +32,7 @@ import org.archicontribs.database.model.commands.DBImportRelationshipFromIdComma
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import org.archicontribs.database.model.commands.DBResolveConnectionsCommand;
 import org.archicontribs.database.model.commands.DBResolveRelationshipsCommand;
+import org.archicontribs.database.model.commands.IDBCommand;
 import org.archicontribs.database.model.commands.IDBImportCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CommandStack;
@@ -2295,12 +2296,12 @@ public class DBGuiImportComponents extends DBGui {
 			// we select the imported components in the model tree 
 			List<Object> imported = new ArrayList<Object>();
 
-			Iterator<IDBImportCommand> iterator = undoRedoCommands.getCommands().iterator();
+			Iterator<IDBCommand> iterator = undoRedoCommands.getCommands().iterator();
 			while ( iterator.hasNext() ) {
-				IDBImportCommand command = iterator.next();
+				IDBCommand command = iterator.next();
 
-				if ( command.getImported() != null )
-					imported.add(command.getImported());
+				if ( command instanceof IDBImportCommand && ((IDBImportCommand)command).getImported() != null )
+					imported.add(((IDBImportCommand)command).getImported());
 			}
 
 			if ( !imported.isEmpty() ) {
