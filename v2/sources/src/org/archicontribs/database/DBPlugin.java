@@ -8,10 +8,6 @@ package org.archicontribs.database;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Paths;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -285,7 +281,8 @@ import lombok.Getter;
  * 									Remove the "Relationship" suffix on the relationships names during Neo4J exports
  *									Fix number of model components during export when components are updated or deleted from the database
  *									Fix the export of an existing database model when opened from archimate file
- *									Remember the import database and set it as the default export database 
+ *									Remember the import database and set it as the default export database
+ *									Add welcome message
  * 									Update the JDBC drivers
  * 										MySQL		--> 8.0.17
  * 										Neo4J		--> 3.4.0
@@ -435,6 +432,27 @@ public class DBPlugin extends AbstractUIPlugin {
 		} else
 			logger.debug("Archi is setup with "+maxMemory+" MB of memory.");
 		
+		DBPluginVersion oldPluginVersion = new DBPluginVersion(preferenceStore.getString("pluginVersion"));
+		String welcomeMessage = null;
+		if ( oldPluginVersion.getVersion().isEmpty() ) {
+			// if the "pluginVersion" preference is not set, this means that this is the first time the plugin is run
+			// so we print out a welcome message
+			welcomeMessage = "Welcome to the Archi Database Plugin.\n\nThis plugin allows you to centralize your models in a SQL database, and export them to a graph database for analysis purpose.\n\nThe next step is to configure your database(s) on the plugin's preference page.";
+		} else if ( oldPluginVersion.compareTo(pluginVersion) == -1 ) {
+			// if the "pluginVersion" preference is older, then the plugin has been upgraded
+			// so we print out a message confirming the upgrade
+			welcomeMessage = "The Database plugin has been upgraded from version "+oldPluginVersion.getVersion()+" to version "+pluginVersion.getVersion()+".";
+		} else if ( oldPluginVersion.compareTo(pluginVersion) == 1 ) {
+			// if the "pluginVersion" preference is newer, then the plugin has been downgraded
+			// so we print out a message confirming the downgrade
+			welcomeMessage = "The Database plugin has been downgraded from version "+oldPluginVersion.getVersion()+" to version "+pluginVersion.getVersion()+".";
+		}
+		
+		if ( welcomeMessage != null ) {
+			DBGui.popup(Level.INFO, welcomeMessage);
+			preferenceStore.setValue("pluginVersion", pluginVersion.getVersion());
+		}
+		
 		// we check if the plugin has been upgraded using the automatic procedure
 		try {
 			pluginsPackage = DBPlugin.class.getPackage().getName();
@@ -450,29 +468,8 @@ public class DBPlugin extends AbstractUIPlugin {
 			if ( !pluginsFilename.endsWith(".jar") ) {
 				if ( logger.isTraceEnabled() ) logger.trace("   The plugin's filename is not a jar file, so we do not check for new plugin version on GitHub.");
 			} else {
-				if ( Files.exists(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"), LinkOption.NOFOLLOW_LINKS) ) {
-					if ( logger.isDebugEnabled() ) logger.debug("Found file \""+pluginsFolder+File.separator+"databasePlugin.new\"");
-					
-					try {
-						String installedPluginsFilename = new String(Files.readAllBytes(Paths.get(pluginsFolder+File.separator+"databasePlugin.new")));
-						
-						if ( areEqual(pluginsFilename, installedPluginsFilename) ) 
-							DBGui.popup(Level.INFO, "The database plugin has been correctly updated to version "+pluginVersion);
-						else
-							DBGui.popup(Level.ERROR, "The database plugin has been correctly downloaded to \""+installedPluginsFilename+"\" but you are still using the database plugin version "+pluginVersion+".\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
-					} catch (@SuppressWarnings("unused") IOException e) {
-						DBGui.popup(Level.WARN, "A new version of the database plugin has been downloaded but we failed to check if you are using the latest version.\n\nPlease check the plugin files located in the \""+pluginsFolder+"\" folder.");
-					}
-					
-					try {
-						if ( logger.isDebugEnabled() ) logger.debug("Deleting file "+pluginsFolder+File.separator+"databasePlugin.new");
-						Files.delete(FileSystems.getDefault().getPath(pluginsFolder+File.separator+"databasePlugin.new"));
-					} catch ( @SuppressWarnings("unused") IOException e ) {
-						DBGui.popup(Level.ERROR, "Failed to delete file \""+pluginsFolder+File.separator+"databasePlugin.new\"\n\nYou need to delete it manually.");
-					}
-				} else if ( preferenceStore.getBoolean("checkForUpdateAtStartup") ) {
+				if ( preferenceStore.getBoolean("checkForUpdateAtStartup") )
 					checkForUpdate(false);
-				}
 			}
 		} catch ( IOException e ) {
 			DBGui.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
