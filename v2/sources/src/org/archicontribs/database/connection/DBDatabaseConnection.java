@@ -110,8 +110,19 @@ public class DBDatabaseConnection implements AutoCloseable {
                 if ( logger.isDebugEnabled() ) logger.debug("Connecting with Windows integrated security");
                 this.connection = DriverManager.getConnection(connectionString);
             } else {
-                if ( logger.isDebugEnabled() ) logger.debug("Connecting with username = "+this.databaseEntry.getUsername());
-                this.connection = DriverManager.getConnection(connectionString, this.databaseEntry.getUsername(), this.databaseEntry.getPassword());
+            	String username = this.databaseEntry.getUsername();
+            	String password = this.databaseEntry.getPassword();
+                if ( logger.isDebugEnabled() ) logger.debug("Connecting with username = "+username);
+                
+                // if the username is set but not the password, then we show a popup to ask for the password
+                if ( !username.isEmpty() && password.isEmpty() ) {
+                	password = DBGui.passwordDialog("Please provide the database password", "Database password:");
+                	if ( password == null ) {
+                		// password is null if the user clicked on cancel
+                		throw new SQLException("No password provided.");
+                	}
+                }
+                this.connection = DriverManager.getConnection(connectionString, username, password);
             }
         } catch (SQLException e) {
             // if the JDBC driver fails to connect to the database using the specified driver, then it tries with all the other drivers

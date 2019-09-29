@@ -282,6 +282,7 @@ import lombok.Getter;
  *									Fix number of model components during export when components are updated or deleted from the database
  *									Fix the export of an existing database model when opened from archimate file
  *									Remember the import database and set it as the default export database
+ *									Ask the database password during connection if not provided in the preferences
  *									Add welcome message
  * 									Update the JDBC drivers
  * 										MySQL		--> 8.0.17

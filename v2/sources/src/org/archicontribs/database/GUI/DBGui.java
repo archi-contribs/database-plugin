@@ -1048,6 +1048,36 @@ public class DBGui {
         if ( logger.isDebugEnabled() ) logger.debug("Answer: "+buttonLabels[questionResult]);
         return questionResult;
     }
+    
+    static String answeredPassword;
+    
+    /**
+     * open up an input dialog and ask for a password
+     * @param message the message on the password dialog
+     * @return the typed password
+     */
+    public static String passwordDialog(String title, String message) {
+    	if ( logger.isDebugEnabled() ) logger.debug("Asking for password");
+    	answeredPassword = "";
+    	Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                Shell shell = new Shell(display, SWT.SHELL_TRIM);
+        		shell.setText(title);
+                shell.setSize(0, 0);
+                shell.setBackground(BLACK_COLOR);
+                shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
+                passwordDialog passwordDialog = new passwordDialog(shell);
+                if ( passwordDialog.open() == 0 )
+                	answeredPassword = passwordDialog.getPassword();
+                else
+                	answeredPassword = null;
+                passwordDialog.close();
+            }
+        });
+    	
+    	return answeredPassword;
+    }
 
     protected void hideGrpDatabase() {
         this.grpDatabase.setVisible(false);
