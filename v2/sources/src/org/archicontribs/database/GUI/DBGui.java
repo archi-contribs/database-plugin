@@ -672,7 +672,7 @@ public class DBGui {
 
         // we get the databaseEntry corresponding to the selected combo entry
         this.selectedDatabase = this.databaseEntries.get(this.comboDatabases.getSelectionIndex());
-        if ( logger.isDebugEnabled() ) logger.debug("Selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername()+", "+this.selectedDatabase.getPassword()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername());
 
         // then we connect to the database.
         try {
