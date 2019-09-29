@@ -283,6 +283,7 @@ import lombok.Getter;
  *									Fix the export of an existing database model when opened from archimate file
  *									Remember the import database and set it as the default export database
  *									Ask the database password during connection if not provided in the preferences
+ *									fix tablename case for SQL databases
  *									Add welcome message
  * 									Update the JDBC drivers
  * 										MySQL		--> 8.0.17

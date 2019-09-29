@@ -1848,7 +1848,7 @@ public class DBGuiImportComponents extends DBGui {
 			}
 
 			addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements WHERE id = e.id)";
-			addOn += " ORDER BY NAME";
+			addOn += " ORDER BY name";
 
 			if ( inList.length() != 0 ) {
 				String filterRequest = "";
@@ -1946,7 +1946,7 @@ public class DBGuiImportComponents extends DBGui {
 		String addOn = "";
 		if ( hideOption.getSelection() )
 		    addOn = " AND type = 0";
-		addOn += " ORDER BY NAME";
+		addOn += " ORDER BY name";
 
 		if ( inList.length() != 0 ) {
 			String filterRequest = "";
@@ -2018,7 +2018,7 @@ public class DBGuiImportComponents extends DBGui {
 				addOn = " AND name <> 'Default View'";
 
 			addOn += " AND version = (SELECT MAX(version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views WHERE id = v.id)";
-			addOn += " ORDER BY NAME";
+			addOn += " ORDER BY name";
 
 			if ( inList.length() != 0 ) {
 				String filterRequest = "";
