@@ -32,7 +32,8 @@ public abstract class ObjectFilter implements IFilter, IObjectFilter {
         return null;
     }
     
-    @Override
+    @SuppressWarnings("deprecation")
+	@Override
     public boolean shouldExposeFeature(EObject eObject, EAttribute feature) {
         IObjectUIProvider provider = ObjectUIFactory.INSTANCE.getProvider(eObject);
         
