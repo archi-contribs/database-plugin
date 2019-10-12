@@ -1,6 +1,18 @@
-v2.1.11: 26/04/2019
-* Fix version comparison when a part of it is greater or equal to 10
-* Fix issues on SQL requests introduced in plugin version 2.1.10
+v2.2.0: 12/10/2019
+* Rewrite of the export process
+* Rewrite of the conflict management process
+* Remove the "Relationship" suffix on the relationships names during Neo4J exports
+* Fix number of model components during export when components are updated or deleted from the database
+* Fix the export of an existing database model when opened from archimate file
+* Remember the import database and set it as the default export database
+* Ask the database password during connection if not provided in the preferences
+* fix tablename case for SQL databases
+* Add welcome message
+* Update the JDBC drivers
+  * MySQL		--> 8.0.17
+  * Neo4J		--> 3.4.0
+  * PostGreSQL	--> 42.2.6
+  * SQLite		--> 3.27.2.1
 
 ### TODO list
 * Import components from database:
@@ -15,6 +27,10 @@ v2.1.11: 26/04/2019
   * create database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.1.11: 26/04/2019
+* Fix version comparison when a part of it is greater or equal to 10
+* Fix issues on SQL requests introduced in plugin version 2.1.10
+
 v2.1.10: 23/04/2019
 * Fix unclosed cursors on Oracle databases
 
