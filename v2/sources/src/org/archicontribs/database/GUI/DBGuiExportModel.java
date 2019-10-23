@@ -1183,12 +1183,13 @@ public class DBGuiExportModel extends DBGui {
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			return true;
 		
-		logger.debug("Comparing model to the database.");
+		setMessage("Comparing the model to the database ...");
 
 		try {
 			// we compare the elements, relationships, folders and views
 			this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
 		} catch (SQLException err ) {
+			closeMessage();
 			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -1693,20 +1694,18 @@ public class DBGuiExportModel extends DBGui {
 			this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
 
 			// we reset the counters as they will be updated during the import and export process
-			this.txtNewElementsInModel.setText(this.ZERO);         this.txtUpdatedElementsInModel.setText(this.ZERO);         this.txtDeletedElementsInModel.setText(this.ZERO);         this.txtNewElementsInDatabase.setText(this.ZERO);          this.txtUpdatedElementsInDatabase.setText(this.ZERO);          this.txtDeletedElementsInDatabase.setText(this.ZERO);        this.txtConflictingElements.setText(this.ZERO);
-			this.txtNewRelationshipsInModel.setText(this.ZERO);    this.txtUpdatedRelationshipsInModel.setText(this.ZERO);    this.txtDeletedRelationshipsInModel.setText(this.ZERO);    this.txtNewRelationshipsInDatabase.setText(this.ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);     this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);   this.txtConflictingRelationships.setText(this.ZERO);
-			this.txtNewFoldersInModel.setText(this.ZERO);          this.txtUpdatedFoldersInModel.setText(this.ZERO);          this.txtDeletedFoldersInModel.setText(this.ZERO);          this.txtNewFoldersInDatabase.setText(this.ZERO);           this.txtUpdatedFoldersInDatabase.setText(this.ZERO);           this.txtDeletedFoldersInDatabase.setText(this.ZERO);         this.txtConflictingFolders.setText(this.ZERO);
-			this.txtNewViewsInModel.setText(this.ZERO);            this.txtUpdatedViewsInModel.setText(this.ZERO);            this.txtDeletedViewsInModel.setText(this.ZERO);            this.txtNewViewsInDatabase.setText(this.ZERO);             this.txtUpdatedViewsInDatabase.setText(this.ZERO);             this.txtDeletedViewsInDatabase.setText(this.ZERO);           this.txtConflictingViews.setText(this.ZERO);
-			this.txtNewViewObjectsInModel.setText(this.ZERO);      this.txtUpdatedViewObjectsInModel.setText(this.ZERO);      this.txtDeletedViewObjectsInModel.setText(this.ZERO);      this.txtNewViewObjectsInDatabase.setText(this.ZERO);       this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);       this.txtDeletedViewObjectsInDatabase.setText(this.ZERO);     this.txtConflictingViewObjects.setText(this.ZERO);
-			this.txtNewViewConnectionsInModel.setText(this.ZERO);  this.txtUpdatedViewConnectionsInModel.setText(this.ZERO);  this.txtDeletedViewConnectionsInModel.setText(this.ZERO);  this.txtNewViewConnectionsInDatabase.setText(this.ZERO);   this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);   this.txtDeletedViewConnectionsInDatabase.setText(this.ZERO); this.txtConflictingViewConnections.setText(this.ZERO);
-			this.txtNewImagesInModel.setText(this.ZERO);           this.txtNewImagesInDatabase.setText(this.ZERO);
+			this.txtTotalElements.setText(this.ZERO);         this.txtNewElementsInModel.setText(this.ZERO);         this.txtUpdatedElementsInModel.setText(this.ZERO);         this.txtDeletedElementsInModel.setText(this.ZERO);         this.txtNewElementsInDatabase.setText(this.ZERO);          this.txtUpdatedElementsInDatabase.setText(this.ZERO);          this.txtDeletedElementsInDatabase.setText(this.ZERO);        this.txtConflictingElements.setText(this.ZERO);
+			this.txtTotalRelationships.setText(this.ZERO);    this.txtNewRelationshipsInModel.setText(this.ZERO);    this.txtUpdatedRelationshipsInModel.setText(this.ZERO);    this.txtDeletedRelationshipsInModel.setText(this.ZERO);    this.txtNewRelationshipsInDatabase.setText(this.ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);     this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);   this.txtConflictingRelationships.setText(this.ZERO);
+			this.txtTotalFolders.setText(this.ZERO);          this.txtNewFoldersInModel.setText(this.ZERO);          this.txtUpdatedFoldersInModel.setText(this.ZERO);          this.txtDeletedFoldersInModel.setText(this.ZERO);          this.txtNewFoldersInDatabase.setText(this.ZERO);           this.txtUpdatedFoldersInDatabase.setText(this.ZERO);           this.txtDeletedFoldersInDatabase.setText(this.ZERO);         this.txtConflictingFolders.setText(this.ZERO);
+			this.txtTotalViews.setText(this.ZERO);            this.txtNewViewsInModel.setText(this.ZERO);            this.txtUpdatedViewsInModel.setText(this.ZERO);            this.txtDeletedViewsInModel.setText(this.ZERO);            this.txtNewViewsInDatabase.setText(this.ZERO);             this.txtUpdatedViewsInDatabase.setText(this.ZERO);             this.txtDeletedViewsInDatabase.setText(this.ZERO);           this.txtConflictingViews.setText(this.ZERO);
+			this.txtTotalViewObjects.setText(this.ZERO);      this.txtNewViewObjectsInModel.setText(this.ZERO);      this.txtUpdatedViewObjectsInModel.setText(this.ZERO);      this.txtDeletedViewObjectsInModel.setText(this.ZERO);      this.txtNewViewObjectsInDatabase.setText(this.ZERO);       this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);       this.txtDeletedViewObjectsInDatabase.setText(this.ZERO);     this.txtConflictingViewObjects.setText(this.ZERO);
+			this.txtTotalViewConnections.setText(this.ZERO);  this.txtNewViewConnectionsInModel.setText(this.ZERO);  this.txtUpdatedViewConnectionsInModel.setText(this.ZERO);  this.txtDeletedViewConnectionsInModel.setText(this.ZERO);  this.txtNewViewConnectionsInDatabase.setText(this.ZERO);   this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);   this.txtDeletedViewConnectionsInDatabase.setText(this.ZERO); this.txtConflictingViewConnections.setText(this.ZERO);
+			this.txtTotalImages.setText(this.ZERO);           this.txtNewImagesInModel.setText(this.ZERO);           this.txtNewImagesInDatabase.setText(this.ZERO);
 
 
 			//////////////////////////// PHASE 1 : we compare the model to the database
 
 			if ( !isNeo4JDatabase ) {
-				setMessage("Comparing the model to the database ...");
-
 				if ( compareModelToDatabase(false) ) {
 					setActiveAction(STATUS.Ok);
 					doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
@@ -2189,8 +2188,6 @@ public class DBGuiExportModel extends DBGui {
 			
 			////////////////////////////PHASE 7 : we re-compare the model to the database as the imports may have been sufficient
 			if ( !isNeo4JDatabase ) {
-				setMessage("Comparing the model to the database ...");
-
 				if ( compareModelToDatabase(false) ) {
 					setActiveAction(STATUS.Ok);
 					doShowResult(STATUS.Ok, "Your model is now in sync with the database.");
