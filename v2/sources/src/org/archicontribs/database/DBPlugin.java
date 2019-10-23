@@ -291,6 +291,8 @@ import lombok.Getter;
  * 										PostGreSQL	--> 42.2.6
  * 										SQLite		--> 3.27.2.1
  * 
+ * v2.2.1: 23/10/2019				Fix plugin version in windows title
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -316,7 +318,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String pluginName = "DatabasePlugin";
 	
 	/** Title od the plugin's windows */
-	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion;
+	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion.getVersion();
 
 	/** Name of the plugin's package */
 	public static String pluginsPackage;
