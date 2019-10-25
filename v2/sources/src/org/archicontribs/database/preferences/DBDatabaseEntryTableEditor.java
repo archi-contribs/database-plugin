@@ -15,6 +15,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiAdminDatabase;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBDatabase;
 import org.eclipse.jface.preference.FieldEditor;
@@ -107,6 +108,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	Button btnUp;
 	Button btnNew;
+	Button btnAdmin;
 	Button btnRemove;
 	Button btnEdit;
 	Button btnDown;
@@ -232,25 +234,25 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		});
 		this.btnEdit.setEnabled(false);
 
-		this.btnCheck = new Button(this.grpDatabases, SWT.NONE);
-		this.btnCheck.setText("Check");
+		this.btnAdmin = new Button(this.grpDatabases, SWT.NONE);
+		this.btnAdmin.setText("Admin");
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnEdit, this.defaultMargin/2);
 		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
-		this.btnCheck.setLayoutData(fd);
-		this.btnCheck.addSelectionListener(new SelectionListener() {
+		this.btnAdmin.setLayoutData(fd);
+		this.btnAdmin.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { checkCallback(); }
+            public void widgetSelected(SelectionEvent e) { adminCallback(); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
-		this.btnCheck.setEnabled(false);
+		this.btnAdmin.setEnabled(false);
 
 		this.btnRemove = new Button(this.grpDatabases, SWT.NONE);
 		this.btnRemove.setText("Remove");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCheck, this.defaultMargin/2);
+		fd.top = new FormAttachment(this.btnAdmin, this.defaultMargin/2);
 		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
 		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
 		this.btnRemove.setLayoutData(fd);
@@ -894,9 +896,24 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		this.btnDiscard.setVisible(false);
+		
+		this.btnCheck = new Button(this.grpDatabases, SWT.NONE);
+		this.btnCheck.setText("Check");
+		fd = new FormData();
+		fd.left = new FormAttachment(this.btnNew, 0, SWT.LEFT);
+		fd.right = new FormAttachment(this.btnNew, 0, SWT.RIGHT);
+		fd.bottom = new FormAttachment(this.btnDiscard, -5, SWT.TOP);
+		this.btnCheck.setLayoutData(fd);
+		this.btnCheck.addSelectionListener(new SelectionListener() {
+			@Override
+            public void widgetSelected(SelectionEvent e) { checkCallback(); }
+			@Override
+            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		});
+		this.btnCheck.setVisible(false);
 
 
-		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportViewsScreenshot, this.compoNeo4jMode, this.btnDiscard, this.btnSave});
+		this.grpDatabases.setTabList(new Control[] {this.txtName, this.comboDriver, this.txtFile, this.btnBrowse, this.txtServer, this.txtPort, this.txtDatabase, this.txtSchema, this.txtUsername, this.txtPassword, this.compoExportViewsScreenshot, this.compoNeo4jMode, this.btnCheck, this.btnDiscard, this.btnSave});
 
 		this.grpDatabases.layout();
 	}
@@ -1114,6 +1131,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	void setDatabaseDetails(boolean editMode) throws SQLException {
 		DBDatabaseEntry databaseEntry = null;
 		boolean shouldExportViewSnapshots = false;
+		boolean shouldActivateAllowButton = false;
 
 		if ( this.tblDatabases.getSelectionIndex() == -1 ) {
 		    this.txtName.setText("");
@@ -1142,6 +1160,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
             this.txtName.setText(databaseEntry.getName());
             this.comboDriver.setText(databaseEntry.getDriver());
+            if ( !databaseEntry.getDriver().equalsIgnoreCase("neo4j") )
+            	shouldActivateAllowButton = true;
             this.txtFile.setText(databaseEntry.getServer());
             this.txtServer.setText(databaseEntry.getServer());
             this.txtPort.setText(String.valueOf(databaseEntry.getPort()));
@@ -1216,11 +1236,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.btnSave.setVisible(editMode);
 		this.btnDiscard.setVisible(editMode);
+		this.btnCheck.setVisible(editMode);
 
 		this.btnNew.setEnabled(!editMode);
 		this.btnEdit.setEnabled(!editMode && (this.tblDatabases.getSelection()!=null) && (this.tblDatabases.getSelection().length!=0));
 		this.btnRemove.setEnabled(!editMode && (this.tblDatabases.getSelection()!=null) && (this.tblDatabases.getSelection().length!=0));
-		this.btnCheck.setEnabled(editMode || ((this.tblDatabases.getSelection()!=null) && (this.tblDatabases.getSelection().length!=0)));
+		this.btnAdmin.setEnabled(!editMode && (this.tblDatabases.getSelection()!=null) && (this.tblDatabases.getSelection().length!=0) && shouldActivateAllowButton);
 		this.btnUp.setEnabled(!editMode && (this.tblDatabases.getSelectionIndex() > 0));
 		this.btnDown.setEnabled(!editMode && (this.tblDatabases.getSelectionIndex() < this.tblDatabases.getItemCount()-1));
 		this.tblDatabases.setEnabled(!editMode);
@@ -1245,8 +1266,34 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			DBGui.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+		}
+	}
+	
+	/**
+	 * Called when the "admin" button has been pressed
+	 */
+	void adminCallback() {
+		DBDatabaseEntry databaseEntry;
+		try {
+			databaseEntry = getDatabaseDetails(null);
+		} catch (Exception e) {
+			DBGui.popup(Level.ERROR, "Please verify the information you provided", e);
 			return;
 		}
+		
+		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
+			connection.checkDatabase(null);
+		} catch (Exception err) {
+			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			return;
+		}
+
+		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
+        	DBGuiAdminDatabase adminDatabase = new DBGuiAdminDatabase(connection, "Administer database \""+databaseEntry.getName()+"\"");
+        	adminDatabase.run();
+        } catch (Exception e) {
+            DBGui.popup(Level.ERROR,"Cannot admin the database", e);
+        }
 	}
 
 	/**
@@ -1299,11 +1346,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 			this.btnSave.setVisible(false);
 			this.btnDiscard.setVisible(false);
+			this.btnCheck.setVisible(false);
 
 			this.btnNew.setEnabled(true);
 			this.btnEdit.setEnabled(false);
 			this.btnRemove.setEnabled(false);
-			this.btnCheck.setEnabled(false);
+			this.btnAdmin.setEnabled(false);
 			this.btnUp.setEnabled(false);
 			this.btnDown.setEnabled(false);
 			this.tblDatabases.setEnabled(true);
