@@ -487,7 +487,7 @@ public class DBGuiImportModel extends DBGui {
         lblImported.setBackground(GROUP_BACKGROUND_COLOR);
         lblImported.setText("Imported");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 5);
+        fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(40, getDefaultMargin());
         fd.right = new FormAttachment(60, -getDefaultMargin());
         lblImported.setLayoutData(fd);
