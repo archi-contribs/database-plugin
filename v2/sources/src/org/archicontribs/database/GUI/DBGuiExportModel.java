@@ -2176,18 +2176,16 @@ public class DBGuiExportModel extends DBGui {
 			}
 
 			//////////////////////////// PHASE 6 : we recalculate all the checksums and the "getAll..."  maps as all the containers may have changed because of imported and deleted components
-			if ( !isNeo4JDatabase ) {
-				if ( !undoableCommands.isEmpty() ) {
-					setMessage("Recalculating checksums ");
-					errorMessage = "Failed to recalculate checksums.";
+			if ( !isNeo4JDatabase && !undoableCommands.isEmpty() ) {
+				setMessage("Recalculating checksums ");
+				errorMessage = "Failed to recalculate checksums.";
 
-					// recalculate the checksum. This does not update the versions, so the database status remains.
-					this.exportedModel.countAllObjects();
-				}
+				// recalculate the checksum. This does not update the versions, so the database status remains.
+				this.exportedModel.countAllObjects();
 			}
 			
 			////////////////////////////PHASE 7 : we re-compare the model to the database as the imports may have been sufficient
-			if ( !isNeo4JDatabase ) {
+			if ( !isNeo4JDatabase && !undoableCommands.isEmpty() ) {
 				if ( compareModelToDatabase(false) ) {
 					setActiveAction(STATUS.Ok);
 					doShowResult(STATUS.Ok, "Your model is now in sync with the database.");
@@ -2308,9 +2306,10 @@ public class DBGuiExportModel extends DBGui {
 							doExport(componentToExport, this.txtNewViewObjectsInModel);
 						else if ( ((IDBMetadata)componentToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdatedInModel )
 							doExport(componentToExport, this.txtUpdatedViewObjectsInModel);
+						
+						this.exportConnection.assignEObjectToModel(componentToExport);
 					}
 					
-					this.exportConnection.assignEObjectToModel(componentToExport);
 					incrementText(this.txtTotalViewObjects);
 					increaseProgressBar();
 				}
@@ -2325,9 +2324,10 @@ public class DBGuiExportModel extends DBGui {
 							doExport(componentToExport, this.txtNewViewConnectionsInModel);
 						else if ( ((IDBMetadata)componentToExport).getDBMetadata().getDatabaseStatus() == DATABASE_STATUS.isUpdatedInModel )
 							doExport(componentToExport, this.txtUpdatedViewConnectionsInModel);
+						
+						this.exportConnection.assignEObjectToModel(componentToExport);
 					}
-					
-					this.exportConnection.assignEObjectToModel(componentToExport);
+
 					incrementText(this.txtTotalViewConnections);
 					increaseProgressBar();
 				}

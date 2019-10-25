@@ -293,6 +293,8 @@ import lombok.Getter;
  * 
  * v2.2.1: 23/10/2019				Fix plugin version in windows title
  * 									Fix count of model's components during export
+ * 									Fix unnecessary double export of view components 
+ * 									Do not compare twice the model to the database if there have been no import 
  * 
  * TO-DO list:
  * ----------
