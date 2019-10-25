@@ -1091,18 +1091,22 @@ public class DBGui {
 
     private SelectionListener actionListener = null;
     protected void setBtnAction(String label, SelectionListener listener) {
-        this.btnDoAction.setText(label);
-        this.btnDoAction.setVisible(true);
-
-        if ( this.actionListener != null ) {
-            this.btnDoAction.removeSelectionListener(this.actionListener);
-            this.actionListener = null;
-        }
-
-        if ( listener != null ) {
-            this.actionListener = listener;
-            this.btnDoAction.addSelectionListener(this.actionListener);
-        }
+    	if ( label == null ) {
+    		this.btnDoAction.setVisible(false);
+    	} else {
+	        this.btnDoAction.setText(label);
+	        this.btnDoAction.setVisible(true);
+	
+	        if ( this.actionListener != null ) {
+	            this.btnDoAction.removeSelectionListener(this.actionListener);
+	            this.actionListener = null;
+	        }
+	
+	        if ( listener != null ) {
+	            this.actionListener = listener;
+	            this.btnDoAction.addSelectionListener(this.actionListener);
+	        }
+    	}
     }
 
     /**
