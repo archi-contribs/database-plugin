@@ -502,25 +502,34 @@ public class DBGuiAdminDatabase extends DBGui {
 			String columnType = result.getString("TYPE_NAME").toLowerCase();
 			int columnSize = result.getInt("COLUMN_SIZE");
 			
-			if ( columnType.equals("varchar") || columnType.equals("nvarchar") ) {
-				if ( columnSize > 2000000000 )
-					columnType = columnType+"(max)";
-				else
-					columnType = columnType+"("+columnSize+")";
-			}
-			
 			boolean columnFound = false;
 
 			// if the column name is known, we check its type
-			for ( int i=0; i < columns.length; ++i ) {
-				if ( columnName.equalsIgnoreCase(columns[i][0]) ) {
+			for ( int c=0; c < columns.length; ++c ) {
+				if ( columnName.equalsIgnoreCase(columns[c][0]) ) {
 					columnFound = true;
-					columns[i][2] = "found";
-					if ( columnType.equalsIgnoreCase(columns[i][1]) )
+					columns[c][2] = "found";
+					
+					// we check if we need to add or remove the length between parentheses
+					if ( columns[c][1].indexOf("(") == -1 ) {
+						int index = columnName.indexOf("(");
+						if ( index != -1 )
+							columnName = columnName.substring(0, index-1);
+					} else {
+						int index = columnName.indexOf("(");
+						if ( index == -1 ) {
+							if ( columnSize > 2000000000 )
+								columnType = columnType+"(max)";
+							else
+								columnType = columnType+"("+columnSize+")";
+						}
+					}
+					
+					if ( columnType.equalsIgnoreCase(columns[c][1]) )
 						logger.debug("   Column "+columnName+" is "+columnType);
 					else {
-						logger.debug("   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
-						message.append("\n   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
+						logger.debug("   Column "+columnName+" is "+columnType+", should be "+columns[c][1].toLowerCase());
+						message.append("\n   Column "+columnName+" is "+columnType+", should be "+columns[c][1].toLowerCase());
 						isCorrect = false;
 					}
 						
@@ -529,8 +538,8 @@ public class DBGuiAdminDatabase extends DBGui {
 			
 			// if the column name is not known, we add an error
 			if ( !columnFound ) {
-				logger.debug("   Column "+columnName+" has been found but shoud not exist.");
-				message.append("\n   Column "+columnName+" has been found but shoud not exist.");
+				logger.debug("   Column "+columnName+" found but shoud not exist.");
+				message.append("\n   Column "+columnName+" found but shoud not exist.");
 				isCorrect = false;
 			}
 		}
@@ -538,8 +547,8 @@ public class DBGuiAdminDatabase extends DBGui {
 		// we now check that all the columns have been found
 		for ( int i=0; i < columns.length; ++i ) {
 			if ( columns[i][2] == null ) {
-				logger.debug("   Column "+columns[i][0]+" has not been found but shoud exist.");
-				message.append("\n   Column "+columns[i][0]+" has not been found but shoud exist.");
+				logger.debug("   Column "+columns[i][0]+" not found but should exist.");
+				message.append("\n   Column "+columns[i][0]+" not found but should exist.");
 				isCorrect = false;
 			}
 		}
@@ -580,9 +589,9 @@ public class DBGuiAdminDatabase extends DBGui {
 			
 			int deletedRows = this.importConnection.executeRequest(request);
 			switch (deletedRows) {
-			case 0: duplicateObjectsStatus = "No duplicate row has been found in the \"views_objects_in_view\" table."; break;
-			case 1: duplicateObjectsStatus = "1 duplicate row has been removed from the \"views_objects_in_view\" table."; break;
-			default: duplicateObjectsStatus = deletedRows+" duplicate row have been removed from the \"views_objects_in_view\" table.";
+			case 0: duplicateObjectsStatus = "No duplicate row found in the \"views_objects_in_view\" table."; break;
+			case 1: duplicateObjectsStatus = "1 duplicate row removed from the \"views_objects_in_view\" table."; break;
+			default: duplicateObjectsStatus = deletedRows+" duplicate rows removed from the \"views_objects_in_view\" table.";
 			}
 		} catch (SQLException err) {
 			try {
@@ -607,9 +616,9 @@ public class DBGuiAdminDatabase extends DBGui {
 
 			int deletedRows = this.importConnection.executeRequest(request);
 			switch (deletedRows) {
-				case 0: duplicateConnectionsStatus = "No duplicate row has been found in the \"views_connections_in_view\" table."; break;
-				case 1: duplicateConnectionsStatus = "1 duplicate row has been removed from the \"views_connections_in_view\" table."; break;
-				default: duplicateConnectionsStatus = deletedRows+" duplicate row have been removed from the \"views_connections_in_view\" table.";
+				case 0: duplicateConnectionsStatus = "No duplicate row found in the \"views_connections_in_view\" table."; break;
+				case 1: duplicateConnectionsStatus = "1 duplicate row removed from the \"views_connections_in_view\" table."; break;
+				default: duplicateConnectionsStatus = deletedRows+" duplicate rows removed from the \"views_connections_in_view\" table.";
 			}
 		} catch (SQLException err) {
 			try {
