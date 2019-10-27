@@ -472,7 +472,7 @@ public class DBGuiAdminDatabase extends DBGui {
 					message.append("Table "+schemaPrefix+"database_version:");
 					
 					boolean checkColumnsResult = checkColumns(result, message, tableColumns);
-					errorFound = errorFound && checkColumnsResult;
+					errorFound = errorFound & checkColumnsResult;
 					
 					message.append("\n");			
 				} catch (SQLException err) {
