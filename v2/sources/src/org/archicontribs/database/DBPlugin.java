@@ -294,7 +294,12 @@ import lombok.Getter;
  * v2.2.1: 23/10/2019				Fix plugin version in windows title
  * 									Fix count of model's components during export
  * 									Fix unnecessary double export of view components 
- * 									Do not compare twice the model to the database if there have been no import 
+ * 									Do not compare twice the model to the database if there have been no import
+ * 									Create first admin procedures
+ * 										check database structure
+ * 										check database content
+ * 									Update the JDBC drivers
+ * 										MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
  * 
  * TO-DO list:
  * ----------
