@@ -1289,7 +1289,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		}
 
 		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
-        	DBGuiAdminDatabase adminDatabase = new DBGuiAdminDatabase(connection, "Administer database \""+databaseEntry.getName()+"\"");
+			List<DBDatabaseEntry> entries = new ArrayList<DBDatabaseEntry>(); 
+	        for ( int i = 0 ; i < this.tblDatabases.getItemCount() ; ++i ) {
+	        	entries.add((DBDatabaseEntry)this.tblDatabases.getItem(i).getData());
+	        }
+			
+        	DBGuiAdminDatabase adminDatabase = new DBGuiAdminDatabase(connection, entries, "Administer database \""+databaseEntry.getName()+"\"");
         	adminDatabase.run();
         } catch (Exception e) {
             DBGui.popup(Level.ERROR,"Cannot admin the database", e);

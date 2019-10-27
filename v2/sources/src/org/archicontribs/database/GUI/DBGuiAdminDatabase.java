@@ -13,6 +13,7 @@ import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
@@ -71,7 +72,7 @@ public class DBGuiAdminDatabase extends DBGui {
      * @param title Title of the window
      * @throws Exception 
      */
-    public DBGuiAdminDatabase(DBDatabaseImportConnection databaseImportconnection, String title) throws Exception {
+    public DBGuiAdminDatabase(DBDatabaseImportConnection databaseImportconnection, List<DBDatabaseEntry> entries, String title) throws Exception {
         super(title);
         
         this.importConnection = databaseImportconnection;
@@ -100,7 +101,7 @@ public class DBGuiAdminDatabase extends DBGui {
         createGrpActions();
 
         // we set the comboDatabase entries and select the database
-        this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(this.includeNeo4j);
+        this.databaseEntries = entries;
         int index = 0;
         for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
             this.comboDatabases.add(databaseEntry.getName());
