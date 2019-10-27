@@ -506,6 +506,7 @@ public class DBGuiAdminDatabase extends DBGui {
 					columnType = columnType+"(max)";
 				else
 					columnType = columnType+"("+columnSize+")";
+			}
 			
 			boolean columnFound = false;
 
