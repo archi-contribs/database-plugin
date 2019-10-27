@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.GUI;
 
+import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Hashtable;
@@ -417,13 +418,9 @@ public class DBGuiAdminDatabase extends DBGui {
 	/**
 	 * Called when the "check structure" button has been pressed
 	 */
+	@SuppressWarnings("static-method")
 	void checkStructureCallback() {
-		try {
-			this.importConnection.checkDatabase(null);
-			DBGui.popup(Level.INFO, "Database successfully checked.");
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
-		}
+		DBGui.popup(Level.INFO, "Not yet implemented.");
 	}
 	
 	/**
@@ -432,33 +429,91 @@ public class DBGuiAdminDatabase extends DBGui {
 	void checkContentCallback() {
 		try {
 			this.importConnection.checkDatabase(null);
-			DBGui.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
 			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			return;
 		}
+		
+		// we remove duplicate rows in view_objects_in_views and view_connections_in views to fix bug of plugin version 2.2
+	
+		try {
+			// we start a new transaction
+			this.importConnection.setAutoCommit(false);
+		} catch (SQLException err) {
+			DBGui.popup(Level.ERROR, "Failed to start a new transaction.", err);
+			return;
+		}
+		
+		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
+		
+		logger.info("Removing view_objects_in_views duplicates ...");
+		try {
+			int deletedRows = this.importConnection.executeRequest("DELETE "+schemaPrefix+"view_objects_in_views FROM "+schemaPrefix+"view_objects_in_views LEFT OUTER JOIN (SELECT MIN(oiv_id), object_id, object_version, view_id, view_version FROM "+schemaPrefix+"view_objects_in_views GROUP BY object_id, object_version, view_id, view_version) AS keep ON "+schemaPrefix+".view_objects_in_views.oiv_id = keep.oiv_id WHERE keep.oiv.id IS NULL");
+			switch (deletedRows) {
+				case 0: logger.info("None has been removed."); break;
+				case 1: logger.info("1 row has been removed."); break;
+				default: logger.info(deletedRows+" rows have been removed.");
+			}
+		} catch (SQLException err) {
+			try {
+				this.importConnection.rollback();
+				this.importConnection.setAutoCommit(true);
+			} catch (SQLException err2) {
+				DBGui.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates.", err);
+				DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+				return;
+			}
+			
+			DBGui.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates. The transaction has been rolled back.", err);
+			return;
+		}
+		
+		logger.info("Removing view_connections_in_views duplicates ...");
+		try {
+			int deletedRows = this.importConnection.executeRequest("DELETE "+schemaPrefix+"view_connections_in_views FROM "+schemaPrefix+"view_connections_in_views LEFT OUTER JOIN (SELECT MIN(civ_id), connection_id, connection_version, view_id, view_version FROM "+schemaPrefix+"view_connections_in_views GROUP BY connection_id, connection_version, view_id, view_version) AS keep ON "+schemaPrefix+".view_connections_in_views.civ_id = keep.civ_id WHERE keep.civ.id IS NULL");
+			switch (deletedRows) {
+				case 0: logger.info("None has been removed."); break;
+				case 1: logger.info("1 row has been removed."); break;
+				default: logger.info(deletedRows+" rows have been removed.");
+			}
+		} catch (SQLException err) {
+			try {
+				this.importConnection.rollback();
+				this.importConnection.setAutoCommit(true);
+			} catch (SQLException err2) {
+				DBGui.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates.", err);
+				DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+				return;
+			}
+			
+			DBGui.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates. The transaction has been rolled back.", err);
+			return;
+		}
+		
+		try {
+			this.importConnection.commit();
+			this.importConnection.setAutoCommit(true);
+		} catch (SQLException err) {
+			DBGui.popup(Level.FATAL, "Failed to commit the transaction. We suggest you close Archi and verify your database manually.", err);
+			return;
+		}
+		
+		DBGui.popup(Level.INFO, "Database content successfully checked.");
 	}
 	
 	/**
 	 * Called when the "delete model" button has been pressed
 	 */
+	@SuppressWarnings("static-method")
 	void deleteModelCallback() {
-		try {
-			this.importConnection.checkDatabase(null);
-			DBGui.popup(Level.INFO, "Database successfully checked.");
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
-		}
+		DBGui.popup(Level.INFO, "Not yet implemented.");
 	}
 	
 	/**
 	 * Called when the "delete version" button has been pressed
 	 */
+	@SuppressWarnings("static-method")
 	void deleteVersionCallback() {
-		try {
-			this.importConnection.checkDatabase(null);
-			DBGui.popup(Level.INFO, "Database successfully checked.");
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
-		}
+		DBGui.popup(Level.INFO, "Not yet implemented.");
 	}
 }
