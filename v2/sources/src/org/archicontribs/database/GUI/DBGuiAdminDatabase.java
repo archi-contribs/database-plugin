@@ -6,10 +6,14 @@
 
 package org.archicontribs.database.GUI;
 
+import java.sql.DatabaseMetaData;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
@@ -418,9 +422,120 @@ public class DBGuiAdminDatabase extends DBGui {
 	/**
 	 * Called when the "check structure" button has been pressed
 	 */
-	@SuppressWarnings("static-method")
 	void checkStructureCallback() {
-		DBGui.popup(Level.INFO, "Not yet implemented.");
+		try {
+			this.importConnection.checkDatabase(null);
+		} catch (Exception err) {
+			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			return;
+		}
+		
+		String schema = this.importConnection.getDatabaseEntry().getSchema();
+		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
+		
+		boolean errorFound = false;
+		StringBuilder message = new StringBuilder();
+		
+		logger.debug("Getting database structure ...");
+		
+		try {
+			DatabaseMetaData metadata = this.importConnection.getConnection().getMetaData();
+			
+			String[][] databaseVersionColumns = {	{"archi_plugin", this.importConnection.getOBJECTID_COLUMN(), null},
+													{"version", this.importConnection.getINTEGER_COLUMN(), null}
+			};
+			
+			String[][] modelsColumns = {			{"id", this.importConnection.getOBJECTID_COLUMN(), null},
+													{"name", this.importConnection.getOBJ_NAME_COLUMN(), null},
+													{"version", this.importConnection.getINTEGER_COLUMN(), null},
+													{"note", this.importConnection.getTEXT_COLUMN(), null},
+													{"purpose", this.importConnection.getTEXT_COLUMN(), null},
+													{"created_by", this.importConnection.getUSERNAME_COLUMN(), null},
+													{"created_on", this.importConnection.getDATETIME_COLUMN(), null},
+													{"checkedin_by", this.importConnection.getUSERNAME_COLUMN(), null},
+													{"checkedin_on", this.importConnection.getDATETIME_COLUMN(), null},
+													{"deleted_by", this.importConnection.getUSERNAME_COLUMN(), null},
+													{"deleted_on", this.importConnection.getDATETIME_COLUMN(), null},
+													{"checksum", this.importConnection.getOBJECTID_COLUMN(), null},
+			};
+
+			Map<String, String[][]> tables = new HashMap<String, String[][]>();
+			tables.put("database_version", databaseVersionColumns);
+			tables.put("models", modelsColumns);
+			
+			for (Map.Entry<String, String[][]> entry : tables.entrySet()) {
+				String tableName = entry.getKey();
+				String[][] tableColumns = entry.getValue();
+				
+				try (ResultSet result = metadata.getColumns(null, schema, tableName, null)) {
+					logger.debug("Table "+schemaPrefix+"database_version:");
+					message.append("Table "+schemaPrefix+"database_version:");
+					
+					boolean checkColumnsResult = checkColumns(result, message, tableColumns);
+					errorFound = errorFound && checkColumnsResult;
+					
+					message.append("\n");			
+				} catch (SQLException err) {
+					DBGui.popup(Level.ERROR, "Failed to get table columns.", err);
+					return;
+				}
+			}
+		} catch (SQLException err) {
+			DBGui.popup(Level.ERROR, "Failed to get database connection's metadata.", err);
+			return;
+		}
+		
+		if ( errorFound ) {
+			DBGui.popup(Level.WARN, message.toString());
+		} else {
+			DBGui.popup(Level.INFO, "Database structure successfully checked.");
+		}
+	}
+	
+	@SuppressWarnings("static-method")
+	boolean checkColumns(ResultSet result, StringBuilder message, String[][] columns) throws SQLException {
+		boolean errorFound = false;
+		
+		while( result.next() ) {
+			String columnName = result.getString("COLUMN_NAME").toLowerCase();
+			String columnType = result.getString("TYPE_NAME").toLowerCase();
+			
+			boolean columnFound = false;
+
+			// if the column name is known, we check its type
+			for ( int i=0; i < columns.length; ++i ) {
+				if ( columnName.equalsIgnoreCase(columns[i][0]) ) {
+					columnFound = true;
+					columns[i][2] = "found";
+					if ( columnType.equalsIgnoreCase(columns[i][1]) )
+						logger.debug("   Column "+columnName+" is "+columnType);
+					else {
+						logger.debug("   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
+						message.append("\n   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
+						errorFound = true;
+					}
+						
+				}
+			}
+			
+			// if the column name is not known, we add an error
+			if ( !columnFound ) {
+				logger.debug("   Column "+columnName+" has been found but shoud not exist.");
+				message.append("\n   Column "+columnName+" has been found but shoud not exist.");
+				errorFound = true;
+			}
+		}
+		
+		// we now check that all the columns have been found
+		for ( int i=0; i < columns.length; ++i ) {
+			if ( columns[i][2] == null ) {
+				logger.debug("   Column "+columns[i][0]+" has not been found but shoud exist.");
+				message.append("\n   Column "+columns[i][0]+" has not been found but shoud exist.");
+				errorFound = true;
+			}
+		}
+		
+		return errorFound;
 	}
 	
 	/**
