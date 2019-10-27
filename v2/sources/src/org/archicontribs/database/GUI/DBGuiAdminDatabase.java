@@ -499,6 +499,10 @@ public class DBGuiAdminDatabase extends DBGui {
 		while( result.next() ) {
 			String columnName = result.getString("COLUMN_NAME").toLowerCase();
 			String columnType = result.getString("TYPE_NAME").toLowerCase();
+			int columnSize = result.getInt("COLUMN_SIZE");
+			
+			if ( columnType.equals("varchar") || columnType.equals("nvarchar") )
+				columnType = columnType+"("+columnSize+")";
 			
 			boolean columnFound = false;
 
