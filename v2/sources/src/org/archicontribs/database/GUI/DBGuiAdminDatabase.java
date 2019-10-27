@@ -433,7 +433,7 @@ public class DBGuiAdminDatabase extends DBGui {
 		String schema = this.importConnection.getDatabaseEntry().getSchema();
 		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
 		
-		boolean errorFound = false;
+		boolean isCorrect = true;
 		StringBuilder message = new StringBuilder();
 		
 		logger.debug("Getting database structure ...");
@@ -472,7 +472,7 @@ public class DBGuiAdminDatabase extends DBGui {
 					message.append("Table "+schemaPrefix+"database_version:");
 					
 					boolean checkColumnsResult = checkColumns(result, message, tableColumns);
-					errorFound = errorFound & checkColumnsResult;
+					isCorrect &= checkColumnsResult;
 					
 					message.append("\n");			
 				} catch (SQLException err) {
@@ -485,16 +485,16 @@ public class DBGuiAdminDatabase extends DBGui {
 			return;
 		}
 		
-		if ( errorFound ) {
-			DBGui.popup(Level.WARN, message.toString());
-		} else {
+		if ( isCorrect ) {
 			DBGui.popup(Level.INFO, "Database structure successfully checked.");
+		} else {
+			DBGui.popup(Level.WARN, message.toString());
 		}
 	}
 	
 	@SuppressWarnings("static-method")
 	boolean checkColumns(ResultSet result, StringBuilder message, String[][] columns) throws SQLException {
-		boolean errorFound = false;
+		boolean isCorrect = true;
 		
 		while( result.next() ) {
 			String columnName = result.getString("COLUMN_NAME").toLowerCase();
@@ -512,7 +512,7 @@ public class DBGuiAdminDatabase extends DBGui {
 					else {
 						logger.debug("   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
 						message.append("\n   Column "+columnName+" is "+columnType+", should be "+columns[i][1].toLowerCase());
-						errorFound = true;
+						isCorrect = false;
 					}
 						
 				}
@@ -522,7 +522,7 @@ public class DBGuiAdminDatabase extends DBGui {
 			if ( !columnFound ) {
 				logger.debug("   Column "+columnName+" has been found but shoud not exist.");
 				message.append("\n   Column "+columnName+" has been found but shoud not exist.");
-				errorFound = true;
+				isCorrect = false;
 			}
 		}
 		
@@ -531,11 +531,11 @@ public class DBGuiAdminDatabase extends DBGui {
 			if ( columns[i][2] == null ) {
 				logger.debug("   Column "+columns[i][0]+" has not been found but shoud exist.");
 				message.append("\n   Column "+columns[i][0]+" has not been found but shoud exist.");
-				errorFound = true;
+				isCorrect = false;
 			}
 		}
 		
-		return errorFound;
+		return isCorrect;
 	}
 	
 	/**
