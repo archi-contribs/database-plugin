@@ -320,7 +320,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
 	/** version of the plugin */
-	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.2");
+	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.2.1");
 	
 	/** Name ofthe plugin */
 	public static final String pluginName = "DatabasePlugin";

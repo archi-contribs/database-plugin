@@ -271,7 +271,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	                this.DATETIME_COLUMN		= "timestamp";
 	                this.FONT_COLUMN			= "varchar(150)";
 	                this.IMAGE_COLUMN			= "bytea";
-	                this.INTEGER_COLUMN			= "integer";
+	                this.INTEGER_COLUMN			= "int4";
 	                this.OBJECTID_COLUMN		= "varchar(50)";
 	                this.OBJ_NAME_COLUMN		= "varchar(1024)";
 	                this.PRIMARY_KEY			= "PRIMARY KEY";
