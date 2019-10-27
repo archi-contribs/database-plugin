@@ -445,14 +445,20 @@ public class DBGuiAdminDatabase extends DBGui {
 		}
 		
 		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
+		String duplicateObjectsStatus = "";
+		String duplicateConnectionsStatus = "";
 		
 		logger.info("Removing view_objects_in_views duplicates ...");
 		try {
-			int deletedRows = this.importConnection.executeRequest("DELETE "+schemaPrefix+"view_objects_in_views FROM "+schemaPrefix+"view_objects_in_views LEFT OUTER JOIN (SELECT MIN(oiv_id), object_id, object_version, view_id, view_version FROM "+schemaPrefix+"view_objects_in_views GROUP BY object_id, object_version, view_id, view_version) AS keep ON "+schemaPrefix+".view_objects_in_views.oiv_id = keep.oiv_id WHERE keep.oiv.id IS NULL");
+			String table = schemaPrefix+"views_objects_in_view";
+			String request = "DELETE FROM "+table+" WHERE EXISTS (SELECT * FROM "+table+" t2 WHERE "+table+".object_id = t2.object_id AND "+table+".object_version = t2.object_version AND "+table+".view_id = t2.view_id AND "+table+".view_version = t2.view_version AND "+table+".oiv_id > t2.oiv_id)";
+			if ( logger.isTraceSQLEnabled() ) logger.trace("      --> "+request);
+			
+			int deletedRows = this.importConnection.executeRequest(request);
 			switch (deletedRows) {
-				case 0: logger.info("None has been removed."); break;
-				case 1: logger.info("1 row has been removed."); break;
-				default: logger.info(deletedRows+" rows have been removed.");
+			case 0: duplicateObjectsStatus = "No duplicate row has been found in the \"views_objects_in_view\" table."; break;
+			case 1: duplicateObjectsStatus = "1 duplicate row has been removed from the \"views_objects_in_view\" table."; break;
+			default: duplicateObjectsStatus = deletedRows+" duplicate row have been removed from the \"views_objects_in_view\" table.";
 			}
 		} catch (SQLException err) {
 			try {
@@ -470,11 +476,16 @@ public class DBGuiAdminDatabase extends DBGui {
 		
 		logger.info("Removing view_connections_in_views duplicates ...");
 		try {
-			int deletedRows = this.importConnection.executeRequest("DELETE "+schemaPrefix+"view_connections_in_views FROM "+schemaPrefix+"view_connections_in_views LEFT OUTER JOIN (SELECT MIN(civ_id), connection_id, connection_version, view_id, view_version FROM "+schemaPrefix+"view_connections_in_views GROUP BY connection_id, connection_version, view_id, view_version) AS keep ON "+schemaPrefix+".view_connections_in_views.civ_id = keep.civ_id WHERE keep.civ.id IS NULL");
+			String table = schemaPrefix+"views_connections_in_view";
+			String request = "DELETE FROM "+table+" WHERE EXISTS (SELECT * FROM "+table+" t2 WHERE "+table+".connection_id = t2.connection_id AND "+table+".connection_version = t2.connection_version AND "+table+".view_id = t2.view_id AND "+table+".view_version = t2.view_version AND "+table+".civ_id > t2.civ_id)";
+			
+			if ( logger.isTraceSQLEnabled() ) logger.trace("      --> "+request);
+
+			int deletedRows = this.importConnection.executeRequest(request);
 			switch (deletedRows) {
-				case 0: logger.info("None has been removed."); break;
-				case 1: logger.info("1 row has been removed."); break;
-				default: logger.info(deletedRows+" rows have been removed.");
+				case 0: duplicateConnectionsStatus = "No duplicate row has been found in the \"views_connections_in_view\" table."; break;
+				case 1: duplicateConnectionsStatus = "1 duplicate row has been removed from the \"views_connections_in_view\" table."; break;
+				default: duplicateConnectionsStatus = deletedRows+" duplicate row have been removed from the \"views_connections_in_view\" table.";
 			}
 		} catch (SQLException err) {
 			try {
@@ -498,7 +509,7 @@ public class DBGuiAdminDatabase extends DBGui {
 			return;
 		}
 		
-		DBGui.popup(Level.INFO, "Database content successfully checked.");
+		DBGui.popup(Level.INFO, duplicateObjectsStatus+"\n"+duplicateConnectionsStatus+"\n\nDatabase content successfully checked.");
 	}
 	
 	/**
