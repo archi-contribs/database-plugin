@@ -430,7 +430,7 @@ public class DBGuiAdminDatabase extends DBGui {
 			return;
 		}
 		
-		String schema = this.importConnection.getDatabaseEntry().getSchema();
+		String schema = this.importConnection.getDatabaseEntry().getSchema().equals("") ? null : this.importConnection.getDatabaseEntry().getSchema();
 		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
 		
 		boolean isCorrect = true;
