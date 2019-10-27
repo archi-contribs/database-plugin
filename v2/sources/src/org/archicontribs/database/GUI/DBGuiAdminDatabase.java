@@ -501,8 +501,11 @@ public class DBGuiAdminDatabase extends DBGui {
 			String columnType = result.getString("TYPE_NAME").toLowerCase();
 			int columnSize = result.getInt("COLUMN_SIZE");
 			
-			if ( columnType.equals("varchar") || columnType.equals("nvarchar") )
-				columnType = columnType+"("+columnSize+")";
+			if ( columnType.equals("varchar") || columnType.equals("nvarchar") ) {
+				if ( columnSize > 2000000000 )
+					columnType = columnType+"(max)";
+				else
+					columnType = columnType+"("+columnSize+")";
 			
 			boolean columnFound = false;
 
