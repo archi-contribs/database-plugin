@@ -1,3 +1,27 @@
+v2.2.1: 28/10/2019
+* Fix plugin version in windows title
+* Fix count of model's components during export
+* Fix unnecessary double export of view components 
+* Do not compare twice the model to the database if there have been no import
+* Create first admin procedures
+  * check database structure
+  * check database content
+* Update the JDBC drivers
+  * MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
+
+### TODO list
+* Import components from database:
+  * allow to import elements recursively
+* Get component history:
+  * show view screenshots to ease views comparison
+* Miscellaneous:
+  * add an option to check for relationships that are in the database but would not be in the in memory model
+    * --> nearly done with "get history from database". Just needs to compare the list of relationships
+  * create a new windows that will show up detailed statistics about the model
+  * add more jdbc drivers (mongodb, odbc, etc ...)
+  * create database admin procedures (house keeping, delete models, ...)
+
+----------
 v2.2.0: 12/10/2019
 * Rewrite of the export process
 * Rewrite of the conflict management process
@@ -13,20 +37,7 @@ v2.2.0: 12/10/2019
   * Neo4J		--> 3.4.0
   * PostGreSQL	--> 42.2.6
   * SQLite		--> 3.27.2.1
-
-### TODO list
-* Import components from database:
-  * allow to import elements recursively
-* Get component history:
-  * show view screenshots to ease views comparison
-* Miscellaneous:
-  * add an option to check for relationships that are in the database but would not be in the in memory model
-    * --> nearly done with "get history from database". Just needs to compare the list of relationships
-  * create a new windows that will show up detailed statistics about the model
-  * add more jdbc drivers (mongodb, odbc, etc ...)
-  * create database admin procedures (house keeping, delete models, ...)
-
-----------
+  
 v2.1.11: 26/04/2019
 * Fix version comparison when a part of it is greater or equal to 10
 * Fix issues on SQL requests introduced in plugin version 2.1.10
