@@ -32,10 +32,6 @@
             class="org.archicontribs.database.model.DBArchimateFactory"
             uri="http://www.archimatetool.com/archimate">
       </factory>
-      <factory
-            class="org.archicontribs.database.model.DBCanvasFactory"
-            uri="http://www.archimatetool.com/archimate/canvas">
-      </factory>
    </extension>
    <extension
          point="org.eclipse.ui.commands">

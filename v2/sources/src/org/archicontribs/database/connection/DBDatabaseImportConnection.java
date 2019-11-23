@@ -51,6 +51,7 @@ import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.IMetadata;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
@@ -438,9 +439,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( this.currentResultSetFolders != null ) {
 			if ( this.currentResultSetFolders.next() ) {
 				IFolder folder = IArchimateFactory.eINSTANCE.createFolder();
-				DBMetadata dbMetadata = model.getDBMetadata(folder);
-
+				
 				folder.setId(this.currentResultSetFolders.getString("folder_id"));
+				
+				// the DBMetadata must be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(folder);
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetFolders.getInt("folder_version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetFolders.getString("checksum"));
@@ -505,10 +508,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( this.currentResultSetElements != null ) {
 			if ( this.currentResultSetElements.next() ) {
 				
-				IArchimateElement element = (IArchimateElement) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetElements.getString("class"))));
-				DBMetadata dbMetadata = model.getDBMetadata(element);
+				IArchimateElement element = (IArchimateElement) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetElements.getString("class"))));
 
 				element.setId(this.currentResultSetElements.getString("element_id"));
+				
+				// the DBMetadata should be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(element);
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetElements.getInt("version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetElements.getString("checksum"));
@@ -565,10 +570,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importRelationships(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetRelationships != null ) {
 			if ( this.currentResultSetRelationships.next() ) {
-				IArchimateRelationship relationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetRelationships.getString("class"))));
-				DBMetadata dbMetadata = model.getDBMetadata(relationship);
+				IArchimateRelationship relationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetRelationships.getString("class"))));
 
 				relationship.setId(this.currentResultSetRelationships.getString("relationship_id"));
+				
+				// the DBMetadata should be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetRelationships.getInt("version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetRelationships.getString("checksum"));
@@ -650,13 +657,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( this.currentResultSetViews.next() ) {
 				IDiagramModel view;
 				if ( DBPlugin.areEqual(this.currentResultSetViews.getString("class"), "CanvasModel") )
-					view = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViews.getString("class"))));
+					view = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViews.getString("class"))));
 				else
-					view = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViews.getString("class"))));
-
-				DBMetadata dbMetadata = model.getDBMetadata(view);
+					view = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViews.getString("class"))));
 
 				view.setId(this.currentResultSetViews.getString("id"));
+				
+				// the DBMetadata should be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(view);
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetViews.getInt("version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetViews.getString("checksum"));
@@ -717,13 +725,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				EObject eObject;
 
 				if ( this.currentResultSetViewsObjects.getString("class").startsWith("Canvas") )
-					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViewsObjects.getString("class"))));
+					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsObjects.getString("class"))));
 				else
-					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViewsObjects.getString("class"))));
-
-				DBMetadata dbMetadata = model.getDBMetadata(eObject);
+					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsObjects.getString("class"))));
 
 				((IIdentifier)eObject).setId(this.currentResultSetViewsObjects.getString("id"));
+				
+				// the DBMetadata should be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(eObject);
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetViewsObjects.getInt("version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetViewsObjects.getString("checksum"));
@@ -828,13 +837,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				EObject eObject;
 
 				if ( this.currentResultSetViewsConnections.getString("class").startsWith("Canvas") )
-					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViewsConnections.getString("class"))));
+					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsConnections.getString("class"))));
 				else
-					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+this.currentResultSetViewsConnections.getString("class"))));
-
-				DBMetadata dbMetadata = model.getDBMetadata(eObject);
+					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsConnections.getString("class"))));
 
 				((IIdentifier)eObject).setId(this.currentResultSetViewsConnections.getString("id"));
+				
+				// the DBMetadata should be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(eObject);
+
 
 				dbMetadata.getInitialVersion().setVersion(this.currentResultSetViewsConnections.getInt("version"));
 				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetViewsConnections.getString("checksum"));
@@ -1052,7 +1063,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("   importing metadata");
 
 		// first, we delete all existing metadata
-		model.getMetadata().getEntries().clear();
+		if ( model.getMetadata() == null ) {
+			@SuppressWarnings("deprecation")
+			IMetadata metadata = IArchimateFactory.eINSTANCE.createMetadata();
+			model.setMetadata(metadata);
+		} else 
+			model.getMetadata().getEntries().clear();
 
 		// then, we import the metadata from the database 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schema+"metadata WHERE parent_id = ? AND parent_version = ? ORDER BY rank", model.getId(), model.getInitialVersion().getVersion())) {

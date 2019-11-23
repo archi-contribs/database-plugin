@@ -155,7 +155,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
 					this.importedViewConnection = (IDiagramModelConnection) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
 				else
-					this.importedViewConnection = (IDiagramModelConnection) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
+					this.importedViewConnection = (IDiagramModelConnection) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier((String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {

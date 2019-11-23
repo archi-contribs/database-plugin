@@ -169,7 +169,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				if ( DBPlugin.areEqual((String)this.newValues.get("class"), "CanvasModel") )
 					this.importedView = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
 				else
-					this.importedView = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
+					this.importedView = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier((String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {

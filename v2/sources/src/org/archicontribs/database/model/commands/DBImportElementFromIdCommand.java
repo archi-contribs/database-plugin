@@ -173,7 +173,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			this.importedElement = this.model.getAllElements().get(this.id);
 
 			if ( (this.importedElement == null) || this.mustCreateCopy ) {
-				this.importedElement = (IArchimateElement) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
+				this.importedElement = (IArchimateElement) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier((String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {

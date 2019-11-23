@@ -138,7 +138,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			this.importedRelationship = this.model.getAllRelationships().get(this.id);
 
 			if ( (this.importedRelationship == null) || this.mustCreateCopy ) {
-				this.importedRelationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
+				this.importedRelationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier((String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {

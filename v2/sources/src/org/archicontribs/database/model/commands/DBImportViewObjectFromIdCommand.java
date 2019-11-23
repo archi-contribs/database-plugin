@@ -205,7 +205,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
                 	this.importedViewObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
                 	else
-                		this.importedViewObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
+                		this.importedViewObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier((String)this.newValues.get("class"))));
 
                 this.isNew = true;
             } else {
