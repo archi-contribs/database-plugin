@@ -14,6 +14,11 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 
+/**
+ * Class that is called when the user selects the "import model from database" in the context menu 
+ * 
+ * @author Herve Jouin
+ */
 public class DBMenuModelImportHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
 	

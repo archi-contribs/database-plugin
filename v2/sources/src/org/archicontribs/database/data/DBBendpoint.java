@@ -20,6 +20,13 @@ public class DBBendpoint
     @Getter @Setter private int endX;
     @Getter @Setter private int endY;
     
+    /**
+     * Initialize the bendpoint
+     * @param theStartX
+     * @param theStartY
+     * @param theEndX
+     * @param theEndY
+     */
     public DBBendpoint(int theStartX, int theStartY, int theEndX, int theEndY) {
         this.startX = theStartX;
         this.endX = theEndX;

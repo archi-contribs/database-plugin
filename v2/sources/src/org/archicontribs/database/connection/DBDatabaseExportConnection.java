@@ -22,14 +22,11 @@ import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
-import org.archicontribs.database.model.impl.Folder;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.model.IAccessRelationship;
-import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
@@ -61,6 +58,7 @@ import com.archimatetool.model.ISketchModel;
 import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
+import com.archimatetool.model.impl.Folder;
 
 import lombok.Getter;
 
@@ -191,7 +189,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         int modelInitialVersion;
         int modelDatabaseVersion;
 
-        DBMetadata metadata = ((IDBMetadata)component).getDBMetadata();
+        DBMetadata metadata = DBMetadata.getDBMetadata(component);
 
         if ( logger.isTraceEnabled() ) {
             logger.trace("   Getting version of "+metadata.getDebugName()+" from the database.");
@@ -249,8 +247,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     + " ORDER BY version, view_version";
             IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
             modelId = diagram.getId();
-            modelInitialVersion = ((IDBMetadata)diagram).getDBMetadata().getInitialVersion().getVersion();
-            modelDatabaseVersion = ((IDBMetadata)diagram).getDBMetadata().getDatabaseVersion().getVersion();
+            DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
+            modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+            modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
         }
         else if ( component instanceof IDiagramModelConnection  ) {
             request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
@@ -260,8 +259,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     + " ORDER BY version, view_version";
             IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
             modelId = diagram.getId();
-            modelInitialVersion = ((IDBMetadata)diagram).getDBMetadata().getInitialVersion().getVersion();
-            modelDatabaseVersion = ((IDBMetadata)diagram).getDBMetadata().getDatabaseVersion().getVersion();
+            DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
+            modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+            modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
         }
         else
             throw new SQLException("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
@@ -346,11 +346,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the elements from the database");
         Iterator<Map.Entry<String, IArchimateElement>> ite = model.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            metadata.getCurrentVersion().setVersion(0);
-            metadata.getInitialVersion().reset();
-            metadata.getDatabaseVersion().reset();
-            metadata.getLatestDatabaseVersion().reset();
+        	DBMetadata dbMetadata = model.getDBMetadata(ite.next().getValue());
+        	dbMetadata.getCurrentVersion().setVersion(0);
+        	dbMetadata.getInitialVersion().reset();
+        	dbMetadata.getDatabaseVersion().reset();
+        	dbMetadata.getLatestDatabaseVersion().reset();
         }
         // we get all the elements that are part of the latest version of the model in the database and compare them to the actual model
         // we do not use max(version) in the SQL request as all database brands do not support it
@@ -393,7 +393,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     
                     // we check if the component is present in the actual model
                     IArchimateModelObject object = model.getAllElements().get(currentId);
-                    currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                    currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                     // if the component is not in the model, we create a DBMetadata class and store it in the elementsNotInModel list
                     if ( currentComponent == null ) {
@@ -437,20 +437,20 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         // so we check one by one if they are completely new or if they exist, and may be in another model
         ite = model.getAllElements().entrySet().iterator();
         while (ite.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)ite.next().getValue()).getDBMetadata();
-            if ( metadata.getInitialVersion().getVersion() == 0 )
-                getVersionFromDatabase((IIdentifier)metadata.getComponent());
+            DBMetadata dbMetadata = model.getDBMetadata(ite.next().getValue());
+            if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
         }
 
         // relationships
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the relationships from the database");
         Iterator<Map.Entry<String, IArchimateRelationship>> itr = model.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            metadata.getCurrentVersion().setVersion(0);
-            metadata.getInitialVersion().reset();
-            metadata.getDatabaseVersion().reset();
-            metadata.getLatestDatabaseVersion().reset();
+            DBMetadata dbMetadata = model.getDBMetadata(itr.next().getValue());
+            dbMetadata.getCurrentVersion().setVersion(0);
+            dbMetadata.getInitialVersion().reset();
+            dbMetadata.getDatabaseVersion().reset();
+            dbMetadata.getLatestDatabaseVersion().reset();
         }
         try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
@@ -482,7 +482,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                     
                     IArchimateModelObject object = model.getAllRelationships().get(currentId);
-                    currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                    currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                     // the loop returns all the versions of all the model components
                     if ( currentComponent == null ) {
@@ -523,20 +523,20 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         // so we check one by one if they are completely new or if they exist, and may be in another model
         itr = model.getAllRelationships().entrySet().iterator();
         while (itr.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itr.next().getValue()).getDBMetadata();
-            if ( metadata.getInitialVersion().getVersion() == 0 )
-                getVersionFromDatabase((IIdentifier)metadata.getComponent());
+            DBMetadata dbMetadata = model.getDBMetadata(itr.next().getValue());
+            if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
         }
 
         // folders
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the folders from the database");
         Iterator<Map.Entry<String, IFolder>> itf = model.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-            metadata.getCurrentVersion().setVersion(0);
-            metadata.getInitialVersion().reset();
-            metadata.getDatabaseVersion().reset();
-            metadata.getLatestDatabaseVersion().reset();
+            DBMetadata dbMetadata = model.getDBMetadata(itf.next().getValue());
+            dbMetadata.getCurrentVersion().setVersion(0);
+            dbMetadata.getInitialVersion().reset();
+            dbMetadata.getDatabaseVersion().reset();
+            dbMetadata.getLatestDatabaseVersion().reset();
         }
         try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
@@ -568,7 +568,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                     
                     IArchimateModelObject object = model.getAllFolders().get(currentId);
-                    currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                    currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                     // the loop returns all the versions of all the model components
                     if ( currentComponent == null ) {
@@ -609,19 +609,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         // so we check one by one if they are completely new or if they exist, and may be in another model
         itf = model.getAllFolders().entrySet().iterator();
         while (itf.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itf.next().getValue()).getDBMetadata();
-            if ( metadata.getInitialVersion().getVersion() == 0 )
-                getVersionFromDatabase((IIdentifier)metadata.getComponent());
+            DBMetadata dbMetadata = model.getDBMetadata(itf.next().getValue());
+            if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
         }
 
         if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the views from the database");
         Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            metadata.getCurrentVersion().setVersion(0);
-            metadata.getInitialVersion().reset();
-            metadata.getDatabaseVersion().reset();
-            metadata.getLatestDatabaseVersion().reset();
+            DBMetadata dbMetadata = model.getDBMetadata(itv.next().getValue());
+            dbMetadata.getCurrentVersion().setVersion(0);
+            dbMetadata.getInitialVersion().reset();
+            dbMetadata.getDatabaseVersion().reset();
+            dbMetadata.getLatestDatabaseVersion().reset();
         }
         try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
                 "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
@@ -654,7 +654,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     }
                     
                     IArchimateModelObject object = model.getAllViews().get(currentId);
-                    currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                    currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                     // the loop returns all the versions of all the model components
                     if ( currentComponent == null ) {
@@ -695,9 +695,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         // so we check one by one if they are completely new or if they exist, and may be in another model
         itv = model.getAllViews().entrySet().iterator();
         while (itv.hasNext()) {
-            DBMetadata metadata = ((IDBMetadata)itv.next().getValue()).getDBMetadata();
-            if ( metadata.getInitialVersion().getVersion() == 0 )
-                getVersionFromDatabase((IIdentifier)metadata.getComponent());
+            DBMetadata dbMetadata = model.getDBMetadata(itv.next().getValue());
+            if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
         }
 
         // we check if the latest version of the model has got images that are not in the model
@@ -719,7 +719,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         // we compare the objects and connections of existing views
         Iterator<Entry<String, IDiagramModel>> viewsIterator = model.getAllViews().entrySet().iterator();
         while ( viewsIterator.hasNext() )
-            getViewObjectsAndConnectionsVersionsFromDatabase(model, ((IDBMetadata)viewsIterator.next().getValue()).getDBMetadata());
+            getViewObjectsAndConnectionsVersionsFromDatabase(model, model.getDBMetadata(viewsIterator.next().getValue()));
 
         // we also need to compare the objects and connections that are in the views that will be imported into the model
         Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.viewsNotInModel.entrySet().iterator();
@@ -758,11 +758,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             while (itvo.hasNext()) {
                 IDiagramModelObject object = itvo.next().getValue();
                 if ( object.getDiagramModel().getId().equals(viewMetadata.getId()) ) {
-                    DBMetadata metadata = ((IDBMetadata)object).getDBMetadata();
-                    metadata.getCurrentVersion().setVersion(0);
-                    metadata.getInitialVersion().reset();
-                    metadata.getDatabaseVersion().reset();
-                    metadata.getLatestDatabaseVersion().reset();
+                    DBMetadata dbMetadata = model.getDBMetadata(object);
+                    dbMetadata.getCurrentVersion().setVersion(0);
+                    dbMetadata.getInitialVersion().reset();
+                    dbMetadata.getDatabaseVersion().reset();
+                    dbMetadata.getLatestDatabaseVersion().reset();
                 }
             }			
             try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
@@ -795,7 +795,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         }
                         
                         IDiagramModelObject object = model.getAllViewObjects().get(currentId);
-                        currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                        currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                         // the loop returns all the versions of all the model components
                         if ( currentComponent == null ) {
@@ -837,9 +837,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             // so we check one by one if they are completely new or if they exist, and may be in another model
             itvo = model.getAllViewObjects().entrySet().iterator();
             while (itvo.hasNext()) {
-                DBMetadata metadata = ((IDBMetadata)itvo.next().getValue()).getDBMetadata();
-                if ( metadata.getInitialVersion().getVersion() == 0 )
-                    getVersionFromDatabase((IIdentifier)metadata.getComponent());
+                DBMetadata dbMetadata = model.getDBMetadata(itvo.next().getValue());
+                if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                    getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
             }
 
             // view connections
@@ -848,11 +848,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             while (itvc.hasNext()) {
                 IDiagramModelConnection cnct = itvc.next().getValue();
                 if ( cnct.getDiagramModel().getId().equals(viewMetadata.getId()) ) {
-                    DBMetadata metadata = ((IDBMetadata)cnct).getDBMetadata();
-                    metadata.getCurrentVersion().setVersion(0);
-                    metadata.getInitialVersion().reset();
-                    metadata.getDatabaseVersion().reset();
-                    metadata.getLatestDatabaseVersion().reset();
+                    DBMetadata dbMetadata = model.getDBMetadata(cnct);
+                    dbMetadata.getCurrentVersion().setVersion(0);
+                    dbMetadata.getInitialVersion().reset();
+                    dbMetadata.getDatabaseVersion().reset();
+                    dbMetadata.getLatestDatabaseVersion().reset();
                 }
             }
             try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
@@ -885,7 +885,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         }
                         
                         IDiagramModelConnection object = model.getAllViewConnections().get(currentId);
-                        currentComponent = (object == null ) ? null : ((IDBMetadata)object).getDBMetadata();
+                        currentComponent = (object == null ) ? null : model.getDBMetadata(object);
 
                         // the loop returns all the versions of all the model components
                         if ( currentComponent == null ) {
@@ -927,15 +927,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             // so we check one by one if they are completely new or if they exist, and may be in another model
             itvc = model.getAllViewConnections().entrySet().iterator();
             while (itvc.hasNext()) {
-                DBMetadata metadata = ((IDBMetadata)itvc.next().getValue()).getDBMetadata();
-                if ( metadata.getInitialVersion().getVersion() == 0 )
-                    getVersionFromDatabase((IIdentifier)metadata.getComponent());
+                DBMetadata dbMetadata = model.getDBMetadata(itvc.next().getValue());
+                if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+                    getVersionFromDatabase((IIdentifier)dbMetadata.getComponent());
             }
         //}
     }
 
     /**
      * Empty a Neo4J database
+     * @throws Exception 
      */
     public void emptyNeo4jDB() throws Exception {
         if ( logger.isDebugEnabled() ) logger.debug("Emptying Neo4J database.");
@@ -1012,37 +1013,41 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export an element to the database
+     * @param element 
+     * @throws Exception 
      */
-    private void exportElement(IArchimateConcept element) throws Exception {
+    private void exportElement(IArchimateElement element) throws Exception {
         final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "checksum"};
-
+        DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(element);
+        
         // if the element is exported, the we increase its exportedVersion
-        ((IDBMetadata)element).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)element).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)element).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)element).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)element).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
             // TODO: USE MERGE instead to replace existing nodes
             executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
                     ,element.getId()
-                    ,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
+                    ,dbMetadata.getCurrentVersion().getVersion()
                     ,element.getClass().getSimpleName()
                     ,element.getName()
                     ,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
                     ,element.getDocumentation()
-                    ,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
+                    ,dbMetadata.getCurrentVersion().getChecksum()
                     );
         } else {
             insert(this.schema+"elements", elementsColumns
                     ,element.getId()
-                    ,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()
+                    ,dbMetadata.getCurrentVersion().getVersion()
                     ,element.getClass().getSimpleName()
                     ,element.getName()
                     ,((element instanceof IJunction) ? ((IJunction)element).getType() : null)
                     ,element.getDocumentation()
                     ,System.getProperty("user.name")
                     ,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
-                    ,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getChecksum()
+                    ,dbMetadata.getCurrentVersion().getChecksum()
                     );
         }
 
@@ -1057,16 +1062,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign an element to a model into the database
+     * @param element 
+     * @throws Exception 
      */
-    private void assignElementToModel(IArchimateConcept element) throws Exception {
+    private void assignElementToModel(IArchimateElement element) throws Exception {
         final String[] elementsInModelColumns = {"element_id", "element_version", "parent_folder_id", "model_id", "model_version", "rank"};
         DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(element);
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning element to model");
 
         insert(this.schema+"elements_in_model", elementsInModelColumns
                 ,element.getId()
-                ,((IDBMetadata)element).getDBMetadata().getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportElement()
+                ,dbMetadata.getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportElement()
                 ,((IFolder)element.eContainer()).getId()
                 ,model.getId()
                 ,model.getCurrentVersion().getVersion()
@@ -1076,14 +1084,18 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export a relationship to the database
+     * @param relationship 
+     * @throws Exception 
      */
-    private void exportRelationship(IArchimateConcept relationship) throws Exception {
+    private void exportRelationship(IArchimateRelationship relationship) throws Exception {
         final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "checksum"};
+        DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
         // if the relationship is exported, the we increase its exportedVersion
-        ((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)relationship).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)relationship).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)relationship).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)relationship).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
             String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
@@ -1095,52 +1107,52 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             	relationshipName = relationshipName.substring(0, relationshipName.length() - 12);
             
             if ( this.databaseEntry.isNeo4jNativeMode() ) {
-                if ( (((IArchimateRelationship)relationship).getSource() instanceof IArchimateElement) && (((IArchimateRelationship)relationship).getTarget() instanceof IArchimateElement) ) {
+                if ( (relationship.getSource() instanceof IArchimateElement) && (relationship.getTarget() instanceof IArchimateElement) ) {
                     executeRequest("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
-                            ,((IArchimateRelationship)relationship).getSource().getId()
-                            ,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getCurrentVersion().getVersion()
-                            ,((IArchimateRelationship)relationship).getTarget().getId()
-                            ,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getCurrentVersion().getVersion()
+                            ,relationship.getSource().getId()
+                            ,model.getDBMetadata(relationship.getSource()).getCurrentVersion().getVersion()
+                            ,relationship.getTarget().getId()
+                            ,model.getDBMetadata(relationship.getTarget()).getCurrentVersion().getVersion()
                             ,relationship.getId()
-                            ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
+                            ,dbMetadata.getCurrentVersion().getVersion()
                             ,relationshipName
                             ,relationship.getName()
                             ,relationship.getDocumentation()
                             ,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
                             ,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-                            ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
+                            ,dbMetadata.getCurrentVersion().getChecksum()
                             );
                 }
             } else {
                 executeRequest("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
-                        ,((IArchimateRelationship)relationship).getSource().getId()
-                        ,((IDBMetadata)((IArchimateRelationship)relationship).getSource()).getDBMetadata().getCurrentVersion().getVersion()
-                        ,((IArchimateRelationship)relationship).getTarget().getId()
-                        ,((IDBMetadata)((IArchimateRelationship)relationship).getTarget()).getDBMetadata().getCurrentVersion().getVersion()
+                        ,relationship.getSource().getId()
+                        ,model.getDBMetadata(relationship.getSource()).getCurrentVersion().getVersion()
+                        ,relationship.getTarget().getId()
+                        ,model.getDBMetadata(relationship.getTarget()).getCurrentVersion().getVersion()
                         ,relationship.getId()
-                        ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
+                        ,dbMetadata.getCurrentVersion().getVersion()
                         ,relationship.getClass().getSimpleName()
                         ,relationship.getName()
                         ,relationship.getDocumentation()
                         ,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
                         ,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
-                        ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
+                        ,dbMetadata.getCurrentVersion().getChecksum()
                         );
             }
         } else {
             insert(this.schema+"relationships", relationshipsColumns
                     ,relationship.getId()
-                    ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
+                    ,dbMetadata.getCurrentVersion().getVersion()
                     ,relationship.getClass().getSimpleName()
                     ,relationship.getName()
                     ,relationship.getDocumentation()
-                    ,((IArchimateRelationship)relationship).getSource().getId()
-                    ,((IArchimateRelationship)relationship).getTarget().getId()
+                    ,relationship.getSource().getId()
+                    ,relationship.getTarget().getId()
                     ,((relationship instanceof IInfluenceRelationship) ? ((IInfluenceRelationship)relationship).getStrength() : null)
                     ,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
                     ,System.getProperty("user.name")
                     ,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
-                    ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getChecksum()
+                    ,dbMetadata.getCurrentVersion().getChecksum()
                     );
         }
 
@@ -1155,17 +1167,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign a relationship to a model into the database
+     * @param relationship 
+     * @throws Exception 
      */
-    private void assignRelationshipToModel(IArchimateConcept relationship) throws Exception {
+    private void assignRelationshipToModel(IArchimateRelationship relationship) throws Exception {
         final String[] relationshipsInModelColumns = {"relationship_id", "relationship_version", "parent_folder_id", "model_id", "model_version", "rank"};
-
         DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning relationship to model");
 
         insert(this.schema+"relationships_in_model", relationshipsInModelColumns
                 ,relationship.getId()
-                ,((IDBMetadata)relationship).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,((IFolder)relationship.eContainer()).getId()
                 ,model.getId()
                 ,model.getCurrentVersion().getVersion()
@@ -1175,25 +1189,29 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export a folder into the database.
+     * @param folder 
+     * @throws Exception 
      */
     private void exportFolder(IFolder folder) throws Exception {
         final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "checksum"};
+        DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(folder);
 
         // if the folder is exported, the we increase its exportedVersion
-        ((IDBMetadata)folder).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)folder).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)folder).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)folder).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)folder).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         insert(this.schema+"folders", foldersColumns
                 ,folder.getId()
-                ,((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,folder.getType().getValue()
-                ,((IDBMetadata)folder).getDBMetadata().getRootFolderType()
+                ,dbMetadata.getRootFolderType()
                 ,folder.getName()
                 ,folder.getDocumentation()
                 ,System.getProperty("user.name")
-                ,((DBArchimateModel)folder.getArchimateModel()).getCurrentVersion().getTimestamp()
-                ,((Folder)folder).getDBMetadata().getCurrentVersion().getChecksum()
+                ,dbMetadata.getCurrentVersion().getTimestamp()
+                ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
         exportProperties(folder);
@@ -1208,16 +1226,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign a folder to a model into the database
+     * @param folder 
+     * @throws Exception 
      */
     private void assignFolderToModel(IFolder folder) throws Exception {
         final String[] foldersInModelColumns = {"folder_id", "folder_version", "parent_folder_id", "model_id", "model_version", "rank"};
         DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(folder);
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning folder to model");
 
         insert(this.schema+"folders_in_model", foldersInModelColumns
                 ,folder.getId()
-                ,((IDBMetadata)folder).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,(((IIdentifier)((Folder)folder).eContainer()).getId() == model.getId() ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
                 ,model.getId()
                 ,model.getCurrentVersion().getVersion()
@@ -1227,18 +1248,22 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export a view into the database.
+     * @param view 
+     * @throws Exception 
      */
     private void exportView(IDiagramModel view) throws Exception {
         final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "checksum", "container_checksum"};
-
+        DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(view);
+        
         // if the view is exported, the we increase its exportedVersion
-        ((IDBMetadata)view).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)view).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)view).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)view).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         insert(this.schema+"views", ViewsColumns
                 ,view.getId()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,view.getClass().getSimpleName()
                 ,System.getProperty("user.name")
                 ,((DBArchimateModel)view.getArchimateModel()).getCurrentVersion().getTimestamp()
@@ -1247,11 +1272,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,view.getDocumentation()
                 ,((view instanceof IArchimateDiagramModel) ? ((IArchimateDiagramModel)view).getViewpoint() : null)
                 ,((view instanceof ISketchModel) ? ((ISketchModel)view).getBackground() : null)
-                ,((IDBMetadata)view).getDBMetadata().getScreenshot().getBytes()
-                ,((IDBMetadata)view).getDBMetadata().getScreenshot().getScaleFactor()
-                ,((IDBMetadata)view).getDBMetadata().getScreenshot().getBodrderWidth()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum()
+                ,dbMetadata.getScreenshot().getBytes()
+                ,dbMetadata.getScreenshot().getScaleFactor()
+                ,dbMetadata.getScreenshot().getBodrderWidth()
+                ,dbMetadata.getCurrentVersion().getChecksum()
+                ,dbMetadata.getCurrentVersion().getContainerChecksum()
                 );
 
         exportProperties(view);
@@ -1265,16 +1290,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign a view to a model into the database
+     * @param view 
+     * @throws Exception 
      */
     private void assignViewToModel(IDiagramModel view) throws Exception {
         final String[] viewsInModelColumns = {"view_id", "view_version", "parent_folder_id", "model_id", "model_version", "rank"};
         DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(view);
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning view to model");
 
         insert(this.schema+"views_in_model", viewsInModelColumns
                 ,view.getId()
-                ,((IDBMetadata)view).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,((IFolder)view.eContainer()).getId()
                 ,model.getId()
                 ,model.getCurrentVersion().getVersion()
@@ -1291,18 +1319,22 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     /**
      * Export a view object into the database.<br>
      * The rank allows to order the views during the import process.
+     * @param viewObject 
+     * @throws Exception 
      */
     private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
         final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
-
+        DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(viewObject);
+        
         // if the viewObject is exported, the we increase its exportedVersion
-        ((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)viewObject).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)viewObject).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)viewObject).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)viewObject).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         insert(this.schema+"views_objects", ViewsObjectsColumns
                 ,((IIdentifier)viewObject).getId()
-                ,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,viewObject.getClass().getSimpleName()
                 ,((IIdentifier)viewObject.eContainer()).getId()
                 ,((viewObject instanceof IDiagramModelArchimateComponent) ? ((IDiagramModelArchimateComponent)viewObject).getArchimateConcept().getId() : null)
@@ -1318,7 +1350,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewObject instanceof ILineObject) ? ((ILineObject)viewObject).getLineColor() : null)
                 ,((viewObject instanceof ILineObject) ? ((ILineObject)viewObject).getLineWidth() : null)
                 ,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getFillColor() : null)
-                ,((IDBMetadata)viewObject).getDBMetadata().getAlpha()
+                ,dbMetadata.getAlpha()
                 ,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFont() : null)
                 ,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFontColor() : null)
                 ,viewObject.getName()																						// we export the name because it will be used in case of conflict
@@ -1331,7 +1363,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
                 ,System.getProperty("user.name")
                 ,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
-                ,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getChecksum()
+                ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
         if ( viewObject instanceof IProperties && !(viewObject instanceof IDiagramModelArchimateComponent))
@@ -1340,18 +1372,23 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign a view Object to a view into the database
+     * @param viewObject 
+     * @throws Exception 
      */
     private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
         final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "rank"};
+        DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(viewObject);
         IDiagramModel viewContainer = viewObject.getDiagramModel();
+        
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning view object to view");
 
         insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
                 ,viewObject.getId()
-                ,((IDBMetadata)viewObject).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,viewContainer.getId()
-                ,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
+                ,model.getDBMetadata(viewContainer).getCurrentVersion().getVersion()
                 ,++this.viewObjectRank
                 );
 
@@ -1367,19 +1404,23 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     /**
      * Export a view connection into the database.<br>
      * The rank allows to order the views during the import process.
+     * @param viewConnection 
+     * @throws Exception 
      */
     private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
         final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
         final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
-
+        DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(viewConnection);
+        
         // if the viewConnection is exported, then we increase its exportedVersion
-        ((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().setVersion(((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion() + 1);
+        dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
 
-        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+((IDBMetadata)viewConnection).getDBMetadata().getDebugName()+" (initial version = "+((IDBMetadata)viewConnection).getDBMetadata().getInitialVersion().getVersion()+", exported version = "+((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()+", database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getDatabaseVersion().getVersion()+", latest_database_version = "+((IDBMetadata)viewConnection).getDBMetadata().getLatestDatabaseVersion().getVersion()+")");
+        if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
         insert(this.schema+"views_connections", ViewsConnectionsColumns
                 ,((IIdentifier)viewConnection).getId()
-                ,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,viewConnection.getClass().getSimpleName()
                 ,((IIdentifier)viewConnection.eContainer()).getId()
                 ,(!(viewConnection instanceof IDiagramModelArchimateConnection) ? ((INameable)viewConnection).getName() : null)                    // if there is a relationship behind, the name is the relationship name, so no need to store it.
@@ -1396,7 +1437,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : viewConnection.getType())
                 ,System.getProperty("user.name")
                 ,((DBArchimateModel)viewConnection.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
-                ,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getChecksum()
+                ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
         exportProperties(viewConnection);
@@ -1405,7 +1446,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             IDiagramModelBendpoint bendpoint = viewConnection.getBendpoints().get(pos);
             insert(this.schema+"bendpoints", bendpointsColumns
                     ,((IIdentifier)viewConnection).getId()
-                    ,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
+                    ,dbMetadata.getCurrentVersion().getVersion()
                     ,pos
                     ,bendpoint.getStartX()
                     ,bendpoint.getStartY()
@@ -1417,18 +1458,22 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Assign a view Connection to a view into the database
+     * @param viewConnection 
+     * @throws Exception 
      */
     private void assignViewConnectionToView(IDiagramModelConnection viewConnection) throws Exception {
         final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "view_id", "view_version", "rank"};
+        DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
+        DBMetadata dbMetadata = model.getDBMetadata(viewConnection);
         IDiagramModel viewContainer = viewConnection.getDiagramModel();
 
         if ( logger.isTraceEnabled() ) logger.trace("   Assigning view connection to view");
 
         insert(this.schema+"views_connections_in_view", viewObjectInViewColumns
                 ,viewConnection.getId()
-                ,((IDBMetadata)viewConnection).getDBMetadata().getCurrentVersion().getVersion()
+                ,dbMetadata.getCurrentVersion().getVersion()
                 ,viewContainer.getId()
-                ,((IDBMetadata)viewContainer).getDBMetadata().getCurrentVersion().getVersion()
+                ,model.getDBMetadata(viewContainer).getCurrentVersion().getVersion()
                 ,++this.viewConnectionRank
                 );
 
@@ -1437,6 +1482,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export properties to the database
+     * @param parent 
+     * @throws Exception 
      */
     private void exportProperties(IProperties parent) throws Exception {
         final String[] propertiesColumns = {"parent_id", "parent_version", "rank", "name", "value"};
@@ -1445,7 +1492,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         if ( parent instanceof DBArchimateModel ) {
             exportedVersion = ((DBArchimateModel)parent).getCurrentVersion().getVersion();
         } else 
-            exportedVersion = ((IDBMetadata)parent).getDBMetadata().getCurrentVersion().getVersion();
+            exportedVersion = DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
         for ( int propRank = 0 ; propRank < parent.getProperties().size(); ++propRank) {
             IProperty prop = parent.getProperties().get(propRank);
@@ -1471,6 +1518,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Export properties to the database
+     * @param parent 
+     * @throws Exception 
      */
     private void exportMetadata(DBArchimateModel parent) throws Exception {
         final String[] metadataColumns = {"parent_id", "parent_version", "rank", "name", "value"};
@@ -1497,6 +1546,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         }
     }
 
+    /**
+     * Exports an image to the database
+     * @param path
+     * @param image
+     * @return
+     * @throws SQLException
+     */
     public boolean exportImage(String path, byte[] image) throws SQLException {
         // we do not export null images (should never happen, but it sometimes does)
         if ( image == null ) 
@@ -1513,6 +1569,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         return false;
     }
 
+    /**
+     * @param connections
+     * @return
+     */
     public static String getTargetConnectionsString(EList<IDiagramModelConnection> connections) {
         StringBuilder target = new StringBuilder();
         for ( IDiagramModelConnection connection: connections ) {
@@ -1525,6 +1585,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Sets the auto-commit mode of the database
+     * @throws SQLException
      */
     @Override
     public void setAutoCommit(boolean autoCommit) throws SQLException {
@@ -1538,6 +1599,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Commits the current transaction
+     * @throws SQLException
      */
     @Override
     public void commit() throws SQLException {
@@ -1545,6 +1607,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         this.lastTransactionTimestamp = new Timestamp(Calendar.getInstance().getTime().getTime());
     }
 
+    /**
+     * Reset the counters
+     */
     public void reset() {
         // We reset all "ranks" to zero
         this.elementRank = 0;
@@ -1565,6 +1630,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
     /**
      * Closes connection to the database
+     * @throws SQLException
      */
     @Override
     public void close() throws SQLException {

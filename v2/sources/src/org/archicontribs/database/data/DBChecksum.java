@@ -13,7 +13,7 @@ import java.security.NoSuchAlgorithmException;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.IIconic;
@@ -50,8 +50,11 @@ import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
 import com.archimatetool.model.ITextPosition;
 
-
-
+/**
+ * Class to manage checksums
+ * 
+ * @author Herve Jouin
+ */
 public class DBChecksum {
 	protected static final DBLogger logger = new DBLogger(DBChecksum.class);
 	
@@ -61,6 +64,9 @@ public class DBChecksum {
 	/**
 	 * Calculate the checksum of a model.<br>
 	 * Please note that this method is *NOT* recursive: the checksum only considers the information of the model itself.
+	 * @param model 
+	 * @param releaseNote 
+	 * @return 
 	 * @throws NoSuchAlgorithmException 
 	 * @throws UnsupportedEncodingException 
 	 */
@@ -78,11 +84,14 @@ public class DBChecksum {
 	/**
 	 * Calculate the checksum of an object.<br>
 	 * Please note that this method is *NOT* recursive: the recursion should be managed at a higher level for folders and views.
+	 * @param eObject 
+	 * @return the eObject's checksum
 	 * @throws NoSuchAlgorithmException 
 	 * @throws UnsupportedEncodingException 
 	 */
 	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException {
 		StringBuilder checksumBuilder = new StringBuilder();
+		DBMetadata dbMetadata = DBMetadata.getDBMetadata(eObject);
 		
 		if ( eObject instanceof IIdentifier )						append(checksumBuilder, "id", ((IIdentifier)eObject).getId());
 		
@@ -103,7 +112,7 @@ public class DBChecksum {
 		if ( eObject instanceof IFolder )							append(checksumBuilder, "folder type", ((IFolder)eObject).getType().getLiteral());
 		if ( eObject instanceof IArchimateDiagramModel )			append(checksumBuilder, "viewpoint", ((IArchimateDiagramModel)eObject).getViewpoint());
 		if ( eObject instanceof IDiagramModel )	{					append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
-																	append(checksumBuilder, "screenshot", ((IDBMetadata)eObject).getDBMetadata().getScreenshot().getBytes());
+																	append(checksumBuilder, "screenshot", dbMetadata.getScreenshot().getBytes());
 		}
 		else if ( eObject instanceof IDiagramModelContainer )		append(checksumBuilder, "container", ((IIdentifier)((IDiagramModelContainer)eObject).eContainer()).getId());
 		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
@@ -122,7 +131,7 @@ public class DBChecksum {
 		}
 		if ( eObject instanceof IDiagramModelImageProvider )		append(checksumBuilder, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
 		if ( eObject instanceof IDiagramModelObject ) {				append(checksumBuilder, "fill color", ((IDiagramModelObject)eObject).getFillColor());
-																	append(checksumBuilder, "alpha", ((IDBMetadata)eObject).getDBMetadata().getAlpha());		// from Archi 4.3
+																	append(checksumBuilder, "alpha", dbMetadata.getAlpha());		// from Archi 4.3
 																	IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
 																	append(checksumBuilder, "bounds x", bounds.getX());
 																	append(checksumBuilder, "bounds y", bounds.getY());
@@ -201,6 +210,8 @@ public class DBChecksum {
 	
 	/**
 	 * Calculate a MD5 from a StringBuilder
+	 * @param input 
+	 * @return 
 	 * @throws NoSuchAlgorithmException 
 	 * @throws UnsupportedEncodingException 
 	 */
@@ -210,6 +221,8 @@ public class DBChecksum {
 	
 	/**
 	 * Calculate a MD5 from a String
+	 * @param input 
+	 * @return 
 	 * @throws NoSuchAlgorithmException 
 	 * @throws UnsupportedEncodingException 
 	 */
@@ -219,6 +232,8 @@ public class DBChecksum {
 	
 	/**
 	 * Calculate a MD5 from a byte array
+	 * @param bytes 
+	 * @return 
 	 * @throws NoSuchAlgorithmException 
 	 */
 	public static String calculateChecksum(byte[] bytes) throws NoSuchAlgorithmException {

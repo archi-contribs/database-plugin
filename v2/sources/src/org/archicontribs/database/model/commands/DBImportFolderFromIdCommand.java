@@ -17,12 +17,11 @@ import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 import com.archimatetool.model.FolderType;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -89,7 +88,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 			
-			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == (int)this.newValues.get("root_type")) )
+			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType() == (int)this.newValues.get("root_type")) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(archimateModel, "IFolder", this.id);
@@ -120,21 +119,21 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 			this.importedFolder = this.model.getAllFolders().get(this.id);
 
 			if ( this.importedFolder == null ) {
-				this.importedFolder = DBArchimateFactory.eINSTANCE.createFolder();
+				this.importedFolder = IArchimateFactory.eINSTANCE.createFolder();
 
 				this.isNew = true;
 			} else {
 				// we must save the old values to allow undo
-				DBMetadata metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedFolder);
 
-				this.oldInitialVersion = metadata.getInitialVersion();
-				this.oldCurrentVersion = metadata.getCurrentVersion();
-				this.oldDatabaseVersion = metadata.getDatabaseVersion();
-				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+				this.oldInitialVersion = dbMetadata.getInitialVersion();
+				this.oldCurrentVersion = dbMetadata.getCurrentVersion();
+				this.oldDatabaseVersion = dbMetadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = dbMetadata.getLatestDatabaseVersion();
 
-				this.oldName = metadata.getName();
-				this.oldDocumentation = metadata.getDocumentation();
-				this.oldFolderType = metadata.getFolderType();
+				this.oldName = dbMetadata.getName();
+				this.oldDocumentation = dbMetadata.getDocumentation();
+				this.oldFolderType = dbMetadata.getFolderType();
 				//this.oldRootFolderType = metadata.getRootFolderType();
 
 				this.oldProperties = new ArrayList<DBProperty>();
@@ -142,32 +141,32 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 
-				this.oldFolder = metadata.getParentFolder();
+				this.oldFolder = dbMetadata.getParentFolder();
 
 				this.isNew = false;
 			}
 
-			DBMetadata metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
+			DBMetadata dbMetadata = this.model.getDBMetadata(this.importedFolder);
 
 			if ( this.mustCreateCopy )
-				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 			else
-				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
 
-			metadata.setId((String)this.newValues.get("id"));
-			metadata.setName((String)this.newValues.get("name"));
-			metadata.getCurrentVersion().set(metadata.getInitialVersion());
-			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
+			dbMetadata.setId((String)this.newValues.get("id"));
+			dbMetadata.setName((String)this.newValues.get("name"));
+			dbMetadata.getCurrentVersion().set(dbMetadata.getInitialVersion());
+			dbMetadata.getDatabaseVersion().set(dbMetadata.getInitialVersion());
+			dbMetadata.getLatestDatabaseVersion().set(dbMetadata.getInitialVersion());
 
-			metadata.setDocumentation((String)this.newValues.get("documentation"));
-			metadata.setFolderType((Integer)this.newValues.get("type"));
-			//metadata.setRootFolderType((Integer)this.newValues.get("root_type"));
+			dbMetadata.setDocumentation((String)this.newValues.get("documentation"));
+			dbMetadata.setFolderType((Integer)this.newValues.get("type"));
+			//dbMetadata.setRootFolderType((Integer)this.newValues.get("root_type"));
 
 			this.importedFolder.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
     			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
     				prop.setKey(newProperty.getKey());
     				prop.setValue(newProperty.getValue());
     				this.importedFolder.getProperties().add(prop);
@@ -175,9 +174,9 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 			}
 
 			if ( this.newFolder == null )
-				metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedFolder));
+				dbMetadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedFolder));
 			else
-				metadata.setParentFolder(this.newFolder);
+				dbMetadata.setParentFolder(this.newFolder);
 
 			if ( this.isNew )
 				this.model.countObject(this.importedFolder, false);
@@ -204,23 +203,23 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 				this.model.getAllFolders().remove(this.importedFolder.getId());
 			} else {
 				// else, we need to restore the old properties
-				DBMetadata metadata = ((IDBMetadata)this.importedFolder).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedFolder);
 
-				metadata.getInitialVersion().set(this.oldInitialVersion);
-				metadata.getCurrentVersion().set(this.oldCurrentVersion);
-				metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-				metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+				dbMetadata.getInitialVersion().set(this.oldInitialVersion);
+				dbMetadata.getCurrentVersion().set(this.oldCurrentVersion);
+				dbMetadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+				dbMetadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
 
-				metadata.setName(this.oldName);
-				metadata.setDocumentation(this.oldDocumentation);
-				metadata.setFolderType(this.oldFolderType);
+				dbMetadata.setName(this.oldName);
+				dbMetadata.setDocumentation(this.oldDocumentation);
+				dbMetadata.setFolderType(this.oldFolderType);
 				//metadata.setRootFolderType(this.oldRootFolderType);
 
-				metadata.setParentFolder(this.oldFolder);
+				dbMetadata.setParentFolder(this.oldFolder);
 
 				this.importedFolder.getProperties().clear();
 				for ( DBProperty oldProperty: this.oldProperties ) {
-					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					IProperty newProperty = IArchimateFactory.eINSTANCE.createProperty();
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedFolder.getProperties().add(newProperty);

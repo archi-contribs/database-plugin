@@ -17,8 +17,8 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.CommandStack;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.SWT;
@@ -44,11 +44,15 @@ import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.editor.ui.services.ViewManager;
 import com.archimatetool.editor.views.tree.ITreeModelView;
 import com.archimatetool.model.FolderType;
-import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 
+/**
+ * This class manages the GUI that allows to import a model from a database
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiImportModel extends DBGui {
     @SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
@@ -678,7 +682,7 @@ public class DBGuiImportModel extends DBGui {
         setActiveAction(ACTION.Two);
         
         // we create the model (but do not create standard folder as they will be imported from the database)
-        this.modelToImport = (DBArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
+        this.modelToImport = (DBArchimateModel)DBArchimateFactory.eINSTANCE.createArchimateModel();
         this.modelToImport.setId(modelId);
         this.modelToImport.setName(modelName);
         this.modelToImport.setPurpose((String)this.tblModels.getSelection()[0].getData("purpose"));
@@ -748,7 +752,7 @@ public class DBGuiImportModel extends DBGui {
 
             logger.info("Importing view objects ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
-                this.importConnection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+                this.importConnection.prepareImportViewsObjects(view.getId(), this.modelToImport.getDBMetadata(view).getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsObjects(this.modelToImport, view) ) {
                 	this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
                     increaseProgressBar();
@@ -758,7 +762,7 @@ public class DBGuiImportModel extends DBGui {
 
             logger.info("Importing view connections ...");
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
-                this.importConnection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+                this.importConnection.prepareImportViewsConnections(view.getId(), this.modelToImport.getDBMetadata(view).getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsConnections(this.modelToImport) ) {
                 	this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
                     increaseProgressBar();

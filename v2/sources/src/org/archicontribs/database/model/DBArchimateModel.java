@@ -13,6 +13,8 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
 import org.archicontribs.database.data.DBChecksum;
@@ -55,7 +57,6 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         super();
         if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
         super.setVersion(ModelVersion.VERSION);
-        super.setMetadata(DBArchimateFactory.eINSTANCE.createMetadata());
     }
 
     /**
@@ -329,7 +330,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @SuppressWarnings("null")
     public String countObject(EObject eObject, boolean mustCalculateChecksum) throws Exception, NoSuchAlgorithmException, UnsupportedEncodingException {
         StringBuilder checksumBuilder = null;
-        DBMetadata objectMetadata = (eObject instanceof IDBMetadata) ? ((IDBMetadata)eObject).getDBMetadata() : null;
+        DBMetadata objectMetadata = getDBMetadata(eObject);
         int len = 0;
 
         if ( mustCalculateChecksum ) {
@@ -608,7 +609,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                 source = this.getAllElements().get(getNewElementId(entry.getValue()));
         
             if ( source == null )
-            	throw new Exception("Failed to resolve source relationship for "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
+            	throw new Exception("Failed to resolve source relationship for "+getDBMetadata(relationship).getDebugName());
 
             relationship.setSource(source);
             source.getSourceRelationships().add(relationship);
@@ -624,7 +625,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                 target = this.getAllElements().get(getNewElementId(entry.getValue()));
         
             if ( target == null )
-            	throw new Exception("Failed to resolve target relationship for "+((IDBMetadata)relationship).getDBMetadata().getDebugName());
+            	throw new Exception("Failed to resolve target relationship for "+getDBMetadata(relationship).getDebugName());
 
             relationship.setTarget(target);
             target.getTargetRelationships().add(relationship);
@@ -659,7 +660,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                 source = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
         
             if ( source == null )
-            	throw new Exception("Failed to resolve source connection for "+((IDBMetadata)connection).getDBMetadata().getDebugName());
+            	throw new Exception("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
 
             connection.setSource(source);
             source.addConnection(connection);
@@ -675,7 +676,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             	target = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
         
             if ( target == null )
-            	throw new Exception("Failed to resolve target connection for "+((IDBMetadata)connection).getDBMetadata().getDebugName());
+            	throw new Exception("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
 
             connection.setSource(target);
             target.addConnection(connection);
@@ -685,5 +686,29 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allTargetConnectionsToResolve.clear();
         this.allCopiedViewObjects.clear();
         this.allCopiedViewConnections.clear();
+    }
+    
+	/**
+	 * HashMap containing the DBMetadata classes of model's components
+	 */
+	ConcurrentHashMap<String, DBMetadata> DBMetadataHashMap = new ConcurrentHashMap<String, DBMetadata>();
+    
+    /**
+     * Gets the DBMetadata associated with an Archi component. If it does not exist yet, it is automatically created.
+     * @param obj : the Archi component
+     * @return the associated DBMetadata class. The returned value can be null if the object hasn't got an ID (is not of IIdentifier class) 
+     */
+    public DBMetadata getDBMetadata(EObject obj) {
+    	if ( obj instanceof IIdentifier ) {
+    		String objId = ((IIdentifier)obj).getId();
+	    	DBMetadata dbMetadata = this.DBMetadataHashMap.get(objId);
+	    	if ( dbMetadata == null ) {
+	    		// in case the object metadata does not exist, we create it
+	    		dbMetadata = new DBMetadata(obj);
+	    		this.DBMetadataHashMap.put(objId, dbMetadata);
+	    	}
+	    	return dbMetadata;
+    	}
+    	return null;
     }
 }

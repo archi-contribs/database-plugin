@@ -4,13 +4,13 @@ import java.util.List;
 
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
+import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.gef.commands.CommandStack;
 
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.editor.model.IEditorModelManager;
-import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 
@@ -73,7 +73,7 @@ public class DBScript {
 	        }
 	
 	        // we create the model
-	        DBArchimateModel modelToImport = (DBArchimateModel)IArchimateFactory.eINSTANCE.createArchimateModel();
+	        DBArchimateModel modelToImport = (DBArchimateModel)DBArchimateFactory.eINSTANCE.createArchimateModel();
 	        modelToImport.setId(modelId);
 	        modelToImport.setName(modelName);
 	        
@@ -112,7 +112,7 @@ public class DBScript {
 	            
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the views objects ...");
 	            for (IDiagramModel view: modelToImport.getAllViews().values()) {
-	                connection.prepareImportViewsObjects(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+	                connection.prepareImportViewsObjects(view.getId(), DBMetadata.getDBMetadata(view).getInitialVersion().getVersion());
 	                while ( connection.importViewsObjects(modelToImport, view) ) {
 	                    // each loop imports a view object
 	                }
@@ -120,7 +120,7 @@ public class DBScript {
 	            
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the views connections ...");
 	            for (IDiagramModel view: modelToImport.getAllViews().values()) {
-	                connection.prepareImportViewsConnections(view.getId(), ((IDBMetadata)view).getDBMetadata().getInitialVersion().getVersion());
+	                connection.prepareImportViewsConnections(view.getId(), DBMetadata.getDBMetadata(view).getInitialVersion().getVersion());
 	                while ( connection.importViewsConnections(modelToImport) ) {
 	                    // each loop imports a view connection
 	                }

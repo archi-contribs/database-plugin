@@ -32,7 +32,6 @@ import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.preference.PreferenceDialog;
@@ -1331,15 +1330,16 @@ public class DBGui {
     @SuppressWarnings("unchecked")
     protected Boolean fillInCompareTable(Tree tree, TreeItem treeItem, EObject memoryObject, int memoryObjectversion) {
         assert ( memoryObject!=null );
+        DBMetadata dbMetadata = DBMetadata.getDBMetadata(memoryObject);
 
-        logger.debug("Showing up memory and database versions of component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName());
+        logger.debug("Showing up memory and database versions of component "+dbMetadata.getDebugName());
 
         // we get the database version of the component
         HashMap<String, Object> databaseObject;
         try {
             databaseObject = this.connection.getObjectFromDatabase(memoryObject, memoryObjectversion);
         } catch (Exception err) {
-            DBGui.popup(Level.ERROR, "Failed to get component "+((IDBMetadata)memoryObject).getDBMetadata().getDebugName()+" from the database.", err);
+            DBGui.popup(Level.ERROR, "Failed to get component "+dbMetadata.getDebugName()+" from the database.", err);
             return null;
         }
 
@@ -1350,7 +1350,7 @@ public class DBGui {
             refreshDisplay();
 
             TreeItem item = new TreeItem(tree, SWT.NONE);
-            item.setText(new String[] {"Version", String.valueOf(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version"))});
+            item.setText(new String[] {"Version", String.valueOf(dbMetadata.getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version"))});
 
             if ( (String)databaseObject.get("created_by") != null ) {
                 item = new TreeItem(tree, SWT.NONE);
@@ -1359,8 +1359,8 @@ public class DBGui {
 
             if ( databaseObject.get("created_on") != null ) {
                 item = new TreeItem(tree, SWT.NONE);
-                if ( ((IDBMetadata)memoryObject).getDBMetadata().getDatabaseVersion().getTimestamp() != null )
-                    item.setText(new String[] {"Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((IDBMetadata)memoryObject).getDBMetadata().getInitialVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
+                if ( dbMetadata.getDatabaseVersion().getTimestamp() != null )
+                    item.setText(new String[] {"Created on", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(dbMetadata.getInitialVersion().getTimestamp().getTime()), new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
                 else
                     item.setText(new String[] {"Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
             }
@@ -1635,7 +1635,7 @@ public class DBGui {
 
     public byte[] createImage(IDiagramModel view, int scalePercent, int margin) {
         byte[] imageContent = null;
-        DBMetadata metadata = ((IDBMetadata)view).getDBMetadata(); 
+        DBMetadata dbMetadata = DBMetadata.getDBMetadata(view); 
 
         String oldLabel = getProgressBarLabel();
         logger.debug("Creating screenshot of view \""+view.getName()+"\"");
@@ -1655,10 +1655,10 @@ public class DBGui {
                 org.eclipse.draw2d.geometry.Rectangle bounds = viewImage.getBounds();
                 bounds.performScale(ImageFactory.getDeviceZoom() / 100); // Account for device zoom level
 
-                metadata.getScreenshot().setScreenshotBytes(imageContent);
-                metadata.getScreenshot().setScaleFactor(scalePercent);
-                metadata.getScreenshot().setBorderWidth(margin);
-                metadata.getScreenshot().setBounds(bounds);
+                dbMetadata.getScreenshot().setScreenshotBytes(imageContent);
+                dbMetadata.getScreenshot().setScaleFactor(scalePercent);
+                dbMetadata.getScreenshot().setBorderWidth(margin);
+                dbMetadata.getScreenshot().setBounds(bounds);
             } catch (IOException err) {
                 logger.error("Failed to close DataOutputStream", err);
             }

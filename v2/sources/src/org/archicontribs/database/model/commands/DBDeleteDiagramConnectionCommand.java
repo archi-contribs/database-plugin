@@ -7,10 +7,8 @@
 package org.archicontribs.database.model.commands;
 
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelConnection;
 
@@ -23,14 +21,15 @@ import com.archimatetool.model.IDiagramModelConnection;
  */
 public class DBDeleteDiagramConnectionCommand extends Command implements IDBCommand {
     private IDiagramModelConnection fConnection;
-    private IArchimateModel fModel;
+    private DBArchimateModel fModel;
     Exception exception = null;
     
     /** 
      * Create a command that will disconnect a connection from its endpoints.
+     * @param model 
      * @param connection the connection instance to disconnect (non-null)
      */
-    public DBDeleteDiagramConnectionCommand(IArchimateModel model, IDiagramModelConnection connection){
+    public DBDeleteDiagramConnectionCommand(DBArchimateModel model, IDiagramModelConnection connection){
         this.fConnection = connection;
         this.fModel = model;
     }
@@ -40,8 +39,8 @@ public class DBDeleteDiagramConnectionCommand extends Command implements IDBComm
         try {
             IDiagramModel diagramModel = this.fConnection.getDiagramModel();
             if ( diagramModel != null )
-                ((IDBMetadata)diagramModel).getDBMetadata().setChecksumValid(false);
-            ((DBArchimateModel)this.fModel).getAllViewConnections().remove(this.fConnection.getId());
+                this.fModel.getDBMetadata(diagramModel).setChecksumValid(false);
+            this.fModel.getAllViewConnections().remove(this.fConnection.getId());
             this.fConnection.disconnect();
         } catch ( Exception e ) {
             this.exception = e;
@@ -52,7 +51,7 @@ public class DBDeleteDiagramConnectionCommand extends Command implements IDBComm
     public void undo() {
         try {
             this.fConnection.reconnect();
-            ((DBArchimateModel)this.fModel).getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
+            this.fModel.getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
         } catch (Exception e) {
             this.exception = e;
         }

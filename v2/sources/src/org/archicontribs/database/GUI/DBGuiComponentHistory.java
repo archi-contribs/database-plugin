@@ -16,7 +16,6 @@ import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
-import org.archicontribs.database.model.IDBMetadata;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
@@ -41,6 +40,7 @@ import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeColumn;
 import org.archicontribs.database.model.DBArchimateModel;
+import org.archicontribs.database.model.DBMetadata;
 
 import com.archimatetool.canvas.model.ICanvasModel;
 import com.archimatetool.model.IArchimateDiagramModel;
@@ -52,6 +52,11 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
+/**
+ * This class manages the GUI that shows a component history
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiComponentHistory extends DBGui {
 	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiComponentHistory.class);
@@ -69,6 +74,7 @@ public class DBGuiComponentHistory extends DBGui {
 	
 	/**
 	 * Creates the GUI to show the differences between a component in the model and the database
+	 * @param component 
 	 * @throws Exception 
 	 */
 	public DBGuiComponentHistory(IArchimateModelObject component) throws Exception {
@@ -79,7 +85,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
 
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+((IDBMetadata)component).getDBMetadata().getDebugName()+" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");		
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");		
 		
 		setCompoRight();
 		this.compoRightBottom.setVisible(true);

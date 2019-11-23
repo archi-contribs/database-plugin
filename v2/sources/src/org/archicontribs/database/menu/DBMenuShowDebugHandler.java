@@ -10,7 +10,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiShowDebug;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -26,6 +26,11 @@ import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
 
+/**
+ * Class that is called when the iser selects the "show debugging information" in the context menu
+ * 
+ * @author Herve Jouin
+ */
 public class DBMenuShowDebugHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenuShowDebugHandler.class);
 
@@ -49,9 +54,10 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
             return null;
         }
         
-        if ( component instanceof IDBMetadata ) {
+        DBMetadata dbMetadata = DBMetadata.getDBMetadata(component);
+        if ( dbMetadata != null ) {
             if ( logger.isDebugEnabled() ) {
-                logger.debug("Showing debbuging information for "+((IDBMetadata)component).getDBMetadata().getDebugName());
+                logger.debug("Showing debbuging information for "+dbMetadata.getDebugName());
             }
             
             try {

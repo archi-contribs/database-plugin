@@ -19,14 +19,14 @@ import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.gef.commands.Command;
 
+import com.archimatetool.canvas.model.ICanvasFactory;
 import com.archimatetool.editor.ui.services.EditorManager;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperties;
@@ -107,7 +107,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IDiagramModel", this.id);
@@ -167,36 +167,36 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 
 			if ( this.importedView == null ) {
 				if ( DBPlugin.areEqual((String)this.newValues.get("class"), "CanvasModel") )
-					this.importedView = (IDiagramModel) DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
+					this.importedView = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
 				else
-					this.importedView = (IDiagramModel) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+					this.importedView = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {
 				// we must save the old values to allow undo
-				DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedView);
 
-				this.oldInitialVersion = metadata.getInitialVersion();
-				this.oldCurrentVersion = metadata.getCurrentVersion();
-				this.oldDatabaseVersion = metadata.getDatabaseVersion();
-				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+				this.oldInitialVersion = dbMetadata.getInitialVersion();
+				this.oldCurrentVersion = dbMetadata.getCurrentVersion();
+				this.oldDatabaseVersion = dbMetadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = dbMetadata.getLatestDatabaseVersion();
 
-				this.oldName = metadata.getName();
-				this.oldDocumentation = metadata.getDocumentation();
-				this.oldConnectionRouterType = metadata.getConnectionRouterType();
-				this.oldViewpoint = metadata.getViewpoint();
-				this.oldBackground = metadata.getBackground();
+				this.oldName = dbMetadata.getName();
+				this.oldDocumentation = dbMetadata.getDocumentation();
+				this.oldConnectionRouterType = dbMetadata.getConnectionRouterType();
+				this.oldViewpoint = dbMetadata.getViewpoint();
+				this.oldBackground = dbMetadata.getBackground();
 
 				this.oldProperties = new ArrayList<DBProperty>();
 				for ( IProperty prop: this.importedView.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 
-				this.oldFolder = metadata.getParentFolder();
+				this.oldFolder = dbMetadata.getParentFolder();
 
 				this.isNew = false;
 			}
-			DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
+			DBMetadata metadata = this.model.getDBMetadata(this.importedView);
 
 			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -217,7 +217,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 			this.importedView.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
     			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
     				prop.setKey(newProperty.getKey());
     				prop.setValue(newProperty.getValue());
     				this.importedView.getProperties().add(prop);
@@ -274,25 +274,25 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				this.model.getAllFolders().remove(this.importedView.getId());
 			} else {
 				// else, we need to restore the old properties
-				DBMetadata metadata = ((IDBMetadata)this.importedView).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedView);
 
-				metadata.getInitialVersion().set(this.oldInitialVersion);
-				metadata.getCurrentVersion().set(this.oldCurrentVersion);
-				metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-				metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+				dbMetadata.getInitialVersion().set(this.oldInitialVersion);
+				dbMetadata.getCurrentVersion().set(this.oldCurrentVersion);
+				dbMetadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+				dbMetadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
 
-				metadata.setName(this.oldName);
-				metadata.setDocumentation(this.oldDocumentation);
-				metadata.setConnectionRouterType(this.oldConnectionRouterType);
-				metadata.setViewpoint(this.oldViewpoint);
-				metadata.setBackground(this.oldBackground);
+				dbMetadata.setName(this.oldName);
+				dbMetadata.setDocumentation(this.oldDocumentation);
+				dbMetadata.setConnectionRouterType(this.oldConnectionRouterType);
+				dbMetadata.setViewpoint(this.oldViewpoint);
+				dbMetadata.setBackground(this.oldBackground);
 
-				metadata.setParentFolder(this.oldFolder);
+				dbMetadata.setParentFolder(this.oldFolder);
 
 				this.importedView.getProperties().clear();
 				((IProperties)this.importedView).getProperties().clear();
 				for ( DBProperty oldPropery: this.oldProperties ) {
-					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					IProperty newProperty = IArchimateFactory.eINSTANCE.createProperty();
 					newProperty.setKey(oldPropery.getKey());
 					newProperty.setValue(oldPropery.getValue());
 					((IProperties)this.importedView).getProperties().add(newProperty);

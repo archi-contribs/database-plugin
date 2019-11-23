@@ -12,7 +12,6 @@ import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
@@ -33,6 +32,11 @@ import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IIdentifier;
 
+/**
+ * This class manages the GUI that shows debug information about an archimate component
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiShowDebug extends DBGui {
     //private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
     
@@ -82,16 +86,16 @@ public class DBGuiShowDebug extends DBGui {
         // in Archi 4.2 and previous, we need to separate the two cases
         if ( obj instanceof IArchimateModelObject ) {
         	this.model = (DBArchimateModel) ((IArchimateModelObject)obj).getArchimateModel();
-        	this.selectedMetadata = ((IDBMetadata)obj).getDBMetadata();
+        	this.selectedMetadata = DBMetadata.getDBMetadata(obj);
         } else if ( obj instanceof IDiagramModelArchimateObject ) {
         	this.model = (DBArchimateModel) ((IDiagramModelArchimateObject)obj).getArchimateConcept().getArchimateModel();
-        	this.selectedMetadata = ((IDBMetadata)obj).getDBMetadata();
+        	this.selectedMetadata = DBMetadata.getDBMetadata(obj);
         } else {
         	popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
         	return;
         }
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing debug information about "+((IDBMetadata)obj).getDBMetadata().getDebugName());
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing debug information about "+DBMetadata.getDBMetadata(obj).getDebugName());
         
         createGrpDebug();
         
@@ -471,7 +475,7 @@ public class DBGuiShowDebug extends DBGui {
         
         // in case of a view, we check if we need to recreate the screenshot
         if ( this.selectedObject instanceof IDiagramModel ) {
-            DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
+            DBMetadata metadata = DBMetadata.getDBMetadata(this.selectedObject);
             if ( this.connection.getDatabaseEntry().isViewSnapshotRequired() ) {
                 if ( (metadata.getScreenshot().getBytes() == null)
                         || (metadata.getScreenshot().getScaleFactor() != this.connection.getDatabaseEntry().getViewsImagesScaleFactor())
@@ -495,7 +499,7 @@ public class DBGuiShowDebug extends DBGui {
 			}
         }
         
-        DBMetadata metadata = ((IDBMetadata)this.selectedObject).getDBMetadata();
+        DBMetadata metadata = DBMetadata.getDBMetadata(this.selectedObject);
         
         this.selectedComponentDatabaseStatusValueLbl.setText(metadata.getDatabaseStatus().toString());
         
@@ -529,7 +533,7 @@ public class DBGuiShowDebug extends DBGui {
         
         if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
             IArchimateConcept concept = ((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept();
-            metadata = ((IDBMetadata)concept).getDBMetadata();
+            metadata = DBMetadata.getDBMetadata(concept);
             
             this.correspondingConceptDatabaseStatusValueLbl.setText(metadata.getDatabaseStatus().toString());
             

@@ -9,12 +9,17 @@ package org.archicontribs.database.GUI;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 
 import com.archimatetool.model.IArchimateElement;
 
+/**
+ * This class manages the GUI that allows to replace a component by another one
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiReplaceElement extends DBGuiImportComponents {
 	@SuppressWarnings("hiding")
     protected static final DBLogger logger = new DBLogger(DBGuiReplaceElement.class);
@@ -46,6 +51,6 @@ public class DBGuiReplaceElement extends DBGuiImportComponents {
 	}
 	
 	void doReplace() {
-	    logger.info("Replacing "+((IDBMetadata)this.selectedElement).getDBMetadata().getDebugName());
+	    logger.info("Replacing "+DBMetadata.getDBMetadata(this.selectedElement).getDebugName());
 	}
 }

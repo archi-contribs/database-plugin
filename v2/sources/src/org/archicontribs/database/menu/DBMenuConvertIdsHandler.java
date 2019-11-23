@@ -43,6 +43,11 @@ import java.util.Map.Entry;
 
 import javax.imageio.ImageIO;
 
+/**
+ * Class that is called by the "replace IDs" context menu. Convert old Archi 3 IDs to Archi 4 IDs
+ * 
+ * @author Herve Jouin
+ */
 @SuppressWarnings("unused")
 public class DBMenuConvertIdsHandler extends AbstractHandler {
     //private static final DBLogger logger = new DBLogger(DBMenu.class);

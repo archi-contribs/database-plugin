@@ -19,15 +19,16 @@ import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CompoundCommand;
+
+import com.archimatetool.canvas.model.ICanvasFactory;
 import com.archimatetool.editor.model.IArchiveManager;
 import com.archimatetool.model.IArchimateConcept;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -202,45 +203,45 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             if ( this.importedViewObject == null ) {
                 if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
-                    this.importedViewObject = DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
-                else
-                    this.importedViewObject = DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+                	this.importedViewObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
+                	else
+                		this.importedViewObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
 
                 this.isNew = true;
             } else {
                 // we must save the old values to allow undo
-                DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
+                DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewObject);
 
-                this.oldInitialVersion = metadata.getInitialVersion();
-                this.oldCurrentVersion = metadata.getCurrentVersion();
-                this.oldDatabaseVersion = metadata.getDatabaseVersion();
-                this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+                this.oldInitialVersion = dbMetadata.getInitialVersion();
+                this.oldCurrentVersion = dbMetadata.getCurrentVersion();
+                this.oldDatabaseVersion = dbMetadata.getDatabaseVersion();
+                this.oldLatestDatabaseVersion = dbMetadata.getLatestDatabaseVersion();
 
-                this.oldName = metadata.getName();
-                this.oldArchimateConcept = metadata.getArchimateConcept();
-                this.oldReferencedModel = metadata.getReferencedModel();
-                this.oldDocumentation = metadata.getDocumentation();
-                this.oldType = metadata.getType();
-                this.oldBorderColor = metadata.getBorderColor();
-                this.oldBorderType = metadata.getBorderType();
-                this.oldContent = metadata.getContent();
-                this.oldIsLocked = metadata.isLocked();
-                this.oldImagePath = metadata.getImagePath();
-                this.oldImagePosition = metadata.getImagePosition();
-                this.oldLineColor = metadata.getLineColor();
-                this.oldLineWidth = metadata.getLineWidth();
-                this.oldFillColor = metadata.getFillColor();
-                this.oldFont = metadata.getFont();
-                this.oldFontColor = metadata.getFontColor();
-                this.oldNotes = metadata.getNotes();
-                this.oldTextAlignment = metadata.getTextAlignment();
-                this.oldTextPosition = metadata.getTextPosition();
-                this.oldX = metadata.getX();
-                this.oldY = metadata.getY();
-                this.oldWidth = metadata.getWidth();
-                this.oldHeight = metadata.getHeight();
+                this.oldName = dbMetadata.getName();
+                this.oldArchimateConcept = dbMetadata.getArchimateConcept();
+                this.oldReferencedModel = dbMetadata.getReferencedModel();
+                this.oldDocumentation = dbMetadata.getDocumentation();
+                this.oldType = dbMetadata.getType();
+                this.oldBorderColor = dbMetadata.getBorderColor();
+                this.oldBorderType = dbMetadata.getBorderType();
+                this.oldContent = dbMetadata.getContent();
+                this.oldIsLocked = dbMetadata.isLocked();
+                this.oldImagePath = dbMetadata.getImagePath();
+                this.oldImagePosition = dbMetadata.getImagePosition();
+                this.oldLineColor = dbMetadata.getLineColor();
+                this.oldLineWidth = dbMetadata.getLineWidth();
+                this.oldFillColor = dbMetadata.getFillColor();
+                this.oldFont = dbMetadata.getFont();
+                this.oldFontColor = dbMetadata.getFontColor();
+                this.oldNotes = dbMetadata.getNotes();
+                this.oldTextAlignment = dbMetadata.getTextAlignment();
+                this.oldTextPosition = dbMetadata.getTextPosition();
+                this.oldX = dbMetadata.getX();
+                this.oldY = dbMetadata.getY();
+                this.oldWidth = dbMetadata.getWidth();
+                this.oldHeight = dbMetadata.getHeight();
 
-                if ( (this.importedViewObject instanceof IProperties) && (metadata.getArchimateConcept() == null) ) {
+                if ( (this.importedViewObject instanceof IProperties) && (dbMetadata.getArchimateConcept() == null) ) {
                     this.oldProperties = new ArrayList<DBProperty>();
                     for ( IProperty prop: ((IProperties)this.importedViewObject).getProperties() ) {
                         this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
@@ -252,39 +253,39 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 this.isNew = false;
             }
 
-            DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
+            DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewObject);
 
             if ( this.mustCreateCopy )
-                metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+                dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
             else
-                metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+                dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
 
-            metadata.getCurrentVersion().set(metadata.getInitialVersion());
-            metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-            metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
+            dbMetadata.getCurrentVersion().set(dbMetadata.getInitialVersion());
+            dbMetadata.getDatabaseVersion().set(dbMetadata.getInitialVersion());
+            dbMetadata.getLatestDatabaseVersion().set(dbMetadata.getInitialVersion());
 
-            metadata.setId((String)this.newValues.get("id"));
+            dbMetadata.setId((String)this.newValues.get("id"));
             if ( this.newValues.get("element_id") == null )
-                metadata.setName((String)this.newValues.get("name"));
+                dbMetadata.setName((String)this.newValues.get("name"));
             else
-                metadata.setArchimateConcept(this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))));
-            metadata.setReferencedModel(this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))));
-            metadata.setType((Integer)this.newValues.get("type"));
-            metadata.setBorderColor((String)this.newValues.get("border_color"));
-            metadata.setBorderType((Integer)this.newValues.get("border_type"));
-            metadata.setContent((String)this.newValues.get("content"));
-            metadata.setDocumentation((String)this.newValues.get("documentation"));
-            metadata.setLocked(this.newValues.get("is_locked"));
-            metadata.setImagePosition((Integer)this.newValues.get("image_position"));
-            metadata.setLineColor((String)this.newValues.get("line_color"));
-            metadata.setLineWidth((Integer)this.newValues.get("line_width"));
-            metadata.setFillColor((String)this.newValues.get("fill_color"));
-            metadata.setFont((String)this.newValues.get("font"));
-            metadata.setFontColor((String)this.newValues.get("font_color"));
-            metadata.setNotes((String)this.newValues.get("notes"));
-            metadata.setTextAlignment((Integer)this.newValues.get("text_alignment"));
-            metadata.setTextPosition((Integer)this.newValues.get("text_position"));
-            metadata.setBounds((Integer)this.newValues.get("x"), (Integer)this.newValues.get("y"), (Integer)this.newValues.get("width"), (Integer)this.newValues.get("height"));
+                dbMetadata.setArchimateConcept(this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("element_id"))));
+            dbMetadata.setReferencedModel(this.model.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))));
+            dbMetadata.setType((Integer)this.newValues.get("type"));
+            dbMetadata.setBorderColor((String)this.newValues.get("border_color"));
+            dbMetadata.setBorderType((Integer)this.newValues.get("border_type"));
+            dbMetadata.setContent((String)this.newValues.get("content"));
+            dbMetadata.setDocumentation((String)this.newValues.get("documentation"));
+            dbMetadata.setLocked(this.newValues.get("is_locked"));
+            dbMetadata.setImagePosition((Integer)this.newValues.get("image_position"));
+            dbMetadata.setLineColor((String)this.newValues.get("line_color"));
+            dbMetadata.setLineWidth((Integer)this.newValues.get("line_width"));
+            dbMetadata.setFillColor((String)this.newValues.get("fill_color"));
+            dbMetadata.setFont((String)this.newValues.get("font"));
+            dbMetadata.setFontColor((String)this.newValues.get("font_color"));
+            dbMetadata.setNotes((String)this.newValues.get("notes"));
+            dbMetadata.setTextAlignment((Integer)this.newValues.get("text_alignment"));
+            dbMetadata.setTextPosition((Integer)this.newValues.get("text_position"));
+            dbMetadata.setBounds((Integer)this.newValues.get("x"), (Integer)this.newValues.get("y"), (Integer)this.newValues.get("width"), (Integer)this.newValues.get("height"));
 
             // we check if the view object must be changed from container
             if ( this.importedViewObject instanceof IDiagramModelObject ) {
@@ -294,11 +295,11 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
                 if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
                     if ( this.oldContainer != null ) {
-                        if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+((IDBMetadata)this.oldContainer).getDBMetadata().getDebugName());
+                        if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+this.model.getDBMetadata(this.oldContainer).getDebugName());
                         this.oldContainer.getChildren().remove((IDiagramModelObject)this.importedViewObject);
                     }
 
-                    if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+((IDBMetadata)newContainer).getDBMetadata().getDebugName());
+                    if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+this.model.getDBMetadata(newContainer).getDebugName());
                     newContainer.getChildren().add((IDiagramModelObject)this.importedViewObject);
                 }
             }
@@ -308,7 +309,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 ((IProperties)this.importedViewObject).getProperties().clear();
                 if ( this.newValues.get("properties") != null ) {
                     for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-                        IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+                        IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
                         prop.setKey(newProperty.getKey());
                         prop.setValue(newProperty.getValue());
                         ((IProperties)this.importedViewObject).getProperties().add(prop);
@@ -322,7 +323,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 IArchiveManager archiveMgr = (IArchiveManager)this.model.getAdapter(IArchiveManager.class);
                 if ( !archiveMgr.getLoadedImagePaths().contains(imagePath) )
                     archiveMgr.addByteContentEntry(imagePath, this.newImageContent);
-                metadata.setImagePath(imagePath);
+                dbMetadata.setImagePath(imagePath);
             }
 
             // we determine the view that contains the view object
@@ -333,7 +334,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
             // we indicate that the checksum of the view is not valid anymore
             if ( view!= null )
-                ((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
+                this.model.getDBMetadata(view).setChecksumValid(false);
 
             this.model.countObject(this.importedViewObject, false);
 
@@ -357,40 +358,40 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             this.model.getAllViewObjects().remove(((IIdentifier)this.importedViewObject).getId());
         } else {
             // else, we need to restore the old properties
-            DBMetadata metadata = ((IDBMetadata)this.importedViewObject).getDBMetadata();
+            DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewObject);
 
-            metadata.getInitialVersion().set(this.oldInitialVersion);
-            metadata.getCurrentVersion().set(this.oldCurrentVersion);
-            metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-            metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+            dbMetadata.getInitialVersion().set(this.oldInitialVersion);
+            dbMetadata.getCurrentVersion().set(this.oldCurrentVersion);
+            dbMetadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+            dbMetadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
 
-            if ( metadata.getArchimateConcept() != null ) metadata.setName(this.oldName);
-            metadata.setArchimateConcept(this.oldArchimateConcept);
-            metadata.setReferencedModel(this.oldReferencedModel);
-            metadata.setDocumentation(this.oldDocumentation);
-            metadata.setType(this.oldType);
-            metadata.setBorderColor(this.oldBorderColor);
-            metadata.setBorderType(this.oldBorderType);
-            metadata.setContent(this.oldContent);
+            if ( dbMetadata.getArchimateConcept() != null ) dbMetadata.setName(this.oldName);
+            dbMetadata.setArchimateConcept(this.oldArchimateConcept);
+            dbMetadata.setReferencedModel(this.oldReferencedModel);
+            dbMetadata.setDocumentation(this.oldDocumentation);
+            dbMetadata.setType(this.oldType);
+            dbMetadata.setBorderColor(this.oldBorderColor);
+            dbMetadata.setBorderType(this.oldBorderType);
+            dbMetadata.setContent(this.oldContent);
 
-            metadata.setLocked(this.oldIsLocked);
-            metadata.setImagePath(this.oldImagePath);            // TODO: find a way to remove the image from the model if it is not used anymore
-            metadata.setImagePosition(this.oldImagePosition);
-            metadata.setLineColor(this.oldLineColor);
-            metadata.setLineWidth(this.oldLineWidth);
-            metadata.setFillColor(this.oldFillColor);
-            metadata.setFont(this.oldFont);
-            metadata.setFontColor(this.oldFontColor);
-            metadata.setNotes(this.oldNotes);
-            metadata.setTextAlignment(this.oldTextAlignment);
-            metadata.setTextPosition(this.oldTextPosition);
-            metadata.setBounds(this.oldX,  this.oldY,  this.oldWidth, this.oldHeight);
+            dbMetadata.setLocked(this.oldIsLocked);
+            dbMetadata.setImagePath(this.oldImagePath);            // TODO: find a way to remove the image from the model if it is not used anymore
+            dbMetadata.setImagePosition(this.oldImagePosition);
+            dbMetadata.setLineColor(this.oldLineColor);
+            dbMetadata.setLineWidth(this.oldLineWidth);
+            dbMetadata.setFillColor(this.oldFillColor);
+            dbMetadata.setFont(this.oldFont);
+            dbMetadata.setFontColor(this.oldFontColor);
+            dbMetadata.setNotes(this.oldNotes);
+            dbMetadata.setTextAlignment(this.oldTextAlignment);
+            dbMetadata.setTextPosition(this.oldTextPosition);
+            dbMetadata.setBounds(this.oldX,  this.oldY,  this.oldWidth, this.oldHeight);
 
             // If the object has got properties but does not have a linked element, then it may have distinct properties
-            if ( this.importedViewObject instanceof IProperties && metadata.getArchimateConcept() == null ) {
+            if ( this.importedViewObject instanceof IProperties && dbMetadata.getArchimateConcept() == null ) {
                 ((IProperties)this.importedViewObject).getProperties().clear();
                 for ( DBProperty oldProperty: this.oldProperties ) {
-                    IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+                    IProperty newProperty = IArchimateFactory.eINSTANCE.createProperty();
                     newProperty.setKey(oldProperty.getKey());
                     newProperty.setValue(oldProperty.getValue());
                     ((IProperties)this.importedViewObject).getProperties().add(newProperty);

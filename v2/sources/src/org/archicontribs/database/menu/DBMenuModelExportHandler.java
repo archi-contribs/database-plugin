@@ -21,6 +21,11 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 
+/**
+ * Class that is called when the user selects the "export model to database" in the context menu
+ * 
+ * @author Herve Jouin
+ */
 public class DBMenuModelExportHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
 	

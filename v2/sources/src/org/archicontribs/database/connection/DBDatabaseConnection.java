@@ -24,7 +24,7 @@ import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelContainer;
@@ -1154,6 +1154,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                 try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schema+"views") ) {
                     while ( result.next() ) {
                         IDiagramModel view;
+                        
                         DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.forceSharedMode, false);
                         if ( command.canExecute() )
                             command.execute();
@@ -1161,10 +1162,11 @@ public class DBDatabaseConnection implements AutoCloseable {
                             throw command.getException();
                         
                         view = command.getImported();
+                        DBMetadata dbMetadata = DBMetadata.getDBMetadata(view);
                         
                         tempModel.countObject(view, true);
                         
-                        executeRequest("UPDATE "+this.schema+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getChecksum(), ((IDBMetadata)view).getDBMetadata().getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
+                        executeRequest("UPDATE "+this.schema+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), dbMetadata.getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
                         
                         for ( IDiagramModelObject obj: view.getChildren() ) {
                         	updateChecksum(obj);
@@ -1186,7 +1188,9 @@ public class DBDatabaseConnection implements AutoCloseable {
     }
     
     private void updateChecksum(IDiagramModelObject obj) throws SQLException {
-        executeRequest("UPDATE "+this.schema+"views_object SET checksum = ? WHERE id = ? AND version = ?", ((IDBMetadata)obj).getDBMetadata().getCurrentVersion().getChecksum(), obj.getId(), ((IDBMetadata)obj).getDBMetadata().getInitialVersion().getVersion());
+    	DBMetadata dbMetadata = DBMetadata.getDBMetadata(obj);
+    	
+        executeRequest("UPDATE "+this.schema+"views_object SET checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), obj.getId(), dbMetadata.getInitialVersion().getVersion());
         
         if ( obj instanceof IDiagramModelContainer ) {
         	for ( IDiagramModelObject subObj: ((IDiagramModelContainer)obj).getChildren() ) {

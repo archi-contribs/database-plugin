@@ -18,15 +18,15 @@ import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.DBCanvasFactory;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.gef.commands.CompoundCommand;
 
+import com.archimatetool.canvas.model.ICanvasFactory;
 import com.archimatetool.model.IArchimateConcept;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelBendpoint;
@@ -153,34 +153,34 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			if ( this.importedViewConnection == null ) {
 				if ( ((String)this.newValues.get("class")).startsWith("Canvas") )
-					this.importedViewConnection = (IDiagramModelConnection)DBCanvasFactory.eINSTANCE.create((String)this.newValues.get("class"));
+					this.importedViewConnection = (IDiagramModelConnection) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.canvas.model."+(String)this.newValues.get("class"))));
 				else
-					this.importedViewConnection = (IDiagramModelConnection)DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+					this.importedViewConnection = (IDiagramModelConnection) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {
 				// we must save the old values to allow undo
-				DBMetadata metadata = ((IDBMetadata)this.importedViewConnection).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewConnection);
 				
-				this.oldInitialVersion = metadata.getInitialVersion();
-				this.oldCurrentVersion = metadata.getCurrentVersion();
-				this.oldDatabaseVersion = metadata.getDatabaseVersion();
-				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+				this.oldInitialVersion = dbMetadata.getInitialVersion();
+				this.oldCurrentVersion = dbMetadata.getCurrentVersion();
+				this.oldDatabaseVersion = dbMetadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = dbMetadata.getLatestDatabaseVersion();
 
-				this.oldName = metadata.getName();
-				this.oldArchimateConcept = metadata.getArchimateConcept();
-				this.oldIsLocked = metadata.isLocked();
-				this.oldDocumentation = metadata.getDocumentation();
-				this.oldLineColor = metadata.getLineColor();
-				this.oldLineWidth = metadata.getLineWidth();
-				this.oldFont = metadata.getFont();
-				this.oldFontColor = metadata.getFontColor();
-				this.oldType = metadata.getType();
-				this.oldTextPosition = metadata.getTextPosition();
-				this.oldSource = metadata.getSourceConnection();
-				this.oldTarget = metadata.getTargetConnection();
+				this.oldName = dbMetadata.getName();
+				this.oldArchimateConcept = dbMetadata.getArchimateConcept();
+				this.oldIsLocked = dbMetadata.isLocked();
+				this.oldDocumentation = dbMetadata.getDocumentation();
+				this.oldLineColor = dbMetadata.getLineColor();
+				this.oldLineWidth = dbMetadata.getLineWidth();
+				this.oldFont = dbMetadata.getFont();
+				this.oldFontColor = dbMetadata.getFontColor();
+				this.oldType = dbMetadata.getType();
+				this.oldTextPosition = dbMetadata.getTextPosition();
+				this.oldSource = dbMetadata.getSourceConnection();
+				this.oldTarget = dbMetadata.getTargetConnection();
 
-				if ( metadata.getArchimateConcept()==null ) {
+				if ( dbMetadata.getArchimateConcept()==null ) {
 					this.oldProperties = new ArrayList<DBProperty>();
 					for ( IProperty prop: ((IProperties)this.importedViewConnection).getProperties() ) {
 						this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
@@ -195,7 +195,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				this.isNew = false;                
 			}
 
-			DBMetadata metadata = ((IDBMetadata)this.importedViewConnection).getDBMetadata();
+			DBMetadata metadata = this.model.getDBMetadata(this.importedViewConnection);
 
 			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -249,7 +249,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	            this.importedViewConnection.getProperties().clear();
 	            if ( this.newValues.get("properties") != null ) {
     	            for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-    	                IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    	                IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
     	                prop.setKey(newProperty.getKey());
     	                prop.setValue(newProperty.getValue());
     	                this.importedViewConnection.getProperties().add(prop);
@@ -260,7 +260,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
             this.importedViewConnection.getBendpoints().clear();
             if ( this.newValues.get("bendpoints") != null ) {
                 for ( DBBendpoint newBendpoint: (ArrayList<DBBendpoint>)this.newValues.get("bendpoints")) {
-                    IDiagramModelBendpoint bendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
+                    IDiagramModelBendpoint bendpoint = IArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
                     bendpoint.setStartX(newBendpoint.getStartX());
                     bendpoint.setStartY(newBendpoint.getStartY());
                     bendpoint.setEndX(newBendpoint.getEndX());
@@ -277,7 +277,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			// we indicate that the checksum of the view is not valid anymore
 			if ( view!= null )
-				((IDBMetadata)view).getDBMetadata().setChecksumValid(false);
+				this.model.getDBMetadata(view).setChecksumValid(false);
 
 			this.model.countObject(this.importedViewConnection, false);
 		} catch (Exception err) {
@@ -299,32 +299,32 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			this.model.getAllViewConnections().remove(this.importedViewConnection.getId());
 		} else {
 			// else, we need to restore the old properties
-			DBMetadata metadata = ((IDBMetadata)this.importedViewConnection).getDBMetadata();
+			DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewConnection);
 
-			metadata.getInitialVersion().set(this.oldInitialVersion);
-			metadata.getCurrentVersion().set(this.oldCurrentVersion);
-			metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-			metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+			dbMetadata.getInitialVersion().set(this.oldInitialVersion);
+			dbMetadata.getCurrentVersion().set(this.oldCurrentVersion);
+			dbMetadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+			dbMetadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
 
-			if ( metadata.getArchimateConcept() != null ) metadata.setName(this.oldName);
-			metadata.setArchimateConcept(this.oldArchimateConcept);
-			metadata.setLocked(this.oldIsLocked);
-			metadata.setDocumentation(this.oldDocumentation);
-			metadata.setLineColor(this.oldLineColor);
-			metadata.setLineWidth(this.oldLineWidth);
-			metadata.setFont(this.oldFont);
-			metadata.setFontColor(this.oldFontColor);
-			metadata.setType(this.oldType);
-			metadata.setTextPosition(this.oldTextPosition);
+			if ( dbMetadata.getArchimateConcept() != null ) dbMetadata.setName(this.oldName);
+			dbMetadata.setArchimateConcept(this.oldArchimateConcept);
+			dbMetadata.setLocked(this.oldIsLocked);
+			dbMetadata.setDocumentation(this.oldDocumentation);
+			dbMetadata.setLineColor(this.oldLineColor);
+			dbMetadata.setLineWidth(this.oldLineWidth);
+			dbMetadata.setFont(this.oldFont);
+			dbMetadata.setFontColor(this.oldFontColor);
+			dbMetadata.setType(this.oldType);
+			dbMetadata.setTextPosition(this.oldTextPosition);
 
-			metadata.setSourceConnection(this.oldSource);
-			metadata.setTargetConnection(this.oldTarget);
+			dbMetadata.setSourceConnection(this.oldSource);
+			dbMetadata.setTargetConnection(this.oldTarget);
 
 			// If the object has got properties but does not have a linked relationship, then it may have distinct properties
 			if ( this.oldProperties == null ) {
 				((IProperties)this.importedViewConnection).getProperties().clear();
 				for ( DBProperty pair: this.oldProperties ) {
-					IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+					IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 					prop.setKey(pair.getKey());
 					prop.setValue(pair.getValue());
 					((IProperties)this.importedViewConnection).getProperties().add(prop);
@@ -333,7 +333,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 			this.importedViewConnection.getBendpoints().clear();
 			for ( DBBendpoint oldBendpoint: this.oldBendpoints ) {
-				IDiagramModelBendpoint newBendpoint = DBArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
+				IDiagramModelBendpoint newBendpoint = IArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
 				newBendpoint.setStartX(oldBendpoint.getStartX());
 				newBendpoint.setStartY(oldBendpoint.getStartY());
 				newBendpoint.setEndX(oldBendpoint.getEndX());

@@ -22,6 +22,7 @@ import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
@@ -920,4 +921,17 @@ public class DBMetadata  {
 	    	}
     	}
     }
+    
+	/**
+	 * Gets the DBMetadata associated with an archimate object.
+	 * @param obj the archimate object
+	 * @return the DBMetadata class associated with the archimate object
+	 */
+	public static DBMetadata getDBMetadata(EObject obj) {
+		if ( obj instanceof IArchimateModelObject ) {
+			DBArchimateModel model = (DBArchimateModel) ((IArchimateModelObject)obj).getArchimateModel();
+			return model.getDBMetadata(obj);	
+		}
+		return null;
+	}
 }

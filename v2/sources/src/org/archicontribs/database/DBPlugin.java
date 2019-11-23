@@ -301,6 +301,8 @@ import lombok.Getter;
  * 									Update the JDBC drivers
  * 										MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
  * 
+ * v2.2.2: 23/11/2019				Rewrite code to remove a lot of class extends
+ *   
  * TO-DO list:
  * ----------
  *		Import components from database:

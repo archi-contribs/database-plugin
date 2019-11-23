@@ -11,7 +11,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiReplaceElement;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -21,6 +21,11 @@ import org.eclipse.ui.handlers.HandlerUtil;
 import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
 import com.archimatetool.model.IArchimateElement;
 
+/**
+ * Class that is called when the user selects the "Replace Element" in the context menu
+ * 
+ * @author Herve Jouin
+ */
 public class DBMenuElementReplaceHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
 	
@@ -40,7 +45,7 @@ public class DBMenuElementReplaceHandler extends AbstractHandler {
 		    return null;                                                                        // we can only replace elements here
 		}
 		
-		if ( logger.isDebugEnabled() ) logger.debug("Replacing element "+((IDBMetadata)element).getDBMetadata().getDebugName());
+		if ( logger.isDebugEnabled() ) logger.debug("Replacing element "+DBMetadata.getDBMetadata(element).getDebugName());
 		
         try {
             DBGuiReplaceElement replaceElement = new DBGuiReplaceElement((DBArchimateModel)element.getArchimateModel(), element, "Replace element");

@@ -22,7 +22,11 @@ import com.archimatetool.editor.diagram.editparts.ArchimateElementEditPart;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IFolder;
-
+/**
+ * Class that is called when the user selects the "Import component from database" context menu.
+ * 
+ * @author Herve Jouin
+ */
 public class DBMenuComponentImportHandler extends AbstractHandler {
 	private static final DBLogger logger = new DBLogger(DBMenu.class);
 	

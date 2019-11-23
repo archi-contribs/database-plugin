@@ -18,14 +18,14 @@ import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.gef.commands.Command;
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -87,9 +87,11 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 		this.model = archimateModel;
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
+		
+		DBMetadata dbMetadata = archimateModel.getDBMetadata(archimateDiagramModel);
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing relationship id " + idToImport + " version " + versionToImport + " in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+((IDBMetadata)archimateDiagramModel).getDBMetadata().getDebugName() : "."));
+			logger.debug("   Importing relationship id " + idToImport + " version " + versionToImport + " in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+dbMetadata.getDebugName() : "."));
 
 
 		try {
@@ -105,7 +107,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
@@ -136,52 +138,52 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			this.importedRelationship = this.model.getAllRelationships().get(this.id);
 
 			if ( (this.importedRelationship == null) || this.mustCreateCopy ) {
-				this.importedRelationship = (IArchimateRelationship) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+				this.importedRelationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {
 				// we must save the old values to allow undo
-				DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedRelationship);
 
-				this.oldInitialVersion = metadata.getInitialVersion();
-				this.oldCurrentVersion = metadata.getCurrentVersion();
-				this.oldDatabaseVersion = metadata.getDatabaseVersion();
-				this.oldLatestDatabaseVersion = metadata.getLatestDatabaseVersion();
+				this.oldInitialVersion = dbMetadata.getInitialVersion();
+				this.oldCurrentVersion = dbMetadata.getCurrentVersion();
+				this.oldDatabaseVersion = dbMetadata.getDatabaseVersion();
+				this.oldLatestDatabaseVersion = dbMetadata.getLatestDatabaseVersion();
 
-				this.oldName = metadata.getName();
-				this.oldDocumentation = metadata.getDocumentation();
-				this.oldStrength = metadata.getStrength();
-				this.oldAccessType = metadata.getAccessType();
+				this.oldName = dbMetadata.getName();
+				this.oldDocumentation = dbMetadata.getDocumentation();
+				this.oldStrength = dbMetadata.getStrength();
+				this.oldAccessType = dbMetadata.getAccessType();
 
-				this.oldSource = metadata.getRelationshipSource();
-				this.oldTarget = metadata.getRelationshipTarget();
+				this.oldSource = dbMetadata.getRelationshipSource();
+				this.oldTarget = dbMetadata.getRelationshipTarget();
 
 				this.oldProperties = new ArrayList<DBProperty>();
 				for ( IProperty prop: this.importedRelationship.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 
-				this.oldFolder = metadata.getParentFolder();
+				this.oldFolder = dbMetadata.getParentFolder();
 
 				this.isNew = false;
 			}
 
-			DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+			DBMetadata dbMetadata = this.model.getDBMetadata(this.importedRelationship);
 
 			if ( this.mustCreateCopy )
-				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
 			else
-				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
 			
-			metadata.setId((String)this.newValues.get("id"));
-			metadata.setName((String)this.newValues.get("name"));
-			metadata.getCurrentVersion().set(metadata.getInitialVersion());
-			metadata.getDatabaseVersion().set(metadata.getInitialVersion());
-			metadata.getLatestDatabaseVersion().set(metadata.getInitialVersion());
+			dbMetadata.setId((String)this.newValues.get("id"));
+			dbMetadata.setName((String)this.newValues.get("name"));
+			dbMetadata.getCurrentVersion().set(dbMetadata.getInitialVersion());
+			dbMetadata.getDatabaseVersion().set(dbMetadata.getInitialVersion());
+			dbMetadata.getLatestDatabaseVersion().set(dbMetadata.getInitialVersion());
 
-			metadata.setDocumentation((String)this.newValues.get("documentation"));
-			metadata.setStrength((String)this.newValues.get("strength"));
-			metadata.setAccessType((Integer)this.newValues.get("access_type"));
+			dbMetadata.setDocumentation((String)this.newValues.get("documentation"));
+			dbMetadata.setStrength((String)this.newValues.get("strength"));
+			dbMetadata.setAccessType((Integer)this.newValues.get("access_type"));
 
 			// The source of the relationship can be either an element or another relationship
 			IArchimateConcept source = this.model.getAllElements().get(this.model.getNewElementId((String)this.newValues.get("source_id")));
@@ -192,7 +194,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.model.registerSourceRelationship(this.importedRelationship, (String)this.newValues.get("source_id"));
 			} else {
 				// the source can be resolved right away
-				metadata.setRelationshipSource(source);
+				dbMetadata.setRelationshipSource(source);
 			}
 
 			// The target of the relationship can be either an element or another relationship
@@ -204,13 +206,13 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.model.registerTargetRelationship(this.importedRelationship, (String)this.newValues.get("target_id"));
 			} else {
 				// the target can be resolved right away
-				metadata.setRelationshipTarget(target);
+				dbMetadata.setRelationshipTarget(target);
 			}
 
 			this.importedRelationship.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
     			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
     				prop.setKey(newProperty.getKey());
     				prop.setValue(newProperty.getValue());
     				this.importedRelationship.getProperties().add(prop);
@@ -220,10 +222,10 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			// During the import of an individual relationship from the database, we check if objects or connections exist for the source and the target
 			// and create the corresponding connections
 			// TODO: add an option that the user can choose if he wants the connections or not
-			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
+			if ( this.view != null && dbMetadata.findConnectables(this.view).isEmpty() ) {
 				this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
-				List<IConnectable> sourceConnections = metadata.findConnectables(this.view, this.importedRelationship.getSource());
-				List<IConnectable> targetConnections = metadata.findConnectables(this.view, this.importedRelationship.getTarget());
+				List<IConnectable> sourceConnections = dbMetadata.findConnectables(this.view, this.importedRelationship.getSource());
+				List<IConnectable> targetConnections = dbMetadata.findConnectables(this.view, this.importedRelationship.getTarget());
 
 				for ( IConnectable sourceConnection: sourceConnections ) {
 					for ( IConnectable targetConnection: targetConnections ) {
@@ -240,9 +242,9 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			}
 
 			if ( this.newFolder == null )
-				metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
+				dbMetadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
 			else
-				metadata.setParentFolder(this.newFolder);
+				dbMetadata.setParentFolder(this.newFolder);
 
 			if ( this.isNew )
 				this.model.countObject(this.importedRelationship, false);
@@ -281,26 +283,26 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.model.getAllRelationships().remove(this.importedRelationship.getId());
 			} else {
 				// else, we need to restore the old properties
-				DBMetadata metadata = ((IDBMetadata)this.importedRelationship).getDBMetadata();
+				DBMetadata dbMetadata = this.model.getDBMetadata(this.importedRelationship);
 
-				metadata.getInitialVersion().set(this.oldInitialVersion);
-				metadata.getCurrentVersion().set(this.oldCurrentVersion);
-				metadata.getDatabaseVersion().set(this.oldDatabaseVersion);
-				metadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
+				dbMetadata.getInitialVersion().set(this.oldInitialVersion);
+				dbMetadata.getCurrentVersion().set(this.oldCurrentVersion);
+				dbMetadata.getDatabaseVersion().set(this.oldDatabaseVersion);
+				dbMetadata.getLatestDatabaseVersion().set(this.oldLatestDatabaseVersion);
 
-				metadata.setName(this.oldName);
-				metadata.setDocumentation(this.oldDocumentation);
-				metadata.setStrength(this.oldStrength);
-				metadata.setAccessType(this.oldAccessType);
+				dbMetadata.setName(this.oldName);
+				dbMetadata.setDocumentation(this.oldDocumentation);
+				dbMetadata.setStrength(this.oldStrength);
+				dbMetadata.setAccessType(this.oldAccessType);
 
-				metadata.setRelationshipSource(this.oldSource);
-				metadata.setRelationshipTarget(this.oldTarget);
+				dbMetadata.setRelationshipSource(this.oldSource);
+				dbMetadata.setRelationshipTarget(this.oldTarget);
 
-				metadata.setParentFolder(this.oldFolder);
+				dbMetadata.setParentFolder(this.oldFolder);
 
 				this.importedRelationship.getProperties().clear();
 				for ( DBProperty oldProperty: this.oldProperties ) {
-					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					IProperty newProperty = IArchimateFactory.eINSTANCE.createProperty();
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedRelationship.getProperties().add(newProperty);

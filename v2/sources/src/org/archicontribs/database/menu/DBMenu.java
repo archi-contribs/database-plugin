@@ -48,7 +48,9 @@ import com.archimatetool.model.INameable;
 import com.archimatetool.model.ISketchModel;
 
 /**
- * This class is used when the user right-click on a graphical object
+ * This class is used when the user right-click on a graphical object to add entries to the contextual menu
+ *
+ * @author Herve Jouin
  */
 public class DBMenu extends ExtensionContributionFactory {
     private static final DBLogger logger = new DBLogger(DBMenu.class);

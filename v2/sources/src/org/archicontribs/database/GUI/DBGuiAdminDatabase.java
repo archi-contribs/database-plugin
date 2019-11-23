@@ -40,6 +40,11 @@ import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 
+/**
+ * This class manages the GUI for the database administration procedures
+ * 
+ * @author Herve Jouin
+ */
 public class DBGuiAdminDatabase extends DBGui {
     @SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiAdminDatabase.class);
@@ -69,6 +74,8 @@ public class DBGuiAdminDatabase extends DBGui {
 
     /**
      * Creates the GUI to import a model
+     * @param databaseImportconnection 
+     * @param entries 
      * @param title Title of the window
      * @throws Exception 
      */
@@ -123,7 +130,8 @@ public class DBGuiAdminDatabase extends DBGui {
     }
     
     /**
-     * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.<br>
+     * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.
+     * @param ignore (unused)
      */
     @Override
     protected void connectedToDatabase(boolean ignore) {

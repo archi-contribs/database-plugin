@@ -19,16 +19,16 @@ import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.data.DBVersion;
-import org.archicontribs.database.model.DBArchimateFactory;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
-import org.archicontribs.database.model.IDBMetadata;
+import org.eclipse.emf.ecore.EClass;
 import org.eclipse.gef.commands.Command;
 
 import com.archimatetool.editor.diagram.ArchimateDiagramModelFactory;
 import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
+import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IFolder;
@@ -110,7 +110,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (((IDBMetadata)folder).getDBMetadata().getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newFolder = folder;
 			else
 			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
@@ -173,12 +173,12 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			this.importedElement = this.model.getAllElements().get(this.id);
 
 			if ( (this.importedElement == null) || this.mustCreateCopy ) {
-				this.importedElement = (IArchimateElement) DBArchimateFactory.eINSTANCE.create((String)this.newValues.get("class"));
+				this.importedElement = (IArchimateElement) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier("com.archimatetool.model."+(String)this.newValues.get("class"))));
 
 				this.isNew = true;
 			} else {
 				// we must save the old values to allow undo
-				DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
+				DBMetadata metadata = this.model.getDBMetadata(this.importedElement);
 
 				this.oldInitialVersion = metadata.getInitialVersion();
 				this.oldCurrentVersion = metadata.getCurrentVersion();
@@ -199,7 +199,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				this.isNew = false;
 			}
 
-			DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
+			DBMetadata metadata = this.model.getDBMetadata(this.importedElement);
 
 			if ( this.mustCreateCopy )
 				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
@@ -218,7 +218,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			this.importedElement.getProperties().clear();
 			if ( this.newValues.get("properties") != null ) {
     			for ( DBProperty newProperty: (ArrayList<DBProperty>)this.newValues.get("properties")) {
-    				IProperty prop = DBArchimateFactory.eINSTANCE.createProperty();
+    				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
     				prop.setKey(newProperty.getKey());
     				prop.setValue(newProperty.getValue());
     				this.importedElement.getProperties().add(prop);
@@ -284,7 +284,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				this.model.getAllElements().remove(this.importedElement.getId());
 			} else {
 				// else, we need to restore the old properties
-				DBMetadata metadata = ((IDBMetadata)this.importedElement).getDBMetadata();
+				DBMetadata metadata = this.model.getDBMetadata(this.importedElement);
 
 				metadata.getInitialVersion().set(this.oldInitialVersion);
 				metadata.getCurrentVersion().set(this.oldCurrentVersion);
@@ -299,7 +299,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 				this.importedElement.getProperties().clear();
 				for ( DBProperty oldProperty: this.oldProperties ) {
-					IProperty newProperty = DBArchimateFactory.eINSTANCE.createProperty();
+					IProperty newProperty = IArchimateFactory.eINSTANCE.createProperty();
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedElement.getProperties().add(newProperty);

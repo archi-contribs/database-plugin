@@ -11,7 +11,7 @@ import java.util.Map;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.emf.ecore.EObject;
 
@@ -32,7 +32,15 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     private Map<EObject, IFolder> oldObjectsFolders = new HashMap<EObject, IFolder>();
     private Map<EObject, IFolder> newObjectsFolders = new HashMap<EObject, IFolder>();
     
+    private DBArchimateModel dbModel;
+    
+    /**
+     * @param model
+     * @param importConnection
+     */
     public DBSetFolderToLastKnownCommand(DBArchimateModel model, DBDatabaseImportConnection importConnection) {
+    	this.dbModel = model;
+    	
         try {
             try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
                     + " FROM "+importConnection.getSchema()+"elements_in_model m1"
@@ -44,10 +52,11 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
                     ) ) {
                 while (result.next() ) {
                     IArchimateElement element = model.getAllElements().get(result.getString("element_id"));
+                	DBMetadata elementDbMetadata = model.getDBMetadata(element);
                     if ( element != null ) {
                         IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                        if ( (parentFolder != null) && (parentFolder != ((IDBMetadata)element).getDBMetadata().getParentFolder()) ) {
-                            this.oldObjectsFolders.put(element, ((IDBMetadata)element).getDBMetadata().getParentFolder());
+                        if ( (parentFolder != null) && (parentFolder != elementDbMetadata.getParentFolder()) ) {
+                            this.oldObjectsFolders.put(element, elementDbMetadata.getParentFolder());
                             this.newObjectsFolders.put(element, parentFolder);
                         }
                     }
@@ -65,10 +74,11 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
                     ) ) {
                 while (result.next() ) {
                     IArchimateRelationship relationship = model.getAllRelationships().get(result.getString("relationship_id"));
+                    DBMetadata relationshipDbMetadata = model.getDBMetadata(relationship);
                     if ( relationship != null ) {
                         IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                        if ( (parentFolder != null) && (parentFolder != ((IDBMetadata)relationship).getDBMetadata().getParentFolder()) ) {
-                            this.oldObjectsFolders.put(relationship, ((IDBMetadata)relationship).getDBMetadata().getParentFolder());
+                        if ( (parentFolder != null) && (parentFolder != relationshipDbMetadata.getParentFolder()) ) {
+                            this.oldObjectsFolders.put(relationship, relationshipDbMetadata.getParentFolder());
                             this.newObjectsFolders.put(relationship, parentFolder);
                         }
                     }
@@ -88,8 +98,9 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
                     IFolder folder = model.getAllFolders().get(result.getString("view_id"));
                     if ( (folder != null) ) {
                         IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                        if ( parentFolder != null && (parentFolder != ((IDBMetadata)folder).getDBMetadata().getParentFolder()) ) {
-                            this.oldObjectsFolders.put(folder, ((IDBMetadata)folder).getDBMetadata().getParentFolder());
+                        DBMetadata folderDbMetadata = model.getDBMetadata(folder);
+                        if ( parentFolder != null && (parentFolder != folderDbMetadata.getParentFolder()) ) {
+                            this.oldObjectsFolders.put(folder, folderDbMetadata.getParentFolder());
                             this.newObjectsFolders.put(folder, parentFolder);
                         }
                     }
@@ -109,8 +120,9 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
                     IDiagramModel view = model.getAllViews().get(result.getString("view_id"));
                     if ( (view != null) ) {
                         IFolder parentFolder = model.getAllFolders().get(result.getString("parent_folder_id"));
-                        if ( parentFolder != null && (parentFolder != ((IDBMetadata)view).getDBMetadata().getParentFolder()) ) {
-                            this.oldObjectsFolders.put(view, ((IDBMetadata)view).getDBMetadata().getParentFolder());
+                        DBMetadata viewDbMetadata = model.getDBMetadata(view);
+                        if ( parentFolder != null && (parentFolder != viewDbMetadata.getParentFolder()) ) {
+                            this.oldObjectsFolders.put(view, viewDbMetadata.getParentFolder());
                             this.newObjectsFolders.put(view, parentFolder);
                         }
                     }
@@ -125,14 +137,14 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     @Override
     public void execute() {
         for (Map.Entry<EObject, IFolder> newObjectEntry : this.newObjectsFolders.entrySet()) {
-            ((IDBMetadata)newObjectEntry.getKey()).getDBMetadata().setParentFolder(newObjectEntry.getValue());
+            this.dbModel.getDBMetadata(newObjectEntry.getKey()).setParentFolder(newObjectEntry.getValue());
         }
     }
     
     @Override
     public void undo() {
         for (Map.Entry<EObject, IFolder> oldObjectEntry : this.oldObjectsFolders.entrySet()) {
-            ((IDBMetadata)oldObjectEntry.getKey()).getDBMetadata().setParentFolder(oldObjectEntry.getValue());
+           this.dbModel.getDBMetadata(oldObjectEntry.getKey()).setParentFolder(oldObjectEntry.getValue());
         }
     }
     

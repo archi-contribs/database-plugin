@@ -9,10 +9,8 @@ package org.archicontribs.database.model.commands;
 import java.util.ArrayList;
 
 import org.archicontribs.database.model.DBArchimateModel;
-import org.archicontribs.database.model.IDBMetadata;
 import org.eclipse.gef.commands.Command;
 
-import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModelComponent;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -28,12 +26,16 @@ import com.archimatetool.model.IDiagramModelObject;
 public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand {
     private IDiagramModelContainer viewObjectParent;
     private IDiagramModelObject viewObject;
-    private IArchimateModel model;
+    private DBArchimateModel model;
     private int viewObjectIndex;
     private ArrayList<IDiagramModelObject> viewObjectChildren;
     private Exception exception = null;
     
-    public DBDeleteDiagramObjectCommand(IArchimateModel archimateModel, IDiagramModelObject object) {
+    /**
+     * @param archimateModel
+     * @param object
+     */
+    public DBDeleteDiagramObjectCommand(DBArchimateModel archimateModel, IDiagramModelObject object) {
         this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
         this.viewObject = object;
         this.viewObjectChildren = new ArrayList<IDiagramModelObject>();
@@ -64,8 +66,8 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
                     for ( IDiagramModelObject child: this.viewObjectChildren )
                         this.viewObjectParent.getChildren().add(child);
                 }
-                ((IDBMetadata)((IDiagramModelComponent)this.viewObject).getDiagramModel()).getDBMetadata().setChecksumValid(false);
-                ((DBArchimateModel)this.model).getAllViewObjects().remove(this.viewObject.getId());
+                this.model.getDBMetadata(((IDiagramModelComponent)this.viewObject).getDiagramModel()).setChecksumValid(false);
+                this.model.getAllViewObjects().remove(this.viewObject.getId());
                 this.viewObjectParent.getChildren().remove(this.viewObject);
             }
         } catch (Exception e) {
@@ -85,7 +87,7 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
                     this.viewObjectParent.getChildren().remove(child);
                     ((IDiagramModelContainer)this.viewObject).getChildren().add(child);
                 }
-                ((DBArchimateModel)this.model).getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
+                this.model.getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
             }
         } catch (Exception e) {
             this.exception = e;
