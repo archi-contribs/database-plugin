@@ -906,12 +906,35 @@ public class DBMetadata  {
     	return null;
     }
     
+    // lineAlpha (line transparency) from Archi 4.6
+    public Integer getLineAlpha() {
+    	if ( (this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) {
+	    	try {
+	    		return ((IDiagramModelObject)this.component).getLineAlpha();
+	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+	    		// in 4.5, getLineAlpha() does not exist
+	    	}
+	    	return 255;
+    	}
+    	return null;
+    }
+    
     public void setAlpha(Integer alpha) {
     	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getAlpha()) ) {
 	    	try {
 	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
 	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
 	    		// in 4.2, getAlpha() does not exist
+	    	}
+    	}
+    }
+    
+    public void setLineAlpha(Integer alpha) {
+    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getLineAlpha()) ) {
+	    	try {
+	    		((IDiagramModelObject)this.component).setLineAlpha(alpha.intValue());
+	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+	    		// in 4.5, getLineAlpha() does not exist
 	    	}
     	}
     }

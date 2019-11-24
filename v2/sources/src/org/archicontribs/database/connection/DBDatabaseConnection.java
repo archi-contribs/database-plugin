@@ -877,6 +877,25 @@ public class DBDatabaseConnection implements AutoCloseable {
         
         executeRequest(requestString.toString());
     }
+    
+    public void renameColumn(String tableName, String oldColumnName, String newColumnName, String columnType) throws SQLException {
+    	if ( logger.isDebugEnabled() ) logger.debug("Altering table "+tableName+", renaming column "+oldColumnName+" to "+ newColumnName);
+    	
+    	if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) )
+    		executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
+
+    	else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
+    		executeRequest("EXEC sp_RENAME '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'");
+    	
+    	else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) )
+    		executeRequest("ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName);
+    	
+    	else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
+    		executeRequest("ALTER TABLE "+tableName+" CHANGE COLUMN "+oldColumnName+" "+newColumnName+" "+columnType);
+    	
+    	else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+    		executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
+    }
 
     /**
      * Upgrades the database
@@ -1208,6 +1227,8 @@ public class DBDatabaseConnection implements AutoCloseable {
         // convert from version 211 to 212
         //      - create table features
         //		- add columns has_properties and has_features to all component tables
+        //		- add column "line_alpha" to table views_objects
+        //		- add column "show_name" to table views_connections
         if ( dbVersion == 211 ) {
 	        if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
 	        executeRequest("CREATE TABLE "+this.schema+"features ("
@@ -1222,11 +1243,15 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        String[] tableNames = {"models", "folders", "elements", "relationships", "views", "views_objects", "views_connections"};   
 	        for (String tableName: tableNames) {
 	        		// we initialise the value to true as we do not know if the components have got properties, so we emulate the previous behaviour
-	        	addColumn(tableName, "has_properties", this.BOOLEAN_COLUMN, false, true);
+	        	addColumn(this.schema+tableName, "has_properties", this.BOOLEAN_COLUMN, false, true);
 	        	
 	        		// we initialise the value to false as we're sure that the components do not have features yet
-	        	addColumn(tableName, "has_properties", this.BOOLEAN_COLUMN, false, false);
+	        	addColumn(this.schema+tableName, "has_properties", this.BOOLEAN_COLUMN, false, false);
 	        }
+	        
+	        addColumn(this.schema+"views_objects", "line_alpha", this.INTEGER_COLUMN, false, 255);
+	        
+	        addColumn(this.schema+"views_connections", "show_name", this.BOOLEAN_COLUMN, false, true);
 	        
 	        dbVersion = 212;
         }

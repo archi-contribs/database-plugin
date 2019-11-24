@@ -132,6 +132,7 @@ public class DBChecksum {
 		if ( eObject instanceof IDiagramModelImageProvider )		append(checksumBuilder, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
 		if ( eObject instanceof IDiagramModelObject ) {				append(checksumBuilder, "fill color", ((IDiagramModelObject)eObject).getFillColor());
 																	append(checksumBuilder, "alpha", dbMetadata.getAlpha());		// from Archi 4.3
+																	append(checksumBuilder, "alpha", dbMetadata.getLineAlpha());	// from Archi 4.6
 																	IBounds bounds = ((IDiagramModelObject)eObject).getBounds();
 																	append(checksumBuilder, "bounds x", bounds.getX());
 																	append(checksumBuilder, "bounds y", bounds.getY());
