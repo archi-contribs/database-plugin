@@ -953,7 +953,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     public void exportModel(DBArchimateModel model, String releaseNote) throws Exception {
-        final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "has_properties", "has_features", "checksum"};
 
         if ( (model.getName() == null) || (model.getName().equals("")) )
             throw new RuntimeException("Model name cannot be empty.");
@@ -1029,7 +1029,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportElement(IArchimateElement element) throws Exception {
-        final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(element);
         
@@ -1109,7 +1109,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportRelationship(IArchimateRelationship relationship) throws Exception {
-        final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
@@ -1223,7 +1223,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportFolder(IFolder folder) throws Exception {
-        final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(folder);
 
@@ -1290,7 +1290,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportView(IDiagramModel view) throws Exception {
-        final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "hasProperties", "hasFeatures", "checksum", "container_checksum"};
+        final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "has_properties", "has_features", "checksum", "container_checksum"};
         DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(view);
         
@@ -1370,7 +1370,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "line_alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "line_alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(viewObject);
         
@@ -1464,7 +1464,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-        final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
+        final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
         DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(viewConnection);

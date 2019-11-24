@@ -1246,7 +1246,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        	addColumn(this.schema+tableName, "has_properties", this.BOOLEAN_COLUMN, false, true);
 	        	
 	        		// we initialise the value to false as we're sure that the components do not have features yet
-	        	addColumn(this.schema+tableName, "has_properties", this.BOOLEAN_COLUMN, false, false);
+	        	addColumn(this.schema+tableName, "has_features", this.BOOLEAN_COLUMN, false, false);
 	        }
 	        
 	        addColumn(this.schema+"views_objects", "line_alpha", this.INTEGER_COLUMN, false, 255);
