@@ -60,6 +60,11 @@ public class DBStatement implements AutoCloseable {
 	public int executeUpdate() throws SQLException {
 		Savepoint savepoint = null;
 		int rowCount = 0;
+		
+		if ( logger.isTraceEnabled() && !this.request.toLowerCase().startsWith("insert") ) {
+			// INSERT request are going through constructStatement that has got its own trace
+			logger.trace("      --> "+this.request);
+		}
 
 		try {
 			// on PostGreSQL databases, we can only send new requests if we rollback the transaction that caused the exception
