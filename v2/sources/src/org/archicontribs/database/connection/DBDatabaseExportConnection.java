@@ -354,7 +354,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
         }
         // we get all the elements that are part of the latest version of the model in the database and compare them to the actual model
         // we do not use max(version) in the SQL request as all database brands do not support it
-        // so we get all the version (sorted by the version) and determine the latest version of each element when the ID changes or when we reah the latest element
+        // so we get all the version (sorted by the version) and determine the latest version of each element when the ID changes or when we read the latest element
         try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
                 "SELECT id, name, version, checksum, created_on, model_id, model_version"
                         + " FROM "+this.schema+"elements"
@@ -1524,25 +1524,27 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
     private void exportMetadata(DBArchimateModel parent) throws Exception {
         final String[] metadataColumns = {"parent_id", "parent_version", "rank", "name", "value"};
 
-        for ( int propRank = 0 ; propRank < parent.getMetadata().getEntries().size(); ++propRank) {
-            IProperty prop = parent.getMetadata().getEntries().get(propRank);
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-                executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
-                        ,parent.getId()
-                        ,parent.getCurrentVersion().getVersion()
-                        ,propRank
-                        ,prop.getKey()
-                        ,prop.getValue()
-                        );
-            }
-            else
-                insert(this.schema+"metadata", metadataColumns
-                        ,parent.getId()
-                        ,parent.getCurrentVersion().getVersion()
-                        ,propRank
-                        ,prop.getKey()
-                        ,prop.getValue()
-                        );
+        if ( parent.getMetadata() != null ) {        
+	        for ( int propRank = 0 ; propRank < parent.getMetadata().getEntries().size(); ++propRank) {
+	            IProperty prop = parent.getMetadata().getEntries().get(propRank);
+	            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+	                executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
+	                        ,parent.getId()
+	                        ,parent.getCurrentVersion().getVersion()
+	                        ,propRank
+	                        ,prop.getKey()
+	                        ,prop.getValue()
+	                        );
+	            }
+	            else
+	                insert(this.schema+"metadata", metadataColumns
+	                        ,parent.getId()
+	                        ,parent.getCurrentVersion().getVersion()
+	                        ,propRank
+	                        ,prop.getKey()
+	                        ,prop.getValue()
+	                        );
+	        }
         }
     }
 

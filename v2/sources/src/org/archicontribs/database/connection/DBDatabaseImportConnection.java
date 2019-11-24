@@ -1063,11 +1063,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("   importing metadata");
 
 		// first, we delete all existing metadata
-		if ( model.getMetadata() == null ) {
-			@SuppressWarnings("deprecation")
-			IMetadata metadata = IArchimateFactory.eINSTANCE.createMetadata();
-			model.setMetadata(metadata);
-		} else 
+		if ( model.getMetadata() != null )
 			model.getMetadata().getEntries().clear();
 
 		// then, we import the metadata from the database 
@@ -1077,6 +1073,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 				prop.setKey(result.getString("name"));
 				prop.setValue(result.getString("value"));
+				if ( model.getMetadata() == null ) {
+					// if the model does not have metadata yet, we create them
+					@SuppressWarnings("deprecation")
+					IMetadata metadata = IArchimateFactory.eINSTANCE.createMetadata();
+					model.setMetadata(metadata);
+				}
 				model.getMetadata().getEntries().add(prop);
 			}
 		}
