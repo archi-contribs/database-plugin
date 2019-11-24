@@ -96,7 +96,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(idToImport, "IDiagramModel", versionToImport);
+			this.newValues = importConnection.getObjectFromDatabase(idToImport, "IDiagramModel", versionToImport);
 
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			

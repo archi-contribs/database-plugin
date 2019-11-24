@@ -101,7 +101,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(idToImport, "IDiagramModelConnection", versionToImport);
+			this.newValues = importConnection.getObjectFromDatabase(idToImport, "IDiagramModelConnection", versionToImport);
 			
 			if ( this.mustCreateCopy ) {
 				String newId = DBPlugin.createID();

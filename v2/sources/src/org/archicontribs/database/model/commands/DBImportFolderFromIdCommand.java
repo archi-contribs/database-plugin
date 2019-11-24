@@ -79,7 +79,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 		
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(idToImport, "IFolder", versionToImport);
+			this.newValues = importConnection.getObjectFromDatabase(idToImport, "IFolder", versionToImport);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			

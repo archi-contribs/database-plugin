@@ -99,7 +99,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 		try {
 			// we get the new values from the database to allow execute and redo
-			this.newValues = importConnection.getObject(idToImport, "IArchimateElement", versionToImport);
+			this.newValues = importConnection.getObjectFromDatabase(idToImport, "IArchimateElement", versionToImport);
 			
 			this.mustCreateCopy = importMode.shouldCreateCopy((ArrayList<DBProperty>)this.newValues.get("properties"));
 			

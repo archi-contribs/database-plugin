@@ -578,16 +578,10 @@ public class DBMetadata  {
         return null;
     }
     public void setLocked(Object isLocked) {
-        if ( (this.component instanceof ILockable) && (isLocked !=null) ) {
-            Boolean mustBeLocked = null;
-            if ( isLocked instanceof Boolean )
-                mustBeLocked = (Boolean)isLocked;
-            else if ( isLocked instanceof Integer)
-                mustBeLocked = (Integer)isLocked!=0;
-            else if ( isLocked instanceof String)
-                mustBeLocked = Integer.valueOf((String)isLocked)!=0;
+        if ( this.component instanceof ILockable ) {
+            boolean mustBeLocked = DBPlugin.getBooleanValue(isLocked);
 
-            if ( mustBeLocked != null && ((ILockable)this.component).isLocked() != mustBeLocked )
+            if ( ((ILockable)this.component).isLocked() != mustBeLocked )
                 ((ILockable)this.component).setLocked(mustBeLocked);
         }
     }

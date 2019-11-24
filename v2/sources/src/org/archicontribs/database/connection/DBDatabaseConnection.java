@@ -44,7 +44,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * Version of the expected database model.<br>
      * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
      */
-    public static final int databaseVersion = 211;
+    public static final int databaseVersion = 212;
 
     /**
      * the databaseEntry corresponding to the connection
@@ -376,6 +376,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL,"
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -419,6 +421,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -469,11 +473,23 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
             if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"properties");
             executeRequest("CREATE TABLE "+this.schema+"properties ("
+                    + "parent_id "+this.OBJECTID_COLUMN +" NOT NULL, "
+                    + "parent_version " + this.INTEGER_COLUMN +" NOT NULL, "
+                    + "rank " + this.INTEGER_COLUMN +" NOT NULL, "
+                    + "name " + this.OBJ_NAME_COLUMN + ", "
+                    + "value " + this.TEXT_COLUMN + ", "
+                    + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
+                    + ")");
+            
+            if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
+            executeRequest("CREATE TABLE "+this.schema+"features ("
                     + "parent_id "+this.OBJECTID_COLUMN +" NOT NULL, "
                     + "parent_version " + this.INTEGER_COLUMN +" NOT NULL, "
                     + "rank " + this.INTEGER_COLUMN +" NOT NULL, "
@@ -509,6 +525,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -557,6 +575,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + "container_checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
@@ -587,6 +607,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -677,6 +699,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
+                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
+                    + "has_features " + this.BOOLEAN_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -1179,6 +1203,32 @@ public class DBDatabaseConnection implements AutoCloseable {
             DBGui.closePopup();
         	
         	dbVersion = 211;
+        }
+        
+        // convert from version 211 to 212
+        //      - create table features
+        //		- add columns has_properties and has_features to all component tables
+        if ( dbVersion == 211 ) {
+	        if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
+	        executeRequest("CREATE TABLE "+this.schema+"features ("
+	                + "parent_id "+this.OBJECTID_COLUMN +" NOT NULL, "
+	                + "parent_version " + this.INTEGER_COLUMN +" NOT NULL, "
+	                + "rank " + this.INTEGER_COLUMN +" NOT NULL, "
+	                + "name " + this.OBJ_NAME_COLUMN + ", "
+	                + "value " + this.TEXT_COLUMN + ", "
+	                + this.PRIMARY_KEY+" (parent_id, parent_version, rank)"
+	                + ")");
+	        
+	        String[] tableNames = {"models", "folders", "elements", "relationships", "views", "views_objects", "views_connections"};   
+	        for (String tableName: tableNames) {
+	        		// we initialise the value to true as we do not know if the components have got properties, so we emulate the previous behaviour
+	        	addColumn(tableName, "has_properties", this.BOOLEAN_COLUMN, false, true);
+	        	
+	        		// we initialise the value to false as we're sure that the components do not have features yet
+	        	addColumn(tableName, "has_properties", this.BOOLEAN_COLUMN, false, false);
+	        }
+	        
+	        dbVersion = 212;
         }
 
         executeRequest("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");

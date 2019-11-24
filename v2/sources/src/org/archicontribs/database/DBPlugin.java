@@ -302,6 +302,9 @@ import lombok.Getter;
  * 										MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
  * 
  * v2.2.2: 23/11/2019				Rewrite code to remove a lot of class extends
+ * 									Update database structure to manage Archi 4.6 features
+ * 									Performance improvement
+ * 										Do not export / import properties and features if not necessary
  *   
  * TO-DO list:
  * ----------
@@ -562,5 +565,26 @@ public class DBPlugin extends AbstractUIPlugin {
 		// as I wish my plugin works for both versions, I decided to write my own method (based on UUIDFactory.createID())
 		
 		return UUID.randomUUID().toString();
+	}
+	
+	/**
+	 * Gets the boolean value from a Boolean, an Integer or a String
+	 * @param obj
+	 * @return Boolean : true if the obj value is true<BR>Integer: true if the obj value is greater than 0<BR>String : true if the string can be converted to an Integer greater then 0<BR>false in all other cases
+	 */
+	static public boolean getBooleanValue(Object obj) {
+		if ( obj == null )
+			return false;
+		
+		if ( obj instanceof Boolean )
+			return ((Boolean)obj).booleanValue();
+		
+		if ( obj instanceof Integer )
+			return (Integer)obj != 0;
+		
+		if ( obj instanceof String )
+			return Integer.valueOf((String)obj) != 0;
+		
+		return false;
 	}
 }

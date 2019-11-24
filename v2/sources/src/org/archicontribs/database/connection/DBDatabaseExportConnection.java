@@ -44,6 +44,8 @@ import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.IFeature;
+import com.archimatetool.model.IFeatures;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IIdentifier;
@@ -951,7 +953,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     public void exportModel(DBArchimateModel model, String releaseNote) throws Exception {
-        final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "checksum"};
+        final String[] modelsColumns = {"id", "version", "name", "note", "purpose", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
 
         if ( (model.getName() == null) || (model.getName().equals("")) )
             throw new RuntimeException("Model name cannot be empty.");
@@ -964,6 +966,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
             model.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
         else
             model.getCurrentVersion().setTimestamp(this.lastTransactionTimestamp);
+        
+        boolean hasProperties = ((model.getProperties() != null) && (model.getProperties().size() != 0));
+        boolean hasFeatures = ((model.getFeatures() != null) && (model.getFeatures().size() != 0));
 
         insert(this.schema+"models", modelsColumns
                 ,model.getId()
@@ -973,10 +978,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,model.getPurpose()
                 ,System.getProperty("user.name")
                 ,model.getCurrentVersion().getTimestamp()
+                ,hasProperties
+                ,hasFeatures
                 ,model.getCurrentVersion().getChecksum()
                 );
 
-        exportProperties(model);
+        if ( hasProperties )
+        	exportProperties(model);
+        
+        if ( hasFeatures )
+        	exportFeatures(model);
+        
         exportMetadata(model);
     }
 
@@ -1017,7 +1029,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportElement(IArchimateElement element) throws Exception {
-        final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "checksum"};
+        final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
         DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(element);
         
@@ -1026,6 +1038,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((element.getProperties() != null) && (element.getProperties().size() != 0));
+        boolean hasFeatures = ((element.getFeatures() != null) && (element.getFeatures().size() != 0));
+        
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
             // TODO: USE MERGE instead to replace existing nodes
             executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
@@ -1047,11 +1062,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     ,element.getDocumentation()
                     ,System.getProperty("user.name")
                     ,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
+                    ,hasProperties
+                    ,hasFeatures
                     ,dbMetadata.getCurrentVersion().getChecksum()
                     );
         }
 
-        exportProperties(element);
+        if ( hasProperties )
+        	exportProperties(element);
+
+        if ( hasFeatures )
+        	exportFeatures(element);
     }
 
     /**
@@ -1088,7 +1109,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportRelationship(IArchimateRelationship relationship) throws Exception {
-        final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "checksum"};
+        final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
         DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
@@ -1097,6 +1118,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((relationship.getProperties() != null) && (relationship.getProperties().size() != 0));
+        boolean hasFeatures = ((relationship.getFeatures() != null) && (relationship.getFeatures().size() != 0));
+        
         if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
             String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
             // TODO: USE MERGE instead to replace existing nodes
@@ -1152,11 +1176,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                     ,((relationship instanceof IAccessRelationship) ? ((IAccessRelationship)relationship).getAccessType() : null)
                     ,System.getProperty("user.name")
                     ,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
+                    ,hasProperties
+                    ,hasFeatures
                     ,dbMetadata.getCurrentVersion().getChecksum()
                     );
         }
 
-        exportProperties(relationship);
+        if ( hasProperties )
+        	exportProperties(relationship);
+
+        if ( hasFeatures )
+        	exportFeatures(relationship);
     }
 
     /**
@@ -1193,7 +1223,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportFolder(IFolder folder) throws Exception {
-        final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "checksum"};
+        final String[] foldersColumns = {"id", "version", "type", "root_type", "name", "documentation", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
         DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(folder);
 
@@ -1202,6 +1232,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((folder.getProperties() != null) && (folder.getProperties().size() != 0));
+        boolean hasFeatures = ((folder.getFeatures() != null) && (folder.getFeatures().size() != 0));
+        
         insert(this.schema+"folders", foldersColumns
                 ,folder.getId()
                 ,dbMetadata.getCurrentVersion().getVersion()
@@ -1211,12 +1244,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,folder.getDocumentation()
                 ,System.getProperty("user.name")
                 ,dbMetadata.getCurrentVersion().getTimestamp()
+                ,hasProperties
+                ,hasFeatures
                 ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
-        exportProperties(folder);
-    }
+        if ( hasProperties )
+        	exportProperties(folder);
 
+        if ( hasFeatures )
+        	exportFeatures(folder);
+    }
 
     /**
      * This class variable allows to sort the exported folders that they are imported in the same order<br>
@@ -1252,7 +1290,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportView(IDiagramModel view) throws Exception {
-        final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "checksum", "container_checksum"};
+        final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "hasProperties", "hasFeatures", "checksum", "container_checksum"};
         DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(view);
         
@@ -1261,6 +1299,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((view.getProperties() != null) && (view.getProperties().size() != 0));
+        boolean hasFeatures = ((view.getFeatures() != null) && (view.getFeatures().size() != 0));
+        
         insert(this.schema+"views", ViewsColumns
                 ,view.getId()
                 ,dbMetadata.getCurrentVersion().getVersion()
@@ -1275,11 +1316,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,dbMetadata.getScreenshot().getBytes()
                 ,dbMetadata.getScreenshot().getScaleFactor()
                 ,dbMetadata.getScreenshot().getBodrderWidth()
+                ,hasProperties
+                ,hasFeatures
                 ,dbMetadata.getCurrentVersion().getChecksum()
                 ,dbMetadata.getCurrentVersion().getContainerChecksum()
                 );
 
-        exportProperties(view);
+        if ( hasProperties )
+        	exportProperties(view);
+
+        if ( hasFeatures )
+        	exportFeatures(view);
     }
 
     /**
@@ -1323,7 +1370,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "checksum"};
+        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
         DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(viewObject);
         
@@ -1332,6 +1379,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((viewObject instanceof IProperties) && !(viewObject instanceof IDiagramModelArchimateComponent) && (((IProperties)viewObject).getProperties() != null) && (((IProperties)viewObject).getProperties().size() != 0));
+        boolean hasFeatures = ((viewObject.getFeatures() != null) && (viewObject.getFeatures().size() != 0));
+        
         insert(this.schema+"views_objects", ViewsObjectsColumns
                 ,((IIdentifier)viewObject).getId()
                 ,dbMetadata.getCurrentVersion().getVersion()
@@ -1363,11 +1413,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getBounds().getHeight() : null)
                 ,System.getProperty("user.name")
                 ,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
+                ,hasProperties
+                ,hasFeatures
                 ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
-        if ( viewObject instanceof IProperties && !(viewObject instanceof IDiagramModelArchimateComponent))
-            exportProperties((IProperties)viewObject);
+        if ( hasProperties )
+        	exportProperties((IProperties)viewObject);
+
+        if ( hasFeatures )
+        	exportFeatures(viewObject);
     }
 
     /**
@@ -1408,7 +1463,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-        final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "checksum"};
+        final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "hasProperties", "hasFeatures", "checksum"};
         final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
         DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(viewConnection);
@@ -1418,6 +1473,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
         if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
+        boolean hasProperties = ((viewConnection.getProperties() != null) && (viewConnection.getProperties().size() != 0));
+        boolean hasFeatures = ((viewConnection.getFeatures() != null) && (viewConnection.getFeatures().size() != 0));
+        
         insert(this.schema+"views_connections", ViewsConnectionsColumns
                 ,((IIdentifier)viewConnection).getId()
                 ,dbMetadata.getCurrentVersion().getVersion()
@@ -1437,10 +1495,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewConnection instanceof IDiagramModelArchimateObject) ? ((IDiagramModelArchimateObject)viewConnection).getType() : viewConnection.getType())
                 ,System.getProperty("user.name")
                 ,((DBArchimateModel)viewConnection.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
+                ,hasProperties
+                ,hasFeatures
                 ,dbMetadata.getCurrentVersion().getChecksum()
                 );
 
-        exportProperties(viewConnection);
+        if ( hasProperties )
+        	exportProperties(viewConnection);
+
+        if ( hasFeatures )
+        	exportFeatures(viewConnection);
 
         for ( int pos = 0 ; pos < viewConnection.getBendpoints().size(); ++pos) {
             IDiagramModelBendpoint bendpoint = viewConnection.getBendpoints().get(pos);
@@ -1515,9 +1579,45 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         );
         }
     }
+    
+    /**
+     * Export features to the database
+     * @param parent 
+     * @throws Exception 
+     */
+    private void exportFeatures(IFeatures parent) throws Exception {
+        final String[] featuresColumns = {"parent_id", "parent_version", "rank", "name", "value"};
+
+        int exportedVersion;
+        if ( parent instanceof DBArchimateModel ) {
+            exportedVersion = ((DBArchimateModel)parent).getCurrentVersion().getVersion();
+        } else 
+            exportedVersion = DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
+
+        for ( int featureRank = 0 ; featureRank < parent.getFeatures().size(); ++featureRank) {
+            IFeature feature = parent.getFeatures().get(featureRank);
+            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+                executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {rank:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
+                        ,((IIdentifier)parent).getId()
+                        ,exportedVersion
+                        ,featureRank
+                        ,feature.getName()
+                        ,feature.getValue()
+                        );
+            }
+            else
+                insert(this.schema+"properties", featuresColumns
+                        ,((IIdentifier)parent).getId()
+                        ,exportedVersion
+                        ,featureRank
+                        ,feature.getName()
+                        ,feature.getValue()
+                        );
+        }
+    }
 
     /**
-     * Export properties to the database
+     * Export model's metadata to the database
      * @param parent 
      * @throws Exception 
      */
