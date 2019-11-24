@@ -920,7 +920,7 @@ public class DBMetadata  {
     }
     
     public void setAlpha(Integer alpha) {
-    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getAlpha()) ) {
+    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha.intValue() != getAlpha().intValue()) ) {
 	    	try {
 	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
 	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
@@ -930,7 +930,7 @@ public class DBMetadata  {
     }
     
     public void setLineAlpha(Integer alpha) {
-    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha != getLineAlpha()) ) {
+    	if ( ((this.component instanceof IDiagramModelObject) || (this.component instanceof ICanvasModelSticky) || (this.component instanceof ICanvasModelBlock)) && (alpha != null) && (alpha.intValue() != getLineAlpha().intValue()) ) {
 	    	try {
 	    		((IDiagramModelObject)this.component).setLineAlpha(alpha.intValue());
 	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
