@@ -24,6 +24,7 @@ import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.IArchimateRelationship;
+import com.archimatetool.model.IAssociationRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
 import com.archimatetool.model.IConnectable;
@@ -319,11 +320,23 @@ public class DBMetadata  {
         if ( this.component instanceof IDiagramModelArchimateComponent && (concept != null))
             ((IDiagramModelArchimateComponent)this.component).setArchimateConcept(concept);
     }
+    
+    public String getArchimateConceptId() {
+        if ( this.component instanceof IDiagramModelArchimateComponent )
+            return ((IDiagramModelArchimateComponent)this.component).getArchimateConcept().getId();
+        return null;
+    }
 
     // ReferencedModel
     public IDiagramModel getReferencedModel() {
         if ( this.component instanceof IDiagramModelReference )
             return ((IDiagramModelReference)this.component).getReferencedModel();
+        return null;
+    }
+    
+    public String getReferencedModelId() {
+        if ( this.component instanceof IDiagramModelReference )
+            return ((IDiagramModelReference)this.component).getReferencedModel().getId();
         return null;
     }
 
@@ -522,13 +535,13 @@ public class DBMetadata  {
 
     // Documentation
     public String getDocumentation() {
-        if ( this.component instanceof IDocumentable )  
+        if ( (this.component instanceof IDocumentable) && !(this.component instanceof IDiagramModelArchimateComponent) )
             return ((IDocumentable)this.component).getDocumentation();
         return null;
     }
 
     public void setDocumentation(String documentation) {
-        if ( (this.component instanceof IDocumentable) && (documentation != null) && !DBPlugin.areEqual(((IDocumentable)this.component).getDocumentation(), documentation) )  
+        if ( (this.component instanceof IDocumentable) && !(this.component instanceof IDiagramModelArchimateComponent) && (documentation != null) && !DBPlugin.areEqual(((IDocumentable)this.component).getDocumentation(), documentation) )  
             ((IDocumentable)this.component).setDocumentation(documentation);
     }
     
@@ -577,6 +590,12 @@ public class DBMetadata  {
             return ((ILockable)this.component).isLocked();
         return null;
     }
+    public Integer isLockedAsInteger() {
+        if ( this.component instanceof ILockable )
+            return ((ILockable)this.component).isLocked() ? 1 : 0;
+        return null;
+    }
+    
     public void setLocked(Object isLocked) {
         if ( this.component instanceof ILockable ) {
             boolean mustBeLocked = DBPlugin.getBooleanValue(isLocked);
@@ -914,6 +933,28 @@ public class DBMetadata  {
 	    		// in 4.2, getAlpha() does not exist
 	    	}
     	}
+    }
+    
+    public Boolean isDirected() {
+    	if ( this.component instanceof IAssociationRelationship )
+    		return ((IAssociationRelationship)this.component).isDirected();
+    	return null;
+    }
+    
+    public Integer isDirectedAsInteger() {
+    	if ( this.component instanceof IAssociationRelationship )
+    		return ((IAssociationRelationship)this.component).isDirected() ? 1 : 0;
+    	return null;
+    }
+    
+    public void setDirected(boolean directed) {
+    	if ( this.component instanceof IAssociationRelationship )
+    		((IAssociationRelationship)this.component).setDirected(directed);
+    }
+    
+    public void setDirected(Object directed) {
+    	if ( this.component instanceof IAssociationRelationship )
+    		((IAssociationRelationship)this.component).setDirected(DBPlugin.getBooleanValue(directed));
     }
     
 	/**

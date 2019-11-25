@@ -376,8 +376,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL,"
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -421,8 +421,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -473,8 +473,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
 
@@ -519,14 +519,15 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "target_id " + this.OBJECTID_COLUMN + ", "
                     + "strength " + this.STRENGTH_COLUMN + ", "
                     + "access_type " + this.INTEGER_COLUMN + ", "
+                    + "is_directed " + this.BOOLEAN_COLUMN + ", "
                     + "created_by " + this.USERNAME_COLUMN +" NOT NULL, "
                     + "created_on " + this.DATETIME_COLUMN +" NOT NULL, "
                     + "checkedin_by " + this.USERNAME_COLUMN + ", "
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -575,8 +576,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + "container_checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
@@ -607,8 +608,9 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
+                    + "bendpoints " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -699,8 +701,8 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "checkedin_on " + this.DATETIME_COLUMN + ", "
                     + "deleted_by " + this.USERNAME_COLUMN + ", "
                     + "deleted_on " + this.DATETIME_COLUMN + ", "
-                    + "has_properties " + this.BOOLEAN_COLUMN + ", "
-                    + "has_features " + this.BOOLEAN_COLUMN + ", "
+                    + "properties " + this.INTEGER_COLUMN + ", "
+                    + "features " + this.INTEGER_COLUMN + ", "
                     + "checksum " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + this.PRIMARY_KEY+" (id, version)"
                     + ")");
@@ -1226,7 +1228,9 @@ public class DBDatabaseConnection implements AutoCloseable {
         
         // convert from version 211 to 212
         //      - create table features
-        //		- add columns has_properties and has_features to all component tables
+        //		- add columns properties and features to all component tables
+        //		- add columns bendpoints to views_connections table
+        //		- add columns is_directed to relationships table
         if ( dbVersion == 211 ) {
 	        if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
 	        executeRequest("CREATE TABLE "+this.schema+"features ("
@@ -1240,12 +1244,18 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        
 	        String[] tableNames = {"models", "folders", "elements", "relationships", "views", "views_objects", "views_connections"};   
 	        for (String tableName: tableNames) {
-	        		// we initialise the value to true as we do not know if the components have got properties, so we emulate the previous behaviour
-	        	addColumn(this.schema+tableName, "has_properties", this.BOOLEAN_COLUMN, false, true);
+	        		// we initialise the value to true as we do not know if the components have got properties, so we reproduce the previous behaviour
+	        	addColumn(this.schema+tableName, "properties", this.INTEGER_COLUMN, true, 1);
 	        	
 	        		// we initialise the value to false as we're sure that the components do not have features yet
-	        	addColumn(this.schema+tableName, "has_features", this.BOOLEAN_COLUMN, false, false);
+	        	addColumn(this.schema+tableName, "features", this.INTEGER_COLUMN, true, 1);
 	        }
+	        
+    			// we initialise the value to true as we do not know if the connection have got bendpoints, so we reproduce the previous behaviour
+	        addColumn(this.schema+"views_connections", "bendpoints", this.INTEGER_COLUMN, true, 1);
+	        
+	    		// we do not initialise the value, as NULL will be treated as false which is the default value (association relationships are not directed by default)
+	        addColumn(this.schema+"relationships", "is_directed", this.BOOLEAN_COLUMN, true, false);
 	        
 	        dbVersion = 212;
         }
