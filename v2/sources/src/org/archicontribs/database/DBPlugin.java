@@ -582,8 +582,14 @@ public class DBPlugin extends AbstractUIPlugin {
 		if ( obj instanceof Integer )
 			return (Integer)obj != 0;
 		
-		if ( obj instanceof String )
-			return Integer.valueOf((String)obj) != 0;
+		if ( obj instanceof String ) {
+			try {
+				return Integer.valueOf((String)obj) != 0;
+			} catch (@SuppressWarnings("unused") NumberFormatException ign) {
+				// ignore
+			}
+			return Boolean.valueOf((String)obj);
+		}
 		
 		return false;
 	}
