@@ -35,6 +35,8 @@ import com.archimatetool.model.IDiagramModelImageProvider;
 import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.IFeature;
+import com.archimatetool.model.IFeatures;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IIdentifier;
@@ -122,11 +124,13 @@ public class DBChecksum {
 		                                                            append(checksumBuilder, "source id", ((IDiagramModelConnection)eObject).getSource().getId());
 		                                                            append(checksumBuilder, "target id", ((IDiagramModelConnection)eObject).getTarget().getId());
 																	append(checksumBuilder, "text position", ((IDiagramModelConnection)eObject).getTextPosition());
-																	for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
-																		append(checksumBuilder, "bendpoint start x", point.getStartX());
-																		append(checksumBuilder, "bendpoint start y", point.getStartY());
-																		append(checksumBuilder, "bendpoint end x", point.getEndX());
-																		append(checksumBuilder, "bendpoint end y" ,point.getEndY());
+																	if ( ((IDiagramModelConnection)eObject).getBendpoints() != null ) {
+																		for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
+																			append(checksumBuilder, "bendpoint start x", point.getStartX());
+																			append(checksumBuilder, "bendpoint start y", point.getStartY());
+																			append(checksumBuilder, "bendpoint end x", point.getEndX());
+																			append(checksumBuilder, "bendpoint end y" ,point.getEndY());
+																		}
 																	}
 		}
 		if ( eObject instanceof IDiagramModelImageProvider )		append(checksumBuilder, "image path", ((IDiagramModelImageProvider)eObject).getImagePath());
@@ -155,9 +159,16 @@ public class DBChecksum {
 		if ( eObject instanceof INotesContent )						append(checksumBuilder, "notes", ((INotesContent)eObject).getNotes());
 		if ( eObject instanceof IProperties &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
-		        !(eObject instanceof IDiagramModelConnection) )	{	for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
+		        !(eObject instanceof IDiagramModelConnection) &&
+		        (((IProperties)eObject).getProperties() != null)){	for ( IProperty prop: ((IProperties)eObject).getProperties() ) {
 																		append(checksumBuilder, "property key", prop.getKey());
 																		append(checksumBuilder, "property value", prop.getValue());
+		        													}
+		}
+		if ( (eObject instanceof IFeatures) &&
+				(((IFeatures)eObject).getFeatures() != null) ) {	for ( IFeature feature: ((IFeatures)eObject).getFeatures() ) {
+																		append(checksumBuilder, "property name", feature.getName());
+																		append(checksumBuilder, "property value", feature.getValue());
 		        													}
 		}
 		
