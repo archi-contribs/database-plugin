@@ -7,6 +7,7 @@ package org.archicontribs.database.connection;
  */
 
 import java.sql.Connection;
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -51,6 +52,10 @@ public class DBSelect extends DBStatement {
 	
 	public byte[] getBytes(String columnLabel) throws SQLException {
 		return this.result.getBytes(columnLabel);
+	}
+	
+	public Date getDate(String columnLabel) throws SQLException {
+		return this.result.getDate(columnLabel);
 	}
 	
 	public Object getObject(String columnLabel) throws SQLException {
