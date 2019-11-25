@@ -1328,15 +1328,16 @@ public class DBDatabaseConnection implements AutoCloseable {
         try {
             // We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
             if ( filter==null || filter.length()==0 )
-                result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) ORDER BY name");
+                result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) ORDER BY name");
             else
-                result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
+                result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
 
             while ( result.next() && result.getString("id") != null ) {
                 if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\"");
                 Hashtable<String, Object> table = new Hashtable<String, Object>();
                 table.put("name", result.getString("name"));
                 table.put("id", result.getString("id"));
+                table.put("created_on",  result.getDate("created_on"));
                 list.add(table);
             }
         } finally {

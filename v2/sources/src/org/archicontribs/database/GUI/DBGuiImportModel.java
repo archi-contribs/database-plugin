@@ -7,11 +7,14 @@
 package org.archicontribs.database.GUI;
 
 import java.io.IOException;
+import java.sql.Date;
 import java.sql.Timestamp;
+import java.text.Collator;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Locale;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
@@ -219,7 +222,8 @@ public class DBGuiImportModel extends DBGui {
                 try {
                     for (Hashtable<String, Object> model : DBGuiImportModel.this.importConnection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%")) {
                         TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.BORDER);
-                        tableItem.setText((String)model.get("name"));
+                        tableItem.setText(0, (String)model.get("name"));
+                        tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((Date)model.get("created_on"))));
                         tableItem.setData("id", model.get("id"));
                     }
                 } catch (Exception err) {
@@ -237,6 +241,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.tblModels = new Table(this.grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
         this.tblModels.setLinesVisible(true);
+        this.tblModels.setHeaderVisible(true);
         this.tblModels.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblModels.addListener(SWT.Selection, new Listener() {
             @Override
@@ -288,7 +293,61 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colModelName = new TableColumn(this.tblModels, SWT.NONE);
         colModelName.setText("Model name");
-        colModelName.setWidth(265);
+        colModelName.setWidth(250);
+        colModelName.setData("sortDirection", 1);
+        colModelName.addListener(SWT.Selection, new Listener() {
+        	@Override
+        	public void handleEvent(Event e) {
+        		// sort column 1
+        		TableItem[] items = DBGuiImportModel.this.tblModels.getItems();
+        		int sortOrder = (int)colModelName.getData("sortDirection");
+        		colModelName.setData("sortDirection", -sortOrder);
+        		Collator collator = Collator.getInstance(Locale.getDefault());
+        		for (int i = 1; i < items.length; i++) {
+        			String value1 = items[i].getText(0);
+        			for (int j = 0; j < i; j++) {
+        				String value2 = items[j].getText(0);
+        				if (collator.compare(value1, value2)*sortOrder < 0) {
+        					String[] values = { items[i].getText(0), items[i].getText(1) };
+        					items[i].dispose();
+        					TableItem item = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
+        					item.setText(values);
+        					items = DBGuiImportModel.this.tblModels.getItems();
+        					break;
+        				}
+        			}
+        		}
+        	}
+        });
+        
+        TableColumn colModelDate = new TableColumn(this.tblModels, SWT.NONE);
+        colModelDate.setText("Date");
+        colModelDate.setWidth(120);
+        colModelDate.setData("sortDirection", 1);
+        colModelDate.addListener(SWT.Selection, new Listener() {
+        	@Override
+        	public void handleEvent(Event e) {
+        		// sort column 1
+        		TableItem[] items = DBGuiImportModel.this.tblModels.getItems();
+        		int sortOrder = (int)colModelDate.getData("sortDirection");
+        		colModelDate.setData("sortDirection", -sortOrder);
+        		Collator collator = Collator.getInstance(Locale.getDefault());
+        		for (int i = 1; i < items.length; i++) {
+        			String value1 = items[i].getText(1);
+        			for (int j = 0; j < i; j++) {
+        				String value2 = items[j].getText(1);
+        				if (collator.compare(value1, value2)*sortOrder < 0) {
+        					String[] values = { items[i].getText(0), items[i].getText(1) };
+        					items[i].dispose();
+        					TableItem item = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
+        					item.setText(values);
+        					items = DBGuiImportModel.this.tblModels.getItems();
+        					break;
+        				}
+        			}
+        		}
+        	}
+        });
 
         this.grpModelVersions = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
         this.grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
@@ -335,7 +394,7 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colVersion = new TableColumn(this.tblModelVersions, SWT.NONE);
         colVersion.setText("#");
-        colVersion.setWidth(40);
+        colVersion.setWidth(50);
 
         TableColumn colCreatedOn = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedOn.setText("Date");
@@ -700,7 +759,7 @@ public class DBGuiImportModel extends DBGui {
         // we add the new model in the manager
         IEditorModelManager.INSTANCE.registerModel(this.modelToImport);
 
-        // we import the model from the database in a separate thread
+        // we import the model from the database
         try {
             int importSize = this.importConnection.importModel(this.modelToImport);
             setProgressBarMinAndMax(0, importSize);

@@ -303,8 +303,9 @@ import lombok.Getter;
  * 
  * v2.2.2: 23/11/2019				Rewrite code to remove a lot of class extends
  * 									Update database structure to manage Archi 4.6 features
+ * 									Add last export date in the models table on the import window
  * 									Performance improvement
- * 										Do not export / import properties and features if not necessary
+ * 										Do not import properties, features and bendpoints if not necessary
  *   
  * TO-DO list:
  * ----------
