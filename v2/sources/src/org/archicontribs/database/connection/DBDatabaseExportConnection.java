@@ -1370,7 +1370,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
      * @throws Exception 
      */
     private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "line_alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "has_properties", "has_features", "checksum"};
+        final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "has_properties", "has_features", "checksum"};
         DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
         DBMetadata dbMetadata = model.getDBMetadata(viewObject);
         
@@ -1401,7 +1401,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                 ,((viewObject instanceof ILineObject) ? ((ILineObject)viewObject).getLineWidth() : null)
                 ,((viewObject instanceof IDiagramModelObject) ? ((IDiagramModelObject)viewObject).getFillColor() : null)
                 ,dbMetadata.getAlpha()
-                ,dbMetadata.getLineAlpha()
                 ,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFont() : null)
                 ,((viewObject instanceof IFontAttribute) ? ((IFontAttribute)viewObject).getFontColor() : null)
                 ,viewObject.getName()																						// we export the name because it will be used in case of conflict
@@ -1607,7 +1606,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
                         );
             }
             else
-                insert(this.schema+"properties", featuresColumns
+                insert(this.schema+"features", featuresColumns
                         ,((IIdentifier)parent).getId()
                         ,exportedVersion
                         ,featureRank
