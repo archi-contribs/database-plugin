@@ -167,8 +167,8 @@ public class DBChecksum {
 		}
 		if ( (eObject instanceof IFeatures) &&
 				(((IFeatures)eObject).getFeatures() != null) ) {	for ( IFeature feature: ((IFeatures)eObject).getFeatures() ) {
-																		append(checksumBuilder, "property name", feature.getName());
-																		append(checksumBuilder, "property value", feature.getValue());
+																		append(checksumBuilder, "feature name", feature.getName());
+																		append(checksumBuilder, "feature value", feature.getValue());
 		        													}
 		}
 		
