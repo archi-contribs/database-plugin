@@ -305,7 +305,8 @@ import lombok.Getter;
  * 									Update database structure to manage Archi 4.6 features
  * 									Add last export date in the models table on the import window
  * 									Performance improvement
- * 										Do not import properties, features and bendpoints if not necessary
+ * 										Do not try to import properties, features and bendpoints if not necessary
+ * 										Drastically reduce the number of SQL request when comparing the model to the database
  *   
  * TO-DO list:
  * ----------
