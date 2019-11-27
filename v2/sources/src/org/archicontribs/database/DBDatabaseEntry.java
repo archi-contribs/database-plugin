@@ -25,6 +25,11 @@ public class DBDatabaseEntry {
      */
     public DBDatabaseEntry() {
     }
+    
+	/**
+	 * ID of the database Entry 
+	 */
+	@Getter @Setter private String id = "";
 
 	/**
 	 * Name of the database Entry 
@@ -296,9 +301,12 @@ public class DBDatabaseEntry {
 			if ( includeNeo4j || !DBPlugin.areEqual(store.getString(preferenceName+"_driver_"+String.valueOf(line)).toLowerCase(), "neo4j") ) {
 				DBDatabaseEntry databaseEntry = new DBDatabaseEntry();
 
-				databaseEntry.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
-
 				try {
+					databaseEntry.setId(store.getString(preferenceName+"_id_"+String.valueOf(line)));
+					if ( databaseEntry.getId() == null )
+						databaseEntry.setId("");
+					databaseEntry.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
+					
 					// we have to manage the old name of MS SQL driver :-(
 					if ( store.getString(preferenceName+"_driver_"+String.valueOf(line)).equalsIgnoreCase("mssql") )
 						databaseEntry.setDriver(DBDatabase.MSSQL.getDriverName());
@@ -356,6 +364,7 @@ public class DBDatabaseEntry {
 
 		for (int line = 0; line < lines; line++) {
 			DBDatabaseEntry databaseEntry = databaseEntries.get(line);
+			store.setValue(preferenceName+"_id_"+String.valueOf(line), databaseEntry.getId());
 			store.setValue(preferenceName+"_name_"+String.valueOf(line), databaseEntry.getName());
 			store.setValue(preferenceName+"_driver_"+String.valueOf(line), databaseEntry.getDriver());
 			store.setValue(preferenceName+"_server_"+String.valueOf(line), databaseEntry.getServer());
