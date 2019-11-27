@@ -926,7 +926,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 		this.tblDatabases.removeAll();
 
-		for ( DBDatabaseEntry databaseEntry : DBDatabaseEntry.getAllDatabasesFromPreferenceStore(true) ) {
+		for ( DBDatabaseEntry databaseEntry : DBDatabaseEntry.getAllDatabasesFromPreferenceStore() ) {
 			TableItem tableItem = new TableItem(this.tblDatabases, SWT.NONE);
 			tableItem.setText(databaseEntry.getName());
 			tableItem.setData(databaseEntry);
@@ -949,7 +949,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			databaseEntries.add((DBDatabaseEntry)tableItem.getData());
 
 		try {
-		    DBDatabaseEntry.setAllIntoPreferenceStore(databaseEntries);
+		    DBDatabaseEntry.persistDatabaseEntryListIntoPreferenceStore(databaseEntries);
 		} catch (SQLException err) {
 		    DBGui.popup(Level.ERROR, "Failed to store databases information.", err);
 		}

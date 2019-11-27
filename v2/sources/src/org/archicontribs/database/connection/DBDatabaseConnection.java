@@ -289,18 +289,18 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schema+"database_version\" table");
 	
 	        int currentVersion = 0;
-	        try ( DBSelect resultVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
-	            resultVersion.next();
-	            currentVersion = resultVersion.getInt("version");
+	        try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+	            result.next();
+	            currentVersion = result.getInt("version");
 	        } catch (@SuppressWarnings("unused") SQLException err) {
 	            // if the table does not exist
-	            if ( !DBGui.question("We successfully connected to the database but the necessary tables have not be found.\n\nDo you wish to create them ?") )
-	                throw new SQLException("Necessary tables not found.");
+	            if ( !DBGui.question("We successfully connected to the database but it seems that it has not been initialized.\n\nDo you wish to intialize the database ?") )
+	                throw new SQLException("Database not initialized.");
 	
 	            createTables(dbGui);
 	            return;
 	        }
-	
+	        
 	        if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
 	            throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
 	
@@ -311,6 +311,20 @@ public class DBDatabaseConnection implements AutoCloseable {
 	            }
 	            else
 	                throw new SQLException("The database needs to be upgraded.");
+	        }
+	        
+	        
+	        // we check after the eventual database upgrade as database before version 212 did not have an ID
+	        String databaseId = "";
+	        try (DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+	            result.next();
+	            databaseId = result.getString("id");
+	        } // the "try" manages the result closure even in case of an exception
+	        
+	        if ( !this.databaseEntry.getId().equals(databaseId) ) {
+	        	logger.info("The database ID is \""+databaseId+"\" whereas the Id we knew was \""+this.databaseEntry.getId()+"\"... Updating the databaseEntry.");
+	        	this.databaseEntry.setId(databaseId);
+	        	this.databaseEntry.persistIntoPreferenceStore();
 	        }
     	} catch (Exception err) {
     		rollback();
@@ -344,6 +358,7 @@ public class DBDatabaseConnection implements AutoCloseable {
             
             if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"database_version");
             executeRequest("CREATE TABLE " + this.schema +"database_version ("
+            		+ "id " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + "archi_plugin " + this.OBJECTID_COLUMN +" NOT NULL, "
                     + "version " + this.INTEGER_COLUMN +" NOT NULL"
                     + ")");
@@ -1228,9 +1243,10 @@ public class DBDatabaseConnection implements AutoCloseable {
         
         // convert from version 211 to 212
         //      - create table features
-        //		- add columns properties and features to all component tables
-        //		- add columns bendpoints to views_connections table
-        //		- add columns is_directed to relationships table
+        //		- add columns "properties" and "features" to all component tables
+        //		- add column "bendpoints" to "views_connections" table
+        //		- add column "is_directed" to "relationships" table
+        //		- add column "id" to "database_version table
         if ( dbVersion == 211 ) {
 	        if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
 	        executeRequest("CREATE TABLE "+this.schema+"features ("
@@ -1257,6 +1273,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 	    		// we do not initialise the value, as NULL will be treated as false which is the default value (association relationships are not directed by default)
 	        addColumn(this.schema+"relationships", "is_directed", this.BOOLEAN_COLUMN, true, false);
 	        
+	        	// we add the new id column with a generated ID and save this ID in the preferences file for later use
+	        addColumn(this.schema+"database_version", "id", this.OBJECTID_COLUMN, false, "");
+	        
+	        this.databaseEntry.setId(DBPlugin.createID(null));
+	        executeRequest("UPDATE TABLE "+this.schema+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+	        this.databaseEntry.persistIntoPreferenceStore();
+	        
 	        dbVersion = 212;
         }
 
@@ -1278,7 +1301,7 @@ public class DBDatabaseConnection implements AutoCloseable {
         }
     }
 
-        /**
+     /**
      * wrapper to generate and execute a INSERT request in the database
      * One may just provide the column names and the corresponding values as parameters
      * the wrapper automatically generates the VALUES part of the request 

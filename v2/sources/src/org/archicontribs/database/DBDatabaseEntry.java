@@ -19,12 +19,22 @@ import lombok.Setter;
  */
 public class DBDatabaseEntry {
 	private static final DBLogger logger = new DBLogger(DBDatabaseEntry.class);
+	
+	/**
+	 * prefix used in the preference store
+	 */
+	final static String preferenceName = "databases";
 
     /**
      * Creates a new DBDatabaseEntry.
      */
     public DBDatabaseEntry() {
     }
+    
+	/**
+	 * DBDatabaseEntries are sorted, so we keep its index 
+	 */
+	@Getter @Setter private int index = -1;		// -1 means not initialized
     
 	/**
 	 * ID of the database Entry 
@@ -287,100 +297,113 @@ public class DBDatabaseEntry {
 	 * @param includeNeo4j True if the Neo4J database must be included, false if the Neo4J databases must me excluded
 	 * @return List of the database entries
 	 */
-	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore(boolean includeNeo4j) {
-		final String preferenceName = "databases";		// prefix used in preference file
-		
+	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore() {
 		if ( logger.isDebugEnabled() ) logger.debug("Getting databases preferences from preference store");
 		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();     
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
-		int lines = store.getInt(preferenceName);
-
+		
 		databaseEntries.clear();
+		
+		int lines = store.getInt(preferenceName);
+		
 		for (int line = 0; line <lines; line++) {
-
-			if ( includeNeo4j || !DBPlugin.areEqual(store.getString(preferenceName+"_driver_"+String.valueOf(line)).toLowerCase(), "neo4j") ) {
-				DBDatabaseEntry databaseEntry = new DBDatabaseEntry();
-
-				try {
-					databaseEntry.setId(store.getString(preferenceName+"_id_"+String.valueOf(line)));
-					if ( databaseEntry.getId() == null )
-						databaseEntry.setId("");
-					databaseEntry.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
-					
-					// we have to manage the old name of MS SQL driver :-(
-					if ( store.getString(preferenceName+"_driver_"+String.valueOf(line)).equalsIgnoreCase("mssql") )
-						databaseEntry.setDriver(DBDatabase.MSSQL.getDriverName());
-					else
-						databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
-					
-					databaseEntry.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
-
-					if ( !DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ) {
-						databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
-						databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
-						if ( !DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
-							databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
-						}
-						databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
-						databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
-					}
+			DBDatabaseEntry databaseEntry = new DBDatabaseEntry();
+			try {
+				databaseEntry.setIndex(line);
 				
-					databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
-					store.setDefault(preferenceName+"_views-images-border-width_"+String.valueOf(line), 10);
-					databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
-					store.setDefault(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), 100);
-					databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
-					
-					databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
-					databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
-					databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
-					
-					databaseEntry.setExpertMode(store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line)));
-					databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
+				databaseEntry.setId(store.getString(preferenceName+"_id_"+String.valueOf(line)));
+				if ( databaseEntry.getId() == null ) 
+					databaseEntry.setId("");
+				
+				databaseEntry.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
+				
+				// we have to manage the old name of MS SQL driver :-(
+				if ( store.getString(preferenceName+"_driver_"+String.valueOf(line)).equalsIgnoreCase("mssql") )
+					databaseEntry.setDriver(DBDatabase.MSSQL.getDriverName());
+				else
+					databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
+				
+				databaseEntry.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
 
-					databaseEntries.add(databaseEntry);
-				} catch (Exception e) {
-					DBGui.popup(Level.ERROR, "Failed to get database entry \""+databaseEntry.getName()+"\" from preference store.", e);
+				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), "sqlite") ) {
+					databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
+					databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
+					if ( !DBPlugin.areEqual(databaseEntry.getDriver(), "neo4j") ) {
+						databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
+					}
+					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
+					databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
 				}
+			
+				databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
+				store.setDefault(preferenceName+"_views-images-border-width_"+String.valueOf(line), 10);
+				databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
+				store.setDefault(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), 100);
+				databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
+				
+				databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
+				databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
+				databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
+				
+				databaseEntry.setExpertMode(store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line)));
+				databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
+
+				databaseEntries.add(databaseEntry);
+			} catch (Exception e) {
+				DBGui.popup(Level.ERROR, "Failed to get database entry \""+databaseEntry.getName()+"\" from preference store.", e);
 			}
 		}
 		return databaseEntries;
 	}
+	
+	/**
+	 * Persist the database entry in the preference store
+	 * 
+	 * @throws SQLException 
+	 */
+	public void persistIntoPreferenceStore() throws SQLException {
+		if ( logger.isDebugEnabled() ) logger.debug("Persisting database entry \""+getName()+"\" in the preference store");
+
+		
+		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
+		
+		String indexString = String.valueOf(getIndex());
+		
+		store.setValue(DBDatabaseEntry.preferenceName+"_id_"+indexString, getId());
+		store.setValue(DBDatabaseEntry.preferenceName+"_name_"+indexString, getName());
+		store.setValue(DBDatabaseEntry.preferenceName+"_driver_"+indexString, getDriver());
+		store.setValue(DBDatabaseEntry.preferenceName+"_server_"+indexString, getServer());
+		store.setValue(DBDatabaseEntry.preferenceName+"_port_"+indexString, getPort());
+		store.setValue(DBDatabaseEntry.preferenceName+"_database_"+indexString, getDatabase());
+		store.setValue(DBDatabaseEntry.preferenceName+"_schema_"+indexString, getSchema());
+		store.setValue(DBDatabaseEntry.preferenceName+"_username_"+indexString, getUsername());
+		store.setValue(DBDatabaseEntry.preferenceName+"_password_"+indexString, getPassword());
+		store.setValue(DBDatabaseEntry.preferenceName+"_export-views-images_"+indexString, isViewSnapshotRequired());
+		store.setValue(DBDatabaseEntry.preferenceName+"_views-images-border-width_"+indexString, getViewsImagesBorderWidth());
+		store.setValue(DBDatabaseEntry.preferenceName+"_views-images-scale-factor_"+indexString, getViewsImagesScaleFactor());
+		store.setValue(DBDatabaseEntry.preferenceName+"_neo4j-native-mode_"+indexString, isNeo4jNativeMode());
+		store.setValue(DBDatabaseEntry.preferenceName+"_neo4j-empty-database_"+indexString, shouldEmptyNeo4jDB());
+		store.setValue(DBDatabaseEntry.preferenceName+"_neo4j-typed-relationships_"+indexString, isNeo4jTypedRelationship());
+		store.setValue(DBDatabaseEntry.preferenceName+"_isExpertMode_"+indexString, isExpertMode());
+		store.setValue(DBDatabaseEntry.preferenceName+"_jdbcConnectionString_"+indexString, getJdbcConnectionString());
+	}
 
 	/**
-	 * Persist the database entries in the preference store
+	 * Persist all the database entries in the preference store
 	 * 
 	 * @param databaseEntries List of the database entries to persist in the preference store
 	 * @throws SQLException 
 	 */
-	public static void setAllIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) throws SQLException {
-		final String preferenceName = "databases";		// prefix used in preference file
-		
-		if ( logger.isDebugEnabled() ) logger.debug("Recording databases in preference store");
+	public static void persistDatabaseEntryListIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) throws SQLException {
+		if ( logger.isDebugEnabled() ) logger.debug("Persisting all database entries in the preference store");
 
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
-		int lines = databaseEntries.size();
-		store.setValue(preferenceName, lines);
+		int nbDatabases = databaseEntries.size();
+		store.setValue(preferenceName, nbDatabases);
 
-		for (int line = 0; line < lines; line++) {
-			DBDatabaseEntry databaseEntry = databaseEntries.get(line);
-			store.setValue(preferenceName+"_id_"+String.valueOf(line), databaseEntry.getId());
-			store.setValue(preferenceName+"_name_"+String.valueOf(line), databaseEntry.getName());
-			store.setValue(preferenceName+"_driver_"+String.valueOf(line), databaseEntry.getDriver());
-			store.setValue(preferenceName+"_server_"+String.valueOf(line), databaseEntry.getServer());
-			store.setValue(preferenceName+"_port_"+String.valueOf(line), databaseEntry.getPort());
-			store.setValue(preferenceName+"_database_"+String.valueOf(line), databaseEntry.getDatabase());
-			store.setValue(preferenceName+"_schema_"+String.valueOf(line), databaseEntry.getSchema());
-			store.setValue(preferenceName+"_username_"+String.valueOf(line), databaseEntry.getUsername());
-			store.setValue(preferenceName+"_password_"+String.valueOf(line), databaseEntry.getPassword());
-			store.setValue(preferenceName+"_export-views-images_"+String.valueOf(line), databaseEntry.isViewSnapshotRequired());
-			store.setValue(preferenceName+"_views-images-border-width_"+String.valueOf(line), databaseEntry.getViewsImagesBorderWidth());
-			store.setValue(preferenceName+"_views-images-scale-factor_"+String.valueOf(line), databaseEntry.getViewsImagesScaleFactor());
-			store.setValue(preferenceName+"_neo4j-native-mode_"+String.valueOf(line), databaseEntry.isNeo4jNativeMode());
-			store.setValue(preferenceName+"_neo4j-empty-database_"+String.valueOf(line), databaseEntry.shouldEmptyNeo4jDB());
-			store.setValue(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line), databaseEntry.isNeo4jTypedRelationship());
-			store.setValue(preferenceName+"_isExpertMode_"+String.valueOf(line), databaseEntry.isExpertMode());
-			store.setValue(preferenceName+"_jdbcConnectionString_"+String.valueOf(line), databaseEntry.getJdbcConnectionString());
+		for (int i = 0; i < nbDatabases; ++i) {
+			DBDatabaseEntry databaseEntry = databaseEntries.get(i);
+			databaseEntry.persistIntoPreferenceStore();
 		}
 	}
 
@@ -392,7 +415,7 @@ public class DBDatabaseEntry {
 	 * @throws Exception
 	 */
 	public static DBDatabaseEntry getDBDatabaseEntry(String databaseName) throws Exception {
-		List<DBDatabaseEntry> databaseEntries = getAllDatabasesFromPreferenceStore(true);
+		List<DBDatabaseEntry> databaseEntries = getAllDatabasesFromPreferenceStore();
 
 		for (DBDatabaseEntry databaseEntry : databaseEntries) {
 			if ( DBPlugin.areEqual(databaseEntry.getName(), databaseName) ) {

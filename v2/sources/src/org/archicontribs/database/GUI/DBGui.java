@@ -30,6 +30,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
+import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
@@ -597,21 +598,27 @@ public class DBGui {
     protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseName) throws Exception {
         refreshDisplay();
 
-        this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(mustIncludeNeo4j);
+        this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
         if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
-            popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in the preferences.");
+            popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
         } else {
         	int databaseToSelect = 0;
         	int line = 0;
             for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
-            	String databaseName = databaseEntry.getName();
-                this.comboDatabases.add(databaseName);
-                if ( databaseName.equals(defaultDatabaseName) )
-                	databaseToSelect = line;
-                ++line;
+            	if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
+            		String databaseName = databaseEntry.getName();
+            		this.comboDatabases.add(databaseName);
+            		if ( databaseName.equals(defaultDatabaseName) )
+            			databaseToSelect = line;
+            		++line;
+            	}
             }
-            this.comboDatabases.select(databaseToSelect);
-            this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
+            if ( line == 0 ) 
+            	popup(Level.ERROR, "You haven't configure any SQL database yet.\n\nPlease setup at least one SQL database in Archi preferences.");
+            else {
+            	this.comboDatabases.select(databaseToSelect);
+            	this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
+            }
         }
     }
 
@@ -638,16 +645,24 @@ public class DBGui {
 
             this.comboDatabases.removeAll();
 
-            this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(this.includeNeo4j);
+            this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
             if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
                 this.comboDatabases.select(0);
-                popup(Level.ERROR, "You won't be able to export until a database is configured in the preferences.");
+                popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
             } else {
+            	int line = 0;
                 for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
-                    this.comboDatabases.add(databaseEntry.getName());
+                	if ( this.includeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
+                		this.comboDatabases.add(databaseEntry.getName());
+                		++line;
+                	}
                 }
-                this.comboDatabases.select(0);
-                this.comboDatabases.notifyListeners(SWT.Selection, new Event());
+                if ( line == 0 ) 
+                	popup(Level.ERROR, "You haven't configure any SQL database yet.\n\nPlease setup at least one SQL database in Archi preferences.");
+                else {
+                	this.comboDatabases.select(0);
+                	this.comboDatabases.notifyListeners(SWT.Selection, new Event());
+                }
             }
         } else {
             if ( logger.isDebugEnabled() ) logger.debug("Preferences cancelled ...");

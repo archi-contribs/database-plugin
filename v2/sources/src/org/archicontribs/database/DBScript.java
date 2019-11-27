@@ -33,7 +33,7 @@ public class DBScript {
     public static IArchimateModel importModel(String modelName, String databaseName, boolean force) throws Exception {
 
         // we get the databases list from the preferences
-        List<DBDatabaseEntry> databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore(true);
+        List<DBDatabaseEntry> databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
         if ( (databaseEntries == null) || (databaseEntries.size() == 0) )
             throw new RuntimeException("Cannot find any database.");
           
