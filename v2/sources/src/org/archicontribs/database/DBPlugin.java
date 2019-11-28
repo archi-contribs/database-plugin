@@ -302,11 +302,13 @@ import lombok.Getter;
  * 										MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
  * 
  * v2.2.2: 23/11/2019				Rewrite code to remove a lot of class extends
- * 									Update database structure to manage Archi 4.6 features
- * 									Add last export date in the models table on the import window
+ * 									Update database structure to be compliant with Archi 4.6
+ * 									GUI improvement
+ * 										Add last export date to the models table on the import window
+ * 										Add a progress bar during a database comparison
  * 									Performance improvement
  * 										Do not try to import properties, features and bendpoints if not necessary
- * 										Drastically reduce the number of SQL request when comparing the model to the database
+ * 										Drastically increase the performance when comparing a model against a database
  *   
  * TO-DO list:
  * ----------
@@ -327,7 +329,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
 	/** version of the plugin */
-	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.2.1");
+	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.2.2");
 	
 	/** Name ofthe plugin */
 	public static final String pluginName = "DatabasePlugin";
