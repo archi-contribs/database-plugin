@@ -19,6 +19,7 @@ import java.util.Map.Entry;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -304,7 +305,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @param component
 	 * @throws SQLException
 	 */
-	public void getHashMapVersionFromDatabase(HashMap<String, IIdentifier> componentHashMap) throws SQLException {
+	public void getHashMapVersionFromDatabase(HashMap<String, IIdentifier> componentHashMap, DBGui gui) throws SQLException {
 		assert (componentHashMap != null);
 
 		String request;
@@ -437,12 +438,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				id = result.getString("id");
 
 				if ( !id.equals(oldId) ) {
-					if ( (oldId != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + dbMetadata.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + dbMetadata.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ dbMetadata.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ dbMetadata.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + dbMetadata.getDatabaseStatus());
+					if ( (oldId != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + dbMetadata.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + dbMetadata.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ dbMetadata.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ dbMetadata.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + dbMetadata.getDatabaseStatus());
+						}
 					}
 
 					component = componentHashMap.get(id);
@@ -473,12 +478,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				oldId = id;
 			}
 
-			if ( (oldId != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + dbMetadata.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + dbMetadata.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ dbMetadata.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ dbMetadata.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + dbMetadata.getDatabaseStatus());
+			if ( (oldId != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+				
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + dbMetadata.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + dbMetadata.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ dbMetadata.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ dbMetadata.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + dbMetadata.getDatabaseStatus());
+				}
 			}
 		}
 	}
@@ -499,7 +508,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @param model
 	 * @throws SQLException
 	 */
-	public void getAllVersionFromDatabase(DBArchimateModel model) throws SQLException {
+	public void getAllVersionFromDatabase(DBArchimateModel model, DBGui gui) throws SQLException {
 		// we do not manage versions in a Neo4J database
 		assert(!DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j"));
 
@@ -514,6 +523,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		this.imagesNotInDatabase.clear();
 
 		getModelVersionFromDatabase(model);
+		if ( gui != null ) gui.increaseProgressBar();
 
 		String modelId = model.getId();
 		int modelInitialVersion = model.getInitialVersion().getVersion();
@@ -564,13 +574,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					currentComponent = previousComponent;
 				else {
 					// If the current ID is different from the previous ID, it means we got a new component and not a new version of the same component
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						// If there is a previous component, we print some trace information
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							// If there is a previous component, we print some trace information
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					// we check if the component is present in the actual model
@@ -606,12 +620,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+				
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
 		}
 
@@ -624,12 +642,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
 
 			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
+				getHashMapVersionFromDatabase(componentHashMap, gui);
 				componentHashMap.clear();
 			}
 		}
 		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
+			getHashMapVersionFromDatabase(componentHashMap, gui);
 			componentHashMap.clear();
 		}
 
@@ -669,12 +687,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
 				else {
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					IArchimateModelObject object = model.getAllRelationships().get(currentId);
@@ -706,12 +728,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+				
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
 		}
 
@@ -724,12 +750,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
 
 			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
+				getHashMapVersionFromDatabase(componentHashMap, gui);
 				componentHashMap.clear();
 			}
 		}
 		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
+			getHashMapVersionFromDatabase(componentHashMap, gui);
 			componentHashMap.clear();
 		}
 
@@ -768,12 +794,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
 				else {
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					IArchimateModelObject object = model.getAllFolders().get(currentId);
@@ -805,12 +835,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+			
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
 		}
 
@@ -823,12 +857,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
 
 			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
+				getHashMapVersionFromDatabase(componentHashMap, gui);
 				componentHashMap.clear();
 			}
 		}
 		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
+			getHashMapVersionFromDatabase(componentHashMap, gui);
 			componentHashMap.clear();
 		}
 
@@ -869,12 +903,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
 				else {
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+					
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					IArchimateModelObject object = model.getAllViews().get(currentId);
@@ -906,12 +944,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+			
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
 		}
 
@@ -924,12 +966,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
 
 			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
+				getHashMapVersionFromDatabase(componentHashMap, gui);
 				componentHashMap.clear();
 			}
 		}
 		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
+			getHashMapVersionFromDatabase(componentHashMap, gui);
 			componentHashMap.clear();
 		}
 
@@ -949,23 +991,67 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( !model.getAllImagePaths().contains(result.getString("image_path")) ) {
 					this.imagesNotInModel.put(result.getString("image_path"), new DBMetadata());
 				}
+				if ( gui != null ) gui.increaseProgressBar();
 			}
 		}
 
 		// we compare the objects and connections of existing views
 		Iterator<Entry<String, IDiagramModel>> viewsIterator = model.getAllViews().entrySet().iterator();
 		while ( viewsIterator.hasNext() )
-			getViewObjectsAndConnectionsVersionsFromDatabase(model, model.getDBMetadata(viewsIterator.next().getValue()));
+			getViewObjectsAndConnectionsVersionsFromDatabase(model, model.getDBMetadata(viewsIterator.next().getValue()), gui);
 
 		// we also need to compare the objects and connections that are in the views that will be imported into the model
 		Iterator<Entry<String, DBMetadata>> viewsNotInModelIterator = this.viewsNotInModel.entrySet().iterator();
 		while ( viewsNotInModelIterator.hasNext() )
-			getViewObjectsAndConnectionsVersionsFromDatabase(model, viewsNotInModelIterator.next().getValue());
+			getViewObjectsAndConnectionsVersionsFromDatabase(model, viewsNotInModelIterator.next().getValue(), gui);
+		
+		
+		
+		// if some view objects have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
+		// so we check if they are completely new or if they exist in another model
+		Iterator<Map.Entry<String, IDiagramModelObject>> itvo = model.getAllViewObjects().entrySet().iterator();
+		while (itvo.hasNext()) {
+			DBMetadata dbMetadata = model.getDBMetadata(itvo.next().getValue());
+			if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
+
+			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
+				getHashMapVersionFromDatabase(componentHashMap, gui);
+				componentHashMap.clear();
+			}
+		}
+		if ( componentHashMap.size() != 0 ) {
+			getHashMapVersionFromDatabase(componentHashMap, gui);
+			componentHashMap.clear();
+		}
+		
+		// if some view connections have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
+		// so we check if they are completely new or if they exist in another model
+		Iterator<Map.Entry<String, IDiagramModelConnection>> itvc = model.getAllViewConnections().entrySet().iterator();
+		while (itvc.hasNext()) {
+			DBMetadata dbMetadata = model.getDBMetadata(itvc.next().getValue());
+			if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
+
+			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
+				getHashMapVersionFromDatabase(componentHashMap, gui);
+				componentHashMap.clear();
+			}
+		}
+		if ( componentHashMap.size() != 0 ) {
+			getHashMapVersionFromDatabase(componentHashMap, gui);
+			componentHashMap.clear();
+		}
+		
+		
+		
+		
 
 		// even if the model does not exist in the database, the images can exist in the database
 		// images do not have a version as they cannot be modified. Their path is a checksum and loading a new image creates a new path.
 
 		// at last, we check if all the images in the model are in the database
+		// we did not know them before now, so do not increase the progress bar !
 		if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
 		for ( String path: model.getAllImagePaths() ) {
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path from "+this.schema+"images where path = ?", path) ) {
@@ -979,11 +1065,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 	}
 
-	private void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, DBMetadata viewMetadata) throws SQLException, RuntimeException {
-		HashMap<String, IIdentifier> componentHashMap = new HashMap<String, IIdentifier>();
-		
+	private void getViewObjectsAndConnectionsVersionsFromDatabase(DBArchimateModel model, DBMetadata viewMetadata, DBGui gui) throws SQLException, RuntimeException {
 		String viewId = viewMetadata.getId();
-
 
 		int viewInitialVersion = viewMetadata.getInitialVersion().getVersion();
 		int viewDatabaseVersion = viewMetadata.getLatestDatabaseVersion().getVersion();
@@ -1022,12 +1105,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
 				else {
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					IDiagramModelObject object = model.getAllViewObjects().get(currentId);
@@ -1060,31 +1147,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+				
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
-		}
-
-		// if some components have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
-		// so we check if they are completely new or if they exist in another model
-		itvo = model.getAllViewObjects().entrySet().iterator();
-		while (itvo.hasNext()) {
-			DBMetadata dbMetadata = model.getDBMetadata(itvo.next().getValue());
-			if ( dbMetadata.getInitialVersion().getVersion() == 0 )
-				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
-
-			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
-				componentHashMap.clear();
-			}
-		}
-		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
-			componentHashMap.clear();
 		}
 
 
@@ -1123,12 +1196,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
 				else {
-					if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-						logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-						logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-						logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-						logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-						logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+						
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
 					}
 
 					IDiagramModelConnection object = model.getAllViewConnections().get(currentId);
@@ -1161,31 +1238,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				previousId = currentId;
 			}
 
-			if ( (previousComponent != null) && logger.isTraceEnabled() ) {
-				logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
-				logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
-				logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
-				logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
-				logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+				
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
 			}
-		}
-		
-		// if some components have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
-		// so we check if they are completely new or if they exist in another model
-		itvc = model.getAllViewConnections().entrySet().iterator();
-		while (itvc.hasNext()) {
-			DBMetadata dbMetadata = model.getDBMetadata(itvc.next().getValue());
-			if ( dbMetadata.getInitialVersion().getVersion() == 0 )
-				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
-
-			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
-				getHashMapVersionFromDatabase(componentHashMap);
-				componentHashMap.clear();
-			}
-		}
-		if ( componentHashMap.size() != 0 ) {
-			getHashMapVersionFromDatabase(componentHashMap);
-			componentHashMap.clear();
 		}
 	}
 
