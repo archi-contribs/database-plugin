@@ -1182,13 +1182,14 @@ public class DBGuiExportModel extends DBGui {
 		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
 			return true;
 		
-		setMessage("Comparing the model to the database ...");
+		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size() + this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size();
+		createProgressBar("Comparing the model to the database ...", 1, progressBarWidth);
 
 		try {
 			// we compare the elements, relationships, folders and views
-			this.exportConnection.getAllVersionFromDatabase(this.exportedModel);
+			this.exportConnection.getAllVersionFromDatabase(this.exportedModel, this);
 		} catch (SQLException err ) {
-			closeMessage();
+			hideProgressBar();
 			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
@@ -1196,7 +1197,7 @@ public class DBGuiExportModel extends DBGui {
 		}
 
 		// we create the view screenshots if the database is configured to export them
-		closeMessage();
+		hideProgressBar();
 		hideGrpDatabase();
 		createProgressBar("Checking if view screenshots are required", 1, this.exportedModel.getAllViews().size());
 		Iterator<Entry<String, IDiagramModel>> screenshotsIterator = this.exportedModel.getAllViews().entrySet().iterator();
