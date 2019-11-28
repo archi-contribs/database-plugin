@@ -342,7 +342,7 @@ public class DBDatabaseConnection implements AutoCloseable {
      * @throws ClassNotFoundException 
      */
     private void createTables(DBGui dbGui) throws SQLException {
-        final String[] databaseVersionColumns = {"archi_plugin", "version"};
+        final String[] databaseVersionColumns = {"id", "archi_plugin", "version"};
         
         try {
             
@@ -363,7 +363,7 @@ public class DBDatabaseConnection implements AutoCloseable {
                     + "version " + this.INTEGER_COLUMN +" NOT NULL"
                     + ")");
 
-            insert(this.schema+"database_version", databaseVersionColumns, DBPlugin.pluginName, databaseVersion);
+            insert(this.schema+"database_version", databaseVersionColumns, DBPlugin.createID(null), DBPlugin.pluginName, databaseVersion);
 
             if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"bendpoints");
             executeRequest("CREATE TABLE " + this.schema +"bendpoints ("
