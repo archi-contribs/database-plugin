@@ -595,7 +595,7 @@ public class DBGui {
      * @param defaultDatabaseName Indicated which database is the default one (the first database will be selected, if the database is not found or if null)
      * @throws Exception 
      */
-    protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseName) throws Exception {
+    protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId) throws Exception {
         refreshDisplay();
 
         this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
@@ -606,9 +606,8 @@ public class DBGui {
         	int line = 0;
             for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
             	if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
-            		String databaseName = databaseEntry.getName();
-            		this.comboDatabases.add(databaseName);
-            		if ( databaseName.equals(defaultDatabaseName) )
+            		this.comboDatabases.add(databaseEntry.getName());
+            		if ( databaseEntry.getId().equals(defaultDatabaseId) )
             			databaseToSelect = line;
             		++line;
             	}

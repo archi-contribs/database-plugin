@@ -83,9 +83,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     @Getter private DBVersion databaseVersion = new DBVersion();
     
     /**
-     * Name of the database used to import the model. Will be set to the default database during export.
+     * ID of the database used to import the model. Will be set to the default database during export.
      */
-    @Getter @Setter String importDatabase = null;
+    @Getter @Setter String importDatabaseId = null;
     
     /**
      * @return true if the model is the latest one in the database by comparing its {@link #currentVersion} to its {@link #initialVersion}
