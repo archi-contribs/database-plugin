@@ -1271,13 +1271,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        addColumn(this.schema+"views_connections", "bendpoints", this.INTEGER_COLUMN, true, 1);
 	        
 	    		// we do not initialise the value, as NULL will be treated as false which is the default value (association relationships are not directed by default)
-	        addColumn(this.schema+"relationships", "is_directed", this.BOOLEAN_COLUMN, true, false);
+	        addColumn(this.schema+"relationships", "is_directed", this.BOOLEAN_COLUMN, true, 0);
 	        
 	        	// we add the new id column with a generated ID and save this ID in the preferences file for later use
 	        addColumn(this.schema+"database_version", "id", this.OBJECTID_COLUMN, false, "");
 	        
 	        this.databaseEntry.setId(DBPlugin.createID(null));
-	        executeRequest("UPDATE TABLE "+this.schema+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+	        executeRequest("UPDATE "+this.schema+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 	        this.databaseEntry.persistIntoPreferenceStore();
 	        
 	        dbVersion = 212;
