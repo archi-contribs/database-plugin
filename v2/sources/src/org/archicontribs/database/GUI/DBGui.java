@@ -691,7 +691,7 @@ public class DBGui {
         try {
             this.connection = new DBDatabaseImportConnection(this.selectedDatabase);
             //if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
-            if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
+            if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "We are connected to the database.");
         } catch (Exception err) {
             closeMessage();
             notConnectedToDatabase();
@@ -911,7 +911,7 @@ public class DBGui {
      * it is the responsibility of the caller to dismiss the popup 
      */
     public static Shell popup(String msg) {
-        logger.info(msg);
+        logger.info(DBGui.class, msg);
 
         Display.getDefault().syncExec(new Runnable() {
             @Override
@@ -1043,7 +1043,7 @@ public class DBGui {
      * The exception stacktrace is also printed on the standard error stream
      */
     public static int question(String msg, String[] buttonLabels) {
-        if ( logger.isDebugEnabled() ) logger.debug("Question: "+msg);
+        if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Question: "+msg);
 
         Display.getDefault().syncExec(new Runnable() {
             @Override
@@ -1058,7 +1058,7 @@ public class DBGui {
             }
         });
 
-        if ( logger.isDebugEnabled() ) logger.debug("Answer: "+buttonLabels[questionResult]);
+        if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Answer: "+buttonLabels[questionResult]);
         return questionResult;
     }
     
@@ -1070,7 +1070,7 @@ public class DBGui {
      * @return the typed password
      */
     public static String passwordDialog(String title, String message) {
-    	if ( logger.isDebugEnabled() ) logger.debug("Asking for password");
+    	if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Asking for password");
     	answeredPassword = "";
     	Display.getDefault().syncExec(new Runnable() {
             @Override
@@ -1159,8 +1159,10 @@ public class DBGui {
         this.grpProgressBar.setVisible(true);
         this.grpProgressBar.setData("visible", true);
 
+        this.grpProgressBar.moveAbove(null);
+
         this.lblProgressBar.setText(label);
-        logger.info(label);
+        logger.info(DBGui.class, label);
 
         this.progressBar.setMinimum(min);
         this.progressBar.setMaximum(max);
@@ -1185,7 +1187,7 @@ public class DBGui {
             createProgressBar(label, 0, 100);
         else {
             this.lblProgressBar.setText(label);
-            logger.info(label);
+            logger.info(DBGui.class, label);
         }
         refreshDisplay();
     }
@@ -1200,7 +1202,7 @@ public class DBGui {
     /**
      * Sets the min and max values of the progressBar and reset its selection to zero
      */
-    protected void setProgressBarMinAndMax(int min, int max) {
+    public void setProgressBarMinAndMax(int min, int max) {
         if ( this.lblProgressBar != null ) {
             this.progressBar.setMinimum(min);
             this.progressBar.setMaximum(max);
@@ -1211,7 +1213,7 @@ public class DBGui {
     /**
      * Resets the progressBar to zero in the SWT thread (thread safe method)
      */
-    protected void resetProgressBar() {
+    public void resetProgressBar() {
         if ( this.lblProgressBar != null )
             this.progressBar.setSelection(0);
         refreshDisplay();
@@ -1220,16 +1222,17 @@ public class DBGui {
     /**
      * Increases the progressBar selection in the SWT thread (thread safe method)
      */
-    protected void increaseProgressBar() {
+    public void increaseProgressBar() {
         if ( this.lblProgressBar != null )
             this.progressBar.setSelection(this.progressBar.getSelection()+1);
         refreshDisplay();
     }
 
-    /**
-     * Creates the progress bar that will allow to follow the export process
-     */
-    protected void createMessageGrp() {
+    public void setMessage(String message) {
+        setMessage(message, GROUP_BACKGROUND_COLOR);
+    }
+
+    protected void setMessage(String message, Color background) {
         if ( this.grpMessage == null ) {
             this.grpMessage = new Group(this.compoRightTop, SWT.NONE);
             this.grpMessage.setBackground(GROUP_BACKGROUND_COLOR);
@@ -1265,24 +1268,18 @@ public class DBGui {
             this.grpDatabase.setVisible(false);
 
         this.compoRightTop.layout();
-    }
-
-    public void setMessage(String message) {
-        setMessage(message, GROUP_BACKGROUND_COLOR);
-    }
-
-    protected void setMessage(String message, Color background) {
-        createMessageGrp();
 
         this.lblMessage.setBackground(background);
 
         String msg = message.replace("\n\n", "\n");
         if ( background == RED_COLOR )
-            logger.error(msg);
+            logger.error(DBGui.class, msg);
         else
-            logger.info(msg);
+            logger.info(DBGui.class, msg);
 
         this.lblMessage.setText(msg);
+        
+        this.grpMessage.moveAbove(null);
 
         refreshDisplay();
     }
@@ -1346,7 +1343,7 @@ public class DBGui {
         assert ( memoryObject!=null );
         DBMetadata dbMetadata = DBMetadata.getDBMetadata(memoryObject);
 
-        logger.debug("Showing up memory and database versions of component "+dbMetadata.getDebugName());
+        logger.debug(DBGui.class, "Showing up memory and database versions of component "+dbMetadata.getDebugName());
 
         // we get the database version of the component
         HashMap<String, Object> databaseObject;
@@ -1652,7 +1649,7 @@ public class DBGui {
         DBMetadata dbMetadata = DBMetadata.getDBMetadata(view); 
 
         String oldLabel = getProgressBarLabel();
-        logger.debug("Creating screenshot of view \""+view.getName()+"\"");
+        logger.debug(DBGui.class, "Creating screenshot of view \""+view.getName()+"\"");
 
         try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
             try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
@@ -1674,10 +1671,10 @@ public class DBGui {
                 dbMetadata.getScreenshot().setBorderWidth(margin);
                 dbMetadata.getScreenshot().setBounds(bounds);
             } catch (IOException err) {
-                logger.error("Failed to close DataOutputStream", err);
+                logger.error(DBGui.class, "Failed to close DataOutputStream", err);
             }
         } catch (IOException err) {
-            logger.error("Failed to close ByteArrayOutputStream", err);
+            logger.error(DBGui.class, "Failed to close ByteArrayOutputStream", err);
         }
 
         setProgressBarLabel(oldLabel);
