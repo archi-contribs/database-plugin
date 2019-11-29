@@ -361,6 +361,41 @@ public class DBDatabaseEntry {
 	 * 
 	 * @throws SQLException 
 	 */
+	private static void cleanupDatabaseEntriesFromPreferenceStore() {
+		String key;
+		if ( logger.isDebugEnabled() ) logger.debug("Cleaning up database entries from the preference store");
+
+		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
+		store.setValue(preferenceName, 0);
+		
+		// it is unlikely that user has got more than 100 configured databases
+		for ( int i = 0; i < 100 ; ++i ) {
+			String indexString = String.valueOf(i);
+			
+			key = DBDatabaseEntry.preferenceName+"_id_"+indexString;							store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_name_"+indexString;							store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_driver_"+indexString;						store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_port_"+indexString;							store.setValue(key, store.getDefaultInt(key));
+			key = DBDatabaseEntry.preferenceName+"_database_"+indexString;						store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_schema_"+indexString;						store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_username_"+indexString;						store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_password_"+indexString;						store.setValue(key, store.getDefaultString(key));
+			key = DBDatabaseEntry.preferenceName+"_export-views-images_"+indexString;			store.setValue(key, store.getDefaultBoolean(key));
+			key = DBDatabaseEntry.preferenceName+"_views-images-border-width_"+indexString;		store.setValue(key, store.getDefaultInt(key));
+			key = DBDatabaseEntry.preferenceName+"_views-images-scale-factor_"+indexString;		store.setValue(key, store.getDefaultInt(key));
+			key = DBDatabaseEntry.preferenceName+"_neo4j-native-mode_"+indexString;				store.setValue(key, store.getDefaultBoolean(key));
+			key = DBDatabaseEntry.preferenceName+"_neo4j-empty-database_"+indexString;			store.setValue(key, store.getDefaultBoolean(key));
+			key = DBDatabaseEntry.preferenceName+"_neo4j-typed-relationships_"+indexString;		store.setValue(key, store.getDefaultBoolean(key));
+			key = DBDatabaseEntry.preferenceName+"_isExpertMode_"+indexString;					store.setValue(key, store.getDefaultBoolean(key));
+			key = DBDatabaseEntry.preferenceName+"_jdbcConnectionString_"+indexString;			store.setValue(key, store.getDefaultString(key));
+		}
+	}
+	
+	/**
+	 * Persist the database entry in the preference store
+	 * 
+	 * @throws SQLException 
+	 */
 	public void persistIntoPreferenceStore() throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Persisting database entry \""+getName()+"\" in the preference store");
 
@@ -395,14 +430,18 @@ public class DBDatabaseEntry {
 	 * @throws SQLException 
 	 */
 	public static void persistDatabaseEntryListIntoPreferenceStore(List<DBDatabaseEntry> databaseEntries) throws SQLException {
+		cleanupDatabaseEntriesFromPreferenceStore();
+		
 		if ( logger.isDebugEnabled() ) logger.debug("Persisting all database entries in the preference store");
 
 		IPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
+		
 		int nbDatabases = databaseEntries.size();
 		store.setValue(preferenceName, nbDatabases);
 
 		for (int i = 0; i < nbDatabases; ++i) {
 			DBDatabaseEntry databaseEntry = databaseEntries.get(i);
+			databaseEntry.setIndex(i);		// just in case, we force the index value
 			databaseEntry.persistIntoPreferenceStore();
 		}
 	}
