@@ -15,6 +15,7 @@ import java.sql.Savepoint;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
@@ -1278,7 +1279,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	        
 	        this.databaseEntry.setId(DBPlugin.createID(null));
 	        executeRequest("UPDATE "+this.schema+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
-	        this.databaseEntry.persistIntoPreferenceStore();
+	        // if the databaseEntry.index is different from -1, then the databaseEntry is persisted in the database, so we persist the new ID in the preference store
+	        if ( this.databaseEntry.getIndex() != -1 )
+	        	this.databaseEntry.persistIntoPreferenceStore();
 	        
 	        dbVersion = 212;
         }

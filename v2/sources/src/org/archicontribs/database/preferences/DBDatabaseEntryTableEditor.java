@@ -228,7 +228,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnEdit.setLayoutData(fd);
 		this.btnEdit.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { try { setDatabaseDetails(true); } catch (SQLException ign) { /* */} }
+            public void widgetSelected(SelectionEvent e) { setDatabaseDetails(true); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -281,13 +281,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		});
 		this.tblDatabases.addListener(SWT.Selection, new Listener() {
 			@Override
-            public void handleEvent(Event e) { 
-			    try {
-                    setDatabaseDetails(false);
-                } catch (SQLException ign) {
-                    /* */
-                }
-			}
+            public void handleEvent(Event e) { setDatabaseDetails(false); }
 		});
 		new TableColumn(this.tblDatabases, SWT.NONE);
 
@@ -568,6 +562,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.lblPassword.setVisible(false);
 
 		this.txtPassword = new Text(this.grpDatabases, SWT.PASSWORD | SWT.BORDER);
+		this.txtPassword.setEchoChar((char)0x25cf);
 
 		this.btnShowPassword = new Button(this.grpDatabases, SWT.TOGGLE);
 		this.btnShowPassword.setImage(DBGui.LOCK_ICON);
@@ -891,7 +886,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnDiscard.setLayoutData(fd);
 		this.btnDiscard.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { try { setDatabaseDetails(false); } catch (SQLException ign) { /* */ } }
+            public void widgetSelected(SelectionEvent e) { setDatabaseDetails(false); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -948,11 +943,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		for ( TableItem tableItem : this.tblDatabases.getItems() )
 			databaseEntries.add((DBDatabaseEntry)tableItem.getData());
 
-		try {
-		    DBDatabaseEntry.persistDatabaseEntryListIntoPreferenceStore(databaseEntries);
-		} catch (SQLException err) {
-		    DBGui.popup(Level.ERROR, "Failed to store databases information.", err);
-		}
+		DBDatabaseEntry.persistDatabaseEntryListIntoPreferenceStore(databaseEntries);
 	}
 
 	/*
@@ -1128,7 +1119,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		return databaseEntry;
 	}
 
-	void setDatabaseDetails(boolean editMode) throws SQLException {
+	void setDatabaseDetails(boolean editMode) {
 		DBDatabaseEntry databaseEntry = null;
 		boolean shouldExportViewSnapshots = false;
 		boolean shouldActivateAllowButton = false;
@@ -1185,7 +1176,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             shouldExportViewSnapshots = databaseEntry.isViewSnapshotRequired();
 		}
 		
-		this.btnShowPassword.setSelection(!editMode);
 		showOrHidePasswordCallback();
 
         this.lblName.setVisible(true);

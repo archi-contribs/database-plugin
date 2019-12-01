@@ -53,7 +53,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	
 	private static String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
 	
-	private static final IPreferenceStore preferenceStore = DBPlugin.INSTANCE.getPreferenceStore();
+	private static final IPersistentPreferenceStore preferenceStore = DBPlugin.INSTANCE.getPreferenceStore();
 	
 	private Composite loggerComposite;
 	
@@ -532,7 +532,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		
         try {
         	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving the preference store to disk.");
-            ((IPersistentPreferenceStore)preferenceStore).save();
+            preferenceStore.save();
         } catch (IOException err) {
         	DBGui.popup(Level.ERROR, "Failed to save the preference store to disk.", err);
         }

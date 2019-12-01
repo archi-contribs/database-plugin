@@ -14,7 +14,7 @@ import java.util.UUID;
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.IPreferenceStore;
+import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
@@ -309,6 +309,9 @@ import lombok.Getter;
  * 									Performance improvement
  * 										Do not try to import properties, features and bendpoints if not necessary
  * 										Drastically increase the performance when comparing a model against a database
+ * 									Security improvement
+ * 										The database password is not printed in clear text in preference window by default
+ * 										The database password is not stored in clear text anymore in the preference store, even if the algorithm used is must be reversible
  *   
  * TO-DO list:
  * ----------
@@ -354,7 +357,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	/**
 	 * PreferenceStore allowing to store the plugin configuration.
 	 */
-	private static IPreferenceStore preferenceStore = null;
+	private static IPersistentPreferenceStore preferenceStore = null;
 
 	/**
 	 * Name of all the table names in a SQL database
@@ -470,8 +473,16 @@ public class DBPlugin extends AbstractUIPlugin {
 		}
 		
 		if ( welcomeMessage != null ) {
-			DBGui.popup(Level.INFO, welcomeMessage);
 			preferenceStore.setValue("pluginVersion", pluginVersion.getVersion());
+			// if the new plugin version is 2.2.2, then we get all the DBDatabaseEntries in order to encrypt the passwords
+			try {
+				if ( pluginVersion.getVersion().equals("2.2.2"))
+					DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
+				preferenceStore.save();
+			} catch (IOException e) {
+				DBGui.popup(Level.ERROR, "Failed to save your preferences.", e);
+			}
+			DBGui.popup(Level.INFO, welcomeMessage);
 		}
 		
 		// we check if the plugin has been upgraded using the automatic procedure
@@ -498,7 +509,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	}
 
 	@Override
-	public IPreferenceStore getPreferenceStore() {
+	public IPersistentPreferenceStore getPreferenceStore() {
 		if (preferenceStore == null) {
 			preferenceStore = new ScopedPreferenceStore( InstanceScope.INSTANCE, PLUGIN_ID );
 		}
