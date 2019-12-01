@@ -15,7 +15,9 @@ Database export/import plugin that store models in a central repository.
 
 ## Installation instructions :
 1 Download the archiplugin file from GitHub.
+
 2 Run Archi, go to menu Help / Manage Plug-ins and then click on the "Install New ..." button
+
 3 Select the archiplugin file you previously downloaded
 
 Once installed, you may update the plugin to a newer version through the same procedure or click on the "check for update" button on the preference page.
