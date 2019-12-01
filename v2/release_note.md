@@ -1,13 +1,16 @@
-v2.2.1: 28/10/2019
-* Fix plugin version in windows title
-* Fix count of model's components during export
-* Fix unnecessary double export of view components 
-* Do not compare twice the model to the database if there have been no import
-* Create first admin procedures
-  * check database structure
-  * check database content
-* Update the JDBC drivers
-  * MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
+v2.2.2: 02/12/2019
+* Rewrite code to remove a lot of class extends
+* Update database structure to be compliant with Archi 4.6
+* GUI improvement
+  * Add last export date to the models table on the import window
+  * Add a progress bar during a database comparison
+* Performance improvement
+  * Do not try to import properties, features and bendpoints if not necessary
+  * Drastically increase the performance when comparing a model against a database
+* Security improvement
+  * The database password is not printed in clear text in preference window by default
+  * The database password is not stored in clear text anymore in the preference store, even if the algorithm used is must be reversible
+ 
 
 ### TODO list
 * Import components from database:
@@ -19,9 +22,20 @@ v2.2.1: 28/10/2019
     * --> nearly done with "get history from database". Just needs to compare the list of relationships
   * create a new windows that will show up detailed statistics about the model
   * add more jdbc drivers (mongodb, odbc, etc ...)
-  * create database admin procedures (house keeping, delete models, ...)
+  * add more database admin procedures (house keeping, delete models, ...)
 
 ----------
+v2.2.1: 28/10/2019
+* Fix plugin version in windows title
+* Fix count of model's components during export
+* Fix unnecessary double export of view components 
+* Do not compare twice the model to the database if there have been no import
+* Create first admin procedures
+  * check database structure
+  * check database content
+* Update the JDBC drivers
+  * MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
+
 v2.2.0: 12/10/2019
 * Rewrite of the export process
 * Rewrite of the conflict management process
