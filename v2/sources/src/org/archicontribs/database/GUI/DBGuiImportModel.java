@@ -223,8 +223,9 @@ public class DBGuiImportModel extends DBGui {
                     for (Hashtable<String, Object> model : DBGuiImportModel.this.importConnection.getModels("%"+DBGuiImportModel.this.txtFilterModels.getText()+"%")) {
                         TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.BORDER);
                         tableItem.setText(0, (String)model.get("name"));
-                        tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(((Date)model.get("created_on"))));
+                        tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy").format(((Date)model.get("created_on"))));
                         tableItem.setData("id", model.get("id"));
+                        tableItem.setData("date", model.get("created_on"));
                     }
                 } catch (Exception err) {
                     DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
@@ -261,7 +262,7 @@ public class DBGuiImportModel extends DBGui {
         				
                     	TableItem tableItem = new TableItem(DBGuiImportModel.this.tblModelVersions, SWT.NULL);
             			tableItem.setText(0, (String)version.get("version"));
-            			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format((Timestamp)version.get("created_on")));
+            			tableItem.setText(1, new SimpleDateFormat("dd/MM/yyyy").format((Timestamp)version.get("created_on")));
             			tableItem.setText(2, (String)version.get("created_by"));
             			tableItem.setData("name", version.get("name"));
             			tableItem.setData("note", version.get("note"));
@@ -308,10 +309,16 @@ public class DBGuiImportModel extends DBGui {
         			for (int j = 0; j < i; j++) {
         				String value2 = items[j].getText(0);
         				if (collator.compare(value1, value2)*sortOrder < 0) {
-        					String[] values = { items[i].getText(0), items[i].getText(1) };
+        					String col0 = items[i].getText(0);
+        					String col1 = items[i].getText(1);
+                            String id = (String)items[i].getData("id");
+                            Date date = (Date)items[i].getData("date");
         					items[i].dispose();
-        					TableItem item = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
-        					item.setText(values);
+        					TableItem newItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
+        					newItem.setText(0, col0);
+        					newItem.setText(1, col1);
+        					newItem.setData("id", id);
+        					newItem.setData("date", date);
         					items = DBGuiImportModel.this.tblModels.getItems();
         					break;
         				}
@@ -331,16 +338,21 @@ public class DBGuiImportModel extends DBGui {
         		TableItem[] items = DBGuiImportModel.this.tblModels.getItems();
         		int sortOrder = (int)colModelDate.getData("sortDirection");
         		colModelDate.setData("sortDirection", -sortOrder);
-        		Collator collator = Collator.getInstance(Locale.getDefault());
         		for (int i = 1; i < items.length; i++) {
-        			String value1 = items[i].getText(1);
+        			Date date1 = (Date)items[i].getData("date");
         			for (int j = 0; j < i; j++) {
-        				String value2 = items[j].getText(1);
-        				if (collator.compare(value1, value2)*sortOrder < 0) {
-        					String[] values = { items[i].getText(0), items[i].getText(1) };
+        				Date date2 = (Date)items[j].getData("date");
+        				if (date1.compareTo(date2)*sortOrder < 0) {
+        					String col0 = items[i].getText(0);
+        					String col1 = items[i].getText(1);
+                            String id = (String)items[i].getData("id");
+                            Date date = (Date)items[i].getData("date");
         					items[i].dispose();
-        					TableItem item = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
-        					item.setText(values);
+        					TableItem newItem = new TableItem(DBGuiImportModel.this.tblModels, SWT.NONE, j);
+        					newItem.setText(0, col0);
+        					newItem.setText(1, col1);
+        					newItem.setData("id", id);
+        					newItem.setData("date", date);
         					items = DBGuiImportModel.this.tblModels.getItems();
         					break;
         				}
