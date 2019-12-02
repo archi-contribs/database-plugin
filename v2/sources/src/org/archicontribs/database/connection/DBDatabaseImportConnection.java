@@ -332,7 +332,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schema+"elements_in_model"
 				+ " JOIN "+this.schema+"elements ON elements.id = element_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", created_on, checksum, rank";
+				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", properties, features, created_on, checksum, rank";
 		try (DBSelect resultElements = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
@@ -345,7 +345,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schema+"relationships_in_model"
 				+ " INNER JOIN "+this.schema+"relationships ON id = relationship_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, strength, access_type, created_on, checksum";
+				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, strength, access_type, is_directed, properties, features, created_on, checksum";
 		try ( DBSelect resultRelationships = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -683,7 +683,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( this.currentResultSetViews.next() ) {
 				IDiagramModel view;
 				if ( DBPlugin.areEqual(this.currentResultSetViews.getString("class"), "CanvasModel") )
-					view = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViews.getString("class"))));
+					view = (IDiagramModel) ICanvasFactory.eINSTANCE.create((EClass)(ICanvasFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViews.getString("class"))));
 				else
 					view = (IDiagramModel) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViews.getString("class"))));
 
@@ -755,7 +755,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				EObject eObject;
 
 				if ( this.currentResultSetViewsObjects.getString("class").startsWith("Canvas") )
-					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsObjects.getString("class"))));
+					eObject = ICanvasFactory.eINSTANCE.create((EClass)(ICanvasFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsObjects.getString("class"))));
 				else
 					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsObjects.getString("class"))));
 
@@ -869,7 +869,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				EObject eObject;
 
 				if ( this.currentResultSetViewsConnections.getString("class").startsWith("Canvas") )
-					eObject = ICanvasFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsConnections.getString("class"))));
+					eObject = ICanvasFactory.eINSTANCE.create((EClass)(ICanvasFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsConnections.getString("class"))));
 				else
 					eObject = IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetViewsConnections.getString("class"))));
 
