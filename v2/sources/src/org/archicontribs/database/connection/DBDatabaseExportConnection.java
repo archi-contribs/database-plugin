@@ -61,7 +61,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	private static int maxValuesInSQLRequest = 1000;
 
-	private boolean isImportconnectionDuplicate = false;
+	private boolean isconnectionDuplicate = false;
 
 	/**
 	 * This class variable stores the last commit transaction
@@ -92,7 +92,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		super.databaseEntry = importConnection.databaseEntry;
 		super.schema = importConnection.schema;
 		super.connection = importConnection.connection;
-		this.isImportconnectionDuplicate = true;
+		this.isconnectionDuplicate = true;
 	}
 
 	/**
@@ -105,7 +105,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		super.databaseEntry = databaseConnection.databaseEntry;
 		super.schema = databaseConnection.schema;
 		super.connection = databaseConnection.connection;
-		this.isImportconnectionDuplicate = false;
+		this.isconnectionDuplicate = true;
 	}
 
 	@Getter private HashMap<String, DBMetadata> elementsNotInModel = new HashMap<String, DBMetadata>();
@@ -2081,7 +2081,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	public void close() throws SQLException {
 		reset();
 
-		if ( !this.isImportconnectionDuplicate )
+		if ( !this.isconnectionDuplicate )
 			super.close();
 	}
 }
