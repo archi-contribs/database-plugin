@@ -194,28 +194,34 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				// properties
 				ArrayList<DBProperty> databaseProperties = new ArrayList<DBProperty>();
-				try ( DBSelect resultProperties = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
-					while ( resultProperties.next() )
-						databaseProperties.add(new DBProperty(resultProperties.getString("name"), resultProperties.getString("value")));
-					hashResult.put("properties", databaseProperties);
+				if ( result.getInt("properties") != 0 ) {
+					try ( DBSelect resultProperties = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schema+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+						while ( resultProperties.next() )
+							databaseProperties.add(new DBProperty(resultProperties.getString("name"), resultProperties.getString("value")));
+					}
 				}
+				hashResult.put("properties", databaseProperties);
 
 				// features
 				ArrayList<DBProperty> databaseFeatures = new ArrayList<DBProperty>();
-				try ( DBSelect resultFeatures = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schema+"features WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
-					while ( resultFeatures.next() )
-						databaseFeatures.add(new DBProperty(resultFeatures.getString("name"), resultFeatures.getString("value")));
-					hashResult.put("features", databaseFeatures);
+				if ( result.getInt("features") != 0 ) {
+					try ( DBSelect resultFeatures = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schema+"features WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+						while ( resultFeatures.next() )
+							databaseFeatures.add(new DBProperty(resultFeatures.getString("name"), resultFeatures.getString("value")));
+					}
 				}
+				hashResult.put("features", databaseFeatures);
 
 				// bendpoints
 				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
 					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<DBBendpoint>();
-					try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
-						while ( resultBendpoints.next() )
-							databaseBendpoints.add(new DBBendpoint(resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y")));
-						hashResult.put("bendpoints", databaseBendpoints);
+					if ( result.getInt("features") != 0 ) {
+						try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
+							while ( resultBendpoints.next() )
+								databaseBendpoints.add(new DBBendpoint(resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y")));
+						}
 					}
+					hashResult.put("bendpoints", databaseBendpoints);
 				}
 				
                 logger.debug("   Found "+hashResult.get("class")+" \""+hashResult.get("name")+"\" version "+hashResult.get("version"));
