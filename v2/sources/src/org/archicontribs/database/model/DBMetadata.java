@@ -940,7 +940,6 @@ public class DBMetadata  {
     		return ((IAssociationRelationship)this.component).isDirected();
     	return null;
     }
-    
     public Integer isDirectedAsInteger() {
     	if ( this.component instanceof IAssociationRelationship )
     		return ((IAssociationRelationship)this.component).isDirected() ? 1 : 0;

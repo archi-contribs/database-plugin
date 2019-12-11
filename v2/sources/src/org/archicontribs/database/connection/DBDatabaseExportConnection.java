@@ -1490,7 +1490,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,relationship.getTarget().getId()
 					,dbMetadata.getStrength()
 					,dbMetadata.getAccessType()
-					,dbMetadata.isDirected()
+					,dbMetadata.isDirectedAsInteger()
 					,System.getProperty("user.name")
 					,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
 					,nbProperties
