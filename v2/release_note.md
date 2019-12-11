@@ -1,3 +1,9 @@
+v2.2.3: 11/12/2019
+* Reduce the number of SQL request
+* Fix the get history from database
+* Fix the Neo4J JDBC connection string
+* Fix directed view connections export
+
 v2.2.2: 02/12/2019
 * Rewrite code to remove a lot of class extends
 * Update database structure to be compliant with Archi 4.6
@@ -10,21 +16,7 @@ v2.2.2: 02/12/2019
 * Security improvement
   * The database password is not printed in clear text in preference window by default
   * The database password is not stored in clear text anymore in the preference store, even if the algorithm used is must be reversible
- 
 
-### TODO list
-* Import components from database:
-  * allow to import elements recursively
-* Get component history:
-  * show view screenshots to ease views comparison
-* Miscellaneous:
-  * add an option to check for relationships that are in the database but would not be in the in memory model
-    * --> nearly done with "get history from database". Just needs to compare the list of relationships
-  * create a new windows that will show up detailed statistics about the model
-  * add more jdbc drivers (mongodb, odbc, etc ...)
-  * add more database admin procedures (house keeping, delete models, ...)
-
-----------
 v2.2.1: 28/10/2019
 * Fix plugin version in windows title
 * Fix count of model's components during export

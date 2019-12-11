@@ -312,7 +312,12 @@ import lombok.Getter;
  * 									Security improvement
  * 										The database password is not printed in clear text in preference window by default
  * 										The database password is not stored in clear text anymore in the preference store, even if the algorithm used is must be reversible
- *   
+ * 
+ * v2.2.3: 11/12/2019				Reduce the number of SQL request
+ * 									Fix the get history from database
+ * 									Fix the Neo4J JDBC connection string
+ * 									Fix directed view connections export
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
