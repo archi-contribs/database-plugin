@@ -963,8 +963,22 @@ public class DBMetadata  {
 	 * @return the DBMetadata class associated with the archimate object
 	 */
 	public static DBMetadata getDBMetadata(EObject obj) {
-		if ( obj instanceof IArchimateModelObject ) {
+		if ( (obj != null) && (obj instanceof IArchimateModelObject) ) {
+			EObject container = ((IArchimateModelObject)obj).eContainer();
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateModelObject)obj).getArchimateModel();
+			// in some weird occasions, the getArchimateModel() method returns null
+			// in this case, we loop on the eContainer until we found a model
+			while ( (container != null) && (model == null) ) {
+				if ( container instanceof IArchimateModelObject ) {
+					model = (DBArchimateModel) ((IArchimateModelObject)container).getArchimateModel();
+					container = ((IArchimateModelObject)container).eContainer();
+				} else
+					return null;
+			}
+			
+			if ( model == null )
+				return null;
+			
 			return model.getDBMetadata(obj);	
 		}
 		return null;
