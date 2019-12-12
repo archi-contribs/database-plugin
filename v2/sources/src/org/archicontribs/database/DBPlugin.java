@@ -320,6 +320,9 @@ import lombok.Getter;
  * 									Fix the Neo4J JDBC connection string
  * 									Fix directed view connections export
  * 
+ * v2.2.4: 12/12/2019				Get the plugin's version directly from the platform bundle 				
+ * 									Fix username and password load from preference page for databases in expert mode
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
@@ -505,6 +508,7 @@ public class DBPlugin extends AbstractUIPlugin {
 
 			if ( logger.isDebugEnabled() ) {
 				logger.debug("Plugin's package  = "+pluginsPackage);
+				logger.debug("Plugin's version  = "+pluginVersion.toString());
 				logger.debug("Plugin's folder   = "+pluginsFolder);
 				logger.debug("Plugin's filename = "+pluginsFilename);
 			}
