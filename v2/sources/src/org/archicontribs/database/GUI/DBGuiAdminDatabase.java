@@ -84,7 +84,7 @@ public class DBGuiAdminDatabase extends DBGui {
         
         this.importConnection = databaseImportconnection;
 
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for administering the \""+databaseImportconnection.getDatabaseEntry().getName()+"\" database (plugin version "+DBPlugin.pluginVersion.getVersion()+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for administering the \""+databaseImportconnection.getDatabaseEntry().getName()+"\" database (plugin version "+DBPlugin.pluginVersion.toString()+").");
 
         createAction(ACTION.One, "1 - Admin database");
         setActiveAction(ACTION.One);

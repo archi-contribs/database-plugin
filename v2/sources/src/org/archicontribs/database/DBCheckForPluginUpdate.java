@@ -48,6 +48,7 @@ import org.eclipse.ui.PlatformUI;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.osgi.framework.Version;
 
 /**
  * Checks if a new version of the plugin exists on GitHub and download it if required
@@ -168,25 +169,25 @@ public class DBCheckForPluginUpdate {
 			// treemap is sorted in descending order, so first entry should have the "bigger" key value, i.e. the latest version
 			Entry<String, String> entry = versions.entrySet().iterator().next();
 
-			if ( DBPlugin.pluginVersion.compareTo(new DBPluginVersion(entry.getKey())) >= 0 ) {
+			if ( DBPlugin.pluginVersion.compareTo(new Version(entry.getKey())) >= 0 ) {
 				if ( verbose )
-					DBGui.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion.getVersion());
+					DBGui.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion.toString());
 				else
-					logger.info("You already have got the latest version: "+DBPlugin.pluginVersion.getVersion());
+					logger.info("You already have got the latest version: "+DBPlugin.pluginVersion.toString());
 				return;
 			}
 
 			if ( !DBPlugin.pluginsFilename.endsWith(".jar") ) {
 				if ( verbose )
-					DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.getVersion()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
+					DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 				else
-					logger.error("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.getVersion()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
+					logger.error("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 				return;
 			}
 
 			boolean ask = true;
 			while ( ask ) {
-				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.getVersion()+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
+				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
 				switch ( this.answer ) {
 					case 0: ask = false ; break;  // Yes
 					case 1: return ;              // No

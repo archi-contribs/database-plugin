@@ -214,7 +214,7 @@ public class DBGuiImportComponents extends DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
 		closeMessage();		
 
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion.getVersion()+").");
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion.toString()+").");
 
 		// model in which the component should be imported
 		this.importedModel = model;

@@ -85,7 +85,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
 
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.getVersion()+").");		
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.toString()+").");		
 		
 		setCompoRight();
 		this.compoRightBottom.setVisible(true);

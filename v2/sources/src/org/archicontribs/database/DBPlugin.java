@@ -8,11 +8,13 @@ package org.archicontribs.database;
 
 import java.io.File;
 import java.io.IOException;
+import org.osgi.framework.Version;
 import java.util.Locale;
 import java.util.UUID;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 import org.eclipse.swt.widgets.Display;
@@ -337,13 +339,14 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
 	/** version of the plugin */
-	public static final DBPluginVersion pluginVersion = new DBPluginVersion("2.2.2");
+	public static Version pluginVersion = Platform.getBundle(PLUGIN_ID).getVersion(); 
+
 	
 	/** Name ofthe plugin */
 	public static final String pluginName = "DatabasePlugin";
 	
 	/** Title od the plugin's windows */
-	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion.getVersion();
+	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion.toString();
 
 	/** Name of the plugin's package */
 	public static String pluginsPackage;
@@ -461,28 +464,32 @@ public class DBPlugin extends AbstractUIPlugin {
 		} else
 			logger.debug("Archi is setup with "+maxMemory+" MB of memory.");
 		
-		DBPluginVersion oldPluginVersion = new DBPluginVersion(preferenceStore.getString("pluginVersion"));
+		
+		
 		String welcomeMessage = null;
-		if ( oldPluginVersion.getVersion().isEmpty() ) {
+		String preferenceStorePluginVersion = preferenceStore.getString("pluginVersion");
+		if ( (preferenceStorePluginVersion == null) || preferenceStorePluginVersion.isEmpty() ) {
 			// if the "pluginVersion" preference is not set, this means that this is the first time the plugin is run
 			// so we print out a welcome message
 			welcomeMessage = "Welcome to the Archi Database Plugin.\n\nThis plugin allows you to centralize your models in a SQL database, and export them to a graph database for analysis purpose.\n\nThe next step is to configure your database(s) on the plugin's preference page.";
-		} else if ( oldPluginVersion.compareTo(pluginVersion) == -1 ) {
-			// if the "pluginVersion" preference is older, then the plugin has been upgraded
-			// so we print out a message confirming the upgrade
-			welcomeMessage = "The Database plugin has been upgraded from version "+oldPluginVersion.getVersion()+" to version "+pluginVersion.getVersion()+".";
-		} else if ( oldPluginVersion.compareTo(pluginVersion) == 1 ) {
-			// if the "pluginVersion" preference is newer, then the plugin has been downgraded
-			// so we print out a message confirming the downgrade
-			welcomeMessage = "The Database plugin has been downgraded from version "+oldPluginVersion.getVersion()+" to version "+pluginVersion.getVersion()+".";
+		} else {
+			Version oldPluginVersion = new Version(preferenceStorePluginVersion);
+			if ( oldPluginVersion.compareTo(pluginVersion) == -1 ) {
+				// if the "pluginVersion" preference is older, then the plugin has been upgraded
+				// so we print out a message confirming the upgrade
+				welcomeMessage = "The Database plugin has been upgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
+			} else if ( oldPluginVersion.compareTo(pluginVersion) == 1 ) {
+				// if the "pluginVersion" preference is newer, then the plugin has been downgraded
+				// so we print out a message confirming the downgrade
+				welcomeMessage = "The Database plugin has been downgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
+			}
 		}
 		
 		if ( welcomeMessage != null ) {
-			preferenceStore.setValue("pluginVersion", pluginVersion.getVersion());
-			// if the new plugin version is 2.2.2, then we get all the DBDatabaseEntries in order to encrypt the passwords
+			preferenceStore.setValue("pluginVersion", pluginVersion.toString());
+			// we get all the DBDatabaseEntries in order to replace plain text passwords by encrypted passwords
 			try {
-				if ( pluginVersion.getVersion().equals("2.2.2"))
-					DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
+				DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
 				preferenceStore.save();
 			} catch (IOException e) {
 				DBGui.popup(Level.ERROR, "Failed to save your preferences.", e);

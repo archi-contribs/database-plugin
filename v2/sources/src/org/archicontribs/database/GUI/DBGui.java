@@ -319,7 +319,7 @@ public class DBGui {
 
         Label lblPluginVersion = new Label(compoTitle, SWT.CENTER);
         lblPluginVersion.setBackground(COMPO_LEFT_COLOR);
-        lblPluginVersion.setText(DBPlugin.pluginVersion.getVersion());
+        lblPluginVersion.setText(DBPlugin.pluginVersion.toString());
         fd = new FormData();
         fd.top = new FormAttachment(lblTitle, 5);
         fd.left = new FormAttachment(0);
