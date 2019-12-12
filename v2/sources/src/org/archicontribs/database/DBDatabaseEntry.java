@@ -332,11 +332,12 @@ public class DBDatabaseEntry {
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Getting database entry \""+databaseEntry.getName()+"\" from the preference store");
 				
+				Boolean isExpertMode = store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line));
 				
+				databaseEntry.setExpertMode(isExpertMode);
 				databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
 				databaseEntry.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
 				
-				databaseEntry.setExpertMode(store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line)));
 				if ( databaseEntry.isExpertMode() )
 					databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
 				else {
@@ -355,26 +356,29 @@ public class DBDatabaseEntry {
 					if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
 						databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
 						databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
-						databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
+					}
+				}
+				
+				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
+					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
 
-						databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
-						if ( databaseEntry.getPassword().equals("") ) {
-							String encryptedPassword = store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line));
-							if ( !encryptedPassword.equals("") ) {
-								try {
-									databaseEntry.setPassword(decryptPassword(encryptedPassword));
-								} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
-									DBGui.popup(Level.ERROR, "Failed to decrypt password for database entry \""+databaseEntry.getName()+"\".\n\nPlease check your preference store.", e);
-								}
-							}
-						} else {
-							logger.debug("Encrypting database entry's password in preference store.");
+					databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
+					if ( databaseEntry.getPassword().equals("") ) {
+						String encryptedPassword = store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line));
+						if ( !encryptedPassword.equals("") ) {
 							try {
-								store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), encryptPassword(databaseEntry.getPassword()));
-								store.setValue(preferenceName+"_password_"+String.valueOf(line), "");
+								databaseEntry.setPassword(decryptPassword(encryptedPassword));
 							} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
-								DBGui.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
+								DBGui.popup(Level.ERROR, "Failed to decrypt password for database entry \""+databaseEntry.getName()+"\".\n\nPlease check your preference store.", e);
 							}
+						}
+					} else {
+						logger.debug("Encrypting database entry's password in preference store.");
+						try {
+							store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), encryptPassword(databaseEntry.getPassword()));
+							store.setValue(preferenceName+"_password_"+String.valueOf(line), "");
+						} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
+							DBGui.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
 						}
 					}
 				}
