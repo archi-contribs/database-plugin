@@ -399,7 +399,7 @@ public class DBDatabaseEntry {
 		store.setValue(preferenceName, 0);
 		
 		// it is unlikely that user has got more than 100 configured databases
-		for ( int i = 0; i < 100 ; ++i ) {
+		for ( int i = -1; i < 100 ; ++i ) {
 			String indexString = String.valueOf(i);
 			
 			store.setValue(DBDatabaseEntry.preferenceName + "_id_"							+ indexString, "");
