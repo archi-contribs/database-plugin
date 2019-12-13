@@ -165,7 +165,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		
 		// we calculate the required height of the group:
 		//    height of the databases table  = height of 5 text widgets
-		//    height of the database details = height of 8 text widets
+		//    height of the database details = height of 8 text widgets
 		int requiredHeight = 5 * (this.defaultButtonHeight + this.defaultMargin/2) + 8 * (this.defaultLabelHeight + this.defaultMargin);
 		
 		GridData gd = new GridData();
