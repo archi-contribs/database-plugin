@@ -118,6 +118,7 @@ public class DBGui {
     @Getter @Setter private boolean closedByUser = false;
 
     protected List<DBDatabaseEntry> databaseEntries;
+    protected List<DBDatabaseEntry> comboDatabaseEntries;
     protected DBDatabaseEntry selectedDatabase;
     DBDatabaseImportConnection connection;
 
@@ -599,6 +600,7 @@ public class DBGui {
         refreshDisplay();
 
         this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
+        this.comboDatabaseEntries = new ArrayList<DBDatabaseEntry>();
         if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
             popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
         } else {
@@ -607,6 +609,7 @@ public class DBGui {
             for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
             	if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
             		this.comboDatabases.add(databaseEntry.getName());
+            		this.comboDatabaseEntries.add(databaseEntry);
             		if ( databaseEntry.getId().equals(defaultDatabaseId) )
             			databaseToSelect = line;
             		++line;
@@ -653,6 +656,7 @@ public class DBGui {
                 for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
                 	if ( this.includeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
                 		this.comboDatabases.add(databaseEntry.getName());
+                		this.comboDatabaseEntries.add(databaseEntry);
                 		++line;
                 	}
                 }
@@ -684,7 +688,7 @@ public class DBGui {
         this.btnDoAction.setEnabled(false);
 
         // we get the databaseEntry corresponding to the selected combo entry
-        this.selectedDatabase = this.databaseEntries.get(this.comboDatabases.getSelectionIndex());
+        this.selectedDatabase = this.comboDatabaseEntries.get(this.comboDatabases.getSelectionIndex());
         if ( logger.isDebugEnabled() ) logger.debug("Selected database = " + this.selectedDatabase.getName()+" ("+this.selectedDatabase.getDriver()+", "+this.selectedDatabase.getServer()+", "+this.selectedDatabase.getPort()+", "+this.selectedDatabase.getDatabase()+", "+this.selectedDatabase.getUsername());
 
         // then we connect to the database.
