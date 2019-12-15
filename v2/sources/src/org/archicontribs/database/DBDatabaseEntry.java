@@ -361,10 +361,12 @@ public class DBDatabaseEntry {
 				
 				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
 					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
-
+					logger.trace("*********** got username="+databaseEntry.getUsername()+ " from preference store for database "+String.valueOf(line)+": "+databaseEntry.getName()+" ("+databaseEntry.getDriver()+")"); 
+						
 					databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
 					if ( databaseEntry.getPassword().equals("") ) {
 						String encryptedPassword = store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line));
+						logger.trace("*********** got encrypted password="+databaseEntry.getUsername()+ " from preference store for database "+String.valueOf(line)+": "+databaseEntry.getName()+" ("+databaseEntry.getDriver()+")"); 
 						if ( !encryptedPassword.equals("") ) {
 							try {
 								databaseEntry.setPassword(decryptPassword(encryptedPassword));
@@ -451,13 +453,16 @@ public class DBDatabaseEntry {
 		store.setValue(DBDatabaseEntry.preferenceName + "_port_" +                      indexString, (isExpertMode() || isSqlite) ? 0     : getPort());
 		store.setValue(DBDatabaseEntry.preferenceName + "_database_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getDatabase());
 		store.setValue(DBDatabaseEntry.preferenceName + "_username_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getUsername());
+		if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** username="+getUsername()+ " written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
 		
 		try {
 			store.setValue(DBDatabaseEntry.preferenceName + "_encrypted_password_" +    indexString, (isExpertMode() || isSqlite) ? ""    : encryptPassword(getPassword()));
 			store.setValue(DBDatabaseEntry.preferenceName + "_password_" +    indexString, "");
+			if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** encrypted password="+encryptPassword(getPassword())+" written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
 		} catch (InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
 			DBGui.popup(Level.ERROR, "Failed to encrypt password. Your password will be left unencrypted in the preference store.", e);
-			store.setValue(DBDatabaseEntry.preferenceName + "_password_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getPassword());	
+			store.setValue(DBDatabaseEntry.preferenceName + "_password_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getPassword());
+			if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** plain text password written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
 		}
 
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_" +         indexString, (isExpertMode() || !isNeo4j) ? false : isNeo4jNativeMode());
