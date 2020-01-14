@@ -1,3 +1,7 @@
+v2.2.4: 14/01/2020
+* Fix the version numbershown in the plugin windows
+* Fix username and password load from preference page for databases in expert mode
+
 v2.2.3: 11/12/2019
 * Reduce the number of SQL request
 * Fix the get history from database
