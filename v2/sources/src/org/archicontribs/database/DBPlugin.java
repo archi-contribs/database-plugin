@@ -323,6 +323,15 @@ import lombok.Getter;
  * v2.2.4: 12/12/2019				Get the plugin's version directly from the platform bundle 				
  * 									Fix username and password load from preference page for databases in expert mode
  * 
+ * v2.2.5: 17/04/2020				This release is an update of the database drivers
+ * 										Neo4J			--> 4.0.0
+ * 										Oracle			--> 10
+ * 										PostGreSQL		--> 42.2.12
+ * 										SQLite			--> 3.30.1
+ * 										MS SQL Server	--> 8.2.2
+ * 										MySQL			--> stays in version 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
+ * 
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:

@@ -1,3 +1,12 @@
+v2.2.5: 17/04/2020
+This release is an update of the database drivers
+* Neo4J --> 4.0.0
+* Oracle --> 10
+* PostGreSQL --> 42.2.12
+* SQLite --> 3.30.1
+* MS SQL Server --> 8.2.2
+* MySQL --> stays in version 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
+
 v2.2.4: 14/01/2020
 * Fix the version numbershown in the plugin windows
 * Fix username and password load from preference page for databases in expert mode
