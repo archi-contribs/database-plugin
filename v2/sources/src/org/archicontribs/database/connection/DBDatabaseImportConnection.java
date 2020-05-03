@@ -215,7 +215,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// bendpoints
 				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
 					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<DBBendpoint>();
-					if ( result.getInt("features") != 0 ) {
+					if ( result.getInt("bendpoints") != 0 ) {
 						try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schema+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
 							while ( resultBendpoints.next() )
 								databaseBendpoints.add(new DBBendpoint(resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y")));

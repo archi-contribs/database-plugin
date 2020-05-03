@@ -331,6 +331,10 @@ import lombok.Getter;
  * 										MS SQL Server	--> 8.2.2
  * 										MySQL			--> stays in version 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
  * 
+ * v2.2.6: 03/05/2020				Fix import of connections bendpoints when importing a view from another model
+ * 									Fix automatic update from GitHub
+ * 									Fix plugin version check at startup 
+ * 
  * 
  * TO-DO list:
  * ----------
@@ -486,19 +490,19 @@ public class DBPlugin extends AbstractUIPlugin {
 			welcomeMessage = "Welcome to the Archi Database Plugin.\n\nThis plugin allows you to centralize your models in a SQL database, and export them to a graph database for analysis purpose.\n\nThe next step is to configure your database(s) on the plugin's preference page.";
 		} else {
 			Version oldPluginVersion = new Version(preferenceStorePluginVersion);
-			if ( oldPluginVersion.compareTo(pluginVersion) == -1 ) {
+			if ( oldPluginVersion.compareTo(pluginVersion) < 0 ) {
 				// if the "pluginVersion" preference is older, then the plugin has been upgraded
 				// so we print out a message confirming the upgrade
 				welcomeMessage = "The Database plugin has been upgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
-			} else if ( oldPluginVersion.compareTo(pluginVersion) == 1 ) {
+			} else if ( oldPluginVersion.compareTo(pluginVersion) > 0 ) {
 				// if the "pluginVersion" preference is newer, then the plugin has been downgraded
 				// so we print out a message confirming the downgrade
 				welcomeMessage = "The Database plugin has been downgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
 			}
 		}
-		
+
+		preferenceStore.setValue("pluginVersion", pluginVersion.toString());
 		if ( welcomeMessage != null ) {
-			preferenceStore.setValue("pluginVersion", pluginVersion.toString());
 			// we get all the DBDatabaseEntries in order to replace plain text passwords by encrypted passwords
 			try {
 				DBDatabaseEntry.getAllDatabasesFromPreferenceStore();

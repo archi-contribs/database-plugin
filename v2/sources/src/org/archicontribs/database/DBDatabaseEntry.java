@@ -411,6 +411,7 @@ public class DBDatabaseEntry {
 			store.setValue(DBDatabaseEntry.preferenceName + "_id_"							+ indexString, "");
 			store.setValue(DBDatabaseEntry.preferenceName + "_name_"						+ indexString, "");
 			store.setValue(DBDatabaseEntry.preferenceName + "_driver_"						+ indexString, "");
+			store.setValue(DBDatabaseEntry.preferenceName + "_server_"						+ indexString, "");
 			store.setValue(DBDatabaseEntry.preferenceName + "_port_"						+ indexString, 0);
 			store.setValue(DBDatabaseEntry.preferenceName + "_database_"					+ indexString, "");
 			store.setValue(DBDatabaseEntry.preferenceName + "_schema_"						+ indexString, "");

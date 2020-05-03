@@ -1,3 +1,8 @@
+v2.2.6: 03/5/2020
+* Fix import of connections bendpoints when importing a view from another model
+* Fix automatic update from GitHub
+* Fix plugin version check at startup 
+
 v2.2.5: 17/04/2020
 This release is an update of the database drivers
 * Neo4J --> 4.0.0

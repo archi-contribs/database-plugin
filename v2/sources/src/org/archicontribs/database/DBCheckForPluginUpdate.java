@@ -11,7 +11,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
@@ -132,7 +131,7 @@ public class DBCheckForPluginUpdate {
 			}
 
 			if ( logger.isDebugEnabled() ) logger.debug("Searching for plugins jar files");
-			Pattern p = Pattern.compile(DBPlugin.pluginsPackage+"_v(.*).jar") ;
+			Pattern p = Pattern.compile(DBPlugin.pluginsPackage+"_(.*).jar") ;
 
 			Iterator<JSONObject> iterator = result.iterator();
 			while (iterator.hasNext()) {
@@ -274,13 +273,6 @@ public class DBCheckForPluginUpdate {
 			else
 				logger.error("Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
 			return;
-		}
-
-		try ( PrintWriter out = new PrintWriter(DBPlugin.pluginsFolder+File.separator+"databasePlugin.new") ) {
-			out.println(newPluginFilename);
-		} catch(IOException ign) {
-			// not a big deal, just that there will be no message after Archi is restarted
-			logger.error("Cannot create file \""+DBPlugin.pluginsFolder+File.separator+"databasePlugin.new\"", ign);
 		}
 
 		// we delete the actual plugin file on Archi exit (can't do it here because the plugin is in use).
