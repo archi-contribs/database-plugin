@@ -335,6 +335,8 @@ import lombok.Getter;
  * 									Fix automatic update from GitHub
  * 									Fix plugin version check at startup 
  * 
+ * v2.2.7: 05/05/2020				Fix password storage in preferences when expert mode is activated
+ * 									remove unnecessary password deciphering  
  * 
  * TO-DO list:
  * ----------

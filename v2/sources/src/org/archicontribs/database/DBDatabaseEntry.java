@@ -142,9 +142,39 @@ public class DBDatabaseEntry {
 	@Getter @Setter private String username = "";
 	
 	/**
-	 * Password used to connect to the database
+	 * Encrypted password used to connect to the database
 	 */
-	@Getter @Setter private String password = "";
+	@Getter @Setter private String encryptedPassword = "";
+	
+	/**
+	 * Get the decrypted the password used to connect to the database
+	 * @return decrypted password
+	 * @throws InvalidKeyException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws BadPaddingException 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws NoSuchPaddingException 
+	 */
+	public String getDecryptedPassword() throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+		if ( this.encryptedPassword.equals("") )
+			return "";
+		return new String(getCipher(Cipher.DECRYPT_MODE).doFinal(Base64.getDecoder().decode(this.encryptedPassword)));
+	}
+	
+	/**
+	 * Set the decrypted password used to connect to the database
+	 * @param password the decrypted password
+	 * @throws InvalidKeyException 
+	 * @throws IllegalBlockSizeException 
+	 * @throws BadPaddingException 
+	 * @throws InvalidAlgorithmParameterException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws NoSuchPaddingException 
+	 */
+	public void setDecryptedPassword(String password) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
+		this.encryptedPassword = DBPlugin.isEmpty(password) ? "" : Base64.getEncoder().encodeToString(getCipher(Cipher.ENCRYPT_MODE).doFinal(password.getBytes()));
+	}
 	
 	/**
 	 * Should we export snapshots of the views
@@ -240,8 +270,13 @@ public class DBDatabaseEntry {
                     break;
                 case "ms-sql":
                     this.jdbcConnectionString = "jdbc:sqlserver://" + this.getServer() + ":" + this.getPort() + ";databaseName=" + this.getDatabase();
-                    if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getPassword()) )
+				try {
+					if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getDecryptedPassword()) )
                         this.jdbcConnectionString += ";integratedSecurity=true";
+					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException e) {
+						DBGui.popup(Level.ERROR, "Failed to decrypt password.", e);
+						this.jdbcConnectionString = "";
+					}
                     break;
                 case "mysql":
                     this.jdbcConnectionString = "jdbc:mysql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
@@ -361,23 +396,15 @@ public class DBDatabaseEntry {
 				
 				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
 					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
-					logger.trace("*********** got username="+databaseEntry.getUsername()+ " from preference store for database "+String.valueOf(line)+": "+databaseEntry.getName()+" ("+databaseEntry.getDriver()+")"); 
 						
-					databaseEntry.setPassword(store.getString(preferenceName+"_password_"+String.valueOf(line)));
-					if ( databaseEntry.getPassword().equals("") ) {
-						String encryptedPassword = store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line));
-						logger.trace("*********** got encrypted password="+databaseEntry.getUsername()+ " from preference store for database "+String.valueOf(line)+": "+databaseEntry.getName()+" ("+databaseEntry.getDriver()+")"); 
-						if ( !encryptedPassword.equals("") ) {
-							try {
-								databaseEntry.setPassword(decryptPassword(encryptedPassword));
-							} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
-								DBGui.popup(Level.ERROR, "Failed to decrypt password for database entry \""+databaseEntry.getName()+"\".\n\nPlease check your preference store.", e);
-							}
-						}
-					} else {
-						logger.debug("Encrypting database entry's password in preference store.");
+					String password = store.getString(preferenceName+"_password_"+String.valueOf(line));
+					if ( DBPlugin.isEmpty(password) )
+						databaseEntry.setEncryptedPassword(store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line)));
+					else {
+						logger.debug("*********** Got plain text password ... replacing by encrypted one in preference store.");
 						try {
-							store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), encryptPassword(databaseEntry.getPassword()));
+							databaseEntry.setDecryptedPassword(password);
+							store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), databaseEntry.getEncryptedPassword());
 							store.setValue(preferenceName+"_password_"+String.valueOf(line), "");
 						} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
 							DBGui.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
@@ -453,18 +480,10 @@ public class DBDatabaseEntry {
 		
 		store.setValue(DBDatabaseEntry.preferenceName + "_port_" +                      indexString, (isExpertMode() || isSqlite) ? 0     : getPort());
 		store.setValue(DBDatabaseEntry.preferenceName + "_database_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getDatabase());
-		store.setValue(DBDatabaseEntry.preferenceName + "_username_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getUsername());
-		if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** username="+getUsername()+ " written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
-		
-		try {
-			store.setValue(DBDatabaseEntry.preferenceName + "_encrypted_password_" +    indexString, (isExpertMode() || isSqlite) ? ""    : encryptPassword(getPassword()));
-			store.setValue(DBDatabaseEntry.preferenceName + "_password_" +    indexString, "");
-			if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** encrypted password="+encryptPassword(getPassword())+" written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
-		} catch (InvalidKeyException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException | IllegalBlockSizeException | BadPaddingException e) {
-			DBGui.popup(Level.ERROR, "Failed to encrypt password. Your password will be left unencrypted in the preference store.", e);
-			store.setValue(DBDatabaseEntry.preferenceName + "_password_" +                  indexString, (isExpertMode() || isSqlite) ? ""    : getPassword());
-			if ( !((isExpertMode() || isSqlite)) ) logger.trace("*********** plain text password written in preference store for database "+indexString+": "+getName()+" ("+getDriver()+")");
-		}
+
+		store.setValue(DBDatabaseEntry.preferenceName + "_username_" +              	indexString, isSqlite ? ""    : getUsername());
+		store.setValue(DBDatabaseEntry.preferenceName + "_encrypted_password_" +    	indexString, isSqlite ? ""    : getEncryptedPassword());
+		store.setValue(DBDatabaseEntry.preferenceName + "_password_" +    				indexString, "");
 
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_" +         indexString, (isExpertMode() || !isNeo4j) ? false : isNeo4jNativeMode());
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-empty-database_" +      indexString, (isExpertMode() || !isNeo4j) ? false : shouldEmptyNeo4jDB());
@@ -568,17 +587,5 @@ public class DBDatabaseEntry {
 		cipher.init(cipherMode, secretKeySpec, cipher.getParameters());
 		
 		return cipher;
-	}
-	
-	private static String encryptPassword(String passwd) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException, IllegalBlockSizeException, BadPaddingException {
-		if ( passwd.equals("") )
-			return "";
-		return Base64.getEncoder().encodeToString(getCipher(Cipher.ENCRYPT_MODE).doFinal(passwd.getBytes()));
-	}
-	
-	private static String decryptPassword(String passwd) throws InvalidKeyException, IllegalBlockSizeException, BadPaddingException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
-		if ( passwd.equals("") )
-			return "";
-		return new String(getCipher(Cipher.DECRYPT_MODE).doFinal(Base64.getDecoder().decode(passwd)));
 	}
 }

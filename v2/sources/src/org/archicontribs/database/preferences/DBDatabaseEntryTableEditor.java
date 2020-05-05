@@ -7,9 +7,16 @@
 package org.archicontribs.database.preferences;
 
 import java.io.File;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
@@ -1106,7 +1113,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setDatabase(this.txtDatabase.getText());
 		databaseEntry.setSchema(this.txtSchema.getText());
 		databaseEntry.setUsername(this.txtUsername.getText());
-		databaseEntry.setPassword(this.txtPassword.getText());
+		databaseEntry.setDecryptedPassword(this.txtPassword.getText());
 		databaseEntry.setViewSnapshotRequired(this.btnExportViewsScreenshot.getSelection());
 		databaseEntry.setViewsImagesBorderWidth(Integer.valueOf(this.txtBorderWidth.getText()));
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
@@ -1159,7 +1166,12 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.txtDatabase.setText(databaseEntry.getDatabase());
             this.txtSchema.setText(databaseEntry.getSchema());
             this.txtUsername.setText(databaseEntry.getUsername());
-            this.txtPassword.setText(databaseEntry.getPassword());
+            try {
+				this.txtPassword.setText(databaseEntry.getDecryptedPassword());
+			} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+				DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+				this.txtPassword.setText("");
+			}
             this.btnExpertMode.setSelection(databaseEntry.isExpertMode());
             this.txtJdbc.setText(databaseEntry.getJdbcConnectionString());
             this.btnNeo4jNativeMode.setSelection(databaseEntry.isNeo4jNativeMode());

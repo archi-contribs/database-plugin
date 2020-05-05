@@ -1,4 +1,8 @@
-v2.2.6: 03/5/2020
+v2.2.7: 05/05/2020
+* Fix password storage in preferences when expert mode is activated
+* Remove unnecessary password deciphering  
+
+v2.2.6: 03/05/2020
 * Fix import of connections bendpoints when importing a view from another model
 * Fix automatic update from GitHub
 * Fix plugin version check at startup 

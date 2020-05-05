@@ -6,6 +6,9 @@
 
 package org.archicontribs.database.connection;
 
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -15,6 +18,10 @@ import java.sql.Savepoint;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Hashtable;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
@@ -77,6 +84,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     /**
      * Opens a connection to a JDBC database using all the connection details
+     * @param dbEntry DBDatabaseEntry class containing the details of the database to connect to
+     * @throws SQLException 
      */
     protected DBDatabaseConnection(DBDatabaseEntry dbEntry) throws SQLException {
         assert(dbEntry != null);
@@ -107,22 +116,42 @@ public class DBDatabaseConnection implements AutoCloseable {
         try {
             // we load the jdbc class
             Class.forName(clazz);
-            if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(this.databaseEntry.getUsername()) && DBPlugin.isEmpty(this.databaseEntry.getPassword()) ) {
+            String driver = this.databaseEntry.getDriver();
+            String username = this.databaseEntry.getUsername();
+            String encryptedPassword = this.databaseEntry.getEncryptedPassword();
+            String password = "";
+
+            if ( DBPlugin.isEmpty(username) ) {
+            	if ( !DBPlugin.isEmpty(encryptedPassword) )
+            		throw new SQLException("A password has been provided without a username.");
+            } else {
+            	try {
+            		password = this.databaseEntry.getDecryptedPassword();
+            	} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+            		DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+            	}
+        	
+            	// if the username is set but not the password, then we show a popup to ask for the password
+            	if ( DBPlugin.isEmpty(password) ) {
+            		password = DBGui.passwordDialog("Please provide the database password", "Database password:");
+            		if ( password == null ) {
+            			// password is null if the user clicked on cancel
+            			throw new SQLException("No password provided.");
+            		}
+            		// we register the new password for the current session
+                	try {
+                		this.databaseEntry.setDecryptedPassword(password);
+                	} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+                		DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+                	}
+            	}
+            }
+        	
+            if ( DBPlugin.areEqual(driver, DBDatabase.MSSQL.getDriverName()) && DBPlugin.isEmpty(username) && DBPlugin.isEmpty(password) ) {
                 if ( logger.isDebugEnabled() ) logger.debug("Connecting with Windows integrated security");
                 this.connection = DriverManager.getConnection(connectionString);
             } else {
-            	String username = this.databaseEntry.getUsername();
-            	String password = this.databaseEntry.getPassword();
                 if ( logger.isDebugEnabled() ) logger.debug("Connecting with username = "+username);
-                
-                // if the username is set but not the password, then we show a popup to ask for the password
-                if ( !username.isEmpty() && password.isEmpty() ) {
-                	password = DBGui.passwordDialog("Please provide the database password", "Database password:");
-                	if ( password == null ) {
-                		// password is null if the user clicked on cancel
-                		throw new SQLException("No password provided.");
-                	}
-                }
                 this.connection = DriverManager.getConnection(connectionString, username, password);
             }
         } catch (SQLException e) {
@@ -340,7 +369,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
     /**
      * Creates the necessary tables in the database
-     * @throws ClassNotFoundException 
+     * @throws SQLException 
      */
     private void createTables(DBGui dbGui) throws SQLException {
         final String[] databaseVersionColumns = {"id", "archi_plugin", "version"};

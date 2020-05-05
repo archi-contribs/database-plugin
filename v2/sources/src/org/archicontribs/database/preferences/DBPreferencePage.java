@@ -86,6 +86,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	
 	boolean mouseOverHelpButton = false;
 	
+	/**
+	 * Creates the preference page
+	 */
 	public DBPreferencePage() {
 		super(FieldEditorPreferencePage.GRID);
 		if ( this.logger.isDebugEnabled() ) this.logger.debug("Setting preference store");
