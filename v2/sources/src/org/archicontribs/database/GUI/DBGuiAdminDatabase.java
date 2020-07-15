@@ -6,15 +6,11 @@
 
 package org.archicontribs.database.GUI;
 
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
-import java.util.Map;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
@@ -108,9 +104,9 @@ public class DBGuiAdminDatabase extends DBGui {
         createGrpActions();
 
         // we set the comboDatabase entries and select the database
-        this.databaseEntries = entries;
+        this.comboDatabaseEntries = entries;
         int index = 0;
-        for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
+        for (DBDatabaseEntry databaseEntry: this.comboDatabaseEntries) {
             this.comboDatabases.add(databaseEntry.getName());
             if ( databaseEntry.getName().equals(databaseImportconnection.getDatabaseEntry().getName()) )
             	this.comboDatabases.select(index);
@@ -133,7 +129,8 @@ public class DBGuiAdminDatabase extends DBGui {
      * Called when a database is selected in the comboDatabases and that the connection to this database succeeded.
      * @param ignore (unused)
      */
-    @Override
+    @SuppressWarnings("resource")
+	@Override
     protected void connectedToDatabase(boolean ignore) {
         this.importConnection = new DBDatabaseImportConnection(getDatabaseConnection());
         
@@ -409,7 +406,7 @@ public class DBGuiAdminDatabase extends DBGui {
 		
 		this.btnDeleteModel = new Button(this.grpActions, SWT.NONE);
 		this.btnDeleteModel.setText("Delete model");
-		this.btnDeleteModel.setToolTipText("Completely delete a whole model and all the components that are not shared with another model\n(shared components will be kept)\n\nBeware, components' versions my be recalculated.");
+		this.btnDeleteModel.setToolTipText("Completely delete a whole model and all the components that are not shared with another model\n(shared components will be kept)\n\nBeware, components versions my be recalculated.");
 		this.btnDeleteModel.addSelectionListener(new SelectionListener() {
 			@Override
             public void widgetSelected(SelectionEvent e) { deleteModelCallback(); }
@@ -419,7 +416,7 @@ public class DBGuiAdminDatabase extends DBGui {
 		
 		this.btnDeleteVersion = new Button(this.grpActions, SWT.NONE);
 		this.btnDeleteVersion.setText("Delete version");
-		this.btnDeleteVersion.setToolTipText("Delete the selected version of the model and all the components that are specific to this version.\n(shared components will be kept)\n\nBeware, components' versions my be recalculated.");
+		this.btnDeleteVersion.setToolTipText("Delete the selected version of the model and all the components that are specific to this version.\n(shared components will be kept)\n\nBeware, components versions my be recalculated.");
 		this.btnDeleteVersion.addSelectionListener(new SelectionListener() {
 			@Override
             public void widgetSelected(SelectionEvent e) { deleteVersionCallback(); }
@@ -433,148 +430,19 @@ public class DBGuiAdminDatabase extends DBGui {
 	 */
 	void checkStructureCallback() {
 		try {
-			this.importConnection.checkDatabase(null);
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			this.importConnection.checkDatabase(this);
+			logger.debug("Getting database structure ...");
+		} catch (@SuppressWarnings("unused") Exception ign) {
+			// messages are shown in the checkDatabase method
 			return;
-		}
-		
-		String schema = this.importConnection.getDatabaseEntry().getSchema().equals("") ? null : this.importConnection.getDatabaseEntry().getSchema();
-		String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
-		
-		boolean isCorrect = true;
-		StringBuilder message = new StringBuilder();
-		
-		logger.debug("Getting database structure ...");
-		
-		try {
-			DatabaseMetaData metadata = this.importConnection.getConnection().getMetaData();
-			
-			String[][] databaseVersionColumns = {	{"archi_plugin", this.importConnection.getOBJECTID_COLUMN(), null},
-													{"version", this.importConnection.getINTEGER_COLUMN(), null}
-			};
-			
-			String[][] modelsColumns = {			{"id", this.importConnection.getOBJECTID_COLUMN(), null},
-													{"name", this.importConnection.getOBJ_NAME_COLUMN(), null},
-													{"version", this.importConnection.getINTEGER_COLUMN(), null},
-													{"note", this.importConnection.getTEXT_COLUMN(), null},
-													{"purpose", this.importConnection.getTEXT_COLUMN(), null},
-													{"created_by", this.importConnection.getUSERNAME_COLUMN(), null},
-													{"created_on", this.importConnection.getDATETIME_COLUMN(), null},
-													{"checkedin_by", this.importConnection.getUSERNAME_COLUMN(), null},
-													{"checkedin_on", this.importConnection.getDATETIME_COLUMN(), null},
-													{"deleted_by", this.importConnection.getUSERNAME_COLUMN(), null},
-													{"deleted_on", this.importConnection.getDATETIME_COLUMN(), null},
-													{"checksum", this.importConnection.getOBJECTID_COLUMN(), null},
-			};
-
-			Map<String, String[][]> tables = new HashMap<String, String[][]>();
-			tables.put("database_version", databaseVersionColumns);
-			tables.put("models", modelsColumns);
-			
-			for (Map.Entry<String, String[][]> entry : tables.entrySet()) {
-				String tableName = entry.getKey();
-				String[][] tableColumns = entry.getValue();
-				
-				try (ResultSet result = metadata.getColumns(null, schema, tableName, null)) {
-					logger.debug("Table "+schemaPrefix+"database_version:");
-					message.append("Table "+schemaPrefix+"database_version:");
-					
-					boolean checkColumnsResult = checkColumns(result, message, tableColumns);
-					isCorrect &= checkColumnsResult;
-					
-					message.append("\n");			
-				} catch (SQLException err) {
-					DBGui.popup(Level.ERROR, "Failed to get table columns.", err);
-					return;
-				}
-			}
-		} catch (SQLException err) {
-			DBGui.popup(Level.ERROR, "Failed to get database connection's metadata.", err);
-			return;
-		}
-		
-		if ( isCorrect ) {
-			DBGui.popup(Level.INFO, "Database structure successfully checked.");
-		} else {
-			DBGui.popup(Level.WARN, message.toString());
 		}
 	}
 	
-	@SuppressWarnings("static-method")
-	boolean checkColumns(ResultSet result, StringBuilder message, String[][] columns) throws SQLException {
-		boolean isCorrect = true;
-		
-		while( result.next() ) {
-			String columnName = result.getString("COLUMN_NAME").toLowerCase();
-			String columnType = result.getString("TYPE_NAME").toLowerCase();
-			int columnSize = result.getInt("COLUMN_SIZE");
-			
-			boolean columnFound = false;
-
-			// if the column name is known, we check its type
-			for ( int c=0; c < columns.length; ++c ) {
-				if ( columnName.equalsIgnoreCase(columns[c][0]) ) {
-					columnFound = true;
-					columns[c][2] = "found";
-					
-					// we check if we need to add or remove the length between parentheses
-					if ( columns[c][1].indexOf("(") == -1 ) {
-						int index = columnName.indexOf("(");
-						if ( index != -1 )
-							columnName = columnName.substring(0, index-1);
-					} else {
-						int index = columnName.indexOf("(");
-						if ( index == -1 ) {
-							if ( columnSize > 2000000000 )
-								columnType = columnType+"(max)";
-							else
-								columnType = columnType+"("+columnSize+")";
-						}
-					}
-					
-					if ( columnType.equalsIgnoreCase(columns[c][1]) )
-						logger.debug("   Column "+columnName+" is "+columnType);
-					else {
-						logger.debug("   Column "+columnName+" is "+columnType+", should be "+columns[c][1].toLowerCase());
-						message.append("\n   Column "+columnName+" is "+columnType+", should be "+columns[c][1].toLowerCase());
-						isCorrect = false;
-					}
-						
-				}
-			}
-			
-			// if the column name is not known, we add an error
-			if ( !columnFound ) {
-				logger.debug("   Column "+columnName+" found but shoud not exist.");
-				message.append("\n   Column "+columnName+" found but shoud not exist.");
-				isCorrect = false;
-			}
-		}
-		
-		// we now check that all the columns have been found
-		for ( int i=0; i < columns.length; ++i ) {
-			if ( columns[i][2] == null ) {
-				logger.debug("   Column "+columns[i][0]+" not found but should exist.");
-				message.append("\n   Column "+columns[i][0]+" not found but should exist.");
-				isCorrect = false;
-			}
-		}
-		
-		return isCorrect;
-	}
 	
 	/**
 	 * Called when the "check content" button has been pressed
 	 */
 	void checkContentCallback() {
-		try {
-			this.importConnection.checkDatabase(null);
-		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
-			return;
-		}
-		
 		// we remove duplicate rows in view_objects_in_views and view_connections_in views to fix bug of plugin version 2.2
 	
 		try {

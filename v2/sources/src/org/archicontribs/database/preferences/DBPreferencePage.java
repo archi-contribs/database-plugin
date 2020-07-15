@@ -71,6 +71,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnCloseIfSuccessful;
 	private Button btnShowZeroValues;
 	private Button btnCheckMaxMemoryAtStartup;
+	private Button btnCheckNotNullConstraintInDatabase;
 	private Button btnRemoveDirtyFlag;
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
@@ -229,12 +230,21 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnCheckMaxMemoryAtStartup.setLayoutData(fd);
 		
+		this.btnCheckNotNullConstraintInDatabase = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCheckNotNullConstraintInDatabase.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.btnCheckNotNullConstraintInDatabase.setText("Check for NOT NULL constraints while checking database structure");
+		this.btnCheckNotNullConstraintInDatabase.setSelection(preferenceStore.getBoolean("checkNotNullConstraints"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCheckMaxMemoryAtStartup, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnCheckNotNullConstraintInDatabase.setLayoutData(fd);
+		
 		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
 		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCheckMaxMemoryAtStartup, 5);
+		fd.top = new FormAttachment(this.btnCheckNotNullConstraintInDatabase, 5);
 		fd.left = new FormAttachment(0, 10);
 		this.btnRemoveDirtyFlag.setLayoutData(fd);
 		
@@ -493,6 +503,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("checkForUpdateAtStartup", this.btnCheckForUpdateAtStartupButton.getSelection());
     	preferenceStore.setValue("showZeroValues", this.btnShowZeroValues.getSelection());
     	preferenceStore.setValue("checkMaxMemory", this.btnCheckMaxMemoryAtStartup.getSelection());
+    	preferenceStore.setValue("checkNotNullConstraints", this.btnCheckNotNullConstraintInDatabase.getSelection());
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
