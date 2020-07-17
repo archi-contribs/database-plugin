@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Database export / import plugin for Archimate Tool
 Bundle-SymbolicName: org.archicontribs.database;singleton:=true
-Bundle-Version: 2.2.7
+Bundle-Version: 2.2.8
 Bundle-Vendor: Herve Jouin
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
@@ -25,6 +25,7 @@ Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.swt,
  com.archimatetool.model,
  org.eclipse.emf.ecore,
- org.eclipse.help
+ org.eclipse.help,
+ com.archimatetool.commandline
 Export-Package: org.archicontribs.database
 Import-Package: org.eclipse.nebula.widgets.gallery
