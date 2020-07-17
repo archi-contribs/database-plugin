@@ -705,7 +705,7 @@ public class DBGui {
 
         // then, we check if the database has got the right pre-requisites
         try {
-            this.connection.checkDatabase(this);
+            this.connection.checkDatabase(null);
         } catch (Exception err) {
             closeMessage();
             popup(Level.ERROR, "Cannot use this database.", err);
@@ -1084,7 +1084,7 @@ public class DBGui {
                 shell.setSize(0, 0);
                 shell.setBackground(BLACK_COLOR);
                 shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
-                passwordDialog passwordDialog = new passwordDialog(shell);
+                DBGuiPasswordDialog passwordDialog = new DBGuiPasswordDialog(shell);
                 if ( passwordDialog.open() == 0 )
                 	answeredPassword = passwordDialog.getPassword();
                 else

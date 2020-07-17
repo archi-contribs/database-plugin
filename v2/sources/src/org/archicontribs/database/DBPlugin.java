@@ -340,7 +340,8 @@ import lombok.Getter;
  * 
  * v2.2.8: 15/07/2020				Fix exception when accessing the database admin menu
  * 									Rewrite database structure check
- * 									Add a preference to enable/disable NOT NULL database constraints 
+ * 									Add a preference to enable/disable NOT NULL database constraints
+ * 									Add a delete model action in the admin procedures
  * 
  * TO-DO list:
  * ----------

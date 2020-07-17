@@ -65,7 +65,7 @@ public class DBGuiAdminDatabase extends DBGui {
     Button btnCheckStructure;
     Button btnCheckContent;
     Button btnDeleteModel;
-    Button btnDeleteVersion;
+    //Button btnDeleteVersion;
     
 
     /**
@@ -148,9 +148,11 @@ public class DBGuiAdminDatabase extends DBGui {
         if (logger.isTraceEnabled() ) logger.trace("   found "+this.tblModels.getItemCount()+" model"+(this.tblModels.getItemCount()>1?"s":"")+" in total");
         
         if ( this.tblModels.getItemCount() != 0 ) {
+        	this.btnDeleteModel.setEnabled(true);
             this.tblModels.setSelection(0);
             this.tblModels.notifyListeners(SWT.Selection, new Event());      // calls database.getModelVersions()
-        }
+        } else
+        	this.btnDeleteModel.setEnabled(false);
     }
 
 
@@ -414,15 +416,15 @@ public class DBGuiAdminDatabase extends DBGui {
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		
-		this.btnDeleteVersion = new Button(this.grpActions, SWT.NONE);
-		this.btnDeleteVersion.setText("Delete version");
-		this.btnDeleteVersion.setToolTipText("Delete the selected version of the model and all the components that are specific to this version.\n(shared components will be kept)\n\nBeware, components versions my be recalculated.");
-		this.btnDeleteVersion.addSelectionListener(new SelectionListener() {
-			@Override
-            public void widgetSelected(SelectionEvent e) { deleteVersionCallback(); }
-			@Override
-            public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
-		});
+		//this.btnDeleteVersion = new Button(this.grpActions, SWT.NONE);
+		//this.btnDeleteVersion.setText("Delete version");
+		//this.btnDeleteVersion.setToolTipText("Delete the selected version of the model and all the components that are specific to this version.\n(shared components will be kept)\n\nBeware, components versions my be recalculated.");
+		//this.btnDeleteVersion.addSelectionListener(new SelectionListener() {
+		//	@Override
+        //    public void widgetSelected(SelectionEvent e) { deleteVersionCallback(); }
+		//	@Override
+        //    public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
+		//});
     }
 	
 	/**
@@ -431,7 +433,6 @@ public class DBGuiAdminDatabase extends DBGui {
 	void checkStructureCallback() {
 		try {
 			this.importConnection.checkDatabase(this);
-			logger.debug("Getting database structure ...");
 		} catch (@SuppressWarnings("unused") Exception ign) {
 			// messages are shown in the checkDatabase method
 			return;
@@ -524,16 +525,51 @@ public class DBGuiAdminDatabase extends DBGui {
 	/**
 	 * Called when the "delete model" button has been pressed
 	 */
-	@SuppressWarnings("static-method")
 	void deleteModelCallback() {
-		DBGui.popup(Level.INFO, "Not yet implemented.");
+		String modelId = (String) DBGuiAdminDatabase.this.tblModels.getSelection()[0].getData("id");
+		String modelName = DBGuiAdminDatabase.this.tblModels.getSelection()[0].getText();
+		
+		if ( modelId == null ) {
+			DBGui.popup(Level.ERROR, "Failed to get model ID.");
+			return;
+		}
+		
+		if (DBGui.question("You are about to delete all the versions of the model \""+modelName+"\" from the database.?\n\nPlease note that this action cannot be undone.") ) {
+			try {
+				String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
+				String table = schemaPrefix+"models";
+			
+				String request = "DELETE FROM "+table+" WHERE id = \""+modelId+"\"";
+				
+				int deletedRows = this.importConnection.executeRequest(request);
+				
+				if (deletedRows == 0)
+					DBGui.popup(Level.WARN,"That's weird, no model with ID \""+modelId+"\" has been found in the database.");
+				else {
+					connectedToDatabase(false);
+					DBGui.popup(Level.INFO, String.valueOf(deletedRows)+" versions of the model \""+modelName+"\" "+((deletedRows == 1)?"has":"have")+" been deleted from the database.");
+				}
+			} catch (SQLException err) {
+				try {
+					this.importConnection.rollback();
+					this.importConnection.setAutoCommit(true);
+				} catch (SQLException err2) {
+					DBGui.popup(Level.ERROR, "Failed to delete model from the database.", err);
+					DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+					return;
+				}
+				DBGui.popup(Level.ERROR, "Failed to delete model from the database. The transaction has been rolled back.", err);
+			}
+			
+		} else
+			DBGui.popup(Level.INFO, "Delete canceled by user.");
 	}
 	
-	/**
-	 * Called when the "delete version" button has been pressed
-	 */
-	@SuppressWarnings("static-method")
-	void deleteVersionCallback() {
-		DBGui.popup(Level.INFO, "Not yet implemented.");
-	}
+	///**
+	// * Called when the "delete version" button has been pressed
+	// */
+	//@SuppressWarnings("static-method")
+	//void deleteVersionCallback() {
+	//	DBGui.popup(Level.INFO, "Not yet implemented.");
+	//}
 }
