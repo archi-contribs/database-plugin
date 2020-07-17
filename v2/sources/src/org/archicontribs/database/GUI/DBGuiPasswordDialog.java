@@ -26,7 +26,7 @@ import org.eclipse.swt.widgets.Text;
  * 
  * @author Herve Jouin
  */
-public class PasswordDialog extends Dialog {
+public class DBGuiPasswordDialog extends Dialog {
     private Text txtPassword;
     Button btnShowPassword;
     private String password = "";
@@ -36,7 +36,7 @@ public class PasswordDialog extends Dialog {
 	 * Creates the dialog
 	 * @param parentShell
 	 */
-	public PasswordDialog(Shell parentShell) {
+	public DBGuiPasswordDialog(Shell parentShell) {
 		super(parentShell);
 	}
 
