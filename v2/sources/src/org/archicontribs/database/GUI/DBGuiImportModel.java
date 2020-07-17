@@ -51,6 +51,8 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IFolder;
 
+import lombok.Getter;
+
 /**
  * This class manages the GUI that allows to import a model from a database
  * 
@@ -64,9 +66,9 @@ public class DBGuiImportModel extends DBGui {
     
     DBDatabaseImportConnection importConnection;
     
-    Table tblModels;
-    Table tblModelVersions;
-    Text txtFilterModels;
+    @Getter Table tblModels;
+    @Getter Table tblModelVersions;
+    @Getter Text txtFilterModels;
 
     private Group grpModels;
     private Group grpModelVersions;
@@ -94,13 +96,23 @@ public class DBGuiImportModel extends DBGui {
     private Text txtImportedViewObjects;
     private Text txtImportedViewConnections;
     private Text txtImportedImages;
-
+    
     /**
      * Creates the GUI to import a model
      * @param title Title of the window
      * @throws Exception 
      */
     public DBGuiImportModel(String title) throws Exception {
+    	this(title, null);
+    }
+
+    /**
+     * Creates the GUI to import a model
+     * @param title Title of the window
+     * @param defaultDatabaseName Name of the default database name to connect to
+     * @throws Exception 
+     */
+    public DBGuiImportModel(String title, String defaultDatabaseName) throws Exception {
         super(title);
         
         if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.pluginVersion.toString()+").");
@@ -152,7 +164,7 @@ public class DBGuiImportModel extends DBGui {
 
         // We connect to the database and call the databaseSelected() method
         this.includeNeo4j = false;
-        getDatabases(false);
+        getDatabases(false, null, defaultDatabaseName);
     }
 
     @Override
@@ -685,12 +697,10 @@ public class DBGuiImportModel extends DBGui {
     /**
      * Called when the user clicks on the "import" button 
      */
-    protected void doImport() {
+    public void doImport() {
         String modelName = this.tblModels.getSelection()[0].getText();
         String modelId = (String)this.tblModels.getSelection()[0].getData("id");
         
-        logger.info("Importing model \""+modelName+"\"");
-
         hideGrpDatabase();
         createProgressBar("Importing model \""+modelName+"\"", 0, 100);
 
@@ -922,23 +932,27 @@ public class DBGuiImportModel extends DBGui {
         	   	// We open the Model in the Editor
             	IEditorModelManager.INSTANCE.openModel(this.modelToImport);
             	
-            	ITreeModelView treeModelView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
-	            if(treeModelView != null) {
-	                List<Object> elements;
-	                
-	                // we select the view folder in order to show the model folders in the tree
-	                elements = new ArrayList<Object>();
-	                IFolder viewsFolder = this.modelToImport.getFolder(FolderType.DIAGRAMS);
-	                if ( viewsFolder != null ) {
-	                    elements.add(viewsFolder);
-	                    treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
-	                }
-	        
-	                // We select back the model in the tree
-	                elements.clear();
-	                elements.add(this.modelToImport);
-	                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
-	            }
+            	try {
+            		ITreeModelView treeModelView = (ITreeModelView)ViewManager.showViewPart(ITreeModelView.ID, true);
+		            if(treeModelView != null) {
+		                List<Object> elements;
+		                
+		                // we select the view folder in order to show the model folders in the tree
+		                elements = new ArrayList<Object>();
+		                IFolder viewsFolder = this.modelToImport.getFolder(FolderType.DIAGRAMS);
+		                if ( viewsFolder != null ) {
+		                    elements.add(viewsFolder);
+		                    treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
+		                }
+		        
+		                // We select back the model in the tree
+		                elements.clear();
+		                elements.add(this.modelToImport);
+		                treeModelView.getViewer().setSelection(new StructuredSelection(elements), true);
+		            }
+            	} catch (@SuppressWarnings("unused") IllegalStateException ign) {
+            		// nothing to do as the workbench is not created when the import is done with ACLI
+            	}
             
 	            if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
 	                if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");

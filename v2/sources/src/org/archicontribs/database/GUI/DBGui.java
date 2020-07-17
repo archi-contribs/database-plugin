@@ -203,7 +203,7 @@ public class DBGui {
     Button radioOption2;
     Button radioOption3;
 
-    protected Combo comboDatabases;
+    @Getter protected Combo comboDatabases;
     protected Button btnSetPreferences;
     protected Button btnClose;
     protected Button btnDoAction;
@@ -593,10 +593,11 @@ public class DBGui {
     /**
      * Gets the list of configured databases, fill-in the comboDatabases and select the database provided
      * @param mustIncludeNeo4j if true, include the Neo4J databases in the list, if false, do not include them in the list
-     * @param defaultDatabaseName Indicated which database is the default one (the first database will be selected, if the database is not found or if null)
+     * @param defaultDatabaseId Indicated the ID of the default database (the first database will be selected, if the database is not found or if null)
+     * @param defaultDatabaseName Indicated the name of the default database (the first database will be selected, if the database is not found or if null) - if both ID and name are provided, the ID has got higher priority
      * @throws Exception 
      */
-    protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId) throws Exception {
+    protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId, String defaultDatabaseName) throws Exception {
         refreshDisplay();
 
         this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
@@ -604,13 +605,15 @@ public class DBGui {
         if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
             popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
         } else {
-        	int databaseToSelect = 0;
+        	int databaseToSelect = -1;
         	int line = 0;
             for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
             	if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
             		this.comboDatabases.add(databaseEntry.getName());
             		this.comboDatabaseEntries.add(databaseEntry);
-            		if ( databaseEntry.getId().equals(defaultDatabaseId) )
+            		if ( defaultDatabaseId != null && databaseEntry.getId().equals(defaultDatabaseId) )
+            			databaseToSelect = line;
+            		if ( defaultDatabaseName != null && databaseToSelect != 0 && databaseEntry.getName().equals(defaultDatabaseName) )
             			databaseToSelect = line;
             		++line;
             	}
@@ -618,8 +621,13 @@ public class DBGui {
             if ( line == 0 ) 
             	popup(Level.ERROR, "You haven't configure any SQL database yet.\n\nPlease setup at least one SQL database in Archi preferences.");
             else {
-            	this.comboDatabases.select(databaseToSelect);
-            	this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
+            	// if no default database is provided, then we select the first database in the combo
+            	if ( defaultDatabaseId == null && defaultDatabaseName == null )
+            		databaseToSelect = 0;
+            	if ( databaseToSelect != -1 ) {
+            		this.comboDatabases.select(databaseToSelect);
+            		this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
+            	}
             }
         }
     }
@@ -630,7 +638,7 @@ public class DBGui {
      * @throws Exception 
      */
     protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
-        getDatabases(mustIncludeNeo4j, null);
+        getDatabases(mustIncludeNeo4j, null, null);
     }
 
     /**

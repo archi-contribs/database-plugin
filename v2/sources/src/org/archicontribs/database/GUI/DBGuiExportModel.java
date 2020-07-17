@@ -166,7 +166,7 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalImages.setText(toString(this.exportedModel.getAllImagePaths().size()));
 
 		try {
-			getDatabases(true, this.exportedModel.getImportDatabaseId());
+			getDatabases(true, this.exportedModel.getImportDatabaseId(), null);
 		} catch (Exception err) {
 			popup(Level.ERROR, "Failed to get the databases.", err);
 			return;

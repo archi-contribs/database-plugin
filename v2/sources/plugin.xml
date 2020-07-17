@@ -156,4 +156,13 @@
          </propertySection>
       </propertySections>
    </extension>
+   <extension
+         point="com.archimatetool.commandline.commandlineProvider">
+      <commandlineProvider
+            class="org.archicontribs.database.commandline.DBImportModelProvider"
+            description="Import an Archi Model from a SQL database"
+            id="org.archicontribs.database.commandlineImportModel"
+            name="Import an Archi Model from a SQL database">
+      </commandlineProvider>
+   </extension>
 </plugin>

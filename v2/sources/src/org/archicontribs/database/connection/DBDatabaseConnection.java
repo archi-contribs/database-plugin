@@ -119,6 +119,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 	@Getter private List<DBColumn> bendpointsColumns = null;
 	@Getter private List<String> bendpointsPrimaryKeys = null;
+	
+	@Getter private List<DBColumn> metadataColumns = null;
+	@Getter private List<String> metadataPrimaryKeys = null;
 
 	@Getter private List<DBColumn> imagesColumns = null;
 	@Getter private List<String> imagesPrimaryKeys = null;
@@ -332,7 +335,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.foldersInModelColumns.add(new DBColumn("fim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 			this.foldersInModelColumns.add(new DBColumn("folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 			this.foldersInModelColumns.add(new DBColumn("folder_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+			this.foldersInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, false));
 			this.foldersInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 			this.foldersInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 			this.foldersInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -457,8 +460,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.viewsObjectsColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, false));
 			this.viewsObjectsColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, false));
 			this.viewsObjectsColumns.add(new DBColumn("diagram_ref_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsObjectsColumns.add(new DBColumn("border_color", this.databaseEntry, DBColumnType.COLOR, true));
-			this.viewsObjectsColumns.add(new DBColumn("border_type", this.databaseEntry, DBColumnType.INTEGER, true));
+			this.viewsObjectsColumns.add(new DBColumn("border_color", this.databaseEntry, DBColumnType.COLOR, false));
+			this.viewsObjectsColumns.add(new DBColumn("border_type", this.databaseEntry, DBColumnType.INTEGER, false));
 			this.viewsObjectsColumns.add(new DBColumn("content", this.databaseEntry, DBColumnType.TEXT, false));
 			this.viewsObjectsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
 			this.viewsObjectsColumns.add(new DBColumn("is_locked", this.databaseEntry, DBColumnType.BOOLEAN, false));
@@ -517,6 +520,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.viewsConnectionsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
 			this.viewsConnectionsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
 			this.viewsConnectionsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+			this.viewsConnectionsColumns.add(new DBColumn("bendpoints", this.databaseEntry, DBColumnType.INTEGER, false));
 			this.viewsConnectionsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
 			this.viewsConnectionsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 			this.viewsConnectionsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -561,6 +565,19 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.bendpointsPrimaryKeys = new ArrayList<String>();
 			this.bendpointsPrimaryKeys.add("parent_id");
 			this.bendpointsPrimaryKeys.add("parent_version");
+			this.bendpointsPrimaryKeys.add("rank");
+			
+			this.metadataColumns = new ArrayList<DBColumn>();
+			this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+			this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
+			this.metadataColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+			this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.INTEGER, false));
+			this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.INTEGER, false));
+
+			this.metadataPrimaryKeys = new ArrayList<String>();
+			this.metadataPrimaryKeys.add("parent_id");
+			this.metadataPrimaryKeys.add("parent_version");
+			this.metadataPrimaryKeys.add("rank");
 
 			this.imagesColumns = new ArrayList<DBColumn>();
 			this.imagesColumns.add(new DBColumn("path", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -608,6 +625,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "properties", this.propertiesColumns, this.propertiesPrimaryKeys));
 			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "features", this.featuresColumns, this.featuresPrimaryKeys));
 			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "bendpoints", this.bendpointsColumns, this.bendpointsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "metadata", this.metadataColumns, this.metadataPrimaryKeys));
 			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "images", this.imagesColumns, this.imagesPrimaryKeys));
 			
 			/* ****************************************************************************************************** */
@@ -625,6 +643,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					throw new SQLException("Database not initialized.");
 
 				createTables(dbGui);
+				currentVersion = databaseVersion;
 			}
 
 			if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
