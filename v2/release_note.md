@@ -1,3 +1,10 @@
+v2.2.8: 18/07/2020
+* Fix exception when accessing the database admin menu
+* Rewrite database structure check
+* Add a preference to enable/disable NOT NULL database constraints
+* Add a delete model action in the admin procedures
+* Add ACLI support to import a model from a database from command line
+
 v2.2.7: 05/05/2020
 * Fix password storage in preferences when expert mode is activated
 * Remove unnecessary password deciphering  

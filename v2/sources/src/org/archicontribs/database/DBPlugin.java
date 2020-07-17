@@ -342,6 +342,7 @@ import lombok.Getter;
  * 									Rewrite database structure check
  * 									Add a preference to enable/disable NOT NULL database constraints
  * 									Add a delete model action in the admin procedures
+ * 									Add ACLI support to import a model from a database from command line
  * 
  * TO-DO list:
  * ----------
