@@ -1,3 +1,6 @@
+v2.2.9: 25/07/2020
+* Fix admin procedure
+
 v2.2.8: 18/07/2020
 * Fix exception when accessing the database admin menu
 * Rewrite database structure check
