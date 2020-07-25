@@ -13,11 +13,13 @@ import lombok.Setter;
  *
  */
 @AllArgsConstructor()
+@Getter
+@Setter
 public class DBTable {
-	@Getter @Setter String schema;
-	@NonNull @Getter @Setter String name;
-	@NonNull @Getter @Setter List<DBColumn> columns;
-	@Getter @Setter List<String> primaryKeys;
+	String schema;
+	@NonNull String name;
+	@NonNull List<DBColumn> columns;
+	List<String> primaryKeys;
 	
 	/**
 	 * @return
