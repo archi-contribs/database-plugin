@@ -344,6 +344,8 @@ import lombok.Getter;
  * 									Add a delete model action in the admin procedures
  * 									Add ACLI support to import a model from a database from command line
  * 
+ * v2.2.9: 25/07/2020				Fix admin procedure
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
