@@ -482,7 +482,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd.top = new FormAttachment(this.lblPort, -3, SWT.TOP);
 		fd.bottom = new FormAttachment(this.lblPort, 3, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.btnExpertMode, 0, SWT.LEFT);
-		fd.width = 40;
+		fd.width = 60;
 		this.txtPort.setLayoutData(fd);
 		this.txtPort.setVisible(false);
 		this.txtPort.addModifyListener(this.setPortListener);
