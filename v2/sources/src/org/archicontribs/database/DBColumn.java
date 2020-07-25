@@ -17,7 +17,7 @@ public class DBColumn {
 	@Getter @Setter int length = 0;
 	@Getter @Setter boolean notNull = true;
 	@Getter @Setter Object metadata = null;
-	@Getter int maxLength = 2000000000;	// do not know why but hard coded in JDBC
+	@Getter int maxLength = 2000000000;	// do not know why, but it seems to be hard coded in JDBC
 	
 	/**
 	 * 
@@ -45,7 +45,7 @@ public class DBColumn {
 	        case "postgresql":
 	        	switch ( columnType ) {
 	        		case AUTO_INCREMENT : set(name, "SERIAL",      0, isNotNull); break;
-	        		case BOOLEAN :        set(name, "SMALLINT",    1, isNotNull); break;
+	        		case BOOLEAN :        set(name, "INT2",        0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "TIMESTAMP",   0, isNotNull); break;
 	        		case FONT :           set(name, "VARCHAR",   150, isNotNull); break;
@@ -62,13 +62,13 @@ public class DBColumn {
 	        	break;
 	        case "ms-sql":
 	        	switch ( columnType ) {
-	        		case AUTO_INCREMENT : set(name, "INT",         0, isNotNull); break;
-	        		case BOOLEAN :        set(name, "TINYINT",     1, isNotNull); break;
+	        		case AUTO_INCREMENT : set(name, "INT IDENTITY",0, isNotNull); break;
+	        		case BOOLEAN :        set(name, "TINYINT",     0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
 	        		case FONT :           set(name, "VARCHAR",   150, isNotNull); break;
 	        		case IMAGE :          set(name, "IMAGE",       0, isNotNull); break;
-	        		case INTEGER :        set(name, "INT",        10, isNotNull); break;
+	        		case INTEGER :        set(name, "INT",         0, isNotNull); break;
 	        		case OBJECTID :       set(name, "VARCHAR",    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, "VARCHAR",  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, "VARCHAR",    20, isNotNull); break;
@@ -81,7 +81,7 @@ public class DBColumn {
 	        case "mysql":
 	        	switch ( columnType ) {
 	        		case AUTO_INCREMENT : set(name, "INT",         0, isNotNull); break;
-	        		case BOOLEAN :        set(name, "TINYINT",     1, isNotNull); break;
+	        		case BOOLEAN :        set(name, "TINYINT",     0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
 	        		case FONT :           set(name, "VARCHAR",   150, isNotNull); break;
@@ -119,7 +119,7 @@ public class DBColumn {
 	        case "sqlite":
 	        	switch ( columnType ) {
 	        		case AUTO_INCREMENT : set(name, "INTEGER",     0, isNotNull); break;
-	        		case BOOLEAN :        set(name, "TINYINT",     1, isNotNull); break;
+	        		case BOOLEAN :        set(name, "TINYINT",     0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "TIMESTAMP",   0, isNotNull); break;
 	        		case FONT :           set(name, "VARCHAR",   150, isNotNull); break;
@@ -211,10 +211,17 @@ public class DBColumn {
 		if ( this.name.compareToIgnoreCase(compareTo.name) != 0 )
 			return false;
 		
-		if ( this.type.compareToIgnoreCase(compareTo.type) != 0 )
-			return false;
-		
-		if ( this.length != 0 && compareTo.length != 0 && this.length != compareTo.length )
+		// we consider VARCHAR & VARCHAR2, and NUMBER & INTEGER being the same
+		 if ( !(this.type.toUpperCase().startsWith("VARCHAR") && compareTo.type.toUpperCase().startsWith("VARCHAR"))
+				 && !((this.type.toUpperCase().equals("NUMBER") || compareTo.type.toUpperCase().equals("NUMBER")) && (this.type.toUpperCase().equals("INTEGER") || compareTo.type.toUpperCase().equals("INTEGER")))
+				 && this.type.compareToIgnoreCase(compareTo.type) != 0
+				 )
+			 return false;
+
+		// we consider NUMBER(38) and INTEGER(10) being the same
+		if ( (this.length > 0 && compareTo.length > 0 && this.length != compareTo.length)
+				&& !((this.type.toUpperCase().equals("NUMBER") || this.type.toUpperCase().equals("INTEGER")) && Math.abs(this.length-compareTo.length)==28)
+				)
 			return false;
 		
 		if ( this.notNull != compareTo.notNull )

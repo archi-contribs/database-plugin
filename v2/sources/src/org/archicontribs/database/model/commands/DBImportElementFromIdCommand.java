@@ -118,7 +118,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			if ( this.mustImportTheRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
 				// We import the relationships that source or target the element
-				try ( DBSelect resultRelationship = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT id, source_id, target_id FROM "+importConnection.getSchema()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
+				try ( DBSelect resultRelationship = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT id, source_id, target_id FROM "+importConnection.getSchemaPrefix()+"relationships WHERE source_id = ? OR target_id = ?", this.id, this.id) ) {
 					while ( resultRelationship.next() ) {
 					    IArchimateRelationship relationship = this.model.getAllRelationships().get(this.model.getNewRelationshipId(resultRelationship.getString("id")));
 					    

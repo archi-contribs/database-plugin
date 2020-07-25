@@ -64,7 +64,16 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * the databaseEntry corresponding to the connection
 	 */
 	@Getter DBDatabaseEntry databaseEntry = null;
+	
+	/**
+	 * the name of the schema
+	 */
 	@Getter protected String schema = "";
+	
+	/**
+	 * the name of the schema suffixed by a '.' if not empty
+	 */
+	@Getter protected String schemaPrefix = "";
 
 	/**
 	 * Connection to the database
@@ -136,7 +145,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 	protected DBDatabaseConnection(DBDatabaseEntry dbEntry) throws SQLException {
 		assert(this.databaseEntry != null);
 		this.databaseEntry = dbEntry;
-		this.schema = this.databaseEntry.getSchemaPrefix();
 		openConnection();
 	}
 
@@ -144,20 +152,26 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Used to switch between ImportConnection and ExportConnection.
 	 */
 	protected DBDatabaseConnection() {
-
+		if ( this.databaseEntry != null ) {
+			this.schema = this.databaseEntry.getSchema();
+			this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
+		}
 	}
 
 	private void openConnection() throws SQLException {
 		if ( isConnected() )
 			close();
 
-		if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+": driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.databaseEntry.getSchema()+", username="+this.databaseEntry.getUsername());
+		if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+": driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.schema+", username="+this.databaseEntry.getUsername());
 
 		String clazz = this.databaseEntry.getDriverClass();
 		if ( logger.isDebugEnabled() ) logger.debug("JDBC class = " + clazz);
 
 		String connectionString = this.databaseEntry.getJdbcConnectionString();
 		if ( logger.isDebugEnabled() ) logger.debug("JDBC connection string = " + connectionString);
+		
+		this.schema = this.databaseEntry.getSchema();
+		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
 
 		try {
 			// we load the jdbc class
@@ -240,6 +254,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 		this.connection = null;
 		this.databaseEntry = null;
+		this.schema = "";
+		this.schemaPrefix = "";
 	}
 
 	/**
@@ -270,6 +286,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public String checkDatabase(DBGui dbGui) throws Exception {
 		StringBuilder message = new StringBuilder();
 		boolean isDatabaseStructureCorrect = true;
+		
+		this.schema = this.databaseEntry.getSchema();
+		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
 		
 		try {
 			if ( dbGui != null )
@@ -571,8 +590,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 			this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
 			this.metadataColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.INTEGER, false));
+			this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+			this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
 			this.metadataPrimaryKeys = new ArrayList<String>();
 			this.metadataPrimaryKeys.add("parent_id");
@@ -608,33 +627,33 @@ public class DBDatabaseConnection implements AutoCloseable {
 			/* ****************************************************************************************************** */
 
 			this.databaseTables = new ArrayList<DBTable>();
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "database_version", this.databaseVersionColumns, this.databaseVersionPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "models", this.modelsColumns, this.modelsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "folders", this.foldersColumns, this.foldersPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "folders_in_model", this.foldersInModelColumns, this.foldersInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "elements", this.elementsColumns, this.elementsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "elements_in_model", this.elementsInModelColumns, this.elementsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "relationships", this.relationshipsColumns, this.relationshipsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "relationships_in_model", this.relationshipsInModelColumns, this.relationshipsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views", this.viewsColumns, this.viewsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views_in_model", this.viewsInModelColumns, this.viewsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views_objects", this.viewsObjectsColumns, this.viewsObjectsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views_objects_in_view", this.viewsObjectsInViewColumns, this.viewsObjectsInViewPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views_connections", this.viewsConnectionsColumns, this.viewsConnectionsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "views_connections_in_view", this.viewsConnectionsInViewColumns, this.viewsConnectionsInViewPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "properties", this.propertiesColumns, this.propertiesPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "features", this.featuresColumns, this.featuresPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "bendpoints", this.bendpointsColumns, this.bendpointsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "metadata", this.metadataColumns, this.metadataPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.databaseEntry.getSchema(), "images", this.imagesColumns, this.imagesPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "database_version", this.databaseVersionColumns, this.databaseVersionPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "models", this.modelsColumns, this.modelsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "folders", this.foldersColumns, this.foldersPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "folders_in_model", this.foldersInModelColumns, this.foldersInModelPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "elements", this.elementsColumns, this.elementsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "elements_in_model", this.elementsInModelColumns, this.elementsInModelPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "relationships", this.relationshipsColumns, this.relationshipsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "relationships_in_model", this.relationshipsInModelColumns, this.relationshipsInModelPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views", this.viewsColumns, this.viewsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views_in_model", this.viewsInModelColumns, this.viewsInModelPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views_objects", this.viewsObjectsColumns, this.viewsObjectsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views_objects_in_view", this.viewsObjectsInViewColumns, this.viewsObjectsInViewPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views_connections", this.viewsConnectionsColumns, this.viewsConnectionsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "views_connections_in_view", this.viewsConnectionsInViewColumns, this.viewsConnectionsInViewPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "properties", this.propertiesColumns, this.propertiesPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "features", this.featuresColumns, this.featuresPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "bendpoints", this.bendpointsColumns, this.bendpointsPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "metadata", this.metadataColumns, this.metadataPrimaryKeys));
+			this.databaseTables.add(new DBTable(this.schema, "images", this.imagesColumns, this.imagesPrimaryKeys));
 			
 			/* ****************************************************************************************************** */
 
 			// checking if the database_version table exists
-			if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schema+"database_version\" table");
+			if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
 
 			int currentVersion = 0;
-			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
 				result.next();
 				currentVersion = result.getInt("version");
 			} catch (@SuppressWarnings("unused") SQLException err) {
@@ -661,7 +680,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			// we check after the eventual database upgrade as database before version 212 did not have an ID
 			String databaseId = "";
-			try (DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id FROM "+this.schema+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+			try (DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
 				result.next();
 				databaseId = result.getString("id");
 			} // the "try" manages the result closure even in case of an exception
@@ -671,9 +690,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 				this.databaseEntry.setId(databaseId);
 				this.databaseEntry.persistIntoPreferenceStore();
 			}
-			
-			// We check the conformity of all tables
-			String schemaPrefix = this.databaseEntry.getSchemaPrefix();
 					
 			DatabaseMetaData metadata = this.connection.getMetaData();
 			boolean mustCheckNotNullConstraint = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("checkNotNullConstraints");
@@ -682,12 +698,18 @@ public class DBDatabaseConnection implements AutoCloseable {
 			// we check that all the columns in the table are expected
 			for (int t = 0; t < this.databaseTables.size() ; ++t ) {
 				String tableName = this.databaseTables.get(t).getName();
+				// oracle requires uppercase table names
+				if ( this.databaseEntry.getDriver().equals("oracle") ) {
+					tableName = tableName.toUpperCase();
+					this.schema = this.schema.toUpperCase();
+					this.schemaPrefix = this.schemaPrefix.toUpperCase();
+				}
 				List<DBColumn> expectedColumns = this.databaseTables.get(t).getColumns();
 				
-				try (ResultSet result = metadata.getColumns(null, this.schema, tableName, null)) {
+				try (ResultSet result = metadata.getColumns(null, this.schema.toUpperCase(), tableName, null)) {
 					boolean isTableCorrect = true;
 					
-					logger.debug("Table "+schemaPrefix+tableName);
+					logger.debug("Table "+this.schemaPrefix+tableName);
 					
 					// we reset the columns metadata
 					for (Iterator<DBColumn> iterator = expectedColumns.iterator(); iterator.hasNext(); ) {
@@ -703,15 +725,15 @@ public class DBDatabaseConnection implements AutoCloseable {
 							if ( columnName.equalsIgnoreCase(expectedColumn.getName()) ) {
 								DBColumn columnInTable = new DBColumn(columnName, result.getString("TYPE_NAME"), result.getInt("COLUMN_SIZE"), result.getInt("NULLABLE")==0);
 								
-								if ( columnInTable.getFullType().equals(expectedColumn.getFullType()) )
+								if ( columnInTable.equals(expectedColumn) )
 									logger.debug("   Column "+columnInTable.toString()+" is correct");
 								else {
-									if ( columnInTable.getType().equals(expectedColumn.getType()) ) {
+									if ( columnInTable.getType().equalsIgnoreCase(expectedColumn.getType()) ) {
 										if ( mustCheckNotNullConstraint ) {
 											logger.debug("   Column "+columnInTable.getName()+": should be NOT NULL");
 											if ( isTableCorrect ) {
 												isTableCorrect = false;
-												message.append("\nTable "+schemaPrefix+tableName);
+												message.append("\nTable "+this.schemaPrefix+tableName);
 											}
 											message.append("\n   Column "+columnInTable.getName()+": should be NOT NULL");
 										} else
@@ -720,7 +742,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 										logger.debug("   Column "+columnInTable.toString()+", but should be "+expectedColumn.getFullType());
 										if ( isTableCorrect ) {
 											isTableCorrect = false;
-											message.append("\nTable "+schemaPrefix+tableName);
+											message.append("\nTable "+this.schemaPrefix+tableName);
 										}
 										message.append("\n   Column "+columnInTable.toString()+", but should be "+expectedColumn.getFullType());
 										hasGotNotNullErrorsOnly = false;
@@ -738,7 +760,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 						if ( expectedColumn.getMetadata() == null ) {
 							if ( isTableCorrect ) {
 								isTableCorrect = false;
-								message.append("\nTable "+schemaPrefix+tableName);
+								message.append("\nTable "+this.schemaPrefix+tableName);
 							}
 							logger.debug("   Column "+expectedColumn.toString()+" is missing");
 							message.append("\n   Column "+expectedColumn.toString()+" is missing");
@@ -754,7 +776,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 				
 				/* TODO; check primary keys
 				logger.debug("   checking primary keys");
-				try (ResultSet result = metadata.getPrimaryKeys(null, schema, tableName)) {
+				try (ResultSet result = metadata.getPrimaryKeys(null, this.schema, tableName)) {
 					while( result.next() ) {
 						String indexName = result.getString("COLUMN_NAME");
 						logger.debug("   found column "+indexName+" in primary key");
@@ -818,80 +840,80 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			
 			// we fill in the database_version table 
-			insert(this.schema+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), DBPlugin.createID(null), DBPlugin.pluginName, databaseVersion);
+			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), DBPlugin.createID(null), DBPlugin.pluginName, databaseVersion);
 			
 			// Oracle do not implement AUTO_INCREMENT columns, so we have to manually create sequences and triggers
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_elements");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_elements_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_elements_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_elements");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_elements_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_elements_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_elements_in_model");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_elements_in_model "
-						+ "BEFORE INSERT ON "+this.schema+"elements_in_model "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_elements_in_model");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_elements_in_model "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"elements_in_model "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_elements_in_model.NEXTVAL INTO :NEW.eim_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_elements_in_model.NEXTVAL INTO :NEW.eim_id FROM DUAL;"
 						+ "END;");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_folders_in_model");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_folders_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_folders_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_folders_in_model");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_folders_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_folders_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_folders_in_model");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_folders_in_model "
-						+ "BEFORE INSERT ON "+this.schema+"folders_in_model "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_folders_in_model");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_folders_in_model "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"folders_in_model "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_folders_in_model.NEXTVAL INTO :NEW.fim_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_folders_in_model.NEXTVAL INTO :NEW.fim_id FROM DUAL;"
 						+ "END;");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_relationships");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_relationships_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_relationships_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_relationships");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_relationships_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_relationships_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_relationships_in_model");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_relationships_in_model "
-						+ "BEFORE INSERT ON "+this.schema+"relationships_in_model "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_relationships_in_model");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_relationships_in_model "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"relationships_in_model "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_relationships_in_model.NEXTVAL INTO :NEW.rim_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_relationships_in_model.NEXTVAL INTO :NEW.rim_id FROM DUAL;"
 						+ "END;");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_connections_in_view");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_connections_in_view");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_connections_in_view");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_connections_in_view "
-						+ "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_connections_in_view");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_connections_in_view "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"views_connections_in_view "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
 						+ "END;");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_views");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_views_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_views_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_views");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_views_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_views_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_views_in_model");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_views_in_model "
-						+ "BEFORE INSERT ON "+this.schema+"views_in_model "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_views_in_model");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_views_in_model "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"views_in_model "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_views_in_model.NEXTVAL INTO :NEW.vim_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_views_in_model.NEXTVAL INTO :NEW.vim_id FROM DUAL;"
 						+ "END;");
 				
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_objects_in_view");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_objects_in_view");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_objects_in_view");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_objects_in_view "
-						+ "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_objects_in_view");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_objects_in_view "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"views_objects_in_view "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
 						+ "END;");
 			}
 
@@ -1117,7 +1139,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		// convert from version 200 to 201:
 		//      - add a blob column into the views table
 		if ( dbVersion == 200 ) {
-			addColumn(this.schema+"views", "screenshot", imageColumn.getFullType());				// executeRequest("ALTER TABLE "+this.schema+"views ADD "+COLUMN+" screenshot "+this.IMAGE);
+			addColumn(this.schemaPrefix+"views", "screenshot", imageColumn.getFullType());				// executeRequest("ALTER TABLE "+this.schemaPrefix+"views ADD "+COLUMN+" screenshot "+this.IMAGE);
 
 			dbVersion = 201;
 		}
@@ -1127,11 +1149,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - add source_connections and target_connections to views_objects and views_connections tables
 		if ( dbVersion == 201 ) {
 			
-			addColumn(this.schema+"views", "text_position", integerColumn.getType());                   // executeRequest("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" text_position "+this.INTEGER);
-			addColumn(this.schema+"views_objects", "source_connections", textColumn.getType());         // executeRequest("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" source_connections "+this.TEXT);
-			addColumn(this.schema+"views_objects", "target_connections", textColumn.getType());         // executeRequest("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" target_connections "+this.TEXT);
-			addColumn(this.schema+"views_connections", "source_connections", textColumn.getType());     // executeRequest("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" source_connections "+this.TEXT);
-			addColumn(this.schema+"views_connections", "target_connections", textColumn.getType());     // executeRequest("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" target_connections "+this.TEXT);
+			addColumn(this.schemaPrefix+"views", "text_position", integerColumn.getType());                   // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_connections ADD "+COLUMN+" text_position "+this.INTEGER);
+			addColumn(this.schemaPrefix+"views_objects", "source_connections", textColumn.getType());         // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_objects ADD "+COLUMN+" source_connections "+this.TEXT);
+			addColumn(this.schemaPrefix+"views_objects", "target_connections", textColumn.getType());         // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_objects ADD "+COLUMN+" target_connections "+this.TEXT);
+			addColumn(this.schemaPrefix+"views_connections", "source_connections", textColumn.getType());     // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_connections ADD "+COLUMN+" source_connections "+this.TEXT);
+			addColumn(this.schemaPrefix+"views_connections", "target_connections", textColumn.getType());     // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_connections ADD "+COLUMN+" target_connections "+this.TEXT);
 
 			dbVersion = 202;
 		}
@@ -1140,8 +1162,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - add element_version column to the views_objects table
 		//      - add relationship_version column to the views_connections table
 		if ( dbVersion == 202 ) {
-			addColumn(this.schema+"views_connections", "relationship_version", integerColumn.getType(), false, 1);     // executeRequest("ALTER TABLE "+this.schema+"views_connections ADD "+COLUMN+" relationship_version "+this.INTEGER);
-			addColumn(this.schema+"views_objects", "element_version", integerColumn.getType(), false, 1);             // executeRequest("ALTER TABLE "+this.schema+"views_objects ADD "+COLUMN+" element_version "+this.INTEGER);
+			addColumn(this.schemaPrefix+"views_connections", "relationship_version", integerColumn.getType(), false, 1);     // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_connections ADD "+COLUMN+" relationship_version "+this.INTEGER);
+			addColumn(this.schemaPrefix+"views_objects", "element_version", integerColumn.getType(), false, 1);             // executeRequest("ALTER TABLE "+this.schemaPrefix+"views_objects ADD "+COLUMN+" element_version "+this.INTEGER);
 
 			dbVersion = 203;
 		}
@@ -1150,10 +1172,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - add a checksum to the model
 		//
 		if ( dbVersion == 203 ) {
-			addColumn(this.schema+"models", "checksum", objectIDColumn.getType(), false, "");
+			addColumn(this.schemaPrefix+"models", "checksum", objectIDColumn.getType(), false, "");
 
 			if ( logger.isDebugEnabled() ) logger.debug("Calculating models checksum");
-			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, name, note, purpose FROM "+this.schema+"models") ) {
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, name, note, purpose FROM "+this.schemaPrefix+"models") ) {
 				while ( result.next() ) {
 					StringBuilder checksumBuilder = new StringBuilder();
 					DBChecksum.append(checksumBuilder, "id", result.getString("id"));
@@ -1168,7 +1190,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 						rollback();
 						return;
 					}
-					executeRequest("UPDATE "+this.schema+"models SET checksum = ? WHERE id = ? AND version = ?", checksum, result.getString("id"), result.getInt("version"));
+					executeRequest("UPDATE "+this.schemaPrefix+"models SET checksum = ? WHERE id = ? AND version = ?", checksum, result.getString("id"), result.getInt("version"));
 				}
 			}
 
@@ -1179,14 +1201,14 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - add a container_checksum column in the views table
 		//
 		if ( dbVersion == 204 ) {
-			addColumn(this.schema+"views", "container_checksum", objectIDColumn.getType(), false, "");
+			addColumn(this.schemaPrefix+"views", "container_checksum", objectIDColumn.getType(), false, "");
 
 			DBGui.popup("Please wait while calculating new checksum on views table.");
 
 			DBArchimateModel tempModel = new DBArchimateModel();
 			try ( DBDatabaseImportConnection importConnection = (DBDatabaseImportConnection)this ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Calculating containers checksum");
-				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schema+"views") ) {
+				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schemaPrefix+"views") ) {
 					while ( result.next() ) {
 						IDiagramModel view;
 						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.templateMode, false);
@@ -1197,7 +1219,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 						view = command.getImported();
 
-						executeRequest("UPDATE "+this.schema+"views SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(view), result.getString("id"), result.getInt("version"));
+						executeRequest("UPDATE "+this.schemaPrefix+"views SET container_checksum = ? WHERE id = ? AND version = ?", DBChecksum.calculateChecksum(view), result.getString("id"), result.getInt("version"));
 					}
 				}
 			}
@@ -1216,31 +1238,31 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( dbVersion == 205 ) {
 			Timestamp now = new Timestamp(0);
 
-			addColumn(this.schema+"views_connections", "created_by", userNameColumn.getType(), false, "databasePlugin");			// we set dummy value to satisfy the NOT NULL condition
-			addColumn(this.schema+"views_connections", "created_on", datetimeColumn.getType(), false, now);						// we set dummy value to satisfy the NOT NULL condition
+			addColumn(this.schemaPrefix+"views_connections", "created_by", userNameColumn.getType(), false, "databasePlugin");			// we set dummy value to satisfy the NOT NULL condition
+			addColumn(this.schemaPrefix+"views_connections", "created_on", datetimeColumn.getType(), false, now);						// we set dummy value to satisfy the NOT NULL condition
 
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
-				executeRequest("UPDATE "+this.schema+"views_connections c SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schema+"views WHERE id = c.view_id AND version = c.view_version)");
+				executeRequest("UPDATE "+this.schemaPrefix+"views_connections c SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schemaPrefix+"views WHERE id = c.view_id AND version = c.view_version)");
 			else
-				executeRequest("UPDATE "+this.schema+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_connections c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_connections.id = j.id");
+				executeRequest("UPDATE "+this.schemaPrefix+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schemaPrefix+"views_connections c JOIN "+this.schemaPrefix+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schemaPrefix+"views_connections.id = j.id");
 
 
 
 
 
 
-			addColumn(this.schema+"views_objects", "created_by", userNameColumn.getType(), false, "databasePlugin");				// we set dummy value to satisfy the NOT NULL condition
-			addColumn(this.schema+"views_objects", "created_on", datetimeColumn.getType(), false, now);							// we set dummy value to satisfy the NOT NULL condition
+			addColumn(this.schemaPrefix+"views_objects", "created_by", userNameColumn.getType(), false, "databasePlugin");				// we set dummy value to satisfy the NOT NULL condition
+			addColumn(this.schemaPrefix+"views_objects", "created_on", datetimeColumn.getType(), false, now);							// we set dummy value to satisfy the NOT NULL condition
 
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
-				executeRequest("UPDATE "+this.schema+"views_objects o SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schema+"views WHERE id = o.view_id AND version = o.view_version)");
+				executeRequest("UPDATE "+this.schemaPrefix+"views_objects o SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schemaPrefix+"views WHERE id = o.view_id AND version = o.view_version)");
 			else
-				executeRequest("UPDATE "+this.schema+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schema+"views_objects c JOIN "+this.schema+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schema+"views_objects.id = j.id");
+				executeRequest("UPDATE "+this.schemaPrefix+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schemaPrefix+"views_objects c JOIN "+this.schemaPrefix+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schemaPrefix+"views_objects.id = j.id");
 
 
 
-			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_connections_in_view");
-			executeRequest("CREATE TABLE "+this.schema+"views_connections_in_view ("
+			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"views_connections_in_view");
+			executeRequest("CREATE TABLE "+this.schemaPrefix+"views_connections_in_view ("
 					+ "civ_id " + autoIncrementColumn.getType()+", "
 					+ "connection_id " + objectIDColumn.getType() +" NOT NULL, "
 					+ "connection_version " + integerColumn.getType() +" NOT NULL, "
@@ -1250,28 +1272,28 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ ", PRIMARY KEY (civ_id)"
 					+ ")");
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_connections_in_view");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_connections_in_view");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_connections_in_view");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_connections_in_view "
-						+ "BEFORE INSERT ON "+this.schema+"views_connections_in_view "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_connections_in_view");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_connections_in_view "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"views_connections_in_view "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_connections_in_view.NEXTVAL INTO :NEW.civ_id FROM DUAL;"
 						+ "END;");
 			}
 
 			// we fill in the views_connections_in_view table
-			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
-			executeRequest("INSERT INTO "+this.schema+"views_connections_in_view "
+			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_connections table to "+this.schemaPrefix+"views_connections_in_view table");
+			executeRequest("INSERT INTO "+this.schemaPrefix+"views_connections_in_view "
 					+"(connection_id, connection_version, view_id, view_version, rank) "
-					+"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_connections"
+					+"SELECT id, version, view_id, view_version, rank FROM "+this.schemaPrefix+"views_connections"
 					);
 
-			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"views_objects_in_view");
-			executeRequest("CREATE TABLE "+this.schema+"views_objects_in_view ("
+			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"views_objects_in_view");
+			executeRequest("CREATE TABLE "+this.schemaPrefix+"views_objects_in_view ("
 					+ "oiv_id " + autoIncrementColumn.getType()+", "
 					+ "object_id " + objectIDColumn.getType() +" NOT NULL, "
 					+ "object_version " + integerColumn.getType() +" NOT NULL, "
@@ -1281,34 +1303,34 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ ", PRIMARY KEY (oiv_id)"
 					+ ")");
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
-				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schema+"seq_objects_in_view");
-				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schema+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-				executeRequest("CREATE SEQUENCE "+this.schema+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_objects_in_view");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
 
-				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schema+"trigger_objects_in_view");
-				executeRequest("CREATE OR REPLACE TRIGGER "+this.schema+"trigger_objects_in_view "
-						+ "BEFORE INSERT ON "+this.schema+"views_objects_in_view "
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_objects_in_view");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_objects_in_view "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"views_objects_in_view "
 						+ "FOR EACH ROW "
 						+ "BEGIN"
-						+ "  SELECT "+this.schema+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
+						+ "  SELECT "+this.schemaPrefix+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
 						+ "END;");
 			}
 
 			// we fill in the views_objects_in_view table
-			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_objects table to "+this.schema+"views_objects_in_view table");
-			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schema+"views_connections table to "+this.schema+"views_connections_in_view table");
-			executeRequest("INSERT INTO "+this.schema+"views_objects_in_view "
+			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_objects table to "+this.schemaPrefix+"views_objects_in_view table");
+			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_connections table to "+this.schemaPrefix+"views_connections_in_view table");
+			executeRequest("INSERT INTO "+this.schemaPrefix+"views_objects_in_view "
 					+"(object_id, object_version, view_id, view_version, rank) "
-					+"SELECT id, version, view_id, view_version, rank FROM "+this.schema+"views_objects"
+					+"SELECT id, version, view_id, view_version, rank FROM "+this.schemaPrefix+"views_objects"
 					);
 
-			dropColumn(this.schema+"views_connections", "view_id");
-			dropColumn(this.schema+"views_connections", "view_version");
-			dropColumn(this.schema+"views_connections", "rank");
+			dropColumn(this.schemaPrefix+"views_connections", "view_id");
+			dropColumn(this.schemaPrefix+"views_connections", "view_version");
+			dropColumn(this.schemaPrefix+"views_connections", "rank");
 
-			dropColumn(this.schema+"views_objects", "view_id");
-			dropColumn(this.schema+"views_objects", "view_version");
-			dropColumn(this.schema+"views_objects", "rank");
+			dropColumn(this.schemaPrefix+"views_objects", "view_id");
+			dropColumn(this.schemaPrefix+"views_objects", "view_version");
+			dropColumn(this.schemaPrefix+"views_objects", "rank");
 
 			dbVersion = 206;
 		}
@@ -1317,7 +1339,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - remove the checksum column from the images table
 		//
 		if ( dbVersion == 206 ) {
-			dropColumn(this.schema+"images", "checksum");
+			dropColumn(this.schemaPrefix+"images", "checksum");
 
 			dbVersion = 207;
 		}
@@ -1328,8 +1350,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( dbVersion == 207 ) {
 			DBGui.popup("Please wait while converting data.");
 
-			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"metadata");
-			executeRequest("CREATE TABLE "+this.schema+"metadata ("
+			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"metadata");
+			executeRequest("CREATE TABLE "+this.schemaPrefix+"metadata ("
 					+ "parent_id "+objectIDColumn.getType() +" NOT NULL, "
 					+ "parent_version " + integerColumn.getType() +" NOT NULL, "
 					+ "rank " + integerColumn.getType() +" NOT NULL, "
@@ -1338,11 +1360,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "PRIMARY KEY (parent_id, parent_version, rank)"
 					+ ")");
 
-			dropColumn(this.schema+"views_objects", "source_connections");
-			dropColumn(this.schema+"views_objects", "target_connections");
+			dropColumn(this.schemaPrefix+"views_objects", "source_connections");
+			dropColumn(this.schemaPrefix+"views_objects", "target_connections");
 
-			dropColumn(this.schema+"views_connections", "source_connections");
-			dropColumn(this.schema+"views_connections", "target_connections");
+			dropColumn(this.schemaPrefix+"views_connections", "source_connections");
+			dropColumn(this.schemaPrefix+"views_connections", "target_connections");
 
 			DBGui.closePopup();
 
@@ -1354,27 +1376,27 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//             (they're not yet used, but they're created for uniformity purpose)
 		//      - add alpha column in views_objects table
 		if ( dbVersion == 208 ) {
-			addColumn(this.schema+"folders", "checkedin_by", userNameColumn.getType());
-			addColumn(this.schema+"folders", "checkedin_on", datetimeColumn.getType());
-			addColumn(this.schema+"folders", "deleted_by", userNameColumn.getType());
-			addColumn(this.schema+"folders", "deleted_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"folders", "checkedin_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"folders", "checkedin_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"folders", "deleted_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"folders", "deleted_on", datetimeColumn.getType());
 
-			addColumn(this.schema+"views", "checkedin_by", userNameColumn.getType());
-			addColumn(this.schema+"views", "checkedin_on", datetimeColumn.getType());
-			addColumn(this.schema+"views", "deleted_by", userNameColumn.getType());
-			addColumn(this.schema+"views", "deleted_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views", "checkedin_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views", "checkedin_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views", "deleted_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views", "deleted_on", datetimeColumn.getType());
 
-			addColumn(this.schema+"views_connections", "checkedin_by", userNameColumn.getType());
-			addColumn(this.schema+"views_connections", "checkedin_on", datetimeColumn.getType());
-			addColumn(this.schema+"views_connections", "deleted_by", userNameColumn.getType());
-			addColumn(this.schema+"views_connections", "deleted_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views_connections", "checkedin_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views_connections", "checkedin_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views_connections", "deleted_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views_connections", "deleted_on", datetimeColumn.getType());
 
-			addColumn(this.schema+"views_objects", "checkedin_by", userNameColumn.getType());
-			addColumn(this.schema+"views_objects", "checkedin_on", datetimeColumn.getType());
-			addColumn(this.schema+"views_objects", "deleted_by", userNameColumn.getType());
-			addColumn(this.schema+"views_objects", "deleted_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views_objects", "checkedin_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views_objects", "checkedin_on", datetimeColumn.getType());
+			addColumn(this.schemaPrefix+"views_objects", "deleted_by", userNameColumn.getType());
+			addColumn(this.schemaPrefix+"views_objects", "deleted_on", datetimeColumn.getType());
 
-			addColumn(this.schema+"views_objects", "alpha", integerColumn.getType());
+			addColumn(this.schemaPrefix+"views_objects", "alpha", integerColumn.getType());
 
 			dbVersion = 209;
 		}
@@ -1382,8 +1404,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		// convert from version 209 to 210
 		//      - add screenshot_scale_factor and screenshot_border_width in views table
 		if ( dbVersion == 209 ) {
-			addColumn(this.schema+"views", "screenshot_scale_factor", integerColumn.getType());
-			addColumn(this.schema+"views", "screenshot_border_width", integerColumn.getType());
+			addColumn(this.schemaPrefix+"views", "screenshot_scale_factor", integerColumn.getType());
+			addColumn(this.schemaPrefix+"views", "screenshot_border_width", integerColumn.getType());
 
 			dbVersion = 210;
 		}
@@ -1391,11 +1413,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		// convert from version 210 to 211
 		//      - remove hint_title and hint_content from the views and views_objects table
 		if ( dbVersion == 210 ) {
-			dropColumn(this.schema+"views", "hint_title");
-			dropColumn(this.schema+"views", "hint_content");
+			dropColumn(this.schemaPrefix+"views", "hint_title");
+			dropColumn(this.schemaPrefix+"views", "hint_content");
 
-			dropColumn(this.schema+"views_objects", "hint_title");
-			dropColumn(this.schema+"views_objects", "hint_content");
+			dropColumn(this.schemaPrefix+"views_objects", "hint_title");
+			dropColumn(this.schemaPrefix+"views_objects", "hint_content");
 
 			// we need to recalculate the checksums
 			DBGui.popup("Please wait while re-calculating checksums on views_objects and views tables.");
@@ -1403,7 +1425,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			DBArchimateModel tempModel = new DBArchimateModel();
 
 			try ( DBDatabaseImportConnection importConnection = (DBDatabaseImportConnection)this ) {
-				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schema+"views") ) {
+				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schemaPrefix+"views") ) {
 					while ( result.next() ) {
 						IDiagramModel view;
 
@@ -1418,7 +1440,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 						tempModel.countObject(view, true);
 
-						executeRequest("UPDATE "+this.schema+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), dbMetadata.getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
+						executeRequest("UPDATE "+this.schemaPrefix+"views SET checksum = ?, container_checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), dbMetadata.getCurrentVersion().getContainerChecksum(), result.getString("id"), result.getInt("version"));
 
 						for ( IDiagramModelObject obj: view.getChildren() ) {
 							updateChecksum(obj);
@@ -1440,8 +1462,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//		- add column "is_directed" to "relationships" table
 		//		- add column "id" to "database_version table
 		if ( dbVersion == 211 ) {
-			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schema+"features");
-			executeRequest("CREATE TABLE "+this.schema+"features ("
+			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"features");
+			executeRequest("CREATE TABLE "+this.schemaPrefix+"features ("
 					+ "parent_id "+objectIDColumn.getType()+" NOT NULL, "
 					+ "parent_version " + integerColumn.getType() +" NOT NULL, "
 					+ "rank " + integerColumn.getType() +" NOT NULL, "
@@ -1453,23 +1475,23 @@ public class DBDatabaseConnection implements AutoCloseable {
 			String[] tableNames = {"models", "folders", "elements", "relationships", "views", "views_objects", "views_connections"};   
 			for (String tableName: tableNames) {
 				// we initialise the value to true as we do not know if the components have got properties, so we reproduce the previous behaviour
-				addColumn(this.schema+tableName, "properties", integerColumn.getType(), true, 1);
+				addColumn(this.schemaPrefix+tableName, "properties", integerColumn.getType(), true, 1);
 
 				// we initialise the value to false as we're sure that the components do not have features yet
-				addColumn(this.schema+tableName, "features", integerColumn.getType(), true, 1);
+				addColumn(this.schemaPrefix+tableName, "features", integerColumn.getType(), true, 1);
 			}
 
 			// we initialise the value to true as we do not know if the connection have got bendpoints, so we reproduce the previous behaviour
-			addColumn(this.schema+"views_connections", "bendpoints", integerColumn.getType(), true, 1);
+			addColumn(this.schemaPrefix+"views_connections", "bendpoints", integerColumn.getType(), true, 1);
 
 			// we do not initialise the value, as NULL will be treated as false which is the default value (association relationships are not directed by default)
-			addColumn(this.schema+"relationships", "is_directed", booleanColumn.getType(), true, 0);
+			addColumn(this.schemaPrefix+"relationships", "is_directed", booleanColumn.getType(), true, 0);
 
 			// we add the new id column with a generated ID and save this ID in the preferences file for later use
-			addColumn(this.schema+"database_version", "id", objectIDColumn.getType(), false, "");
+			addColumn(this.schemaPrefix+"database_version", "id", objectIDColumn.getType(), false, "");
 
 			this.databaseEntry.setId(DBPlugin.createID(null));
-			executeRequest("UPDATE "+this.schema+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+			executeRequest("UPDATE "+this.schemaPrefix+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 			// if the databaseEntry.index is different from -1, then the databaseEntry is persisted in the database, so we persist the new ID in the preference store
 			if ( this.databaseEntry.getIndex() != -1 )
 				this.databaseEntry.persistIntoPreferenceStore();
@@ -1477,7 +1499,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			dbVersion = 212;
 		}
 
-		executeRequest("UPDATE "+this.schema+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+		executeRequest("UPDATE "+this.schemaPrefix+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 		commit();
 
 		setAutoCommit(true);
@@ -1486,7 +1508,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	private void updateChecksum(IDiagramModelObject obj) throws SQLException {
 		DBMetadata dbMetadata = DBMetadata.getDBMetadata(obj);
 
-		executeRequest("UPDATE "+this.schema+"views_object SET checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), obj.getId(), dbMetadata.getInitialVersion().getVersion());
+		executeRequest("UPDATE "+this.schemaPrefix+"views_object SET checksum = ? WHERE id = ? AND version = ?", dbMetadata.getCurrentVersion().getChecksum(), obj.getId(), dbMetadata.getInitialVersion().getVersion());
 
 		if ( obj instanceof IDiagramModelContainer ) {
 			for ( IDiagramModelObject subObj: ((IDiagramModelContainer)obj).getChildren() ) {
@@ -1545,14 +1567,17 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 */
 	public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
 		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+		
+		this.schema = this.databaseEntry.getSchema();
+		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
 
 		DBSelect result = null;
 		try {
 			// We do not use a GROUP BY because it does not give the expected result on PostGresSQL ...   
 			if ( filter==null || filter.length()==0 )
-				result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) ORDER BY name");
+				result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schemaPrefix+"models m WHERE version = (SELECT MAX(version) FROM "+this.schemaPrefix+"models WHERE id = m.id) ORDER BY name");
 			else
-				result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schema+"models m WHERE version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
+				result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, name, version, created_on FROM "+this.schemaPrefix+"models m WHERE version = (SELECT MAX(version) FROM "+this.schemaPrefix+"models WHERE id = m.id) AND UPPER(name) like UPPER(?) ORDER BY name", filter);
 
 			while ( result.next() && result.getString("id") != null ) {
 				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\"");
@@ -1581,7 +1606,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
 		String whereClause = ignoreCase ? "UPPER(name) = UPPER(?)" : "name = ?";
 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT id FROM "+this.schema+"models m WHERE "+whereClause, modelName) ) {  
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT id FROM "+this.schemaPrefix+"models m WHERE "+whereClause, modelName) ) {  
 			if ( result.next() ) 
 				return (result.getString("id"));
 		}
@@ -1598,7 +1623,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
 		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT version, created_by, created_on, name, note, purpose, checksum FROM "+this.schema+"models WHERE id = ? ORDER BY version DESC", id) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT version, created_by, created_on, name, note, purpose, checksum FROM "+this.schemaPrefix+"models WHERE id = ? ORDER BY version DESC", id) ) {
 			while ( result.next() ) {
 				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\" checksum=\""+result.getString("checksum")+"\"");
 				Hashtable<String, Object> table = new Hashtable<String, Object>();

@@ -129,7 +129,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( this.newValues.get("image_path") != null ) {
                 IArchiveManager archiveMgr = (IArchiveManager)archimateModel.getAdapter(IArchiveManager.class);
                 if ( !archiveMgr.getLoadedImagePaths().contains((String)this.newValues.get("image_path")) ) {
-                    try ( DBSelect imageResult = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT image FROM "+importConnection.getSchema()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
+                    try ( DBSelect imageResult = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT image FROM "+importConnection.getSchemaPrefix()+"images WHERE path = ?", (String)this.newValues.get("image_path")) ) {
                         if ( imageResult.next() ) {
                             this.newImageContent = imageResult.getBytes("image");
                             logger.debug("   Importing image "+this.newValues.get("image_path")+" (size = "+this.newImageContent.length+")");

@@ -43,8 +43,8 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     	
         try {
             try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.element_id AS element_id, m2.parent_folder_id AS parent_folder_id"
-                    + " FROM "+importConnection.getSchema()+"elements_in_model m1"
-                    + " JOIN "+importConnection.getSchema()+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
+                    + " FROM "+importConnection.getSchemaPrefix()+"elements_in_model m1"
+                    + " JOIN "+importConnection.getSchemaPrefix()+"elements_in_model m2 ON m1.element_id = m2.element_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                     , model.getId()
                     , model.getInitialVersion().getVersion()

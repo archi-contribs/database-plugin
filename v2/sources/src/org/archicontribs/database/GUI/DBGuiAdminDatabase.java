@@ -534,7 +534,7 @@ public class DBGuiAdminDatabase extends DBGui {
 			return;
 		}
 		
-		if (DBGui.question("You are about to delete all the versions of the model \""+modelName+"\" from the database.?\n\nPlease note that this action cannot be undone.") ) {
+		if (DBGui.question("You are about to delete the model \""+modelName+"\" from the database.\n\nThis will delete the model as a container. However, the model content (elements, relationships, views, ...) will remain in the database so they can be imported from the database into other models.\n\nPlease note that this action cannot be undone.\n\nDo you confirm the deletion ?") ) {
 			try {
 				String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
 				String table = schemaPrefix+"models";
