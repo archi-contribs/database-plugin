@@ -1,3 +1,6 @@
+v2.2.10: 05/08/2020
+* Fix schema and columns type in SQL requests
+
 v2.2.9: 25/07/2020
 * Fix admin procedure
 
