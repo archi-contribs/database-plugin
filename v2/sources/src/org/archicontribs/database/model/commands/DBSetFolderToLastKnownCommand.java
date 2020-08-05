@@ -65,8 +65,8 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     
             // relationships
             try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.relationship_id AS relationship_id, m2.parent_folder_id AS parent_folder_id"
-                    + " FROM "+importConnection.getSchema()+"relationships_in_model m1"
-                    + " JOIN "+importConnection.getSchema()+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
+                    + " FROM "+importConnection.getSchemaPrefix()+"relationships_in_model m1"
+                    + " JOIN "+importConnection.getSchemaPrefix()+"relationships_in_model m2 ON m1.relationship_id = m2.relationship_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                     , model.getId()
                     , model.getInitialVersion().getVersion()
@@ -87,8 +87,8 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     
             // folders
             try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.folder_id AS folder_id, m2.parent_folder_id AS parent_folder_id"
-                    + " FROM "+importConnection.getSchema()+"folders_in_model m1"
-                    + " JOIN "+importConnection.getSchema()+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
+                    + " FROM "+importConnection.getSchemaPrefix()+"folders_in_model m1"
+                    + " JOIN "+importConnection.getSchemaPrefix()+"folders_in_model m2 ON m1.folder_id = m2.folder_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                     , model.getId()
                     , model.getInitialVersion().getVersion()
@@ -109,8 +109,8 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     
             // views
             try ( DBSelect result = new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT m2.view_id AS view_id, m2.parent_folder_id AS parent_folder_id"
-                    + " FROM "+importConnection.getSchema()+"views_in_model m1"
-                    + " JOIN "+importConnection.getSchema()+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
+                    + " FROM "+importConnection.getSchemaPrefix()+"views_in_model m1"
+                    + " JOIN "+importConnection.getSchemaPrefix()+"views_in_model m2 ON m1.view_id = m2.view_id AND m1.model_id = m2.model_id"
                     + " WHERE m1.model_id = ? AND m1.model_version = ? AND m2.model_version = ? AND m1.parent_folder_id <> m2.parent_folder_id"
                     , model.getId()
                     , model.getInitialVersion().getVersion()

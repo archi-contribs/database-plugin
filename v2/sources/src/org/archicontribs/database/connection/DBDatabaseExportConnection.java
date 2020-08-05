@@ -91,6 +91,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		assert(importConnection != null);
 		super.databaseEntry = importConnection.databaseEntry;
 		super.schema = importConnection.schema;
+		super.schemaPrefix = importConnection.schemaPrefix;
 		super.connection = importConnection.connection;
 		this.isconnectionDuplicate = true;
 	}
@@ -104,6 +105,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		assert(databaseConnection != null);
 		super.databaseEntry = databaseConnection.databaseEntry;
 		super.schema = databaseConnection.schema;
+		super.schemaPrefix = databaseConnection.schemaPrefix;
 		super.connection = databaseConnection.connection;
 		this.isconnectionDuplicate = true;
 	}
@@ -128,7 +130,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the model from the database");
 		// model.getCurrentVersion().reset();
-		try ( DBSelect resultLatestVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum, created_on FROM "+this.schema+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schema+"models WHERE id = ?)", modelId, modelId) ) {
+		try ( DBSelect resultLatestVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum, created_on FROM "+this.schemaPrefix+"models WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"models WHERE id = ?)", modelId, modelId) ) {
 			// we get the latest model version from the database
 			if ( resultLatestVersion.next() && (resultLatestVersion.getObject("version") != null) ) {
 				// if the version is found, then the model exists in the database
@@ -138,7 +140,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 				// we check if the model has been imported from (or last exported to) this database
 				if ( !model.getInitialVersion().getTimestamp().equals(DBVersion.NEVER) ) {
-					try ( DBSelect resultCurrentVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum FROM "+this.schema+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
+					try ( DBSelect resultCurrentVersion = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND created_on = ?", modelId, model.getInitialVersion().getTimestamp()) ) {
 						if ( resultCurrentVersion.next() && resultCurrentVersion.getObject("version") != null ) {
 							// if the version is found, then the model has been imported from or last exported to the database 
 							model.getInitialVersion().setVersion(resultCurrentVersion.getInt("version"));
@@ -188,8 +190,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( component instanceof IArchimateElement )  {
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"elements"
-					+ " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
+					+ " FROM "+this.schemaPrefix+"elements"
+					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
@@ -199,8 +201,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IArchimateRelationship ) {
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"relationships"
-					+ " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
+					+ " FROM "+this.schemaPrefix+"relationships"
+					+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
@@ -210,8 +212,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IFolder ) {
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"folders"
-					+ " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
+					+ " FROM "+this.schemaPrefix+"folders"
+					+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
@@ -221,8 +223,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IDiagramModel ) {
 			request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"views"
-					+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
+					+ " FROM "+this.schemaPrefix+"views"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
@@ -232,8 +234,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IDiagramModelObject  ) {
 			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
-					+ " FROM "+this.schema+"views_objects"
-					+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
+					+ " FROM "+this.schemaPrefix+"views_objects"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, view_version";
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
@@ -244,8 +246,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IDiagramModelConnection  ) {
 			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
-					+ " FROM "+this.schema+"views_connections"
-					+ " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
+					+ " FROM "+this.schemaPrefix+"views_connections"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, view_version";
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
@@ -325,8 +327,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" elements from the database.");
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"elements"
-					+ " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
+					+ " FROM "+this.schemaPrefix+"elements"
+					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY id, version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
@@ -338,8 +340,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" relationships from the database.");
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"relationships"
-					+ " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
+					+ " FROM "+this.schemaPrefix+"relationships"
+					+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
@@ -351,8 +353,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" folders from the database.");
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"folders"
-					+ " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
+					+ " FROM "+this.schemaPrefix+"folders"
+					+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
@@ -364,8 +366,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" views from the database.");
 			request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
-					+ " FROM "+this.schema+"views"
-					+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
+					+ " FROM "+this.schemaPrefix+"views"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
@@ -377,8 +379,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view objects from the database.");
 			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
-					+ " FROM "+this.schema+"views_objects"
-					+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
+					+ " FROM "+this.schemaPrefix+"views_objects"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, view_version";
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
@@ -391,8 +393,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view connections from the database.");
 			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
-					+ " FROM "+this.schema+"views_connections"
-					+ " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
+					+ " FROM "+this.schemaPrefix+"views_connections"
+					+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, view_version";
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
@@ -549,9 +551,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		// so we get all the version (sorted by the version) and determine the latest version of each element when the ID changes or when we read the latest element
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, created_on, model_id, model_version"
-						+ " FROM "+this.schema+"elements"
-						+ " LEFT JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"elements JOIN "+this.schema+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ? AND model_version = ?)"
+						+ " FROM "+this.schemaPrefix+"elements"
+						+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"elements JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ? AND model_version = ?)"
 						+ " ORDER BY id, version, model_version"
 						,modelId
 						,modelDatabaseVersion
@@ -668,9 +670,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, created_on, model_id, model_version"
-						+ " FROM "+this.schema+"relationships"
-						+ " LEFT JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"relationships JOIN "+this.schema+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ? AND model_version = ?)"
+						+ " FROM "+this.schemaPrefix+"relationships"
+						+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"relationships JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ? AND model_version = ?)"
 						+ " ORDER BY id, version, model_version"
 						,modelId
 						,modelDatabaseVersion
@@ -775,9 +777,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, created_on, model_id, model_version"
-						+ " FROM "+this.schema+"folders"
-						+ " LEFT JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"folders JOIN "+this.schema+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ? AND model_version = ?)"
+						+ " FROM "+this.schemaPrefix+"folders"
+						+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"folders JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ? AND model_version = ?)"
 						+ " ORDER BY id, version, model_version"
 						,modelId
 						,modelDatabaseVersion
@@ -883,9 +885,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
-						+ " FROM "+this.schema+"views"
-						+ " LEFT JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"views JOIN "+this.schema+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ? AND model_version = ?)"
+						+ " FROM "+this.schemaPrefix+"views"
+						+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ? AND model_version = ?)"
 						+ " ORDER BY id, version, model_version"
 						,modelId
 						,modelDatabaseVersion
@@ -980,9 +982,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		// we check if the latest version of the model has got images that are not in the model
 		if ( logger.isDebugEnabled() ) logger.debug("Checking missing images from the database");
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT DISTINCT image_path FROM "+this.schema+"views_objects "
-				+ "JOIN "+this.schema+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
-				+ "JOIN "+this.schema+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT DISTINCT image_path FROM "+this.schemaPrefix+"views_objects "
+				+ "JOIN "+this.schemaPrefix+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version "
+				+ "JOIN "+this.schemaPrefix+"views_in_model ON views_in_model.view_id = views_objects_in_view.view_id AND views_in_model.view_version = views_objects_in_view.view_version "
 				+ "WHERE image_path IS NOT NULL AND views_in_model.model_id = ? AND views_in_model.model_version = ?"
 				,model.getId()
 				,model.getDatabaseVersion().getVersion()
@@ -1054,7 +1056,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		// we did not know them before now, so do not increase the progress bar !
 		if ( logger.isDebugEnabled() ) logger.debug("Checking if the images exist in the database");
 		for ( String path: model.getAllImagePaths() ) {
-			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path from "+this.schema+"images where path = ?", path) ) {
+			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path from "+this.schemaPrefix+"images where path = ?", path) ) {
 				if ( result.next() && result.getObject("path") != null ) {
 					// the image is in the database
 				} else {
@@ -1086,9 +1088,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}			
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, created_on, view_id, view_version"
-						+ " FROM "+this.schema+"views_objects"
-						+ " LEFT JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"views_objects JOIN "+this.schema+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ? AND view_version = ?)"
+						+ " FROM "+this.schemaPrefix+"views_objects"
+						+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views_objects JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ? AND view_version = ?)"
 						+ " ORDER BY id, version, view_version"
 						,viewId
 						,viewDatabaseVersion
@@ -1177,9 +1179,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
 				"SELECT id, name, version, checksum, created_on, view_id, view_version"
-						+ " FROM "+this.schema+"views_connections"
-						+ " LEFT JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version"
-						+ " WHERE id IN (SELECT id FROM "+this.schema+"views_connections JOIN "+this.schema+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ? AND view_version = ?)"
+						+ " FROM "+this.schemaPrefix+"views_connections"
+						+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views_connections JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ? AND view_version = ?)"
 						+ " ORDER BY id, version, view_version"
 						,viewId
 						,viewDatabaseVersion
@@ -1286,7 +1288,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (model.getProperties() == null) ? 0 : model.getProperties().size();
 		int nbFeatures = (model.getFeatures() == null) ? 0 : model.getFeatures().size();
 
-		insert(this.schema+"models", modelsColumns
+		insert(this.schemaPrefix+"models", modelsColumns
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
 				,model.getName()
@@ -1369,7 +1371,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,dbMetadata.getCurrentVersion().getChecksum()
 					);
 		} else {
-			insert(this.schema+"elements", elementsColumns
+			insert(this.schemaPrefix+"elements", elementsColumns
 					,element.getId()
 					,dbMetadata.getCurrentVersion().getVersion()
 					,element.getClass().getSimpleName()
@@ -1409,7 +1411,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning element to model");
 
-		insert(this.schema+"elements_in_model", elementsInModelColumns
+		insert(this.schemaPrefix+"elements_in_model", elementsInModelColumns
 				,element.getId()
 				,dbMetadata.getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportElement()
 				,((IFolder)element.eContainer()).getId()
@@ -1480,7 +1482,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 						);
 			}
 		} else {
-			insert(this.schema+"relationships", relationshipsColumns
+			insert(this.schemaPrefix+"relationships", relationshipsColumns
 					,relationship.getId()
 					,dbMetadata.getCurrentVersion().getVersion()
 					,relationship.getClass().getSimpleName()
@@ -1524,7 +1526,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning relationship to model");
 
-		insert(this.schema+"relationships_in_model", relationshipsInModelColumns
+		insert(this.schemaPrefix+"relationships_in_model", relationshipsInModelColumns
 				,relationship.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,((IFolder)relationship.eContainer()).getId()
@@ -1552,7 +1554,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (folder.getProperties() == null) ? 0 : folder.getProperties().size();
 		int nbFeatures = (folder.getFeatures() == null) ? 0 : folder.getFeatures().size();
 
-		insert(this.schema+"folders", foldersColumns
+		insert(this.schemaPrefix+"folders", foldersColumns
 				,folder.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,folder.getType().getValue()
@@ -1591,7 +1593,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning folder to model");
 
-		insert(this.schema+"folders_in_model", foldersInModelColumns
+		insert(this.schemaPrefix+"folders_in_model", foldersInModelColumns
 				,folder.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,(((IIdentifier)((Folder)folder).eContainer()).getId() == model.getId() ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
@@ -1619,7 +1621,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (view.getProperties() == null) ? 0 : view.getProperties().size();
 		int nbFeatures = (view.getFeatures() == null) ? 0 : view.getFeatures().size();
 
-		insert(this.schema+"views", ViewsColumns
+		insert(this.schemaPrefix+"views", ViewsColumns
 				,view.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
@@ -1664,7 +1666,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view to model");
 
-		insert(this.schema+"views_in_model", viewsInModelColumns
+		insert(this.schemaPrefix+"views_in_model", viewsInModelColumns
 				,view.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,((IFolder)view.eContainer()).getId()
@@ -1699,7 +1701,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (!(viewObject instanceof IProperties) || !(viewObject instanceof IDiagramModelArchimateComponent) || (((IProperties)viewObject).getProperties() == null)) ? 0 : ((IProperties)viewObject).getProperties().size();
 		int nbFeatures = (viewObject.getFeatures() == null) ? 0 : viewObject.getFeatures().size();
 
-		insert(this.schema+"views_objects", ViewsObjectsColumns
+		insert(this.schemaPrefix+"views_objects", ViewsObjectsColumns
 				,((IIdentifier)viewObject).getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewObject.getClass().getSimpleName()
@@ -1756,7 +1758,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view object to view");
 
-		insert(this.schema+"views_objects_in_view", viewObjectInViewColumns
+		insert(this.schemaPrefix+"views_objects_in_view", viewObjectInViewColumns
 				,viewObject.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewContainer.getId()
@@ -1793,7 +1795,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbFeatures = (viewConnection.getFeatures() == null) ? 0 : viewConnection.getFeatures().size();
 		int nbBendpoints = (viewConnection.getBendpoints() == null) ? 0 : viewConnection.getBendpoints().size();
 
-		insert(this.schema+"views_connections", ViewsConnectionsColumns
+		insert(this.schemaPrefix+"views_connections", ViewsConnectionsColumns
 				,((IIdentifier)viewConnection).getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewConnection.getClass().getSimpleName()
@@ -1841,7 +1843,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( logger.isTraceEnabled() ) logger.trace("   Assigning view connection to view");
 
-		insert(this.schema+"views_connections_in_view", viewObjectInViewColumns
+		insert(this.schemaPrefix+"views_connections_in_view", viewObjectInViewColumns
 				,viewConnection.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewContainer.getId()
@@ -1878,7 +1880,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							);
 				}
 				else
-					insert(this.schema+"properties", propertiesColumns
+					insert(this.schemaPrefix+"properties", propertiesColumns
 							,parentId
 							,parentVersion
 							,propRank
@@ -1915,7 +1917,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							);
 				}
 				else
-					insert(this.schema+"features", featuresColumns
+					insert(this.schemaPrefix+"features", featuresColumns
 							,parentId
 							,parentVersion
 							,rank
@@ -1942,7 +1944,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 			for ( int rank = 0 ; rank < parent.getBendpoints().size(); ++rank) {
 				IDiagramModelBendpoint bendpoint = parent.getBendpoints().get(rank);
-				insert(this.schema+"bendpoints", bendpointsColumns
+				insert(this.schemaPrefix+"bendpoints", bendpointsColumns
 						,parentId
 						,parentVersion
 						,rank
@@ -1979,7 +1981,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 								);
 					}
 					else
-						insert(this.schema+"metadata", metadataColumns
+						insert(this.schemaPrefix+"metadata", metadataColumns
 								,parent.getId()
 								,parent.getCurrentVersion().getVersion()
 								,propRank
@@ -2003,11 +2005,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( image == null ) 
 			return false;
 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path FROM "+this.schema+"images WHERE path = ?", path) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT path FROM "+this.schemaPrefix+"images WHERE path = ?", path) ) {
 			if ( !result.next() ) {
 				// if the image is not yet in the db, we insert it
 				String[] databaseColumns = {"path", "image"};
-				insert(this.schema+"images", databaseColumns, path, image);
+				insert(this.schemaPrefix+"images", databaseColumns, path, image);
 				return true;
 			}
 		}

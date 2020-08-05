@@ -116,7 +116,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				// we import the objects and create the corresponding elements if they do not exist yet
 				//    we use the importFromId method in order to allow undo and redo
 				try (DBSelect result = (versionToImport == 0)
-						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT object_id, object_version, rank FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_objects_in_view WHERE view_id = ?) ORDER BY rank", idToImport, idToImport)
+						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT object_id, object_version, rank FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ?) ORDER BY rank", idToImport, idToImport)
 						: new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT object_id, object_version, rank FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", idToImport, versionToImport) ) {
 					while ( result.next() ) {
 					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, archimateModel, result.getString("object_id"), (versionToImport == 0) ? 0 : result.getInt("object_version"), this.mustCreateCopy, importMode);
@@ -129,7 +129,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				// we import the connections and create the corresponding relationships if they do not exist yet
 				//    we use the importFromId method in order to allow undo and redo
 				try (DBSelect result = (versionToImport == 0)
-						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchema()+"views_connections_in_view WHERE view_id = ?) ORDER BY rank", idToImport, idToImport)
+						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ?) ORDER BY rank", idToImport, idToImport)
 						: new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT connection_id, connection_version, rank FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ? AND view_version = ? ORDER BY rank", idToImport, versionToImport) ) {
 					while ( result.next() ) {
 					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, archimateModel, result.getString("connection_id"), (versionToImport == 0) ? 0 : result.getInt("connection_version"), this.mustCreateCopy, importMode);

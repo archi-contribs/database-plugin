@@ -80,7 +80,7 @@ public class DBColumn {
 	        	break;
 	        case "mysql":
 	        	switch ( columnType ) {
-	        		case AUTO_INCREMENT : set(name, "INT",         0, isNotNull); break;
+	        		case AUTO_INCREMENT : set(name, "INT AUTO_INCREMENT", 10, isNotNull); break;
 	        		case BOOLEAN :        set(name, "TINYINT",     0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
@@ -106,7 +106,7 @@ public class DBColumn {
 	        		case DATETIME :       set(name, "DATE",        0, isNotNull); break;
 	        		case FONT :           set(name, "VARCHAR",   150, isNotNull); break;
 	        		case IMAGE :          set(name, "BLOB",        0, isNotNull); break;
-	        		case INTEGER :        set(name, "INTEGER",    10, isNotNull); break;
+	        		case INTEGER :        set(name, "INTEGER",     0, isNotNull); break;
 	        		case OBJECTID :       set(name, "VARCHAR",    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, "VARCHAR",  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, "VARCHAR",    20, isNotNull); break;
@@ -211,16 +211,20 @@ public class DBColumn {
 		if ( this.name.compareToIgnoreCase(compareTo.name) != 0 )
 			return false;
 		
+		// we compare only the fist word in the type, to avoid checking for AUTO_INCREMENT 
+		String thisType = this.type.split(" ")[0].toUpperCase();
+		String compareToType = compareTo.type.split(" ")[0].toUpperCase();
+		
 		// we consider VARCHAR & VARCHAR2, and NUMBER & INTEGER being the same
-		 if ( !(this.type.toUpperCase().startsWith("VARCHAR") && compareTo.type.toUpperCase().startsWith("VARCHAR"))
-				 && !((this.type.toUpperCase().equals("NUMBER") || compareTo.type.toUpperCase().equals("NUMBER")) && (this.type.toUpperCase().equals("INTEGER") || compareTo.type.toUpperCase().equals("INTEGER")))
-				 && this.type.compareToIgnoreCase(compareTo.type) != 0
+		 if ( !(thisType.startsWith("VARCHAR") && compareToType.startsWith("VARCHAR"))
+				 && !((thisType.equals("NUMBER") || compareToType.equals("NUMBER")) && (thisType.equals("INTEGER") || compareToType.equals("INTEGER")))
+				 && thisType.compareToIgnoreCase(compareToType) != 0
 				 )
 			 return false;
 
 		// we consider NUMBER(38) and INTEGER(10) being the same
 		if ( (this.length > 0 && compareTo.length > 0 && this.length != compareTo.length)
-				&& !((this.type.toUpperCase().equals("NUMBER") || this.type.toUpperCase().equals("INTEGER")) && Math.abs(this.length-compareTo.length)==28)
+				&& !((thisType.equals("NUMBER") || thisType.equals("INTEGER")) && Math.abs(this.length-compareTo.length)==28)
 				)
 			return false;
 		
