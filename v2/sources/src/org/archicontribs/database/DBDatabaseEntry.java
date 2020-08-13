@@ -1,15 +1,15 @@
 package org.archicontribs.database;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
-//import java.nio.charset.Charset;
+import java.net.NetworkInterface;
+import java.net.SocketException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Enumeration;
 import java.util.List;
 
 import javax.crypto.BadPaddingException;
@@ -560,14 +560,37 @@ public class DBDatabaseEntry {
 	}
 	
 	private static Cipher getCipher(int cipherMode) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
-		String passwordEncryptionKey = null;
+		String passwordEncryptionKey = null;	
+		boolean errorMessageAlreadyPrinted = false;
 		
-		// the default key is the hostname in order to have distinct encrypted password across computers
+		// the default key is the MAC address of the first physical network interface
 		try {
-			passwordEncryptionKey = InetAddress.getLocalHost().getCanonicalHostName();
-		} catch (UnknownHostException e) {
-			logger.error("Fail to get hostname as encryption key, defaulting to static key.", e);
-			passwordEncryptionKey = "VerySimpleKey.";	// if we cannot get the hostname, then we fell back to a static string
+		    Enumeration<NetworkInterface> nics = NetworkInterface.getNetworkInterfaces();
+		    while (nics.hasMoreElements()) {
+		    	NetworkInterface net = nics.nextElement();
+		        byte[] mac = net.getHardwareAddress();
+			
+				if ( mac != null ) {
+					StringBuilder key = new StringBuilder();
+		            for (int i = 0; i < mac.length; i++) {
+		            	key.append(String.format("%x", mac[i]));
+		                if (i < mac.length - 1)
+		                	key.append(":");
+		             }
+		            
+		            passwordEncryptionKey = key.toString();
+		            break;
+				}
+		    }
+		} catch (SocketException e) {
+			logger.error("Failed to calculate encryption key, defaulting to default one.", e);
+			errorMessageAlreadyPrinted = true;
+		}
+		
+		if ( passwordEncryptionKey == null ) {
+			passwordEncryptionKey = "VerySimpleKey.";		// default key in case we cannot calculate a unique one for the running machine
+			if ( !errorMessageAlreadyPrinted )
+				logger.error("Failed to calculate encryption key, defaulting to default one.");
 		}
 		
 		int maxKeyLength = Cipher.getMaxAllowedKeyLength("Blowfish");
