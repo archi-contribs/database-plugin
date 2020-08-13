@@ -80,7 +80,7 @@ public class DBColumn {
 	        	break;
 	        case "mysql":
 	        	switch ( columnType ) {
-	        		case AUTO_INCREMENT : set(name, "INT AUTO_INCREMENT", 10, isNotNull); break;
+	        		case AUTO_INCREMENT : set(name, "INT AUTO_INCREMENT", 0, isNotNull); break;
 	        		case BOOLEAN :        set(name, "TINYINT",     0, isNotNull); break;
 	        		case COLOR :          set(name, "VARCHAR",     7, isNotNull); break;
 	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
