@@ -1,3 +1,8 @@
+v2.2.11: 13/08/2020
+* Fix structure check on Oracle database when schema is empty
+* Fix MySQL/MariaDB table creation SQL requests
+* Change password encryption key to avoid error messages when switching from lan to wifi 
+
 v2.2.10: 05/08/2020
 * Fix schema and columns type in SQL requests
 
