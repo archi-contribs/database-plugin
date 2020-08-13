@@ -275,6 +275,44 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public boolean isClosed() throws SQLException {
 		return (this.connection == null) || this.connection.isClosed();
 	}
+	
+	/**
+	 * Checks the content of the "database_version" table
+	 * @param dbGui the dialog that holds the graphical interface
+	 * @return 
+	 * @throws Exception 
+	 * @returns true if the database version is correct, generates an Exception if not
+	 */
+	public boolean checkDatabase(DBGui dbGui) throws Exception {
+		if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
+
+		int currentVersion = 0;
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+			result.next();
+			currentVersion = result.getInt("version");
+		} catch (@SuppressWarnings("unused") SQLException err) {
+			// if the table does not exist
+			if ( !DBGui.question("We successfully connected to the database but it seems that it has not been initialized.\n\nDo you wish to intialize the database ?") )
+				throw new SQLException("Database not initialized.");
+
+			createTables(dbGui);
+			currentVersion = databaseVersion;
+		}
+
+		if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
+			throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
+
+		if ( currentVersion != databaseVersion ) {
+			if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
+				upgradeDatabase(currentVersion);
+				DBGui.popup(Level.INFO, "Database successfully upgraded.");
+			}
+			else
+				throw new SQLException("The database needs to be upgraded.");
+		}
+		
+		return true;
+	}
 
 	/**
 	 * Checks the database structure
@@ -283,12 +321,18 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @throws Exception 
 	 * @returns true if the database structure is correct, false if not
 	 */
-	public String checkDatabase(DBGui dbGui) throws Exception {
+	public String checkDatabaseStructure(DBGui dbGui) throws Exception {
 		StringBuilder message = new StringBuilder();
 		boolean isDatabaseStructureCorrect = true;
 		
 		this.schema = this.databaseEntry.getSchema();
 		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
+
+		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+			// do not need to create tables
+			// shouldn't be here anyway if Neo4J database
+			return null;
+		}
 		
 		try {
 			if ( dbGui != null )
@@ -299,383 +343,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( !isConnected() )
 				openConnection();
 
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-				// do not need to create tables
-				return null;
-			}
-			
-			this.databaseVersionColumns = new ArrayList<DBColumn>();
-			this.databaseVersionColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.databaseVersionColumns.add(new DBColumn("archi_plugin", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.databaseVersionColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.modelsColumns = new ArrayList<DBColumn>();
-			this.modelsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.modelsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.modelsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, true));
-			this.modelsColumns.add(new DBColumn("note", this.databaseEntry, DBColumnType.TEXT, false));
-			this.modelsColumns.add(new DBColumn("purpose", this.databaseEntry, DBColumnType.TEXT, false));
-			this.modelsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.modelsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.modelsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.modelsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.modelsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.modelsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.modelsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.modelsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.modelsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.modelsPrimaryKeys = new ArrayList<String>();
-			this.modelsPrimaryKeys.add("id");
-			this.modelsPrimaryKeys.add("version");
-
-			this.foldersColumns = new ArrayList<DBColumn>();
-			this.foldersColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.foldersColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersColumns.add(new DBColumn("root_type", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, true));
-			this.foldersColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.foldersColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.foldersColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.foldersColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.foldersColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.foldersColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.foldersColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.foldersColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.foldersColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.foldersColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.foldersPrimaryKeys = new ArrayList<String>();
-			this.foldersPrimaryKeys.add("id");
-			this.foldersPrimaryKeys.add("version");
-			
-			this.foldersInModelColumns = new ArrayList<DBColumn>();
-			this.foldersInModelColumns.add(new DBColumn("fim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.foldersInModelColumns.add(new DBColumn("folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.foldersInModelColumns.add(new DBColumn("folder_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.foldersInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.foldersInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.foldersInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.foldersInModelPrimaryKeys = new ArrayList<String>();
-			this.foldersInModelPrimaryKeys.add("fim_id");
-
-			this.elementsColumns = new ArrayList<DBColumn>();
-			this.elementsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.elementsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.elementsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.elementsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.elementsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.elementsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.TYPE, false));
-			this.elementsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.elementsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.elementsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.elementsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.elementsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.elementsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.elementsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.elementsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.elementsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.elementsPrimaryKeys = new ArrayList<String>();
-			this.elementsPrimaryKeys.add("id");
-			this.elementsPrimaryKeys.add("version");
-
-			this.elementsInModelColumns = new ArrayList<DBColumn>();
-			this.elementsInModelColumns.add(new DBColumn("eim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.elementsInModelColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.elementsInModelColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.elementsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.elementsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.elementsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.elementsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.elementsInModelPrimaryKeys = new ArrayList<String>();
-			this.elementsInModelPrimaryKeys.add("eim_id");
-
-			this.relationshipsColumns = new ArrayList<DBColumn>();
-			this.relationshipsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.relationshipsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.relationshipsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.relationshipsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.relationshipsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.relationshipsColumns.add(new DBColumn("source_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.relationshipsColumns.add(new DBColumn("target_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.relationshipsColumns.add(new DBColumn("strength", this.databaseEntry, DBColumnType.STRENGTH, false));
-			this.relationshipsColumns.add(new DBColumn("access_type", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.relationshipsColumns.add(new DBColumn("is_directed", this.databaseEntry, DBColumnType.BOOLEAN, false));
-			this.relationshipsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.relationshipsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.relationshipsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.relationshipsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.relationshipsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.relationshipsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.relationshipsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.relationshipsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.relationshipsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.relationshipsPrimaryKeys = new ArrayList<String>();
-			this.relationshipsPrimaryKeys.add("id");
-			this.relationshipsPrimaryKeys.add("version");
-
-			this.relationshipsInModelColumns = new ArrayList<DBColumn>();
-			this.relationshipsInModelColumns.add(new DBColumn("rim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.relationshipsInModelColumns.add(new DBColumn("relationship_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.relationshipsInModelColumns.add(new DBColumn("relationship_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.relationshipsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.relationshipsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.relationshipsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.relationshipsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.relationshipsInModelPrimaryKeys = new ArrayList<String>();
-			this.relationshipsInModelPrimaryKeys.add("rim_id");
-
-			this.viewsColumns = new ArrayList<DBColumn>();
-			this.viewsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.viewsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.viewsColumns.add(new DBColumn("background", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsColumns.add(new DBColumn("connection_router_type", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsColumns.add(new DBColumn("viewpoint", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsColumns.add(new DBColumn("screenshot", this.databaseEntry, DBColumnType.IMAGE, false));
-			this.viewsColumns.add(new DBColumn("screenshot_scale_factor", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsColumns.add(new DBColumn("screenshot_border_width", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.viewsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.viewsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsColumns.add(new DBColumn("container_checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.viewsPrimaryKeys = new ArrayList<String>();
-			this.viewsPrimaryKeys.add("id");
-			this.viewsPrimaryKeys.add("version");
-
-			this.viewsInModelColumns = new ArrayList<DBColumn>();
-			this.viewsInModelColumns.add(new DBColumn("vim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.viewsInModelColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsInModelColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.viewsInModelPrimaryKeys =  new ArrayList<String>();
-			this.viewsInModelPrimaryKeys.add("vim_id");
-
-			this.viewsObjectsColumns = new ArrayList<DBColumn>();
-			this.viewsObjectsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsObjectsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsObjectsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsObjectsColumns.add(new DBColumn("container_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsObjectsColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsObjectsColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("diagram_ref_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsObjectsColumns.add(new DBColumn("border_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsObjectsColumns.add(new DBColumn("border_type", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("content", this.databaseEntry, DBColumnType.TEXT, false));
-			this.viewsObjectsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.viewsObjectsColumns.add(new DBColumn("is_locked", this.databaseEntry, DBColumnType.BOOLEAN, false));
-			this.viewsObjectsColumns.add(new DBColumn("image_path", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsObjectsColumns.add(new DBColumn("image_position", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("line_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsObjectsColumns.add(new DBColumn("line_width", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("fill_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsObjectsColumns.add(new DBColumn("alpha", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("font", this.databaseEntry, DBColumnType.FONT, false));
-			this.viewsObjectsColumns.add(new DBColumn("font_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsObjectsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.viewsObjectsColumns.add(new DBColumn("notes", this.databaseEntry, DBColumnType.TEXT, false));
-			this.viewsObjectsColumns.add(new DBColumn("text_alignment", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("text_position", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("x", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("y", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("width", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("height", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.viewsObjectsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.viewsObjectsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsObjectsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsObjectsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsObjectsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsObjectsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsObjectsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.viewsObjectsPrimaryKeys = new ArrayList<String>();
-			this.viewsObjectsPrimaryKeys.add("id");
-			this.viewsObjectsPrimaryKeys.add("version");
-		    
-			this.viewsConnectionsColumns = new ArrayList<DBColumn>();
-			this.viewsConnectionsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsConnectionsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsConnectionsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsConnectionsColumns.add(new DBColumn("container_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsConnectionsColumns.add(new DBColumn("relationship_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsConnectionsColumns.add(new DBColumn("relationship_version", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("source_object_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsConnectionsColumns.add(new DBColumn("target_object_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-			this.viewsConnectionsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.viewsConnectionsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
-			this.viewsConnectionsColumns.add(new DBColumn("is_locked", this.databaseEntry, DBColumnType.BOOLEAN, false));
-			this.viewsConnectionsColumns.add(new DBColumn("line_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsConnectionsColumns.add(new DBColumn("line_width", this.databaseEntry, DBColumnType.INTEGER, false));			
-			this.viewsConnectionsColumns.add(new DBColumn("font", this.databaseEntry, DBColumnType.FONT, false));
-			this.viewsConnectionsColumns.add(new DBColumn("font_color", this.databaseEntry, DBColumnType.COLOR, false));
-			this.viewsConnectionsColumns.add(new DBColumn("text_position", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
-			this.viewsConnectionsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
-			this.viewsConnectionsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsConnectionsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsConnectionsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
-			this.viewsConnectionsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
-			this.viewsConnectionsColumns.add(new DBColumn("bendpoints", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
-			this.viewsConnectionsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
-
-			this.viewsConnectionsPrimaryKeys = new ArrayList<String>();
-			this.viewsConnectionsPrimaryKeys.add("id");
-			this.viewsConnectionsPrimaryKeys.add("version");
-
-			this.propertiesColumns = new ArrayList<DBColumn>();
-			this.propertiesColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.propertiesColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.propertiesColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.propertiesColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.propertiesColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
-
-			this.propertiesPrimaryKeys = new ArrayList<String>();
-			this.propertiesPrimaryKeys.add("parent_id");
-			this.propertiesPrimaryKeys.add("parent_version");
-			this.propertiesPrimaryKeys.add("rank");
-
-			this.featuresColumns = new ArrayList<DBColumn>();
-			this.featuresColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.featuresColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.featuresColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.featuresColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.featuresColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
-
-			this.featuresPrimaryKeys = new ArrayList<String>();
-			this.featuresPrimaryKeys.add("parent_id");
-			this.featuresPrimaryKeys.add("parent_version");
-			this.featuresPrimaryKeys.add("rank");
-
-			this.bendpointsColumns = new ArrayList<DBColumn>();
-			this.bendpointsColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.bendpointsColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.bendpointsColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.bendpointsColumns.add(new DBColumn("start_x", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.bendpointsColumns.add(new DBColumn("start_y", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.bendpointsColumns.add(new DBColumn("end_x", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.bendpointsColumns.add(new DBColumn("end_y", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.bendpointsPrimaryKeys = new ArrayList<String>();
-			this.bendpointsPrimaryKeys.add("parent_id");
-			this.bendpointsPrimaryKeys.add("parent_version");
-			this.bendpointsPrimaryKeys.add("rank");
-			
-			this.metadataColumns = new ArrayList<DBColumn>();
-			this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.metadataColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
-			this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
-
-			this.metadataPrimaryKeys = new ArrayList<String>();
-			this.metadataPrimaryKeys.add("parent_id");
-			this.metadataPrimaryKeys.add("parent_version");
-			this.metadataPrimaryKeys.add("rank");
-
-			this.imagesColumns = new ArrayList<DBColumn>();
-			this.imagesColumns.add(new DBColumn("path", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.imagesColumns.add(new DBColumn("image", this.databaseEntry, DBColumnType.IMAGE, true));
-			
-			this.viewsObjectsInViewColumns = new ArrayList<DBColumn>();
-			this.viewsObjectsInViewColumns.add(new DBColumn("oiv_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.viewsObjectsInViewColumns.add(new DBColumn("object_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsObjectsInViewColumns.add(new DBColumn("object_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsObjectsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsObjectsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsObjectsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.viewsObjectsInViewPrimaryKeys = new ArrayList<String>();
-			this.viewsObjectsInViewPrimaryKeys.add("oiv_id");
-		    
-			this.viewsConnectionsInViewColumns = new ArrayList<DBColumn>();
-			this.viewsConnectionsInViewColumns.add(new DBColumn("civ_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
-			this.viewsConnectionsInViewColumns.add(new DBColumn("connection_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsConnectionsInViewColumns.add(new DBColumn("connection_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsConnectionsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
-			this.viewsConnectionsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
-			this.viewsConnectionsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
-
-			this.viewsConnectionsInViewPrimaryKeys = new ArrayList<String>();
-			this.viewsConnectionsInViewPrimaryKeys.add("civ_id");
-
-			/* ****************************************************************************************************** */
-
-			this.databaseTables = new ArrayList<DBTable>();
-			this.databaseTables.add(new DBTable(this.schema, "database_version", this.databaseVersionColumns, this.databaseVersionPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "models", this.modelsColumns, this.modelsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "folders", this.foldersColumns, this.foldersPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "folders_in_model", this.foldersInModelColumns, this.foldersInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "elements", this.elementsColumns, this.elementsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "elements_in_model", this.elementsInModelColumns, this.elementsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "relationships", this.relationshipsColumns, this.relationshipsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "relationships_in_model", this.relationshipsInModelColumns, this.relationshipsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views", this.viewsColumns, this.viewsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views_in_model", this.viewsInModelColumns, this.viewsInModelPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views_objects", this.viewsObjectsColumns, this.viewsObjectsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views_objects_in_view", this.viewsObjectsInViewColumns, this.viewsObjectsInViewPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views_connections", this.viewsConnectionsColumns, this.viewsConnectionsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "views_connections_in_view", this.viewsConnectionsInViewColumns, this.viewsConnectionsInViewPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "properties", this.propertiesColumns, this.propertiesPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "features", this.featuresColumns, this.featuresPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "bendpoints", this.bendpointsColumns, this.bendpointsPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "metadata", this.metadataColumns, this.metadataPrimaryKeys));
-			this.databaseTables.add(new DBTable(this.schema, "images", this.imagesColumns, this.imagesPrimaryKeys));
-			
-			/* ****************************************************************************************************** */
-
 			// checking if the database_version table exists
-			if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
-
-			int currentVersion = 0;
-			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
-				result.next();
-				currentVersion = result.getInt("version");
-			} catch (@SuppressWarnings("unused") SQLException err) {
-				// if the table does not exist
-				if ( !DBGui.question("We successfully connected to the database but it seems that it has not been initialized.\n\nDo you wish to intialize the database ?") )
-					throw new SQLException("Database not initialized.");
-
-				createTables(dbGui);
-				currentVersion = databaseVersion;
-			}
-
-			if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
-				throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
-
-			if ( currentVersion != databaseVersion ) {
-				if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
-					upgradeDatabase(currentVersion);
-					DBGui.popup(Level.INFO, "Database successfully upgraded.");
-				}
-				else
-					throw new SQLException("The database needs to be upgraded.");
-			}
+			checkDatabase(dbGui);
 
 
 			// we check after the eventual database upgrade as database before version 212 did not have an ID
@@ -695,6 +364,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			DatabaseMetaData metadata = this.connection.getMetaData();
 			boolean mustCheckNotNullConstraint = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("checkNotNullConstraints");
 			boolean hasGotNotNullErrorsOnly = true;
+			
+			initializeDatabaseTables();
 			
 			// we check that all the columns in the table are expected
 			for (int t = 0; t < this.databaseTables.size() ; ++t ) {
@@ -834,6 +505,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			setAutoCommit(false);
 			
+			initializeDatabaseTables();
+			
 			for ( int i = 0 ; i < this.databaseTables.size() ; ++i ) {
 				DBTable table = this.databaseTables.get(i);
 				if ( logger.isDebugEnabled() ) logger.debug("Creating table "+table.getFullName());
@@ -924,14 +597,14 @@ public class DBDatabaseConnection implements AutoCloseable {
 			DBGui.popup(Level.INFO,"The database has been successfully initialized.");
 
 		} catch (SQLException err) {
+			rollback();
+			setAutoCommit(true);
+			throw err;
+		} finally {
 			if ( dbGui != null )
 				dbGui.closeMessage();
 			else
 				DBGui.closePopup();
-
-			rollback();
-			setAutoCommit(true);
-			throw err;
 		}
 
 	}
@@ -1705,5 +1378,350 @@ public class DBDatabaseConnection implements AutoCloseable {
 		dbRequest.close();
 
 		return rowCount;
+	}
+	
+	private void initializeDatabaseTables() throws SQLException {
+		this.databaseVersionColumns = new ArrayList<DBColumn>();
+		this.databaseVersionColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.databaseVersionColumns.add(new DBColumn("archi_plugin", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.databaseVersionColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.modelsColumns = new ArrayList<DBColumn>();
+		this.modelsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.modelsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.modelsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, true));
+		this.modelsColumns.add(new DBColumn("note", this.databaseEntry, DBColumnType.TEXT, false));
+		this.modelsColumns.add(new DBColumn("purpose", this.databaseEntry, DBColumnType.TEXT, false));
+		this.modelsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.modelsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.modelsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.modelsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.modelsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.modelsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.modelsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.modelsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.modelsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.modelsPrimaryKeys = new ArrayList<String>();
+		this.modelsPrimaryKeys.add("id");
+		this.modelsPrimaryKeys.add("version");
+
+		this.foldersColumns = new ArrayList<DBColumn>();
+		this.foldersColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.foldersColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersColumns.add(new DBColumn("root_type", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, true));
+		this.foldersColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.foldersColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.foldersColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.foldersColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.foldersColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.foldersColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.foldersColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.foldersColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.foldersColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.foldersColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.foldersPrimaryKeys = new ArrayList<String>();
+		this.foldersPrimaryKeys.add("id");
+		this.foldersPrimaryKeys.add("version");
+		
+		this.foldersInModelColumns = new ArrayList<DBColumn>();
+		this.foldersInModelColumns.add(new DBColumn("fim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.foldersInModelColumns.add(new DBColumn("folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.foldersInModelColumns.add(new DBColumn("folder_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.foldersInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.foldersInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.foldersInModelPrimaryKeys = new ArrayList<String>();
+		this.foldersInModelPrimaryKeys.add("fim_id");
+
+		this.elementsColumns = new ArrayList<DBColumn>();
+		this.elementsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.elementsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.elementsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.elementsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.elementsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.elementsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.TYPE, false));
+		this.elementsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.elementsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.elementsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.elementsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.elementsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.elementsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.elementsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.elementsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.elementsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.elementsPrimaryKeys = new ArrayList<String>();
+		this.elementsPrimaryKeys.add("id");
+		this.elementsPrimaryKeys.add("version");
+
+		this.elementsInModelColumns = new ArrayList<DBColumn>();
+		this.elementsInModelColumns.add(new DBColumn("eim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.elementsInModelColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.elementsInModelColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.elementsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.elementsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.elementsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.elementsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.elementsInModelPrimaryKeys = new ArrayList<String>();
+		this.elementsInModelPrimaryKeys.add("eim_id");
+
+		this.relationshipsColumns = new ArrayList<DBColumn>();
+		this.relationshipsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.relationshipsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.relationshipsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.relationshipsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.relationshipsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.relationshipsColumns.add(new DBColumn("source_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.relationshipsColumns.add(new DBColumn("target_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.relationshipsColumns.add(new DBColumn("strength", this.databaseEntry, DBColumnType.STRENGTH, false));
+		this.relationshipsColumns.add(new DBColumn("access_type", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.relationshipsColumns.add(new DBColumn("is_directed", this.databaseEntry, DBColumnType.BOOLEAN, false));
+		this.relationshipsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.relationshipsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.relationshipsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.relationshipsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.relationshipsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.relationshipsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.relationshipsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.relationshipsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.relationshipsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.relationshipsPrimaryKeys = new ArrayList<String>();
+		this.relationshipsPrimaryKeys.add("id");
+		this.relationshipsPrimaryKeys.add("version");
+
+		this.relationshipsInModelColumns = new ArrayList<DBColumn>();
+		this.relationshipsInModelColumns.add(new DBColumn("rim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.relationshipsInModelColumns.add(new DBColumn("relationship_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.relationshipsInModelColumns.add(new DBColumn("relationship_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.relationshipsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.relationshipsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.relationshipsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.relationshipsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.relationshipsInModelPrimaryKeys = new ArrayList<String>();
+		this.relationshipsInModelPrimaryKeys.add("rim_id");
+
+		this.viewsColumns = new ArrayList<DBColumn>();
+		this.viewsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.viewsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.viewsColumns.add(new DBColumn("background", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsColumns.add(new DBColumn("connection_router_type", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsColumns.add(new DBColumn("viewpoint", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsColumns.add(new DBColumn("screenshot", this.databaseEntry, DBColumnType.IMAGE, false));
+		this.viewsColumns.add(new DBColumn("screenshot_scale_factor", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsColumns.add(new DBColumn("screenshot_border_width", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.viewsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.viewsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsColumns.add(new DBColumn("container_checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.viewsPrimaryKeys = new ArrayList<String>();
+		this.viewsPrimaryKeys.add("id");
+		this.viewsPrimaryKeys.add("version");
+
+		this.viewsInModelColumns = new ArrayList<DBColumn>();
+		this.viewsInModelColumns.add(new DBColumn("vim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.viewsInModelColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsInModelColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.viewsInModelPrimaryKeys =  new ArrayList<String>();
+		this.viewsInModelPrimaryKeys.add("vim_id");
+
+		this.viewsObjectsColumns = new ArrayList<DBColumn>();
+		this.viewsObjectsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsObjectsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsObjectsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsObjectsColumns.add(new DBColumn("container_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsObjectsColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsObjectsColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("diagram_ref_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsObjectsColumns.add(new DBColumn("border_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsObjectsColumns.add(new DBColumn("border_type", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("content", this.databaseEntry, DBColumnType.TEXT, false));
+		this.viewsObjectsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.viewsObjectsColumns.add(new DBColumn("is_locked", this.databaseEntry, DBColumnType.BOOLEAN, false));
+		this.viewsObjectsColumns.add(new DBColumn("image_path", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsObjectsColumns.add(new DBColumn("image_position", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("line_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsObjectsColumns.add(new DBColumn("line_width", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("fill_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsObjectsColumns.add(new DBColumn("alpha", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("font", this.databaseEntry, DBColumnType.FONT, false));
+		this.viewsObjectsColumns.add(new DBColumn("font_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsObjectsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.viewsObjectsColumns.add(new DBColumn("notes", this.databaseEntry, DBColumnType.TEXT, false));
+		this.viewsObjectsColumns.add(new DBColumn("text_alignment", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("text_position", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("x", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("y", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("width", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("height", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.viewsObjectsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.viewsObjectsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsObjectsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsObjectsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsObjectsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsObjectsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsObjectsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.viewsObjectsPrimaryKeys = new ArrayList<String>();
+		this.viewsObjectsPrimaryKeys.add("id");
+		this.viewsObjectsPrimaryKeys.add("version");
+	    
+		this.viewsConnectionsColumns = new ArrayList<DBColumn>();
+		this.viewsConnectionsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsConnectionsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsConnectionsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsConnectionsColumns.add(new DBColumn("container_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsConnectionsColumns.add(new DBColumn("relationship_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsConnectionsColumns.add(new DBColumn("relationship_version", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("source_object_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsConnectionsColumns.add(new DBColumn("target_object_id", this.databaseEntry, DBColumnType.OBJECTID, false));
+		this.viewsConnectionsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.viewsConnectionsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
+		this.viewsConnectionsColumns.add(new DBColumn("is_locked", this.databaseEntry, DBColumnType.BOOLEAN, false));
+		this.viewsConnectionsColumns.add(new DBColumn("line_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsConnectionsColumns.add(new DBColumn("line_width", this.databaseEntry, DBColumnType.INTEGER, false));			
+		this.viewsConnectionsColumns.add(new DBColumn("font", this.databaseEntry, DBColumnType.FONT, false));
+		this.viewsConnectionsColumns.add(new DBColumn("font_color", this.databaseEntry, DBColumnType.COLOR, false));
+		this.viewsConnectionsColumns.add(new DBColumn("text_position", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
+		this.viewsConnectionsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
+		this.viewsConnectionsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsConnectionsColumns.add(new DBColumn("checkedin_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsConnectionsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
+		this.viewsConnectionsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
+		this.viewsConnectionsColumns.add(new DBColumn("bendpoints", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
+		this.viewsConnectionsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
+
+		this.viewsConnectionsPrimaryKeys = new ArrayList<String>();
+		this.viewsConnectionsPrimaryKeys.add("id");
+		this.viewsConnectionsPrimaryKeys.add("version");
+
+		this.propertiesColumns = new ArrayList<DBColumn>();
+		this.propertiesColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.propertiesColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.propertiesColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.propertiesColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.propertiesColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
+
+		this.propertiesPrimaryKeys = new ArrayList<String>();
+		this.propertiesPrimaryKeys.add("parent_id");
+		this.propertiesPrimaryKeys.add("parent_version");
+		this.propertiesPrimaryKeys.add("rank");
+
+		this.featuresColumns = new ArrayList<DBColumn>();
+		this.featuresColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.featuresColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.featuresColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.featuresColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.featuresColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
+
+		this.featuresPrimaryKeys = new ArrayList<String>();
+		this.featuresPrimaryKeys.add("parent_id");
+		this.featuresPrimaryKeys.add("parent_version");
+		this.featuresPrimaryKeys.add("rank");
+
+		this.bendpointsColumns = new ArrayList<DBColumn>();
+		this.bendpointsColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.bendpointsColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("start_x", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("start_y", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("end_x", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("end_y", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.bendpointsPrimaryKeys = new ArrayList<String>();
+		this.bendpointsPrimaryKeys.add("parent_id");
+		this.bendpointsPrimaryKeys.add("parent_version");
+		this.bendpointsPrimaryKeys.add("rank");
+		
+		this.metadataColumns = new ArrayList<DBColumn>();
+		this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.metadataColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
+		this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
+
+		this.metadataPrimaryKeys = new ArrayList<String>();
+		this.metadataPrimaryKeys.add("parent_id");
+		this.metadataPrimaryKeys.add("parent_version");
+		this.metadataPrimaryKeys.add("rank");
+
+		this.imagesColumns = new ArrayList<DBColumn>();
+		this.imagesColumns.add(new DBColumn("path", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.imagesColumns.add(new DBColumn("image", this.databaseEntry, DBColumnType.IMAGE, true));
+		
+		this.viewsObjectsInViewColumns = new ArrayList<DBColumn>();
+		this.viewsObjectsInViewColumns.add(new DBColumn("oiv_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("object_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("object_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.viewsObjectsInViewPrimaryKeys = new ArrayList<String>();
+		this.viewsObjectsInViewPrimaryKeys.add("oiv_id");
+	    
+		this.viewsConnectionsInViewColumns = new ArrayList<DBColumn>();
+		this.viewsConnectionsInViewColumns.add(new DBColumn("civ_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("connection_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("connection_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+
+		this.viewsConnectionsInViewPrimaryKeys = new ArrayList<String>();
+		this.viewsConnectionsInViewPrimaryKeys.add("civ_id");
+
+		/* ****************************************************************************************************** */
+
+		this.databaseTables = new ArrayList<DBTable>();
+		this.databaseTables.add(new DBTable(this.schema, "database_version", this.databaseVersionColumns, this.databaseVersionPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "models", this.modelsColumns, this.modelsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "folders", this.foldersColumns, this.foldersPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "folders_in_model", this.foldersInModelColumns, this.foldersInModelPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "elements", this.elementsColumns, this.elementsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "elements_in_model", this.elementsInModelColumns, this.elementsInModelPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "relationships", this.relationshipsColumns, this.relationshipsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "relationships_in_model", this.relationshipsInModelColumns, this.relationshipsInModelPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views", this.viewsColumns, this.viewsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views_in_model", this.viewsInModelColumns, this.viewsInModelPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views_objects", this.viewsObjectsColumns, this.viewsObjectsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views_objects_in_view", this.viewsObjectsInViewColumns, this.viewsObjectsInViewPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views_connections", this.viewsConnectionsColumns, this.viewsConnectionsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "views_connections_in_view", this.viewsConnectionsInViewColumns, this.viewsConnectionsInViewPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "properties", this.propertiesColumns, this.propertiesPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "features", this.featuresColumns, this.featuresPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "bendpoints", this.bendpointsColumns, this.bendpointsPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "metadata", this.metadataColumns, this.metadataPrimaryKeys));
+		this.databaseTables.add(new DBTable(this.schema, "images", this.imagesColumns, this.imagesPrimaryKeys));
 	}
 }

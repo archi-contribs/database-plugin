@@ -432,7 +432,7 @@ public class DBGuiAdminDatabase extends DBGui {
 	 */
 	void checkStructureCallback() {
 		try {
-			this.importConnection.checkDatabase(this);
+			this.importConnection.checkDatabaseStructure(this);
 		} catch (@SuppressWarnings("unused") Exception ign) {
 			// messages are shown in the checkDatabase method
 			return;
