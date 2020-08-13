@@ -691,6 +691,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 				this.databaseEntry.persistIntoPreferenceStore();
 			}
 					
+			logger.debug("Getting metadata from database connection.");
 			DatabaseMetaData metadata = this.connection.getMetaData();
 			boolean mustCheckNotNullConstraint = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("checkNotNullConstraints");
 			boolean hasGotNotNullErrorsOnly = true;
@@ -706,7 +707,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 				}
 				List<DBColumn> expectedColumns = this.databaseTables.get(t).getColumns();
 				
-				try (ResultSet result = metadata.getColumns(null, this.schema.toUpperCase(), tableName, null)) {
+				try (ResultSet result = metadata.getColumns(null, DBPlugin.isEmpty(this.schema) ? null : this.schema.toUpperCase(), tableName, null)) {
 					boolean isTableCorrect = true;
 					
 					logger.debug("Table "+this.schemaPrefix+tableName);

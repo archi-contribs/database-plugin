@@ -348,6 +348,8 @@ import lombok.Getter;
  * 
  * v2.2.10: 05/08/2020				Fix schema and columns type in SQL requests
  * 
+ * v2.2.11: 10/08/2020				Fix structure check on Oracle database when schema is empty 
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
