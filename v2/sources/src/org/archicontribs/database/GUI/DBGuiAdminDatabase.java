@@ -536,18 +536,13 @@ public class DBGuiAdminDatabase extends DBGui {
 		
 		if (DBGui.question("You are about to delete the model \""+modelName+"\" from the database.\n\nThis will delete the model as a container. However, the model content (elements, relationships, views, ...) will remain in the database so they can be imported from the database into other models.\n\nPlease note that this action cannot be undone.\n\nDo you confirm the deletion ?") ) {
 			try {
-				String schemaPrefix = this.importConnection.getDatabaseEntry().getSchemaPrefix();
-				String table = schemaPrefix+"models";
-			
-				String request = "DELETE FROM "+table+" WHERE id = \""+modelId+"\"";
-				
-				int deletedRows = this.importConnection.executeRequest(request);
+				int deletedRows = this.importConnection.executeRequest("DELETE FROM "+this.importConnection.getDatabaseEntry().getSchemaPrefix()+"models WHERE id = ?", modelId);
 				
 				if (deletedRows == 0)
 					DBGui.popup(Level.WARN,"That's weird, no model with ID \""+modelId+"\" has been found in the database.");
 				else {
 					connectedToDatabase(false);
-					DBGui.popup(Level.INFO, String.valueOf(deletedRows)+" versions of the model \""+modelName+"\" "+((deletedRows == 1)?"has":"have")+" been deleted from the database.");
+					DBGui.popup(Level.INFO, String.valueOf(deletedRows)+" version"+((deletedRows == 1)?"":"s")+" of the model \""+modelName+"\" "+((deletedRows == 1)?"has":"have")+" been deleted from the database.");
 				}
 			} catch (SQLException err) {
 				try {

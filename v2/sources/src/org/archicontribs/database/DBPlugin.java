@@ -353,6 +353,7 @@ import lombok.Getter;
  * 									Change password encryption key to avoid error messages when switching from LAN to WIFI 
  * 
  * v2.2.12: 14/08/2020				Add NLS support for Oracle databases
+ * 									Fix deletion of a model from a SQL Server database
  * 
  * TO-DO list:
  * ----------
