@@ -284,6 +284,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @returns true if the database version is correct, generates an Exception if not
 	 */
 	public boolean checkDatabase(DBGui dbGui) throws Exception {
+		// No tables to be checked in Neo4J databases
+		if ( this.databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) )
+			return true;
+		
 		if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
 
 		int currentVersion = 0;

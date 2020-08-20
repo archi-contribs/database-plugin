@@ -355,6 +355,8 @@ import lombok.Getter;
  * v2.2.12: 14/08/2020				Add NLS support for Oracle databases
  * 									Fix deletion of a model from a SQL Server database
  * 
+ * v2.2.13 : 20/08/2020				Fix Neo4J databases check
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
