@@ -1,3 +1,8 @@
+v2.2.12: 20/08/2020
+* Add NLS support for Oracle databases
+* Fix deletion of a model from a SQL Server database
+* Fix Neo4J databases check
+
 v2.2.11: 13/08/2020
 * Fix structure check on Oracle database when schema is empty
 * Fix MySQL/MariaDB table creation SQL requests
