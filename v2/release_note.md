@@ -1,3 +1,7 @@
+v2.2.13: 27/11/2020
+* Update rank column in all tables to be compatible with MySQL 8.x
+* Rewrite automatic plugin update to use dropins folder
+
 v2.2.12: 20/08/2020
 * Add NLS support for Oracle databases
 * Fix deletion of a model from a SQL Server database
