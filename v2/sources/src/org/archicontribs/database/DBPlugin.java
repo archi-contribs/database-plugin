@@ -357,6 +357,7 @@ import lombok.Getter;
  * 									Fix Neo4J databases check
  *
  * v2.2.13: 27/11/2020				Update rank column in all tables to be compatible with MySQL 8.x
+ * 									increase strength length for influence relationships
  * 									Rewrite automatic plugin update to use dropins folder
  * 
  * TO-DO list:
