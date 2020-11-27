@@ -15,9 +15,9 @@ import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.Map;
@@ -30,6 +30,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGui;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -57,7 +58,11 @@ import org.osgi.framework.Version;
 public class DBCheckForPluginUpdate {
     static final DBLogger logger = new DBLogger(DBCheckForPluginUpdate.class);
     
-    private Display  display = Display.getDefault();    
+    private FileSystem fileSystem = FileSystems.getDefault();
+    
+    private Display display = Display.getDefault();
+    
+    DropinsPluginHandler dropinsPluginHandler = new DropinsPluginHandler();
     
 	ProgressBar updateProgressbar = null;
 	int updateDownloaded = 0;
@@ -67,20 +72,44 @@ public class DBCheckForPluginUpdate {
 	 * Establishes an https connection to GitHub, get a list of available jar files and get the versions from the jar filename.<br>
 	 * If the greater version of the jar files is greater than the current plugin version, then a popup asks the user if it wishes to doanload it.<br>
 	 * If yes, then the jar file is downloaded to a temporary file and a task is created to replace the existing jar file with the new one when Archi is stopped.
-	 * @param verbose
+	 * @param showPopup is true show popup with error message, else only log the error messages in log file 
 	 * @param pluginApiUrl
 	 * @param releaseNoteUrl
 	 */
-	public DBCheckForPluginUpdate(boolean verbose, String pluginApiUrl, String releaseNoteUrl) {
-		if ( verbose )
+	public DBCheckForPluginUpdate(boolean showPopup, String pluginApiUrl, String releaseNoteUrl) {
+		// first, we check we can write to the dropins folder
+		
+		// unfortunately, the getUserDropinsFolder method is private, we need to force
+		File dropinsFolder;
+		String dropinsFolderName;
+		try {
+			dropinsFolder = this.dropinsPluginHandler.getDefaultDropinsFolder();
+			dropinsFolderName = dropinsFolder.getCanonicalPath();
+		} catch (IOException err) {
+			if ( showPopup )
+				DBGui.popup(Level.ERROR, "Failed to get dropins folder.", err);
+			else
+				logger.error("Failed to get dropins folder.", err);
+			return;
+		}
+
+		if ( !dropinsFolder.canWrite() ) {
+			if ( showPopup )
+				DBGui.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
+			else
+				DBGui.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
+			return;
+		}
+		
+		Map<String, String> versions = new TreeMap<String, String>(Collections.reverseOrder());
+		JSONParser parser = new JSONParser();
+		
+		if ( showPopup )
 			DBGui.popup("Checking for a new database plugin version on GitHub ...");
 		else
 			logger.debug("Checking for a new database plugin version on GitHub");
 
-		Map<String, String> versions = new TreeMap<String, String>(Collections.reverseOrder());
-
 		try {
-			JSONParser parser = new JSONParser();
 			Authenticator.setDefault(new Authenticator() {
 				@Override
 				protected PasswordAuthentication getPasswordAuthentication() {
@@ -115,14 +144,26 @@ public class DBCheckForPluginUpdate {
 			});
 
 
-			if ( logger.isDebugEnabled() ) logger.debug("Connecting to "+pluginApiUrl);
-			HttpsURLConnection conn = (HttpsURLConnection)new URL(pluginApiUrl).openConnection();
+			HttpsURLConnection conn = null;
+			JSONArray result = null;
+			InputStreamReader streamReader = null;
 
-			if ( logger.isDebugEnabled() ) logger.debug("Getting file list");
-			JSONArray result = (JSONArray)parser.parse(new InputStreamReader(conn.getInputStream()));
+			try  {
+				if ( logger.isDebugEnabled() ) logger.debug("Connecting to "+pluginApiUrl);
+				conn = (HttpsURLConnection)new URL(pluginApiUrl).openConnection();
+	
+				if ( logger.isDebugEnabled() ) logger.debug("Getting file list");
+				streamReader = new InputStreamReader(conn.getInputStream());
+				result = (JSONArray)parser.parse(streamReader);
+			} finally {
+				if ( conn != null )
+					conn.disconnect();
+				if ( streamReader != null )
+					streamReader.close();
+			}
 
 			if ( result == null ) {
-				if ( verbose ) {
+				if ( showPopup ) {
 					DBGui.closePopup();
 					DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nParsing error.");
 				} else
@@ -130,8 +171,8 @@ public class DBCheckForPluginUpdate {
 				return;
 			}
 
-			if ( logger.isDebugEnabled() ) logger.debug("Searching for plugins jar files");
-			Pattern p = Pattern.compile(DBPlugin.pluginsPackage+"_(.*).jar") ;
+			if ( logger.isDebugEnabled() ) logger.debug("Searching for \"archiplugin\" files");
+			Pattern p = Pattern.compile(DBPlugin.pluginsPackage+"_(.*).archiplugin") ;
 
 			Iterator<JSONObject> iterator = result.iterator();
 			while (iterator.hasNext()) {
@@ -143,17 +184,17 @@ public class DBCheckForPluginUpdate {
 				}
 			}
 
-			if ( verbose ) DBGui.closePopup();
+			if ( showPopup ) DBGui.closePopup();
 
 			if ( versions.isEmpty() ) {
-				if ( verbose )
-					DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+" JAR file.");
+				if ( showPopup )
+					DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+"_*.archiplugin file.");
 				else
-					logger.error("Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+" JAR file.");
+					logger.error("Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+"_*.archiplugin file.");
 				return;
 			}
 		} catch (Exception e) {
-			if ( verbose ) {
+			if ( showPopup ) {
 				DBGui.closePopup();
 				DBGui.popup(Level.ERROR, "Failed to check for new version on GitHub.", e);
 			} else {
@@ -163,13 +204,12 @@ public class DBCheckForPluginUpdate {
 		}
 
 		String newPluginFilename = null;
-		String tmpFilename = null;
 		try {
 			// treemap is sorted in descending order, so first entry should have the "bigger" key value, i.e. the latest version
 			Entry<String, String> entry = versions.entrySet().iterator().next();
 
 			if ( DBPlugin.pluginVersion.compareTo(new Version(entry.getKey())) >= 0 ) {
-				if ( verbose )
+				if ( showPopup )
 					DBGui.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion.toString());
 				else
 					logger.info("You already have got the latest version: "+DBPlugin.pluginVersion.toString());
@@ -177,7 +217,7 @@ public class DBCheckForPluginUpdate {
 			}
 
 			if ( !DBPlugin.pluginsFilename.endsWith(".jar") ) {
-				if ( verbose )
+				if ( showPopup )
 					DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 				else
 					logger.error("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
@@ -203,23 +243,17 @@ public class DBCheckForPluginUpdate {
 			String FileType = conn.getContentType();
 			int fileLength = conn.getContentLength();
 
-			newPluginFilename = DBPlugin.pluginsFolder+File.separator+entry.getValue().substring(entry.getValue().lastIndexOf('/')+1, entry.getValue().length());
-			tmpFilename = newPluginFilename+".tmp";
+			newPluginFilename = dropinsFolderName+File.separator+entry.getValue().substring(entry.getValue().lastIndexOf('/')+1, entry.getValue().length());
 
 			if ( logger.isTraceEnabled() ) {
 				logger.trace("   File URL: " + entry.getValue());
 				logger.trace("   File type: " + FileType);
 				logger.trace("   File length: "+fileLength);
-				logger.trace("   Tmp download file path: " + tmpFilename);
-				logger.trace("   New Plugin file path: " + newPluginFilename);
+				logger.trace("   download file: " + newPluginFilename);
 			}
 			
-			// we delete the temp file in case a previous download failed
-			try {
-				 Files.deleteIfExists(FileSystems.getDefault().getPath(tmpFilename));
-			} catch (Exception e) {
-				DBGui.popup(Level.ERROR, "Failed to delete temporary file.", e);
-			}
+			// we delete the file in case a previous download failed
+			Files.deleteIfExists(this.fileSystem.getPath(newPluginFilename));
 
 			if (fileLength == -1)
 				throw new IOException("Failed to get file size.");
@@ -227,7 +261,7 @@ public class DBCheckForPluginUpdate {
 			this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.setMaximum(fileLength); }});
 
 			try ( InputStream in = conn.getInputStream() ) {
-				try ( FileOutputStream fos = new FileOutputStream(new File(tmpFilename)) ) {               
+				try ( FileOutputStream fos = new FileOutputStream(new File(newPluginFilename)) ) {               
 					byte[] buff = new byte[1024];
 					int n;
 					this.updateDownloaded = 0;
@@ -247,12 +281,13 @@ public class DBCheckForPluginUpdate {
 
 		} catch (Exception e) {
 			if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForPluginUpdate.this.updateProgressbar = null; }});
+			// we delete the file in case the download failed
 			try {
-				if ( tmpFilename != null ) Files.deleteIfExists(FileSystems.getDefault().getPath(tmpFilename));
-			} catch (IOException e1) {
-				logger.error("Cannot delete file \""+tmpFilename+"\"", e1);
+				 Files.deleteIfExists(this.fileSystem.getPath(newPluginFilename));
+			} catch (Exception err) {
+				DBGui.popup(Level.ERROR, "Failed to delete partially downloaded file \""+newPluginFilename+"\".", err);
 			}
-			if ( verbose )
+			if ( showPopup )
 				DBGui.popup(Level.ERROR, "Failed to download the new version of the database plugin.", e);
 			else
 				logger.error("Failed to download the new version of the database plugin.",e);
@@ -261,25 +296,31 @@ public class DBCheckForPluginUpdate {
 
 		if( this.updateProgressbar != null ) this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.updateProgressbar.getShell().dispose(); DBCheckForPluginUpdate.this.updateProgressbar = null;}});
 
-		//install new plugin
-
-		// we rename the tmpFilename to its definitive filename
-		if ( logger.isDebugEnabled() ) logger.debug("Renaming \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+		// we ask Archi to install it
 		try {
-			Files.move(FileSystems.getDefault().getPath(tmpFilename), FileSystems.getDefault().getPath(newPluginFilename), StandardCopyOption.REPLACE_EXISTING);
-		} catch (@SuppressWarnings("unused") IOException ign) {
-			if ( verbose )
-				DBGui.popup(Level.ERROR, "Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+			IStatus status = this.dropinsPluginHandler.installFile(new File(newPluginFilename));
+			if ( !status.isOK() ) {
+				if ( showPopup )
+					DBGui.popup(Level.ERROR, "Failed to install new plugin version.");
+				else
+					logger.error("Failed to install new plugin version.");
+				return;
+			}
+		} catch (IOException e) {
+			if ( showPopup )
+				DBGui.popup(Level.ERROR, "Failed to install new plugin version.", e);
 			else
-				logger.error("Failed to rename \""+tmpFilename+"\" to \""+newPluginFilename+"\"");
+				logger.error("Failed to install new plugin version.",e);
 			return;
 		}
-
-		// we delete the actual plugin file on Archi exit (can't do it here because the plugin is in use).
-		(new File(DBPlugin.pluginsFilename)).deleteOnExit();
+		
 
 		if( DBGui.question("A new version on the database plugin has been downloaded. Archi needs to be restarted to install it.\n\nDo you wish to restart Archi now ?") ) {
-			this.display.syncExec(new Runnable() { @Override public void run() { PlatformUI.getWorkbench().restart(); }});
+			this.display.syncExec(new Runnable() {
+				@Override public void run() {
+					PlatformUI.getWorkbench().restart();
+				}
+			});
 		}
 	}
 	

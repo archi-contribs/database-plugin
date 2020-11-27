@@ -58,7 +58,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Version of the expected database model.<br>
 	 * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
 	 */
-	public static final int databaseVersion = 212;
+	public static final int databaseVersion = 213;
 
 	/**
 	 * the databaseEntry corresponding to the connection
@@ -778,19 +778,19 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public void renameColumn(String tableName, String oldColumnName, String newColumnName, String columnType) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Altering table "+tableName+", renaming column "+oldColumnName+" to "+ newColumnName);
 
-		if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) )
+		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) )
 			executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
 
-		else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
+		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
 			executeRequest("EXEC sp_RENAME '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'");
 
-		else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) )
+		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) )
 			executeRequest("ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName);
 
-		else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
+		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
 			executeRequest("ALTER TABLE "+tableName+" CHANGE COLUMN "+oldColumnName+" "+newColumnName+" "+columnType);
 
-		else if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
 			executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
 	}
 
@@ -811,6 +811,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		DBColumn userNameColumn = new DBColumn("", this.databaseEntry, DBColumnType.USERNAME, false);
 		DBColumn datetimeColumn = new DBColumn("", this.databaseEntry, DBColumnType.DATETIME, false);
 		DBColumn autoIncrementColumn = new DBColumn("", this.databaseEntry, DBColumnType.AUTO_INCREMENT, false);
+		DBColumn strengthColumn = new DBColumn("", this.databaseEntry, DBColumnType.STRENGTH, false);
 		
 		setAutoCommit(false);
 
@@ -946,7 +947,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "connection_version " + integerColumn.getType() +" NOT NULL, "
 					+ "view_id " + objectIDColumn.getType() +" NOT NULL, "
 					+ "view_version " + integerColumn.getType() +" NOT NULL, "
-					+ "rank " + integerColumn.getType() +" NOT NULL"
+					+ "pos " + integerColumn.getType() +" NOT NULL"
 					+ ", PRIMARY KEY (civ_id)"
 					+ ")");
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -966,8 +967,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			// we fill in the views_connections_in_view table
 			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_connections table to "+this.schemaPrefix+"views_connections_in_view table");
 			executeRequest("INSERT INTO "+this.schemaPrefix+"views_connections_in_view "
-					+"(connection_id, connection_version, view_id, view_version, rank) "
-					+"SELECT id, version, view_id, view_version, rank FROM "+this.schemaPrefix+"views_connections"
+					+"(connection_id, connection_version, view_id, view_version, pos) "
+					+"SELECT id, version, view_id, view_version, pos FROM "+this.schemaPrefix+"views_connections"
 					);
 
 			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"views_objects_in_view");
@@ -977,7 +978,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "object_version " + integerColumn.getType() +" NOT NULL, "
 					+ "view_id " + objectIDColumn.getType() +" NOT NULL, "
 					+ "view_version " + integerColumn.getType() +" NOT NULL, "
-					+ "rank " + integerColumn.getType() +" NOT NULL"
+					+ "pos " + integerColumn.getType() +" NOT NULL"
 					+ ", PRIMARY KEY (oiv_id)"
 					+ ")");
 			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
@@ -998,17 +999,17 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_objects table to "+this.schemaPrefix+"views_objects_in_view table");
 			if ( logger.isDebugEnabled() ) logger.debug("Copying data from "+this.schemaPrefix+"views_connections table to "+this.schemaPrefix+"views_connections_in_view table");
 			executeRequest("INSERT INTO "+this.schemaPrefix+"views_objects_in_view "
-					+"(object_id, object_version, view_id, view_version, rank) "
-					+"SELECT id, version, view_id, view_version, rank FROM "+this.schemaPrefix+"views_objects"
+					+"(object_id, object_version, view_id, view_version, pos) "
+					+"SELECT id, version, view_id, view_version, pos FROM "+this.schemaPrefix+"views_objects"
 					);
 
 			dropColumn(this.schemaPrefix+"views_connections", "view_id");
 			dropColumn(this.schemaPrefix+"views_connections", "view_version");
-			dropColumn(this.schemaPrefix+"views_connections", "rank");
+			dropColumn(this.schemaPrefix+"views_connections", "pos");
 
 			dropColumn(this.schemaPrefix+"views_objects", "view_id");
 			dropColumn(this.schemaPrefix+"views_objects", "view_version");
-			dropColumn(this.schemaPrefix+"views_objects", "rank");
+			dropColumn(this.schemaPrefix+"views_objects", "pos");
 
 			dbVersion = 206;
 		}
@@ -1032,10 +1033,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 			executeRequest("CREATE TABLE "+this.schemaPrefix+"metadata ("
 					+ "parent_id "+objectIDColumn.getType() +" NOT NULL, "
 					+ "parent_version " + integerColumn.getType() +" NOT NULL, "
-					+ "rank " + integerColumn.getType() +" NOT NULL, "
+					+ "pos " + integerColumn.getType() +" NOT NULL, "
 					+ "name " + objNameColumn.getType() + ", "
 					+ "value " + textColumn.getType()+ ", "
-					+ "PRIMARY KEY (parent_id, parent_version, rank)"
+					+ "PRIMARY KEY (parent_id, parent_version, pos)"
 					+ ")");
 
 			dropColumn(this.schemaPrefix+"views_objects", "source_connections");
@@ -1144,10 +1145,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 			executeRequest("CREATE TABLE "+this.schemaPrefix+"features ("
 					+ "parent_id "+objectIDColumn.getType()+" NOT NULL, "
 					+ "parent_version " + integerColumn.getType() +" NOT NULL, "
-					+ "rank " + integerColumn.getType() +" NOT NULL, "
+					+ "pos " + integerColumn.getType() +" NOT NULL, "
 					+ "name " + objNameColumn.getType() + ", "
 					+ "value " + textColumn.getType() + ", "
-					+ "PRIMARY KEY (parent_id, parent_version, rank)"
+					+ "PRIMARY KEY (parent_id, parent_version, pos)"
 					+ ")");
 
 			String[] tableNames = {"models", "folders", "elements", "relationships", "views", "views_objects", "views_connections"};   
@@ -1175,6 +1176,30 @@ public class DBDatabaseConnection implements AutoCloseable {
 				this.databaseEntry.persistIntoPreferenceStore();
 
 			dbVersion = 212;
+		}
+		
+		// convert from version 212 to 213
+		//      - rename "pos" column to "pos" in all tables
+		//      - change "strength" column from varchar(20) to blob
+		if ( dbVersion == 212 ) {
+			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"features");
+			renameColumn(this.schemaPrefix+"properties", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"metadata", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"features", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"elements_in_model", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"relationships_in_model", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"folders_in_model", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"views_in_model", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"views_objects_in_view", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"views_connections_in_view", "rank", "pos", integerColumn.getType());
+			renameColumn(this.schemaPrefix+"bendpoints", "rank", "pos", integerColumn.getType());
+			
+			renameColumn(this.schemaPrefix+"relationships", "strength", "old_strength", strengthColumn.getType());
+			addColumn(this.schemaPrefix+"relationships", "strength", textColumn.getType());
+			executeRequest("UPDATE "+this.schemaPrefix+"relationships SET strength = old_strength");
+			dropColumn(this.schemaPrefix+"relationships", "old_strength");
+			
+			dbVersion = 213;
 		}
 
 		executeRequest("UPDATE "+this.schemaPrefix+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
@@ -1438,7 +1463,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.foldersInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, false));
 		this.foldersInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.foldersInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.foldersInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.foldersInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.foldersInModelPrimaryKeys = new ArrayList<String>();
 		this.foldersInModelPrimaryKeys.add("fim_id");
@@ -1471,7 +1496,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.elementsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.elementsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.elementsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.elementsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.elementsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.elementsInModelPrimaryKeys = new ArrayList<String>();
 		this.elementsInModelPrimaryKeys.add("eim_id");
@@ -1484,7 +1509,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.relationshipsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
 		this.relationshipsColumns.add(new DBColumn("source_id", this.databaseEntry, DBColumnType.OBJECTID, false));
 		this.relationshipsColumns.add(new DBColumn("target_id", this.databaseEntry, DBColumnType.OBJECTID, false));
-		this.relationshipsColumns.add(new DBColumn("strength", this.databaseEntry, DBColumnType.STRENGTH, false));
+		this.relationshipsColumns.add(new DBColumn("strength", this.databaseEntry, DBColumnType.TEXT, false));
 		this.relationshipsColumns.add(new DBColumn("access_type", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.relationshipsColumns.add(new DBColumn("is_directed", this.databaseEntry, DBColumnType.BOOLEAN, false));
 		this.relationshipsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
@@ -1508,7 +1533,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.relationshipsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.relationshipsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.relationshipsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.relationshipsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.relationshipsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.relationshipsInModelPrimaryKeys = new ArrayList<String>();
 		this.relationshipsInModelPrimaryKeys.add("rim_id");
@@ -1547,7 +1572,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsInModelColumns.add(new DBColumn("parent_folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsInModelColumns.add(new DBColumn("model_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.viewsInModelColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.viewsInModelPrimaryKeys =  new ArrayList<String>();
 		this.viewsInModelPrimaryKeys.add("vim_id");
@@ -1632,31 +1657,31 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.propertiesColumns = new ArrayList<DBColumn>();
 		this.propertiesColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.propertiesColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.propertiesColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.propertiesColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.propertiesColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.propertiesColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
 		this.propertiesPrimaryKeys = new ArrayList<String>();
 		this.propertiesPrimaryKeys.add("parent_id");
 		this.propertiesPrimaryKeys.add("parent_version");
-		this.propertiesPrimaryKeys.add("rank");
+		this.propertiesPrimaryKeys.add("pos");
 
 		this.featuresColumns = new ArrayList<DBColumn>();
 		this.featuresColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.featuresColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.featuresColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.featuresColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.featuresColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.featuresColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
 		this.featuresPrimaryKeys = new ArrayList<String>();
 		this.featuresPrimaryKeys.add("parent_id");
 		this.featuresPrimaryKeys.add("parent_version");
-		this.featuresPrimaryKeys.add("rank");
+		this.featuresPrimaryKeys.add("pos");
 
 		this.bendpointsColumns = new ArrayList<DBColumn>();
 		this.bendpointsColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.bendpointsColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.bendpointsColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.bendpointsColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.bendpointsColumns.add(new DBColumn("start_x", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.bendpointsColumns.add(new DBColumn("start_y", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.bendpointsColumns.add(new DBColumn("end_x", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1665,19 +1690,19 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.bendpointsPrimaryKeys = new ArrayList<String>();
 		this.bendpointsPrimaryKeys.add("parent_id");
 		this.bendpointsPrimaryKeys.add("parent_version");
-		this.bendpointsPrimaryKeys.add("rank");
+		this.bendpointsPrimaryKeys.add("pos");
 		
 		this.metadataColumns = new ArrayList<DBColumn>();
 		this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.metadataColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.metadataColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
 		this.metadataPrimaryKeys = new ArrayList<String>();
 		this.metadataPrimaryKeys.add("parent_id");
 		this.metadataPrimaryKeys.add("parent_version");
-		this.metadataPrimaryKeys.add("rank");
+		this.metadataPrimaryKeys.add("pos");
 
 		this.imagesColumns = new ArrayList<DBColumn>();
 		this.imagesColumns.add(new DBColumn("path", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1689,7 +1714,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsObjectsInViewColumns.add(new DBColumn("object_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsObjectsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsObjectsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.viewsObjectsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsObjectsInViewColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.viewsObjectsInViewPrimaryKeys = new ArrayList<String>();
 		this.viewsObjectsInViewPrimaryKeys.add("oiv_id");
@@ -1700,7 +1725,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsConnectionsInViewColumns.add(new DBColumn("connection_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsConnectionsInViewColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsConnectionsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
-		this.viewsConnectionsInViewColumns.add(new DBColumn("rank", this.databaseEntry, DBColumnType.INTEGER, true));
+		this.viewsConnectionsInViewColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
 		this.viewsConnectionsInViewPrimaryKeys = new ArrayList<String>();
 		this.viewsConnectionsInViewPrimaryKeys.add("civ_id");

@@ -2211,7 +2211,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					Map<String, String> translatedFolders = new HashMap<String, String>();
 					
-					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.pos", id, id) ) {
 						while ( result.next() ) {
 							// we check if we already know how to convert this folder
 							String convertedFolderId = translatedFolders.get(result.getString("folder_id"));
@@ -2289,7 +2289,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import elements
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing elements from model \""+name+"\".");
-					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT element_id, element_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"elements_in_model WHERE model_id = ?) ORDER BY pos", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
@@ -2309,7 +2309,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import relationships
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing relationships from model \""+name+"\".");
-					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT relationship_id, relationship_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"relationships_in_model WHERE model_id = ?) ORDER BY pos", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));
@@ -2338,7 +2338,7 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import views
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing views from model \""+name+"\".");
-					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?) ORDER BY rank", id, id) ) {
+					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT view_id, view_version, parent_folder_id FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ? AND model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"views_in_model WHERE model_id = ?) ORDER BY pos", id, id) ) {
 						while ( result.next() ) {
 							// we check if the parent folder needs to be translated
 							IFolder parentFolder = foldersConversionMap.get(result.getString("parent_folder_id"));

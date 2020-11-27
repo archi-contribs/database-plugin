@@ -340,7 +340,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schemaPrefix+"elements_in_model"
 				+ " JOIN "+this.schemaPrefix+"elements ON elements.id = element_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", properties, features, created_on, checksum, rank";
+				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", properties, features, created_on, checksum, pos";
 		try (DBSelect resultElements = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
@@ -364,7 +364,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
-		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum, rank"
+		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum, pos"
 				+ " FROM "+this.schemaPrefix+"folders_in_model"
 				+ " JOIN "+this.schemaPrefix+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
@@ -373,10 +373,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countFoldersToImport = resultFolders.getInt("countFolders");
 			this.countFoldersImported = 0;
 		}
-		this.importFoldersRequest = selectFoldersRequest + " ORDER BY rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		this.importFoldersRequest = selectFoldersRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schemaPrefix+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
-		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, "+this.toCharDocumentationAsDocumentation+", background, connection_router_type, viewpoint, created_on, properties, features, checksum, container_checksum, rank"
+		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, "+this.toCharDocumentationAsDocumentation+", background, connection_router_type, viewpoint, created_on, properties, features, checksum, container_checksum, pos"
 				+ " FROM "+this.schemaPrefix+"views_in_model"
 				+ " JOIN "+this.schemaPrefix+"views ON views.id = views_in_model.view_id AND views.version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
@@ -385,7 +385,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countViewsToImport = resultViews.getInt("countViews");
 			this.countViewsImported = 0;
 		}
-		this.importViewsRequest = selectViewsRequest + " ORDER BY rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		this.importViewsRequest = selectViewsRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
 		String selectViewsObjectsRequest = "SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, "+this.toCharContentAsContent+", "+this.toCharDocumentationAsDocumentation+", is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, "+this.toCharNotesAsNotes+", text_alignment, text_position, type, x, y, width, height, properties, features, checksum"
@@ -398,7 +398,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countViewObjectsToImport = resultViewObjects.getInt("countViewsObjects");
 			this.countViewObjectsImported = 0;
 		}
-		// (unused) this.importViewsObjectsRequest = this.selectViewsObjectsRequest + " ORDER BY views_objects.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		// (unused) this.importViewsObjectsRequest = this.selectViewsObjectsRequest + " ORDER BY views_objects.pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		// versionToImport is same as for views
 		String selectViewsConnectionsRequest = "SELECT DISTINCT id, version, class, container_id, name, "+this.toCharDocumentationAsDocumentation+", is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, properties, features, checksum "
@@ -411,7 +411,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countViewConnectionsToImport = resultViewConnections.getInt("countViewsConnections");
 			this.countViewConnectionsImported = 0;
 		}
-		// (unused) this.importViewsConnectionsRequest = this.selectViewsConnectionsRequest + " ORDER BY views_connections.rank";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		// (unused) this.importViewsConnectionsRequest = this.selectViewsConnectionsRequest + " ORDER BY views_connections.pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		try ( DBSelect resultImages = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(DISTINCT image_path) AS countImages"+
 				" FROM "+this.schemaPrefix+"views_in_model"+
@@ -740,11 +740,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsObjects(String id, int version) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects for view "+id+" version "+version);
-		this.currentResultSetViewsObjects = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, "+this.toCharContentAsContent+", "+this.toCharDocumentationAsDocumentation+", is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, "+this.toCharNotesAsNotes+", text_alignment, text_position, type, x, y, width, height, properties, features, checksum, created_on, rank"
+		this.currentResultSetViewsObjects = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, "+this.toCharContentAsContent+", "+this.toCharDocumentationAsDocumentation+", is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, "+this.toCharNotesAsNotes+", text_alignment, text_position, type, x, y, width, height, properties, features, checksum, created_on, pos"
 				+" FROM "+this.schemaPrefix+"views_objects"
 				+" JOIN "+this.schemaPrefix+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
 				+" WHERE view_id = ? AND view_version = ?"
-				+" ORDER BY rank"
+				+" ORDER BY pos"
 				,id
 				,version
 				);
@@ -855,11 +855,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 */
 	public void prepareImportViewsConnections(String id, int version) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections for view "+id+" version "+version);
-		this.currentResultSetViewsConnections = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, name, "+this.toCharDocumentationAsDocumentation+", is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, properties, features, bendpoints, checksum, rank"
+		this.currentResultSetViewsConnections = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, name, "+this.toCharDocumentationAsDocumentation+", is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, properties, features, bendpoints, checksum, pos"
 				+" FROM "+this.schemaPrefix+"views_connections"
 				+" JOIN "+this.schemaPrefix+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
 				+" WHERE view_id = ? AND view_version = ?"
-				+" ORDER BY rank"
+				+" ORDER BY pos"
 				,id
 				,version
 				);
@@ -1056,7 +1056,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		parent.getProperties().clear();
 
 		// then, we import the properties from the database 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY rank", id, version)) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
 				// if the property already exist, we update its value. If it doesn't, we create it
 				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
@@ -1081,7 +1081,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		parent.getFeatures().clear();
 
 		// then, we import the properties from the database 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY rank", id, version)) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
 				// if the property already exist, we update its value. If it doesn't, we create it
 				IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
@@ -1107,7 +1107,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			parent.getBendpoints().clear();
 		
 		// then we import the bendpoints from the database
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT start_x, start_y, end_x, end_y FROM "+this.schemaPrefix+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY rank", id, version)) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT start_x, start_y, end_x, end_y FROM "+this.schemaPrefix+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while(result.next()) {
 				IDiagramModelBendpoint bendpoint = IArchimateFactory.eINSTANCE.createDiagramModelBendpoint();
 				bendpoint.setStartX(result.getInt("start_x"));
@@ -1135,7 +1135,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			model.setMetadata(IArchimateFactory.eINSTANCE.createMetadata());
 
 		// then, we import the metadata from the database 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"metadata WHERE parent_id = ? AND parent_version = ? ORDER BY rank", model.getId(), model.getInitialVersion().getVersion())) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"metadata WHERE parent_id = ? AND parent_version = ? ORDER BY pos", model.getId(), model.getInitialVersion().getVersion())) {
 			while ( result.next() ) {
 				// if the property already exist, we update its value. If it doesn't, we create it
 				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();

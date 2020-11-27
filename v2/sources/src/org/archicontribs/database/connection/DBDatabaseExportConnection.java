@@ -1397,7 +1397,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported elements that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int elementRank = 0;
+	private int elementPos = 0;
 
 	/**
 	 * Assign an element to a model into the database
@@ -1405,7 +1405,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void assignElementToModel(IArchimateElement element) throws Exception {
-		final String[] elementsInModelColumns = {"element_id", "element_version", "parent_folder_id", "model_id", "model_version", "rank"};
+		final String[] elementsInModelColumns = {"element_id", "element_version", "parent_folder_id", "model_id", "model_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(element);
 
@@ -1417,7 +1417,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IFolder)element.eContainer()).getId()
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
-				,++this.elementRank
+				,++this.elementPos
 				);
 	}
 
@@ -1512,7 +1512,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported relationships that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int relationshipRank = 0;
+	private int relationshipPos = 0;
 
 	/**
 	 * Assign a relationship to a model into the database
@@ -1520,7 +1520,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void assignRelationshipToModel(IArchimateRelationship relationship) throws Exception {
-		final String[] relationshipsInModelColumns = {"relationship_id", "relationship_version", "parent_folder_id", "model_id", "model_version", "rank"};
+		final String[] relationshipsInModelColumns = {"relationship_id", "relationship_version", "parent_folder_id", "model_id", "model_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
@@ -1532,7 +1532,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IFolder)relationship.eContainer()).getId()
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
-				,++this.relationshipRank
+				,++this.relationshipPos
 				);
 	}
 
@@ -1579,7 +1579,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported folders that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int folderRank = 0;
+	private int folderPos = 0;
 
 	/**
 	 * Assign a folder to a model into the database
@@ -1587,7 +1587,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void assignFolderToModel(IFolder folder) throws Exception {
-		final String[] foldersInModelColumns = {"folder_id", "folder_version", "parent_folder_id", "model_id", "model_version", "rank"};
+		final String[] foldersInModelColumns = {"folder_id", "folder_version", "parent_folder_id", "model_id", "model_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)folder.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(folder);
 
@@ -1599,7 +1599,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,(((IIdentifier)((Folder)folder).eContainer()).getId() == model.getId() ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
-				,++this.folderRank
+				,++this.folderPos
 				);
 	}
 
@@ -1652,7 +1652,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported views that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int viewRank = 0;
+	private int viewPos = 0;
 
 	/**
 	 * Assign a view to a model into the database
@@ -1660,7 +1660,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void assignViewToModel(IDiagramModel view) throws Exception {
-		final String[] viewsInModelColumns = {"view_id", "view_version", "parent_folder_id", "model_id", "model_version", "rank"};
+		final String[] viewsInModelColumns = {"view_id", "view_version", "parent_folder_id", "model_id", "model_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(view);
 
@@ -1672,7 +1672,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,((IFolder)view.eContainer()).getId()
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
-				,++this.viewRank
+				,++this.viewPos
 				);
 	}
 
@@ -1680,11 +1680,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported views objects that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int viewObjectRank = 0;
+	private int viewObjectPos = 0;
 
 	/**
 	 * Export a view object into the database.<br>
-	 * The rank allows to order the views during the import process.
+	 * The pos allows to order the views during the import process.
 	 * @param viewObject 
 	 * @throws Exception 
 	 */
@@ -1750,7 +1750,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void assignViewObjectToView(IDiagramModelComponent viewObject) throws Exception {
-		final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "rank"};
+		final String[] viewObjectInViewColumns = {"object_id", "object_version", "view_id", "view_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(viewObject);
 		IDiagramModel viewContainer = viewObject.getDiagramModel();
@@ -1763,7 +1763,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewContainer.getId()
 				,model.getDBMetadata(viewContainer).getCurrentVersion().getVersion()
-				,++this.viewObjectRank
+				,++this.viewObjectPos
 				);
 
 
@@ -1773,11 +1773,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * This class variable allows to sort the exported views objects that they are imported in the same order<br>
 	 * It is reset to zero each time a connection to a new database is done (connection() method).
 	 */
-	private int viewConnectionRank = 0;
+	private int viewConnectionPos = 0;
 
 	/**
 	 * Export a view connection into the database.<br>
-	 * The rank allows to order the views during the import process.
+	 * The pos allows to order the views during the import process.
 	 * @param viewConnection 
 	 * @throws Exception 
 	 */
@@ -1836,7 +1836,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void assignViewConnectionToView(IDiagramModelConnection viewConnection) throws SQLException {
-		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "view_id", "view_version", "rank"};
+		final String[] viewObjectInViewColumns = {"connection_id", "connection_version", "view_id", "view_version", "pos"};
 		DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(viewConnection);
 		IDiagramModel viewContainer = viewConnection.getDiagramModel();
@@ -1848,7 +1848,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewContainer.getId()
 				,model.getDBMetadata(viewContainer).getCurrentVersion().getVersion()
-				,++this.viewConnectionRank
+				,++this.viewConnectionPos
 				);
 
 
@@ -1860,7 +1860,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void exportProperties(IProperties parent) throws SQLException {
-		final String[] propertiesColumns = {"parent_id", "parent_version", "rank", "name", "value"};
+		final String[] propertiesColumns = {"parent_id", "parent_version", "pos", "name", "value"};
 
 		if ( parent.getProperties() != null ) {
 			logger.debug("   Exporting "+parent.getProperties().size()+" properties");
@@ -1868,13 +1868,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String parentId = ((IIdentifier)parent).getId();
 			int parentVersion = (parent instanceof DBArchimateModel) ? ((DBArchimateModel)parent).getCurrentVersion().getVersion() : DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
-			for ( int propRank = 0 ; propRank < parent.getProperties().size(); ++propRank) {
-				IProperty prop = parent.getProperties().get(propRank);
+			for ( int propPos = 0 ; propPos < parent.getProperties().size(); ++propPos) {
+				IProperty prop = parent.getProperties().get(propPos);
 				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-					executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {rank:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
+					executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {pos:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
 							,parentId
 							,parentVersion
-							,propRank
+							,propPos
 							,prop.getKey()
 							,prop.getValue()
 							);
@@ -1883,7 +1883,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					insert(this.schemaPrefix+"properties", propertiesColumns
 							,parentId
 							,parentVersion
-							,propRank
+							,propPos
 							,prop.getKey()
 							,prop.getValue()
 							);
@@ -1897,7 +1897,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void exportFeatures(IFeatures parent) throws SQLException {
-		final String[] featuresColumns = {"parent_id", "parent_version", "rank", "name", "value"};
+		final String[] featuresColumns = {"parent_id", "parent_version", "pos", "name", "value"};
 
 		if ( parent.getFeatures() != null ) {
 			logger.debug("   Exporting "+parent.getFeatures().size()+" features");
@@ -1905,13 +1905,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String parentId = ((IIdentifier)parent).getId();
 			int parentVersion = (parent instanceof DBArchimateModel) ? ((DBArchimateModel)parent).getCurrentVersion().getVersion() : DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
-			for ( int rank = 0 ; rank < parent.getFeatures().size(); ++rank) {
-				IFeature feature = parent.getFeatures().get(rank);
+			for ( int pos = 0 ; pos < parent.getFeatures().size(); ++pos) {
+				IFeature feature = parent.getFeatures().get(pos);
 				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-					executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {rank:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
+					executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {pos:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
 							,parentId
 							,parentVersion
-							,rank
+							,pos
 							,feature.getName()
 							,feature.getValue()
 							);
@@ -1920,7 +1920,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					insert(this.schemaPrefix+"features", featuresColumns
 							,parentId
 							,parentVersion
-							,rank
+							,pos
 							,feature.getName()
 							,feature.getValue()
 							);
@@ -1934,7 +1934,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	private void exportBendpoints(IDiagramModelConnection parent) throws SQLException {
-		final String[] bendpointsColumns = {"parent_id", "parent_version", "rank", "start_x", "start_y", "end_x", "end_y"};
+		final String[] bendpointsColumns = {"parent_id", "parent_version", "pos", "start_x", "start_y", "end_x", "end_y"};
 
 		if ( (parent.getBendpoints() != null) && !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
 			logger.debug("   Exporting "+parent.getBendpoints().size()+" bendpoints");
@@ -1942,12 +1942,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String parentId = ((IIdentifier)parent).getId();
 			int parentVersion = (parent instanceof DBArchimateModel) ? ((DBArchimateModel)parent).getCurrentVersion().getVersion() : DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
-			for ( int rank = 0 ; rank < parent.getBendpoints().size(); ++rank) {
-				IDiagramModelBendpoint bendpoint = parent.getBendpoints().get(rank);
+			for ( int pos = 0 ; pos < parent.getBendpoints().size(); ++pos) {
+				IDiagramModelBendpoint bendpoint = parent.getBendpoints().get(pos);
 				insert(this.schemaPrefix+"bendpoints", bendpointsColumns
 						,parentId
 						,parentVersion
-						,rank
+						,pos
 						,bendpoint.getStartX()
 						,bendpoint.getStartY()
 						,bendpoint.getEndX()
@@ -1963,19 +1963,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportMetadata(DBArchimateModel parent) throws Exception {
-		final String[] metadataColumns = {"parent_id", "parent_version", "rank", "name", "value"};
+		final String[] metadataColumns = {"parent_id", "parent_version", "pos", "name", "value"};
 
 		if ( (parent.getMetadata() != null) && (parent.getMetadata().getEntries() != null) ) {
 			logger.debug("   Exporting "+parent.getMetadata().getEntries().size()+" metadata");
 
 			if ( parent.getMetadata() != null ) {        
-				for ( int propRank = 0 ; propRank < parent.getMetadata().getEntries().size(); ++propRank) {
-					IProperty prop = parent.getMetadata().getEntries().get(propRank);
+				for ( int propPos = 0 ; propPos < parent.getMetadata().getEntries().size(); ++propPos) {
+					IProperty prop = parent.getMetadata().getEntries().get(propPos);
 					if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-						executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {rank:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
+						executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {pos:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
 								,parent.getId()
 								,parent.getCurrentVersion().getVersion()
-								,propRank
+								,propPos
 								,prop.getKey()
 								,prop.getValue()
 								);
@@ -1984,7 +1984,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 						insert(this.schemaPrefix+"metadata", metadataColumns
 								,parent.getId()
 								,parent.getCurrentVersion().getVersion()
-								,propRank
+								,propPos
 								,prop.getKey()
 								,prop.getValue()
 								);
@@ -2058,13 +2058,13 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Reset the counters
 	 */
 	public void reset() {
-		// We reset all "ranks" to zero
-		this.elementRank = 0;
-		this.relationshipRank = 0;
-		this.folderRank = 0;
-		this.viewRank = 0;
-		this.viewObjectRank = 0;
-		this.viewConnectionRank = 0;
+		// We reset all "pos" to zero
+		this.elementPos = 0;
+		this.relationshipPos = 0;
+		this.folderPos = 0;
+		this.viewPos = 0;
+		this.viewObjectPos = 0;
+		this.viewConnectionPos = 0;
 
 		// we empty the hashmaps
 		this.elementsNotInModel.clear();
