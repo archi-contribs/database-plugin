@@ -355,6 +355,9 @@ import lombok.Getter;
  * v2.2.12: 20/08/2020				Add NLS support for Oracle databases
  * 									Fix deletion of a model from a SQL Server database
  * 									Fix Neo4J databases check
+ *
+ * v2.2.13: 27/11/2020				Update rank column in all tables to be compatible with MySQL 8.x
+ * 									Rewrite automatic plugin update to use dropins folder
  * 
  * TO-DO list:
  * ----------
@@ -582,6 +585,24 @@ public class DBPlugin extends AbstractUIPlugin {
 			return false;			// as str1 cannot be null at this stage
 
 		return str1.equals(str2);
+	}
+	
+	/**
+	 * Check if two strings are equals (ignore case)
+	 * <br><br>
+	 * Replaces string.equals() to avoid nullPointerException
+	 * @param str1 first string to compare
+	 * @param str2 secong string to compare
+	 * @return true if the strings are both null or have the same content, false if they are different
+	 */
+	public static boolean areEqualIgnoreCase(String str1, String str2) {
+		if ( str1 == null )
+			return str2 == null;
+
+		if ( str2 == null )
+			return false;			// as str1 cannot be null at this stage
+
+		return str1.equalsIgnoreCase(str2);
 	}
 	
 	/**
