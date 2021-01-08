@@ -485,13 +485,14 @@ public class DBDatabaseEntry {
 		store.setValue(DBDatabaseEntry.preferenceName + "_encrypted_password_" +    	indexString, isSqlite ? ""    : getEncryptedPassword());
 		store.setValue(DBDatabaseEntry.preferenceName + "_password_" +    				indexString, "");
 
-		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_" +         indexString, !isNeo4j ? isNeo4jNativeMode() : false);
-		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-empty-database_" +      indexString, !isNeo4j ? shouldEmptyNeo4jDB() : false);
-		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-typed-relationships_" + indexString, !isNeo4j ? isNeo4jTypedRelationship() : false);
-		store.setValue(DBDatabaseEntry.preferenceName + "_schema_" +                    indexString, isNeo4j  ? ""    : getSchema());
-		store.setValue(DBDatabaseEntry.preferenceName + "_export-views-images_" +       indexString, isNeo4j  ? false : isViewSnapshotRequired());
-		store.setValue(DBDatabaseEntry.preferenceName + "_views-images-border-width_" + indexString, isNeo4j  ? 0     : getViewsImagesBorderWidth());
-		store.setValue(DBDatabaseEntry.preferenceName + "_views-images-scale-factor_" + indexString, isNeo4j  ? 0     : getViewsImagesScaleFactor());
+		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_" +         indexString, isNeo4j ? isNeo4jNativeMode() : false);
+		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-empty-database_" +      indexString, isNeo4j ? shouldEmptyNeo4jDB() : false);
+		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-typed-relationships_" + indexString, isNeo4j ? isNeo4jTypedRelationship() : false);
+		
+		store.setValue(DBDatabaseEntry.preferenceName + "_schema_" +                    indexString, isNeo4j ? ""    : getSchema());
+		store.setValue(DBDatabaseEntry.preferenceName + "_export-views-images_" +       indexString, isNeo4j ? false : isViewSnapshotRequired());
+		store.setValue(DBDatabaseEntry.preferenceName + "_views-images-border-width_" + indexString, isNeo4j ? 0     : getViewsImagesBorderWidth());
+		store.setValue(DBDatabaseEntry.preferenceName + "_views-images-scale-factor_" + indexString, isNeo4j ? 0     : getViewsImagesScaleFactor());
 	}
 
 	/**

@@ -1,3 +1,6 @@
+v2.2.15: 08/01/2021
+* (re)Fix Neo4J preferences when in expert mode
+
 v2.2.14: 08/01/2021
 * Fix Neo4J preferences when in expert mode
 
