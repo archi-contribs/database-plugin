@@ -1,3 +1,6 @@
+v2.2.14: 08/01/2021
+* Fix Neo4J preferences when in expert mode
+
 v2.2.13: 27/11/2020
 * Update rank column in all tables to be compatible with MySQL 8.x
 * increase strength length for influence relationships
