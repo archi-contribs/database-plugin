@@ -360,6 +360,8 @@ import lombok.Getter;
  * 									increase strength length for influence relationships
  * 									Rewrite automatic plugin update to use dropins folder
  * 
+ * v2.2.14: 08/01/2021				Fix Neo4J preferences when in expert mode
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
