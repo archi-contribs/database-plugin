@@ -197,7 +197,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// properties
 				ArrayList<DBProperty> databaseProperties = new ArrayList<DBProperty>();
 				if ( result.getInt("properties") != 0 ) {
-					try ( DBSelect resultProperties = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+					try ( DBSelect resultProperties = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version) ) {
 						while ( resultProperties.next() )
 							databaseProperties.add(new DBProperty(resultProperties.getString("name"), resultProperties.getString("value")));
 					}
@@ -207,7 +207,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				// features
 				ArrayList<DBProperty> databaseFeatures = new ArrayList<DBProperty>();
 				if ( result.getInt("features") != 0 ) {
-					try ( DBSelect resultFeatures = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version) ) {
+					try ( DBSelect resultFeatures = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version) ) {
 						while ( resultFeatures.next() )
 							databaseFeatures.add(new DBProperty(resultFeatures.getString("name"), resultFeatures.getString("value")));
 					}
@@ -218,7 +218,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
 					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<DBBendpoint>();
 					if ( result.getInt("bendpoints") != 0 ) {
-						try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schemaPrefix+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY RANK", id, version ) ) {
+						try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schemaPrefix+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version ) ) {
 							while ( resultBendpoints.next() )
 								databaseBendpoints.add(new DBBendpoint(resultBendpoints.getInt("start_x"), resultBendpoints.getInt("start_y"), resultBendpoints.getInt("end_x"), resultBendpoints.getInt("end_y")));
 						}
