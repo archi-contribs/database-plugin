@@ -373,26 +373,20 @@ public class DBDatabaseEntry {
 				databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
 				databaseEntry.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
 				
-				if ( databaseEntry.isExpertMode() )
-					databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
-				else {
-					if ( DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-						databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
-						databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
-						databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
-					} else {
-						databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
-						
-						databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
-						databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
-						databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
-					}
+				databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
+
+				databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
+				databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
+				databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
 					
-					if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
-						databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
-						databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
-					}
-				}
+				databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
+				
+				databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
+				databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
+				databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
+					
+				databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
+				databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
 				
 				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
 					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));

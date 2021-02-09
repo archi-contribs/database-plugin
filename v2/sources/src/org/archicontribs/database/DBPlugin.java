@@ -365,6 +365,7 @@ import lombok.Getter;
  * v2.2.15: 08/01/2021				(re)Fix Neo4J preferences when in expert mode
  * 
  * v2.2.16: 09/02/2021				Fix SQL requests that continued to reference old "rank" column 
+ * 									FIX database properties loading
  * 
  * TO-DO list:
  * ----------
