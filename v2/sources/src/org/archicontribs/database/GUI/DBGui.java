@@ -49,6 +49,8 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
+import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -124,6 +126,7 @@ public class DBGui {
 
     protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
     protected Shell dialog;
+    protected Shell parentDialog;
 
     protected boolean includeNeo4j = true;
 
@@ -236,6 +239,7 @@ public class DBGui {
 
         setArrowCursor();
 
+        this.parentDialog = display.getActiveShell();
         this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
         this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
         this.dialog.setMinimumSize(800, 700);
@@ -250,8 +254,23 @@ public class DBGui {
         }
         if ( scaleFactor == 0 )
         	scaleFactor = 1;		// just in case
-        this.dialog.setLocation(((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2, ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2);
-        //this.dialog.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2, (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2);
+
+        // Use the active shell, if available, to determine the new shell placing
+        int locationX = 0;
+        int locationY = 0;
+        Rectangle shellSize = this.dialog.getBounds();
+        if (this.parentDialog!=null) { 
+	        Rectangle parentSize = this.parentDialog.getBounds();
+	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+        } else {
+	        locationX = ((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2;
+	        //locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2;
+	        locationY = ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2;
+	        //locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2;
+        }
+        this.dialog.setLocation(new Point(locationX, locationY));
+		        
         this.dialog.setLayout(new FormLayout());
 
         /**
@@ -932,7 +951,21 @@ public class DBGui {
                     dialogShell = new Shell(display, SWT.APPLICATION_MODAL);
                     dialogShell.setSize(500, 70);
                     dialogShell.setBackground(BLACK_COLOR);
-                    dialogShell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 4);
+
+                    // Use the active shell, if available, to determine the new shell placing
+                    int locationX = 0;
+                    int locationY = 0;
+                    Rectangle shellSize = dialogShell.getBounds();
+                    Shell parent = display.getActiveShell();
+                    if (parent!=null) { 
+                    	Rectangle parentSize = parent.getBounds();
+            	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+            	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+                    } else {
+            	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 4;
+            	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 4;
+                    }    
+                    dialogShell.setLocation(new Point(locationX, locationY));
 
                     int borderWidth = (dialogShell.getBorderWidth()+1)*2;
                     dialogComposite = new Composite(dialogShell, SWT.NONE);
@@ -1064,7 +1097,21 @@ public class DBGui {
                 Shell shell = new Shell(display, SWT.SHELL_TRIM);
                 shell.setSize(0, 0);
                 shell.setBackground(BLACK_COLOR);
-                shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
+
+                // Use the active shell, if available, to determine the new shell placing
+                int locationX = 0;
+                int locationY = 0;
+                Rectangle shellSize = shell.getBounds();
+                Shell parent = display.getActiveShell();
+                if (parent!=null) { 
+                	Rectangle parentSize = parent.getBounds();
+        	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+        	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+                } else {
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4;
+                }
+                shell.setLocation(new Point(locationX, locationY));
                 MessageDialog messageDialog = new MessageDialog(shell, DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
                 questionResult = messageDialog.open();
             }
@@ -1091,7 +1138,22 @@ public class DBGui {
         		shell.setText(title);
                 shell.setSize(0, 0);
                 shell.setBackground(BLACK_COLOR);
-                shell.setLocation((Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4, (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4);
+
+                // Use the active shell, if available, to determine the new shell placing
+                int locationX = 0;
+                int locationY = 0;
+                Rectangle shellSize = shell.getBounds();
+                Shell parent = display.getActiveShell();
+                if (parent!=null) { 
+                	Rectangle parentSize = parent.getBounds();
+        	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+        	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+                } else {
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4;
+                }
+                shell.setLocation(new Point(locationX, locationY));
+                
                 DBGuiPasswordDialog passwordDialog = new DBGuiPasswordDialog(shell);
                 if ( passwordDialog.open() == 0 )
                 	answeredPassword = passwordDialog.getPassword();
