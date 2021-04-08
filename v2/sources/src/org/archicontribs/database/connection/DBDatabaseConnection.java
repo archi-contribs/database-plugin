@@ -782,7 +782,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
 
 		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
-			executeRequest("EXEC sp_RENAME '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'");
+			executeRequest("EXEC sp_rename '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'");
 
 		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) )
 			executeRequest("ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName);
