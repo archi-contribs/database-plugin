@@ -367,6 +367,10 @@ import lombok.Getter;
  * v2.2.16: 09/02/2021				Fix SQL requests that continued to reference old "rank" column 
  * 									Fix database preferences loading
  * 
+ * v2.2.17  21/02/2021              Fix default location of dialogs on multi-display (thanks to @michaelansley)
+ * 
+ * v2.2.18  08/04/2021				use lowercase chars to call to sp_rename stored procedure on SQL Server
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
