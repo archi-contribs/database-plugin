@@ -369,7 +369,9 @@ import lombok.Getter;
  * 
  * v2.2.17  21/02/2021              Fix default location of dialogs on multi-display (thanks to @michaelansley)
  * 
- * v2.2.18  08/04/2021				use lowercase chars to call to sp_rename stored procedure on SQL Server
+ * v2.2.18  08/04/2021				use lowercase chars to call sp_rename stored procedure on SQL Server
+ * 
+ * v2.2.19  09/04/2021				update Lombok library to version 1.18.20
  * 
  * TO-DO list:
  * ----------
