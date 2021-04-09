@@ -1,3 +1,6 @@
+v2.2.19: 09/04/2021
+* update Lombok libray to version 1.18.20
+
 v2.2.18: 08/04/2021
 * Use lowercase chars to call sp_rename stored procedure on SQL Server
 

@@ -2,10 +2,10 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Database export / import plugin for Archimate Tool
 Bundle-SymbolicName: org.archicontribs.database;singleton:=true
-Bundle-Version: 2.2.18
+Bundle-Version: 2.2.19
 Bundle-Vendor: Herve Jouin
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-1.8
+Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ClassPath: .,
  lib/json-simple-1.1.1.jar,
  lib/log4j-1.2.17.jar,
