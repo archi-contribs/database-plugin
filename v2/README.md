@@ -2,7 +2,7 @@
 Database export/import plugin that store models in a central repository.
 
 ## Archi versions compatibility
-* The current version of the plugin is compatible with version 4.6 and 4.7 of Archi.
+* The current version of the plugin is compatible with versions up to 4.8 of Archi.
 
 ## The plugin adds the following functionalities to Archi
 * Export and import models to a relational database (PostGreSQL, MySQL, MS SQL Server, Oracle or SQLite)
