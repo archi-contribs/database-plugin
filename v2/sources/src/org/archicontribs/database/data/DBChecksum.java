@@ -19,11 +19,13 @@ import org.eclipse.emf.ecore.EObject;
 import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.model.IAccessRelationship;
+import com.archimatetool.model.IArchimateConcept;
 import com.archimatetool.model.IArchimateDiagramModel;
 import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
+import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
@@ -82,16 +84,27 @@ public class DBChecksum {
 		
 		return calculateChecksum(checksumBuilder);
 	}
-
+	
 	/**
 	 * Calculate the checksum of an object.<br>
 	 * Please note that this method is *NOT* recursive: the recursion should be managed at a higher level for folders and views.
 	 * @param eObject 
-	 * @return the eObject's checksum
+	 * @return the eObject's checksum, empty string ("") if the eObject is null
 	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException 
+	 * @throws UnsupportedEncodingException
+	 * @throws NullPointerException if the EObject is missing information in case of an inconsistent model (like source or target missing for a relationship or a connection).   
 	 */
-	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException, NullPointerException {
+		if ( eObject == null )
+			return "";
+		
+		DBMetadata metadata = DBMetadata.getDBMetadata(eObject);
+		
+		// warning, this is VERY verbose
+		//if ( logger.isTraceEnabled() ) {
+		//	logger.trace("Calculating checksum of "+metadata.getDebugName());
+		//}
+		
 		StringBuilder checksumBuilder = new StringBuilder();
 		DBMetadata dbMetadata = DBMetadata.getDBMetadata(eObject);
 		
@@ -106,8 +119,19 @@ public class DBChecksum {
 		        !(eObject instanceof IDiagramModelConnection) )		append(checksumBuilder, "documentation", ((IDocumentable)eObject).getDocumentation());
 		
 		if ( eObject instanceof IJunction )							append(checksumBuilder, "junction type", ((IJunction)eObject).getType());
-		if ( eObject instanceof IArchimateRelationship ) {			append(checksumBuilder, "source id", ((IArchimateRelationship)eObject).getSource().getId());
-																	append(checksumBuilder, "target id", ((IArchimateRelationship)eObject).getTarget().getId());
+		if ( eObject instanceof IArchimateRelationship ) {			IArchimateConcept source = ((IArchimateRelationship)eObject).getSource();
+															        if ( source == null ) {
+															        	logger.error("No source found on "+metadata.getDebugName());
+															        	throw new NullPointerException("The relationship has got no source");
+															        }
+															        append(checksumBuilder, "source id", source.getId());
+															        
+															        IArchimateConcept target = ((IArchimateRelationship)eObject).getTarget();
+															        if ( target == null ) {
+															        	logger.error("No target found on "+metadata.getDebugName());
+															        	throw new NullPointerException("The relationship has got no source");
+															        }
+																	append(checksumBuilder, "target id", target.getId());
 			if ( eObject instanceof IInfluenceRelationship )		append(checksumBuilder, "strength", ((IInfluenceRelationship)eObject).getStrength());
 			if ( eObject instanceof IAccessRelationship )			append(checksumBuilder, "access type", ((IAccessRelationship)eObject).getAccessType());
 		}
@@ -116,13 +140,31 @@ public class DBChecksum {
 		if ( eObject instanceof IDiagramModel )	{					append(checksumBuilder, "router type", ((IDiagramModel)eObject).getConnectionRouterType());
 																	append(checksumBuilder, "screenshot", dbMetadata.getScreenshot().getBytes());
 		}
-		else if ( eObject instanceof IDiagramModelContainer )		append(checksumBuilder, "container", ((IIdentifier)((IDiagramModelContainer)eObject).eContainer()).getId());
+		else if ( eObject instanceof IDiagramModelContainer ) {		EObject container = ((IDiagramModelContainer)eObject).eContainer();
+																	if ( container == null ) {
+																		logger.error("No container found on "+metadata.getDebugName());
+																		throw new NullPointerException("Container not found");
+																	}
+																	append(checksumBuilder, "container", ((IIdentifier)container).getId());
+		}
 		if ( eObject instanceof IBorderObject )						append(checksumBuilder, "border color", ((IBorderObject)eObject).getBorderColor());
 		if ( eObject instanceof IDiagramModelNote )					append(checksumBuilder, "border type", ((IDiagramModelNote)eObject).getBorderType());
 		if ( eObject instanceof IDiagramModelArchimateObject )		append(checksumBuilder, "type", ((IDiagramModelArchimateObject)eObject).getType());
 		if ( eObject instanceof IDiagramModelConnection ) {			append(checksumBuilder, "type", ((IDiagramModelConnection)eObject).getType());			// we do not use getText as it is deprecated
-		                                                            append(checksumBuilder, "source id", ((IDiagramModelConnection)eObject).getSource().getId());
-		                                                            append(checksumBuilder, "target id", ((IDiagramModelConnection)eObject).getTarget().getId());
+																	
+																	IConnectable source = ((IDiagramModelConnection)eObject).getSource();
+		                                                            if ( source == null ) {
+		                                                            	logger.error("No source found on "+metadata.getDebugName());
+		                                                            	throw new NullPointerException("The diagram connection has got no source");
+		                                                            }
+																	append(checksumBuilder, "source id", source.getId());
+																	
+																	IConnectable target = ((IDiagramModelConnection)eObject).getTarget();
+																	if ( target == null ) {
+																		logger.error("No target found on "+metadata.getDebugName());
+																		throw new NullPointerException("The diagram connection has got no target");
+																	}
+		                                                            append(checksumBuilder, "target id", target.getId());
 																	append(checksumBuilder, "text position", ((IDiagramModelConnection)eObject).getTextPosition());
 																	if ( ((IDiagramModelConnection)eObject).getBendpoints() != null ) {
 																		for (IDiagramModelBendpoint point: ((IDiagramModelConnection)eObject).getBendpoints()) {
@@ -142,8 +184,22 @@ public class DBChecksum {
 																	append(checksumBuilder, "bounds width" ,bounds.getWidth());
 																	append(checksumBuilder, "bounds height", bounds.getHeight());
 		}
-		if ( eObject instanceof IDiagramModelArchimateComponent )	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateComponent)eObject).getArchimateConcept().getId());
-		if ( eObject instanceof IDiagramModelArchimateConnection )	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
+		if ( eObject instanceof IDiagramModelArchimateComponent ) { IArchimateConcept concept = ((IDiagramModelArchimateComponent)eObject).getArchimateConcept();
+																	if ( concept == null ) {
+																		logger.error("No archimate concept linked to "+metadata.getDebugName());
+																		throw new NullPointerException("No archimate concept linked to the diagram object");
+																	}
+																	append(checksumBuilder, "archimate concept", concept.getId());
+																	}
+		if ( eObject instanceof IDiagramModelArchimateConnection ) {IArchimateRelationship relationship = ((IDiagramModelArchimateConnection)eObject).getArchimateConcept();
+																	if ( relationship == null ) {
+																		logger.error("No relationship linked to "+metadata.getDebugName());
+																		throw new NullPointerException("No relationship linked to the diagram connection");
+																	}
+																	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
+																	throw new NullPointerException("No relationship linked to the diagram connection");
+		}
+																	
 		if ( eObject instanceof IFontAttribute ) {					append(checksumBuilder, "font", ((IFontAttribute)eObject).getFont());
 																	append(checksumBuilder, "font color", ((IFontAttribute)eObject).getFontColor());
 		}
