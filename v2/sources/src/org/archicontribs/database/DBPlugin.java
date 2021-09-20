@@ -373,6 +373,10 @@ import lombok.Getter;
  * 
  * v2.2.19  09/04/2021				update Lombok library to version 1.18.20
  * 
+ * v2.2.20  02/09/2021				catch error when a relationship or connection has got no source or no target
+ * 									fix browse button that was active even when consulting SQLite database
+ * 									fix import of features that were missing when imported with the "import component" feature
+ * 
  * TO-DO list:
  * ----------
  *		Import components from database:
