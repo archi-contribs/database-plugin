@@ -1203,6 +1203,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnExpertMode.setEnabled(editMode);
 		
 		this.txtFile.setEnabled(editMode);
+		this.btnBrowse.setEnabled(editMode);
 		this.txtJdbc.setEnabled(editMode);
 		this.txtServer.setEnabled(editMode);
 		this.txtPort.setEnabled(editMode);
