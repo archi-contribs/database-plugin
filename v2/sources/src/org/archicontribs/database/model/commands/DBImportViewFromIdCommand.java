@@ -28,6 +28,7 @@ import com.archimatetool.canvas.model.ICanvasFactory;
 import com.archimatetool.editor.ui.services.EditorManager;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IDiagramModel;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
@@ -70,6 +71,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 	private Integer oldBackground = null;
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
+	private ArrayList<DBProperty> oldFeatures = null;
 
 
 	/**
@@ -191,6 +193,11 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				for ( IProperty prop: this.importedView.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
+				
+				this.oldFeatures = new ArrayList<DBProperty>();
+				for ( IFeature feature: this.importedView.getFeatures() ) {
+					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
+				}
 
 				this.oldFolder = dbMetadata.getParentFolder();
 
@@ -296,6 +303,14 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 					newProperty.setKey(oldPropery.getKey());
 					newProperty.setValue(oldPropery.getValue());
 					((IProperties)this.importedView).getProperties().add(newProperty);
+				}
+				
+				this.importedView.getFeatures().clear();
+				for ( DBProperty oldFeature: this.oldFeatures ) {
+					IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+					newFeature.setName(oldFeature.getKey());
+					newFeature.setValue(oldFeature.getValue());
+					this.importedView.getFeatures().add(newFeature);
 				}
 			}
 		}

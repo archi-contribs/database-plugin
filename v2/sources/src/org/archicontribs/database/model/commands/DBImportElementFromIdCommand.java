@@ -31,6 +31,7 @@ import com.archimatetool.model.IArchimateElement;
 import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IDiagramModelArchimateObject;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -75,6 +76,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	private String oldType = null;
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
+	private ArrayList<DBProperty> oldFeatures = null;
 
 
 	/**
@@ -193,6 +195,11 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				for ( IProperty prop: this.importedElement.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
+				
+				this.oldFeatures = new ArrayList<DBProperty>();
+				for ( IFeature feature: this.importedElement.getFeatures() ) {
+					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
+				}
 
 				this.oldFolder = metadata.getParentFolder();
 
@@ -303,6 +310,14 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedElement.getProperties().add(newProperty);
+				}
+				
+				this.importedElement.getFeatures().clear();
+				for ( DBProperty oldFeature: this.oldFeatures ) {
+					IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+					newFeature.setName(oldFeature.getKey());
+					newFeature.setValue(oldFeature.getValue());
+					this.importedElement.getFeatures().add(newFeature);
 				}
 			}
 		}

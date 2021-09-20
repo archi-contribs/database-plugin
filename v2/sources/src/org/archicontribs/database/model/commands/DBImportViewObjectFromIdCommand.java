@@ -32,6 +32,8 @@ import com.archimatetool.model.IArchimateFactory;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IFeature;
+import com.archimatetool.model.IFeatures;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
@@ -92,6 +94,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
     private Integer oldWidth = null;
     private Integer oldHeight = null;
     private ArrayList<DBProperty> oldProperties = null;
+    private ArrayList<DBProperty> oldFeatures = null;
 
     /**
      * Imports a view object into the model<br>
@@ -247,6 +250,13 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                         this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
                 }
+                
+				if ( (this.importedViewObject instanceof IFeatures) && (dbMetadata.getArchimateConcept() == null) ) {
+					this.oldFeatures = new ArrayList<DBProperty>();
+					for ( IFeature feature: ((IFeatures)this.importedViewObject).getFeatures() ) {
+						this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
+					}
+				}
 
                 this.oldContainer = (IDiagramModelContainer)this.importedViewObject.eContainer();
 
@@ -313,6 +323,19 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                         prop.setKey(newProperty.getKey());
                         prop.setValue(newProperty.getValue());
                         ((IProperties)this.importedViewObject).getProperties().add(prop);
+                    }
+                }
+            }
+            
+            // If the object has got features but does not have a linked element, then it may have distinct features
+            if ( (this.importedViewObject instanceof IFeatures) && (this.newValues.get("element_id") == null) ) {
+                ((IFeatures)this.importedViewObject).getFeatures().clear();
+                if ( this.newValues.get("features") != null ) {
+                    for ( DBProperty newFeature: (ArrayList<DBProperty>)this.newValues.get("features")) {
+                        IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
+                        feature.setName(newFeature.getKey());
+                        feature.setValue(newFeature.getValue());
+                        ((IFeatures)this.importedViewObject).getFeatures().add(feature);
                     }
                 }
             }
@@ -395,6 +418,17 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                     newProperty.setKey(oldProperty.getKey());
                     newProperty.setValue(oldProperty.getValue());
                     ((IProperties)this.importedViewObject).getProperties().add(newProperty);
+                }
+            }
+            
+            // If the object has got properties but does not have a linked element, then it may have distinct properties
+            if ( this.importedViewObject instanceof IProperties && dbMetadata.getArchimateConcept() == null ) {
+                ((IFeatures)this.importedViewObject).getFeatures().clear();
+                for ( DBProperty oldFeature: this.oldFeatures ) {
+                    IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+                    newFeature.setName(oldFeature.getKey());
+                    newFeature.setValue(oldFeature.getValue());
+                    ((IFeatures)this.importedViewObject).getFeatures().add(newFeature);
                 }
             }
         }

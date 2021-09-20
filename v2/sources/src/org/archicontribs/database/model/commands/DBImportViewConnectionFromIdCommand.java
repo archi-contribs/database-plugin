@@ -31,6 +31,7 @@ import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelBendpoint;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -76,6 +77,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	private IConnectable oldSource = null;
 	private IConnectable oldTarget = null;
 	private ArrayList<DBProperty> oldProperties = null;
+	private ArrayList<DBProperty> oldFeatures = null;
 	private ArrayList<DBBendpoint> oldBendpoints = null;
 
 	/**
@@ -185,6 +187,11 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 					for ( IProperty prop: ((IProperties)this.importedViewConnection).getProperties() ) {
 						this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 					}
+				}
+				
+				this.oldFeatures = new ArrayList<DBProperty>();
+				for ( IFeature feature: this.importedViewConnection.getFeatures() ) {
+					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
 				this.oldBendpoints = new ArrayList<DBBendpoint>();
@@ -329,6 +336,14 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 					prop.setValue(pair.getValue());
 					((IProperties)this.importedViewConnection).getProperties().add(prop);
 				}
+			}
+			
+			this.importedViewConnection.getFeatures().clear();
+			for ( DBProperty oldFeature: this.oldFeatures ) {
+				IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+				newFeature.setName(oldFeature.getKey());
+				newFeature.setValue(oldFeature.getValue());
+				this.importedViewConnection.getFeatures().add(newFeature);
 			}
 
 			this.importedViewConnection.getBendpoints().clear();

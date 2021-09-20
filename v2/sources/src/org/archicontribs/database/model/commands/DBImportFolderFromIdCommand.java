@@ -22,6 +22,7 @@ import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.gef.commands.Command;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IArchimateFactory;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -60,6 +61,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 	//private Integer oldRootFolderType = null;
 	private IFolder oldFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
+	private ArrayList<DBProperty> oldFeatures = null;
 
 	/**
 	 * Imports a folder into the model<br>
@@ -139,6 +141,11 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 				this.oldProperties = new ArrayList<DBProperty>();
 				for ( IProperty prop: this.importedFolder.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
+				}
+				
+				this.oldFeatures = new ArrayList<DBProperty>();
+				for ( IFeature feature: this.importedFolder.getFeatures() ) {
+					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
 				this.oldFolder = dbMetadata.getParentFolder();
@@ -223,6 +230,14 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedFolder.getProperties().add(newProperty);
+				}
+				
+				this.importedFolder.getFeatures().clear();
+				for ( DBProperty oldFeature: this.oldFeatures ) {
+					IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+					newFeature.setName(oldFeature.getKey());
+					newFeature.setValue(oldFeature.getValue());
+					this.importedFolder.getFeatures().add(newFeature);
 				}
 			}
 		}

@@ -30,6 +30,7 @@ import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IConnectable;
 import com.archimatetool.model.IDiagramModelArchimateConnection;
 import com.archimatetool.model.IDiagramModelConnection;
+import com.archimatetool.model.IFeature;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.util.Logger;
@@ -72,6 +73,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	private IArchimateConcept oldSource = null;
 	private IArchimateConcept oldTarget = null;
 	private ArrayList<DBProperty> oldProperties = null;
+	private ArrayList<DBProperty> oldFeatures = null;
 
 	/**
 	 * Imports a relationship into the model<br>
@@ -162,6 +164,11 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				for ( IProperty prop: this.importedRelationship.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
+				
+				this.oldFeatures = new ArrayList<DBProperty>();
+				for ( IFeature feature: this.importedRelationship.getFeatures() ) {
+					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
+				}
 
 				this.oldFolder = dbMetadata.getParentFolder();
 
@@ -216,6 +223,16 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
     				prop.setKey(newProperty.getKey());
     				prop.setValue(newProperty.getValue());
     				this.importedRelationship.getProperties().add(prop);
+    			}
+			}
+			
+			this.importedRelationship.getFeatures().clear();
+			if ( this.newValues.get("features") != null ) {
+    			for ( DBProperty newFeature: (ArrayList<DBProperty>)this.newValues.get("features")) {
+    				IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
+    				feature.setName(newFeature.getKey());
+    				feature.setValue(newFeature.getValue());
+    				this.importedRelationship.getFeatures().add(feature);
     			}
 			}
 
@@ -306,6 +323,14 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 					newProperty.setKey(oldProperty.getKey());
 					newProperty.setValue(oldProperty.getValue());
 					this.importedRelationship.getProperties().add(newProperty);
+				}
+				
+				this.importedRelationship.getFeatures().clear();
+				for ( DBProperty oldFeature: this.oldFeatures ) {
+					IFeature newFeature = IArchimateFactory.eINSTANCE.createFeature();
+					newFeature.setName(oldFeature.getKey());
+					newFeature.setValue(oldFeature.getValue());
+					this.importedRelationship.getFeatures().add(newFeature);
 				}
 			}
 		}
