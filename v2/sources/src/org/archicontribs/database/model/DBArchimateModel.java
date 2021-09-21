@@ -546,6 +546,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that an element has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedElement(String oldId, String newId) {
    		this.allCopiedElements.put(oldId, newId);
@@ -553,6 +555,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied element
+     * @param oldId 
      * @return the Id of the copied element, or the Id of the element itself if it has not been copied
      */
     public String getNewElementId(String oldId) {
@@ -561,6 +564,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a relationship has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedRelationship(String oldId, String newId) {
    		this.allCopiedRelationships.put(oldId, newId);
@@ -568,6 +573,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied relationship
+     * @param oldId 
      * @return the Id of the copied relationship, or the Id of the relationship itself if it has not been copied
      */
     public String getNewRelationshipId(String oldId) {
@@ -576,6 +582,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedView(String oldId, String newId) {
   		this.allCopiedView.put(oldId, newId);
@@ -583,6 +591,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewId(String oldId) {
@@ -591,6 +600,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view object has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedViewObject(String oldId, String newId) {
   		this.allCopiedViewObjects.put(oldId, newId);
@@ -598,6 +609,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewObjectId(String oldId) {
@@ -606,6 +618,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view connection has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedViewConnection(String oldId, String newId) {
    		this.allCopiedViewConnections.put(oldId, newId);
@@ -613,6 +627,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewConnectionId(String oldId) {
@@ -699,17 +714,33 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
     
 
-
+    
+    /**
+     * Register a source connection that will have to be resolved later on. This is necessary because when the connection is imported, its source may not be imported yet
+     * @param connection
+     * @param sourceId
+     * @throws Exception
+     */
     public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
         if ( (sourceId != null) && (sourceId.length() != 0) )
         	this.allSourceConnectionsToResolve.put(connection, sourceId);
     }
 
+    /**
+     * Register a target connection that will have to be resolved later on. This is necessary because when the connection is imported, its target may not be imported yet
+     * @param connection
+     * @param targetId 
+     * @throws Exception
+     */
     public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
         if ( (targetId != null) && (targetId.length() != 0) )
         	this.allTargetConnectionsToResolve.put(connection, targetId);
     }
 
+    /**
+     * Resolve the sources and targets of all connections in the model
+     * @throws Exception
+     */
     public void resolveSourceAndTargetConnections() throws Exception {
         logger.info("Resolving source connections.");
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsToResolve.entrySet() ) {
