@@ -304,6 +304,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Thus method is meant to be called during the export process for every component that is new in the model to check if it is shared with other models.
 	 * <br>
 	 * @param componentHashMap 
+	 * @param gui 
 	 * @param component
 	 * @throws SQLException
 	 */
@@ -508,6 +509,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 *    <li> imagesNotInDatabase
 	 * </ul>
 	 * @param model
+	 * @param gui 
 	 * @throws SQLException
 	 */
 	public void getAllVersionFromDatabase(DBArchimateModel model, DBGui gui) throws SQLException {
