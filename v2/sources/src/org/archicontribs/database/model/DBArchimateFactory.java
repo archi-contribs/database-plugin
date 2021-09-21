@@ -23,6 +23,9 @@ public class DBArchimateFactory extends ArchimateFactory {
 	static DBLogger logger = new DBLogger(DBArchimateFactory.class);
 	static boolean ignoreNext = false;
 	
+	/**
+	 * Instance of the DBArchimateFactory class
+	 */
 	@SuppressWarnings("hiding")
 	public static DBArchimateFactory eINSTANCE = init();
 	
