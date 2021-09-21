@@ -73,6 +73,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	private String toCharDocumentationAsDocumentation;
 	private String toCharContentAsContent;
 	private String toCharNotesAsNotes;
+	private String toCharStrength;
+	private String toCharStrengthAsStrength;
 
 	/**
 	 * Opens a connection to a JDBC database using all the connection details
@@ -100,6 +102,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
 		this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
 		this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
+		this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
 	}
 	
 	 /**
@@ -119,6 +123,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
         this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
         this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
+        this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
     }
 
 	/**
@@ -162,6 +168,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return HashMap containing the object data
 	 * @throws Exception
 	 */
+	// remove warning about the non closure of "result" as it IS closed in the finally block
+	@SuppressWarnings("resource")
 	public HashMap<String, Object> getObjectFromDatabase(String id, String clazz, int objectVersion) throws Exception {
 		DBSelect result = null;
 		int version = objectVersion;
@@ -312,7 +320,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
 	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
 	    this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
-
+	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
+	    
 		if ( model.getInitialVersion().getVersion() == 0 ) {
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT MAX(version) AS version FROM "+this.schemaPrefix+"models WHERE id = ?", model.getId()) ) {
 				result.next();
@@ -349,11 +359,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 
 		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"relationships WHERE id = relationship_id)" : "relationship_version";
-		this.importRelationshipsRequest = "SELECT DISTINCT relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentationAsDocumentation+", source_id, target_id, strength, access_type, is_directed, created_on, properties, features, checksum"
+		this.importRelationshipsRequest = "SELECT DISTINCT relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentationAsDocumentation+", source_id, target_id, "+this.toCharStrengthAsStrength+", access_type, is_directed, created_on, properties, features, checksum"
 				+ " FROM "+this.schemaPrefix+"relationships_in_model"
 				+ " INNER JOIN "+this.schemaPrefix+"relationships ON id = relationship_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, strength, access_type, is_directed, properties, features, created_on, checksum";
+				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, "+this.toCharStrength+", access_type, is_directed, properties, features, created_on, checksum";
 		try ( DBSelect resultRelationships = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 				,model.getId()
 				,model.getInitialVersion().getVersion()
