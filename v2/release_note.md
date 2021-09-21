@@ -1,3 +1,6 @@
+v2.2.21: 21/09/2021
+* fix Oracle 19c clob access
+
 v2.2.20: 20/09/2021
 * catch error when a relationship or connection has got no source or no target
 * fix browse button that was active even when consulting SQLite database
