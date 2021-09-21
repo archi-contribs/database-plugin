@@ -232,7 +232,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * @return the list of all the image paths in the model.
      */
-    public List<String> getAllImagePaths() {
+    public Set<String> getAllImagePaths() {
         return ((IArchiveManager)getAdapter(IArchiveManager.class)).getLoadedImagePaths();
     }
 
