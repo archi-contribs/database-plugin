@@ -16,7 +16,7 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.canvas.model.IIconic;
+import com.archimatetool.model.IIconic;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;

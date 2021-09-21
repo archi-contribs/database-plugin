@@ -16,7 +16,7 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.canvas.model.IIconic;
+import com.archimatetool.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
