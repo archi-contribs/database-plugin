@@ -274,7 +274,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Resets the counters of components in the model
      */
     public void resetCounters() {
-        if ( logger.isDebugEnabled() ) logger.debug("Reseting model's counters.");
+        if ( logger.isDebugEnabled() ) logger.debug("   Reseting model's counters.");
 
         this.allSourceRelationshipsToResolve.clear();
         this.allTargetRelationshipsToResolve.clear();
