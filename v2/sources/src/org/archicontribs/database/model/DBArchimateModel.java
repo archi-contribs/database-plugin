@@ -796,4 +796,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 		return null;
 	}
     
+    @Override
+	public String getPurpose() {
+    	 String lPurpose = super.getPurpose();
+    	 if ( lPurpose == null )
+    		 return "";
+    	 return lPurpose;
+     }
 }

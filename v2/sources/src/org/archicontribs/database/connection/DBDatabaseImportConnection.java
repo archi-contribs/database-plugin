@@ -332,7 +332,8 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
-			model.setPurpose(result.getString("purpose"));
+			String lPurpose = result.getString("purpose");
+			model.setPurpose(lPurpose == null ? "" : lPurpose);
 			model.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
 			model.getInitialVersion().setChecksum(result.getString("checksum"));
 			
