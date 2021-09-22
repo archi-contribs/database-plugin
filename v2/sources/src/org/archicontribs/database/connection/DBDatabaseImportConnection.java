@@ -54,6 +54,7 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IMetadata;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import lombok.Getter;
@@ -330,7 +331,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 		}
 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, profiles, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
 			model.setPurpose(result.getString("purpose"));
 			model.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
@@ -341,6 +342,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 			if ( result.getInt("features") != 0 )
 				importFeatures(model, model.getId(), model.getInitialVersion().getVersion());
+			
+			if ( result.getInt("profiles") != 0 )
+				importProfiles(model, model.getId(), model.getInitialVersion().getVersion());
 			
 			importMetadata(model);
 		}
@@ -1098,6 +1102,32 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				feature.setName(result.getString("name"));
 				feature.setValue(result.getString("value"));
 				parent.getFeatures().add(feature);
+			}
+		}
+	}
+	
+	/**
+	 * Imports the profiles of an Archi model. Please note that the profiles images are not imported using this method.
+	 * @param parent 
+	 * @param id 
+	 * @param version 
+	 * @throws SQLException 
+	 */
+	public void importProfiles(DBArchimateModel parent, String id, int version) throws SQLException {
+		if ( logger.isDebugEnabled() ) logger.debug("      Importing profiles");
+
+		// first, we delete all existing properties
+		parent.getProfiles().clear();
+
+		// then, we import the properties from the database 
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, image_path, concept_type FROM "+this.schemaPrefix+"profiles WHERE model_id = ? AND model_version = ? ORDER BY pos", id, version)) {
+			while ( result.next() ) {
+				// if the property already exist, we update its value. If it doesn't, we create it
+				IProfile profile = IArchimateFactory.eINSTANCE.createProfile();
+				profile.setName(result.getString("name"));
+				profile.setImagePath(result.getString("image_path"));
+				profile.setConceptType(result.getString("concept_type"));
+				parent.getProfiles().add(profile);
 			}
 		}
 	}

@@ -42,6 +42,7 @@ import com.archimatetool.model.IFeatures;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.impl.Folder;
@@ -1289,6 +1290,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		int nbProperties = (model.getProperties() == null) ? 0 : model.getProperties().size();
 		int nbFeatures = (model.getFeatures() == null) ? 0 : model.getFeatures().size();
+		int nbProfiles = (model.getProfiles() == null) ? 0 : model.getProfiles().size();
 
 		insert(this.schemaPrefix+"models", modelsColumns
 				,model.getId()
@@ -1300,6 +1302,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
+				,nbProfiles
 				,model.getCurrentVersion().getChecksum()
 				);
 
@@ -1308,6 +1311,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( nbFeatures != 0 )
 			exportFeatures(model);
+		
+		if ( nbProfiles != 0 )
+			exportProfiles(model);
 
 		exportMetadata(model);
 	}
@@ -1925,6 +1931,45 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							,pos
 							,feature.getName()
 							,feature.getValue()
+							);
+			}
+		}
+	}
+	
+	/**
+	 * Export model profiles to the database. Please note that the profiles images are not exported using this method. 
+	 * @param parent 
+	 * @throws SQLException 
+	 */
+	private void exportProfiles(DBArchimateModel parent) throws SQLException {
+		final String[] featuresColumns = {"model_id", "model_version", "pos", "name", "image_path", "concept_type"};
+
+		if ( parent.getProfiles() != null ) {
+			logger.debug("   Exporting "+parent.getProfiles().size()+" profiles");
+
+			String parentId = ((IIdentifier)parent).getId();
+			int parentVersion = parent.getCurrentVersion().getVersion();
+
+			for ( int pos = 0 ; pos < parent.getProfiles().size(); ++pos) {
+				IProfile profile = parent.getProfiles().get(pos);
+				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+					executeRequest("MATCH (parent {id:?, version:?}) CREATE (prof:profile {pos:?, name:?, image_path:?, concept_type:?}), (parent)-[:hasProfile]->(prof)"
+							,parentId
+							,parentVersion
+							,pos
+							,profile.getName()
+							,profile.getImagePath()
+							,profile.getConceptType()
+							);
+				}
+				else
+					insert(this.schemaPrefix+"profiles", featuresColumns
+							,parentId
+							,parentVersion
+							,pos
+							,profile.getName()
+							,profile.getImagePath()
+							,profile.getConceptType()
 							);
 			}
 		}
