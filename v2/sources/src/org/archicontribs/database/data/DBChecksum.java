@@ -197,8 +197,7 @@ public class DBChecksum {
 																		throw new NullPointerException("No relationship linked to the diagram connection");
 																	}
 																	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
-																	throw new NullPointerException("No relationship linked to the diagram connection");
-		}
+																	}
 																	
 		if ( eObject instanceof IFontAttribute ) {					append(checksumBuilder, "font", ((IFontAttribute)eObject).getFont());
 																	append(checksumBuilder, "font color", ((IFontAttribute)eObject).getFontColor());
