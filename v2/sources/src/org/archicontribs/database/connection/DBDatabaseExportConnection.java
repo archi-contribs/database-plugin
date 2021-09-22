@@ -111,6 +111,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		this.isconnectionDuplicate = true;
 	}
 
+	@Getter private HashMap<String, DBMetadata> profilesNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> elementsNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> relationshipsNotInModel = new HashMap<String, DBMetadata>();
 	@Getter private HashMap<String, DBMetadata> foldersNotInModel = new LinkedHashMap<String, DBMetadata>();			// must keep the order
@@ -405,6 +406,19 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
+		else if ( component instanceof IProfile ) {
+			if ( logger.isTraceEnabled() )
+				logger.trace("   Searching for "+componentHashMap.size()+" profiles from the database.");
+			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+					+ " FROM "+this.schemaPrefix+"profiles"
+					+ " LEFT JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version"
+					+ " WHERE id in (";
+			orderByRequest = " ORDER BY version, model_version";
+			DBArchimateModel model = (DBArchimateModel) ((IProfile)component).getArchimateModel();
+			modelId = model.getId();
+			modelInitialVersion = model.getInitialVersion().getVersion();
+			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
+		}
 		else
 			throw new SQLException("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
@@ -500,6 +514,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * Gets the version of all the model's components, and checks as well for the components that are in the latest model's version in the database but that are not in the model.
 	 * Those components are stored in the << not in model >> hashmaps:
 	 * <ul>
+	 *    <li> profilesNotInModel
 	 *    <li> elementsNotInModel
 	 *    <li> relationshipsNotInModel
 	 *    <li> foldersNotInModel
@@ -518,6 +533,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		assert(!DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j"));
 
 		// we reset the variables
+		this.profilesNotInModel.clear();
 		this.elementsNotInModel.clear();
 		this.relationshipsNotInModel.clear();
 		this.foldersNotInModel.clear();
@@ -534,6 +550,113 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int modelInitialVersion = model.getInitialVersion().getVersion();
 		int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		HashMap<String, IIdentifier> componentHashMap = new HashMap<String, IIdentifier>();
+		
+		
+		//////////////////// PROFILES
+		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the profiles from the database");
+
+		// we reset the version of all the profiles in the model
+		Iterator<Map.Entry<String, IProfile>> itp = model.getAllProfiles().entrySet().iterator();
+		while (itp.hasNext()) {
+			DBMetadata dbMetadata = model.getDBMetadata(itp.next().getValue());
+			dbMetadata.getCurrentVersion().setVersion(0);
+			dbMetadata.getInitialVersion().reset();
+			dbMetadata.getDatabaseVersion().reset();
+			dbMetadata.getLatestDatabaseVersion().reset();
+		}
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
+				"SELECT id, name, version, checksum, created_on, model_id, model_version, pos"
+						+ " FROM "+this.schemaPrefix+"profiles"
+						+ " LEFT JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version"
+						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"profiles JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version WHERE model_id = ? AND model_version = ?)"
+						+ " ORDER BY id, version, model_version"
+						,modelId
+						,modelDatabaseVersion
+				) ) {
+			String previousId = null;
+			DBMetadata previousComponent = null;
+			while ( result.next() ) {
+				DBMetadata currentComponent;
+				String currentId = result.getString("id");
+				int version = result.getInt("version");
+				String checksum = result.getString("checksum");
+				Timestamp createdOn = result.getTimestamp("created_on");
+
+				if ( DBPlugin.areEqual(currentId, previousId) )
+					currentComponent = previousComponent;
+				else {
+					if ( (previousComponent != null) ) {
+						if ( gui != null ) gui.increaseProgressBar();
+
+						if ( logger.isTraceEnabled() ) {
+							logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+							logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+							logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+							logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+							logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+						}
+					}
+
+					IArchimateModelObject object = model.getAllProfiles().get(currentId);
+					currentComponent = (object == null ) ? null : model.getDBMetadata(object);
+
+					// the loop returns all the versions of all the model components
+					if ( currentComponent == null ) {
+						currentComponent = new DBMetadata(currentId);
+						this.profilesNotInModel.put(currentId, currentComponent);
+						logger.trace("   Getting version of "+currentComponent.getDebugName()+" (is in the database, but not in the model)");
+					} else
+						logger.trace("   Getting version of "+currentComponent.getDebugName()+" (is in the database and in the model)");
+				}
+
+				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
+					// if the component is part of the model, we compare with the model's version
+					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
+						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getCurrentVersion().setVersion(version);
+					}
+					if ( result.getInt("model_version") == modelDatabaseVersion )
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+				}
+
+				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+
+				previousComponent = currentComponent;
+				previousId = currentId;
+			}
+
+			if ( (previousComponent != null) ) {
+				if ( gui != null ) gui.increaseProgressBar();
+
+				if ( logger.isTraceEnabled() ) {
+					logger.trace("         Initial version = " + previousComponent.getInitialVersion().getVersion());
+					logger.trace("         Current version = " + previousComponent.getCurrentVersion().getVersion());
+					logger.trace("         Database version = "+ previousComponent.getDatabaseVersion().getVersion());
+					logger.trace("         Latest db version = "+ previousComponent.getLatestDatabaseVersion().getVersion());
+					logger.trace("         Database status = " + previousComponent.getDatabaseStatus());
+				}
+			}
+		}
+
+		// if some components have got an initialVersion equal to zero, it means that they're not part of the latest version of the model in the database
+		// so we check if they are completely new or if they exist in another model
+		itp = model.getAllProfiles().entrySet().iterator();
+		while (itp.hasNext()) {
+			DBMetadata dbMetadata = model.getDBMetadata(itp.next().getValue());
+			if ( dbMetadata.getInitialVersion().getVersion() == 0 )
+				componentHashMap.put(dbMetadata.getId(), (IIdentifier)dbMetadata.getComponent());
+
+			if ( componentHashMap.size() == DBDatabaseExportConnection.maxValuesInSQLRequest ) {
+				getHashMapVersionFromDatabase(componentHashMap, gui);
+				componentHashMap.clear();
+			}
+		}
+		if ( componentHashMap.size() != 0 ) {
+			getHashMapVersionFromDatabase(componentHashMap, gui);
+			componentHashMap.clear();
+		}
+		/* ***************************************************************** */
 
 
 		//////////////////// ELEMENTS
@@ -769,7 +892,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		//////////////////// FOLDERS
 		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the folders from the database");
 
-		// we reset the version of all the relationships in the model
+		// we reset the version of all the folders in the model
 		Iterator<Map.Entry<String, IFolder>> itf = model.getAllFolders().entrySet().iterator();
 		while (itf.hasNext()) {
 			DBMetadata dbMetadata = model.getDBMetadata(itf.next().getValue());
@@ -874,10 +997,10 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 
 
-		//////////////////// FOLDERS
+		//////////////////// VIEWS
 		if ( logger.isDebugEnabled() ) logger.debug("Getting versions of the views from the database");
 
-		// we reset the version of all the relationships in the model
+		// we reset the version of all the views in the model
 		Iterator<Map.Entry<String, IDiagramModel>> itv = model.getAllViews().entrySet().iterator();
 		while (itv.hasNext()) {
 			DBMetadata dbMetadata = model.getDBMetadata(itv.next().getValue());
@@ -1311,9 +1434,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( nbFeatures != 0 )
 			exportFeatures(model);
-		
-		if ( nbProfiles != 0 )
-			exportProfiles(model);
 
 		exportMetadata(model);
 	}
@@ -1330,6 +1450,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		else if ( eObject instanceof IDiagramModel ) 			exportView((IDiagramModel)eObject);
 		else if ( eObject instanceof IDiagramModelObject )		exportViewObject((IDiagramModelComponent)eObject);
 		else if ( eObject instanceof IDiagramModelConnection )	exportViewConnection((IDiagramModelConnection)eObject);
+		else if ( eObject instanceof IProfile )					exportProfile((IProfile)eObject);
 		else
 			throw new Exception("Do not know how to export "+eObject.getClass().getSimpleName());
 	}
@@ -1345,6 +1466,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		else if ( eObject instanceof IDiagramModel )			assignViewToModel((IDiagramModel)eObject);
 		else if ( eObject instanceof IDiagramModelObject )		assignViewObjectToView((IDiagramModelObject)eObject);
 		else if ( eObject instanceof IDiagramModelConnection )	assignViewConnectionToView((IDiagramModelConnection)eObject);
+		else if ( eObject instanceof IProfile )					assignProfileToModel((IProfile)eObject);
 		else
 			throw new Exception("Do not know how to assign to the model: "+eObject.getClass().getSimpleName());
 	}
@@ -1938,41 +2060,71 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	
 	/**
 	 * Export model profiles to the database. Please note that the profiles images are not exported using this method. 
-	 * @param parent 
+	 * @param profile 
 	 * @throws SQLException 
 	 */
-	private void exportProfiles(DBArchimateModel parent) throws SQLException {
-		final String[] featuresColumns = {"model_id", "model_version", "pos", "name", "image_path", "concept_type"};
+	private void exportProfile(IProfile profile) throws SQLException {
+		final String[] profilesColumns = {"id", "version", "name", "is_specialization", "image_path", "concept_type", "created_by", "created_on", "checksum"};
+		DBArchimateModel model = (DBArchimateModel)profile.getArchimateModel();
+		DBMetadata dbMetadata = model.getDBMetadata(profile);
+		
+		// if the profile is exported, the we increase its exportedVersion
+		dbMetadata.getCurrentVersion().setVersion(dbMetadata.getLatestDatabaseVersion().getVersion() + 1);
+		
+		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
-		if ( parent.getProfiles() != null ) {
-			logger.debug("   Exporting "+parent.getProfiles().size()+" profiles");
-
-			String parentId = ((IIdentifier)parent).getId();
-			int parentVersion = parent.getCurrentVersion().getVersion();
-
-			for ( int pos = 0 ; pos < parent.getProfiles().size(); ++pos) {
-				IProfile profile = parent.getProfiles().get(pos);
-				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-					executeRequest("MATCH (parent {id:?, version:?}) CREATE (prof:profile {pos:?, name:?, image_path:?, concept_type:?}), (parent)-[:hasProfile]->(prof)"
-							,parentId
-							,parentVersion
-							,pos
-							,profile.getName()
-							,profile.getImagePath()
-							,profile.getConceptType()
-							);
-				}
-				else
-					insert(this.schemaPrefix+"profiles", featuresColumns
-							,parentId
-							,parentVersion
-							,pos
-							,profile.getName()
-							,profile.getImagePath()
-							,profile.getConceptType()
-							);
-			}
+		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+			executeRequest("CREATE (new:profiles {id:?, version:?, name:?, is_specialization:?, image_path:?, concept_type:?})"
+				,profile.getId()
+				,dbMetadata.getCurrentVersion().getVersion()
+				,profile.getName()
+				,profile.isSpecialization()
+				,profile.getImagePath()
+				,profile.getConceptType()
+				,System.getProperty("user.name")
+				,dbMetadata.getCurrentVersion().getTimestamp()
+				,dbMetadata.getCurrentVersion().getChecksum()
+				);
+		} else {
+			insert(this.schemaPrefix+"profiles", profilesColumns
+				,profile.getId()
+				,dbMetadata.getCurrentVersion().getVersion()
+				,profile.getName()
+				,profile.isSpecialization()
+				,profile.getImagePath()
+				,profile.getConceptType()
+				,System.getProperty("user.name")
+				,dbMetadata.getCurrentVersion().getTimestamp()
+				,dbMetadata.getCurrentVersion().getChecksum()
+				);
 		}
+	}
+	
+	/**
+	 * This class variable allows to sort the exported profiles that they are imported in the same order<br>
+	 * It is reset to zero each time a connection to a new database is done (connection() method).
+	 */
+	private int profilePos = 0;
+	
+	/**
+	 * Assign a profile to a model into the database
+	 * @param profile 
+	 * @throws Exception 
+	 */
+	private void assignProfileToModel(IProfile profile) throws Exception {
+		final String[] profilesInModelColumns = {"profile_id", "profile_version", "model_id", "model_version", "pos"};
+		DBArchimateModel model = (DBArchimateModel)profile.getArchimateModel();
+		DBMetadata dbMetadata = model.getDBMetadata(profile);
+
+		if ( logger.isTraceEnabled() ) logger.trace("   Assigning profile to model");
+
+		insert(this.schemaPrefix+"profiles_in_model", profilesInModelColumns
+				,profile.getId()
+				,dbMetadata.getCurrentVersion().getVersion()   // we use currentVersion as it has been set in exportProfile()
+				,model.getId()
+				,model.getCurrentVersion().getVersion()
+				,++this.profilePos
+				);
 	}
 
 	/**

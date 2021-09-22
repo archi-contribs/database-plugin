@@ -45,6 +45,7 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.ModelVersion;
 import lombok.Getter;
 import lombok.Setter;
@@ -202,6 +203,15 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * We use LinkedHashMap as the order is important
      */
     @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
+    
+    /**
+     * List of all profiles in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+    */
+    @Getter private Map<String, IProfile> allProfiles = new LinkedHashMap<String, IProfile>();
 
     /**
      * List of the source relationships that have been imported but not yet created.
@@ -350,8 +360,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         try {
         	for (IFolder folder: getFolders())
         		countObject(folder, true);
+        	for ( IProfile profile: getProfiles() )
+        		countObject(profile, true);
         } catch (@SuppressWarnings("unused") NullPointerException err)  {
-        	// in case the NullPointerException is propagated here, then it means that an object has been deleted from the model, so we need to re-count all the objects
+        	// in case the NullPointerException is propagated here, then it means that the model was inconsistent and the user has hosen to delete the relationship or connection, so we need to re-count all the objects
         	countAllObjects();
         }
     }
@@ -527,6 +539,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										                if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 										            }
 										            break;
+			
+			case "Profile":							this.allProfiles.put(((IProfile)eObject).getId(), (IProfile)eObject);
+													break;
+													
             case "Property":
             case "Bounds":
             case "Metadata":

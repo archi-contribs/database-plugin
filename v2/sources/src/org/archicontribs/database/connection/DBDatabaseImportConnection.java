@@ -118,7 +118,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         super.schema = databaseConnection.schema;
         super.schemaPrefix = databaseConnection.schemaPrefix;
         super.connection = databaseConnection.connection;
-        this.isExportConnectionDuplicate = false;
+        this.isExportConnectionDuplicate = true;
         
         this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
         this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
@@ -309,7 +309,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @return 
 	 * @throws Exception 
 	 */
-	public int importModel(DBArchimateModel model) throws Exception {
+	public void importModel(DBArchimateModel model) throws Exception {
 		if ( logger.isDebugEnabled() ) logger.debug("   importing model");
 		// reseting the model's counters
 		model.resetCounters();
@@ -317,13 +317,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// we remember the database used to import the model
 		model.setImportDatabaseId(this.databaseEntry.getId());
 		
-	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
-	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
-	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
-	    this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
-	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
-		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
-	    
 		if ( model.getInitialVersion().getVersion() == 0 ) {
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT MAX(version) AS version FROM "+this.schemaPrefix+"models WHERE id = ?", model.getId()) ) {
 				result.next();
@@ -333,6 +326,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, profiles, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
+			model.setName(result.getString("name"));
 			model.setPurpose(result.getString("purpose"));
 			model.getInitialVersion().setTimestamp(result.getTimestamp("created_on"));
 			model.getInitialVersion().setChecksum(result.getString("checksum"));
@@ -348,6 +342,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			
 			importMetadata(model);
 		}
+	}
+	
+	public int countModelComponents(DBArchimateModel model) throws Exception {
+	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
+	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
+	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
+	    this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
+	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
 
 		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = element_id)" : "element_version";
 		this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum"
@@ -1072,7 +1075,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// then, we import the properties from the database 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
-				// if the property already exist, we update its value. If it doesn't, we create it
 				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
 				prop.setKey(result.getString("name"));
 				prop.setValue(result.getString("value"));
@@ -1097,7 +1099,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// then, we import the properties from the database 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
-				// if the property already exist, we update its value. If it doesn't, we create it
 				IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
 				feature.setName(result.getString("name"));
 				feature.setValue(result.getString("value"));
@@ -1119,15 +1120,21 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// first, we delete all existing properties
 		parent.getProfiles().clear();
 
-		// then, we import the properties from the database 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, image_path, concept_type FROM "+this.schemaPrefix+"profiles WHERE model_id = ? AND model_version = ? ORDER BY pos", id, version)) {
-			while ( result.next() ) {
-				// if the property already exist, we update its value. If it doesn't, we create it
-				IProfile profile = IArchimateFactory.eINSTANCE.createProfile();
-				profile.setName(result.getString("name"));
-				profile.setImagePath(result.getString("image_path"));
-				profile.setConceptType(result.getString("concept_type"));
-				parent.getProfiles().add(profile);
+		// then, we import the properties from the database
+		try ( DBSelect result1 = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT profile_id, profile_version FROM "+this.schemaPrefix+"profiles_in_model WHERE model_id = ? AND model_version = ? ORDER BY pos", id, version)) {
+			String profileId = result1.getString("profile_id");
+			int profileVersion = result1.getInt("profile_version");
+			try ( DBSelect result2 = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, is_specialization, image_path, concept_type FROM "+this.schemaPrefix+"profiles WHERE profile_id = ? AND profile_version = ? ORDER BY pos", profileId, profileVersion)) {
+				while ( result2.next() ) {
+					IProfile profile = IArchimateFactory.eINSTANCE.createProfile();
+					profile.setName(result2.getString("name"));
+					profile.setSpecialization(DBPlugin.getBooleanValue(result2.getObject("is_specialization")));
+					profile.setImagePath(result2.getString("image_path"));
+					profile.setConceptType(result2.getString("concept_type"));
+					parent.getProfiles().add(profile);
+					
+					parent.getDBMetadata(profile).getInitialVersion().setVersion(profileVersion);
+				}
 			}
 		}
 	}

@@ -765,25 +765,27 @@ public class DBGuiImportModel extends DBGui {
         // we create the model (but do not create standard folder as they will be imported from the database)
         this.modelToImport = (DBArchimateModel)DBArchimateFactory.eINSTANCE.createArchimateModel();
         this.modelToImport.setId(modelId);
-        this.modelToImport.setName(modelName);
-        this.modelToImport.setPurpose((String)this.tblModels.getSelection()[0].getData("purpose"));
         
-        // we get the selected model version to import
-        // if the value is empty, this means that the user selected the "Now" line, so we must load the latest version of the views
-        if ( !this.tblModelVersions.getSelection()[0].getText(0).isEmpty() ) {
-        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getSelection()[0].getText(0)));
-        	this.modelToImport.setLatestVersionImported(false);
-        } else {
-        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getItem(1).getText(0)));
-        	this.modelToImport.setLatestVersionImported(true);
-        }
-
-        // we add the new model in the manager
-        IEditorModelManager.INSTANCE.registerModel(this.modelToImport);
-
-        // we import the model from the database
         try {
-            int importSize = this.importConnection.importModel(this.modelToImport);
+        	// import properties, features and profiles from the database
+        	this.importConnection.importModel(this.modelToImport);
+        
+	        // we get the selected model version to import
+	        // if the value is empty, this means that the user selected the "Now" line, so we must load the latest version of the views
+	        if ( !this.tblModelVersions.getSelection()[0].getText(0).isEmpty() ) {
+	        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getSelection()[0].getText(0)));
+	        	this.modelToImport.setLatestVersionImported(false);
+	        } else {
+	        	this.modelToImport.getInitialVersion().setVersion(Integer.valueOf(this.tblModelVersions.getItem(1).getText(0)));
+	        	this.modelToImport.setLatestVersionImported(true);
+	        }
+	
+	        // we add the new model in the manager
+	        IEditorModelManager.INSTANCE.registerModel(this.modelToImport);
+	
+        	// count components to be imported from the database 
+            int importSize = this.importConnection.countModelComponents(this.modelToImport);
+            
             setProgressBarMinAndMax(0, importSize);
 
             this.txtTotalElements.setText(toString(this.importConnection.getCountElementsToImport()));
@@ -801,6 +803,8 @@ public class DBGuiImportModel extends DBGui {
             this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
             this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
             this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
+            
+	        // Import the model components from the database
 
             logger.info("Importing folders ...");
             this.importConnection.prepareImportFolders(this.modelToImport);
