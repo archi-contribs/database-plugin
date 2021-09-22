@@ -1,75 +1,75 @@
-v4.8.2: 22/09/2021
+### v4.8.2: 22/09/2021
 * fix exception raised when model purpose is null rather than empty string
 
-v4.8.1: 22/09/2021
+### v4.8.1: 22/09/2021
 * fix coherence checking
 * change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
 
-v2.2.21: 21/09/2021
+### v2.2.21: 21/09/2021
 * fix Oracle 19c clob access
 
-v2.2.20: 20/09/2021
+### v2.2.20: 20/09/2021
 * catch error when a relationship or connection has got no source or no target
 * fix browse button that was active even when consulting SQLite database
 * fix import of features that were missing when imported with the "import component" feature
 
-v2.2.19: 09/04/2021
+### v2.2.19: 09/04/2021
 * update Lombok libray to version 1.18.20
 
-v2.2.18: 08/04/2021
+### v2.2.18: 08/04/2021
 * Use lowercase chars to call sp_rename stored procedure on SQL Server
 
-v2.2.17: 21/02/2021
+### v2.2.17: 21/02/2021
 * Fix default location of dialogs on multi-display (thanks to @michaelansley)
 
-v2.2.16: 09/02/2021
+### v2.2.16: 09/02/2021
 * Fix SQL requests that continued to reference old "rank" column 
 * FIX database preferences loading
 
-v2.2.15: 08/01/2021
+### v2.2.15: 08/01/2021
 * (re)Fix Neo4J preferences when in expert mode
 
-v2.2.14: 08/01/2021
+### v2.2.14: 08/01/2021
 * Fix Neo4J preferences when in expert mode
 
-v2.2.13: 27/11/2020
+### v2.2.13: 27/11/2020
 * Update rank column in all tables to be compatible with MySQL 8.x
 * increase strength length for influence relationships
 * Rewrite automatic plugin update to use dropins folder
 
-v2.2.12: 20/08/2020
+### v2.2.12: 20/08/2020
 * Add NLS support for Oracle databases
 * Fix deletion of a model from a SQL Server database
 * Fix Neo4J databases check
 
-v2.2.11: 13/08/2020
+### v2.2.11: 13/08/2020
 * Fix structure check on Oracle database when schema is empty
 * Fix MySQL/MariaDB table creation SQL requests
 * Change password encryption key to avoid error messages when switching from lan to wifi 
 
-v2.2.10: 05/08/2020
+### v2.2.10: 05/08/2020
 * Fix schema and columns type in SQL requests
 
-v2.2.9: 25/07/2020
+### v2.2.9: 25/07/2020
 * Fix admin procedure
 
-v2.2.8: 18/07/2020
+### v2.2.8: 18/07/2020
 * Fix exception when accessing the database admin menu
 * Rewrite database structure check
 * Add a preference to enable/disable NOT NULL database constraints
 * Add a delete model action in the admin procedures
 * Add ACLI support to import a model from a database from command line
 
-v2.2.7: 05/05/2020
+### v2.2.7: 05/05/2020
 * Fix password storage in preferences when expert mode is activated
 * Remove unnecessary password deciphering  
 
-v2.2.6: 03/05/2020
+### v2.2.6: 03/05/2020
 * Fix import of connections bendpoints when importing a view from another model
 * Fix automatic update from GitHub
 * Fix plugin version check at startup 
 
-v2.2.5: 17/04/2020
+### v2.2.5: 17/04/2020
 This release is an update of the database drivers
 * Neo4J --> 4.0.0
 * Oracle --> 10
@@ -78,17 +78,17 @@ This release is an update of the database drivers
 * MS SQL Server --> 8.2.2
 * MySQL --> stays in version 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
 
-v2.2.4: 14/01/2020
+### v2.2.4: 14/01/2020
 * Fix the version numbershown in the plugin windows
 * Fix username and password load from preference page for databases in expert mode
 
-v2.2.3: 11/12/2019
+### v2.2.3: 11/12/2019
 * Reduce the number of SQL request
 * Fix the get history from database
 * Fix the Neo4J JDBC connection string
 * Fix directed view connections export
 
-v2.2.2: 02/12/2019
+### v2.2.2: 02/12/2019
 * Rewrite code to remove a lot of class extends
 * Update database structure to be compliant with Archi 4.6
 * GUI improvement
@@ -101,7 +101,7 @@ v2.2.2: 02/12/2019
   * The database password is not printed in clear text in preference window by default
   * The database password is not stored in clear text anymore in the preference store, even if the algorithm used is must be reversible
 
-v2.2.1: 28/10/2019
+### v2.2.1: 28/10/2019
 * Fix plugin version in windows title
 * Fix count of model's components during export
 * Fix unnecessary double export of view components 
@@ -112,7 +112,7 @@ v2.2.1: 28/10/2019
 * Update the JDBC drivers
   * MySQL		--> rollback to 5.1.48 because of timezone error (https://bugs.mysql.com/bug.php?id=90813)
 
-v2.2.0: 12/10/2019
+### v2.2.0: 12/10/2019
 * Rewrite of the export process
 * Rewrite of the conflict management process
 * Remove the "Relationship" suffix on the relationships names during Neo4J exports
@@ -128,20 +128,20 @@ v2.2.0: 12/10/2019
   * PostGreSQL	--> 42.2.6
   * SQLite		--> 3.27.2.1
   
-v2.1.11: 26/04/2019
+### v2.1.11: 26/04/2019
 * Fix version comparison when a part of it is greater or equal to 10
 * Fix issues on SQL requests introduced in plugin version 2.1.10
 
-v2.1.10: 23/04/2019
+### v2.1.10: 23/04/2019
 * Fix unclosed cursors on Oracle databases
 
-v2.1.9: 27/02/2018
+### v2.1.9: 27/02/2018
 * Add expert mode where the jdbc connection string can be manually edited
 
-v2.1.8: 12/02/2018
+### v2.1.8: 12/02/2018
 * Fix import of images when initiated by script plugin
 
-v2.1.7: 23/11/2018
+### v2.1.7: 23/11/2018
 * Import components from database:
   * updating a view from the database now updates the elements and relationships referenced in the view
 * Fixes:
@@ -149,32 +149,32 @@ v2.1.7: 23/11/2018
   * Fix SQL requests when the database plugin is called by the script plugin
   * Fix label position in debug window
 
-v2.1.6: 13/11/2018
+### v2.1.6: 13/11/2018
 * Fix savepoint name expected error during rollback
 * Fix import of recursive referenced views
 
-v2.1.5: 10/11/2018
+### v2.1.5: 10/11/2018
 * Add key bindings to export model and import model commands
 * Fix screen scale calculation divide by zero exception on some environments
 * Fix model's checksum is reset during export
 * Check if auto commit mode before rollbacking transaction
 
-v2.1.4: 20/10/2018
+### v2.1.4: 20/10/2018
 * Fix version number
 
-v2.1.3: 30/09/2018
+### v2.1.3: 30/09/2018
 * Fix Oracle objects names to be less than 30 characters long
 * Fix Oracle error ORA-00932 when using CLOB in joined requests
 * Update Oracle driver to 18c
 * Remove the hint_title and hint_content columns from views and views_objects tables as they do not need to be exported
 
-v2.1.2: 30/09/2018
+### v2.1.2: 30/09/2018
 * Revert "merge" instead of "create" for Neo4j databases
 
-v2.1.1: 27/09/2018
+### v2.1.1: 27/09/2018
 * Fix import order from PostGreSQL databases
 
-v2.1: 25/09/2018
+### v2.1: 25/09/2018
 * Import components from database:
   * Rename "import individual component" to "import components"
   * Added documentation column to help distinguish components having the same name
