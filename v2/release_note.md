@@ -1,3 +1,7 @@
+v4.8.1: 22/09/2021
+* fix coherence checking
+* change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
+
 v2.2.21: 21/09/2021
 * fix Oracle 19c clob access
 
