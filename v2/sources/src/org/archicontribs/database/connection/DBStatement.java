@@ -61,8 +61,8 @@ public class DBStatement implements AutoCloseable {
 		Savepoint savepoint = null;
 		int rowCount = 0;
 		
-		if ( logger.isTraceEnabled() && !this.request.toLowerCase().startsWith("insert") ) {
-			// INSERT request are going through constructStatement that has got its own trace
+		if ( logger.isTraceEnabled() && !this.request.toLowerCase().startsWith("insert") && !this.request.toLowerCase().startsWith("update")) {
+			// INSERT and update request are going through constructStatement that has got its own trace
 			logger.trace("      --> "+this.request);
 		}
 
