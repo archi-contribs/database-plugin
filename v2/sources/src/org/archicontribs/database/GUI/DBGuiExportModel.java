@@ -317,7 +317,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		Label lblProfiles = new Label(this.grpComponents, SWT.NONE);
 		lblProfiles.setBackground(GROUP_BACKGROUND_COLOR);
-		lblProfiles.setText("Profiles:");
+		lblProfiles.setText("Specializations:");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 2*getDefaultLabelHeight()+getDefaultMargin());
 		fd.left = new FormAttachment(0, 30);
@@ -2369,7 +2369,7 @@ public class DBGuiExportModel extends DBGui {
 			}
 			
 			// EXPORT PROFILES
-			setProgressBarLabel("Exporting profiles ...");
+			setProgressBarLabel("Exporting specializations ...");
 			Iterator<IProfile> profilesIterator = this.exportedModel.getProfiles().iterator();
 			while ( profilesIterator.hasNext() ) {
 				EObject componentToExport = profilesIterator.next();

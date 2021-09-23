@@ -408,7 +408,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 		else if ( component instanceof IProfile ) {
 			if ( logger.isTraceEnabled() )
-				logger.trace("   Searching for "+componentHashMap.size()+" profiles from the database.");
+				logger.trace("   Searching for "+componentHashMap.size()+" specializations from the database.");
 			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"profiles"
 					+ " LEFT JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version"

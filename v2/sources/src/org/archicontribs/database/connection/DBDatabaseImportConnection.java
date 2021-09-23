@@ -480,6 +480,19 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	
 	
 	/**
+	 * Prepare the import of the profiles from the database
+	 * @param model 
+	 * @throws Exception 
+	 */
+	public void prepareImportProfiles(DBArchimateModel model) throws Exception {
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import specializations");
+		this.currentResultSetProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, this.importProfilesRequest
+				,model.getId()
+				,model.getInitialVersion().getVersion()
+				);
+	}
+
+	/**
 	 * Import the profiles from the database
 	 * @param model 
 	 * @return 
@@ -524,19 +537,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	}
 	
 	
-	/**
-	 * Prepare the import of the profiles from the database
-	 * @param model 
-	 * @throws Exception 
-	 */
-	public void prepareImportProfiles(DBArchimateModel model) throws Exception {
-		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import profiles");
-		this.currentResultSetProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, this.importProfilesRequest
-				,model.getId()
-				,model.getInitialVersion().getVersion()
-				);
-	}
-
 	/**
 	 * Prepare the import of the folders from the database
 	 * @param model 

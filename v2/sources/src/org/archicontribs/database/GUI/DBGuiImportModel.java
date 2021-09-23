@@ -507,7 +507,7 @@ public class DBGuiImportModel extends DBGui {
         
         Label lblProfiles = new Label(this.grpComponents, SWT.NONE);
         lblProfiles.setBackground(GROUP_BACKGROUND_COLOR);
-        lblProfiles.setText("Profiles:");
+        lblProfiles.setText("Specializations:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 25);
         fd.left = new FormAttachment(0, 30);
@@ -834,7 +834,7 @@ public class DBGuiImportModel extends DBGui {
             
 	        // Import the model components from the database
 
-            logger.info("Importing profiles ...");
+            logger.info("Importing specializations ...");
             this.importConnection.prepareImportProfiles(this.modelToImport);
             while ( this.importConnection.importProfiles(this.modelToImport) ) {
             	this.txtImportedProfiles.setText(toString(this.importConnection.getCountProfilesImported()));
@@ -946,7 +946,7 @@ public class DBGuiImportModel extends DBGui {
         Color statusColor = GREEN_COLOR;
         
 		if ( logger.isDebugEnabled() ) {
-			logger.debug("   "+this.importConnection.getCountProfilesImported()+"/"+this.importConnection.getCountProfilesToImport()+" profiles imported");
+			logger.debug("   "+this.importConnection.getCountProfilesImported()+"/"+this.importConnection.getCountProfilesToImport()+" specializations imported");
 		    logger.debug("   "+this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
 		    logger.debug("   "+this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
 		    logger.debug("   "+this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
