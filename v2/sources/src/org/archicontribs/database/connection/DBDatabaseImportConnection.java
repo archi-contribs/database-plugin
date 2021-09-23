@@ -131,9 +131,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * ResultSet of the current transaction (used by import process to allow the loop to be managed outside the DBdatabase class)
 	 */
+	private DBSelect currentResultSetProfiles = null;
+	private DBSelect currentResultSetFolders = null;
 	private DBSelect currentResultSetElements = null;
 	private DBSelect currentResultSetRelationships = null;
-	private DBSelect currentResultSetFolders = null;
 	private DBSelect currentResultSetViews = null;
 	private DBSelect currentResultSetViewsObjects = null;
 	private DBSelect currentResultSetViewsConnections = null; 
@@ -283,24 +284,28 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 	@Getter private HashSet<String> allImagePaths = new HashSet<String>();
 
-	@Getter private int countElementsToImport = 0;
-	@Getter private int countElementsImported = 0;
-	@Getter private int countRelationshipsToImport = 0;
-	@Getter private int countRelationshipsImported = 0;
+	@Getter private int countProfilesToImport = 0;
 	@Getter private int countFoldersToImport = 0;
-	@Getter private int countFoldersImported = 0;
+	@Getter private int countElementsToImport = 0;
+	@Getter private int countRelationshipsToImport = 0;
 	@Getter private int countViewsToImport = 0;
-	@Getter private int countViewsImported = 0;
 	@Getter private int countViewObjectsToImport = 0;
-	@Getter private int countViewObjectsImported = 0;
 	@Getter private int countViewConnectionsToImport = 0;
-	@Getter private int countViewConnectionsImported = 0;
 	@Getter private int countImagesToImport = 0;
+	
+	@Getter private int countProfilesImported = 0;
+	@Getter private int countFoldersImported = 0;
+	@Getter private int countElementsImported = 0;
+	@Getter private int countRelationshipsImported = 0;
+	@Getter private int countViewsImported = 0;
+	@Getter private int countViewObjectsImported = 0;
+	@Getter private int countViewConnectionsImported = 0;
 	@Getter private int countImagesImported = 0;
 
+	private String importProfilesRequest;
+	private String importFoldersRequest;
 	private String importElementsRequest;
 	private String importRelationshipsRequest;
-	private String importFoldersRequest;
 	private String importViewsRequest;
 
 	/**
@@ -337,13 +342,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			if ( result.getInt("features") != 0 )
 				importFeatures(model, model.getId(), model.getInitialVersion().getVersion());
 			
-			if ( result.getInt("profiles") != 0 )
-				importProfiles(model, model.getId(), model.getInitialVersion().getVersion());
-			
 			importMetadata(model);
 		}
 	}
 	
+	/**
+	 * Count components in the database. this is used by the DBGuiImportModel class before the import is done, to fill in the number of components to import, and after the import is done, to check that all components have been correctly imported.
+	 * @param model
+	 * @return
+	 * @throws Exception
+	 */
 	public int countModelComponents(DBArchimateModel model) throws Exception {
 	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
 	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
@@ -352,7 +360,36 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
 		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
 
-		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = element_id)" : "element_version";
+		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"profiles WHERE profiles.id = profiles_in_model.profile_id)" : "profiles_in_model.profile_version";
+		String selectProfilesRequest = "SELECT DISTINCT profile_id, profile_version, name, is_specialization, image_path, concept_type, created_on, checksum, pos"
+				+ " FROM "+this.schemaPrefix+"profiles_in_model"
+				+ " JOIN "+this.schemaPrefix+"profiles ON profiles.id = profiles_in_model.profile_id AND profiles.version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
+		try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countProfiles FROM ("+selectProfilesRequest+") pldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
+			resultProfiles.next();
+			this.countProfilesToImport = resultProfiles.getInt("countProfiles");
+			this.countProfilesImported = 0;
+		}
+		// images can also be found in profiles
+		try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countImages FROM ("+selectProfilesRequest+" AND image_path IS NOT null) pldr", model.getId(), model.getInitialVersion().getVersion()) ) {
+			resultProfiles.next();
+			this.countImagesToImport = resultProfiles.getInt("countImages");
+		}
+		this.importProfilesRequest = selectProfilesRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		
+		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
+		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum, pos"
+				+ " FROM "+this.schemaPrefix+"folders_in_model"
+				+ " JOIN "+this.schemaPrefix+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
+				+ " WHERE model_id = ? AND model_version = ?";
+		try ( DBSelect resultFolders = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countFolders FROM ("+selectFoldersRequest+") fldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
+			resultFolders.next();
+			this.countFoldersToImport = resultFolders.getInt("countFolders");
+			this.countFoldersImported = 0;
+		}
+		this.importFoldersRequest = selectFoldersRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
+		
+		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = element_id)" : "element_version";
 		this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum"
 				+ " FROM "+this.schemaPrefix+"elements_in_model"
 				+ " JOIN "+this.schemaPrefix+"elements ON elements.id = element_id AND version = "+versionToImport
@@ -379,18 +416,6 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countRelationshipsToImport = resultRelationships.getInt("countRelationships");
 			this.countRelationshipsImported = 0;
 		}
-
-		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
-		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum, pos"
-				+ " FROM "+this.schemaPrefix+"folders_in_model"
-				+ " JOIN "+this.schemaPrefix+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
-				+ " WHERE model_id = ? AND model_version = ?";
-		try ( DBSelect resultFolders = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countFolders FROM ("+selectFoldersRequest+") fldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
-			resultFolders.next();
-			this.countFoldersToImport = resultFolders.getInt("countFolders");
-			this.countFoldersImported = 0;
-		}
-		this.importFoldersRequest = selectFoldersRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
 		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schemaPrefix+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
 		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, "+this.toCharDocumentationAsDocumentation+", background, connection_router_type, viewpoint, created_on, properties, features, checksum, container_checksum, pos"
@@ -441,7 +466,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				))
 		{
 			resultImages.next();
-			this.countImagesToImport = resultImages.getInt("countImages");
+			this.countImagesToImport += resultImages.getInt("countImages");		// we add the value to the number of images in the profiles
 			this.countImagesImported = 0;
 		}
 
@@ -451,6 +476,65 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		this.allImagePaths.clear();
 
 		return this.countElementsToImport + this.countRelationshipsToImport + this.countFoldersToImport + this.countViewsToImport + this.countViewObjectsToImport + this.countViewConnectionsToImport + this.countImagesToImport;
+	}
+	
+	
+	/**
+	 * Import the profiles from the database
+	 * @param model 
+	 * @return 
+	 * @throws Exception 
+	 */
+	public boolean importProfiles(DBArchimateModel model) throws Exception {
+		if ( this.currentResultSetProfiles != null ) {
+			if ( this.currentResultSetProfiles.next() ) {
+				IProfile profile = IArchimateFactory.eINSTANCE.createProfile();
+				
+				profile.setId(this.currentResultSetProfiles.getString("profile_id"));
+				
+				// the DBMetadata must be get AFTER the id is set 
+				DBMetadata dbMetadata = model.getDBMetadata(profile);
+
+				dbMetadata.getInitialVersion().setVersion(this.currentResultSetProfiles.getInt("profile_version"));
+				dbMetadata.getInitialVersion().setChecksum(this.currentResultSetProfiles.getString("checksum"));
+				dbMetadata.getInitialVersion().setTimestamp(this.currentResultSetProfiles.getTimestamp("created_on"));
+
+				dbMetadata.setName(this.currentResultSetProfiles.getString("name"));
+				
+				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+profile.getClass().getSimpleName()+" \""+profile.getName()+"\" version "+dbMetadata.getInitialVersion().getVersion());
+				
+				profile.setSpecialization(DBPlugin.getBooleanValue(this.currentResultSetProfiles.getObject("is_specialization")));
+				profile.setImagePath(this.currentResultSetProfiles.getString("image_path"));
+				profile.setConceptType(this.currentResultSetProfiles.getString("concept_type"));
+				model.getProfiles().add(profile);
+				
+				// if the object contains an image, we store its path to import it later
+				if ( this.currentResultSetProfiles.getString("image_path") != null )
+					this.allImagePaths.add(this.currentResultSetProfiles.getString("image_path"));
+
+				// we reference this profile for future use
+				model.countObject(profile, false);
+				++this.countProfilesImported;
+				return true;
+			}
+			this.currentResultSetProfiles.close();
+			this.currentResultSetProfiles = null;
+		}
+		return false;
+	}
+	
+	
+	/**
+	 * Prepare the import of the profiles from the database
+	 * @param model 
+	 * @throws Exception 
+	 */
+	public void prepareImportProfiles(DBArchimateModel model) throws Exception {
+		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import profiles");
+		this.currentResultSetProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, this.importProfilesRequest
+				,model.getId()
+				,model.getInitialVersion().getVersion()
+				);
 	}
 
 	/**
@@ -465,6 +549,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				,model.getInitialVersion().getVersion()
 				);
 	}
+
 
 	/**
 	 * Import the folders from the database
@@ -1117,10 +1202,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public void importProfiles(DBArchimateModel parent, String id, int version) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("      Importing profiles");
 
-		// first, we delete all existing properties
+		// first, we delete all existing profiles
 		parent.getProfiles().clear();
 
-		// then, we import the properties from the database
+		// then, we import the profiles from the database
 		try ( DBSelect result1 = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT profile_id, profile_version FROM "+this.schemaPrefix+"profiles_in_model WHERE model_id = ? AND model_version = ? ORDER BY pos", id, version)) {
 			String profileId = result1.getString("profile_id");
 			int profileVersion = result1.getInt("profile_version");
@@ -1134,6 +1219,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					parent.getProfiles().add(profile);
 					
 					parent.getDBMetadata(profile).getInitialVersion().setVersion(profileVersion);
+					this.allImagePaths.add(result2.getString("image_path"));
 				}
 			}
 		}

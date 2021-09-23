@@ -81,6 +81,7 @@ public class DBGuiImportModel extends DBGui {
     private Label lblReleaseNote;
     Text txtReleaseNote;
 
+    private Text txtTotalProfiles;
     private Text txtTotalElements;
     private Text txtTotalRelationships;
     private Text txtTotalFolders;
@@ -89,6 +90,7 @@ public class DBGuiImportModel extends DBGui {
     private Text txtTotalViewConnections;
     private Text txtTotalImages;
 
+    private Text txtImportedProfiles;
     private Text txtImportedElements;
     private Text txtImportedRelationships;
     private Text txtImportedFolders;
@@ -493,7 +495,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setText("Your model's components: ");
         
         // we calculate the required height of the grpComponents group
-        int requiredHeight = 9 * (getDefaultLabelHeight() + getDefaultMargin());
+        int requiredHeight = 10 * (getDefaultLabelHeight() + getDefaultMargin());
         
         FormData fd = new FormData();
         fd.top = new FormAttachment(100, -requiredHeight);
@@ -502,12 +504,20 @@ public class DBGuiImportModel extends DBGui {
         fd.bottom = new FormAttachment(100);
         this.grpComponents.setLayoutData(fd);
         this.grpComponents.setLayout(new FormLayout());
+        
+        Label lblProfiles = new Label(this.grpComponents, SWT.NONE);
+        lblProfiles.setBackground(GROUP_BACKGROUND_COLOR);
+        lblProfiles.setText("Profiles:");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 25);
+        fd.left = new FormAttachment(0, 30);
+        lblProfiles.setLayoutData(fd);
 
         Label lblElements = new Label(this.grpComponents, SWT.NONE);
         lblElements.setBackground(GROUP_BACKGROUND_COLOR);
         lblElements.setText("Elements:");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 25);
+        fd.top = new FormAttachment(lblProfiles, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblElements.setLayoutData(fd);
 
@@ -581,6 +591,22 @@ public class DBGuiImportModel extends DBGui {
 
         /* * * * * */
 
+        this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtTotalProfiles.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        this.txtTotalProfiles.setLayoutData(fd);
+        
+        this.txtImportedProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtImportedProfiles.setEditable(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        this.txtImportedProfiles.setLayoutData(fd);
+        
         this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalElements.setEditable(false);
         fd = new FormData(26,18);
@@ -788,6 +814,7 @@ public class DBGuiImportModel extends DBGui {
             
             setProgressBarMinAndMax(0, importSize);
 
+            this.txtTotalProfiles.setText(toString(this.importConnection.getCountProfilesToImport()));
             this.txtTotalElements.setText(toString(this.importConnection.getCountElementsToImport()));
             this.txtTotalRelationships.setText(toString(this.importConnection.getCountRelationshipsToImport()));
             this.txtTotalFolders.setText(toString(this.importConnection.getCountFoldersToImport()));
@@ -796,16 +823,24 @@ public class DBGuiImportModel extends DBGui {
             this.txtTotalViewConnections.setText(toString(this.importConnection.getCountViewConnectionsToImport()));
             this.txtTotalImages.setText(toString(this.importConnection.getCountImagesToImport()));
 
-            this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
-            this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
-            this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
-            this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
-            this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
-            this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
-            this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
+            this.txtImportedProfiles.setText("0");
+            this.txtImportedElements.setText("0");
+            this.txtImportedRelationships.setText("0");
+            this.txtImportedFolders.setText("0");
+            this.txtImportedViews.setText("0");
+            this.txtImportedViewObjects.setText("0");
+            this.txtImportedViewConnections.setText("0");
+            this.txtImportedImages.setText("0");
             
 	        // Import the model components from the database
 
+            logger.info("Importing profiles ...");
+            this.importConnection.prepareImportProfiles(this.modelToImport);
+            while ( this.importConnection.importProfiles(this.modelToImport) ) {
+            	this.txtImportedProfiles.setText(toString(this.importConnection.getCountProfilesImported()));
+                increaseProgressBar();
+            }
+            
             logger.info("Importing folders ...");
             this.importConnection.prepareImportFolders(this.modelToImport);
             while ( this.importConnection.importFolders(this.modelToImport) ) {
@@ -911,6 +946,7 @@ public class DBGuiImportModel extends DBGui {
         Color statusColor = GREEN_COLOR;
         
 		if ( logger.isDebugEnabled() ) {
+			logger.debug("   "+this.importConnection.getCountProfilesImported()+"/"+this.importConnection.getCountProfilesToImport()+" profiles imported");
 		    logger.debug("   "+this.importConnection.getCountElementsImported()+"/"+this.importConnection.getCountElementsToImport()+" elements imported");
 		    logger.debug("   "+this.importConnection.getCountRelationshipsImported()+"/"+this.importConnection.getCountRelationshipsToImport()+" relationships imported");
 		    logger.debug("   "+this.importConnection.getCountFoldersImported()+"/"+this.importConnection.getCountFoldersToImport()+" folders imported");
@@ -920,6 +956,7 @@ public class DBGuiImportModel extends DBGui {
 		    logger.debug("   "+this.importConnection.getCountImagesImported()+"/"+this.importConnection.getCountImagesToImport()+" images imported");
 		}
 
+		this.txtImportedProfiles.setForeground( (this.importConnection.getCountProfilesImported() == this.importConnection.getCountProfilesToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         this.txtImportedElements.setForeground( (this.importConnection.getCountElementsImported() == this.importConnection.getCountElementsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         this.txtImportedRelationships.setForeground( (this.importConnection.getCountRelationshipsImported() == this.importConnection.getCountRelationshipsToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
         this.txtImportedFolders.setForeground( (this.importConnection.getCountFoldersImported() == this.importConnection.getCountFoldersToImport()) ? GREEN_COLOR : (statusColor=RED_COLOR) );
