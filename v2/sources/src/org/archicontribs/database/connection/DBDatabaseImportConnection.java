@@ -501,7 +501,15 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	public boolean importProfiles(DBArchimateModel model) throws Exception {
 		if ( this.currentResultSetProfiles != null ) {
 			if ( this.currentResultSetProfiles.next() ) {
-				IProfile profile = IArchimateFactory.eINSTANCE.createProfile();
+				IProfile profile = null;
+				try {
+					profile = IArchimateFactory.eINSTANCE.createProfile();
+				} catch ( @SuppressWarnings("unused") NoSuchMethodError err ) {
+					// profiles do not exist prior Archi version 4.9
+					this.currentResultSetProfiles.close();
+					this.currentResultSetProfiles = null;
+					return false;
+				}
 				
 				profile.setId(this.currentResultSetProfiles.getString("profile_id"));
 				
