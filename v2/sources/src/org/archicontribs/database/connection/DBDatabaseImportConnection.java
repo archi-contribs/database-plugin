@@ -329,7 +329,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			}
 		}
 
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, profiles, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, purpose, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models WHERE id = ? AND version = ?", model.getId(), model.getInitialVersion().getVersion()) ) {
 			result.next();
 			model.setName(result.getString("name"));
 			model.setPurpose(result.getString("purpose"));

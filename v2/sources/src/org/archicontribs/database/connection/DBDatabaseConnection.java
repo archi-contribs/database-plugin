@@ -1212,13 +1212,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 		
 		// convert from version 213 to 490
-		//      - add profiles column in models table
 		//      - create profiles and profiles_in_model tables
-		//      - recalculate all model checksums
 		if ( dbVersion == 213 ) {
-			// add profiles column in models table
-			addColumn(this.schemaPrefix+"models", "profiles", integerColumn.getType(), false, 0);
-			
 			// create profiles and profiles_in_model tables
 			for ( int i = 0 ; i < this.databaseTables.size() ; ++i ) {
 				DBTable table = this.databaseTables.get(i);
@@ -1229,27 +1224,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 				if ( table.getName().equals("profiles_in_model") ) {
 					if ( logger.isDebugEnabled() ) logger.debug("Creating profiles_in_model table");
 					executeRequest(table.generateCreateStatement());
-				}
-			}
-			
-			// recalculate all models checksums
-			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
-				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, name, note FROM "+this.schemaPrefix+"models") ) {
-					while ( result.next() ) {
-						String modelId = result.getString("id");
-						String modelName = result.getString("name");
-						int modelVersion = result.getInt("version");
-						String modelNote = result.getString("note");
-
-						if ( logger.isDebugEnabled() ) logger.debug("Recalculate checksum for model "+modelName+" version "+modelVersion+" (id = "+modelId+")");
-						DBArchimateModel tempModel = new DBArchimateModel(modelId, modelVersion);
-						importConnection.importModel(tempModel);
-						String modelChecksum = DBChecksum.calculateChecksum(tempModel, modelNote);
-						if ( logger.isTraceEnabled() ) logger.trace("   New checksum is "+modelChecksum);
-						executeRequest("UPDATE "+this.schemaPrefix+"models SET checksum = ? WHERE id = ? AND version = ?", modelChecksum, modelId, modelVersion);
-
-						tempModel = null;
-					}
 				}
 			}
 			dbVersion = 490;
@@ -1483,7 +1457,6 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.modelsColumns.add(new DBColumn("deleted_by", this.databaseEntry, DBColumnType.USERNAME, false));
 		this.modelsColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
 		this.modelsColumns.add(new DBColumn("properties", this.databaseEntry, DBColumnType.INTEGER, false));
-		this.modelsColumns.add(new DBColumn("profiles", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.modelsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.modelsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 

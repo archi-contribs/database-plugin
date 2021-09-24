@@ -1410,10 +1410,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			model.getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 		else
 			model.getCurrentVersion().setTimestamp(this.lastTransactionTimestamp);
+		
+		DBMetadata metadata = DBMetadata.getDBMetadata(model);
 
-		int nbProperties = (model.getProperties() == null) ? 0 : model.getProperties().size();
-		int nbFeatures = (model.getFeatures() == null) ? 0 : model.getFeatures().size();
-		int nbProfiles = (model.getProfiles() == null) ? 0 : model.getProfiles().size();
+		int nbProperties = metadata.getNumberOfProperties();
+		int nbFeatures = metadata.getNumberOfFeatures();
 
 		insert(this.schemaPrefix+"models", modelsColumns
 				,model.getId()
@@ -1425,7 +1426,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
-				,nbProfiles
 				,model.getCurrentVersion().getChecksum()
 				);
 
