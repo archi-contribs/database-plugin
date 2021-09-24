@@ -1477,7 +1477,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportElement(IArchimateElement element) throws Exception {
-		final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "created_by", "created_on", "properties", "features", "checksum"};
+		final String[] elementsColumns = {"id", "version", "class", "name", "type", "documentation", "profile", "created_by", "created_on", "properties", "features", "checksum"};
 		DBArchimateModel model = (DBArchimateModel)element.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(element);
 
@@ -1508,6 +1508,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,element.getName()
 					,dbMetadata.getJunctionType()
 					,element.getDocumentation()
+					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
 					,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
 					,nbProperties
@@ -1557,7 +1558,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportRelationship(IArchimateRelationship relationship) throws Exception {
-		final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "is_directed", "created_by", "created_on", "properties", "features", "checksum"};
+		final String[] relationshipsColumns = {"id", "version", "class", "name", "documentation", "source_id", "target_id", "strength", "access_type", "is_directed", "profile", "created_by", "created_on", "properties", "features", "checksum"};
 		DBArchimateModel model = (DBArchimateModel)relationship.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(relationship);
 
@@ -1623,6 +1624,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,dbMetadata.getStrength()
 					,dbMetadata.getAccessType()
 					,dbMetadata.isDirectedAsInteger()
+					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
 					,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
 					,nbProperties

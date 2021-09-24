@@ -1213,6 +1213,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		
 		// convert from version 213 to 490
 		//      - create profiles and profiles_in_model tables
+		//      - add profile column in elements and relationships tables
 		if ( dbVersion == 213 ) {
 			// create profiles and profiles_in_model tables
 			for ( int i = 0 ; i < this.databaseTables.size() ; ++i ) {
@@ -1226,6 +1227,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 					executeRequest(table.generateCreateStatement());
 				}
 			}
+			
+			// add profile column in elements and relationships tables
+			addColumn(this.schemaPrefix+"elements",      "profile", objectIDColumn.getType());
+			addColumn(this.schemaPrefix+"relationships", "profile", objectIDColumn.getType());
+			
 			dbVersion = 490;
 		}
 
@@ -1507,6 +1513,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.elementsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.elementsColumns.add(new DBColumn("documentation", this.databaseEntry, DBColumnType.TEXT, false));
 		this.elementsColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.TYPE, false));
+		this.elementsColumns.add(new DBColumn("profile", this.databaseEntry, DBColumnType.OBJECTID, false));
 		this.elementsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
 		this.elementsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
 		this.elementsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));
@@ -1546,6 +1553,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.relationshipsColumns.add(new DBColumn("strength", this.databaseEntry, DBColumnType.TEXT, false));
 		this.relationshipsColumns.add(new DBColumn("access_type", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.relationshipsColumns.add(new DBColumn("is_directed", this.databaseEntry, DBColumnType.BOOLEAN, false));
+		this.relationshipsColumns.add(new DBColumn("profile", this.databaseEntry, DBColumnType.OBJECTID, false));
 		this.relationshipsColumns.add(new DBColumn("created_by", this.databaseEntry, DBColumnType.USERNAME, true));
 		this.relationshipsColumns.add(new DBColumn("created_on", this.databaseEntry, DBColumnType.DATETIME, true));
 		this.relationshipsColumns.add(new DBColumn("checkedin_by", this.databaseEntry, DBColumnType.USERNAME, false));

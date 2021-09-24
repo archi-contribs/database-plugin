@@ -1051,6 +1051,52 @@ public class DBMetadata  {
     	return null;
     }
     
+    public IProfile getPrimaryProfile() {
+    	try {
+    		if ( this.component instanceof IProfiles )
+    			return ((IProfiles)this.component).getPrimaryProfile();
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return null;
+    }
+    
+    public String getPrimaryProfileID() {
+    	try {
+    		if ( this.component instanceof IProfiles ) {
+    			IProfile profile = ((IProfiles)this.component).getPrimaryProfile();
+    			if ( profile != null )
+    				return profile.getId();
+    		}
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return null;
+    }
+    
+    public void addProfileId(String profileId) {
+    	if ( profileId == null )
+    		return;
+    	
+    	try {
+    		if ( this.component instanceof IProfiles ) {
+    			DBArchimateModel model = DBArchimateModel.getDBArchimateModel(this.component);
+    			if ( model == null )
+    				return;
+    			EList<IProfile> profiles = ((IProfiles)this.component).getProfiles();
+    			for ( IProfile profile: model.getProfiles() ) {
+    				if ( profile.getId().equals(profileId) ) {
+    					profiles.add(profile);
+    					return;
+    				}
+    			}
+    		}
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return;
+    }
+    
     public int getNumberOfProfiles() {
     	try {
     		if ( this.component instanceof IProfiles )
