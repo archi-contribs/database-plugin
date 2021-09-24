@@ -6,9 +6,12 @@
 
 package org.archicontribs.database.model;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBScreenshot;
 import org.archicontribs.database.data.DBVersion;
@@ -17,7 +20,6 @@ import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.model.IIconic;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
@@ -68,7 +70,10 @@ import lombok.Setter;
  * @author Herve Jouin 
  * @see org.archicontribs.database.model.IDBMetadata
  */
+@SuppressWarnings("unused")
 public class DBMetadata  {
+	DBLogger logger = new DBLogger(DBMetadata.class);
+	
     /**
      * Component that contains the DBMetadata<br>
      * This property is set during the component initialization and is used to calculate the component checksum
@@ -630,22 +635,63 @@ public class DBMetadata  {
     }
 
     // ImagePosition
+    // until Archi 4.8, IIconic was defined in com.archimatetool.model.canvas.IIconic;
+    // since Archi 4.9, IIconic is defined in  com.archimatetool.model.IIconic;
     public Integer getImagePosition() {
-        try {
-        	if ( this.component instanceof IIconic ) 
-        		return ((IIconic)this.component).getImagePosition();
-        } catch ( @SuppressWarnings("unused") NoClassDefFoundError err) {
-        	// IIconic class does not exist prior Archi version 4.9
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.canvas.IIconic");
+    		Method getImagePositionMethod = iIconicClass.getDeclaredMethod("getImagePosition");
+
+    		if ( iIconicClass.isInstance(this.component) )
+    			return (Integer)getImagePositionMethod.invoke(this.component);
+    		
+    		return null;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
+        	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
         }
+    	
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.IIconic");
+    		Method getImagePositionMethod = iIconicClass.getDeclaredMethod("getImagePosition");
+
+    		if ( iIconicClass.isInstance(this.component) )
+    			return (Integer)getImagePositionMethod.invoke(this.component);
+    		
+    		return null;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
+        	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
+	    }
+    	
         return null;
     }
 
     public void setImagePosition(Integer imagePosition) {
     	try {
-    		if ( this.component instanceof IIconic && (imagePosition != null) && (((IIconic)this.component).getImagePosition() != imagePosition) ) 
-    			((IIconic)this.component).setImagePosition(imagePosition);
-        } catch ( @SuppressWarnings("unused") NoClassDefFoundError err) {
-        	// IIconic class does not exist prior Archi version 4.9
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.canvas.IIconic");
+    		Method setImagePositionMethod = iIconicClass.getDeclaredMethod("setImagePosition", int.class);
+
+    		if ( iIconicClass.isInstance(this.component) && (imagePosition != null) )
+    			setImagePositionMethod.invoke(this.component, imagePosition);
+    		
+    		return;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
+        	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
+        }
+    	
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.IIconic");
+    		Method setImagePositionMethod = iIconicClass.getDeclaredMethod("setImagePosition", int.class);
+
+    		if ( iIconicClass.isInstance(this.component) && (imagePosition != null) )
+    			setImagePositionMethod.invoke(this.component, imagePosition);
+    		
+    		return;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
+        	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
         }
     }
 

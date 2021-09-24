@@ -16,7 +16,6 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
@@ -230,7 +229,7 @@ public class DBChecksum {
 		if ( eObject instanceof ITextAlignment )					append(checksumBuilder, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
         if ( eObject instanceof ITextPosition )						append(checksumBuilder, "text position", ((ITextPosition)eObject).getTextPosition());
 		if ( eObject instanceof ITextContent )						append(checksumBuilder, "content", ((ITextContent)eObject).getContent());
-		if ( eObject instanceof IIconic )							append(checksumBuilder, "image position", ((IIconic)eObject).getImagePosition());
+		if ( dbMetadata.getImagePosition() != null ) 				append(checksumBuilder, "image position", dbMetadata.getImagePosition());
 		if ( eObject instanceof INotesContent )						append(checksumBuilder, "notes", ((INotesContent)eObject).getNotes());
 		if ( eObject instanceof IProperties &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&

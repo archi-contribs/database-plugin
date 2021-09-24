@@ -72,7 +72,6 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
-import com.archimatetool.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.editor.diagram.util.DiagramUtils;
 import com.archimatetool.editor.diagram.util.ModelReferencedImage;
@@ -1554,8 +1553,8 @@ public class DBGui {
         if ( memoryObject instanceof ITextContent )
             areIdentical &= addItemToCompareTable(tree, treeItem, "Content", ((ITextContent)memoryObject).getContent(), (String)databaseObject.get("content"));
         
-        if ( memoryObject instanceof IIconic )
-            areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(((IIconic)memoryObject).getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
+        if ( dbMetadata.getImagePosition() != null )
+            areIdentical &= addItemToCompareTable(tree, treeItem, "Image position", String.valueOf(dbMetadata.getImagePosition()), databaseObject.get("image_position")==null ? null : String.valueOf((int)databaseObject.get("image_position")));
         
         if ( memoryObject instanceof INotesContent )
             areIdentical &= addItemToCompareTable(tree, treeItem, "Notes", ((INotesContent)memoryObject).getNotes(), (String)databaseObject.get("notes"));
