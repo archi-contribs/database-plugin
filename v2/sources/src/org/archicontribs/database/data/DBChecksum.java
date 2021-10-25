@@ -16,7 +16,6 @@ import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
-import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.canvas.model.INotesContent;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
@@ -47,6 +46,7 @@ import com.archimatetool.model.IJunction;
 import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.ISketchModel;
@@ -81,6 +81,26 @@ public class DBChecksum {
 		append(checksumBuilder, "name", model.getName());
 		append(checksumBuilder, "purpose", model.getPurpose());
 		append(checksumBuilder, "note", releaseNote);
+		
+		if ( model.getProperties() != null )
+			for ( IProperty prop: model.getProperties() ) {
+				append(checksumBuilder, "property key", prop.getKey());
+				append(checksumBuilder, "property value", prop.getValue());
+			}
+		
+		if ( model.getFeatures() != null )
+			for ( IFeature feature: model.getFeatures() ) {
+				append(checksumBuilder, "feature name", feature.getName());
+				append(checksumBuilder, "feature value", feature.getValue());
+			}
+		
+		if ( model.getProfiles() != null )
+			for ( IProfile profile: model.getProfiles() ) {
+				append(checksumBuilder, "profile id", profile.getId());
+				append(checksumBuilder, "profile name", profile.getName());
+				append(checksumBuilder, "image path", profile.getImagePath());
+				append(checksumBuilder, "concept type", profile.getConceptType());
+			}
 		
 		return calculateChecksum(checksumBuilder);
 	}
@@ -190,15 +210,14 @@ public class DBChecksum {
 																		throw new NullPointerException("No archimate concept linked to the diagram object");
 																	}
 																	append(checksumBuilder, "archimate concept", concept.getId());
-																	}
+		}
 		if ( eObject instanceof IDiagramModelArchimateConnection ) {IArchimateRelationship relationship = ((IDiagramModelArchimateConnection)eObject).getArchimateConcept();
 																	if ( relationship == null ) {
 																		logger.error("No relationship linked to "+metadata.getDebugName());
 																		throw new NullPointerException("No relationship linked to the diagram connection");
 																	}
 																	append(checksumBuilder, "archimate concept", ((IDiagramModelArchimateConnection)eObject).getArchimateConcept().getId());
-																	}
-																	
+		}
 		if ( eObject instanceof IFontAttribute ) {					append(checksumBuilder, "font", ((IFontAttribute)eObject).getFont());
 																	append(checksumBuilder, "font color", ((IFontAttribute)eObject).getFontColor());
 		}
@@ -210,7 +229,7 @@ public class DBChecksum {
 		if ( eObject instanceof ITextAlignment )					append(checksumBuilder, "text alignment", ((ITextAlignment)eObject).getTextAlignment());
         if ( eObject instanceof ITextPosition )						append(checksumBuilder, "text position", ((ITextPosition)eObject).getTextPosition());
 		if ( eObject instanceof ITextContent )						append(checksumBuilder, "content", ((ITextContent)eObject).getContent());
-		if ( eObject instanceof IIconic )							append(checksumBuilder, "image position", ((IIconic)eObject).getImagePosition());
+		if ( dbMetadata.getImagePosition() != null ) 				append(checksumBuilder, "image position", dbMetadata.getImagePosition());
 		if ( eObject instanceof INotesContent )						append(checksumBuilder, "notes", ((INotesContent)eObject).getNotes());
 		if ( eObject instanceof IProperties &&
 		        !(eObject instanceof IDiagramModelArchimateObject) &&
@@ -225,6 +244,11 @@ public class DBChecksum {
 																		append(checksumBuilder, "feature name", feature.getName());
 																		append(checksumBuilder, "feature value", feature.getValue());
 		        													}
+		}
+		if ( eObject instanceof IProfile) {							append(checksumBuilder, "is specialization", ((IProfile)eObject).isSpecialization());
+																	append(checksumBuilder, "image path", ((IProfile)eObject).getImagePath());
+																	append(checksumBuilder, "concept type", ((IProfile)eObject).getConceptType());
+			
 		}
 		
 		return calculateChecksum(checksumBuilder);

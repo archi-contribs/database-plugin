@@ -6,17 +6,20 @@
 
 package org.archicontribs.database.model;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBScreenshot;
 import org.archicontribs.database.data.DBVersion;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
 import com.archimatetool.canvas.model.ICanvasModelBlock;
 import com.archimatetool.canvas.model.ICanvasModelSticky;
-import com.archimatetool.canvas.model.IIconic;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateConcept;
@@ -39,6 +42,8 @@ import com.archimatetool.model.IDiagramModelNote;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IDiagramModelReference;
 import com.archimatetool.model.IDocumentable;
+import com.archimatetool.model.IFeature;
+import com.archimatetool.model.IFeatures;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IFontAttribute;
 import com.archimatetool.model.IIdentifier;
@@ -47,6 +52,10 @@ import com.archimatetool.model.IJunction;
 import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
+import com.archimatetool.model.IProfiles;
+import com.archimatetool.model.IProperties;
+import com.archimatetool.model.IProperty;
 import com.archimatetool.model.ISketchModel;
 import com.archimatetool.model.ITextAlignment;
 import com.archimatetool.model.ITextContent;
@@ -61,7 +70,10 @@ import lombok.Setter;
  * @author Herve Jouin 
  * @see org.archicontribs.database.model.IDBMetadata
  */
+@SuppressWarnings("unused")
 public class DBMetadata  {
+	DBLogger logger = new DBLogger(DBMetadata.class);
+	
     /**
      * Component that contains the DBMetadata<br>
      * This property is set during the component initialization and is used to calculate the component checksum
@@ -623,15 +635,64 @@ public class DBMetadata  {
     }
 
     // ImagePosition
+    // until Archi 4.8, IIconic was defined in com.archimatetool.model.canvas.IIconic;
+    // since Archi 4.9, IIconic is defined in  com.archimatetool.model.IIconic;
     public Integer getImagePosition() {
-        if ( this.component instanceof IIconic ) 
-            return ((IIconic)this.component).getImagePosition();
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.canvas.IIconic");
+    		Method getImagePositionMethod = iIconicClass.getDeclaredMethod("getImagePosition");
+
+    		if ( iIconicClass.isInstance(this.component) )
+    			return (Integer)getImagePositionMethod.invoke(this.component);
+    		
+    		return null;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
+        	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
+        }
+    	
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.IIconic");
+    		Method getImagePositionMethod = iIconicClass.getDeclaredMethod("getImagePosition");
+
+    		if ( iIconicClass.isInstance(this.component) )
+    			return (Integer)getImagePositionMethod.invoke(this.component);
+    		
+    		return null;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
+        	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
+	    }
+    	
         return null;
     }
 
     public void setImagePosition(Integer imagePosition) {
-        if ( this.component instanceof IIconic && (imagePosition != null) && (((IIconic)this.component).getImagePosition() != imagePosition) ) 
-            ((IIconic)this.component).setImagePosition(imagePosition);
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.canvas.IIconic");
+    		Method setImagePositionMethod = iIconicClass.getDeclaredMethod("setImagePosition", int.class);
+
+    		if ( iIconicClass.isInstance(this.component) && (imagePosition != null) )
+    			setImagePositionMethod.invoke(this.component, imagePosition);
+    		
+    		return;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
+        	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
+        }
+    	
+    	try {
+    		Class<?> iIconicClass = Class.forName("com.archimatetool.model.IIconic");
+    		Method setImagePositionMethod = iIconicClass.getDeclaredMethod("setImagePosition", int.class);
+
+    		if ( iIconicClass.isInstance(this.component) && (imagePosition != null) )
+    			setImagePositionMethod.invoke(this.component, imagePosition);
+    		
+    		return;
+        } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
+        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
+        	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
+        }
     }
 
     // LineColor
@@ -917,7 +978,7 @@ public class DBMetadata  {
 	    	try {
 	    		return ((IDiagramModelObject)this.component).getAlpha();
 	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
-	    		// in 4.2, getAlpha() does not exist
+	    		// prior to Archi 4.3, getAlpha() does not exist
 	    	}
 	    	return 255;
     	}
@@ -929,7 +990,7 @@ public class DBMetadata  {
 	    	try {
 	    		((IDiagramModelObject)this.component).setAlpha(alpha.intValue());
 	    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
-	    		// in 4.2, getAlpha() does not exist
+	    		// prior to Archi 4.3, getAlpha() does not exist
 	    	}
     	}
     }
@@ -953,6 +1014,97 @@ public class DBMetadata  {
     public void setDirected(Object directed) {
     	if ( this.component instanceof IAssociationRelationship )
     		((IAssociationRelationship)this.component).setDirected(DBPlugin.getBooleanValue(directed));
+    }
+    
+    public EList<IProperty> getProperties() {
+    	if ( this.component instanceof IProperties )
+    		return ((IProperties)this.component).getProperties();
+    	return null;
+    }
+    
+    public int getNumberOfProperties() {
+    	if ( this.component instanceof IProperties )
+    		return ((IProperties)this.component).getProperties().size();
+    	return 0;
+    }
+    
+    public EList<IFeature> getFeatures() {
+    	if ( this.component instanceof IFeatures )
+    		return ((IFeatures)this.component).getFeatures();
+    	return null;
+    }
+    
+    public int getNumberOfFeatures() {
+    	if ( this.component instanceof IFeatures )
+    		return ((IFeatures)this.component).getFeatures().size();
+    	return 0;
+    }
+    
+    // specializations, from Archi 4.9
+    public EList<IProfile> getProfiles() {
+    	try {
+    		if ( this.component instanceof IProfiles )
+    			return ((IProfiles)this.component).getProfiles();
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getProfiles() does not exist
+    	}
+    	return null;
+    }
+    
+    public IProfile getPrimaryProfile() {
+    	try {
+    		if ( this.component instanceof IProfiles )
+    			return ((IProfiles)this.component).getPrimaryProfile();
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return null;
+    }
+    
+    public String getPrimaryProfileID() {
+    	try {
+    		if ( this.component instanceof IProfiles ) {
+    			IProfile profile = ((IProfiles)this.component).getPrimaryProfile();
+    			if ( profile != null )
+    				return profile.getId();
+    		}
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return null;
+    }
+    
+    public void addProfileId(String profileId) {
+    	if ( profileId == null )
+    		return;
+    	
+    	try {
+    		if ( this.component instanceof IProfiles ) {
+    			DBArchimateModel model = DBArchimateModel.getDBArchimateModel(this.component);
+    			if ( model == null )
+    				return;
+    			EList<IProfile> profiles = ((IProfiles)this.component).getProfiles();
+    			for ( IProfile profile: model.getProfiles() ) {
+    				if ( profile.getId().equals(profileId) ) {
+    					profiles.add(profile);
+    					return;
+    				}
+    			}
+    		}
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return;
+    }
+    
+    public int getNumberOfProfiles() {
+    	try {
+    		if ( this.component instanceof IProfiles )
+    			return ((IProfiles)this.component).getProfiles().size();
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getProfiles() does not exist
+    	}
+    	return 0;
     }
     
 	/**

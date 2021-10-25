@@ -19,10 +19,12 @@ import com.archimatetool.model.impl.ArchimateFactory;
  * @see org.archicontribs.database.model.IDBMetadata
  */
 public class DBArchimateFactory extends ArchimateFactory {
-	final int PHYSICAL_SERVER = 240;
 	static DBLogger logger = new DBLogger(DBArchimateFactory.class);
 	static boolean ignoreNext = false;
 	
+	/**
+	 * Instance of the DBArchimateFactory class
+	 */
 	@SuppressWarnings("hiding")
 	public static DBArchimateFactory eINSTANCE = init();
 	

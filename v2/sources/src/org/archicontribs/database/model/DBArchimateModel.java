@@ -45,6 +45,7 @@ import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.ModelVersion;
 import lombok.Getter;
 import lombok.Setter;
@@ -67,6 +68,30 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         super();
         if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
         super.setVersion(ModelVersion.VERSION);
+    }
+    
+    /**
+     * Creates a new {@link DBArchimateModel} that extends an {@link com.archimatetool.model.impl.ArchimateModel ArchimateModel}. 
+     * @param modelId 
+     */
+    public DBArchimateModel(String modelId) {
+        super();
+        if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
+        super.setVersion(ModelVersion.VERSION);
+        super.setId(modelId);
+    }
+    
+    /**
+     * Creates a new {@link DBArchimateModel} that extends an {@link com.archimatetool.model.impl.ArchimateModel ArchimateModel}. 
+     * @param modelId 
+     * @param modelVersion 
+     */
+    public DBArchimateModel(String modelId, int modelVersion) {
+        super();
+        if ( logger.isDebugEnabled() ) logger.debug("Creating new ArchimateModel");
+        super.setVersion(ModelVersion.VERSION);
+        super.setId(modelId);
+        this.getInitialVersion().setVersion(modelVersion);
     }
 
     /**
@@ -178,6 +203,15 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * We use LinkedHashMap as the order is important
      */
     @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
+    
+    /**
+     * List of all profiles in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method.
+     * <br>
+     * We use LinkedHashMap as the order is important
+    */
+    @Getter private Map<String, IProfile> allProfiles = new LinkedHashMap<String, IProfile>();
 
     /**
      * List of the source relationships that have been imported but not yet created.
@@ -232,7 +266,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * @return the list of all the image paths in the model.
      */
-    public List<String> getAllImagePaths() {
+    public Set<String> getAllImagePaths() {
         return ((IArchiveManager)getAdapter(IArchiveManager.class)).getLoadedImagePaths();
     }
 
@@ -250,7 +284,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Resets the counters of components in the model
      */
     public void resetCounters() {
-        if ( logger.isDebugEnabled() ) logger.debug("Reseting model's counters.");
+        if ( logger.isDebugEnabled() ) logger.debug("   Reseting model's counters.");
 
         this.allSourceRelationshipsToResolve.clear();
         this.allTargetRelationshipsToResolve.clear();
@@ -326,8 +360,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         try {
         	for (IFolder folder: getFolders())
         		countObject(folder, true);
+        	for ( IProfile profile: getProfiles() )
+        		countObject(profile, true);
         } catch (@SuppressWarnings("unused") NullPointerException err)  {
-        	// in case the NullPointerException is propagated here, then it means that an object has been deleted from the model, so we need to re-count all the objects
+        	// in case the NullPointerException is propagated here, then it means that the model was inconsistent and the user has hosen to delete the relationship or connection, so we need to re-count all the objects
         	countAllObjects();
         }
     }
@@ -503,6 +539,10 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										                if ( mustCalculateChecksum ) checksumBuilder.append(((IIdentifier)child).getId());
 										            }
 										            break;
+			
+			case "Profile":							this.allProfiles.put(((IProfile)eObject).getId(), (IProfile)eObject);
+													break;
+													
             case "Property":
             case "Bounds":
             case "Metadata":
@@ -546,6 +586,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that an element has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedElement(String oldId, String newId) {
    		this.allCopiedElements.put(oldId, newId);
@@ -553,6 +595,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied element
+     * @param oldId 
      * @return the Id of the copied element, or the Id of the element itself if it has not been copied
      */
     public String getNewElementId(String oldId) {
@@ -561,6 +604,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a relationship has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedRelationship(String oldId, String newId) {
    		this.allCopiedRelationships.put(oldId, newId);
@@ -568,6 +613,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied relationship
+     * @param oldId 
      * @return the Id of the copied relationship, or the Id of the relationship itself if it has not been copied
      */
     public String getNewRelationshipId(String oldId) {
@@ -576,6 +622,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedView(String oldId, String newId) {
   		this.allCopiedView.put(oldId, newId);
@@ -583,6 +631,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewId(String oldId) {
@@ -591,6 +640,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view object has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedViewObject(String oldId, String newId) {
   		this.allCopiedViewObjects.put(oldId, newId);
@@ -598,6 +649,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewObjectId(String oldId) {
@@ -606,6 +658,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * register that a view connection has been copied during the import process. So we keep the its old and new ID.
+     * @param oldId 
+     * @param newId 
      */
     public void registerCopiedViewConnection(String oldId, String newId) {
    		this.allCopiedViewConnections.put(oldId, newId);
@@ -613,6 +667,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     
     /**
      * Get the ID of the copied view object
+     * @param oldId 
      * @return the Id of the copied view object, or the Id of the view object itself if it has not been copied
      */
     public String getNewViewConnectionId(String oldId) {
@@ -699,17 +754,33 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     }
     
 
-
+    
+    /**
+     * Register a source connection that will have to be resolved later on. This is necessary because when the connection is imported, its source may not be imported yet
+     * @param connection
+     * @param sourceId
+     * @throws Exception
+     */
     public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
         if ( (sourceId != null) && (sourceId.length() != 0) )
         	this.allSourceConnectionsToResolve.put(connection, sourceId);
     }
 
+    /**
+     * Register a target connection that will have to be resolved later on. This is necessary because when the connection is imported, its target may not be imported yet
+     * @param connection
+     * @param targetId 
+     * @throws Exception
+     */
     public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
         if ( (targetId != null) && (targetId.length() != 0) )
         	this.allTargetConnectionsToResolve.put(connection, targetId);
     }
 
+    /**
+     * Resolve the sources and targets of all connections in the model
+     * @throws Exception
+     */
     public void resolveSourceAndTargetConnections() throws Exception {
         logger.info("Resolving source connections.");
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsToResolve.entrySet() ) {
