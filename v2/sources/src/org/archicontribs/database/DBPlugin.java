@@ -32,14 +32,20 @@ import lombok.Getter;
  * The DBPlugin class implements static methods and properties used everywhere else in the database plugin. 
  * 
  * @author Herve Jouin
- *
- * v4.9.0	22/09/2021	Change plugin version numbering to match Archi version
+ * 
+ * v4.8.1   22/09/2021  fix coherence checking
+ *                      change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
+ *                                  
+ * v4.8.2	22/09/2021	fix exception raised when model purpose is null rather than an empty string
+ * 
+ * -----------------------------------------------------------------------------------------
+ * 
+ * v4.9.0a	22/09/2021	Change plugin version numbering to match Archi version
  * 						Adapt plugin to Archi 4.9, especially specialization
  * 
- * v4.8.1   22/09/2021              fix coherence checking
- *                                  change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
- *                                  
- * v4.8.2	22/09/2021				fix exception raised when model purpose is null rather than an empty string                                 
+ * v4.9.0b	26/10/2021	Fix database model update
+ * 
+ * -----------------------------------------------------------------------------------------
  * 
  * TO-DO list:
  * ----------

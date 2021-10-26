@@ -1187,20 +1187,70 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 		
 		// convert from version 212 to 213
-		//      - rename "rank" column to "pos" in all tables
+		//      - rename "rank" column to "pos" in all tables where required
 		//      - change "strength" column from varchar(20) to blob
 		if ( dbVersion == 212 ) {
 			if ( logger.isDebugEnabled() ) logger.debug("Renaming \"rank\" column to \"pos\" in all tables.");
-			renameColumn(this.schemaPrefix+"properties", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"metadata", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"features", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"elements_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"relationships_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"folders_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_objects_in_view", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_connections_in_view", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"bendpoints", "rank", "pos", integerColumn.getType());
+			try {
+				renameColumn(this.schemaPrefix+"properties", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in properties table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   properties table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"metadata", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in metadata table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   metadata table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"features", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in features table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   features table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"elements_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in elements_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   elements_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"relationships_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in relationships_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   relationships_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"folders_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in folders_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   folders_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_objects_in_view", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_objects_in_view table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_objects_in_view table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_connections_in_view", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_connections_in_view table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_connections_in_view table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"bendpoints", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in bendpoints table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   bendpoints table unmodified");
+			}
 			
 			if ( logger.isDebugEnabled() ) logger.debug("Changing strength column of relationships table from varchr(20) to clob.");
 			renameColumn(this.schemaPrefix+"relationships", "strength", "old_strength", strengthColumn.getType());
