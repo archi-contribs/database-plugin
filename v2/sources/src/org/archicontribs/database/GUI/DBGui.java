@@ -6,7 +6,6 @@
 
 package org.archicontribs.database.GUI;
 
-import java.awt.HeadlessException;
 import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
@@ -243,16 +242,6 @@ public class DBGui {
         this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
         this.dialog.setMinimumSize(800, 700);
         this.dialog.setSize(1024, 700);
-        
-        int scaleFactor = 1;
-        try {
-        	if ( (Toolkit.getDefaultToolkit().getScreenResolution() != 0) && (this.dialog.getDisplay().getDPI() != null) && (this.dialog.getDisplay().getDPI().x != 0) )
-        		scaleFactor = Toolkit.getDefaultToolkit().getScreenResolution() / this.dialog.getDisplay().getDPI().x;
-        } catch ( @SuppressWarnings("unused") HeadlessException ign) {
-        	// nothing to do
-        }
-        if ( scaleFactor == 0 )
-        	scaleFactor = 1;		// just in case
 
         // Use the active shell, if available, to determine the new shell placing
         int locationX = 0;
@@ -263,10 +252,8 @@ public class DBGui {
 	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
 	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
         } else {
-	        locationX = ((Toolkit.getDefaultToolkit().getScreenSize().width / scaleFactor) - this.dialog.getSize().x) / 2;
-	        //locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2;
-	        locationY = ((Toolkit.getDefaultToolkit().getScreenSize().height / scaleFactor) - this.dialog.getSize().y) / 2;
-	        //locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2;
+	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2;
+	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2;
         }
         this.dialog.setLocation(new Point(locationX, locationY));
 		        
