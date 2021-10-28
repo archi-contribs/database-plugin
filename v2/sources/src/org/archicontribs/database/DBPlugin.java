@@ -44,6 +44,7 @@ import lombok.Getter;
  * 						Adapt plugin to Archi 4.9, especially specialization
  * 
  * v4.9.0b	26/10/2021	Fix database model update
+ * 						fix SQL Server exception caused by missing column in GROUP BY clause
  * 
  * -----------------------------------------------------------------------------------------
  * 

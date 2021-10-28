@@ -2231,6 +2231,7 @@ public class DBGuiImportComponents extends DBGui {
 									StringBuilder folderPathBuilder = new StringBuilder();
 									while ( !isRootFolder ) {
 										try (DBSelect subResult = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) AND fim.folder_id = ?", id, id, folderId) ) {
+											subResult.next();
 											if ( folderPathBuilder.length() == 0 )
 												folderPathBuilder.append(subResult.getString("name"));
 											else {
