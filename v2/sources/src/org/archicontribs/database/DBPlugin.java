@@ -46,6 +46,7 @@ import lombok.Getter;
  * v4.9.0b	26/10/2021	Fix database model update
  * 						fix SQL Server exception caused by missing column in GROUP BY clause
  * 						Fix folder when import individual component
+ * 						Fix import and export windows default location
  * 
  * -----------------------------------------------------------------------------------------
  * 

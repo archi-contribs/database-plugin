@@ -243,20 +243,15 @@ public class DBGui {
         this.dialog.setMinimumSize(800, 700);
         this.dialog.setSize(1024, 700);
 
-        // Use the active shell, if available, to determine the new shell placing
-        int locationX = 0;
-        int locationY = 0;
+        // Calculate the shell position
+        Rectangle screenSize = this.dialog.getDisplay().getBounds();
         Rectangle shellSize = this.dialog.getBounds();
-        if (this.parentDialog!=null) { 
-	        Rectangle parentSize = this.parentDialog.getBounds();
-	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
-	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
-        } else {
-	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - this.dialog.getSize().x) / 2;
-	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - this.dialog.getSize().y) / 2;
-        }
+        
+        int locationX = (screenSize.width - shellSize.width)/2;
+        int locationY = (screenSize.height - shellSize.height)/2;
+        
         this.dialog.setLocation(new Point(locationX, locationY));
-		        
+        
         this.dialog.setLayout(new FormLayout());
 
         /**
