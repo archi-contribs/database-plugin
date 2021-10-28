@@ -232,9 +232,11 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
     			}
 			}
 
-			if ( this.newFolder == null )
-				metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedElement));
-			else
+			if ( this.newFolder == null ) {
+				if ( this.oldFolder == null)
+					metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedElement));
+				// else we keep the existing folder 
+			} else
 				metadata.setParentFolder(this.newFolder);
 
 			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
