@@ -22,6 +22,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.ModelVersion;
 
 import lombok.Getter;
 
@@ -47,6 +48,7 @@ import lombok.Getter;
  * 						fix SQL Server exception caused by missing column in GROUP BY clause
  * 						Fix folder when import individual component
  * 						Fix import and export windows default location
+ * 						Add Options tab in preference page to reduce window size
  * 
  * -----------------------------------------------------------------------------------------
  * 
@@ -237,6 +239,7 @@ public class DBPlugin extends AbstractUIPlugin {
 			if ( logger.isDebugEnabled() ) {
 				logger.debug("Plugin's package  = "+pluginsPackage);
 				logger.debug("Plugin's version  = "+pluginVersion.toString());
+				logger.debug("Archi's version   = "+ModelVersion.VERSION);
 				logger.debug("Plugin's folder   = "+pluginsFolder);
 				logger.debug("Plugin's filename = "+pluginsFilename);
 			}

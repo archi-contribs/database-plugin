@@ -75,7 +75,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnRemoveDirtyFlag;
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
-	private Button btnShoIdInContextMenu;
+	private Button btnShowIdInContextMenu;
 	private Text txtCopySuffix;
 	private Button btnTemplateImportMode;
 	private Button btnSharedImportMode;
@@ -110,9 +110,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
 		this.tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
 		
-		// ******************************** */
-		// * Behaviour tab **************** */
-		// ******************************** */
+		// ********************************
+		// * Behaviour tab ****************
+		// ********************************
 		Composite behaviourComposite = new Composite(this.tabFolder, SWT.NULL);
         RowLayout rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
@@ -121,6 +121,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         rowLayout.marginBottom = 5;
         rowLayout.justify = false;
         rowLayout.fill = false;
+
         behaviourComposite.setLayoutData(rowLayout);
         behaviourComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
@@ -182,155 +183,11 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         
 		this.table = new DBDatabaseEntryTableEditor("databases", "", behaviourComposite);
 		addField(this.table);
-		
-		Group grpMiscellaneous = new Group(behaviourComposite, SWT.NONE);
-		grpMiscellaneous.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		grpMiscellaneous.setText("Miscellaneous:");
-		grpMiscellaneous.setLayout(new FormLayout());
-		
-		gd = new GridData();
-		gd.horizontalAlignment = GridData.FILL;
-		gd.grabExcessHorizontalSpace = true;
-		grpMiscellaneous.setLayoutData(gd);
-
-
-		this.btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnExportWithDefaultValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnExportWithDefaultValues.setText("Automatically start to export to default database");
-		this.btnExportWithDefaultValues.setSelection(preferenceStore.getBoolean("exportWithDefaultValues"));
-		fd = new FormData();
-		fd.top = new FormAttachment(0, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnExportWithDefaultValues.setLayoutData(fd);		
-		
-		this.btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnCloseIfSuccessful.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
-		this.btnCloseIfSuccessful.setSelection(preferenceStore.getBoolean("closeIfSuccessful"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnExportWithDefaultValues, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnCloseIfSuccessful.setLayoutData(fd);
-		
-		this.btnShowZeroValues = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnShowZeroValues.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnShowZeroValues.setText("Show zero values on import and export windows");
-		this.btnShowZeroValues.setSelection(preferenceStore.getBoolean("showZeroValues"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCloseIfSuccessful, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnShowZeroValues.setLayoutData(fd);
-		
-		this.btnCheckMaxMemoryAtStartup = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnCheckMaxMemoryAtStartup.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnCheckMaxMemoryAtStartup.setText("Check max memory available at startup");
-		this.btnCheckMaxMemoryAtStartup.setSelection(preferenceStore.getBoolean("checkMaxMemory"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnShowZeroValues, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnCheckMaxMemoryAtStartup.setLayoutData(fd);
-		
-		this.btnCheckNotNullConstraintInDatabase = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnCheckNotNullConstraintInDatabase.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnCheckNotNullConstraintInDatabase.setText("Check for NOT NULL constraints while checking database structure");
-		this.btnCheckNotNullConstraintInDatabase.setSelection(preferenceStore.getBoolean("checkNotNullConstraints"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCheckMaxMemoryAtStartup, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnCheckNotNullConstraintInDatabase.setLayoutData(fd);
-		
-		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnRemoveDirtyFlag.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
-		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCheckNotNullConstraintInDatabase, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnRemoveDirtyFlag.setLayoutData(fd);
-		
-	    this.btnCompareToDatabaseBeforeExport = new Button(grpMiscellaneous, SWT.CHECK);
-        this.btnCompareToDatabaseBeforeExport.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-        this.btnCompareToDatabaseBeforeExport.setText("Compare model to the database before export");
-        this.btnCompareToDatabaseBeforeExport.setSelection(preferenceStore.getBoolean("compareBeforeExport"));
-        fd = new FormData();
-        fd.top = new FormAttachment(this.btnRemoveDirtyFlag, 5);
-        fd.left = new FormAttachment(0, 10);
-        this.btnCompareToDatabaseBeforeExport.setLayoutData(fd);
-		
-		this.btnKeepPartiallyImportedModel = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnKeepPartiallyImportedModel.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnKeepPartiallyImportedModel.setText("Keep partially imported model in case of error");
-		this.btnKeepPartiallyImportedModel.setSelection(!preferenceStore.getBoolean("deleteIfImportError"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnCompareToDatabaseBeforeExport, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnKeepPartiallyImportedModel.setLayoutData(fd);
-		
-		this.btnShoIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
-		this.btnShoIdInContextMenu.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnShoIdInContextMenu.setText("Show debugging information in context menu");
-		this.btnShoIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnKeepPartiallyImportedModel, 5);
-		fd.left = new FormAttachment(0, 10);
-		this.btnShoIdInContextMenu.setLayoutData(fd);
-		
-		Label lblCopySuffix = new Label(grpMiscellaneous, SWT.NONE);
-		lblCopySuffix.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		lblCopySuffix.setText("Append suffix when import component in copy mode:");
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnShoIdInContextMenu, 5);
-		fd.left = new FormAttachment(0, 10);
-		lblCopySuffix.setLayoutData(fd);
-		
-		this.txtCopySuffix = new Text(grpMiscellaneous, SWT.BORDER);
-		this.txtCopySuffix.setText(preferenceStore.getString("copySuffix"));
-		fd = new FormData();
-		fd.top = new FormAttachment(lblCopySuffix, -3, SWT.TOP);
-		fd.bottom = new FormAttachment(lblCopySuffix, 3, SWT.BOTTOM);
-		fd.left = new FormAttachment(lblCopySuffix, 10);
-		fd.right = new FormAttachment(lblCopySuffix, 150, SWT.RIGHT);
-		this.txtCopySuffix.setLayoutData(fd);
-		
+        
 		Group grpHelp = new Group(behaviourComposite, SWT.NONE);
         grpHelp.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
         grpHelp.setLayout(new FormLayout());
         grpHelp.setText("Online help: ");
-        
-        Label lblDefaultImportMode = new Label(grpMiscellaneous, SWT.NONE);
-        lblDefaultImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-        lblDefaultImportMode.setText("Default components import mode:");
-		fd = new FormData();
-		fd.top = new FormAttachment(lblCopySuffix, 5);
-		fd.left = new FormAttachment(0, 10);
-		lblDefaultImportMode.setLayoutData(fd);
-		
-		this.btnTemplateImportMode = new Button(grpMiscellaneous, SWT.RADIO);
-		this.btnTemplateImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnTemplateImportMode.setText("Template mode");
-		this.btnTemplateImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("template"));
-		fd = new FormData();
-		fd.top = new FormAttachment(lblDefaultImportMode, 0, SWT.CENTER);
-		fd.left = new FormAttachment(lblDefaultImportMode, 30);
-		this.btnTemplateImportMode.setLayoutData(fd);
-		
-		this.btnSharedImportMode = new Button(grpMiscellaneous, SWT.RADIO);
-		this.btnSharedImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnSharedImportMode.setText("Force shared mode");
-		this.btnSharedImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("shared"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnTemplateImportMode, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.btnTemplateImportMode, 10);
-		this.btnSharedImportMode.setLayoutData(fd);
-		
-		this.btnCopyImportMode = new Button(grpMiscellaneous, SWT.RADIO);
-		this.btnCopyImportMode.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
-		this.btnCopyImportMode.setText("Force copy mode");
-		this.btnCopyImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("copy"));
-		fd = new FormData();
-		fd.top = new FormAttachment(this.btnSharedImportMode, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.btnSharedImportMode, 10);
-		this.btnCopyImportMode.setLayoutData(fd);
         
         gd = new GridData();
         //gd.heightHint = 40;
@@ -374,6 +231,166 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         fd.top = new FormAttachment(helpLbl1, 5);
         fd.left = new FormAttachment(btnHelp, 10);
         helpLbl2.setLayoutData(fd);
+        
+		// ********************************
+		// * Options tab ******************
+		// ********************************
+        Composite optionsComposite = new Composite(this.tabFolder, SWT.NONE);
+        optionsComposite.setLayout(new FormLayout());
+        optionsComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        
+        TabItem optionsTabItem = new TabItem(this.tabFolder, SWT.NONE);
+        optionsTabItem.setText("  Options  ");
+        optionsTabItem.setControl(optionsComposite);
+        
+        Group grpMiscellaneous = new Group(optionsComposite, SWT.NONE);
+        grpMiscellaneous.setLayout(new FormLayout());
+    	fd = new FormData();
+		fd.top = new FormAttachment(0, 10);
+		fd.left = new FormAttachment(0, 10);
+		fd.right = new FormAttachment(100, -10);
+		fd.bottom = new FormAttachment(100, -10);
+    	grpMiscellaneous.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		
+    	//optionsComposite.pack();
+		//grpMiscellaneous.setVisible(true);
+		//grpMiscellaneous.setSize(optionsComposite.getSize());
+		//grpMiscellaneous.setLayout(new FormLayout());
+
+		this.btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnExportWithDefaultValues.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnExportWithDefaultValues.setText("Automatically start to export to default database");
+		this.btnExportWithDefaultValues.setSelection(preferenceStore.getBoolean("exportWithDefaultValues"));
+		fd = new FormData();
+		fd.top = new FormAttachment(0, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnExportWithDefaultValues.setLayoutData(fd);		
+		
+		this.btnCloseIfSuccessful = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCloseIfSuccessful.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnCloseIfSuccessful.setText("Automatically close import and export windows on success");
+		this.btnCloseIfSuccessful.setSelection(preferenceStore.getBoolean("closeIfSuccessful"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnExportWithDefaultValues, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnCloseIfSuccessful.setLayoutData(fd);
+		
+		this.btnShowZeroValues = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShowZeroValues.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnShowZeroValues.setText("Show zero values on import and export windows");
+		this.btnShowZeroValues.setSelection(preferenceStore.getBoolean("showZeroValues"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCloseIfSuccessful, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnShowZeroValues.setLayoutData(fd);
+		
+		this.btnCheckMaxMemoryAtStartup = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCheckMaxMemoryAtStartup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnCheckMaxMemoryAtStartup.setText("Check max memory available at startup");
+		this.btnCheckMaxMemoryAtStartup.setSelection(preferenceStore.getBoolean("checkMaxMemory"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnShowZeroValues, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnCheckMaxMemoryAtStartup.setLayoutData(fd);
+		
+		this.btnCheckNotNullConstraintInDatabase = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnCheckNotNullConstraintInDatabase.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnCheckNotNullConstraintInDatabase.setText("Check for NOT NULL constraints while checking database structure");
+		this.btnCheckNotNullConstraintInDatabase.setSelection(preferenceStore.getBoolean("checkNotNullConstraints"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCheckMaxMemoryAtStartup, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnCheckNotNullConstraintInDatabase.setLayoutData(fd);
+		
+		this.btnRemoveDirtyFlag = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnRemoveDirtyFlag.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnRemoveDirtyFlag.setText("Remove model's dirty flag after successful export");
+		this.btnRemoveDirtyFlag.setSelection(preferenceStore.getBoolean("removeDirtyFlag"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCheckNotNullConstraintInDatabase, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnRemoveDirtyFlag.setLayoutData(fd);
+		
+	    this.btnCompareToDatabaseBeforeExport = new Button(grpMiscellaneous, SWT.CHECK);
+        this.btnCompareToDatabaseBeforeExport.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        this.btnCompareToDatabaseBeforeExport.setText("Compare model to the database before export");
+        this.btnCompareToDatabaseBeforeExport.setSelection(preferenceStore.getBoolean("compareBeforeExport"));
+        fd = new FormData();
+        fd.top = new FormAttachment(this.btnRemoveDirtyFlag, 5);
+        fd.left = new FormAttachment(0, 10);
+        this.btnCompareToDatabaseBeforeExport.setLayoutData(fd);
+		
+		this.btnKeepPartiallyImportedModel = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnKeepPartiallyImportedModel.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnKeepPartiallyImportedModel.setText("Keep partially imported model in case of error");
+		this.btnKeepPartiallyImportedModel.setSelection(!preferenceStore.getBoolean("deleteIfImportError"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnCompareToDatabaseBeforeExport, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnKeepPartiallyImportedModel.setLayoutData(fd);
+		
+		this.btnShowIdInContextMenu = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShowIdInContextMenu.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnShowIdInContextMenu.setText("Show debugging information in context menu");
+		this.btnShowIdInContextMenu.setSelection(preferenceStore.getBoolean("showIdInContextMenu"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnKeepPartiallyImportedModel, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnShowIdInContextMenu.setLayoutData(fd);
+		
+		Label lblCopySuffix = new Label(grpMiscellaneous, SWT.NONE);
+		lblCopySuffix.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		lblCopySuffix.setText("Append suffix when import component in copy mode:");
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
+		fd.left = new FormAttachment(0, 10);
+		lblCopySuffix.setLayoutData(fd);
+		
+		this.txtCopySuffix = new Text(grpMiscellaneous, SWT.BORDER);
+		this.txtCopySuffix.setText(preferenceStore.getString("copySuffix"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblCopySuffix, -3, SWT.TOP);
+		fd.bottom = new FormAttachment(lblCopySuffix, 3, SWT.BOTTOM);
+		fd.left = new FormAttachment(lblCopySuffix, 10);
+		fd.right = new FormAttachment(lblCopySuffix, 150, SWT.RIGHT);
+		this.txtCopySuffix.setLayoutData(fd);
+        
+        Label lblDefaultImportMode = new Label(grpMiscellaneous, SWT.NONE);
+        lblDefaultImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        lblDefaultImportMode.setText("Default components import mode:");
+		fd = new FormData();
+		fd.top = new FormAttachment(lblCopySuffix, 5);
+		fd.left = new FormAttachment(0, 10);
+		lblDefaultImportMode.setLayoutData(fd);
+		
+		this.btnTemplateImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnTemplateImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnTemplateImportMode.setText("Template mode");
+		this.btnTemplateImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("template"));
+		fd = new FormData();
+		fd.top = new FormAttachment(lblDefaultImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(lblDefaultImportMode, 30);
+		this.btnTemplateImportMode.setLayoutData(fd);
+		
+		this.btnSharedImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnSharedImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnSharedImportMode.setText("Force shared mode");
+		this.btnSharedImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("shared"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnTemplateImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.btnTemplateImportMode, 10);
+		this.btnSharedImportMode.setLayoutData(fd);
+		
+		this.btnCopyImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		this.btnCopyImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnCopyImportMode.setText("Force copy mode");
+		this.btnCopyImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("copy"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnSharedImportMode, 0, SWT.CENTER);
+		fd.left = new FormAttachment(this.btnSharedImportMode, 10);
+		this.btnCopyImportMode.setLayoutData(fd);
+		
+		grpMiscellaneous.layout(true);
 		
 		// ********************************* */
 		// * Logger tab  ******************* */
@@ -433,9 +450,10 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         addField(this.expertTextFieldEditor);
         
         // We activate the Eclipse Help framework
-       PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
-       PlatformUI.getWorkbench().getHelpSystem().setHelp(behaviourComposite, HELP_ID);
-       PlatformUI.getWorkbench().getHelpSystem().setHelp(this.loggerComposite, HELP_ID);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(getFieldEditorParent().getParent(), HELP_ID);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(behaviourComposite, HELP_ID);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(optionsComposite, HELP_ID);
+		PlatformUI.getWorkbench().getHelpSystem().setHelp(this.loggerComposite, HELP_ID);
        
 
         showLogger();
@@ -507,7 +525,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("removeDirtyFlag", this.btnRemoveDirtyFlag.getSelection());
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
-    	preferenceStore.setValue("showIdInContextMenu", this.btnShoIdInContextMenu.getSelection());
+    	preferenceStore.setValue("showIdInContextMenu", this.btnShowIdInContextMenu.getSelection());
     	preferenceStore.setValue("copySuffix", this.txtCopySuffix.getText());
     	preferenceStore.setValue("defaultImportMode", this.btnTemplateImportMode.getSelection() ? "template" : (this.btnSharedImportMode.getSelection() ? "shared" : "copy"));
     	
