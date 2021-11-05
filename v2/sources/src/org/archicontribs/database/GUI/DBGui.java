@@ -54,6 +54,7 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -226,29 +227,27 @@ public class DBGui {
 		DBGuiUtils.setWaitCursor();
 
 		this.parentDialog = display.getActiveShell();
+		Rectangle parentBounds = this.parentDialog.getBounds();
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
-		this.dialog.setMinimumSize(800, 700);
-		this.dialog.setSize(1024, 700);
+		this.dialog.setMinimumSize(1024, 768);
+		this.dialog.setSize(1280, 850);
+		
+		// in case the monitor is smaller than 1280x850 (which may be the case on some laptops)
+		Monitor[] monitors = display.getMonitors();
+		
+		for (int i = 0; i < monitors.length; i++) {
+			Rectangle monitorBounds = monitors[i].getBounds();
+		    if (monitorBounds.intersects(parentBounds))
+		    	this.dialog.setSize(Math.min(monitorBounds.width, 1280), Math.min(monitorBounds.height, 850));
+		}
 
-		// Calculate the shell position
-		Rectangle screenSize = this.dialog.getDisplay().getBounds();
-		Rectangle shellSize = this.dialog.getBounds();
-
-		int locationX = (screenSize.width - shellSize.width)/2;
-		int locationY = (screenSize.height - shellSize.height)/2;
+		int locationX = parentBounds.x + (parentBounds.width - this.dialog.getSize().x)/2;
+		int locationY = parentBounds.y + (parentBounds.height - this.dialog.getSize().y)/2;
 
 		this.dialog.setLocation(new Point(locationX, locationY));
 
 		this.dialog.setLayout(new FormLayout());
-
-		/**
-		 * Calculate the default height of a Label widget
-		 */
-		Label label = new Label(this.dialog, SWT.NONE);
-		label.setText("Test");
-		this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-		label.dispose();
 
 		this.dialog.addListener(SWT.Close, new Listener()
 		{
@@ -282,7 +281,7 @@ public class DBGui {
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(0);
 		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(0, 160);
+		fd.right = new FormAttachment(0, 210);
 		fd.bottom = new FormAttachment(100, -40);
 		this.compoLeft.setLayoutData(fd);
 		this.compoLeft.setLayout(new FormLayout());
@@ -402,7 +401,7 @@ public class DBGui {
 		this.compoRightTop.setBackground(COMPO_BACKGROUND_COLOR);
 		FormData fd_compoRightUp = new FormData();
 		fd_compoRightUp.top = new FormAttachment(0, 10);
-		fd_compoRightUp.bottom = new FormAttachment(0, 70);
+		fd_compoRightUp.bottom = new FormAttachment(0, 100);
 		fd_compoRightUp.left = new FormAttachment(0, 10);
 		fd_compoRightUp.right = new FormAttachment(100, -10);
 		this.compoRightTop.setLayoutData(fd_compoRightUp);
