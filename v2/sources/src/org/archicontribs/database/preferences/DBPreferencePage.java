@@ -153,7 +153,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		versionValue.setLayoutData(fd);
 		
 		Button checkUpdateButton = new Button(grpVersion, SWT.NONE);
-		//checkUpdateButton.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		checkUpdateButton.setText("Check for update");
 		fd = new FormData();
 		fd.top = new FormAttachment(versionValue, -3, SWT.TOP);
@@ -172,6 +171,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.btnCheckForUpdateAtStartupButton.setText("Automatically check for update at startup");
 		fd = new FormData();
 		fd.top = new FormAttachment(versionLbl, 5);
+		fd.bottom = new FormAttachment(100, -3);
 		fd.left = new FormAttachment(0, 10);
 		this.btnCheckForUpdateAtStartupButton.setLayoutData(fd);
 		this.btnCheckForUpdateAtStartupButton.setSelection(preferenceStore.getBoolean("checkForUpdateAtStartup"));
@@ -252,11 +252,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.right = new FormAttachment(100, -10);
 		fd.bottom = new FormAttachment(100, -10);
     	grpMiscellaneous.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
-		
-    	//optionsComposite.pack();
-		//grpMiscellaneous.setVisible(true);
-		//grpMiscellaneous.setSize(optionsComposite.getSize());
-		//grpMiscellaneous.setLayout(new FormLayout());
 
 		this.btnExportWithDefaultValues = new Button(grpMiscellaneous, SWT.CHECK);
 		this.btnExportWithDefaultValues.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
@@ -425,7 +420,6 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	this.simpleModeGroup = new Group(this.loggerComposite, SWT.NONE);
     	this.simpleModeGroup.setLayout(new GridLayout());
     	gd = new GridData(GridData.FILL_HORIZONTAL);
-        //gd.widthHint = 300;
         this.simpleModeGroup.setLayoutData(gd);
         this.simpleModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
