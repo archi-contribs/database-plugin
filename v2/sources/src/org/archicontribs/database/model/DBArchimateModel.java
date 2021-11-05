@@ -10,6 +10,7 @@ import java.io.UnsupportedEncodingException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -17,9 +18,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
@@ -153,7 +155,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all elements in the model.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
@@ -162,7 +164,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all relationships in the model.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
@@ -171,7 +173,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all views in the model.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
@@ -180,7 +182,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all objects in the model views.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
@@ -189,7 +191,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all connections in the model views.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
@@ -198,16 +200,27 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * List of all folders in the model.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
      */
     @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
     
     /**
+     * List of all faulty eObjects found in the model.<br>
+     * <br>
+     * Set by the @countAllObjects method when calculateChecksum throws a nullPointerException.<br>
+     * <br>
+     * At the moment, Faulty objects can be either relationships or connections without source or target<br>
+     * <br>
+     * We use HaspMap as the order is not important
+     */
+    @Getter private Map<EObject, String> allFaultyObjects = new HashMap<EObject, String>();
+    
+    /**
      * List of all profiles in the model.<br>
      * <br>
-     * Set by the @countAllObjects method.
+     * Set by the @countAllObjects method<br>
      * <br>
      * We use LinkedHashMap as the order is important
     */
@@ -297,6 +310,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         this.allViewConnections.clear();
         this.allFolders.clear();
         this.allConflicts.clear();
+        this.allFaultyObjects.clear();
     }
 
     /**
@@ -331,15 +345,29 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 
         return null;
     }
-
+    
     /**
      * Counts the number of objects in the model.<br>
      * At the same time, we calculate the current checksums
      * @throws NoSuchAlgorithmException 
      * @throws UnsupportedEncodingException 
-     * @throws Exception 
+     * @throws Exception
+     * @return true if all components have been counted, or false if inconstancy has been detected
      */
-    public void countAllObjects() throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
+    public boolean countAllObjects() throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
+    	return countAllObjects(true);
+    }
+
+    /**
+     * Counts the number of objects in the model.<br>
+     * At the same time, we calculate the current checksums
+     * @param deleteFaultyComponents true if the method should ask the user which faulty component he wishes to delete, false if the faulty components are all kept
+     * @throws NoSuchAlgorithmException 
+     * @throws UnsupportedEncodingException 
+     * @throws Exception
+     * @return true if all components have been counted, or false if inconstancy has been detected
+     */
+    public boolean countAllObjects(boolean deleteFaultyComponents) throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
         // First, we reset all the counters as they can be be re-populated
     	resetCounters();
 
@@ -357,19 +385,68 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             this.allFolders.put(folder.getId(), folder);
         }
 
-        try {
-        	for (IFolder folder: getFolders())
-        		countObject(folder, true);
-        	for ( IProfile profile: getProfiles() )
-        		countObject(profile, true);
-        } catch (@SuppressWarnings("unused") NullPointerException err)  {
-        	// in case the NullPointerException is propagated here, then it means that the model was inconsistent and the user has hosen to delete the relationship or connection, so we need to re-count all the objects
-        	countAllObjects();
+       	for (IFolder folder: getFolders())
+        	countObject(folder, true);
+        for ( IProfile profile: getProfiles() )
+        	countObject(profile, true);
+        
+        if ( !this.allFaultyObjects.isEmpty() ) {
+        	if ( !deleteFaultyComponents )
+        		return false;
+        	
+    		CompoundCommand deleteCommand = new NonNotifyingCompoundCommand("remove inconsistant components");
+    		
+        	// if here, it means that we detected relationships or connections that miss source or target. So we need to ask the user what to do with them (i.e. keep or delete them)
+        	List<EObject> faultyEObjectSelected = DBGuiUtils.selectItemsDialog("Faulty objects to Delete", "Hummm, that's weird ... We detetected inconcistencies in your model.\n\n Please choose the faulty components to delete from your model to fix those inconcistencies.", this.allFaultyObjects, false);
+        	
+        	for ( EObject objToBeDeleted: faultyEObjectSelected) {
+        		// Stores the list of objects that needs to be removed from the model
+            	Set<EObject> toBeDeleted = new HashSet<EObject>();
+            	
+        		// We delete the object from the model, using a command that can be rolled-back
+        		if (objToBeDeleted instanceof IArchimateElement) {
+             		for (IDiagramModelObject obj : ((IArchimateElement)objToBeDeleted).getReferencingDiagramObjects())
+             			toBeDeleted.add(obj);
+             	} else if ( objToBeDeleted instanceof IArchimateRelationship) {
+             		for (IDiagramModelArchimateConnection conn : ((IArchimateRelationship)objToBeDeleted).getReferencingDiagramConnections())
+             			toBeDeleted.add(conn);
+             	}
+                 // then we delete the eObject itself
+         		toBeDeleted.add(objToBeDeleted);
+        		
+        		// if the objToBeDeleted is an archimate element or relationship, we need to delete the corresponding graphical objects and connections in all the views
+
+        		for (EObject objectToDelete: toBeDeleted) {
+        			if (objectToDelete instanceof IArchimateElement)
+        				deleteCommand.add(new DeleteArchimateElementCommand((IArchimateElement)objectToDelete));
+        			else if ( objectToDelete instanceof IArchimateRelationship)
+        				deleteCommand.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)objectToDelete));
+        			else if (objectToDelete instanceof IDiagramModelObject)
+        	            deleteCommand.add(new DBDeleteDiagramObjectCommand(this, (IDiagramModelObject)objectToDelete));
+       	            else if (objectToDelete instanceof IDiagramModelConnection)
+        	            deleteCommand.add(new DBDeleteDiagramConnectionCommand(this, (IDiagramModelConnection)objectToDelete));
+        		}
+        	}
+        	
+        	// execute the command to effectively delete the component from the model
+        	if ( !deleteCommand.isEmpty() && deleteCommand.canExecute() )
+    	        deleteCommand.execute();
+        		
+        	DBGuiUtils.popup(Level.INFO, "The inconsitant components have been removed from your model.\n\nYou may use Archi's \"undo\" functionality to restore them if needed.");
+        	
+        	// we re-count components, without asking again if some faulty components remain
+        	return countAllObjects(false);
         }
+        
+        // we return true to indicate that all model components have been counted correctly
+        return true;
     }
 
-    // the viewChecksum variable is a trick to include the connections checksums in the view checksum
+    /**
+     * The viewChecksum variable is a trick to include the connections checksums in the view checksum
+    */
     private StringBuilder viewChecksum = null;
+    
     /**
      * Adds a specific object in the corresponding counter<br>
      * At the same time, we calculate the current checksums
@@ -382,7 +459,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @throws NullPointerException when the calculateChecksum method raised a NullPointerException and the corresponding eObject has been removed from the model
      */
     @SuppressWarnings("null")
-    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws NoSuchAlgorithmException, UnsupportedEncodingException, NullPointerException, Exception {
+    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
         StringBuilder checksumBuilder = null;
         DBMetadata objectMetadata = getDBMetadata(eObject);
         int len = 0;
@@ -394,46 +471,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             try {
             	checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             } catch (NullPointerException err)  {
-            	if ( DBGui.question("Hummm, that's weird !\n\nAn inconsistency has been detected on "+objectMetadata.getDebugName()+":\n   "+err.getMessage()+"\n\nWhat do you wish to do ?\n   - Ignore -> Keep the faulty component untouched and try to fix the issue manually\n   - Delete -> Delete the faulty component to fix the model consistency", new String[] {"Ignore","Delete"}) == 0 ) {
-            		// We must ignore the error, so we just set the checksum to empty (as we couldn't calculate it)
-            		checksumBuilder = new StringBuilder();
-            	} else {
-            		// We delete the object from the model, using a command that can be rolled-back
-            		
-            		// Stores the list of objects that needs to be removed from the model
-            		Set<EObject> toBeDeleted = new HashSet<EObject>();
-            		
-            		// if the eObject is an archimate element or relationship, we need to delete the corresponding graphical objects and connections in all the views
-                    if (eObject instanceof IArchimateElement) {
-                		for (IDiagramModelObject obj : ((IArchimateElement)eObject).getReferencingDiagramObjects())
-                			toBeDeleted.add(obj);
-                	} else if ( eObject instanceof IArchimateRelationship) {
-                		for (IDiagramModelArchimateConnection conn : ((IArchimateRelationship)eObject).getReferencingDiagramConnections())
-                			toBeDeleted.add(conn);
-                	}
-                    // then we delete the eObject itself
-            		toBeDeleted.add(eObject);
-            		
-            		// loop that effectively delete things
-            		CompoundCommand deleteCommand = new NonNotifyingCompoundCommand("inconsistant object");
-            		for (EObject objectToDelete: toBeDeleted) {
-            			if (objectToDelete instanceof IArchimateElement)
-            				deleteCommand.add(new DeleteArchimateElementCommand((IArchimateElement)objectToDelete));
-            			else if ( objectToDelete instanceof IArchimateRelationship)
-            				deleteCommand.add(new DeleteArchimateRelationshipCommand((IArchimateRelationship)objectToDelete));
-            			else if (objectToDelete instanceof IDiagramModelObject)
-            	            deleteCommand.add(new DBDeleteDiagramObjectCommand(this, (IDiagramModelObject)objectToDelete));
-           	            else if (objectToDelete instanceof IDiagramModelConnection)
-            	            deleteCommand.add(new DBDeleteDiagramConnectionCommand(this, (IDiagramModelConnection)objectToDelete));
-            		}
-            		
-            		// execute the command to effectively delete the component from the model
-        	        if ( deleteCommand.canExecute() )
-        	        	deleteCommand.execute();
-            		
-            		// we forward the exception that the countAllObject can re-count
-        			throw new NullPointerException("Components have been removed from the model.");
-            	}
+            	this.allFaultyObjects.put(eObject, err.getMessage());
             }
             len = checksumBuilder.length();
         }

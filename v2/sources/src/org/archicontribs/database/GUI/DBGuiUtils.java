@@ -1,7 +1,9 @@
 package org.archicontribs.database.GUI;
 
 import java.awt.Toolkit;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Stack;
 
@@ -9,8 +11,11 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Priority;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
@@ -18,10 +23,13 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableColumn;
 
 /**
  * The DBGuiUtils class hosts the static methods that create simple popups on screeen to communicate with user.<wbr>
@@ -44,8 +52,9 @@ public class DBGuiUtils {
     static Composite dialogComposite = null;
     static Label dialogLabel = null;
     /**
-     * shows up an on screen popup displaying the message but does not wait for any user input<br>
-     * it is the responsibility of the caller to dismiss the popup 
+     * Shows up an on screen popup displaying a message to the user but does not wait for any user input<br>
+     * The message can be changed in the popup window without closing the popup and opening a new one by calling several times the showPopupMessage method<br>
+     * To dismiss the popup windows, it is the the responsibility of the caller to call the {@link #closePopupMessage()} method<br>
      * @param msg Message to show in the popup
      * @return 
      */
@@ -276,6 +285,91 @@ public class DBGuiUtils {
         });
     	
     	return answeredPassword;
+    }
+    
+    /********************* selectItemsDialog ******************/
+    protected List<EObject> selectedItemsToReturn = new ArrayList<EObject>();
+    
+    /**
+     * Open up an input dialog with a list of items and allow to select items in the list 
+     * @param title the dialog title 
+     * @param message the message on the dialog
+     * @param map the list to display under the form of Map<EObject, String>
+     * @param singleMode true if only a single item in the list can be selected, false if multiple items can be selected 
+     * @return the password entered by the user
+     */
+    public static List<EObject> selectItemsDialog(String title, String message, Map<EObject, String> map, boolean singleMode) {
+        logger.info(DBGui.class, message);
+
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                setWaitCursor();
+
+                Shell shell = new Shell(display, SWT.APPLICATION_MODAL);
+                shell.setSize(500, 300);
+                shell.setBackground(BLACK_COLOR);
+
+                // Use the active shell, if available, to determine the new shell placing
+                int locationX = 0;
+                int locationY = 0;
+                Rectangle shellSize = dialogShell.getBounds();
+                Shell parent = display.getActiveShell();
+                if (parent!=null) { 
+                	Rectangle parentSize = parent.getBounds();
+        	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
+        	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
+                } else {
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width -  500) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - 300) / 4;
+                }    
+                shell.setLocation(new Point(locationX, locationY));
+
+                int borderWidth = (dialogShell.getBorderWidth()+1)*2;
+                Composite composite = new Composite(dialogShell, SWT.NONE);
+                composite.setSize(500-borderWidth, 300-borderWidth);
+                composite.setLocation(1, 1);
+                composite.setBackground(BG_COLOR);
+                composite.setLayout(new GridLayout( 1, false ) );
+
+                Label label = new Label(dialogComposite, SWT.CENTER | SWT.WRAP);
+                label.setText(message);
+                label.setBackground(BG_COLOR);
+                label.setFont(TITLE_FONT);
+                label.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, true, false ) );
+
+                
+                Table table = new Table(shell, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL| SWT.H_SCROLL);
+                TableColumn column = new TableColumn(table, SWT.NULL);
+                column.setText("Component");
+                column = new TableColumn(table, SWT.NULL);
+                column.setText("Comment");
+                table.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, true, true ) );
+                
+                Button okButton = new Button(shell, SWT.NONE);
+                okButton.setText("OK");
+                okButton.setLayoutData( new GridData( SWT.RIGHT, SWT.CENTER, false, false ) );
+                
+                okButton.addSelectionListener(new SelectionAdapter() {
+                    @Override
+                    public void widgetSelected(SelectionEvent arg0) {
+                        okButton.dispose();
+                    }
+                });
+                
+                composite.layout(true);               
+                shell.layout(true);
+                shell.open();
+                
+                while (!okButton.isDisposed()) {		// the okButton is disposed in the selectionListener (i.e. when the user clicks on it) 
+                    if (!display.readAndDispatch())
+                        display.sleep();
+                }
+                restoreCursors();
+            }
+        });
+        
+        return null;
     }
     
     
