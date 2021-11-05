@@ -12,7 +12,7 @@ import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
@@ -348,7 +348,7 @@ public class DBChecksum {
 	    	    }
 	    	}
 		} catch (NoSuchAlgorithmException e) {
-			DBGui.popup(Level.ERROR, "Failed to calculate checksum.", e);
+			DBGuiUtils.popup(Level.ERROR, "Failed to calculate checksum.", e);
 			throw e;
 		}
 

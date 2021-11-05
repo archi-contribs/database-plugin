@@ -8,7 +8,7 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.GUI.DBGuiShowDebug;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.core.commands.AbstractHandler;
@@ -50,7 +50,7 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
             // if the user clicked on a graphical object in a view
             component = (EObject) ((EditPart)selection).getModel();
         } else {
-            DBGui.popup(Level.ERROR, "Do not know which component you selected.");
+            DBGuiUtils.popup(Level.ERROR, "Do not know which component you selected.");
             return null;
         }
         
@@ -64,7 +64,7 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
                 DBGuiShowDebug showDebug = new DBGuiShowDebug(component, "Debugging information");
                 showDebug.run();
             } catch (Exception e) {
-                DBGui.popup(Level.ERROR,"Failed to show debugging information.", e);
+                DBGuiUtils.popup(Level.ERROR,"Failed to show debugging information.", e);
             }
         }
         

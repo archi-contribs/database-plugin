@@ -19,7 +19,7 @@ import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.SecretKeySpec;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.data.DBDatabase;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
 
@@ -274,7 +274,7 @@ public class DBDatabaseEntry {
 					if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getDecryptedPassword()) )
                         this.jdbcConnectionString += ";integratedSecurity=true";
 					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException e) {
-						DBGui.popup(Level.ERROR, "Failed to decrypt password.", e);
+						DBGuiUtils.popup(Level.ERROR, "Failed to decrypt password.", e);
 						this.jdbcConnectionString = "";
 					}
                     break;
@@ -401,14 +401,14 @@ public class DBDatabaseEntry {
 							store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), databaseEntry.getEncryptedPassword());
 							store.setValue(preferenceName+"_password_"+String.valueOf(line), "");
 						} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
-							DBGui.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
+							DBGuiUtils.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
 						}
 					}
 				}
 
 				databaseEntries.add(databaseEntry);
 			} catch (Exception e) {
-				DBGui.popup(Level.ERROR, "Failed to get database entry \""+databaseEntry.getName()+"\" from preference store.", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to get database entry \""+databaseEntry.getName()+"\" from preference store.", e);
 			}
 		}
 		return databaseEntries;
@@ -514,7 +514,7 @@ public class DBDatabaseEntry {
 		try {
 			store.save();
 		} catch (IOException e) {
-			DBGui.popup(Level.ERROR, "Failed to save your preferences.", e);
+			DBGuiUtils.popup(Level.ERROR, "Failed to save your preferences.", e);
 		}
 	}
 

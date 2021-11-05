@@ -11,7 +11,7 @@ import org.archicontribs.database.GUI.DBGuiComponentHistory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -51,12 +51,12 @@ public class DBMenuComponentHistoryHandler extends AbstractHandler {
                 DBGuiComponentHistory componentHistory = new DBGuiComponentHistory(selectedComponent);
                 componentHistory.run();
             } catch (Exception e) {
-                DBGui.popup(Level.ERROR,"Cannot get history from database.", e);
+                DBGuiUtils.popup(Level.ERROR,"Cannot get history from database.", e);
             }
         }
         else {
             // in all other cases, we do not know how to get its history from the database
-            DBGui.popup(Level.ERROR, "Cannot get history of a "+selectedObject.getClass().getSimpleName());
+            DBGuiUtils.popup(Level.ERROR, "Cannot get history of a "+selectedObject.getClass().getSimpleName());
             return null;
         }
 

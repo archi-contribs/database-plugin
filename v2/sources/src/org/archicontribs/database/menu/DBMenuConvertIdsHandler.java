@@ -8,7 +8,7 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -60,7 +60,7 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
         DBArchimateModel model = (DBArchimateModel) ((IStructuredSelection)HandlerUtil.getCurrentSelection(event)).getFirstElement();
         int idsReplaced = 0;
 
-        DBGui.popup("Checking IDs ...");
+        DBGuiUtils.showPopupMessage("Checking IDs ...");
 
         try {
             model.countAllObjects();
@@ -112,13 +112,13 @@ public class DBMenuConvertIdsHandler extends AbstractHandler {
                 }
             }
         } catch (Exception e) {
-            DBGui.closePopup();
-            DBGui.popup(Level.ERROR, "Could not convert the IDs.\n\n"+idsReplaced+" IDs have been replaced.", e);
+            DBGuiUtils.closePopupMessage();
+            DBGuiUtils.popup(Level.ERROR, "Could not convert the IDs.\n\n"+idsReplaced+" IDs have been replaced.", e);
             return null;
         }
 
-        DBGui.closePopup();
-        DBGui.popup(Level.INFO, idsReplaced+" IDs have been replaced.");
+        DBGuiUtils.closePopupMessage();
+        DBGuiUtils.popup(Level.INFO, idsReplaced+" IDs have been replaced.");
 
         return null;
     }

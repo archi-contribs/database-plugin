@@ -150,7 +150,7 @@ public class DBGuiExportModel extends DBGui {
 		try {
 			this.exportedModel.countAllObjects();
 		} catch (Exception err) {
-			popup(Level.ERROR, "Failed to count model's components", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to count model's components", err);
 			return;
 		} finally {
 			closeMessage();
@@ -170,7 +170,7 @@ public class DBGuiExportModel extends DBGui {
 		try {
 			getDatabases(true, this.exportedModel.getImportDatabaseId(), null);
 		} catch (Exception err) {
-			popup(Level.ERROR, "Failed to get the databases.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
 			return;
 		}
 	}
@@ -1016,11 +1016,11 @@ public class DBGuiExportModel extends DBGui {
 				try {
 					upToDate = DBGuiExportModel.this.compareModelToDatabase(true);
 				} catch (Exception err) {
-					popup(Level.ERROR, "Failed to compare the model to the database.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to compare the model to the database.", err);
 				}
 				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(true);
 				if ( upToDate ) {
-					popup(Level.INFO, "Your database is already up to date.");
+					DBGuiUtils.popup(Level.INFO, "Your database is already up to date.");
 					DBGuiExportModel.this.btnClose.setText("Close");
 					DBGuiExportModel.this.btnDoAction.setEnabled(false);
 				} else
@@ -1129,7 +1129,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 			}
 		} catch (Exception err) {
-			popup(Level.FATAL, "Failed to check existing components in database", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to check existing components in database", err);
 			setActiveAction(STATUS.Error);
 			return;
 		}
@@ -1152,13 +1152,13 @@ public class DBGuiExportModel extends DBGui {
 			try {
 				upToDate = compareModelToDatabase(true);
 			} catch (Exception err) {
-				popup(Level.ERROR, "Failed to compare the model to the database.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to compare the model to the database.", err);
 			}
 
 			this.btnCompareModelToDatabase.setEnabled(true);
 			closeMessage();
 			if ( upToDate ) {
-				popup(Level.INFO, "Your database is already up to date.");
+				DBGuiUtils.popup(Level.INFO, "Your database is already up to date.");
 				DBGuiExportModel.this.btnClose.setText("Close");
 				this.btnDoAction.setEnabled(false);
 			} else
@@ -1275,7 +1275,7 @@ public class DBGuiExportModel extends DBGui {
 			this.exportConnection.getAllVersionFromDatabase(this.exportedModel, this);
 		} catch (SQLException err ) {
 			hideProgressBar();
-			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 			return false;
@@ -2533,12 +2533,12 @@ public class DBGuiExportModel extends DBGui {
 					rollbackAndCloseConnection();
 
 					doShowResult(STATUS.Error, errorMessage + "\n"+exportError.getMessage());
-					popup(Level.ERROR, errorMessage + "\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", exportError);
+					DBGuiUtils.popup(Level.ERROR, errorMessage + "\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", exportError);
 				} catch (SQLException closeDBError) {
 					doShowResult(STATUS.Error, "Error while exporting model.\n"+exportError.getMessage()+"\nThe transaction failed to rollback, please check your database carrefully !");
 
-					popup(Level.FATAL, "An error occurred while exporting the components."+exportError);
-					popup(Level.FATAL, "An exception has been detected during the rollback and closure of the database transaction.\n\nThe database is left in an unknown state.\n\nPlease check carrefully your database !", closeDBError);
+					DBGuiUtils.popup(Level.FATAL, "An error occurred while exporting the components."+exportError);
+					DBGuiUtils.popup(Level.FATAL, "An exception has been detected during the rollback and closure of the database transaction.\n\nThe database is left in an unknown state.\n\nPlease check carrefully your database !", closeDBError);
 				}
 			}
 
@@ -2551,7 +2551,7 @@ public class DBGuiExportModel extends DBGui {
 						Method getException = IDBCommand.class.getMethod("getException()");
 						Exception e = (Exception) getException.invoke(cmd);
 						if ( e != null ) {
-							popup(Level.FATAL, "Failed to restore the model as it was before the export. Please verify it carefully.", e);
+							DBGuiUtils.popup(Level.FATAL, "Failed to restore the model as it was before the export. Please verify it carefully.", e);
 							// a single message is sufficient to alert the user
 							break;
 						}
@@ -2575,7 +2575,7 @@ public class DBGuiExportModel extends DBGui {
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Failed to commit the database transaction.\n"+err.getMessage()+"\nPlease check your database carrefully.");
-			popup(Level.FATAL, "The model has been successfully exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
+			DBGuiUtils.popup(Level.FATAL, "The model has been successfully exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
 			return;
 		}
 	}
@@ -2668,7 +2668,7 @@ public class DBGuiExportModel extends DBGui {
 						DBGuiExportModel.this.btnDoNotExport.setEnabled(false);
 						DBGuiExportModel.this.btnImportDatabaseVersion.setEnabled(false);
 						DBGuiExportModel.this.tblCompareComponent.removeAll();
-						popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
+						DBGuiUtils.popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
 					} else {				
 						DBGuiExportModel.this.btnExportMyVersion.setEnabled(true);
 						DBGuiExportModel.this.btnDoNotExport.setEnabled(true);
@@ -2823,7 +2823,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		EObject component = (EObject)this.tblListConflicts.getSelection()[0].getData();
 		if ( component == null ) {
-			popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
+			DBGuiUtils.popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
 			return;
 		}
 

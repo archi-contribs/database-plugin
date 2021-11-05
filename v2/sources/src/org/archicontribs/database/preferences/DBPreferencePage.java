@@ -14,6 +14,7 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.eclipse.jface.preference.*;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -566,13 +567,13 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving the preference store to disk.");
             preferenceStore.save();
         } catch (IOException err) {
-        	DBGui.popup(Level.ERROR, "Failed to save the preference store to disk.", err);
+        	DBGuiUtils.popup(Level.ERROR, "Failed to save the preference store to disk.", err);
         }
 		
 		try {
 			this.logger.configure();
 		} catch (Exception e) {
-			DBGui.popup(Level.ERROR, "Faied to configure logger", e);
+			DBGuiUtils.popup(Level.ERROR, "Faied to configure logger", e);
 		}
 		
     	return true;

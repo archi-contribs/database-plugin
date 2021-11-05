@@ -191,7 +191,7 @@ public class DBGuiAdminDatabase extends DBGui {
                         tableItem.setData("id", model.get("id"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
                 } 
             }
         });
@@ -231,7 +231,7 @@ public class DBGuiAdminDatabase extends DBGui {
             			tableItem.setData("purpose", version.get("purpose"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get model's versions from the database", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get model's versions from the database", err);
                 }
             	
 	    		if ( DBGuiAdminDatabase.this.tblModelVersions.getItemCount() != 0 ) {
@@ -450,7 +450,7 @@ public class DBGuiAdminDatabase extends DBGui {
 			// we start a new transaction
 			this.importConnection.setAutoCommit(false);
 		} catch (SQLException err) {
-			DBGui.popup(Level.ERROR, "Failed to start a new transaction.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to start a new transaction.", err);
 			return;
 		}
 		
@@ -475,12 +475,12 @@ public class DBGuiAdminDatabase extends DBGui {
 				this.importConnection.rollback();
 				this.importConnection.setAutoCommit(true);
 			} catch (SQLException err2) {
-				DBGui.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates.", err);
-				DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+				DBGuiUtils.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates.", err);
+				DBGuiUtils.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
 				return;
 			}
 			
-			DBGui.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates. The transaction has been rolled back.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to remove view_objects_in_views duplicates. The transaction has been rolled back.", err);
 			return;
 		}
 		
@@ -502,12 +502,12 @@ public class DBGuiAdminDatabase extends DBGui {
 				this.importConnection.rollback();
 				this.importConnection.setAutoCommit(true);
 			} catch (SQLException err2) {
-				DBGui.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates.", err);
-				DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+				DBGuiUtils.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates.", err);
+				DBGuiUtils.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
 				return;
 			}
 			
-			DBGui.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates. The transaction has been rolled back.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to remove view_connections_in_views duplicates. The transaction has been rolled back.", err);
 			return;
 		}
 		
@@ -515,11 +515,11 @@ public class DBGuiAdminDatabase extends DBGui {
 			this.importConnection.commit();
 			this.importConnection.setAutoCommit(true);
 		} catch (SQLException err) {
-			DBGui.popup(Level.FATAL, "Failed to commit the transaction. We suggest you close Archi and verify your database manually.", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to commit the transaction. We suggest you close Archi and verify your database manually.", err);
 			return;
 		}
 		
-		DBGui.popup(Level.INFO, duplicateObjectsStatus+"\n"+duplicateConnectionsStatus+"\n\nDatabase content successfully checked.");
+		DBGuiUtils.popup(Level.INFO, duplicateObjectsStatus+"\n"+duplicateConnectionsStatus+"\n\nDatabase content successfully checked.");
 	}
 	
 	/**
@@ -530,34 +530,34 @@ public class DBGuiAdminDatabase extends DBGui {
 		String modelName = DBGuiAdminDatabase.this.tblModels.getSelection()[0].getText();
 		
 		if ( modelId == null ) {
-			DBGui.popup(Level.ERROR, "Failed to get model ID.");
+			DBGuiUtils.popup(Level.ERROR, "Failed to get model ID.");
 			return;
 		}
 		
-		if (DBGui.question("You are about to delete the model \""+modelName+"\" from the database.\n\nThis will delete the model as a container. However, the model content (elements, relationships, views, ...) will remain in the database so they can be imported from the database into other models.\n\nPlease note that this action cannot be undone.\n\nDo you confirm the deletion ?") ) {
+		if (DBGuiUtils.question("You are about to delete the model \""+modelName+"\" from the database.\n\nThis will delete the model as a container. However, the model content (elements, relationships, views, ...) will remain in the database so they can be imported from the database into other models.\n\nPlease note that this action cannot be undone.\n\nDo you confirm the deletion ?") ) {
 			try {
 				int deletedRows = this.importConnection.executeRequest("DELETE FROM "+this.importConnection.getDatabaseEntry().getSchemaPrefix()+"models WHERE id = ?", modelId);
 				
 				if (deletedRows == 0)
-					DBGui.popup(Level.WARN,"That's weird, no model with ID \""+modelId+"\" has been found in the database.");
+					DBGuiUtils.popup(Level.WARN,"That's weird, no model with ID \""+modelId+"\" has been found in the database.");
 				else {
 					connectedToDatabase(false);
-					DBGui.popup(Level.INFO, String.valueOf(deletedRows)+" version"+((deletedRows == 1)?"":"s")+" of the model \""+modelName+"\" "+((deletedRows == 1)?"has":"have")+" been deleted from the database.");
+					DBGuiUtils.popup(Level.INFO, String.valueOf(deletedRows)+" version"+((deletedRows == 1)?"":"s")+" of the model \""+modelName+"\" "+((deletedRows == 1)?"has":"have")+" been deleted from the database.");
 				}
 			} catch (SQLException err) {
 				try {
 					this.importConnection.rollback();
 					this.importConnection.setAutoCommit(true);
 				} catch (SQLException err2) {
-					DBGui.popup(Level.ERROR, "Failed to delete model from the database.", err);
-					DBGui.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
+					DBGuiUtils.popup(Level.ERROR, "Failed to delete model from the database.", err);
+					DBGuiUtils.popup(Level.FATAL, "Failed to roll back the transaction. We suggest you close Archi and verify your database manually.", err2);
 					return;
 				}
-				DBGui.popup(Level.ERROR, "Failed to delete model from the database. The transaction has been rolled back.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to delete model from the database. The transaction has been rolled back.", err);
 			}
 			
 		} else
-			DBGui.popup(Level.INFO, "Delete canceled by user.");
+			DBGuiUtils.popup(Level.INFO, "Delete canceled by user.");
 	}
 	
 	///**
@@ -565,6 +565,6 @@ public class DBGuiAdminDatabase extends DBGui {
 	// */
 	//@SuppressWarnings("static-method")
 	//void deleteVersionCallback() {
-	//	DBGui.popup(Level.INFO, "Not yet implemented.");
+	//	DBGuiUtils.popup(Level.INFO, "Not yet implemented.");
 	//}
 }

@@ -91,7 +91,7 @@ public class DBGuiShowDebug extends DBGui {
         	this.model = (DBArchimateModel) ((IDiagramModelArchimateObject)obj).getArchimateConcept().getArchimateModel();
         	this.selectedMetadata = DBMetadata.getDBMetadata(obj);
         } else {
-        	popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
+        	DBGuiUtils.popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
         	return;
         }
         
@@ -357,7 +357,7 @@ public class DBGuiShowDebug extends DBGui {
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent )
                 this.model.countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true);
         } catch (Exception e) {
-            popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
+            DBGuiUtils.popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
             close();
             return;
         }
@@ -436,7 +436,7 @@ public class DBGuiShowDebug extends DBGui {
         try {
             getDatabases(true);
         } catch (Exception err) {
-            popup(Level.ERROR, "Failed to get the databases.", err);
+            DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
             return;
         }
     }
@@ -469,7 +469,7 @@ public class DBGuiShowDebug extends DBGui {
             
             this.exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
         } catch (SQLException err) {
-            popup(Level.ERROR, "Failed to get information about component from the database.", err);
+            DBGuiUtils.popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;
         }
         
@@ -494,7 +494,7 @@ public class DBGuiShowDebug extends DBGui {
             	this.model.getAllViews().put(((IDiagramModel)this.selectedObject).getId(), (IDiagramModel)this.selectedObject);
 				this.model.countObject(this.selectedObject, true);
 			} catch (Exception err) {
-				popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
 				return;
 			}
         }

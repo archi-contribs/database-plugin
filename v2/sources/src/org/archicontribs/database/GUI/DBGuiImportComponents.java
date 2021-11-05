@@ -242,7 +242,7 @@ public class DBGuiImportComponents extends DBGui {
 				try {
 					doImport();
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised during import.", err);
+					DBGuiUtils.popup(Level.ERROR, "An exception has been raised during import.", err);
 				}
 			}
 			@Override
@@ -346,7 +346,7 @@ public class DBGuiImportComponents extends DBGui {
 			else if ( this.radioOptionView.getSelection() )
 				getViews();
 		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+			DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 		}
 	}
 
@@ -383,7 +383,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getModels();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -406,7 +406,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -428,7 +428,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getViews();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -470,7 +470,7 @@ public class DBGuiImportComponents extends DBGui {
 							getViews();
 					}
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+					DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 				} 
 			}
 		});
@@ -690,7 +690,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -757,7 +757,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -821,7 +821,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -877,7 +877,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -949,7 +949,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1008,7 +1008,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1063,7 +1063,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1122,7 +1122,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1172,7 +1172,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1223,7 +1223,7 @@ public class DBGuiImportComponents extends DBGui {
 					try {
 						getElements();
 					} catch (Exception err) {
-						DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+						DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 					}
 				}
 			}
@@ -1615,7 +1615,7 @@ public class DBGuiImportComponents extends DBGui {
 							getViews();
 					}
 				} catch (Exception err) {
-					DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+					DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 				} 
 			}
 
@@ -2423,9 +2423,9 @@ public class DBGuiImportComponents extends DBGui {
 			// we redraw the tblComponents table to unselect the items (and hide the newly imported components if the option is selected)
 			this.hideAlreadyInModel.notifyListeners(SWT.Selection, new Event());
 		} catch(RuntimeException e) {
-			popup(Level.ERROR, "Couldn't import component.", e);
+			DBGuiUtils.popup(Level.ERROR, "Couldn't import component.", e);
 		} finally {
-			// we do not catch the exception if any, but we need to close the popup
+			// we do not catch the exception if any, but we need to close the DBGuiUtils.popup
 			closeMessage();
 	        // We rename the "cancel" button to "close"
 	        this.btnClose.setText("Close");
@@ -2486,7 +2486,7 @@ public class DBGuiImportComponents extends DBGui {
 			try {
 				getElements();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+				DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 			}
 		}
 	};
@@ -2498,7 +2498,7 @@ public class DBGuiImportComponents extends DBGui {
     		try {
 				getFolders();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+				DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 			}
     	}
     };
@@ -2510,7 +2510,7 @@ public class DBGuiImportComponents extends DBGui {
 			try {
 				getViews();
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "An exception has been raised.", err);
+				DBGuiUtils.popup(Level.ERROR, "An exception has been raised.", err);
 			}
 		}
 	};

@@ -102,7 +102,7 @@ public class DBGuiImportImage extends DBGui {
 	    try {
 	        getDatabases(false);
 	    } catch (Exception err) {
-	        popup(Level.ERROR, "Failed to get the databases.", err);
+	        DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
 	        return;
 	    }
 	}
@@ -215,7 +215,7 @@ public class DBGuiImportImage extends DBGui {
                 item.setData("imagePath", path);
             }
         } catch (Exception err) {
-            popup(Level.ERROR, "Failed to get images from the database", err);
+            DBGuiUtils.popup(Level.ERROR, "Failed to get images from the database", err);
         }
     }
     

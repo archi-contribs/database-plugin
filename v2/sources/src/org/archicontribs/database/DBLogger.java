@@ -20,7 +20,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 
 import lombok.Getter;
 
@@ -50,7 +50,7 @@ public class DBLogger {
 				configure();
 			} catch (Exception e) {
 				initialised = false;
-				DBGui.popup(Level.ERROR, "Failed to configure logger", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to configure logger", e);
 			}
 		}
 		this.logger = Logger.getLogger(clazz);

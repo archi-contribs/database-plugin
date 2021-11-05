@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -179,7 +179,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				DBGui.closePopup();
+				DBGuiUtils.closePopupMessage();
 			}
 		});
 		
@@ -188,7 +188,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		
 		if ( maxMemory < 950 ) {
 			if ( getPreferenceStore().getBoolean("checkMaxMemory") )
-				DBGui.popup(Level.WARN, "Archi is configured with "+maxMemory+" MB max memory.\n\n"
+				DBGuiUtils.popup(Level.WARN, "Archi is configured with "+maxMemory+" MB max memory.\n\n"
 						+ "If you plan to use the database plugin with huge models, we recommand to configure Archi\n"
 						+ "with 1 GB of memory (you may add or update the \"-Xmx\" parameter in the Archi.ini file).\n\n"
 						+ "You may deactivate the memory check in the database plugin preference page.");
@@ -225,9 +225,9 @@ public class DBPlugin extends AbstractUIPlugin {
 				DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
 				preferenceStore.save();
 			} catch (IOException e) {
-				DBGui.popup(Level.ERROR, "Failed to save your preferences.", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to save your preferences.", e);
 			}
-			DBGui.popup(Level.INFO, welcomeMessage);
+			DBGuiUtils.popup(Level.INFO, welcomeMessage);
 		}
 		
 		// we check if the plugin has been upgraded using the automatic procedure
@@ -251,7 +251,7 @@ public class DBPlugin extends AbstractUIPlugin {
 					checkForUpdate(false);
 			}
 		} catch ( IOException e ) {
-			DBGui.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
+			DBGuiUtils.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
 		}
 	}
 

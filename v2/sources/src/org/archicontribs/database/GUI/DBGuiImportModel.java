@@ -136,11 +136,11 @@ public class DBGuiImportModel extends DBGui {
                 List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
                 for ( IArchimateModel existingModel: allModels ) {
                     if ( DBPlugin.areEqual(modelId, existingModel.getId()) ) {
-                        popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
+                        DBGuiUtils.popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
                         return;
                     }
                     if ( checkName && DBPlugin.areEqual(modelName, existingModel.getName()) ) {
-                        if ( !question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
+                        if ( !DBGuiUtils.question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
                             return;
                         }
                         checkName = false;	// if a third model has got the same name, we do not ask again.
@@ -242,7 +242,7 @@ public class DBGuiImportModel extends DBGui {
                         tableItem.setData("date", model.get("created_on"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
                 } 
             }
         });
@@ -283,7 +283,7 @@ public class DBGuiImportModel extends DBGui {
             			tableItem.setData("purpose", version.get("purpose"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get model's versions from the database", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get model's versions from the database", err);
                 }
             	
 	    		if ( DBGuiImportModel.this.tblModelVersions.getItemCount() != 0 ) {
@@ -920,9 +920,9 @@ public class DBGuiImportModel extends DBGui {
                 } catch (@SuppressWarnings("unused") IOException ign) {
                     // there is nothing we can do
                 }
-                popup(Level.WARN, "The import has been cancelled.");
+                DBGuiUtils.popup(Level.WARN, "The import has been cancelled.");
             } else {
-                popup(Level.ERROR, "Failed to import model from database.", err);
+                DBGuiUtils.popup(Level.ERROR, "Failed to import model from database.", err);
                 setActiveAction(STATUS.Error);
                 doShowResult(err);
             }
@@ -1019,10 +1019,10 @@ public class DBGuiImportModel extends DBGui {
 	    
 	                IEditorModelManager.INSTANCE.closeModel(this.modelToImport);
 	            } catch (IOException e) {
-	                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
+	                DBGuiUtils.popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
 	            }
 	        } else {
-	            popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
+	            DBGuiUtils.popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
 	        }
         }
     }
