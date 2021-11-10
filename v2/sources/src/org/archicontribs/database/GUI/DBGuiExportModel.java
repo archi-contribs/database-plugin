@@ -1356,7 +1356,6 @@ public class DBGuiExportModel extends DBGui {
 						) {
 					setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
 					createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-					setProgressBarLabel("Checking if view screenshots are required");
 				}
 				metadata.getScreenshot().setScreenshotActive(true);
 			} else
