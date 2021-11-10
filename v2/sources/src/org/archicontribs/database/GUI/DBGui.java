@@ -297,31 +297,37 @@ public class DBGui {
 
 		Composite compoTitle = new Composite(this.compoLeft, SWT.BORDER);
 		compoTitle.setBackground(COMPO_LEFT_COLOR);
-		fd = new FormData(140,50);
-		fd.top = new FormAttachment(0, 40);
-		fd.left = new FormAttachment(5);
-		fd.right = new FormAttachment(100, -5);
-		compoTitle.setLayoutData(fd);
 		compoTitle.setLayout(new FormLayout());
 
-		Label lblTitle = new Label(compoTitle, SWT.CENTER);
+		Label lblTitle = new Label(compoTitle, SWT.CENTER | SWT.WRAP);
 		lblTitle.setBackground(COMPO_LEFT_COLOR);
 		lblTitle.setText("Archi database plugin");
 		lblTitle.setFont(TITLE_FONT);
 		fd = new FormData();
-		fd.top = new FormAttachment(10);
+		fd.top = new FormAttachment(getDefaultMargin());
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		lblTitle.setLayoutData(fd);
 
 		Label lblPluginVersion = new Label(compoTitle, SWT.CENTER);
 		lblPluginVersion.setBackground(COMPO_LEFT_COLOR);
-		lblPluginVersion.setText(DBPlugin.pluginVersion.toString());
+		lblPluginVersion.setText("v" + DBPlugin.pluginVersion.toString());
 		fd = new FormData();
-		fd.top = new FormAttachment(lblTitle, 5);
+		fd.top = new FormAttachment(lblTitle, getDefaultMargin());
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
+		fd.bottom = new FormAttachment(100, -getDefaultMargin());
 		lblPluginVersion.setLayoutData(fd);
+		
+		//we calculate the size of the compoTitle widget
+		lblTitle.pack();
+		lblPluginVersion.pack();
+		fd = new FormData(140,50);
+		fd.top = new FormAttachment(0, 40);
+		fd.left = new FormAttachment(getDefaultMargin());
+		fd.right = new FormAttachment(100, -getDefaultMargin());
+		fd.height = 2*lblTitle.getSize().y + lblPluginVersion.getSize().y + 3*getDefaultMargin();
+		compoTitle.setLayoutData(fd);
 
 		Label imgDatabase = new Label(this.compoLeft, SWT.CENTER);
 		imgDatabase.setBackground(COMPO_LEFT_COLOR);
