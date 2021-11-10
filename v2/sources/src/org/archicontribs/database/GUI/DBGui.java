@@ -233,6 +233,14 @@ public class DBGui {
 		this.dialog.setMinimumSize(1024, 768);
 		this.dialog.setSize(1280, 850);
 		
+        /**
+         * Calculate the default height of a Label widget
+         */
+        Label label = new Label(this.dialog, SWT.NONE);
+        label.setText("Test");
+        this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
+        label.dispose();
+		
 		// in case the monitor is smaller than 1280x850 (which may be the case on some laptops)
 		Monitor[] monitors = display.getMonitors();
 		
