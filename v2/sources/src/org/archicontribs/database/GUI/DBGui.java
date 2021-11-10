@@ -232,7 +232,6 @@ public class DBGui {
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
 		this.dialog.setMinimumSize(1024, 768);
-		this.dialog.setSize(1280, 850);
 		
         /**
          * Calculate the default height of a Label widget
@@ -248,7 +247,7 @@ public class DBGui {
 		for (int i = 0; i < monitors.length; i++) {
 			Rectangle monitorBounds = monitors[i].getBounds();
 		    if (monitorBounds.intersects(parentBounds))
-		    	this.dialog.setSize(Math.min(monitorBounds.width, 1280), Math.min(monitorBounds.height, 850));
+		    	this.dialog.setSize(Math.min(monitorBounds.width, 1400), Math.min(monitorBounds.height, 1024));
 		}
 
 		int locationX = parentBounds.x + (parentBounds.width - this.dialog.getSize().x)/2;
