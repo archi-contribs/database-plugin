@@ -2359,7 +2359,7 @@ public class DBGuiExportModel extends DBGui {
 			this.exportConnection.setAutoCommit(false);
 
 			if ( !isNeo4JDatabase ) {
-				logger.info("Exporting the model itslef ...");
+				logger.info("Exporting the model itself ...");
 				this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 			} else {
 				if ( this.selectedDatabase.shouldEmptyNeo4jDB() ) {
