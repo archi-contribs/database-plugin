@@ -517,6 +517,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalProfiles.setEditable(false);
+		this.txtTotalProfiles.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -525,6 +526,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtNewProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewProfilesInModel.setEditable(false);
+		this.txtNewProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -533,6 +535,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtUpdatedProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedProfilesInModel.setEditable(false);
+		this.txtUpdatedProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -541,6 +544,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtDeletedProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedProfilesInModel.setEditable(false);
+		this.txtDeletedProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -549,6 +553,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewProfilesInDatabase.setEditable(false);
+		this.txtNewProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -557,6 +562,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedProfilesInDatabase.setEditable(false);
+		this.txtUpdatedProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -565,6 +571,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedProfilesInDatabase.setEditable(false);
+		this.txtDeletedProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -573,6 +580,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingProfiles.setEditable(false);
+		this.txtConflictingProfiles.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -583,6 +591,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalElements.setEditable(false);
+		this.txtTotalElements.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -591,6 +600,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewElementsInModel.setEditable(false);
+		this.txtNewElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -599,6 +609,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedElementsInModel.setEditable(false);
+		this.txtUpdatedElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -607,6 +618,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedElementsInModel.setEditable(false);
+		this.txtDeletedElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -615,6 +627,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewElementsInDatabase.setEditable(false);
+		this.txtNewElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -623,6 +636,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedElementsInDatabase.setEditable(false);
+		this.txtUpdatedElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -631,6 +645,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedElementsInDatabase.setEditable(false);
+		this.txtDeletedElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -639,6 +654,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingElements.setEditable(false);
+		this.txtConflictingElements.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -649,6 +665,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalRelationships.setEditable(false);
+		this.txtTotalRelationships.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -657,6 +674,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewRelationshipsInModel.setEditable(false);
+		this.txtNewRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -665,6 +683,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedRelationshipsInModel.setEditable(false);
+		this.txtUpdatedRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -673,6 +692,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedRelationshipsInModel.setEditable(false);
+		this.txtDeletedRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -681,6 +701,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewRelationshipsInDatabase.setEditable(false);
+		this.txtNewRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -689,6 +710,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedRelationshipsInDatabase.setEditable(false);
+		this.txtUpdatedRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -697,6 +719,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedRelationshipsInDatabase.setEditable(false);
+		this.txtDeletedRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -705,6 +728,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingRelationships.setEditable(false);
+		this.txtConflictingRelationships.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -715,6 +739,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalFolders.setEditable(false);
+		this.txtTotalFolders.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -723,6 +748,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewFoldersInModel.setEditable(false);
+		this.txtNewFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -731,6 +757,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedFoldersInModel.setEditable(false);
+		this.txtUpdatedFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -739,6 +766,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedFoldersInModel.setEditable(false);
+		this.txtDeletedFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -747,6 +775,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewFoldersInDatabase.setEditable(false);
+		this.txtNewFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -755,6 +784,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedFoldersInDatabase.setEditable(false);
+		this.txtUpdatedFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -763,6 +793,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedFoldersInDatabase.setEditable(false);
+		this.txtDeletedFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -771,6 +802,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingFolders.setEditable(false);
+		this.txtConflictingFolders.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -781,6 +813,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViews.setEditable(false);
+		this.txtTotalViews.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -789,6 +822,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewsInModel.setEditable(false);
+		this.txtNewViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -797,6 +831,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewsInModel.setEditable(false);
+		this.txtUpdatedViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -805,6 +840,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewsInModel.setEditable(false);
+		this.txtDeletedViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -813,6 +849,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewsInDatabase.setEditable(false);
+		this.txtNewViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -821,6 +858,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewsInDatabase.setEditable(false);
+		this.txtUpdatedViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -829,6 +867,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewsInDatabase.setEditable(false);
+		this.txtDeletedViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -837,6 +876,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViews.setEditable(false);
+		this.txtConflictingViews.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -847,6 +887,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViewObjects.setEditable(false);
+		this.txtTotalViewObjects.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -855,6 +896,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewObjectsInModel.setEditable(false);
+		this.txtNewViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -863,6 +905,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewObjectsInModel.setEditable(false);
+		this.txtUpdatedViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -871,6 +914,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewObjectsInModel.setEditable(false);
+		this.txtDeletedViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -879,6 +923,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewObjectsInDatabase.setEditable(false);
+		this.txtNewViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -887,6 +932,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewObjectsInDatabase.setEditable(false);
+		this.txtUpdatedViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -895,6 +941,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewObjectsInDatabase.setEditable(false);
+		this.txtDeletedViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -903,6 +950,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViewObjects.setEditable(false);
+		this.txtConflictingViewObjects.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -913,6 +961,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViewConnections.setEditable(false);
+		this.txtTotalViewConnections.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -921,6 +970,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewConnectionsInModel.setEditable(false);
+		this.txtNewViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -929,6 +979,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewConnectionsInModel.setEditable(false);
+		this.txtUpdatedViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -937,6 +988,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewConnectionsInModel.setEditable(false);
+		this.txtDeletedViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -945,6 +997,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewConnectionsInDatabase.setEditable(false);
+		this.txtNewViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -953,6 +1006,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewConnectionsInDatabase.setEditable(false);
+		this.txtUpdatedViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -961,6 +1015,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewConnectionsInDatabase.setEditable(false);
+		this.txtDeletedViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -969,6 +1024,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViewConnections.setEditable(false);
+		this.txtConflictingViewConnections.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -979,6 +1035,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalImages.setEditable(false);
+		this.txtTotalImages.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -987,6 +1044,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewImagesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewImagesInModel.setEditable(false);
+		this.txtNewImagesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -995,6 +1053,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewImagesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewImagesInDatabase.setEditable(false);
+		this.txtNewImagesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);

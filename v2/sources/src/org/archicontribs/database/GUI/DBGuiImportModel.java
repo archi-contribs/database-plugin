@@ -593,6 +593,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalProfiles.setEditable(false);
+        this.txtTotalProfiles.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -601,6 +602,7 @@ public class DBGuiImportModel extends DBGui {
         
         this.txtImportedProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedProfiles.setEditable(false);
+        this.txtImportedProfiles.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -609,6 +611,7 @@ public class DBGuiImportModel extends DBGui {
         
         this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalElements.setEditable(false);
+        this.txtTotalElements.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -617,6 +620,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedElements.setEditable(false);
+        this.txtImportedElements.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -625,6 +629,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalRelationships.setEditable(false);
+        this.txtTotalRelationships.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -633,6 +638,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedRelationships.setEditable(false);
+        this.txtImportedRelationships.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -641,6 +647,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalFolders.setEditable(false);
+        this.txtTotalFolders.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -649,6 +656,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedFolders.setEditable(false);
+        this.txtImportedFolders.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -657,6 +665,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViews.setEditable(false);
+        this.txtTotalViews.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -665,6 +674,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViews.setEditable(false);
+        this.txtImportedViews.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -673,6 +683,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViewObjects.setEditable(false);
+        this.txtTotalViewObjects.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -681,6 +692,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViewObjects.setEditable(false);
+        this.txtImportedViewObjects.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -689,6 +701,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViewConnections.setEditable(false);
+        this.txtTotalViewConnections.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -697,6 +710,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViewConnections.setEditable(false);
+        this.txtImportedViewConnections.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -705,6 +719,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalImages.setEditable(false);
+        this.txtTotalImages.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -713,6 +728,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedImages.setEditable(false);
+        this.txtImportedImages.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
