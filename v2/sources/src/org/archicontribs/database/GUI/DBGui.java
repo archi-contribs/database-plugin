@@ -212,7 +212,7 @@ public class DBGui {
 	@Getter private int defaultLabelHeight;
 
 	/** Default margin between widgets */
-	@Getter private int defaultMargin = 5;
+	@Getter protected int defaultMargin = 5;
 
 
 	/**
@@ -705,7 +705,7 @@ public class DBGui {
 		try {
 			this.connection = new DBDatabaseImportConnection(this.selectedDatabase);
 			//if the database connection failed, then an exception is raised, meaning that we get here only if the database connection succeeded
-			if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "We are connected to the database.");
+			if ( logger.isDebugEnabled() ) logger.debug("We are connected to the database.");
 		} catch (Exception err) {
 			closeMessage();
 			notConnectedToDatabase();
@@ -986,7 +986,7 @@ public class DBGui {
 		this.grpProgressBar.moveAbove(null);
 
 		this.lblProgressBar.setText(label);
-		logger.info(DBGui.class, label);
+		logger.info(label);
 
 		this.progressBar.setMinimum(min);
 		this.progressBar.setMaximum(max);
@@ -1011,8 +1011,8 @@ public class DBGui {
 			createProgressBar(label, 0, 100);
 		else {
 			this.lblProgressBar.setText(label);
-			logger.info(DBGui.class, label);
 		}
+		logger.info("Setting progress bar label to \""+label+"\"");
 		refreshDisplay();
 	}
 
@@ -1097,9 +1097,9 @@ public class DBGui {
 
 		String msg = message.replace("\n\n", "\n");
 		if ( background == RED_COLOR )
-			logger.error(DBGui.class, msg);
+			logger.error(msg);
 		else
-			logger.info(DBGui.class, msg);
+			logger.info(msg);
 
 		this.lblMessage.setText(msg);
 
@@ -1167,7 +1167,7 @@ public class DBGui {
 		assert ( memoryObject!=null );
 		DBMetadata dbMetadata = DBMetadata.getDBMetadata(memoryObject);
 
-		logger.debug(DBGui.class, "Showing up memory and database versions of component "+dbMetadata.getDebugName());
+		logger.debug("Showing up memory and database versions of component "+dbMetadata.getDebugName());
 
 		// we get the database version of the component
 		HashMap<String, Object> databaseObject;
@@ -1468,12 +1468,11 @@ public class DBGui {
 		return isIdentical;
 	}
 
-	public byte[] createImage(IDiagramModel view, int scalePercent, int margin) {
+	public static byte[] createImage(IDiagramModel view, int scalePercent, int margin) {
 		byte[] imageContent = null;
 		DBMetadata dbMetadata = DBMetadata.getDBMetadata(view); 
 
-		String oldLabel = getProgressBarLabel();
-		logger.debug(DBGui.class, "Creating screenshot of view \""+view.getName()+"\"");
+		logger.debug("Creating screenshot of view \""+view.getName()+"\"");
 
 		try ( ByteArrayOutputStream out = new ByteArrayOutputStream() ) {
 			try ( DataOutputStream writeOut = new DataOutputStream(out) ) {
@@ -1495,13 +1494,11 @@ public class DBGui {
 				dbMetadata.getScreenshot().setBorderWidth(margin);
 				dbMetadata.getScreenshot().setBounds(bounds);
 			} catch (IOException err) {
-				logger.error(DBGui.class, "Failed to close DataOutputStream", err);
+				logger.error("Failed to close DataOutputStream", err);
 			}
 		} catch (IOException err) {
-			logger.error(DBGui.class, "Failed to close ByteArrayOutputStream", err);
+			logger.error("Failed to close ByteArrayOutputStream", err);
 		}
-
-		setProgressBarLabel(oldLabel);
 
 		return imageContent;
 	}
