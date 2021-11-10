@@ -220,6 +220,7 @@ public class DBGui {
 	 * 		left composite: picture of a database with Archimate diagram inside, the plugin version, (my name of course) and 4 icons + texts to list actions 
 	 * 		bottom composite: Close, doAction button at the right and help buton on the left
 	 * 		right composite: database list in a combo and a button to set preferences
+	 * @param title Title of the window
 	 */
 	protected DBGui(String title) {
 		if ( logger.isDebugEnabled() ) logger.debug("Creating Form GUI.");
