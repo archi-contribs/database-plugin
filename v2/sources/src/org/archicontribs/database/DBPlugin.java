@@ -172,7 +172,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				"log4j.appender.file.layout                     = org.apache.log4j.PatternLayout\n"+
 				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n");
 		logger = new DBLogger(DBPlugin.class);
-		logger.info("Initialising "+pluginName+" plugin ...");
+		logger.info("Initialising "+pluginTitle+" ...");
 		
 		logger.info("===============================================");
 		// we force the class initialization by the SWT thread
