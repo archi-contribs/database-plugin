@@ -212,7 +212,7 @@ public class DBGui {
 	@Getter private int defaultLabelHeight;
 
 	/** Default margin between widgets */
-	@Getter private int defaultMargin = 10;
+	@Getter private int defaultMargin = 5;
 
 
 	/**
