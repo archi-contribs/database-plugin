@@ -472,6 +472,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             	checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
             } catch (NullPointerException err)  {
             	this.allFaultyObjects.put(eObject, err.getMessage());
+            	checksumBuilder = new StringBuilder();
             }
             len = checksumBuilder.length();
         }
@@ -829,9 +830,12 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             if ( source == null )
                 source = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
         
-            if ( source == null )
+            if ( source == null ) {
+            	logger.error("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
             	throw new Exception("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
+            }
 
+            logger.trace("source connection resolved for "+DBMetadata.getDBMetadata(source).getDebugName());
             connection.setSource(source);
             source.addConnection(connection);
         }
@@ -845,10 +849,13 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             if ( target == null )
             	target = this.getAllViewObjects().get(getNewViewObjectId(entry.getValue()));
         
-            if ( target == null )
+            if ( target == null ) {
+            	logger.error("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
             	throw new Exception("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
+        	}
 
-            connection.setSource(target);
+            logger.trace("target connection resolved for "+DBMetadata.getDBMetadata(target).getDebugName());
+            connection.setTarget(target);
             target.addConnection(connection);
         }
 
