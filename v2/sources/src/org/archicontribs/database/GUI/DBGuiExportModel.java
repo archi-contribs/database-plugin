@@ -1269,7 +1269,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size() + this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size();
 		createProgressBar("Comparing the model to the database ...", 1, progressBarWidth);
-
+		
 		try {
 			// we compare the elements, relationships, folders and views
 			this.exportConnection.getAllVersionFromDatabase(this.exportedModel, this);
@@ -1788,10 +1788,11 @@ public class DBGuiExportModel extends DBGui {
 				logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
 			}
 		}
-
+		
+		
 		closeMessage();
 
-		if ( total == 0 ) { 
+		if ( total == 0 && (this.exportedModel.getCurrentVersion().getChecksum().toString().equals(this.exportedModel.getDatabaseVersion().getChecksum().toString()))) { 
 			logger.info("The model does not need to be exported to the database.");
 			return true;
 		}

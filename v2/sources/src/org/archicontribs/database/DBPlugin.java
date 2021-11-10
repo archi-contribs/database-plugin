@@ -49,6 +49,7 @@ import lombok.Getter;
  * 						Fix folder when import individual component
  * 						Fix import and export windows default location
  * 						Add Options tab in preference page to reduce window size
+ * 						Add model metadata in compare to database process
  * 
  * -----------------------------------------------------------------------------------------
  * 
