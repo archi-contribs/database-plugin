@@ -424,7 +424,7 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colCreatedOn = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedOn.setText("Date");
-        colCreatedOn.setWidth(120);
+        colCreatedOn.setWidth(130);
 
         TableColumn colCreatedBy = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedBy.setText("Author");
@@ -492,7 +492,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setVisible(false);
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
-        this.grpComponents.setText("Your model's components: ");
+        this.grpComponents.setText("Your model components: ");
         
         // we calculate the required height of the grpComponents group
         int requiredHeight = 10 * (getDefaultLabelHeight() + getDefaultMargin());
@@ -757,45 +757,64 @@ public class DBGuiImportModel extends DBGui {
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(this.grpComponents, -getDefaultMargin());
         this.grpModelVersions.setLayoutData(fd);
+        this.grpModelVersions.setText("Your model details: ");
+        
+        this.tblModelVersions.setVisible(false);
+        
+        Label lblModelVersion = new Label(this.grpModelVersions, SWT.NONE);
         
         fd = new FormData();
         fd.top = new FormAttachment(0, getDefaultMargin());
         fd.left = new FormAttachment(0, getDefaultMargin());
-        fd.right = new FormAttachment(40, -getDefaultMargin());
-        fd.bottom = new FormAttachment(100, -getDefaultMargin());
-        this.tblModelVersions.setLayoutData(fd);
-        
-        fd = new FormData();
-        fd.top = new FormAttachment(0, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
         this.lblModelName.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.lblModelName, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblModelName, 80, SWT.LEFT);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtModelName.setLayoutData(fd);
         
+        lblModelVersion.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModelVersion.setText("Model version:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
+        fd.top = new FormAttachment(this.lblModelName, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        lblModelVersion.setLayoutData(fd);
+
+        Text txtModelVersion = new Text(this.grpModelVersions, SWT.BORDER);
+        txtModelVersion.setBackground(GROUP_BACKGROUND_COLOR);
+        txtModelVersion.setEnabled(false);
+        TableItem selectedVersion = this.tblModelVersions.getSelection()[0];
+        if ( selectedVersion.getText(0).isEmpty() )
+        	txtModelVersion.setText("Latest version");
+        else
+        	txtModelVersion.setText(selectedVersion.getText(0)+" ("+selectedVersion.getText(1)+")");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModelVersion, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
+        txtModelVersion.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(txtModelVersion, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblPurpose.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, 5);
-        fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
+        fd.top = new FormAttachment(txtModelVersion, 5);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(55, -5);
         this.txtPurpose.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblReleaseNote.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, 5);
-        fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.txtReleaseNote.setLayoutData(fd);
@@ -839,14 +858,14 @@ public class DBGuiImportModel extends DBGui {
             this.txtTotalViewConnections.setText(toString(this.importConnection.getCountViewConnectionsToImport()));
             this.txtTotalImages.setText(toString(this.importConnection.getCountImagesToImport()));
 
-            this.txtImportedProfiles.setText("0");
-            this.txtImportedElements.setText("0");
-            this.txtImportedRelationships.setText("0");
-            this.txtImportedFolders.setText("0");
-            this.txtImportedViews.setText("0");
-            this.txtImportedViewObjects.setText("0");
-            this.txtImportedViewConnections.setText("0");
-            this.txtImportedImages.setText("0");
+            this.txtImportedProfiles.setText(toString(0));
+            this.txtImportedElements.setText(toString(0));
+            this.txtImportedRelationships.setText(toString(0));
+            this.txtImportedFolders.setText(toString(0));
+            this.txtImportedViews.setText(toString(0));
+            this.txtImportedViewObjects.setText(toString(0));
+            this.txtImportedViewConnections.setText(toString(0));
+            this.txtImportedImages.setText(toString(0));
             
 	        // Import the model components from the database
 
