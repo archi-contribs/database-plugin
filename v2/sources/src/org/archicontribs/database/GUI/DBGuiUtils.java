@@ -11,6 +11,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.Priority;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
+import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
@@ -21,6 +22,9 @@ import org.eclipse.swt.graphics.Cursor;
 import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -30,6 +34,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
+import org.eclipse.swt.widgets.TableItem;
 
 /**
  * The DBGuiUtils class hosts the static methods that create simple popups on screeen to communicate with user.<wbr>
@@ -48,9 +53,9 @@ public class DBGuiUtils {
     
     /************** popup message ***********************/
     
-    static Shell dialogShell = null;
-    static Composite dialogComposite = null;
-    static Label dialogLabel = null;
+    static Shell popupShell = null;
+    static Composite popupComposite = null;
+    static Label popupLabel = null;
     /**
      * Shows up an on screen popup displaying a message to the user but does not wait for any user input<br>
      * The message can be changed in the popup window without closing the popup and opening a new one by calling several times the showPopupMessage method<br>
@@ -59,20 +64,20 @@ public class DBGuiUtils {
      * @return 
      */
     public static Shell showPopupMessage(String msg) {
-        logger.info(DBGui.class, msg);
+        logger.info(msg);
 
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
-                if ( dialogShell == null ) {
-                    dialogShell = new Shell(display, SWT.APPLICATION_MODAL);
-                    dialogShell.setSize(500, 70);
-                    dialogShell.setBackground(BLACK_COLOR);
+                if ( popupShell == null ) {
+                	popupShell = new Shell(display, SWT.APPLICATION_MODAL);
+                	popupShell.setSize(500, 70);
+                	popupShell.setBackground(BLACK_COLOR);
 
                     // Use the active shell, if available, to determine the new shell placing
                     int locationX = 0;
                     int locationY = 0;
-                    Rectangle shellSize = dialogShell.getBounds();
+                    Rectangle shellSize = popupShell.getBounds();
                     Shell parent = display.getActiveShell();
                     if (parent!=null) { 
                     	Rectangle parentSize = parent.getBounds();
@@ -82,46 +87,46 @@ public class DBGuiUtils {
             	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 4;
             	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 4;
                     }    
-                    dialogShell.setLocation(new Point(locationX, locationY));
+                    popupShell.setLocation(new Point(locationX, locationY));
 
-                    int borderWidth = (dialogShell.getBorderWidth()+1)*2;
-                    dialogComposite = new Composite(dialogShell, SWT.NONE);
-                    dialogComposite.setSize(500-borderWidth, 70-borderWidth);
-                    dialogComposite.setLocation(1, 1);
-                    dialogComposite.setBackground(BG_COLOR);
-                    dialogComposite.setLayout(new GridLayout( 1, false ) );
+                    int borderWidth = (popupShell.getBorderWidth()+1)*2;
+                    popupComposite = new Composite(popupShell, SWT.NONE);
+                    popupComposite.setSize(500-borderWidth, 70-borderWidth);
+                    popupComposite.setLocation(1, 1);
+                    popupComposite.setBackground(BG_COLOR);
+                    popupComposite.setLayout(new GridLayout( 1, false ) );
 
-                    dialogLabel = new Label(dialogComposite, SWT.CENTER | SWT.WRAP);
-                    dialogLabel.setBackground(BG_COLOR);
-                    dialogLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
-                    dialogLabel.setFont(TITLE_FONT);
+                    popupLabel = new Label(popupComposite, SWT.CENTER | SWT.WRAP);
+                    popupLabel.setBackground(BG_COLOR);
+                    popupLabel.setLayoutData( new GridData( SWT.CENTER, SWT.CENTER, true, true ) );
+                    popupLabel.setFont(TITLE_FONT);
                 } else {
                     restoreCursors();
                 }
 
-                dialogLabel.setText(msg);
-                dialogShell.layout(true);
-                dialogShell.open();
+                popupLabel.setText(msg);
+                popupShell.layout(true);
+                popupShell.open();
 
-                dialogComposite.layout();
+                popupComposite.layout();
 
                 setWaitCursor();
             }
         });
 
-        return dialogShell;
+        return popupShell;
     }
 
     /**
      * dismiss the popupMessage window if it is displayed (else, does nothing) 
      */
     public static void closePopupMessage() {
-        if ( dialogShell != null ) {
+        if ( popupShell != null ) {
             Display.getDefault().syncExec(new Runnable() {
                 @Override
                 public void run() {
-                    dialogShell.close();
-                    dialogShell = null;
+                    popupShell.close();
+                    popupShell = null;
 
                     restoreCursors();
                 }
@@ -148,7 +153,7 @@ public class DBGuiUtils {
      * @param e Exception to display in the popup
      */
     public static void popup(Level level, String msg, Exception e) {
-        logger.log(DBGuiUtils.class, level, msg, e);
+        logger.debug(level.toString()+": "+msg, e);
 
         display.syncExec(new Runnable() {
         	@Override
@@ -205,35 +210,35 @@ public class DBGuiUtils {
      * @return 0 if the user selected the first choice, 1 if the user selected the second choice, and so on 
      */
     public static int question(String msg, String[] buttonLabels) {
-        if ( logger.isDebugEnabled() ) logger.debug(DBGuiUtils.class, "Question: "+msg);
+        if ( logger.isDebugEnabled() ) logger.debug("Question: "+msg);
 
         display.syncExec(new Runnable() {
             @Override
             public void run() {
-                Shell shell = new Shell(display, SWT.SHELL_TRIM);
-                shell.setSize(0, 0);
-                shell.setBackground(BLACK_COLOR);
+                Shell questionShell = new Shell(display, SWT.SHELL_TRIM);
+                questionShell.setSize(0, 0);
+                questionShell.setBackground(BLACK_COLOR);
 
                 // Use the active shell, if available, to determine the new shell placing
                 int locationX = 0;
                 int locationY = 0;
-                Rectangle shellSize = shell.getBounds();
+                Rectangle shellSize = questionShell.getBounds();
                 Shell parent = display.getActiveShell();
                 if (parent!=null) { 
                 	Rectangle parentSize = parent.getBounds();
         	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
         	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
                 } else {
-        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4;
-        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4;
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - questionShell.getSize().x) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - questionShell.getSize().y) / 4;
                 }
-                shell.setLocation(new Point(locationX, locationY));
-                MessageDialog messageDialog = new MessageDialog(shell, DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
+                questionShell.setLocation(new Point(locationX, locationY));
+                MessageDialog messageDialog = new MessageDialog(questionShell, DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
                 questionResult = messageDialog.open();
             }
         });
 
-        if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Answer: "+buttonLabels[questionResult]);
+        if ( logger.isDebugEnabled() ) logger.debug("Answer: "+buttonLabels[questionResult]);
         return questionResult;
     }
     
@@ -250,32 +255,32 @@ public class DBGuiUtils {
      * @return the password entered by the user
      */
     public static String passwordDialog(String title, String message) {
-    	if ( logger.isDebugEnabled() ) logger.debug(DBGui.class, "Asking for password");
+    	if ( logger.isDebugEnabled() ) logger.debug("Asking for password");
     	answeredPassword = "";
     	display.syncExec(new Runnable() {
             @Override
             public void run() {
-                Shell shell = new Shell(display, SWT.SHELL_TRIM);
-        		shell.setText(title);
-                shell.setSize(0, 0);
-                shell.setBackground(BLACK_COLOR);
+                Shell passwordDialogShell = new Shell(display, SWT.SHELL_TRIM);
+                passwordDialogShell.setText(title);
+                passwordDialogShell.setSize(0, 0);
+                passwordDialogShell.setBackground(BLACK_COLOR);
 
                 // Use the active shell, if available, to determine the new shell placing
                 int locationX = 0;
                 int locationY = 0;
-                Rectangle shellSize = shell.getBounds();
+                Rectangle shellSize = passwordDialogShell.getBounds();
                 Shell parent = display.getActiveShell();
                 if (parent!=null) { 
                 	Rectangle parentSize = parent.getBounds();
         	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
         	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
                 } else {
-        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - shell.getSize().x) / 4;
-        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - shell.getSize().y) / 4;
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - passwordDialogShell.getSize().x) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - passwordDialogShell.getSize().y) / 4;
                 }
-                shell.setLocation(new Point(locationX, locationY));
+                passwordDialogShell.setLocation(new Point(locationX, locationY));
                 
-                DBGuiPasswordDialog passwordDialog = new DBGuiPasswordDialog(shell);
+                DBGuiPasswordDialog passwordDialog = new DBGuiPasswordDialog(passwordDialogShell);
                 if ( passwordDialog.open() == 0 )
                 	answeredPassword = passwordDialog.getPassword();
                 else
@@ -299,69 +304,97 @@ public class DBGuiUtils {
      * @return the password entered by the user
      */
     public static List<EObject> selectItemsDialog(String title, String message, Map<EObject, String> map, boolean singleMode) {
-        logger.info(DBGui.class, message);
+        logger.info(message);
 
         Display.getDefault().syncExec(new Runnable() {
             @Override
             public void run() {
                 setWaitCursor();
 
-                Shell shell = new Shell(display, SWT.APPLICATION_MODAL);
-                shell.setSize(500, 300);
-                shell.setBackground(BLACK_COLOR);
+                Shell selectItemsShell = new Shell(display, SWT.SHELL_TRIM | SWT.APPLICATION_MODAL);
+                selectItemsShell.setText(title);
+                selectItemsShell.setSize(1024, 768);
+                selectItemsShell.setBackground(BLACK_COLOR);
+                selectItemsShell.setLayout(new GridLayout(1, false));
+                
 
                 // Use the active shell, if available, to determine the new shell placing
                 int locationX = 0;
                 int locationY = 0;
-                Rectangle shellSize = dialogShell.getBounds();
+                Rectangle shellSize = selectItemsShell.getBounds();
                 Shell parent = display.getActiveShell();
                 if (parent!=null) { 
                 	Rectangle parentSize = parent.getBounds();
         	        locationX = (parentSize.width - shellSize.width)/2+parentSize.x;
         	        locationY = (parentSize.height - shellSize.height)/2+parentSize.y;
                 } else {
-        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width -  500) / 4;
-        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - 300) / 4;
+        	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width -  shellSize.width) / 4;
+        	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - shellSize.height) / 4;
                 }    
-                shell.setLocation(new Point(locationX, locationY));
+                selectItemsShell.setLocation(new Point(locationX, locationY));
 
-                int borderWidth = (dialogShell.getBorderWidth()+1)*2;
-                Composite composite = new Composite(dialogShell, SWT.NONE);
-                composite.setSize(500-borderWidth, 300-borderWidth);
-                composite.setLocation(1, 1);
-                composite.setBackground(BG_COLOR);
-                composite.setLayout(new GridLayout( 1, false ) );
+                Composite selectItemsComposite = new Composite(selectItemsShell, SWT.NONE);
+                selectItemsComposite.setBackground(BG_COLOR);
+                selectItemsComposite.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+                selectItemsComposite.setLayout(new FormLayout());
 
-                Label label = new Label(dialogComposite, SWT.CENTER | SWT.WRAP);
+                Label label = new Label(selectItemsComposite, SWT.WRAP | SWT.BORDER);
                 label.setText(message);
                 label.setBackground(BG_COLOR);
-                label.setFont(TITLE_FONT);
-                label.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, true, false ) );
+                label.pack();
+                FormData fd = new FormData();
+                fd.top = new FormAttachment(0, 5);
+                fd.left = new FormAttachment(0, 5);
+                fd.right = new FormAttachment(100, -5);
+                label.setLayoutData(fd);
+                
+                Button okButton = new Button(selectItemsComposite, SWT.NONE);
+                okButton.setText("OK");
+                fd = new FormData();
+                fd.right = new FormAttachment(100, -5);
+                fd.bottom = new FormAttachment(100, -5);
+                okButton.setLayoutData(fd);
 
                 
-                Table table = new Table(shell, SWT.CHECK | SWT.BORDER | SWT.V_SCROLL| SWT.H_SCROLL);
+                Table table = new Table(selectItemsComposite, SWT.CHECK | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL| SWT.H_SCROLL);
+                table.setLinesVisible(true);
+                table.setHeaderVisible(true);
+                fd = new FormData();
+                fd.top = new FormAttachment(label, 5);
+                fd.left = new FormAttachment(0, 5);
+                fd.right = new FormAttachment(100, -5);
+                fd.bottom = new FormAttachment(okButton, -5);
+                table.setLayoutData(fd);
+                
+                
                 TableColumn column = new TableColumn(table, SWT.NULL);
+                column.setWidth(10);
+                column = new TableColumn(table, SWT.NULL);
                 column.setText("Component");
+                column.setWidth(100);
                 column = new TableColumn(table, SWT.NULL);
                 column.setText("Comment");
-                table.setLayoutData( new GridData( SWT.LEFT, SWT.CENTER, true, true ) );
+                column.setWidth(100);
                 
-                Button okButton = new Button(shell, SWT.NONE);
-                okButton.setText("OK");
-                okButton.setLayoutData( new GridData( SWT.RIGHT, SWT.CENTER, false, false ) );
+                for (var entry : map.entrySet()) {
+                    TableItem tableItem = new TableItem(table, SWT.NONE);
+                    DBMetadata metadata = DBMetadata.getDBMetadata(entry.getKey());
+                    tableItem.setText(1, metadata.getDebugName());
+                    tableItem.setText(2, entry.getValue());
+                }
                 
                 okButton.addSelectionListener(new SelectionAdapter() {
                     @Override
                     public void widgetSelected(SelectionEvent arg0) {
-                        okButton.dispose();
+                    	selectItemsShell.dispose();
                     }
                 });
                 
-                composite.layout(true);               
-                shell.layout(true);
-                shell.open();
+                selectItemsComposite.layout(true);               
+                selectItemsShell.layout(true);
+                selectItemsShell.open();
                 
-                while (!okButton.isDisposed()) {		// the okButton is disposed in the selectionListener (i.e. when the user clicks on it) 
+                while (!selectItemsShell.isDisposed()) {		// the shell window is disposed in the selectionListener (i.e. when the user clicks on it) 
                     if (!display.readAndDispatch())
                         display.sleep();
                 }
