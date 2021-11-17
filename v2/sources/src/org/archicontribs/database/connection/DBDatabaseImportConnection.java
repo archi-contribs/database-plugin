@@ -731,7 +731,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+dbMetadata.getInitialVersion().getVersion());
 
 				IFolder folder = null;
-				if ( this.currentResultSetRelationships.getString("parent_folder_id") == null ) {
+				if ( this.currentResultSetRelationships.getString("parent_folder_id") != null ) {
 				    folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
 				}
 				
@@ -739,10 +739,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				    folder = model.getDefaultFolderForObject(relationship);
 				}
 				
+				folder.getElements().add(relationship);
+				
 				// profile must be set AFTER it is inserted into a folder, else it is not yet in the model
 				dbMetadata.addProfileId(this.currentResultSetRelationships.getString("profile"));
-				
-				folder.getElements().add(relationship);
 
 				IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
 				IArchimateConcept target = model.getAllElements().get(this.currentResultSetRelationships.getString("target_id"));

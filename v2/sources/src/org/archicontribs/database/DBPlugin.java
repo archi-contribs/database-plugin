@@ -48,6 +48,7 @@ import lombok.Getter;
  * 						fix SQL Server exception caused by missing column in GROUP BY clause
  * 						Fix folder when import individual component
  * 						Fix import and export windows default location
+ * 						Fix import relationships in right folder
  * 						Add Options tab in preference page to reduce window size
  * 						Add model metadata in compare to database process
  * 
