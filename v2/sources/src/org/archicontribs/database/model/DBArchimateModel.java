@@ -48,6 +48,7 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProfile;
+import com.archimatetool.model.IProfiles;
 import com.archimatetool.model.ModelVersion;
 import lombok.Getter;
 import lombok.Setter;
@@ -225,6 +226,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * We use LinkedHashMap as the order is important
     */
     @Getter private Map<String, IProfile> allProfiles = new LinkedHashMap<String, IProfile>();
+    
+    /**
+     * List of the profiles usage.
+     */
+    @Getter private Map<IProfile, List<IProfiles>> allProfilesUsages = new LinkedHashMap<IProfile, List<IProfiles>>();
 
     /**
      * List of the source relationships that have been imported but not yet created.
@@ -299,6 +305,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     public void resetCounters() {
         if ( logger.isDebugEnabled() ) logger.debug("   Reseting model's counters.");
 
+        this.allProfiles.clear();
+        this.allProfilesUsages.clear();
         this.allSourceRelationshipsToResolve.clear();
         this.allTargetRelationshipsToResolve.clear();
         this.allSourceConnectionsToResolve.clear();
@@ -591,8 +599,20 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
             default:								// here, the class is too detailed (Node, Artefact, BusinessActor, etc ...), so we use "instanceof" to distinguish elements from relationships
 									                if ( eObject instanceof IArchimateElement ) {
 									                    this.allElements.put(((IIdentifier)eObject).getId(), (IArchimateElement)eObject);
+									                    for ( IProfile profile: ((IProfiles)eObject).getProfiles() ) {
+									                    	List<IProfiles> list = this.allProfilesUsages.get(profile);
+									                    	if ( list == null ) list = new ArrayList<IProfiles>();
+									                    	list.add((IProfiles)eObject);
+									                    	this.allProfilesUsages.put(profile, list);
+									                    }
 									                } else if ( eObject instanceof IArchimateRelationship ) {
 									                    this.allRelationships.put(((IIdentifier)eObject).getId(), (IArchimateRelationship)eObject);
+									                    for ( IProfile profile: ((IProfiles)eObject).getProfiles() ) {
+									                    	List<IProfiles> list = this.allProfilesUsages.get(profile);
+									                    	if ( list == null ) list = new ArrayList<IProfiles>();
+									                    	list.add((IProfiles)eObject);
+									                    	this.allProfilesUsages.put(profile, list);
+									                    }
 									                } else { //we should never be there, but just in case ...
 									                    throw new Exception("Unknown "+eObject.eClass().getName()+" object.");
 									                }

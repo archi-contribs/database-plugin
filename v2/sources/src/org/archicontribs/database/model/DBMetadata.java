@@ -1107,6 +1107,17 @@ public class DBMetadata  {
     	return 0;
     }
     
+    public String getConceptType() {
+    	if ( this.component instanceof IProfile )
+    		return ((IProfile)this.component).getConceptType();
+    	return null;
+    }
+    
+    public void setConceptType(String conceptType) {
+    	if ( this.component instanceof IProfile )
+    		((IProfile)this.component).setConceptType(conceptType);
+    }
+    
 	/**
 	 * Gets the DBMetadata associated with an archimate object.
 	 * @param obj the archimate object

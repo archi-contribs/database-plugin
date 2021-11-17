@@ -30,8 +30,10 @@ import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
+import org.archicontribs.database.model.commands.DBDeleteProfileCommand;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportProfileFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewConnectionFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
@@ -156,7 +158,7 @@ public class DBGuiExportModel extends DBGui {
 			closeMessage();
 		}
 
-		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships and "+this.exportedModel.getAllFolders().size()+" folders and "+this.exportedModel.getAllViews().size()+" views and "+this.exportedModel.getAllViewObjects().size()+" objects and "+this.exportedModel.getAllViewConnections().size()+" connections.");
+		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllProfiles().size()+" specializations and "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships and "+this.exportedModel.getAllFolders().size()+" folders and "+this.exportedModel.getAllViews().size()+" views and "+this.exportedModel.getAllViewObjects().size()+" objects and "+this.exportedModel.getAllViewConnections().size()+" connections.");
 
 		this.txtTotalProfiles.setText(toString(this.exportedModel.getProfiles().size()));
 		this.txtTotalElements.setText(toString(this.exportedModel.getAllElements().size()));
@@ -1835,15 +1837,16 @@ public class DBGuiExportModel extends DBGui {
 
 			// we log the values uniquely if the updateTextFields has been requestes, else the values are zero
 			logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-			logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
-			logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-			logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
+			logger.info(String.format("                     Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+			logger.info(String.format("   Specializations:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllProfiles().size(), toInt(this.txtNewProfilesInModel.getText()), toInt(this.txtUpdatedProfilesInModel.getText()), toInt(this.txtDeletedProfilesInModel.getText()), toInt(this.txtNewProfilesInDatabase.getText()), toInt(this.txtUpdatedProfilesInDatabase.getText()), toInt(this.txtDeletedProfilesInDatabase.getText()), toInt(this.txtConflictingProfiles.getText())) );  
+			logger.info(String.format("   Elements:         %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
+			logger.info(String.format("   Relationships:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
 			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-				logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
-				logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
-				logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
-				logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-				logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
+				logger.info(String.format("   Folders:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
+				logger.info(String.format("   views:            %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
+				logger.info(String.format("   Objects:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
+				logger.info(String.format("   Connections:      %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
+				logger.info(String.format("   images:           %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
 			}
 		}
 		
@@ -1906,6 +1909,7 @@ public class DBGuiExportModel extends DBGui {
 			this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
 
 			// we reset the counters as they will be updated during the import and export process
+			this.txtTotalProfiles.setText(this.ZERO);         this.txtNewProfilesInModel.setText(this.ZERO);         this.txtUpdatedProfilesInModel.setText(this.ZERO);         this.txtDeletedProfilesInModel.setText(this.ZERO);         this.txtNewProfilesInDatabase.setText(this.ZERO);          this.txtUpdatedProfilesInDatabase.setText(this.ZERO);          this.txtDeletedProfilesInDatabase.setText(this.ZERO);        this.txtConflictingProfiles.setText(this.ZERO);
 			this.txtTotalElements.setText(this.ZERO);         this.txtNewElementsInModel.setText(this.ZERO);         this.txtUpdatedElementsInModel.setText(this.ZERO);         this.txtDeletedElementsInModel.setText(this.ZERO);         this.txtNewElementsInDatabase.setText(this.ZERO);          this.txtUpdatedElementsInDatabase.setText(this.ZERO);          this.txtDeletedElementsInDatabase.setText(this.ZERO);        this.txtConflictingElements.setText(this.ZERO);
 			this.txtTotalRelationships.setText(this.ZERO);    this.txtNewRelationshipsInModel.setText(this.ZERO);    this.txtUpdatedRelationshipsInModel.setText(this.ZERO);    this.txtDeletedRelationshipsInModel.setText(this.ZERO);    this.txtNewRelationshipsInDatabase.setText(this.ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);     this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);   this.txtConflictingRelationships.setText(this.ZERO);
 			this.txtTotalFolders.setText(this.ZERO);          this.txtNewFoldersInModel.setText(this.ZERO);          this.txtUpdatedFoldersInModel.setText(this.ZERO);          this.txtDeletedFoldersInModel.setText(this.ZERO);          this.txtNewFoldersInDatabase.setText(this.ZERO);           this.txtUpdatedFoldersInDatabase.setText(this.ZERO);           this.txtDeletedFoldersInDatabase.setText(this.ZERO);         this.txtConflictingFolders.setText(this.ZERO);
@@ -1933,6 +1937,19 @@ public class DBGuiExportModel extends DBGui {
 
 				hideGrpDatabase();
 				createGrpConflict();
+				
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) {
+					IProfile profile = profilesIterator.next().getValue();
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+						if ( this.exportedModel.getAllConflicts().get(profile) != null ) {
+							this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.askUser);
+							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
+							item.setText(profile.getId());
+							item.setData(profile);
+						}
+					}
+				}
 
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
@@ -2016,13 +2033,23 @@ public class DBGuiExportModel extends DBGui {
 
 			//////////////////////////// PHASE 3 : we remove from the model the components that have been deleted in the database 
 			if ( !isNeo4JDatabase ) {
-				setMessage("Removing from the model the elements that have been deleted in the database ...");
-				errorMessage = "Failed to remove from the model the elements that have been deleted in the database.";
+				setMessage("Removing from the model the components that have been deleted in the database ...");
+				errorMessage = "Failed to remove from the model the components that have been deleted in the database.";
 
 				// please be aware that the commands put in the undoableCommand are single operations
 				// ie. when an element is deleted, the command does not delete at the same time the relationships connected to it, not the views objets that references it.
 
 				// we do not use getException() method as Archi commands do not implement it
+				
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) {
+					IProfile profile = profilesIterator.next().getValue();
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+						undoableCommands.add(new DBDeleteProfileCommand(this.exportedModel, profile));
+						incrementText(this.txtDeletedProfilesInDatabase);
+						decrementText(this.txtTotalProfiles);
+					}
+				}
 
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
@@ -2097,6 +2124,9 @@ public class DBGuiExportModel extends DBGui {
 				int progressBarWidth = this.exportConnection.getFoldersNotInModel().size() + this.exportConnection.getElementsNotInModel().size() + this.exportConnection.getRelationshipsNotInModel().size() + this.exportConnection.getViewsNotInModel().size() + this.exportConnection.getViewObjectsNotInModel().size() + this.exportConnection.getViewConnectionsNotInModel().size();
 				
 				// we add the number of updated components to import from the database
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(profilesIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(foldersIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
 				
@@ -2130,7 +2160,36 @@ public class DBGuiExportModel extends DBGui {
 					errorMessage = "Failed to import components from the database.";
 
 					try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
+						// IMPORT PROFILES (we import the profiles BEFORE the elements, relationships and views because they must exist when the elements, relationships are imported)
+						if ( this.exportConnection.getProfilesNotInModel().size() == 0 )
+							logger.info("There is no specialization to import.");
+						else {
+							logger.info("Importing new specializations ...");
+							setProgressBarLabel("Importing new specializations ...");
+							for (String id : this.exportConnection.getProfilesNotInModel().keySet() ) {
+								DBMetadata versionToImport = this.exportConnection.getProfilesNotInModel().get(id);
+								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+									if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+id+" has been created in the database. We import it from the database.");
+									undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode));
+									incrementText(this.txtNewProfilesInDatabase);
+									incrementText(this.txtTotalProfiles);
+								} else {
+									if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+id+" is not imported as it has been deleted from the model.");
+									incrementText(this.txtDeletedProfilesInModel);
+								}
+							}
+						}
 						
+						// UPDATE PROFILES
+						profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+						while ( profilesIterator.hasNext() ) {
+							IProfile profile = profilesIterator.next().getValue();
+							if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+								if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+profile.getId()+" has been updated in the database. We import the new version from the database.");
+								undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, profile.getId(), 0, DBImportMode.forceSharedMode));
+								incrementText(this.txtUpdatedProfilesInDatabase);
+							}
+						}
 						
 						// IMPORT FOLDERS (we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported)
 						if ( this.exportConnection.getFoldersNotInModel().size() == 0 )
