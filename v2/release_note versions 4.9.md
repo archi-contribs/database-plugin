@@ -4,6 +4,7 @@
 * Fix folder when import individual component
 * Fix import and export windows default location
 * Fix import relationships in right folder
+Fix database upgrade when using Oracle engine
 * Improve specializations management during export to database
 * Add Options tab in preference page to reduce window size
 
