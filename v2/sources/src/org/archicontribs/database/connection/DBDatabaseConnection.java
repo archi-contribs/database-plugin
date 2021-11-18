@@ -1280,8 +1280,8 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			
 			// add profile column in elements and relationships tables
-			addColumn(this.schemaPrefix+"elements",      "profile", objectIDColumn.getType());
-			addColumn(this.schemaPrefix+"relationships", "profile", objectIDColumn.getType());
+			addColumn(this.schemaPrefix+"elements",      "profile", objectIDColumn.getFullType());
+			addColumn(this.schemaPrefix+"relationships", "profile", objectIDColumn.getFullType());
 			
 			dbVersion = 490;
 		}
