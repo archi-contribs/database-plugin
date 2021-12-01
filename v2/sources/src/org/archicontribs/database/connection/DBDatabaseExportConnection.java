@@ -2000,25 +2000,33 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String parentId = ((IIdentifier)parent).getId();
 			int parentVersion = (parent instanceof DBArchimateModel) ? ((DBArchimateModel)parent).getCurrentVersion().getVersion() : DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
-			for ( int propPos = 0 ; propPos < parent.getProperties().size(); ++propPos) {
-				IProperty prop = parent.getProperties().get(propPos);
-				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-					executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {pos:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
-							,parentId
-							,parentVersion
-							,propPos
-							,prop.getKey()
-							,prop.getValue()
-							);
+			int pos = 0;
+			for ( int p = 0 ; p < parent.getProperties().size(); ++p) {
+				IProperty prop = parent.getProperties().get(p);
+				if ( prop != null) {
+					String key = prop.getKey();
+					String value = prop.getValue();
+					if ( (key != null) && (value != null) ) {
+						++pos;
+						if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+							executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {pos:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
+									,parentId
+									,parentVersion
+									,pos
+									,key
+									,value
+									);
+						}
+						else
+							insert(this.schemaPrefix+"properties", propertiesColumns
+									,parentId
+									,parentVersion
+									,pos
+									,key
+									,value
+									);
+					}
 				}
-				else
-					insert(this.schemaPrefix+"properties", propertiesColumns
-							,parentId
-							,parentVersion
-							,propPos
-							,prop.getKey()
-							,prop.getValue()
-							);
 			}
 		}
 	}
@@ -2037,25 +2045,33 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String parentId = ((IIdentifier)parent).getId();
 			int parentVersion = (parent instanceof DBArchimateModel) ? ((DBArchimateModel)parent).getCurrentVersion().getVersion() : DBMetadata.getDBMetadata(parent).getCurrentVersion().getVersion();
 
-			for ( int pos = 0 ; pos < parent.getFeatures().size(); ++pos) {
+			int pos = 0;
+			for ( int p = 0 ; p < parent.getFeatures().size(); ++p) {
 				IFeature feature = parent.getFeatures().get(pos);
-				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-					executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {pos:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
-							,parentId
-							,parentVersion
-							,pos
-							,feature.getName()
-							,feature.getValue()
-							);
+				if ( feature != null ) {
+					String name = feature.getName();
+					String value = feature.getValue();
+					if ( (name != null) && (value != null) ) {
+						++pos;
+						if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+							executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {pos:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
+									,parentId
+									,parentVersion
+									,pos
+									,name
+									,value
+									);
+						}
+						else
+							insert(this.schemaPrefix+"features", featuresColumns
+									,parentId
+									,parentVersion
+									,pos
+									,name
+									,value
+									);
+					}
 				}
-				else
-					insert(this.schemaPrefix+"features", featuresColumns
-							,parentId
-							,parentVersion
-							,pos
-							,feature.getName()
-							,feature.getValue()
-							);
 			}
 		}
 	}

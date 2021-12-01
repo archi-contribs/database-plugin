@@ -1174,10 +1174,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// then, we import the properties from the database 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
-				IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
-				prop.setKey(result.getString("name"));
-				prop.setValue(result.getString("value"));
-				parent.getProperties().add(prop);
+				String name = result.getString("name");
+				String value = result.getString("value");
+				if ( (name != null) && (value != null) ) {
+					IProperty prop = IArchimateFactory.eINSTANCE.createProperty();
+					prop.setKey(name);
+					prop.setValue(value);
+					parent.getProperties().add(prop);
+					if ( logger.isTraceEnabled() ) logger.debug("         Property added : key = \""+name+"\"    value = \""+value+"\"");
+				} else
+					if ( logger.isTraceEnabled() ) logger.debug("         Property ignored : key = \""+name+"\"    value = \""+value+"\"");
 			}
 		}
 	}
@@ -1198,10 +1204,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		// then, we import the properties from the database 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY pos", id, version)) {
 			while ( result.next() ) {
-				IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
-				feature.setName(result.getString("name"));
-				feature.setValue(result.getString("value"));
-				parent.getFeatures().add(feature);
+				String name = result.getString("name");
+				String value = result.getString("value");
+				if ( (name != null) && (value != null) ) {
+					IFeature feature = IArchimateFactory.eINSTANCE.createFeature();
+					feature.setName(result.getString("name"));
+					feature.setValue(result.getString("value"));
+					parent.getFeatures().add(feature);
+					if ( logger.isTraceEnabled() ) logger.debug("         Feature added : key = \""+name+"\"    value = \""+value+"\"");
+				} else
+					if ( logger.isTraceEnabled() ) logger.debug("         Feature ignored : key = \""+name+"\"    value = \""+value+"\"");
 			}
 		}
 	}
