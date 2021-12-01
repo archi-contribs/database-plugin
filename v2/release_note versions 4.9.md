@@ -1,3 +1,6 @@
+### v4.9.2 : 01/12/2021
+* Fix nullPointerExceptions when model has got null properties or features
+
 ### v4.9.1 : 01/12/2021
 * Fix parent folder of imported components when merging models
 
