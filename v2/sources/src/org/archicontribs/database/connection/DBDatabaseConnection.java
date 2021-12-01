@@ -899,7 +899,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schemaPrefix+"views") ) {
 					while ( result.next() ) {
 						IDiagramModel view;
-						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.templateMode, false);
+						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.templateMode, false);
 						if ( command.canExecute() )
 							command.execute();
 						if ( command.getException() != null )
@@ -1117,7 +1117,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					while ( result.next() ) {
 						IDiagramModel view;
 
-						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, result.getString("id"), result.getInt("version"), DBImportMode.forceSharedMode, false);
+						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.forceSharedMode, false);
 						if ( command.canExecute() )
 							command.execute();
 						if ( command.getException() != null )

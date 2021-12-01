@@ -67,12 +67,13 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 	 * Imports a folder into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the folder will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param parentFolder if a folder is provided, the folder will be created inside this parent folder. Else, we'll check in the database if the folder has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the folder to import
  	 * @param versionToImport version of the folder to import
 	 * @param importMode specifies if the folder must be copied or shared
 	 */
-	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode) {
+	public DBImportFolderFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode) {
 		this.model = archimateModel;
 		this.id = idToImport;
 		
@@ -93,7 +94,7 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType() == (int)this.newValues.get("root_type")) )
 			    this.newParentFolder = parentFolder;
 			else
-			    this.newParentFolder = importConnection.getLastKnownFolder(archimateModel, "IFolder", this.id);
+				this.newParentFolder = importConnection.getLastKnownFolder(archimateModel, mergedModelId, "IFolder", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import folder");

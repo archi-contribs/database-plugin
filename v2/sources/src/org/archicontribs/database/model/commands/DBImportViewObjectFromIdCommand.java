@@ -100,12 +100,13 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
      * Imports a view object into the model<br>
      * @param importConnection connection to the database
      * @param archimateModel model into which the view object will be imported
+     * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
      * @param idToImport id of the view object to import
      * @param version version of the view object to import
      * @param mustCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
      * @param importMode specifies the mode to be used to import missing elements and relationships
      */
-    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String idToImport, int version, boolean mustCopy, DBImportMode importMode) {
+    public DBImportViewObjectFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, String idToImport, int version, boolean mustCopy, DBImportMode importMode) {
         this.model = archimateModel;
         this.id = idToImport;
         this.mustCreateCopy = mustCopy;
@@ -146,7 +147,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             
             // if the object references an element, then we import it
             if ( this.newValues.get("element_id") != null ) {
-                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, archimateModel, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
+                this.importElementCommand = new DBImportElementFromIdCommand(importConnection, archimateModel, mergedModelId, null, null, (String)this.newValues.get("element_id"), 0, importMode, true);
                 if ( this.importElementCommand.getException() != null )
                     throw this.importElementCommand.getException();
             }
@@ -155,7 +156,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             if ( (this.newValues.get("diagram_ref_id") != null) && !this.newValues.get("diagram_ref_id").equals(this.newValues.get("element_id")) && (archimateModel.getAllViews().get(this.model.getNewViewId((String)this.newValues.get("diagram_ref_id"))) == null) ) {
             	if ( !importConnection.isAlreadyImported((String)this.newValues.get("diagram_ref_id")) ) {
 	                importConnection.declareAsImported((String)this.newValues.get("diagram_ref_id"));
-	                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, archimateModel, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
+	                DBImportViewFromIdCommand importLinkedViewCommand = new DBImportViewFromIdCommand(importConnection, archimateModel, mergedModelId, null, (String)this.newValues.get("diagram_ref_id"), 0, importMode, true);
 	                if ( importLinkedViewCommand.getException() != null )
 	                    throw importLinkedViewCommand.getException();
 	                this.importLinkedViewCommands.add(importLinkedViewCommand);

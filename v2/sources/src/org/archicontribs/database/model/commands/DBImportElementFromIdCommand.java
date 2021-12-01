@@ -83,6 +83,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	 * Imports an element into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the element will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
 	 * @param parentFolder if a folder is provided, the element will be created inside this parent folder. Else, we'll check in the database if the element has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the element to import
@@ -90,7 +91,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	 * @param importMode specifies if the element must be copied or shared
 	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
 	 */
-	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportRelationships) {
+	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, IArchimateDiagramModel archimateDiagramModel, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportRelationships) {
 		this.model = archimateModel;
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
@@ -115,7 +116,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newParentFolder = parentFolder;
 			else
-			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
+			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, mergedModelId, "IArchimateElement", this.id);
 
 			if ( this.mustImportTheRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
@@ -134,7 +135,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
 						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), idToImport) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), idToImport) || target != null) ) {
-							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
+							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, mergedModelId, null, resultRelationship.getString("id"), 0, importMode);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
 							else

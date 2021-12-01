@@ -84,12 +84,13 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 	 * Imports a view connection into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the view connection will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param idToImport id of the view connection to import
 	 * @param versionToImport version of the view connection to import (0 if the latest version should be imported)
      * @param mustCopy true if a copy must be imported (i.e. if a new id must be generated) or false if the view object should be its original id
 	 * @param importMode specifies if the view must be copied or shared
 	 */
-	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String idToImport, int versionToImport, boolean mustCopy, DBImportMode importMode) {
+	public DBImportViewConnectionFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, String idToImport, int versionToImport, boolean mustCopy, DBImportMode importMode) {
 		this.model = archimateModel;
 		this.id = idToImport;
         this.mustCreateCopy = mustCopy;
@@ -114,7 +115,7 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			
             // if the object references a relationship, then we import it
             if ( this.newValues.get("relationship_id") != null ) {
-                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, archimateModel, null, null, (String)this.newValues.get("relationship_id"), 0, importMode);
+                this.importRelationshipCommand = new DBImportRelationshipFromIdCommand(importConnection, archimateModel, null, mergedModelId, null, (String)this.newValues.get("relationship_id"), 0, importMode);
                 if ( this.importRelationshipCommand.getException() != null )
                     throw this.importRelationshipCommand.getException();
             }

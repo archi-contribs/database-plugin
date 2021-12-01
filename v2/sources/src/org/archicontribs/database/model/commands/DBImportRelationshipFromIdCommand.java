@@ -79,13 +79,14 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	 * Imports a relationship into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the relationship will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
 	 * @param parentFolder if a folder is provided, the relationship will be created inside this parent folder. Else, we'll check in the database if the relationship has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the relationship to import
 	 * @param versionToImport version of the relationship to import (0 if the latest found in the database should be imported) 
 	 * @param importMode specifies if the relationship must be copied or shared
 	 */
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode) {
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, String mergedModelId, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode) {
 		this.model = archimateModel;
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
@@ -112,7 +113,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
 			    this.newParentFolder = parentFolder;
 			else
-			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
+			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, mergedModelId, "IArchimateRelationship", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import relationship");
