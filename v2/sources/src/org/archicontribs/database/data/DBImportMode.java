@@ -67,6 +67,10 @@ public enum DBImportMode {
 		}
 	}
 
+	/**
+	 * @param properties Array with Archimate component properties
+	 * @return true if import should be done in copy mode, false if import should be done in share mode
+	 */
 	public boolean shouldCreateCopy(ArrayList<DBProperty> properties) {
 		switch ( this.value ) {
 			case DBImportMode.forceSharedModeValue:
