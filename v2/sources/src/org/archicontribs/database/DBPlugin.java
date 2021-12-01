@@ -54,6 +54,8 @@ import lombok.Getter;
  * 						Add Options tab in preference page to reduce window size
  * 						Add model metadata in compare to database process
  * 
+ * v4.9.1	01/12/2021	Fix parent folder of imported components when merging models
+ * 
  * -----------------------------------------------------------------------------------------
  * 
  * TO-DO list:
