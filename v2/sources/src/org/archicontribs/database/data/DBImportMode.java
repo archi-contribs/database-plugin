@@ -90,7 +90,7 @@ public enum DBImportMode {
 						}
 					}
 				}
-				logger.debug("   Import in shared mode (no \"template\" property or value different from \"copy\"");
+				logger.debug("   Import in shared mode (no \"template\" property or value different from \"copy\")");
 				return false;
 
 			default:
