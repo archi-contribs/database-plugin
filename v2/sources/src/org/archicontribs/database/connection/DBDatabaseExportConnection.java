@@ -190,7 +190,17 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			logger.trace("   Getting version of "+metadata.getDebugName()+" from the database.");
 		}
 
-		if ( component instanceof IArchimateElement )  {
+		if ( component instanceof DBArchimateModel )  {
+			request = "select id, name, version, checksum, created_on, created_by, id AS model_id, version AS model_version"
+					+ " FROM "+this.schemaPrefix+" models"
+					+ " WHERE id = ?"
+					+ " ORDER BY version";
+			DBArchimateModel model = (DBArchimateModel)component;
+			modelId = model.getId();
+			modelInitialVersion = model.getInitialVersion().getVersion();
+			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
+		}
+		else if ( component instanceof IArchimateElement )  {
 			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"elements"
 					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"

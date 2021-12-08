@@ -70,6 +70,7 @@ import com.archimatetool.editor.ui.ImageFactory;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
@@ -1200,9 +1201,19 @@ public class DBGui {
 			}
 		}
 
-		areIdentical &= areIdentical &= addItemToCompareTable(tree, treeItem, "Class", memoryObject.getClass().getSimpleName(), (String)databaseObject.get("class"));
+		// we replace the DBArchimateModel class name by a simple ArchimateModel
+		String className = memoryObject.getClass().getSimpleName();
+		if ( className.equals("DBArchimateModel") ) className = "ArchimateModel";
+		areIdentical &= areIdentical &= addItemToCompareTable(tree, treeItem, "Class", className, (String)databaseObject.get("class"));
+		
 		areIdentical &= addItemToCompareTable(tree, treeItem, "Name", ((INameable)memoryObject).getName(), (String)databaseObject.get("name"));
 
+		if (memoryObject instanceof IArchimateModel ) {
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Purpose", ((IArchimateModel)memoryObject).getPurpose(), (String)databaseObject.get("purpose"));
+			// the note does not participate to the model comparison 
+			addItemToCompareTable(tree, treeItem, "Note", "", (String)databaseObject.get("note"));
+		}
+		
 		if ( memoryObject instanceof IDocumentable )
 			areIdentical &= addItemToCompareTable(tree, treeItem, "Documentation", ((IDocumentable)memoryObject).getDocumentation(), (String)databaseObject.get("documentation"));
 
@@ -1331,7 +1342,7 @@ public class DBGui {
 					}
 					//Arrays.sort(componentBendpoints, this.integerComparator);www
 
-					// we get a list of properties from the database
+					// we get a list of bendpoints from the database
 					Integer[][] databaseBendpoints = new Integer[((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size()][4];
 					int i = 0;
 					for (DBBendpoint bp: (ArrayList<DBBendpoint>)databaseObject.get("bendpoints") ) {

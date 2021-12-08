@@ -46,6 +46,7 @@ import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.impl.ArchimateModel;
 
 /**
  * This class is used when the user right-click on a graphical object to add entries to the contextual menu
@@ -86,6 +87,7 @@ public class DBMenu extends ExtensionContributionFactory {
                                 if ( showDebugInContextMenu ) {
                                     additions.addContributionItem(new Separator(), null);
                                 }
+                                showGetHistory((ArchimateModel)obj);
                                 showImportComponent();
                                 showExportModel();
                                 break;

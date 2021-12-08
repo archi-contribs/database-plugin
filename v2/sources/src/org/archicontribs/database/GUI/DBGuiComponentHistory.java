@@ -15,6 +15,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.connection.DBSelect;
+import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
@@ -51,6 +52,7 @@ import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.impl.ArchimateModel;
 
 /**
  * This class manages the GUI that shows a component history
@@ -83,9 +85,14 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.includeNeo4j = false;
 		
-		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
-
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.toString()+").");		
+		
+		// we calculate the checksum of the component
+		if ( component instanceof ArchimateModel )
+			((DBArchimateModel)this.selectedComponent).getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.selectedComponent));
+		else
+			((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
+
 		
 		setCompoRight();
 		this.compoRightBottom.setVisible(true);
@@ -138,7 +145,12 @@ public class DBGuiComponentHistory extends DBGui {
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are identical");
 		        	else
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are different (check highlighted lines):");
+		        	
+		        	// the export button is activated if the component is different from the latest version in the database
+		        	//    so the latest database version must be selected to activate the export button
 		        	DBGuiComponentHistory.this.btnExportModelVersion.setEnabled(!areIdentical.booleanValue() && DBGuiComponentHistory.this.tblVersions.getSelectionIndex() == 0);
+		        	
+		        	// the import button is activated if the component is different from the selected version of the database
 		        	DBGuiComponentHistory.this.btnImportDatabaseVersion.setEnabled(!areIdentical.booleanValue());
 		        }
 		    }
@@ -292,7 +304,9 @@ public class DBGuiComponentHistory extends DBGui {
 		this.btnExportModelVersion.setEnabled(false);
 		
 		String tableName = null;
-		if ( this.selectedComponent instanceof IArchimateElement ) 
+		if ( this.selectedComponent instanceof ArchimateModel )
+			tableName = "models";
+		else if ( this.selectedComponent instanceof IArchimateElement ) 
 		    tableName = "elements";
 		else if ( this.selectedComponent instanceof IArchimateRelationship ) 
             tableName = "relationships";
