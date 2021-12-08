@@ -80,11 +80,6 @@
             id="org.archicontribs.database.showDebugCommand"
             name="showDebugCommand">
       </command>
-            <command
-            defaultHandler="org.archicontribs.database.menu.DBMenuConvertIdsHandler"
-            id="org.archicontribs.database.convertIdsCommand"
-            name="convertIdsCommand">
-      </command>
    </extension>
    <extension
          point="org.eclipse.ui.menus">

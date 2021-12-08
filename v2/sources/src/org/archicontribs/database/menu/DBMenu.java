@@ -84,7 +84,6 @@ public class DBMenu extends ExtensionContributionFactory {
                             case "DBArchimateModel":
                                 additions.addContributionItem(new Separator(), null);
                                 if ( showDebugInContextMenu ) {
-                                    showConvertIds();
                                     additions.addContributionItem(new Separator(), null);
                                 }
                                 showImportComponent();
@@ -449,28 +448,6 @@ public class DBMenu extends ExtensionContributionFactory {
                 PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
                 "org.archicontribs.database.DBMenu",                        // id
                 "org.archicontribs.database.showDebugCommand",              // commandId
-                null,                                                       // parameters
-                menuIcon,                                                   // icon
-                null,                                                       // disabledIcon
-                null,                                                       // hoverIcon
-                label,                                                      // label
-                null,                                                       // mnemonic
-                null,                                                       // tooltip 
-                CommandContributionItem.STYLE_PUSH,                         // style
-                null,                                                       // helpContextId
-                true);
-        this.fAdditions.addContributionItem(new CommandContributionItem(p), null);
-    }
-
-    private void showConvertIds() {
-        ImageDescriptor menuIcon = ImageDescriptor.createFromURL(FileLocator.find(Platform.getBundle("com.archimatetool.editor"), new Path("img/app-16.png"), null));
-        String label = "Convert old fashion IDs to Archi4 IDs";
-
-        if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);
-        CommandContributionItemParameter p = new CommandContributionItemParameter(
-                PlatformUI.getWorkbench().getActiveWorkbenchWindow(),       // serviceLocator
-                "org.archicontribs.database.DBMenu",                        // id
-                "org.archicontribs.database.convertIdsCommand",              // commandId
                 null,                                                       // parameters
                 menuIcon,                                                   // icon
                 null,                                                       // disabledIcon
