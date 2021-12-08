@@ -1510,7 +1510,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,element.getDocumentation()
 					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
-					,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
+					,model.getCurrentVersion().getTimestamp()
 					,nbProperties
 					,nbFeatures
 					,dbMetadata.getCurrentVersion().getChecksum()
@@ -1626,7 +1626,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,dbMetadata.isDirectedAsInteger()
 					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
-					,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
+					,model.getCurrentVersion().getTimestamp()
 					,nbProperties
 					,nbFeatures
 					,dbMetadata.getCurrentVersion().getChecksum()
@@ -1694,7 +1694,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,folder.getName()
 				,folder.getDocumentation()
 				,System.getProperty("user.name")
-				,dbMetadata.getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
 				,dbMetadata.getCurrentVersion().getChecksum()
@@ -1758,7 +1758,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
 				,System.getProperty("user.name")
-				,((DBArchimateModel)view.getArchimateModel()).getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,view.getName()
 				,view.getConnectionRouterType()
 				,view.getDocumentation()
@@ -1863,7 +1863,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getWidth()
 				,dbMetadata.getHeight()
 				,System.getProperty("user.name")
-				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
 				,dbMetadata.getCurrentVersion().getChecksum()
