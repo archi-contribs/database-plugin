@@ -207,9 +207,9 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 			DBMetadata metadata = this.model.getDBMetadata(this.importedView);
 
 			if ( this.mustCreateCopy )
-				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()), null);
 			else
-				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"), (String)this.newValues.get("created_by"));
 
 			metadata.setId((String)this.newValues.get("id"));
 			metadata.setName((String)this.newValues.get("name"));

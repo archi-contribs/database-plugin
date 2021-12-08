@@ -59,6 +59,8 @@ import lombok.Getter;
  * v4.9.2	01/12/2021	Fix nullPointerExceptions when model has got null properties or features
  * 
  * v4.9.3	08/12/2021	Fix created_on date for folders during export
+ * 						Ignore difference between null and empty string during comparison
+ * 						Fix created_by information on "get history" spreadsheet
  * 
  * -----------------------------------------------------------------------------------------
  * 

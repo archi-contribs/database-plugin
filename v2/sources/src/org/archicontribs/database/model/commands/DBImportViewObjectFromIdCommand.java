@@ -267,9 +267,9 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             DBMetadata dbMetadata = this.model.getDBMetadata(this.importedViewObject);
 
             if ( this.mustCreateCopy )
-                dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+                dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()), null);
             else
-                dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+                dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"), (String)this.newValues.get("created_by"));
 
             dbMetadata.getCurrentVersion().set(dbMetadata.getInitialVersion());
             dbMetadata.getDatabaseVersion().set(dbMetadata.getInitialVersion());
