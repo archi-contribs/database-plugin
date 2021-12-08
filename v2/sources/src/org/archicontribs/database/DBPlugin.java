@@ -58,7 +58,7 @@ import lombok.Getter;
  * 
  * v4.9.2	01/12/2021	Fix nullPointerExceptions when model has got null properties or features
  * 
- * v4.9.3	08/12/2021	Fix created_on date for folders during export 
+ * v4.9.3	08/12/2021	Fix created_on date for folders during export
  * 
  * -----------------------------------------------------------------------------------------
  * 
@@ -278,15 +278,15 @@ public class DBPlugin extends AbstractUIPlugin {
 	 * <br><br>
 	 * Replaces string.equals() to avoid nullPointerException
 	 * @param str1 first string to compare
-	 * @param str2 secong string to compare
+	 * @param str2 second string to compare
 	 * @return true if the strings are both null or have the same content, false if they are different
 	 */
 	public static boolean areEqual(String str1, String str2) {
-		if ( str1 == null )
-			return str2 == null;
+		if ( isEmpty(str1) )
+			return isEmpty(str2);
 
-		if ( str2 == null )
-			return false;			// as str1 cannot be null at this stage
+		if ( isEmpty(str2) )
+			return false;			// as str1 cannot be empty at this stage
 
 		return str1.equals(str2);
 	}
@@ -300,11 +300,11 @@ public class DBPlugin extends AbstractUIPlugin {
 	 * @return true if the strings are both null or have the same content, false if they are different
 	 */
 	public static boolean areEqualIgnoreCase(String str1, String str2) {
-		if ( str1 == null )
-			return str2 == null;
+		if ( isEmpty(str1) )
+			return isEmpty(str2);
 
-		if ( str2 == null )
-			return false;			// as str1 cannot be null at this stage
+		if ( isEmpty(str2) )
+			return false;			// as str1 cannot be empty at this stage
 
 		return str1.equalsIgnoreCase(str2);
 	}
