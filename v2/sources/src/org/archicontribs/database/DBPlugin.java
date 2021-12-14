@@ -61,6 +61,7 @@ import lombok.Getter;
  * v4.9.3	08/12/2021	Fix created_on date for folders during export
  * 						Ignore difference between null and empty string during comparison
  * 						Fix created_by information on "get history" spreadsheet
+ * 						Fix Archimate concepts version on debug screens
  * 						Remove ID conversion from former size to new one as it is not needed anymore
  * 
  * -----------------------------------------------------------------------------------------

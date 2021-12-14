@@ -181,7 +181,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		String request;
 		String modelId;
-		int modelInitialVersion;
+		//int modelInitialVersion;
 		int modelDatabaseVersion;
 
 		DBMetadata metadata = DBMetadata.getDBMetadata(component);
@@ -197,7 +197,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					+ " ORDER BY version";
 			DBArchimateModel model = (DBArchimateModel)component;
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IArchimateElement )  {
@@ -208,7 +208,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IArchimateRelationship ) {
@@ -219,7 +219,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IFolder ) {
@@ -230,7 +230,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModel ) {
@@ -241,7 +241,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelObject  ) {
@@ -253,7 +253,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
 			modelId = diagram.getId();
 			DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+			//modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelConnection  ) {
@@ -265,7 +265,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
 			modelId = diagram.getId();
 			DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+			//modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else
@@ -291,7 +291,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
-					if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					//if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					if ( DBPlugin.areEqual(checksum, metadata.getCurrentVersion().getChecksum()) ) {
 						metadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 						metadata.getCurrentVersion().setVersion(version);
 					}

@@ -1212,6 +1212,18 @@ public class DBGui {
 			areIdentical &= addItemToCompareTable(tree, treeItem, "Purpose", ((IArchimateModel)memoryObject).getPurpose(), (String)databaseObject.get("purpose"));
 			// the note does not participate to the model comparison 
 			addItemToCompareTable(tree, treeItem, "Note", "", (String)databaseObject.get("note"));
+			
+			/*
+			*
+			*
+			*
+			ADD PROFILES !!!
+			*
+			*
+			*
+			*/
+			
+			
 		}
 		
 		if ( memoryObject instanceof IDocumentable )

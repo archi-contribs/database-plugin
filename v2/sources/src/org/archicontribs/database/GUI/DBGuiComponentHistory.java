@@ -242,7 +242,6 @@ public class DBGuiComponentHistory extends DBGui {
 					DBGuiUtils.popup(Level.INFO, "The current version of the component has been replaced by the selected version from the database.");
 					
 					connectedToDatabase(true);
-					
 				} catch (Exception err) {
 					DBGuiUtils.popup(Level.ERROR, "Failed to import component.", err);
 				}
