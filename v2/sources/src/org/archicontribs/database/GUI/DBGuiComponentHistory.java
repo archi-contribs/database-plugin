@@ -200,7 +200,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		TreeColumn colYourVersion = new TreeColumn(this.tblContent, SWT.NONE);
 		colYourVersion.setWidth(220);
-		colYourVersion.setText("Your version");
+		colYourVersion.setText("Local version");
 		
 		TreeColumn colDatabaseVersion = new TreeColumn(this.tblContent, SWT.NONE);
 		colDatabaseVersion.setWidth(220);
@@ -257,7 +257,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.btnExportModelVersion = new Button(grpComponents, SWT.NONE);
 		this.btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-		this.btnExportModelVersion.setText("Export your version to the database");
+		this.btnExportModelVersion.setText("Export local version to the database");
 		this.btnExportModelVersion.setEnabled(false);
 		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
 		    @Override
