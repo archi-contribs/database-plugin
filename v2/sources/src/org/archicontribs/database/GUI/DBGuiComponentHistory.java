@@ -163,15 +163,15 @@ public class DBGuiComponentHistory extends DBGui {
 		this.tblVersions.setLayoutData(fd);
 		
 		TableColumn colVersion = new TableColumn(this.tblVersions, SWT.NONE);
-		colVersion.setWidth(47);
+		colVersion.setWidth(70);
 		colVersion.setText("Version");
 		
 		TableColumn colCreatedBy = new TableColumn(this.tblVersions, SWT.NONE);
-		colCreatedBy.setWidth(121);
+		colCreatedBy.setWidth(150);
 		colCreatedBy.setText("Created by");
 		
 		TableColumn colCreatedOn = new TableColumn(this.tblVersions, SWT.NONE);
-		colCreatedOn.setWidth(145);
+		colCreatedOn.setWidth(220);
 		colCreatedOn.setText("Created on");
 		
 		this.lblCompareComponents = new Label(grpComponents, SWT.NONE);
