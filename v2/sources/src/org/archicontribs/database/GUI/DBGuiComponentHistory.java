@@ -338,6 +338,7 @@ public class DBGuiComponentHistory extends DBGui {
 		    this.lblVersions.setText(this.tblVersions.getItemCount()+" versions have been found in the database:");
 		} else {
 		    this.lblVersions.setText(this.tblVersions.getItemCount()+" version has been found in the database:");
+		    this.lblCompareComponents.setText("");
 		}
 		
 		if ( this.tblVersions.getItemCount() != 0 ) {
