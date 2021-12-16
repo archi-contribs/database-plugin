@@ -62,7 +62,8 @@ import lombok.Getter;
  * 						Ignore difference between null and empty string during comparison
  * 						Fix created_by information on "get history" spreadsheet
  * 						Fix Archimate concepts version on debug screens
- * 						Fix Browse button which was not functioning on Preferences / Logger tab 
+ * 						Fix Browse button which was not functioning on Preferences / Logger tab
+ *  					Few other GUI improvements
  * 						Remove ID conversion from former size to new one as it is not needed anymore
  * 
  * -----------------------------------------------------------------------------------------

@@ -1,3 +1,12 @@
+### v4.9.3 : 16/12/2021
+* Fix created_on date for folders during export
+* Ignore difference between null and empty string during comparison
+* Fix created_by information on "get history" spreadsheet
+* Fix Archimate concepts version on debug screens
+* Fix Browse button which was not functioning on Preferences / Logger tab
+* Few other GUI improvements
+* Remove ID conversion from former size to new one as it is not needed anymore
+
 ### v4.9.2 : 01/12/2021
 * Fix nullPointerExceptions when model has got null properties or features
 
