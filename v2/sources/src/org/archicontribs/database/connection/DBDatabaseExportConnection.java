@@ -329,72 +329,66 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		String request;
 		String orderByRequest = "";
 		String modelId;
-		int modelInitialVersion;
 		int modelDatabaseVersion;
-		DBMetadata dbMetadata;
 
 		// we get the "first" (in fact any) component of the hashmap to determine its class
 		IIdentifier component = componentHashMap.entrySet().iterator().next().getValue();
 
-		// unused but to avoid null warning
-		dbMetadata = DBMetadata.getDBMetadata(component);
+		// unused at this stage, but to avoid null warning
+		DBMetadata dbMetadata = DBMetadata.getDBMetadata(component);
 
 		if ( component instanceof IArchimateElement )  {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" elements from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"elements"
 					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY id, version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IArchimateRelationship ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" relationships from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"relationships"
 					+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IFolder ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" folders from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"folders"
 					+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModel ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" views from the database.");
-			request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, container_checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"views"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelObject  ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view objects from the database.");
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_objects"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id in (";
@@ -402,13 +396,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
 			modelId = diagram.getId();
 			dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelConnection  ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view connections from the database.");
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_connections"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 					+ " WHERE id in (";
@@ -416,7 +409,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
 			modelId = diagram.getId();
 			dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IProfile ) {
@@ -429,7 +421,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IProfile)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else
@@ -497,7 +488,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
-					if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					// if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					if ( result.getInt("model_version") == 0 || checksum.equals(dbMetadata.getCurrentVersion().getChecksum()) ) {						
 						dbMetadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 						dbMetadata.getCurrentVersion().setVersion(version);
 					}
