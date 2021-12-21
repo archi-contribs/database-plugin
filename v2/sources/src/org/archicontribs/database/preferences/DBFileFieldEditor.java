@@ -58,5 +58,12 @@ public class DBFileFieldEditor extends FileFieldEditor {
     public DBFileFieldEditor(String name, String labelText, boolean enforceAbsolute, int validationStrategy, Composite parent) {
     	super(name, labelText, enforceAbsolute, validationStrategy, parent);
     	setFileExtensions(new String[] {"*.log", "*.txt", "*.*"});
-    }   
+    }
+    
+	@Override
+	protected boolean checkState() {
+		super.checkState();
+		// we always return "true"
+		return true;
+	}
 }
