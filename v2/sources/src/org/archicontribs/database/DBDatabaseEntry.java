@@ -350,8 +350,6 @@ public class DBDatabaseEntry {
 		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();     
 		IPersistentPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
 		
-		databaseEntries.clear();
-		
 		int lines = store.getInt(preferenceName);
 		
 		for (int line = 0; line <lines; line++) {
