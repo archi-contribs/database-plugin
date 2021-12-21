@@ -131,6 +131,12 @@ public class DBMetadata  {
         
         if ( componentObject instanceof IDiagramModel )
         	this.screenshot = new DBScreenshot();
+        
+        if ( componentObject instanceof DBArchimateModel ) {
+        	this.initialVersion = ((DBArchimateModel)componentObject).getInitialVersion();
+        	this.currentVersion = ((DBArchimateModel)componentObject).getCurrentVersion();
+        	this.databaseVersion = ((DBArchimateModel)componentObject).getDatabaseVersion();
+        }
     }
     
     public DBMetadata(String componentId) {
