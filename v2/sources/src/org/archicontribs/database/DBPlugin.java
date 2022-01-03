@@ -69,6 +69,7 @@ import lombok.Getter;
  *  v4.9.4	03/01/2022
  *  					Fix initial version of components which was incorrectly set to zero on some occasions 
  *  					Fix missing Value Stream icon on import components window
+ *  					Draw color border around log filename in preferences to indicate if it is a valid filename or not
  * 
  * -----------------------------------------------------------------------------------------
  * 
