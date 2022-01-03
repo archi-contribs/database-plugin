@@ -103,7 +103,8 @@ public class DBFileFieldEditor extends FileFieldEditor {
     	getTextControl().getParent().redraw();
     	getTextControl().getParent().update();
         
-        return state;
+    	// we always return true, else it may generate errors in Archi preferences
+    	return true;
     }
     
     protected void addColoredBorder(Control cont){
