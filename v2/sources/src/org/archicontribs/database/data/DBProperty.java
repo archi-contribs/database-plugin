@@ -5,6 +5,7 @@
  */
 package org.archicontribs.database.data;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,19 +14,15 @@ import lombok.Setter;
  * 
  * @author Herve Jouin
  */
-public class DBProperty
+@AllArgsConstructor
+public class DBProperty implements java.lang.Comparable<DBProperty>
 {
     @Getter @Setter private String key;
     @Getter @Setter private String value;
 
-    /**
-     * Initialize the {@link DBProperty} with the provided key and value
-     * @param theKey
-     * @param theValue
-     */
-    public DBProperty(String theKey, String theValue)
-    {
-        this.key = theKey;
-        this.value = theValue;
-    }
+    @Override public int compareTo(DBProperty o) {
+		int result = this.key.compareTo(o.getKey());
+		if ( result == 0 ) result = this.value.compareTo(o.getValue());
+		return result;
+	}
 }

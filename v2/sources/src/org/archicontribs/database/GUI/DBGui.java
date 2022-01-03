@@ -25,6 +25,7 @@ import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.data.DBProfile;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
@@ -91,7 +92,7 @@ import com.archimatetool.model.IJunction;
 import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
-import com.archimatetool.model.IProfiles;
+import com.archimatetool.model.IProfile;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.ISketchModel;
 import com.archimatetool.model.ITextAlignment;
@@ -1186,8 +1187,6 @@ public class DBGui {
 			TreeItem item = new TreeItem(tree, SWT.NONE);
 			item.setText(new String[] {"Version", String.valueOf(dbMetadata.getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version"))});
 			
-			areIdentical &= addItemToCompareTable(tree, treeItem, "Checksum", String.valueOf(dbMetadata.getInitialVersion().getChecksum()), String.valueOf(databaseObject.get("checksum")));
-			
 			if ( (String)databaseObject.get("created_by") != null ) {
 				item = new TreeItem(tree, SWT.NONE);
 				item.setText(new String[] {"Created by", dbMetadata.getInitialVersion().getUsername(), (String)databaseObject.get("created_by")}); 
@@ -1342,7 +1341,6 @@ public class DBGui {
 					for (int i = 0; i < ((IDiagramModelConnection)memoryObject).getBendpoints().size(); ++i) {
 						componentBendpoints[i] = new Integer[] { ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getStartY(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndX(), ((IDiagramModelConnection)memoryObject).getBendpoints().get(i).getEndY() };
 					}
-					//Arrays.sort(componentBendpoints, this.integerComparator);www
 
 					// we get a list of bendpoints from the database
 					Integer[][] databaseBendpoints = new Integer[((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size()][4];
@@ -1351,7 +1349,6 @@ public class DBGui {
 						componentBendpoints[i] = new Integer[] { bp.getStartX(), bp.getStartY(), bp.getEndX(), bp.getEndY() };
 						++i;
 					}
-					//Arrays.sort(databaseBendpoints, this.integerComparator);
 
 					int indexComponent = 0;
 					int indexDatabase = 0;
@@ -1384,53 +1381,59 @@ public class DBGui {
 			}
 		}
 		
-		// we show up the profiles if both exist
-		if ( databaseObject.containsKey("profiles") ) {
-			if ( memoryObject instanceof IProfiles && ((IProfiles)memoryObject).getProfiles().size() != 0) {
-				TreeItem profilesTreeItem;
-				if ( treeItem == null )
-					profilesTreeItem = new TreeItem(tree, SWT.NONE);
-				else
-					profilesTreeItem = new TreeItem(treeItem, SWT.NONE);
-				profilesTreeItem.setText("Spécializations");
-				profilesTreeItem.setExpanded(true);
+		if ( memoryObject instanceof IArchimateModel ) {
+			TreeItem profilesTreeItem;
+			if ( treeItem == null )
+				profilesTreeItem = new TreeItem(tree, SWT.NONE);
+			else
+				profilesTreeItem = new TreeItem(treeItem, SWT.NONE);
+			profilesTreeItem.setText("Spécializations");
+			profilesTreeItem.setExpanded(true);
 
-				// we get a sorted list of component's profiles
-				ArrayList<DBProperty> componentProfiles = new ArrayList<DBProperty>();
-				for (int i = 0; i < ((IProfiles)memoryObject).getProfiles().size(); ++i) {
-					componentProfiles.add(new DBProperty(((IProfiles)memoryObject).getProfiles().get(i).getName(), ((IProfiles)memoryObject).getProfiles().get(i).getImagePath()));
+			// we get a sorted list of model profiles
+			ArrayList<DBProfile> modelProfiles = new ArrayList<DBProfile>();
+			for (int i = 0; i < ((IArchimateModel)memoryObject).getProfiles().size(); ++i) {
+				IProfile profile = ((IArchimateModel)memoryObject).getProfiles().get(i);
+				modelProfiles.add(new DBProfile(profile.getName(), profile.getConceptType(), profile.isSpecialization(), profile.getImagePath()));
+			}
+			Collections.sort(modelProfiles, this.profileComparator);
+
+			// we get a sorted list of profiles from the database
+			ArrayList<DBProfile> databaseProfiles = (ArrayList<DBProfile>)databaseObject.get("profiles");
+			Collections.sort(databaseProfiles, this.profileComparator);
+
+			int indexComponent = 0;
+			int indexDatabase = 0;
+			int compare;
+			while ( (indexComponent < modelProfiles.size()) || (indexDatabase < databaseProfiles.size()) ) {
+				if ( indexComponent >= modelProfiles.size() )
+					compare = 1;
+				else {
+					if ( indexDatabase >= databaseProfiles.size() )
+						compare = -1;
+					else
+						compare = this.profileComparator.compare(modelProfiles.get(indexComponent), databaseProfiles.get(indexDatabase));
 				}
-				Collections.sort(componentProfiles, this.propertyComparator);
 
-				// we get a sorted list of profiles from the database
-				ArrayList<DBProperty> databaseProfiles = (ArrayList<DBProperty>)databaseObject.get("profiles");
-				Collections.sort(databaseProfiles, this.propertyComparator);
-
-				Collator collator = Collator.getInstance();
-				int indexComponent = 0;
-				int indexDatabase = 0;
-				int compare;
-				while ( (indexComponent < componentProfiles.size()) || (indexDatabase < databaseProfiles.size()) ) {
-					if ( indexComponent >= componentProfiles.size() )
-						compare = 1;
-					else {
-						if ( indexDatabase >= databaseProfiles.size() )
-							compare = -1;
-						else
-							compare = collator.compare(componentProfiles.get(indexComponent).getKey(), databaseProfiles.get(indexDatabase).getKey());
-					}
-
-					if ( compare == 0 ) {				// both have got the same property
-						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexComponent).getKey(), componentProfiles.get(indexComponent).getValue(), databaseProfiles.get(indexDatabase).getValue());
-						++indexComponent;
-						++indexDatabase;
-					} else if ( compare < 0 ) {			// only the component has got the property
-						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexComponent).getKey(), componentProfiles.get(indexComponent).getValue(), null);
-						++indexComponent;
-					} else {							// only the database has got the property
-						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexDatabase).getKey(), null, databaseProfiles.get(indexDatabase).getValue());
-						++indexDatabase;
-					}
+				if ( compare == 0 ) {				// both have got the same property
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "Name", modelProfiles.get(indexComponent).getName(), databaseProfiles.get(indexDatabase).getName());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Concept type", modelProfiles.get(indexComponent).getConceptType(), databaseProfiles.get(indexDatabase).getConceptType());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Is specialization", ((Boolean)modelProfiles.get(indexComponent).isSpecialization()).toString(), ((Boolean)databaseProfiles.get(indexDatabase).isSpecialization()).toString());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Image path", modelProfiles.get(indexComponent).getImagePath(), databaseProfiles.get(indexDatabase).getImagePath());
+					indexComponent+=4;
+					indexDatabase+=4;
+				} else if ( compare < 0 ) {			// only the component has got the property
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "Name", modelProfiles.get(indexComponent).getName(), null);
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Concept type", modelProfiles.get(indexComponent).getConceptType(), null);
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Is specialization", ((Boolean)modelProfiles.get(indexComponent).isSpecialization()).toString(), null);
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Image path", modelProfiles.get(indexComponent).getImagePath(), null);
+					indexComponent+=4;
+				} else {							// only the database has got the property
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "Name", null, databaseProfiles.get(indexDatabase).getName());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Concept type", null, databaseProfiles.get(indexDatabase).getConceptType());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Is specialization", null, ((Boolean)databaseProfiles.get(indexDatabase).isSpecialization()).toString());
+					areIdentical &= addItemToCompareTable(tree, profilesTreeItem, "   Image path", null, databaseProfiles.get(indexDatabase).getImagePath());
+					indexDatabase+=4;
 				}
 			}
 		}
@@ -1448,9 +1451,8 @@ public class DBGui {
 
 				// we get a sorted list of component's properties
 				ArrayList<DBProperty> componentProperties = new ArrayList<DBProperty>();
-				for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i) {
+				for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i)
 					componentProperties.add(new DBProperty(((IProperties)memoryObject).getProperties().get(i).getKey(), ((IProperties)memoryObject).getProperties().get(i).getValue()));
-				}
 				Collections.sort(componentProperties, this.propertyComparator);
 
 				// we get a sorted list of properties from the database
@@ -1490,6 +1492,7 @@ public class DBGui {
 		return areIdentical;
 	}
 
+	// the comparator compares the property key only
 	Comparator<DBProperty> propertyComparator = new Comparator<DBProperty>() {
 		@Override
 		public int compare(final DBProperty row1, final DBProperty row2) {
@@ -1497,10 +1500,19 @@ public class DBGui {
 		}
 	};
 
+	// the comparator compares two integers
 	Comparator<Integer[]> integerComparator = new Comparator<Integer[]>() {
 		@Override
 		public int compare(final Integer[] row1, final Integer[] row2) {
 			return Collator.getInstance().compare(row1[0],row2[0]);
+		}
+	};
+	
+	// the comparator compares the profile names only
+	Comparator<DBProfile> profileComparator = new Comparator<DBProfile>() {
+		@Override
+		public int compare(final DBProfile row1, final DBProfile row2) {
+			return Collator.getInstance().compare(row1.getName(),row2.getName());
 		}
 	};
 
