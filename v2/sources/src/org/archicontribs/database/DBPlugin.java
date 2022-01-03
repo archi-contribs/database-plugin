@@ -66,6 +66,9 @@ import lombok.Getter;
  *  					Few other GUI improvements
  * 						Remove ID conversion from former size to new one as it is not needed anymore
  * 
+ *  v4.9.4	03/01/2022
+ *  					Fix missing Value Stream icon on import components window
+ * 
  * -----------------------------------------------------------------------------------------
  * 
  * TO-DO list:
