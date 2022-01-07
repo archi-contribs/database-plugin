@@ -1,3 +1,13 @@
+### v4.9.4 : 07/01/2022
+* Fix initial version of components which was incorrectly set to zero on some occasions 
+* Fix missing Value Stream icon on import components window
+* Fix preferences apply button is greyed on new plugin installations
+* Hide export/import buttons on get history window when selected component is a model 
+* Draw color border around log filename in preferences to indicate if it is a valid filename or not
+* Add model specializations comparison when checking model history from database
+* First step of the effort done to update the inline plugin documentation (more to come)
+
+
 ### v4.9.3 : 16/12/2021
 * Fix created_on date for folders during export
 * Ignore difference between null and empty string during comparison
