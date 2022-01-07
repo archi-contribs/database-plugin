@@ -61,6 +61,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private DBDatabaseEntryTableEditor table = null;
 	
 	private RadioGroupFieldEditor loggerModeRadioGroupEditor;
+	private Composite traceSQLFieldComposite;
 	private BooleanFieldEditor traceSQLFieldEditor;
 	private FileFieldEditor filenameFileFieldEditor;
 	private RadioGroupFieldEditor loggerLevelRadioGroupEditor;
@@ -414,7 +415,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	this.loggerModeRadioGroupEditor = new RadioGroupFieldEditor("loggerMode", "", 1, LOGGER_MODES, this.loggerComposite, true);
       	addField(this.loggerModeRadioGroupEditor);
       	
-      	this.traceSQLFieldEditor = new BooleanFieldEditor("traceSQL", "Include SQL requests in trace mode", this.loggerComposite);
+      	this.traceSQLFieldComposite = new Composite(this.loggerComposite, SWT.NONE);
+      	this.traceSQLFieldEditor = new BooleanFieldEditor("traceSQL", "Include SQL requests in trace mode", this.traceSQLFieldComposite);
       	addField(this.traceSQLFieldEditor);
     	
     	this.simpleModeGroup = new Group(this.loggerComposite, SWT.NONE);
@@ -423,6 +425,9 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         this.simpleModeGroup.setLayoutData(gd);
         this.simpleModeGroup.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
+        Label loggerLevelLabel = new Label(this.simpleModeGroup, SWT.NONE);
+        loggerLevelLabel.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+        loggerLevelLabel.setText("Please choose the logger level:");
         
         this.loggerLevelRadioGroupEditor = new RadioGroupFieldEditor("loggerLevel", "", 6, LOGGER_LEVELS, this.simpleModeGroup, false);
         addField(this.loggerLevelRadioGroupEditor);
@@ -488,14 +493,17 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		case "disabled":
 			this.expertModeGroup.setVisible(false);
 			this.simpleModeGroup.setVisible(false);
+			this.traceSQLFieldComposite.setVisible(false);
 			break;
 		case "simple":
 			this.expertModeGroup.setVisible(false);
 			this.simpleModeGroup.setVisible(true);
+			this.traceSQLFieldComposite.setVisible(true);
 			break;
 		case "expert":
 			this.expertModeGroup.setVisible(true);
 			this.simpleModeGroup.setVisible(false);
+			this.traceSQLFieldComposite.setVisible(true);
 			break;
 		default: 
 			this.expertModeGroup.setVisible(false);

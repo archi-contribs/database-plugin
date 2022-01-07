@@ -66,13 +66,14 @@ import lombok.Getter;
  *  					Few other GUI improvements
  * 						Remove ID conversion from former size to new one as it is not needed anymore
  * 
- *  v4.9.4	03/01/2022
+ *  v4.9.4	04/01/2022
  *  					Fix initial version of components which was incorrectly set to zero on some occasions 
  *  					Fix missing Value Stream icon on import components window
  *  					Fix preferences apply button is greyed on new plugin installations
  *  					Hide export/import buttons on get history window when selected component is a model 
  *  					Draw color border around log filename in preferences to indicate if it is a valid filename or not
- *  					Add model specializations comparison when checking model history from database 
+ *  					Add model specializations comparison when checking model history from database
+ *  					Effort done to update the plugin documentation
  * 
  * -----------------------------------------------------------------------------------------
  * 
@@ -343,7 +344,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		DBCheckForPluginUpdate dbCheckForUpdate = new DBCheckForPluginUpdate(
 				verbose,
 				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
-				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note.md"
+				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note%20versions%204.9.md"
 				);
 	}
 	
