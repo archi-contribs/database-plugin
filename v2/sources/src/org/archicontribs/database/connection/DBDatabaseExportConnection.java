@@ -2122,7 +2122,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,profile.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,profile.getName()
-				,profile.isSpecialization()
+				,dbMetadata.isSpecializationAsInteger()
 				,profile.getImagePath()
 				,profile.getConceptType()
 				,System.getProperty("user.name")
