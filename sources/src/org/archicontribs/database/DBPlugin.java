@@ -13,7 +13,7 @@ import java.util.Locale;
 import java.util.UUID;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -22,6 +22,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
 import com.archimatetool.model.IIdentifier;
+import com.archimatetool.model.ModelVersion;
 
 import lombok.Getter;
 
@@ -32,14 +33,27 @@ import lombok.Getter;
  * The DBPlugin class implements static methods and properties used everywhere else in the database plugin. 
  * 
  * @author Herve Jouin
- *
- * v4.9.0	22/09/2021	Change plugin version numbering to match Archi version
+ * 
+ * v4.8.1   22/09/2021  fix coherence checking
+ *                      change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
+ *                                  
+ * v4.8.2	22/09/2021	fix exception raised when model purpose is null rather than an empty string
+ * 
+ * -----------------------------------------------------------------------------------------
+ * 
+ * v4.9.0a	22/09/2021	Change plugin version numbering to match Archi version
  * 						Adapt plugin to Archi 4.9, especially specialization
  * 
- * v4.8.1   22/09/2021              fix coherence checking
- *                                  change plugin numbering to follow Archi's and indicate more clearly that this version is compatible with Archi 4.8 and not Archi 4.9
- *                                  
- * v4.8.2	22/09/2021				fix exception raised when model purpose is null rather than an empty string                                 
+ * v4.9.0b	26/10/2021	Fix database model update
+ * 						fix SQL Server exception caused by missing column in GROUP BY clause
+ * 						Fix folder when import individual component
+ * 						Fix import and export windows default location
+ * 						Fix import relationships in right folder
+ * 						Improve specializations management during export to database
+ * 						Add Options tab in preference page to reduce window size
+ * 						Add model metadata in compare to database process
+ * 
+ * -----------------------------------------------------------------------------------------
  * 
  * TO-DO list:
  * ----------
@@ -161,14 +175,14 @@ public class DBPlugin extends AbstractUIPlugin {
 				"log4j.appender.file.layout                     = org.apache.log4j.PatternLayout\n"+
 				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n");
 		logger = new DBLogger(DBPlugin.class);
-		logger.info("Initialising "+pluginName+" plugin ...");
+		logger.info("Initialising "+pluginTitle+" ...");
 		
 		logger.info("===============================================");
 		// we force the class initialization by the SWT thread
 		Display.getDefault().syncExec(new Runnable() {
 			@Override
 			public void run() {
-				DBGui.closePopup();
+				DBGuiUtils.closePopupMessage();
 			}
 		});
 		
@@ -177,7 +191,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		
 		if ( maxMemory < 950 ) {
 			if ( getPreferenceStore().getBoolean("checkMaxMemory") )
-				DBGui.popup(Level.WARN, "Archi is configured with "+maxMemory+" MB max memory.\n\n"
+				DBGuiUtils.popup(Level.WARN, "Archi is configured with "+maxMemory+" MB max memory.\n\n"
 						+ "If you plan to use the database plugin with huge models, we recommand to configure Archi\n"
 						+ "with 1 GB of memory (you may add or update the \"-Xmx\" parameter in the Archi.ini file).\n\n"
 						+ "You may deactivate the memory check in the database plugin preference page.");
@@ -214,9 +228,9 @@ public class DBPlugin extends AbstractUIPlugin {
 				DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
 				preferenceStore.save();
 			} catch (IOException e) {
-				DBGui.popup(Level.ERROR, "Failed to save your preferences.", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to save your preferences.", e);
 			}
-			DBGui.popup(Level.INFO, welcomeMessage);
+			DBGuiUtils.popup(Level.INFO, welcomeMessage);
 		}
 		
 		// we check if the plugin has been upgraded using the automatic procedure
@@ -228,6 +242,7 @@ public class DBPlugin extends AbstractUIPlugin {
 			if ( logger.isDebugEnabled() ) {
 				logger.debug("Plugin's package  = "+pluginsPackage);
 				logger.debug("Plugin's version  = "+pluginVersion.toString());
+				logger.debug("Archi's version   = "+ModelVersion.VERSION);
 				logger.debug("Plugin's folder   = "+pluginsFolder);
 				logger.debug("Plugin's filename = "+pluginsFilename);
 			}
@@ -239,7 +254,7 @@ public class DBPlugin extends AbstractUIPlugin {
 					checkForUpdate(false);
 			}
 		} catch ( IOException e ) {
-			DBGui.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
+			DBGuiUtils.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
 		}
 	}
 

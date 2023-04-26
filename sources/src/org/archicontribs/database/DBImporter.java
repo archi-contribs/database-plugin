@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.GUI.DBGuiImportModel;
 import com.archimatetool.editor.model.IModelImporter;
 import com.archimatetool.editor.model.ISelectedModelImporter;
@@ -40,7 +40,7 @@ public class DBImporter implements IModelImporter, ISelectedModelImporter {
 			DBGuiImportModel importModel = new DBGuiImportModel("Import model");
 			importModel.run();
 		} catch (Exception e) {
-		    DBGui.popup(Level.ERROR,"Cannot import model", e);
+		    DBGuiUtils.popup(Level.ERROR,"Cannot import model", e);
 		}
 	}
 }

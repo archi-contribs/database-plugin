@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.GUI.DBGuiImportImage;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.emf.common.notify.Notification;
@@ -181,7 +182,7 @@ public class DiagramModelImageSection extends AbstractPropertySection {
                 if ( guiImportImage.getImage() != null )
                     setImage(guiImportImage.getImage(), guiImportImage.getImagePath());
             } catch (Exception e) {
-                DBGui.popup(Level.ERROR,"Cannot import image", e);
+                DBGuiUtils.popup(Level.ERROR,"Cannot import image", e);
             }
         }
     }

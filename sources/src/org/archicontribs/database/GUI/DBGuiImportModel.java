@@ -136,11 +136,11 @@ public class DBGuiImportModel extends DBGui {
                 List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
                 for ( IArchimateModel existingModel: allModels ) {
                     if ( DBPlugin.areEqual(modelId, existingModel.getId()) ) {
-                        popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
+                        DBGuiUtils.popup(Level.ERROR, "A model with ID \""+modelId+"\" already exists. Cannot import it again ...");
                         return;
                     }
                     if ( checkName && DBPlugin.areEqual(modelName, existingModel.getName()) ) {
-                        if ( !question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
+                        if ( !DBGuiUtils.question("A model with name \""+modelName+"\" already exists.\n\nIt is possible to have two models with the same name as long as they've got distinct IDs but it is not recommended.\n\nDo you wish to force the import ?") ) {
                             return;
                         }
                         checkName = false;	// if a third model has got the same name, we do not ask again.
@@ -242,7 +242,7 @@ public class DBGuiImportModel extends DBGui {
                         tableItem.setData("date", model.get("created_on"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get the list of models in the database.", err);
                 } 
             }
         });
@@ -283,7 +283,7 @@ public class DBGuiImportModel extends DBGui {
             			tableItem.setData("purpose", version.get("purpose"));
                     }
                 } catch (Exception err) {
-                    DBGui.popup(Level.ERROR, "Failed to get model's versions from the database", err);
+                    DBGuiUtils.popup(Level.ERROR, "Failed to get model's versions from the database", err);
                 }
             	
 	    		if ( DBGuiImportModel.this.tblModelVersions.getItemCount() != 0 ) {
@@ -424,7 +424,7 @@ public class DBGuiImportModel extends DBGui {
 
         TableColumn colCreatedOn = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedOn.setText("Date");
-        colCreatedOn.setWidth(120);
+        colCreatedOn.setWidth(130);
 
         TableColumn colCreatedBy = new TableColumn(this.tblModelVersions, SWT.NONE);
         colCreatedBy.setText("Author");
@@ -492,7 +492,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setVisible(false);
         this.grpComponents.setBackground(GROUP_BACKGROUND_COLOR);
         this.grpComponents.setFont(GROUP_TITLE_FONT);
-        this.grpComponents.setText("Your model's components: ");
+        this.grpComponents.setText("Your model components: ");
         
         // we calculate the required height of the grpComponents group
         int requiredHeight = 10 * (getDefaultLabelHeight() + getDefaultMargin());
@@ -593,6 +593,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalProfiles.setEditable(false);
+        this.txtTotalProfiles.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -601,6 +602,7 @@ public class DBGuiImportModel extends DBGui {
         
         this.txtImportedProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedProfiles.setEditable(false);
+        this.txtImportedProfiles.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -609,6 +611,7 @@ public class DBGuiImportModel extends DBGui {
         
         this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalElements.setEditable(false);
+        this.txtTotalElements.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -617,6 +620,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedElements.setEditable(false);
+        this.txtImportedElements.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -625,6 +629,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalRelationships.setEditable(false);
+        this.txtTotalRelationships.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -633,6 +638,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedRelationships.setEditable(false);
+        this.txtImportedRelationships.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -641,6 +647,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalFolders.setEditable(false);
+        this.txtTotalFolders.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -649,6 +656,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedFolders.setEditable(false);
+        this.txtImportedFolders.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -657,6 +665,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViews.setEditable(false);
+        this.txtTotalViews.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -665,6 +674,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViews.setEditable(false);
+        this.txtImportedViews.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -673,6 +683,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViewObjects.setEditable(false);
+        this.txtTotalViewObjects.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -681,6 +692,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViewObjects.setEditable(false);
+        this.txtImportedViewObjects.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -689,6 +701,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalViewConnections.setEditable(false);
+        this.txtTotalViewConnections.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -697,6 +710,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedViewConnections.setEditable(false);
+        this.txtImportedViewConnections.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -705,6 +719,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtTotalImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalImages.setEditable(false);
+        this.txtTotalImages.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
@@ -713,6 +728,7 @@ public class DBGuiImportModel extends DBGui {
 
         this.txtImportedImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtImportedImages.setEditable(false);
+        this.txtImportedImages.setEnabled(false);
         fd = new FormData(26,18);
         fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
         fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
@@ -741,45 +757,64 @@ public class DBGuiImportModel extends DBGui {
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(this.grpComponents, -getDefaultMargin());
         this.grpModelVersions.setLayoutData(fd);
+        this.grpModelVersions.setText("Your model details: ");
+        
+        this.tblModelVersions.setVisible(false);
+        
+        Label lblModelVersion = new Label(this.grpModelVersions, SWT.NONE);
         
         fd = new FormData();
         fd.top = new FormAttachment(0, getDefaultMargin());
         fd.left = new FormAttachment(0, getDefaultMargin());
-        fd.right = new FormAttachment(40, -getDefaultMargin());
-        fd.bottom = new FormAttachment(100, -getDefaultMargin());
-        this.tblModelVersions.setLayoutData(fd);
-        
-        fd = new FormData();
-        fd.top = new FormAttachment(0, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
         this.lblModelName.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.lblModelName, 0, SWT.CENTER);
-        fd.left = new FormAttachment(this.lblModelName, 80, SWT.LEFT);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtModelName.setLayoutData(fd);
         
+        lblModelVersion.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModelVersion.setText("Model version:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
+        fd.top = new FormAttachment(this.lblModelName, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
+        lblModelVersion.setLayoutData(fd);
+
+        Text txtModelVersion = new Text(this.grpModelVersions, SWT.BORDER);
+        txtModelVersion.setBackground(GROUP_BACKGROUND_COLOR);
+        txtModelVersion.setEnabled(false);
+        TableItem selectedVersion = this.tblModelVersions.getSelection()[0];
+        if ( selectedVersion.getText(0).isEmpty() )
+        	txtModelVersion.setText("Latest version");
+        else
+        	txtModelVersion.setText(selectedVersion.getText(0)+" ("+selectedVersion.getText(1)+")");
+        fd = new FormData();
+        fd.top = new FormAttachment(lblModelVersion, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
+        fd.right = new FormAttachment(100, -getDefaultMargin());
+        txtModelVersion.setLayoutData(fd);
+        
+        fd = new FormData();
+        fd.top = new FormAttachment(txtModelVersion, getDefaultMargin());
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblPurpose.setLayoutData(fd);
         
         fd = new FormData();
-        fd.top = new FormAttachment(this.txtModelName, 5);
-        fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
+        fd.top = new FormAttachment(txtModelVersion, 5);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(55, -5);
         this.txtPurpose.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
-        fd.left = new FormAttachment(40, 0);
+        fd.left = new FormAttachment(0, getDefaultMargin());
         this.lblReleaseNote.setLayoutData(fd);
         
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, 5);
-        fd.left = new FormAttachment(this.txtModelName, 0, SWT.LEFT);
+        fd.left = new FormAttachment(lblModelVersion, getDefaultMargin(), SWT.RIGHT);
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(100, -getDefaultMargin());
         this.txtReleaseNote.setLayoutData(fd);
@@ -823,14 +858,14 @@ public class DBGuiImportModel extends DBGui {
             this.txtTotalViewConnections.setText(toString(this.importConnection.getCountViewConnectionsToImport()));
             this.txtTotalImages.setText(toString(this.importConnection.getCountImagesToImport()));
 
-            this.txtImportedProfiles.setText("0");
-            this.txtImportedElements.setText("0");
-            this.txtImportedRelationships.setText("0");
-            this.txtImportedFolders.setText("0");
-            this.txtImportedViews.setText("0");
-            this.txtImportedViewObjects.setText("0");
-            this.txtImportedViewConnections.setText("0");
-            this.txtImportedImages.setText("0");
+            this.txtImportedProfiles.setText(toString(0));
+            this.txtImportedElements.setText(toString(0));
+            this.txtImportedRelationships.setText(toString(0));
+            this.txtImportedFolders.setText(toString(0));
+            this.txtImportedViews.setText(toString(0));
+            this.txtImportedViewObjects.setText(toString(0));
+            this.txtImportedViewConnections.setText(toString(0));
+            this.txtImportedImages.setText(toString(0));
             
 	        // Import the model components from the database
 
@@ -920,9 +955,9 @@ public class DBGuiImportModel extends DBGui {
                 } catch (@SuppressWarnings("unused") IOException ign) {
                     // there is nothing we can do
                 }
-                popup(Level.WARN, "The import has been cancelled.");
+                DBGuiUtils.popup(Level.WARN, "The import has been cancelled.");
             } else {
-                popup(Level.ERROR, "Failed to import model from database.", err);
+                DBGuiUtils.popup(Level.ERROR, "Failed to import model from database.", err);
                 setActiveAction(STATUS.Error);
                 doShowResult(err);
             }
@@ -1019,10 +1054,10 @@ public class DBGuiImportModel extends DBGui {
 	    
 	                IEditorModelManager.INSTANCE.closeModel(this.modelToImport);
 	            } catch (IOException e) {
-	                popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
+	                DBGuiUtils.popup(Level.FATAL, "Failed to close the model partially imported.\n\nWe suggest you close and restart Archi.", e);
 	            }
 	        } else {
-	            popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
+	            DBGuiUtils.popup(Level.ERROR, "Please be warn that the model you just imported is not concistent.\n\nYou choosed to keep it in the preferences, but should you export it back to the database, you may loose data.\n\nDo it at your own risk !");
 	        }
         }
     }

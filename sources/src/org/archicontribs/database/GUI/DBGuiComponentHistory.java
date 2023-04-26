@@ -227,12 +227,12 @@ public class DBGuiComponentHistory extends DBGui {
 						throw command.getException();
 					((CommandStack)importedModel.getAdapter(CommandStack.class)).execute((Command) command);
 					
-					popup(Level.INFO, "The current version of the component has been replaced by the selected version from the database.");
+					DBGuiUtils.popup(Level.INFO, "The current version of the component has been replaced by the selected version from the database.");
 					
 					connectedToDatabase(true);
 					
 				} catch (Exception err) {
-					popup(Level.ERROR, "Failed to import component.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to import component.", err);
 				}
 			}
 			@Override
@@ -254,10 +254,10 @@ public class DBGuiComponentHistory extends DBGui {
 		    		((DBArchimateModel)DBGuiComponentHistory.this.selectedComponent.getArchimateModel()).getCurrentVersion().setTimestamp(new Timestamp(Calendar.getInstance().getTime().getTime()));
 					exportConnection.exportEObject(DBGuiComponentHistory.this.selectedComponent);
 					
-					popup(Level.INFO, "The component has been updated in the database.");
+					DBGuiUtils.popup(Level.INFO, "The component has been updated in the database.");
 					connectedToDatabase(true);
 				} catch (Exception err) {
-					popup(Level.ERROR, "Failed to export component.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to export component.", err);
 				}
 		    }
 		    @Override
@@ -274,12 +274,12 @@ public class DBGuiComponentHistory extends DBGui {
 	 */
 	@Override
 	protected void connectedToDatabase(boolean forceCheck) {	
-		this.dialog.setCursor(CURSOR_ARROW);
+		this.dialog.setCursor(DBGuiUtils.CURSOR_ARROW);
 		
 		try (DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection()) ) {
             exportConnection.getVersionFromDatabase(this.selectedComponent);
 		} catch (Exception e) {
-		    popup(Level.FATAL, "Cannot get version of selected component from the database.", e);
+		    DBGuiUtils.popup(Level.FATAL, "Cannot get version of selected component from the database.", e);
 		    return ;
 		}
 		
@@ -305,7 +305,7 @@ public class DBGuiComponentHistory extends DBGui {
         else if ( this.selectedComponent instanceof IDiagramModelConnection )
             tableName = "views_connections";
         else {
-		    popup(Level.FATAL, "Cannot get history for components of class "+this.selectedComponent.getClass().getSimpleName());
+		    DBGuiUtils.popup(Level.FATAL, "Cannot get history for components of class "+this.selectedComponent.getClass().getSimpleName());
 		    return ;
 		}
 	
@@ -318,7 +318,7 @@ public class DBGuiComponentHistory extends DBGui {
 			}
 		} catch (Exception err) {
 		    this.tblVersions.removeAll();
-			popup(Level.FATAL, "Failed to search component versions in the database.", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to search component versions in the database.", err);
 		}
 		
 		if ( this.tblVersions.getItemCount() > 1 ) {

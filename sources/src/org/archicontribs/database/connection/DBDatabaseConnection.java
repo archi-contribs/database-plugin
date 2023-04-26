@@ -33,6 +33,7 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBTable;
 import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
@@ -194,12 +195,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 				try {
 					password = this.databaseEntry.getDecryptedPassword();
 				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-					DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
 				}
 
 				// if the username is set but not the password, then we show a popup to ask for the password
 				if ( DBPlugin.isEmpty(password) ) {
-					password = DBGui.passwordDialog("Please provide the database password", "Database password:");
+					password = DBGuiUtils.passwordDialog("Please provide the database password", "Database password:");
 					if ( password == null ) {
 						// password is null if the user clicked on cancel
 						throw new SQLException("No password provided.");
@@ -208,7 +209,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					try {
 						this.databaseEntry.setDecryptedPassword(password);
 					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-						DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+						DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
 					}
 				}
 			}
@@ -302,7 +303,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			currentVersion = result.getInt("version");
 		} catch (@SuppressWarnings("unused") SQLException err) {
 			// if the table does not exist
-			if ( !DBGui.question("We successfully connected to the database but it seems that it has not been initialized.\n\nDo you wish to intialize the database ?") )
+			if ( !DBGuiUtils.question("We successfully connected to the database but it seems that it has not been initialized.\n\nDo you wish to intialize the database ?") )
 				throw new SQLException("Database not initialized.");
 
 			createTables(dbGui);
@@ -313,9 +314,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 			throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
 
 		if ( currentVersion != databaseVersion ) {
-			if ( DBGui.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
+			if ( DBGuiUtils.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
 				upgradeDatabase(currentVersion);
-				DBGui.popup(Level.INFO, "Database successfully upgraded.");
+				DBGuiUtils.popup(Level.INFO, "Database successfully upgraded.");
 			}
 			else
 				throw new SQLException("The database needs to be upgraded.");
@@ -348,7 +349,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( dbGui != null )
 				dbGui.setMessage("Checking the database structure...");
 			else
-				DBGui.popup("Checking the database structure...");
+				DBGuiUtils.showPopupMessage("Checking the database structure...");
 
 			if ( !isConnected() )
 				openConnection();
@@ -464,7 +465,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 						logger.debug("   found column "+indexName+" in primary key");
 					}
 				} catch (SQLException err) {
-					DBGui.popup(Level.ERROR, "Failed to get table primary keys.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to get table primary keys.", err);
 					return;
 				}
 				*/
@@ -480,14 +481,14 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( dbGui != null )
 				dbGui.closeMessage();
 			else
-				DBGui.closePopup();
+				DBGuiUtils.closePopupMessage();
 		}
 		
 		if ( dbGui != null ) {
 			if ( !isDatabaseStructureCorrect )
-				DBGui.popup(Level.WARN, "You may have a look to the following items in your database:\n" + message.toString());
+				DBGuiUtils.popup(Level.WARN, "You may have a look to the following items in your database:\n" + message.toString());
 			else
-				DBGui.popup(Level.INFO, "Tables name successfully checked.\nColumns name and type successfully checked");
+				DBGuiUtils.popup(Level.INFO, "Tables name successfully checked.\nColumns name and type successfully checked");
 		}
 	
 		if ( isDatabaseStructureCorrect )
@@ -508,7 +509,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( dbGui != null )
 				dbGui.setMessage("Creating necessary database tables ...");
 			else
-				DBGui.popup("Creating necessary database tables ...");
+				DBGuiUtils.showPopupMessage("Creating necessary database tables ...");
 
 			if ( !isConnected() )
 				openConnection();
@@ -604,7 +605,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			commit();
 			setAutoCommit(true);
 
-			DBGui.popup(Level.INFO,"The database has been successfully initialized.");
+			DBGuiUtils.popup(Level.INFO,"The database has been successfully initialized.");
 
 		} catch (SQLException err) {
 			rollback();
@@ -614,7 +615,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( dbGui != null )
 				dbGui.closeMessage();
 			else
-				DBGui.closePopup();
+				DBGuiUtils.closePopupMessage();
 		}
 
 	}
@@ -873,7 +874,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					try {
 						checksum = DBChecksum.calculateChecksum(checksumBuilder);
 					} catch (Exception err) {
-						DBGui.popup(Level.FATAL, "Failed to calculate models checksum.", err);
+						DBGuiUtils.popup(Level.FATAL, "Failed to calculate models checksum.", err);
 						rollback();
 						return;
 					}
@@ -890,7 +891,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( dbVersion == 204 ) {
 			addColumn(this.schemaPrefix+"views", "container_checksum", objectIDColumn.getType(), false, "");
 
-			DBGui.popup("Please wait while calculating new checksum on views table.");
+			DBGuiUtils.showPopupMessage("Please wait while calculating new checksum on views table.");
 
 			DBArchimateModel tempModel = new DBArchimateModel();
 			try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this) ) {
@@ -912,7 +913,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			tempModel = null;
 
-			DBGui.closePopup();
+			DBGuiUtils.closePopupMessage();
 
 			dbVersion = 205;
 		}
@@ -1035,7 +1036,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		//      - create metadata table
 		//      - drop columns source_connections and target_connections from views_objects and views_connections tables
 		if ( dbVersion == 207 ) {
-			DBGui.popup("Please wait while converting data.");
+			DBGuiUtils.showPopupMessage("Please wait while converting data.");
 
 			if ( logger.isDebugEnabled() ) logger.debug("Creating table "+this.schemaPrefix+"metadata");
 			executeRequest("CREATE TABLE "+this.schemaPrefix+"metadata ("
@@ -1053,7 +1054,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			dropColumn(this.schemaPrefix+"views_connections", "source_connections");
 			dropColumn(this.schemaPrefix+"views_connections", "target_connections");
 
-			DBGui.closePopup();
+			DBGuiUtils.closePopupMessage();
 
 			dbVersion = 208;
 		}
@@ -1107,7 +1108,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			dropColumn(this.schemaPrefix+"views_objects", "hint_content");
 
 			// we need to recalculate the checksums
-			DBGui.popup("Please wait while re-calculating checksums on views_objects and views tables.");
+			DBGuiUtils.showPopupMessage("Please wait while re-calculating checksums on views_objects and views tables.");
 
 			DBArchimateModel tempModel = new DBArchimateModel();
 
@@ -1137,7 +1138,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			tempModel = null;
 
-			DBGui.closePopup();
+			DBGuiUtils.closePopupMessage();
 
 			dbVersion = 211;
 		}
@@ -1187,20 +1188,70 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 		
 		// convert from version 212 to 213
-		//      - rename "rank" column to "pos" in all tables
+		//      - rename "rank" column to "pos" in all tables where required
 		//      - change "strength" column from varchar(20) to blob
 		if ( dbVersion == 212 ) {
 			if ( logger.isDebugEnabled() ) logger.debug("Renaming \"rank\" column to \"pos\" in all tables.");
-			renameColumn(this.schemaPrefix+"properties", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"metadata", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"features", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"elements_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"relationships_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"folders_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_in_model", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_objects_in_view", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"views_connections_in_view", "rank", "pos", integerColumn.getType());
-			renameColumn(this.schemaPrefix+"bendpoints", "rank", "pos", integerColumn.getType());
+			try {
+				renameColumn(this.schemaPrefix+"properties", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in properties table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   properties table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"metadata", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in metadata table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   metadata table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"features", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in features table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   features table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"elements_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in elements_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   elements_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"relationships_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in relationships_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   relationships_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"folders_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in folders_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   folders_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_in_model", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_in_model table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_in_model table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_objects_in_view", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_objects_in_view table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_objects_in_view table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"views_connections_in_view", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in views_connections_in_view table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   views_connections_in_view table unmodified");
+			}
+			try {
+				renameColumn(this.schemaPrefix+"bendpoints", "rank", "pos", integerColumn.getType());
+				if ( logger.isDebugEnabled() ) logger.debug("   column renamed in bendpoints table");
+			} catch(@SuppressWarnings("unused") Exception ign) { 
+				if ( logger.isDebugEnabled() ) logger.debug("   bendpoints table unmodified");
+			}
 			
 			if ( logger.isDebugEnabled() ) logger.debug("Changing strength column of relationships table from varchr(20) to clob.");
 			renameColumn(this.schemaPrefix+"relationships", "strength", "old_strength", strengthColumn.getType());

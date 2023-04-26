@@ -23,6 +23,7 @@ import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
 import org.archicontribs.database.GUI.DBGuiAdminDatabase;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBDatabase;
 import org.eclipse.jface.preference.FieldEditor;
@@ -1076,7 +1077,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	void saveCallback() throws SQLException {
 		if ( this.txtName.getText().isEmpty() ) {
-		    DBGui.popup(Level.ERROR, "Please provide a name for your configuration.");
+		    DBGuiUtils.popup(Level.ERROR, "Please provide a name for your configuration.");
 			return;
 		}
 
@@ -1092,7 +1093,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 				tableItem = new TableItem(this.tblDatabases, SWT.NONE);
 			}
 		} catch (Exception e) {
-			DBGui.popup(Level.ERROR, "Please verify the information you provided", e);
+			DBGuiUtils.popup(Level.ERROR, "Please verify the information you provided", e);
 			return;
 		}
 		tableItem.setText(this.txtName.getText());
@@ -1169,7 +1170,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             try {
 				this.txtPassword.setText(databaseEntry.getDecryptedPassword());
 			} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-				DBGui.popup(Level.ERROR, "Failed to decrypt the password.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
 				this.txtPassword.setText("");
 			}
             this.btnExpertMode.setSelection(databaseEntry.isExpertMode());
@@ -1260,15 +1261,15 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		try {
 			databaseEntry = getDatabaseDetails(null);
 		} catch (Exception e) {
-			DBGui.popup(Level.ERROR, "Please verify the information you provided", e);
+			DBGuiUtils.popup(Level.ERROR, "Please verify the information you provided", e);
 			return;
 		}
 
 		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
 			connection.checkDatabase(null);
-			DBGui.popup(Level.INFO, "Database successfully checked.");
+			DBGuiUtils.popup(Level.INFO, "Database successfully checked.");
 		} catch (Exception err) {
-			DBGui.popup(Level.ERROR, "Failed to check the database.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to check the database.", err);
 		}
 	}
 	
@@ -1280,7 +1281,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		try {
 			databaseEntry = getDatabaseDetails(null);
 		} catch (Exception e) {
-			DBGui.popup(Level.ERROR, "Please verify the information you provided", e);
+			DBGuiUtils.popup(Level.ERROR, "Please verify the information you provided", e);
 			return;
 		}
 		
@@ -1293,7 +1294,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
         	DBGuiAdminDatabase adminDatabase = new DBGuiAdminDatabase(connection, entries, "Administer database \""+databaseEntry.getName()+"\"");
         	adminDatabase.run();
         } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Cannot admin the database", e);
+            DBGuiUtils.popup(Level.ERROR,"Cannot admin the database", e);
         }
 	}
 
@@ -1419,7 +1420,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	public void close() throws SQLException {
 		if ( this.txtName.isVisible() && this.txtName.isEnabled() ) {
-			if ( DBGui.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 ) {
+			if ( DBGuiUtils.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 ) {
 				saveCallback();
 			}			
 		}

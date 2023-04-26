@@ -30,6 +30,7 @@ import com.archimatetool.model.IDiagramModelArchimateComponent;
 import com.archimatetool.model.IDiagramModelArchimateObject;
 import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IIdentifier;
 
 /**
@@ -91,7 +92,7 @@ public class DBGuiShowDebug extends DBGui {
         	this.model = (DBArchimateModel) ((IDiagramModelArchimateObject)obj).getArchimateConcept().getArchimateModel();
         	this.selectedMetadata = DBMetadata.getDBMetadata(obj);
         } else {
-        	popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
+        	DBGuiUtils.popup(Level.ERROR, "Do not know how to get debugging information about a "+obj.getClass().getSimpleName());
         	return;
         }
         
@@ -130,7 +131,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(0, 20);
         this.selectedComponentLbl.setLayoutData(fd);
         
-        // Name
+        // Name label
         this.selectedComponentNameLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentNameLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentNameLbl.setText("Name:");
@@ -139,15 +140,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(0, 70);
         this.selectedComponentNameLbl.setLayoutData(fd);
         
-        this.selectedComponentNameValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 70);
-        fd.right = new FormAttachment(100, -20);
-        this.selectedComponentNameValueLbl.setLayoutData(fd);
-        
-        // Id
+        // Id label
         this.selectedComponentIdLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentIdLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentIdLbl.setText("Id:");
@@ -156,15 +149,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
         this.selectedComponentIdLbl.setLayoutData(fd);
         
-        this.selectedComponentIdValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentIdLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -20);
-        this.selectedComponentIdValueLbl.setLayoutData(fd);
-        
-        // Class
+        // Class label
         this.selectedComponentClassLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentClassLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentClassLbl.setText("Class:");
@@ -173,15 +158,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
         this.selectedComponentClassLbl.setLayoutData(fd);
         
-        this.selectedComponentClassValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentClassValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentClassLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -20);
-        this.selectedComponentClassValueLbl.setLayoutData(fd);
-        
-        // Image Path
+        // Image Path label
         this.selectedComponentImagePathLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentImagePathLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentImagePathLbl.setText("Image Path:");
@@ -190,15 +167,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
         this.selectedComponentImagePathLbl.setLayoutData(fd);
         
-        this.selectedComponentImagePathValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentImagePathValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentImagePathLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -20);
-        this.selectedComponentImagePathValueLbl.setLayoutData(fd);
-        
-        // Database status
+        // Database status label
         this.selectedComponentDatabaseStatusLbl = new Label(this.grpDebug, SWT.BOLD);
         this.selectedComponentDatabaseStatusLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentDatabaseStatusLbl.setText("Database status:");
@@ -207,11 +176,51 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(0, 70);
         this.selectedComponentDatabaseStatusLbl.setLayoutData(fd);
         
+        
+        
+        
+        // name value
+        this.selectedComponentNameValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.selectedComponentNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.selectedComponentNameValueLbl.setLayoutData(fd);
+        
+        // ID value
+        this.selectedComponentIdValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.selectedComponentIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.selectedComponentIdLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.selectedComponentIdValueLbl.setLayoutData(fd);
+        
+        // class value
+        this.selectedComponentClassValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.selectedComponentClassValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.selectedComponentClassLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.selectedComponentClassValueLbl.setLayoutData(fd);
+        
+        // Image path value
+        this.selectedComponentImagePathValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.selectedComponentImagePathValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.selectedComponentImagePathLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.selectedComponentImagePathValueLbl.setLayoutData(fd);
+        
+        // Database status value
         this.selectedComponentDatabaseStatusValueLbl = new Label(this.grpDebug, SWT.BOLD);
         this.selectedComponentDatabaseStatusValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.selectedComponentNameValueLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentDatabaseStatusValueLbl.setLayoutData(fd);
         
@@ -229,30 +238,30 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentDebugTable.setLayoutData(fd);
         
         TableColumn column = new TableColumn(this.selectedComponentDebugTable, SWT.NONE);
-        column.setWidth(100);
+        column.setWidth(135);
         column = new TableColumn(this.selectedComponentDebugTable, SWT.CENTER);
-        column.setText("Version");
+        column.setText("#");
         column.setWidth(50);
         column = new TableColumn(this.selectedComponentDebugTable, SWT.CENTER);
         column.setText("Container checksum");
-        column.setWidth(230);
+        column.setWidth(340);
         column = new TableColumn(this.selectedComponentDebugTable, SWT.CENTER);
         column.setText("Checksum");
-        column.setWidth(230);
+        column.setWidth(340);
         column = new TableColumn(this.selectedComponentDebugTable, SWT.CENTER);
         column.setText("Created on");
-        column.setWidth(140);
+        column.setWidth(220);
         
         // corresponding concept
         this.correspondingConceptLbl = new Label(this.grpDebug, SWT.NONE);
         this.correspondingConceptLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        this.correspondingConceptLbl.setText("It is related to the following concept:");
+        this.correspondingConceptLbl.setText("It is related to the following Archimate concept:");
         fd = new FormData();
         fd.top = new FormAttachment(50, 10);
         fd.left = new FormAttachment(0, 20);
         this.correspondingConceptLbl.setLayoutData(fd);
         
-        // Name
+        // Name label
         this.correspondingConceptNameLbl = new Label(this.grpDebug, SWT.NONE);
         this.correspondingConceptNameLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.correspondingConceptNameLbl.setText("Name:");
@@ -261,15 +270,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(0, 70);
         this.correspondingConceptNameLbl.setLayoutData(fd);
         
-        this.correspondingConceptNameValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.correspondingConceptNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.correspondingConceptNameLbl, 70);
-        fd.right = new FormAttachment(100, -20);
-        this.correspondingConceptNameValueLbl.setLayoutData(fd);
-        
-        // Id
+        // Id label
         this.correspondingConceptIdLbl = new Label(this.grpDebug, SWT.NONE);
         this.correspondingConceptIdLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.correspondingConceptIdLbl.setText("Id:");
@@ -277,16 +278,8 @@ public class DBGuiShowDebug extends DBGui {
         fd.top = new FormAttachment(this.correspondingConceptNameLbl, 2);
         fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptIdLbl.setLayoutData(fd);
-        
-        this.correspondingConceptIdValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.correspondingConceptIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.correspondingConceptIdLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.correspondingConceptNameValueLbl, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -20);
-        this.correspondingConceptIdValueLbl.setLayoutData(fd);
-        
-        // Class
+
+        // Class label
         this.correspondingConceptClassLbl = new Label(this.grpDebug, SWT.NONE);
         this.correspondingConceptClassLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.correspondingConceptClassLbl.setText("Class:");
@@ -295,14 +288,7 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptClassLbl.setLayoutData(fd);
         
-        this.correspondingConceptClassValueLbl = new Label(this.grpDebug, SWT.NONE);
-        this.correspondingConceptClassValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        fd = new FormData();
-        fd.top = new FormAttachment(this.correspondingConceptClassLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.correspondingConceptNameValueLbl, 0, SWT.LEFT);
-        fd.right = new FormAttachment(100, -20);
-        this.correspondingConceptClassValueLbl.setLayoutData(fd);
-        
+        // Database status label
         this.correspondingConceptDatabaseStatusLbl = new Label(this.grpDebug, SWT.BOLD);
         this.correspondingConceptDatabaseStatusLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.correspondingConceptDatabaseStatusLbl.setText("Database status:");
@@ -311,11 +297,39 @@ public class DBGuiShowDebug extends DBGui {
         fd.left = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.LEFT);
         this.correspondingConceptDatabaseStatusLbl.setLayoutData(fd);
         
+        // Name value
+        this.correspondingConceptNameValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.correspondingConceptNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.correspondingConceptNameLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.correspondingConceptNameValueLbl.setLayoutData(fd);
+
+        // Id value
+        this.correspondingConceptIdValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.correspondingConceptIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.correspondingConceptIdLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.correspondingConceptIdValueLbl.setLayoutData(fd);
+        
+        // Class value
+        this.correspondingConceptClassValueLbl = new Label(this.grpDebug, SWT.NONE);
+        this.correspondingConceptClassValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        fd = new FormData();
+        fd.top = new FormAttachment(this.correspondingConceptClassLbl, 0, SWT.TOP);
+        fd.left = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 10);
+        fd.right = new FormAttachment(100, -20);
+        this.correspondingConceptClassValueLbl.setLayoutData(fd);
+        
+        // Database status value
         this.correspondingConceptDatabaseStatusValueLbl = new Label(this.grpDebug, SWT.BOLD);
         this.correspondingConceptDatabaseStatusValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
         fd.top = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 0, SWT.TOP);
-        fd.left = new FormAttachment(this.correspondingConceptNameValueLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(this.correspondingConceptDatabaseStatusLbl, 10);
         fd.right = new FormAttachment(100, -20);
         this.correspondingConceptDatabaseStatusValueLbl.setLayoutData(fd);
         
@@ -333,19 +347,19 @@ public class DBGuiShowDebug extends DBGui {
         this.correspondingConceptDebugTable.setLayoutData(fd);
         
         column = new TableColumn(this.correspondingConceptDebugTable, SWT.NONE);
-        column.setWidth(100);
+        column.setWidth(135);
         column = new TableColumn(this.correspondingConceptDebugTable, SWT.CENTER);
-        column.setText("Version");
+        column.setText("#");
         column.setWidth(50);
         column = new TableColumn(this.correspondingConceptDebugTable, SWT.CENTER);
         column.setText("Container checksum");
-        column.setWidth(230);
+        column.setWidth(340);
         column = new TableColumn(this.correspondingConceptDebugTable, SWT.CENTER);
         column.setText("Checksum");
-        column.setWidth(230);
+        column.setWidth(340);
         column = new TableColumn(this.correspondingConceptDebugTable, SWT.CENTER);
         column.setText("Created on");
-        column.setWidth(140);
+        column.setWidth(220);
     }
     
     @Override
@@ -357,7 +371,7 @@ public class DBGuiShowDebug extends DBGui {
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent )
                 this.model.countObject(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept(), true);
         } catch (Exception e) {
-            popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
+            DBGuiUtils.popup(Level.ERROR, "Failed to calculate checksum for selected component.", e);
             close();
             return;
         }
@@ -419,7 +433,7 @@ public class DBGuiShowDebug extends DBGui {
             this.correspondingConceptDebugTable.setVisible(false);
         }
         
-        if ( !(this.selectedObject instanceof IDiagramModel) ) {
+        if ( !(this.selectedObject instanceof IDiagramModelContainer) ) {
             TableColumn column = this.selectedComponentDebugTable.getColumn(2);
             column.setResizable(false);
             column.setText("");
@@ -436,7 +450,7 @@ public class DBGuiShowDebug extends DBGui {
         try {
             getDatabases(true);
         } catch (Exception err) {
-            popup(Level.ERROR, "Failed to get the databases.", err);
+            DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
             return;
         }
     }
@@ -469,7 +483,7 @@ public class DBGuiShowDebug extends DBGui {
             
             this.exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
         } catch (SQLException err) {
-            popup(Level.ERROR, "Failed to get information about component from the database.", err);
+            DBGuiUtils.popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;
         }
         
@@ -494,7 +508,7 @@ public class DBGuiShowDebug extends DBGui {
             	this.model.getAllViews().put(((IDiagramModel)this.selectedObject).getId(), (IDiagramModel)this.selectedObject);
 				this.model.countObject(this.selectedObject, true);
 			} catch (Exception err) {
-				popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to recalculate view chekcsum.", err);
 				return;
 			}
         }

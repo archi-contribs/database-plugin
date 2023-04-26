@@ -29,7 +29,7 @@ import java.util.regex.Pattern;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -87,7 +87,7 @@ public class DBCheckForPluginUpdate {
 			dropinsFolderName = dropinsFolder.getCanonicalPath();
 		} catch (IOException err) {
 			if ( showPopup )
-				DBGui.popup(Level.ERROR, "Failed to get dropins folder.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to get dropins folder.", err);
 			else
 				logger.error("Failed to get dropins folder.", err);
 			return;
@@ -95,9 +95,9 @@ public class DBCheckForPluginUpdate {
 
 		if ( !dropinsFolder.canWrite() ) {
 			if ( showPopup )
-				DBGui.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
+				DBGuiUtils.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
 			else
-				DBGui.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
+				DBGuiUtils.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
 			return;
 		}
 		
@@ -105,7 +105,7 @@ public class DBCheckForPluginUpdate {
 		JSONParser parser = new JSONParser();
 		
 		if ( showPopup )
-			DBGui.popup("Checking for a new database plugin version on GitHub ...");
+			DBGuiUtils.showPopupMessage("Checking for a new database plugin version on GitHub ...");
 		else
 			logger.debug("Checking for a new database plugin version on GitHub");
 
@@ -164,8 +164,8 @@ public class DBCheckForPluginUpdate {
 
 			if ( result == null ) {
 				if ( showPopup ) {
-					DBGui.closePopup();
-					DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nParsing error.");
+					DBGuiUtils.closePopupMessage();
+					DBGuiUtils.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nParsing error.");
 				} else
 					logger.error("Failed to check for new database plugin version.\n\nParsing error.");
 				return;
@@ -184,19 +184,19 @@ public class DBCheckForPluginUpdate {
 				}
 			}
 
-			if ( showPopup ) DBGui.closePopup();
+			if ( showPopup ) DBGuiUtils.closePopupMessage();
 
 			if ( versions.isEmpty() ) {
 				if ( showPopup )
-					DBGui.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+"_*.archiplugin file.");
+					DBGuiUtils.popup(Level.ERROR, "Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+"_*.archiplugin file.");
 				else
 					logger.error("Failed to check for new database plugin version.\n\nDid not find any "+DBPlugin.pluginsPackage+"_*.archiplugin file.");
 				return;
 			}
 		} catch (Exception e) {
 			if ( showPopup ) {
-				DBGui.closePopup();
-				DBGui.popup(Level.ERROR, "Failed to check for new version on GitHub.", e);
+				DBGuiUtils.closePopupMessage();
+				DBGuiUtils.popup(Level.ERROR, "Failed to check for new version on GitHub.", e);
 			} else {
 				logger.error("Failed to check for new version on GitHub.", e);
 			}
@@ -210,7 +210,7 @@ public class DBCheckForPluginUpdate {
 
 			if ( DBPlugin.pluginVersion.compareTo(new Version(entry.getKey())) >= 0 ) {
 				if ( showPopup )
-					DBGui.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion.toString());
+					DBGuiUtils.popup(Level.INFO, "You already have got the latest version: "+DBPlugin.pluginVersion.toString());
 				else
 					logger.info("You already have got the latest version: "+DBPlugin.pluginVersion.toString());
 				return;
@@ -218,7 +218,7 @@ public class DBCheckForPluginUpdate {
 
 			if ( !DBPlugin.pluginsFilename.endsWith(".jar") ) {
 				if ( showPopup )
-					DBGui.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
+					DBGuiUtils.popup(Level.ERROR,"A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 				else
 					logger.error("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nUnfortunately, it cannot be downloaded while Archi is running inside Eclipse.");
 				return;
@@ -226,7 +226,7 @@ public class DBCheckForPluginUpdate {
 
 			boolean ask = true;
 			while ( ask ) {
-				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.answer = DBGui.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
+				this.display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.this.answer = DBGuiUtils.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+entry.getKey()+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
 				switch ( this.answer ) {
 					case 0: ask = false ; break;  // Yes
 					case 1: return ;              // No
@@ -285,10 +285,10 @@ public class DBCheckForPluginUpdate {
 			try {
 				 Files.deleteIfExists(this.fileSystem.getPath(newPluginFilename));
 			} catch (Exception err) {
-				DBGui.popup(Level.ERROR, "Failed to delete partially downloaded file \""+newPluginFilename+"\".", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to delete partially downloaded file \""+newPluginFilename+"\".", err);
 			}
 			if ( showPopup )
-				DBGui.popup(Level.ERROR, "Failed to download the new version of the database plugin.", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to download the new version of the database plugin.", e);
 			else
 				logger.error("Failed to download the new version of the database plugin.",e);
 			return;
@@ -301,21 +301,21 @@ public class DBCheckForPluginUpdate {
 			IStatus status = this.dropinsPluginHandler.installFile(new File(newPluginFilename));
 			if ( !status.isOK() ) {
 				if ( showPopup )
-					DBGui.popup(Level.ERROR, "Failed to install new plugin version.");
+					DBGuiUtils.popup(Level.ERROR, "Failed to install new plugin version.");
 				else
 					logger.error("Failed to install new plugin version.");
 				return;
 			}
 		} catch (IOException e) {
 			if ( showPopup )
-				DBGui.popup(Level.ERROR, "Failed to install new plugin version.", e);
+				DBGuiUtils.popup(Level.ERROR, "Failed to install new plugin version.", e);
 			else
 				logger.error("Failed to install new plugin version.",e);
 			return;
 		}
 		
 
-		if( DBGui.question("A new version on the database plugin has been downloaded. Archi needs to be restarted to install it.\n\nDo you wish to restart Archi now ?") ) {
+		if( DBGuiUtils.question("A new version on the database plugin has been downloaded. Archi needs to be restarted to install it.\n\nDo you wish to restart Archi now ?") ) {
 			this.display.syncExec(new Runnable() {
 				@Override public void run() {
 					PlatformUI.getWorkbench().restart();

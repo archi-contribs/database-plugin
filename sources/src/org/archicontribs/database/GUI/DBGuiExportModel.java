@@ -30,8 +30,10 @@ import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.DBMetadata.DATABASE_STATUS;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
+import org.archicontribs.database.model.commands.DBDeleteProfileCommand;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
+import org.archicontribs.database.model.commands.DBImportProfileFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportRelationshipFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewConnectionFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
@@ -150,13 +152,13 @@ public class DBGuiExportModel extends DBGui {
 		try {
 			this.exportedModel.countAllObjects();
 		} catch (Exception err) {
-			popup(Level.ERROR, "Failed to count model's components", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to count model's components", err);
 			return;
 		} finally {
 			closeMessage();
 		}
 
-		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships and "+this.exportedModel.getAllFolders().size()+" folders and "+this.exportedModel.getAllViews().size()+" views and "+this.exportedModel.getAllViewObjects().size()+" objects and "+this.exportedModel.getAllViewConnections().size()+" connections.");
+		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+this.exportedModel.getAllProfiles().size()+" specializations and "+this.exportedModel.getAllElements().size()+" elements and "+this.exportedModel.getAllRelationships().size()+" relationships and "+this.exportedModel.getAllFolders().size()+" folders and "+this.exportedModel.getAllViews().size()+" views and "+this.exportedModel.getAllViewObjects().size()+" objects and "+this.exportedModel.getAllViewConnections().size()+" connections.");
 
 		this.txtTotalProfiles.setText(toString(this.exportedModel.getProfiles().size()));
 		this.txtTotalElements.setText(toString(this.exportedModel.getAllElements().size()));
@@ -170,7 +172,7 @@ public class DBGuiExportModel extends DBGui {
 		try {
 			getDatabases(true, this.exportedModel.getImportDatabaseId(), null);
 		} catch (Exception err) {
-			popup(Level.ERROR, "Failed to get the databases.", err);
+			DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
 			return;
 		}
 	}
@@ -517,6 +519,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalProfiles.setEditable(false);
+		this.txtTotalProfiles.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -525,6 +528,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtNewProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewProfilesInModel.setEditable(false);
+		this.txtNewProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -533,6 +537,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtUpdatedProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedProfilesInModel.setEditable(false);
+		this.txtUpdatedProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -541,6 +546,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		this.txtDeletedProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedProfilesInModel.setEditable(false);
+		this.txtDeletedProfilesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -549,6 +555,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewProfilesInDatabase.setEditable(false);
+		this.txtNewProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -557,6 +564,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedProfilesInDatabase.setEditable(false);
+		this.txtUpdatedProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -565,6 +573,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedProfilesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedProfilesInDatabase.setEditable(false);
+		this.txtDeletedProfilesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -573,6 +582,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingProfiles.setEditable(false);
+		this.txtConflictingProfiles.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -583,6 +593,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalElements.setEditable(false);
+		this.txtTotalElements.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -591,6 +602,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewElementsInModel.setEditable(false);
+		this.txtNewElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -599,6 +611,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedElementsInModel.setEditable(false);
+		this.txtUpdatedElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -607,6 +620,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedElementsInModel.setEditable(false);
+		this.txtDeletedElementsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -615,6 +629,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewElementsInDatabase.setEditable(false);
+		this.txtNewElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -623,6 +638,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedElementsInDatabase.setEditable(false);
+		this.txtUpdatedElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -631,6 +647,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedElementsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedElementsInDatabase.setEditable(false);
+		this.txtDeletedElementsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -639,6 +656,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingElements = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingElements.setEditable(false);
+		this.txtConflictingElements.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -649,6 +667,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalRelationships.setEditable(false);
+		this.txtTotalRelationships.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -657,6 +676,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewRelationshipsInModel.setEditable(false);
+		this.txtNewRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -665,6 +685,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedRelationshipsInModel.setEditable(false);
+		this.txtUpdatedRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -673,6 +694,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedRelationshipsInModel.setEditable(false);
+		this.txtDeletedRelationshipsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -681,6 +703,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewRelationshipsInDatabase.setEditable(false);
+		this.txtNewRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -689,6 +712,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedRelationshipsInDatabase.setEditable(false);
+		this.txtUpdatedRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -697,6 +721,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedRelationshipsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedRelationshipsInDatabase.setEditable(false);
+		this.txtDeletedRelationshipsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -705,6 +730,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingRelationships = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingRelationships.setEditable(false);
+		this.txtConflictingRelationships.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -715,6 +741,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalFolders.setEditable(false);
+		this.txtTotalFolders.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -723,6 +750,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewFoldersInModel.setEditable(false);
+		this.txtNewFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -731,6 +759,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedFoldersInModel.setEditable(false);
+		this.txtUpdatedFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -739,6 +768,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedFoldersInModel.setEditable(false);
+		this.txtDeletedFoldersInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -747,6 +777,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewFoldersInDatabase.setEditable(false);
+		this.txtNewFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -755,6 +786,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedFoldersInDatabase.setEditable(false);
+		this.txtUpdatedFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -763,6 +795,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedFoldersInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedFoldersInDatabase.setEditable(false);
+		this.txtDeletedFoldersInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -771,6 +804,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingFolders = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingFolders.setEditable(false);
+		this.txtConflictingFolders.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -781,6 +815,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViews.setEditable(false);
+		this.txtTotalViews.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -789,6 +824,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewsInModel.setEditable(false);
+		this.txtNewViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -797,6 +833,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewsInModel.setEditable(false);
+		this.txtUpdatedViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -805,6 +842,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewsInModel.setEditable(false);
+		this.txtDeletedViewsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -813,6 +851,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewsInDatabase.setEditable(false);
+		this.txtNewViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -821,6 +860,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewsInDatabase.setEditable(false);
+		this.txtUpdatedViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -829,6 +869,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewsInDatabase.setEditable(false);
+		this.txtDeletedViewsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -837,6 +878,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViews = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViews.setEditable(false);
+		this.txtConflictingViews.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -847,6 +889,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViewObjects.setEditable(false);
+		this.txtTotalViewObjects.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -855,6 +898,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewObjectsInModel.setEditable(false);
+		this.txtNewViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -863,6 +907,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewObjectsInModel.setEditable(false);
+		this.txtUpdatedViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -871,6 +916,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewObjectsInModel.setEditable(false);
+		this.txtDeletedViewObjectsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -879,6 +925,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewObjectsInDatabase.setEditable(false);
+		this.txtNewViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -887,6 +934,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewObjectsInDatabase.setEditable(false);
+		this.txtUpdatedViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -895,6 +943,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewObjectsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewObjectsInDatabase.setEditable(false);
+		this.txtDeletedViewObjectsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -903,6 +952,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViewObjects = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViewObjects.setEditable(false);
+		this.txtConflictingViewObjects.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -913,6 +963,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalViewConnections.setEditable(false);
+		this.txtTotalViewConnections.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -921,6 +972,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewConnectionsInModel.setEditable(false);
+		this.txtNewViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -929,6 +981,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewConnectionsInModel.setEditable(false);
+		this.txtUpdatedViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelUpdated, 0, SWT.LEFT);
@@ -937,6 +990,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewConnectionsInModel.setEditable(false);
+		this.txtDeletedViewConnectionsInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelDeleted, 0, SWT.LEFT);
@@ -945,6 +999,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewViewConnectionsInDatabase.setEditable(false);
+		this.txtNewViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -953,6 +1008,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtUpdatedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtUpdatedViewConnectionsInDatabase.setEditable(false);
+		this.txtUpdatedViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseUpdated, 0, SWT.LEFT);
@@ -961,6 +1017,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtDeletedViewConnectionsInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtDeletedViewConnectionsInDatabase.setEditable(false);
+		this.txtDeletedViewConnectionsInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.LEFT);
@@ -969,6 +1026,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtConflictingViewConnections = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtConflictingViewConnections.setEditable(false);
+		this.txtConflictingViewConnections.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblConflicts, 0, SWT.LEFT);
@@ -979,6 +1037,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtTotalImages = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtTotalImages.setEditable(false);
+		this.txtTotalImages.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
@@ -987,6 +1046,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewImagesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewImagesInModel.setEditable(false);
+		this.txtNewImagesInModel.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblModelNew, 0, SWT.LEFT);
@@ -995,6 +1055,7 @@ public class DBGuiExportModel extends DBGui {
 
 		this.txtNewImagesInDatabase = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
 		this.txtNewImagesInDatabase.setEditable(false);
+		this.txtNewImagesInDatabase.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.lblDatabaseNew, 0, SWT.LEFT);
@@ -1016,11 +1077,11 @@ public class DBGuiExportModel extends DBGui {
 				try {
 					upToDate = DBGuiExportModel.this.compareModelToDatabase(true);
 				} catch (Exception err) {
-					popup(Level.ERROR, "Failed to compare the model to the database.", err);
+					DBGuiUtils.popup(Level.ERROR, "Failed to compare the model to the database.", err);
 				}
 				DBGuiExportModel.this.btnCompareModelToDatabase.setEnabled(true);
 				if ( upToDate ) {
-					popup(Level.INFO, "Your database is already up to date.");
+					DBGuiUtils.popup(Level.INFO, "Your database is already up to date.");
 					DBGuiExportModel.this.btnClose.setText("Close");
 					DBGuiExportModel.this.btnDoAction.setEnabled(false);
 				} else
@@ -1129,7 +1190,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 			}
 		} catch (Exception err) {
-			popup(Level.FATAL, "Failed to check existing components in database", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to check existing components in database", err);
 			setActiveAction(STATUS.Error);
 			return;
 		}
@@ -1152,13 +1213,13 @@ public class DBGuiExportModel extends DBGui {
 			try {
 				upToDate = compareModelToDatabase(true);
 			} catch (Exception err) {
-				popup(Level.ERROR, "Failed to compare the model to the database.", err);
+				DBGuiUtils.popup(Level.ERROR, "Failed to compare the model to the database.", err);
 			}
 
 			this.btnCompareModelToDatabase.setEnabled(true);
 			closeMessage();
 			if ( upToDate ) {
-				popup(Level.INFO, "Your database is already up to date.");
+				DBGuiUtils.popup(Level.INFO, "Your database is already up to date.");
 				DBGuiExportModel.this.btnClose.setText("Close");
 				this.btnDoAction.setEnabled(false);
 			} else
@@ -1269,13 +1330,13 @@ public class DBGuiExportModel extends DBGui {
 		
 		int progressBarWidth = this.exportedModel.getAllElements().size() + this.exportedModel.getAllRelationships().size() + this.exportedModel.getAllFolders().size() + this.exportedModel.getAllViews().size() + this.exportedModel.getAllViewObjects().size() + this.exportedModel.getAllViewConnections().size();
 		createProgressBar("Comparing the model to the database ...", 1, progressBarWidth);
-
+		
 		try {
 			// we compare the elements, relationships, folders and views
 			this.exportConnection.getAllVersionFromDatabase(this.exportedModel, this);
 		} catch (SQLException err ) {
 			hideProgressBar();
-			popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
+			DBGuiUtils.popup(Level.FATAL, "Failed to get latest version of components in the database.", err);
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Error while exporting model.\n"+err.getMessage());
 			return false;
@@ -1297,7 +1358,6 @@ public class DBGuiExportModel extends DBGui {
 						) {
 					setProgressBarLabel("Creating screenshot of view \""+view.getName()+"\"");
 					createImage(view, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-					setProgressBarLabel("Checking if view screenshots are required");
 				}
 				metadata.getScreenshot().setScreenshotActive(true);
 			} else
@@ -1777,21 +1837,23 @@ public class DBGuiExportModel extends DBGui {
 
 			// we log the values uniquely if the updateTextFields has been requestes, else the values are zero
 			logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-			logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
-			logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
-			logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
+			logger.info(String.format("                     Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+			logger.info(String.format("   Specializations:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllProfiles().size(), toInt(this.txtNewProfilesInModel.getText()), toInt(this.txtUpdatedProfilesInModel.getText()), toInt(this.txtDeletedProfilesInModel.getText()), toInt(this.txtNewProfilesInDatabase.getText()), toInt(this.txtUpdatedProfilesInDatabase.getText()), toInt(this.txtDeletedProfilesInDatabase.getText()), toInt(this.txtConflictingProfiles.getText())) );  
+			logger.info(String.format("   Elements:         %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
+			logger.info(String.format("   Relationships:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
 			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
-				logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
-				logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
-				logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
-				logger.info(String.format("   Connections:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
-				logger.info(String.format("   images:         %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
+				logger.info(String.format("   Folders:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
+				logger.info(String.format("   views:            %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
+				logger.info(String.format("   Objects:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
+				logger.info(String.format("   Connections:      %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewConnections().size(), toInt(this.txtNewViewConnectionsInModel.getText()), toInt(this.txtUpdatedViewConnectionsInModel.getText()), toInt(this.txtDeletedViewConnectionsInModel.getText()), toInt(this.txtNewViewConnectionsInDatabase.getText()), toInt(this.txtUpdatedViewConnectionsInDatabase.getText()), toInt(this.txtDeletedViewConnectionsInDatabase.getText()), toInt(this.txtConflictingViewConnections.getText())) );
+				logger.info(String.format("   images:           %6d   %6d   %16s  %6d", ((IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class)).getLoadedImagePaths().size(), toInt(this.txtNewImagesInModel.getText()), "", toInt(this.txtNewImagesInDatabase.getText())) );
 			}
 		}
-
+		
+		
 		closeMessage();
 
-		if ( total == 0 ) { 
+		if ( total == 0 && (this.exportedModel.getCurrentVersion().getChecksum().toString().equals(this.exportedModel.getDatabaseVersion().getChecksum().toString()))) { 
 			logger.info("The model does not need to be exported to the database.");
 			return true;
 		}
@@ -1847,6 +1909,7 @@ public class DBGuiExportModel extends DBGui {
 			this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
 
 			// we reset the counters as they will be updated during the import and export process
+			this.txtTotalProfiles.setText(this.ZERO);         this.txtNewProfilesInModel.setText(this.ZERO);         this.txtUpdatedProfilesInModel.setText(this.ZERO);         this.txtDeletedProfilesInModel.setText(this.ZERO);         this.txtNewProfilesInDatabase.setText(this.ZERO);          this.txtUpdatedProfilesInDatabase.setText(this.ZERO);          this.txtDeletedProfilesInDatabase.setText(this.ZERO);        this.txtConflictingProfiles.setText(this.ZERO);
 			this.txtTotalElements.setText(this.ZERO);         this.txtNewElementsInModel.setText(this.ZERO);         this.txtUpdatedElementsInModel.setText(this.ZERO);         this.txtDeletedElementsInModel.setText(this.ZERO);         this.txtNewElementsInDatabase.setText(this.ZERO);          this.txtUpdatedElementsInDatabase.setText(this.ZERO);          this.txtDeletedElementsInDatabase.setText(this.ZERO);        this.txtConflictingElements.setText(this.ZERO);
 			this.txtTotalRelationships.setText(this.ZERO);    this.txtNewRelationshipsInModel.setText(this.ZERO);    this.txtUpdatedRelationshipsInModel.setText(this.ZERO);    this.txtDeletedRelationshipsInModel.setText(this.ZERO);    this.txtNewRelationshipsInDatabase.setText(this.ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);     this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);   this.txtConflictingRelationships.setText(this.ZERO);
 			this.txtTotalFolders.setText(this.ZERO);          this.txtNewFoldersInModel.setText(this.ZERO);          this.txtUpdatedFoldersInModel.setText(this.ZERO);          this.txtDeletedFoldersInModel.setText(this.ZERO);          this.txtNewFoldersInDatabase.setText(this.ZERO);           this.txtUpdatedFoldersInDatabase.setText(this.ZERO);           this.txtDeletedFoldersInDatabase.setText(this.ZERO);         this.txtConflictingFolders.setText(this.ZERO);
@@ -1874,6 +1937,19 @@ public class DBGuiExportModel extends DBGui {
 
 				hideGrpDatabase();
 				createGrpConflict();
+				
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) {
+					IProfile profile = profilesIterator.next().getValue();
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+						if ( this.exportedModel.getAllConflicts().get(profile) != null ) {
+							this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.askUser);
+							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
+							item.setText(profile.getId());
+							item.setData(profile);
+						}
+					}
+				}
 
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
@@ -1957,13 +2033,23 @@ public class DBGuiExportModel extends DBGui {
 
 			//////////////////////////// PHASE 3 : we remove from the model the components that have been deleted in the database 
 			if ( !isNeo4JDatabase ) {
-				setMessage("Removing from the model the elements that have been deleted in the database ...");
-				errorMessage = "Failed to remove from the model the elements that have been deleted in the database.";
+				setMessage("Removing from the model the components that have been deleted in the database ...");
+				errorMessage = "Failed to remove from the model the components that have been deleted in the database.";
 
 				// please be aware that the commands put in the undoableCommand are single operations
 				// ie. when an element is deleted, the command does not delete at the same time the relationships connected to it, not the views objets that references it.
 
 				// we do not use getException() method as Archi commands do not implement it
+				
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) {
+					IProfile profile = profilesIterator.next().getValue();
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+						undoableCommands.add(new DBDeleteProfileCommand(this.exportedModel, profile));
+						incrementText(this.txtDeletedProfilesInDatabase);
+						decrementText(this.txtTotalProfiles);
+					}
+				}
 
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
@@ -2038,6 +2124,9 @@ public class DBGuiExportModel extends DBGui {
 				int progressBarWidth = this.exportConnection.getFoldersNotInModel().size() + this.exportConnection.getElementsNotInModel().size() + this.exportConnection.getRelationshipsNotInModel().size() + this.exportConnection.getViewsNotInModel().size() + this.exportConnection.getViewObjectsNotInModel().size() + this.exportConnection.getViewConnectionsNotInModel().size();
 				
 				// we add the number of updated components to import from the database
+				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+				while ( profilesIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(profilesIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(foldersIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
 				
@@ -2071,7 +2160,36 @@ public class DBGuiExportModel extends DBGui {
 					errorMessage = "Failed to import components from the database.";
 
 					try ( DBDatabaseImportConnection importConnection = new DBDatabaseImportConnection(this.exportConnection) ) {
+						// IMPORT PROFILES (we import the profiles BEFORE the elements, relationships and views because they must exist when the elements, relationships are imported)
+						if ( this.exportConnection.getProfilesNotInModel().size() == 0 )
+							logger.info("There is no specialization to import.");
+						else {
+							logger.info("Importing new specializations ...");
+							setProgressBarLabel("Importing new specializations ...");
+							for (String id : this.exportConnection.getProfilesNotInModel().keySet() ) {
+								DBMetadata versionToImport = this.exportConnection.getProfilesNotInModel().get(id);
+								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
+									if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+id+" has been created in the database. We import it from the database.");
+									undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode));
+									incrementText(this.txtNewProfilesInDatabase);
+									incrementText(this.txtTotalProfiles);
+								} else {
+									if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+id+" is not imported as it has been deleted from the model.");
+									incrementText(this.txtDeletedProfilesInModel);
+								}
+							}
+						}
 						
+						// UPDATE PROFILES
+						profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
+						while ( profilesIterator.hasNext() ) {
+							IProfile profile = profilesIterator.next().getValue();
+							if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+								if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+profile.getId()+" has been updated in the database. We import the new version from the database.");
+								undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, profile.getId(), 0, DBImportMode.forceSharedMode));
+								incrementText(this.txtUpdatedProfilesInDatabase);
+							}
+						}
 						
 						// IMPORT FOLDERS (we import the folders BEFORE the elements, relationships and views because they must exist when the elements, relationships and views are imported)
 						if ( this.exportConnection.getFoldersNotInModel().size() == 0 )
@@ -2359,7 +2477,7 @@ public class DBGuiExportModel extends DBGui {
 			this.exportConnection.setAutoCommit(false);
 
 			if ( !isNeo4JDatabase ) {
-				logger.info("Exporting the model itslef ...");
+				logger.info("Exporting the model itself ...");
 				this.exportConnection.exportModel(this.exportedModel, this.txtReleaseNote.getText());
 			} else {
 				if ( this.selectedDatabase.shouldEmptyNeo4jDB() ) {
@@ -2533,12 +2651,12 @@ public class DBGuiExportModel extends DBGui {
 					rollbackAndCloseConnection();
 
 					doShowResult(STATUS.Error, errorMessage + "\n"+exportError.getMessage());
-					popup(Level.ERROR, errorMessage + "\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", exportError);
+					DBGuiUtils.popup(Level.ERROR, errorMessage + "\n\nThe transaction has been rolled back to leave the database in a coherent state. You may solve the issue and export again your components.", exportError);
 				} catch (SQLException closeDBError) {
 					doShowResult(STATUS.Error, "Error while exporting model.\n"+exportError.getMessage()+"\nThe transaction failed to rollback, please check your database carrefully !");
 
-					popup(Level.FATAL, "An error occurred while exporting the components."+exportError);
-					popup(Level.FATAL, "An exception has been detected during the rollback and closure of the database transaction.\n\nThe database is left in an unknown state.\n\nPlease check carrefully your database !", closeDBError);
+					DBGuiUtils.popup(Level.FATAL, "An error occurred while exporting the components."+exportError);
+					DBGuiUtils.popup(Level.FATAL, "An exception has been detected during the rollback and closure of the database transaction.\n\nThe database is left in an unknown state.\n\nPlease check carrefully your database !", closeDBError);
 				}
 			}
 
@@ -2551,7 +2669,7 @@ public class DBGuiExportModel extends DBGui {
 						Method getException = IDBCommand.class.getMethod("getException()");
 						Exception e = (Exception) getException.invoke(cmd);
 						if ( e != null ) {
-							popup(Level.FATAL, "Failed to restore the model as it was before the export. Please verify it carefully.", e);
+							DBGuiUtils.popup(Level.FATAL, "Failed to restore the model as it was before the export. Please verify it carefully.", e);
 							// a single message is sufficient to alert the user
 							break;
 						}
@@ -2575,7 +2693,7 @@ public class DBGuiExportModel extends DBGui {
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Failed to commit the database transaction.\n"+err.getMessage()+"\nPlease check your database carrefully.");
-			popup(Level.FATAL, "The model has been successfully exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
+			DBGuiUtils.popup(Level.FATAL, "The model has been successfully exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
 			return;
 		}
 	}
@@ -2668,7 +2786,7 @@ public class DBGuiExportModel extends DBGui {
 						DBGuiExportModel.this.btnDoNotExport.setEnabled(false);
 						DBGuiExportModel.this.btnImportDatabaseVersion.setEnabled(false);
 						DBGuiExportModel.this.tblCompareComponent.removeAll();
-						popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
+						DBGuiUtils.popup(Level.ERROR, "Do not know which component is conflicting !!! That's weird !!!");
 					} else {				
 						DBGuiExportModel.this.btnExportMyVersion.setEnabled(true);
 						DBGuiExportModel.this.btnDoNotExport.setEnabled(true);
@@ -2823,7 +2941,7 @@ public class DBGuiExportModel extends DBGui {
 		
 		EObject component = (EObject)this.tblListConflicts.getSelection()[0].getData();
 		if ( component == null ) {
-			popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
+			DBGuiUtils.popup(Level.ERROR, "Can't get conflicting component \""+this.tblListConflicts.getSelection()[0].getText()+"\"");
 			return;
 		}
 

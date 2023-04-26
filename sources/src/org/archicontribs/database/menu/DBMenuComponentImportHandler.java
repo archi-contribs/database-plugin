@@ -8,7 +8,7 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGui;
+import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.GUI.DBGuiImportComponents;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
@@ -72,7 +72,7 @@ public class DBMenuComponentImportHandler extends AbstractHandler {
         	DBGuiImportComponents importComponent = new DBGuiImportComponents(model, view, folder, "Import a component");
         	importComponent.run();
         } catch (Exception e) {
-            DBGui.popup(Level.ERROR,"Cannot import model", e);
+            DBGuiUtils.popup(Level.ERROR,"Cannot import model", e);
         }
 		return null;
 	}

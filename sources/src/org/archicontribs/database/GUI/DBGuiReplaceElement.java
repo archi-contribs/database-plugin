@@ -42,7 +42,7 @@ public class DBGuiReplaceElement extends DBGuiImportComponents {
                try {
                    doReplace();
                } catch (Exception err) {
-                   DBGui.popup(Level.ERROR, "An exception has been raised during import.", err);
+                   DBGuiUtils.popup(Level.ERROR, "An exception has been raised during import.", err);
                }
            }
            @Override

@@ -394,7 +394,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schemaPrefix+"elements_in_model"
 				+ " JOIN "+this.schemaPrefix+"elements ON elements.id = element_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", properties, features, created_on, checksum, pos";
+				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", profile, created_on, properties, features, checksum";
 		try (DBSelect resultElements = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultElements.next();
 			this.countElementsToImport = resultElements.getInt("countElements");
@@ -407,7 +407,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				+ " FROM "+this.schemaPrefix+"relationships_in_model"
 				+ " INNER JOIN "+this.schemaPrefix+"relationships ON id = relationship_id AND version = "+versionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
-				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, "+this.toCharStrength+", access_type, is_directed, properties, features, created_on, checksum";
+				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, "+this.toCharStrength+", access_type, is_directed, profile, created_on, properties, features, checksum";
 		try ( DBSelect resultRelationships = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
 				,model.getId()
 				,model.getInitialVersion().getVersion()
@@ -731,7 +731,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				if ( logger.isDebugEnabled() ) logger.debug("   Importing "+relationship.getClass().getSimpleName()+" \""+relationship.getName()+"\" version "+dbMetadata.getInitialVersion().getVersion());
 
 				IFolder folder = null;
-				if ( this.currentResultSetRelationships.getString("parent_folder_id") == null ) {
+				if ( this.currentResultSetRelationships.getString("parent_folder_id") != null ) {
 				    folder = model.getAllFolders().get(this.currentResultSetRelationships.getString("parent_folder_id"));
 				}
 				
@@ -739,10 +739,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				    folder = model.getDefaultFolderForObject(relationship);
 				}
 				
+				folder.getElements().add(relationship);
+				
 				// profile must be set AFTER it is inserted into a folder, else it is not yet in the model
 				dbMetadata.addProfileId(this.currentResultSetRelationships.getString("profile"));
-				
-				folder.getElements().add(relationship);
 
 				IArchimateConcept source = model.getAllElements().get(this.currentResultSetRelationships.getString("source_id"));
 				IArchimateConcept target = model.getAllElements().get(this.currentResultSetRelationships.getString("target_id"));

@@ -647,7 +647,6 @@ public class DBMetadata  {
     		
     		return null;
         } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
-        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
         	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
         }
     	
@@ -660,9 +659,10 @@ public class DBMetadata  {
     		
     		return null;
         } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
-        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
         	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
 	    }
+    	
+    	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic nor com.archimatetool.model.IIconic");
     	
         return null;
     }
@@ -677,7 +677,6 @@ public class DBMetadata  {
     		
     		return;
         } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
-        	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic");
         	// com.archimatetool.model.canvas.IIconic class exists in Archi until version 4.8
         }
     	
@@ -690,9 +689,10 @@ public class DBMetadata  {
     		
     		return;
         } catch ( NoClassDefFoundError | ClassNotFoundException | NoSuchMethodException | SecurityException | IllegalAccessException | IllegalArgumentException | InvocationTargetException err) {
-        	this.logger.trace("IIconic is not com.archimatetool.model.IIconic");
         	// com.archimatetool.model.IIconic class exists in Archi from version 4.9
         }
+
+    	this.logger.trace("IIconic is not com.archimatetool.model.canvas.IIconic nor com.archimatetool.model.IIconic");
     }
 
     // LineColor
@@ -1105,6 +1105,17 @@ public class DBMetadata  {
     		// prior to Archi 4.9, getProfiles() does not exist
     	}
     	return 0;
+    }
+    
+    public String getConceptType() {
+    	if ( this.component instanceof IProfile )
+    		return ((IProfile)this.component).getConceptType();
+    	return null;
+    }
+    
+    public void setConceptType(String conceptType) {
+    	if ( this.component instanceof IProfile )
+    		((IProfile)this.component).setConceptType(conceptType);
     }
     
 	/**
