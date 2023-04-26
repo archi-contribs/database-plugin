@@ -206,9 +206,9 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 			DBMetadata metadata = this.model.getDBMetadata(this.importedViewConnection);
 
 			if ( this.mustCreateCopy )
-				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				metadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()), null);
 			else
-				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				metadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"), (String)this.newValues.get("created_by"));
 
 			metadata.getCurrentVersion().set(metadata.getInitialVersion());
 			metadata.getDatabaseVersion().set(metadata.getInitialVersion());

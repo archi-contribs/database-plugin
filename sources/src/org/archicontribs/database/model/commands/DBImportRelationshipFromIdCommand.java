@@ -179,9 +179,9 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			DBMetadata dbMetadata = this.model.getDBMetadata(this.importedRelationship);
 
 			if ( this.mustCreateCopy )
-				dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()));
+				dbMetadata.getInitialVersion().set(0, null, new Timestamp(Calendar.getInstance().getTime().getTime()), null);
 			else
-				dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"));
+				dbMetadata.getInitialVersion().set((int)this.newValues.get("version"), (String)this.newValues.get("checksum"), (Timestamp)this.newValues.get("created_on"), (String)this.newValues.get("created_by"));
 			
 			dbMetadata.setId((String)this.newValues.get("id"));
 			dbMetadata.setName((String)this.newValues.get("name"));

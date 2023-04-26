@@ -21,6 +21,7 @@ public class DBFileFieldEditor extends FileFieldEditor {
      */
     public DBFileFieldEditor() {
     	super();
+    	setFileExtensions(new String[] {"*.log", "*.txt", "*.*"});
     }
     
     /**
@@ -31,6 +32,7 @@ public class DBFileFieldEditor extends FileFieldEditor {
      */
     public DBFileFieldEditor(String name, String labelText, Composite parent) {
         super(name, labelText, false, parent);
+        setFileExtensions(new String[] {"*.log", "*.txt", "*.*"});
     }
     
     /**
@@ -42,6 +44,7 @@ public class DBFileFieldEditor extends FileFieldEditor {
      */
     public DBFileFieldEditor(String name, String labelText, boolean enforceAbsolute, Composite parent) {
         super(name, labelText, enforceAbsolute, VALIDATE_ON_FOCUS_LOST, parent);
+        setFileExtensions(new String[] {"*.log", "*.txt", "*.*"});
     }
     
     /**
@@ -54,15 +57,6 @@ public class DBFileFieldEditor extends FileFieldEditor {
      */
     public DBFileFieldEditor(String name, String labelText, boolean enforceAbsolute, int validationStrategy, Composite parent) {
     	super(name, labelText, enforceAbsolute, validationStrategy, parent);
-    }
-    
-    @Override
-	protected String changePressed() {
-        return getTextControl().getText();
-    }
-    
-    @Override
-	protected boolean checkState() {
-    	return true;
-    }
+    	setFileExtensions(new String[] {"*.log", "*.txt", "*.*"});
+    }   
 }

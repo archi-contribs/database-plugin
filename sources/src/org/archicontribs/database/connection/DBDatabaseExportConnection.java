@@ -181,7 +181,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		String request;
 		String modelId;
-		int modelInitialVersion;
+		//int modelInitialVersion;
 		int modelDatabaseVersion;
 
 		DBMetadata metadata = DBMetadata.getDBMetadata(component);
@@ -190,52 +190,62 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			logger.trace("   Getting version of "+metadata.getDebugName()+" from the database.");
 		}
 
-		if ( component instanceof IArchimateElement )  {
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+		if ( component instanceof DBArchimateModel )  {
+			request = "select id, name, version, checksum, created_on, created_by, id AS model_id, version AS model_version"
+					+ " FROM "+this.schemaPrefix+" models"
+					+ " WHERE id = ?"
+					+ " ORDER BY version";
+			DBArchimateModel model = (DBArchimateModel)component;
+			modelId = model.getId();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
+			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
+		}
+		else if ( component instanceof IArchimateElement )  {
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"elements"
 					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IArchimateRelationship ) {
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"relationships"
 					+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IFolder ) {
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"folders"
 					+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModel ) {
-			request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, container_checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"views"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 					+ " WHERE id = ?"
 					+ " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
+			//modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelObject  ) {
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_objects"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id = ?"
@@ -243,11 +253,11 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
 			modelId = diagram.getId();
 			DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+			//modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelConnection  ) {
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_connections"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 					+ " WHERE id = ?"
@@ -255,7 +265,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
 			modelId = diagram.getId();
 			DBMetadata dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
+			//modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else
@@ -271,24 +281,27 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String checksum = null;
 			String containerChecksum = null;
 			Timestamp createdOn = null;
+			String createdBy = null;
 			while ( result.next() ) {
 				version = result.getInt("version");
 				checksum = result.getString("checksum");
 				containerChecksum = (component instanceof IDiagramModel ? result.getString("container_checksum") : null);
 				createdOn = result.getTimestamp("created_on");
+				createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
-					if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
-						metadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn);
+					//if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					if ( DBPlugin.areEqual(checksum, metadata.getCurrentVersion().getChecksum()) ) {
+						metadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 						metadata.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						metadata.getDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+						metadata.getDatabaseVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				metadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+				metadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 			}
 		}
 		if ( logger.isTraceEnabled() ) {
@@ -316,72 +329,66 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		String request;
 		String orderByRequest = "";
 		String modelId;
-		int modelInitialVersion;
 		int modelDatabaseVersion;
-		DBMetadata dbMetadata;
 
 		// we get the "first" (in fact any) component of the hashmap to determine its class
 		IIdentifier component = componentHashMap.entrySet().iterator().next().getValue();
 
-		// unused but to avoid null warning
-		dbMetadata = DBMetadata.getDBMetadata(component);
+		// unused at this stage, but to avoid null warning
+		DBMetadata dbMetadata = DBMetadata.getDBMetadata(component);
 
 		if ( component instanceof IArchimateElement )  {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" elements from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"elements"
 					+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY id, version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateElement)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IArchimateRelationship ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" relationships from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"relationships"
 					+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateRelationship)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IFolder ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" folders from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"folders"
 					+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IFolder)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModel ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" views from the database.");
-			request = "SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, container_checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"views"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IDiagramModel)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelObject  ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view objects from the database.");
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_objects"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 					+ " WHERE id in (";
@@ -389,13 +396,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelObject)component).getDiagramModel();
 			modelId = diagram.getId();
 			dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IDiagramModelConnection  ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" view connections from the database.");
-			request = "SELECT id, name, version, checksum, created_on, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
+			request = "SELECT id, name, version, checksum, created_on, created_by, view_id as model_id, view_version as model_version"		// for convenience, we rename view_id to model_id and view_version to model_version
 					+ " FROM "+this.schemaPrefix+"views_connections"
 					+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 					+ " WHERE id in (";
@@ -403,20 +409,18 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			IDiagramModel diagram = ((IDiagramModelConnection)component).getDiagramModel();
 			modelId = diagram.getId();
 			dbMetadata = DBMetadata.getDBMetadata(diagram);
-			modelInitialVersion = dbMetadata.getInitialVersion().getVersion();
 			modelDatabaseVersion = dbMetadata.getDatabaseVersion().getVersion();
 		}
 		else if ( component instanceof IProfile ) {
 			if ( logger.isTraceEnabled() )
 				logger.trace("   Searching for "+componentHashMap.size()+" specializations from the database.");
-			request = "SELECT id, name, version, checksum, created_on, model_id, model_version"
+			request = "SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 					+ " FROM "+this.schemaPrefix+"profiles"
 					+ " LEFT JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version"
 					+ " WHERE id in (";
 			orderByRequest = " ORDER BY version, model_version";
 			DBArchimateModel model = (DBArchimateModel) ((IProfile)component).getArchimateModel();
 			modelId = model.getId();
-			modelInitialVersion = model.getInitialVersion().getVersion();
 			modelDatabaseVersion = model.getDatabaseVersion().getVersion();
 		}
 		else
@@ -449,6 +453,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			String checksum = null;
 			String containerChecksum = null;
 			Timestamp createdOn = null;
+			String createdBy = null;
 			String oldId = null;
 			String id;
 
@@ -479,19 +484,21 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				checksum = result.getString("checksum");
 				containerChecksum = (component instanceof IDiagramModel ? result.getString("container_checksum") : null);
 				createdOn = result.getTimestamp("created_on");
+				createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
-					if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
-						dbMetadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn);
+					// if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
+					if ( result.getInt("model_version") == 0 || checksum.equals(dbMetadata.getCurrentVersion().getChecksum()) ) {						
+						dbMetadata.getInitialVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 						dbMetadata.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						dbMetadata.getDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+						dbMetadata.getDatabaseVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				dbMetadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+				dbMetadata.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 
 				oldId = id;
 			}
@@ -565,7 +572,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			dbMetadata.getLatestDatabaseVersion().reset();
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, model_id, model_version, pos"
+				"SELECT id, name, version, checksum, created_on, created_by, model_id, model_version, pos"
 						+ " FROM "+this.schemaPrefix+"profiles"
 						+ " LEFT JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"profiles JOIN "+this.schemaPrefix+"profiles_in_model ON profile_id = id AND profile_version = version WHERE model_id = ? AND model_version = ?)"
@@ -581,6 +588,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -612,15 +620,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -676,7 +684,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		// we do not use max(version) in the SQL request as all database brands do not support it
 		// so we get all the version (sorted by the version) and determine the latest version of each element when the ID changes or when we read the latest element
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, model_id, model_version"
+				"SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 						+ " FROM "+this.schemaPrefix+"elements"
 						+ " LEFT JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"elements JOIN "+this.schemaPrefix+"elements_in_model ON element_id = id AND element_version = version WHERE model_id = ? AND model_version = ?)"
@@ -695,6 +703,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				// if the current element ID is equals to the previous element ID, it means that we got a newer version of the same element
 				// so we just archive the current component as previous component for future reference 
@@ -733,15 +742,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					// if the component is part of the model, we compare with the model's version
 					//if ( modelInitialVersion == 0 || result.getInt("model_version") == modelInitialVersion ) {
 					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				// we copy currentComponent to previous component to be able to retrieve it in next loop
 				previousComponent = currentComponent;
@@ -795,7 +804,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		}
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, model_id, model_version"
+				"SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 						+ " FROM "+this.schemaPrefix+"relationships"
 						+ " LEFT JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"relationships JOIN "+this.schemaPrefix+"relationships_in_model ON relationship_id = id AND relationship_version = version WHERE model_id = ? AND model_version = ?)"
@@ -811,6 +820,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -842,15 +852,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -902,7 +912,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			dbMetadata.getLatestDatabaseVersion().reset();
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, model_id, model_version"
+				"SELECT id, name, version, checksum, created_on, created_by, model_id, model_version"
 						+ " FROM "+this.schemaPrefix+"folders"
 						+ " LEFT JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"folders JOIN "+this.schemaPrefix+"folders_in_model ON folder_id = id AND folder_version = version WHERE model_id = ? AND model_version = ?)"
@@ -918,6 +928,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -949,15 +960,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -1010,7 +1021,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			dbMetadata.getLatestDatabaseVersion().reset();
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, container_checksum, created_on, model_id, model_version"
+				"SELECT id, name, version, checksum, container_checksum, created_on, created_by, model_id, model_version"
 						+ " FROM "+this.schemaPrefix+"views"
 						+ " LEFT JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views JOIN "+this.schemaPrefix+"views_in_model ON view_id = id AND view_version = version WHERE model_id = ? AND model_version = ?)"
@@ -1027,6 +1038,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				String checksum = result.getString("checksum");
 				String containerChecksum = result.getString("container_checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -1058,15 +1070,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("model_id"), modelId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("model_version") == modelInitialVersion || checksum.equals(currentComponent.getCurrentVersion().getChecksum()) ) {
-						currentComponent.getInitialVersion().set(version, containerChecksum, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("model_version") == modelDatabaseVersion )
-						currentComponent.getDatabaseVersion().set(version,  containerChecksum, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version,  containerChecksum, checksum, createdOn, createdBy);
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, containerChecksum, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -1213,7 +1225,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 		}			
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, view_id, view_version"
+				"SELECT id, name, version, checksum, created_on, created_by, view_id, view_version"
 						+ " FROM "+this.schemaPrefix+"views_objects"
 						+ " LEFT JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views_objects JOIN "+this.schemaPrefix+"views_objects_in_view ON object_id = id AND object_version = version WHERE view_id = ? AND view_version = ?)"
@@ -1229,6 +1241,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -1260,16 +1273,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("view_id"), viewId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("view_version") == viewInitialVersion ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("view_version") == viewDatabaseVersion ) {
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 					}
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -1304,7 +1317,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			}
 		}
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, 
-				"SELECT id, name, version, checksum, created_on, view_id, view_version"
+				"SELECT id, name, version, checksum, created_on, created_by, view_id, view_version"
 						+ " FROM "+this.schemaPrefix+"views_connections"
 						+ " LEFT JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version"
 						+ " WHERE id IN (SELECT id FROM "+this.schemaPrefix+"views_connections JOIN "+this.schemaPrefix+"views_connections_in_view ON connection_id = id AND connection_version = version WHERE view_id = ? AND view_version = ?)"
@@ -1320,6 +1333,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				int version = result.getInt("version");
 				String checksum = result.getString("checksum");
 				Timestamp createdOn = result.getTimestamp("created_on");
+				String createdBy = result.getString("created_by");
 
 				if ( DBPlugin.areEqual(currentId, previousId) )
 					currentComponent = previousComponent;
@@ -1351,16 +1365,16 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				if ( DBPlugin.areEqual(result.getString("view_id"), viewId) ) {
 					// if the component is part of the model, we compare with the model's version
 					if ( result.getInt("view_version") == viewInitialVersion ) {
-						currentComponent.getInitialVersion().set(version, checksum, createdOn);
+						currentComponent.getInitialVersion().set(version, checksum, createdOn, createdBy);
 						currentComponent.getCurrentVersion().setVersion(version);
 					}
 					if ( result.getInt("view_version") == viewDatabaseVersion ) {
-						currentComponent.getDatabaseVersion().set(version, checksum, createdOn);
+						currentComponent.getDatabaseVersion().set(version, checksum, createdOn, createdBy);
 					}
 				}
 
 				// components are sorted by version (so also by timestamp) so the latest found is the latest in time
-				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn);
+				currentComponent.getLatestDatabaseVersion().set(version, checksum, createdOn, createdBy);
 
 				previousComponent = currentComponent;
 				previousId = currentId;
@@ -1510,7 +1524,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,element.getDocumentation()
 					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
-					,((DBArchimateModel)element.getArchimateModel()).getCurrentVersion().getTimestamp()
+					,model.getCurrentVersion().getTimestamp()
 					,nbProperties
 					,nbFeatures
 					,dbMetadata.getCurrentVersion().getChecksum()
@@ -1626,7 +1640,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					,dbMetadata.isDirectedAsInteger()
 					,dbMetadata.getPrimaryProfileID()
 					,System.getProperty("user.name")
-					,((DBArchimateModel)relationship.getArchimateModel()).getCurrentVersion().getTimestamp()
+					,model.getCurrentVersion().getTimestamp()
 					,nbProperties
 					,nbFeatures
 					,dbMetadata.getCurrentVersion().getChecksum()
@@ -1694,7 +1708,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,folder.getName()
 				,folder.getDocumentation()
 				,System.getProperty("user.name")
-				,dbMetadata.getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
 				,dbMetadata.getCurrentVersion().getChecksum()
@@ -1758,7 +1772,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
 				,System.getProperty("user.name")
-				,((DBArchimateModel)view.getArchimateModel()).getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,view.getName()
 				,view.getConnectionRouterType()
 				,view.getDocumentation()
@@ -1863,7 +1877,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,dbMetadata.getWidth()
 				,dbMetadata.getHeight()
 				,System.getProperty("user.name")
-				,((DBArchimateModel)viewObject.getDiagramModel().getArchimateModel()).getCurrentVersion().getTimestamp()
+				,model.getCurrentVersion().getTimestamp()
 				,nbProperties
 				,nbFeatures
 				,dbMetadata.getCurrentVersion().getChecksum()

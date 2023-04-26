@@ -37,24 +37,24 @@ public class DBVersion {
      * Initialize the {@link DBVersion} with another DBVersion that will be copied
      * @param versionToCopy
      */
-	public DBVersion(int version, String containerChecksum, String checksum, Timestamp timestamp) {
-        set(version, containerChecksum, checksum, timestamp);
+	public DBVersion(int version, String containerChecksum, String checksum, Timestamp timestamp, String username) {
+        set(version, containerChecksum, checksum, timestamp, username);
     }
     
-    public DBVersion(int version, String checksum, Timestamp timestamp) {
-        set(version, null, checksum, timestamp);
+    public DBVersion(int version, String checksum, Timestamp timestamp, String username) {
+        set(version, null, checksum, timestamp, username);
     }
     
     public DBVersion() {
-    	this(0, null, null, null);
+    	this(0, null, null, null, null);
     }
     
     public DBVersion(Timestamp timestamp) {
-    	this(0, null, null, timestamp);
+    	this(0, null, null, timestamp, null);
     }
     
     public DBVersion(int version) {
-    	this(version, null, null, null);
+    	this(version, null, null, null, null);
     }
     
     public void reset() {
@@ -62,6 +62,7 @@ public class DBVersion {
         setContainerChecksum(null);
         setChecksum(null);
         setTimestamp(null);
+        setUsername(null);
     }
     
     public void set(DBVersion version) {
@@ -70,26 +71,30 @@ public class DBVersion {
 	        setContainerChecksum(null);
 	        setChecksum(null);
 	        setTimestamp(null);
+	        setUsername(null);
         } else {
 	        setVersion(version.getVersion());
 	        setContainerChecksum(version.getContainerChecksum());
 	        setChecksum(version.getChecksum());
 	        setTimestamp(version.getTimestamp());
+	        setUsername(version.getUsername());
         }
     }
     
-    public void set(int version, String checksum, Timestamp timestamp) {
+    public void set(int version, String checksum, Timestamp timestamp, String username) {
         setVersion(version);
         setContainerChecksum(null);
         setChecksum(checksum);
         setTimestamp(timestamp);
+        setUsername(username);
     }
     
-    public void set(int version, String containerChecksum, String checksum, Timestamp timestamp) {
+    public void set(int version, String containerChecksum, String checksum, Timestamp timestamp, String username) {
         setVersion(version);
         setContainerChecksum(containerChecksum);
         setChecksum(checksum);
         setTimestamp(timestamp);
+        setUsername(username);
     }
     
     public void setVersion(int version) {
@@ -122,4 +127,15 @@ public class DBVersion {
     public void setTimestamp(Timestamp timestamp) {
         this.timestamp = (timestamp==null ? NEVER : timestamp);
     }
+    
+    private String username;
+    public String getUsername() {
+    	if (this.username == null)
+    		return System.getProperty("user.name");
+    	return this.username;
+    }
+    
+	public void setUsername(String name) {
+		this.username = name;
+	}
 }

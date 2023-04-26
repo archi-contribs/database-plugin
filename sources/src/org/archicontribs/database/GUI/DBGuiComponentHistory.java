@@ -15,6 +15,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.connection.DBSelect;
+import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.commands.DBImportElementFromIdCommand;
 import org.archicontribs.database.model.commands.DBImportFolderFromIdCommand;
@@ -51,6 +52,7 @@ import com.archimatetool.model.IDiagramModelConnection;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.ISketchModel;
+import com.archimatetool.model.impl.ArchimateModel;
 
 /**
  * This class manages the GUI that shows a component history
@@ -83,9 +85,14 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.includeNeo4j = false;
 		
-		((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
-
 		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.toString()+").");		
+		
+		// we calculate the checksum of the component
+		if ( component instanceof ArchimateModel )
+			((DBArchimateModel)this.selectedComponent).getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.selectedComponent));
+		else
+			((DBArchimateModel)this.selectedComponent.getArchimateModel()).countObject(component, true);
+
 		
 		setCompoRight();
 		this.compoRightBottom.setVisible(true);
@@ -138,7 +145,12 @@ public class DBGuiComponentHistory extends DBGui {
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are identical");
 		        	else
 		        		DBGuiComponentHistory.this.lblCompareComponents.setText("Versions are different (check highlighted lines):");
+		        	
+		        	// the export button is activated if the component is different from the latest version in the database
+		        	//    so the latest database version must be selected to activate the export button
 		        	DBGuiComponentHistory.this.btnExportModelVersion.setEnabled(!areIdentical.booleanValue() && DBGuiComponentHistory.this.tblVersions.getSelectionIndex() == 0);
+		        	
+		        	// the import button is activated if the component is different from the selected version of the database
 		        	DBGuiComponentHistory.this.btnImportDatabaseVersion.setEnabled(!areIdentical.booleanValue());
 		        }
 		    }
@@ -151,15 +163,15 @@ public class DBGuiComponentHistory extends DBGui {
 		this.tblVersions.setLayoutData(fd);
 		
 		TableColumn colVersion = new TableColumn(this.tblVersions, SWT.NONE);
-		colVersion.setWidth(47);
+		colVersion.setWidth(70);
 		colVersion.setText("Version");
 		
 		TableColumn colCreatedBy = new TableColumn(this.tblVersions, SWT.NONE);
-		colCreatedBy.setWidth(121);
+		colCreatedBy.setWidth(150);
 		colCreatedBy.setText("Created by");
 		
 		TableColumn colCreatedOn = new TableColumn(this.tblVersions, SWT.NONE);
-		colCreatedOn.setWidth(145);
+		colCreatedOn.setWidth(220);
 		colCreatedOn.setText("Created on");
 		
 		this.lblCompareComponents = new Label(grpComponents, SWT.NONE);
@@ -183,15 +195,15 @@ public class DBGuiComponentHistory extends DBGui {
 		this.tblContent.setLayoutData(fd);
 		
 		TreeColumn colItem = new TreeColumn(this.tblContent, SWT.NONE);
-		colItem.setWidth(120);
+		colItem.setWidth(160);
 		colItem.setText("Items");
 		
 		TreeColumn colYourVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colYourVersion.setWidth(220);
-		colYourVersion.setText("Your version");
+		colYourVersion.setWidth(320);
+		colYourVersion.setText("Local version");
 		
 		TreeColumn colDatabaseVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colDatabaseVersion.setWidth(220);
+		colDatabaseVersion.setWidth(320);
 		colDatabaseVersion.setText("Database version");
 		
 		this.btnImportDatabaseVersion = new Button(grpComponents, SWT.NONE);
@@ -230,7 +242,6 @@ public class DBGuiComponentHistory extends DBGui {
 					DBGuiUtils.popup(Level.INFO, "The current version of the component has been replaced by the selected version from the database.");
 					
 					connectedToDatabase(true);
-					
 				} catch (Exception err) {
 					DBGuiUtils.popup(Level.ERROR, "Failed to import component.", err);
 				}
@@ -245,7 +256,7 @@ public class DBGuiComponentHistory extends DBGui {
 		
 		this.btnExportModelVersion = new Button(grpComponents, SWT.NONE);
 		this.btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
-		this.btnExportModelVersion.setText("Export your version to the database");
+		this.btnExportModelVersion.setText("Export local version to the database");
 		this.btnExportModelVersion.setEnabled(false);
 		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
 		    @Override
@@ -292,7 +303,9 @@ public class DBGuiComponentHistory extends DBGui {
 		this.btnExportModelVersion.setEnabled(false);
 		
 		String tableName = null;
-		if ( this.selectedComponent instanceof IArchimateElement ) 
+		if ( this.selectedComponent instanceof ArchimateModel )
+			tableName = "models";
+		else if ( this.selectedComponent instanceof IArchimateElement ) 
 		    tableName = "elements";
 		else if ( this.selectedComponent instanceof IArchimateRelationship ) 
             tableName = "relationships";
@@ -325,6 +338,7 @@ public class DBGuiComponentHistory extends DBGui {
 		    this.lblVersions.setText(this.tblVersions.getItemCount()+" versions have been found in the database:");
 		} else {
 		    this.lblVersions.setText(this.tblVersions.getItemCount()+" version has been found in the database:");
+		    this.lblCompareComponents.setText("");
 		}
 		
 		if ( this.tblVersions.getItemCount() != 0 ) {

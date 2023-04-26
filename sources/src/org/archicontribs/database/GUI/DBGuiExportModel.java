@@ -2859,7 +2859,7 @@ public class DBGuiExportModel extends DBGui {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 			});
-			fd = new FormData(80,25);
+			fd = new FormData();
 			fd.right = new FormAttachment(100, -getDefaultMargin());
 			fd.bottom = new FormAttachment(100, -getDefaultMargin());
 			this.btnImportDatabaseVersion.setLayoutData(fd);
@@ -2885,7 +2885,7 @@ public class DBGuiExportModel extends DBGui {
 				@Override
 				public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 			});
-			fd = new FormData(80,25);
+			fd = new FormData();
 			fd.right = new FormAttachment(this.btnImportDatabaseVersion, -getDefaultMargin());
 			fd.bottom = new FormAttachment(100, -getDefaultMargin());
 			this.btnExportMyVersion.setLayoutData(fd);

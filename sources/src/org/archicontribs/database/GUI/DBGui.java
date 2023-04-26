@@ -70,6 +70,7 @@ import com.archimatetool.editor.ui.ImageFactory;
 import com.archimatetool.model.FolderType;
 import com.archimatetool.model.IAccessRelationship;
 import com.archimatetool.model.IArchimateDiagramModel;
+import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateRelationship;
 import com.archimatetool.model.IBorderObject;
 import com.archimatetool.model.IBounds;
@@ -90,6 +91,7 @@ import com.archimatetool.model.IJunction;
 import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
+import com.archimatetool.model.IProfiles;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.ISketchModel;
 import com.archimatetool.model.ITextAlignment;
@@ -612,9 +614,9 @@ public class DBGui {
 				if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
 					this.comboDatabases.add(databaseEntry.getName());
 					this.comboDatabaseEntries.add(databaseEntry);
-					if ( defaultDatabaseId != null && databaseEntry.getId().equals(defaultDatabaseId) )
+					if ( !DBPlugin.isEmpty(defaultDatabaseId) && databaseEntry.getId().equals(defaultDatabaseId) )
 						databaseToSelect = line;
-					if ( defaultDatabaseName != null && databaseToSelect != 0 && databaseEntry.getName().equals(defaultDatabaseName) )
+					else if ( !DBPlugin.isEmpty(defaultDatabaseName) && databaseEntry.getName().equals(defaultDatabaseName) )
 						databaseToSelect = line;
 					++line;
 				}
@@ -623,12 +625,10 @@ public class DBGui {
 				DBGuiUtils.popup(Level.ERROR, "You haven't configure any SQL database yet.\n\nPlease setup at least one SQL database in Archi preferences.");
 			else {
 				// if no default database is provided, then we select the first database in the combo
-				if ( defaultDatabaseId == null && defaultDatabaseName == null )
+				if ( databaseToSelect == -1 )
 					databaseToSelect = 0;
-				if ( databaseToSelect != -1 ) {
-					this.comboDatabases.select(databaseToSelect);
-					this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
-				}
+				this.comboDatabases.select(databaseToSelect);
+				this.comboDatabases.notifyListeners(SWT.Selection, new Event());		// calls the databaseSelected() method
 			}
 		}
 	}
@@ -1185,10 +1185,12 @@ public class DBGui {
 
 			TreeItem item = new TreeItem(tree, SWT.NONE);
 			item.setText(new String[] {"Version", String.valueOf(dbMetadata.getInitialVersion().getVersion()), String.valueOf(databaseObject.get("version"))});
-
+			
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Checksum", String.valueOf(dbMetadata.getInitialVersion().getChecksum()), String.valueOf(databaseObject.get("checksum")));
+			
 			if ( (String)databaseObject.get("created_by") != null ) {
 				item = new TreeItem(tree, SWT.NONE);
-				item.setText(new String[] {"Created by", System.getProperty("user.name"), (String)databaseObject.get("created_by")}); 
+				item.setText(new String[] {"Created by", dbMetadata.getInitialVersion().getUsername(), (String)databaseObject.get("created_by")}); 
 			}
 
 			if ( databaseObject.get("created_on") != null ) {
@@ -1199,10 +1201,21 @@ public class DBGui {
 					item.setText(new String[] {"Created on", "", new SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(databaseObject.get("created_on"))});
 			}
 		}
+		
 
-		areIdentical &= areIdentical &= addItemToCompareTable(tree, treeItem, "Class", memoryObject.getClass().getSimpleName(), (String)databaseObject.get("class"));
+		// we replace the DBArchimateModel class name by a simple ArchimateModel
+		String className = memoryObject.getClass().getSimpleName();
+		if ( className.equals("DBArchimateModel") ) className = "ArchimateModel";
+		areIdentical &= addItemToCompareTable(tree, treeItem, "Class", className, (String)databaseObject.get("class"));
+		
 		areIdentical &= addItemToCompareTable(tree, treeItem, "Name", ((INameable)memoryObject).getName(), (String)databaseObject.get("name"));
 
+		if (memoryObject instanceof IArchimateModel ) {
+			areIdentical &= addItemToCompareTable(tree, treeItem, "Purpose", ((IArchimateModel)memoryObject).getPurpose(), (String)databaseObject.get("purpose"));
+			// the note does not participate to the model comparison 
+			addItemToCompareTable(tree, treeItem, "Note", "", (String)databaseObject.get("note"));
+		}
+		
 		if ( memoryObject instanceof IDocumentable )
 			areIdentical &= addItemToCompareTable(tree, treeItem, "Documentation", ((IDocumentable)memoryObject).getDocumentation(), (String)databaseObject.get("documentation"));
 
@@ -1331,7 +1344,7 @@ public class DBGui {
 					}
 					//Arrays.sort(componentBendpoints, this.integerComparator);www
 
-					// we get a list of properties from the database
+					// we get a list of bendpoints from the database
 					Integer[][] databaseBendpoints = new Integer[((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size()][4];
 					int i = 0;
 					for (DBBendpoint bp: (ArrayList<DBBendpoint>)databaseObject.get("bendpoints") ) {
@@ -1366,6 +1379,57 @@ public class DBGui {
 							++indexComponent;
 							++indexDatabase;
 						}
+					}
+				}
+			}
+		}
+		
+		// we show up the profiles if both exist
+		if ( databaseObject.containsKey("profiles") ) {
+			if ( memoryObject instanceof IProfiles && ((IProfiles)memoryObject).getProfiles().size() != 0) {
+				TreeItem profilesTreeItem;
+				if ( treeItem == null )
+					profilesTreeItem = new TreeItem(tree, SWT.NONE);
+				else
+					profilesTreeItem = new TreeItem(treeItem, SWT.NONE);
+				profilesTreeItem.setText("Spécializations");
+				profilesTreeItem.setExpanded(true);
+
+				// we get a sorted list of component's profiles
+				ArrayList<DBProperty> componentProfiles = new ArrayList<DBProperty>();
+				for (int i = 0; i < ((IProfiles)memoryObject).getProfiles().size(); ++i) {
+					componentProfiles.add(new DBProperty(((IProfiles)memoryObject).getProfiles().get(i).getName(), ((IProfiles)memoryObject).getProfiles().get(i).getImagePath()));
+				}
+				Collections.sort(componentProfiles, this.propertyComparator);
+
+				// we get a sorted list of profiles from the database
+				ArrayList<DBProperty> databaseProfiles = (ArrayList<DBProperty>)databaseObject.get("profiles");
+				Collections.sort(databaseProfiles, this.propertyComparator);
+
+				Collator collator = Collator.getInstance();
+				int indexComponent = 0;
+				int indexDatabase = 0;
+				int compare;
+				while ( (indexComponent < componentProfiles.size()) || (indexDatabase < databaseProfiles.size()) ) {
+					if ( indexComponent >= componentProfiles.size() )
+						compare = 1;
+					else {
+						if ( indexDatabase >= databaseProfiles.size() )
+							compare = -1;
+						else
+							compare = collator.compare(componentProfiles.get(indexComponent).getKey(), databaseProfiles.get(indexDatabase).getKey());
+					}
+
+					if ( compare == 0 ) {				// both have got the same property
+						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexComponent).getKey(), componentProfiles.get(indexComponent).getValue(), databaseProfiles.get(indexDatabase).getValue());
+						++indexComponent;
+						++indexDatabase;
+					} else if ( compare < 0 ) {			// only the component has got the property
+						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexComponent).getKey(), componentProfiles.get(indexComponent).getValue(), null);
+						++indexComponent;
+					} else {							// only the database has got the property
+						areIdentical &= addItemToCompareTable(tree, profilesTreeItem, componentProfiles.get(indexDatabase).getKey(), null, databaseProfiles.get(indexDatabase).getValue());
+						++indexDatabase;
 					}
 				}
 			}
