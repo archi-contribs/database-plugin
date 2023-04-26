@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8" ?> 
+<?NLS TYPE="org.eclipse.help.contexts"?> 
+<contexts>
+    <context id="configurePlugin">
+        <description>You may select the <b>Configure the plugin</b> link below to get help about how to configure the database plugin.</description>
+        <topic label="Configure the plugin" href="help/html/configurePlugin.html"/>
+    </context>
+</contexts>

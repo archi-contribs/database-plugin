@@ -1,0 +1,1345 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Database structure</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Database structure</h1>
+<br>
+This page describes the structure of the tables needed by the database plugin in relational databases.<br>
+<img class="image" src="../img/databaseStructure.jpg"><br>
+<br>
+<h2>Tables</h2>
+<h3 id="database_version">database_version</h3>
+This table allows the plugin to quickly check that the database has got the requested tables without checking all of them one by one.
+It contains one line per plugin that has got tables in this database (this will allow several plugins to share the same database in the future):
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>archi-plugin</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the plugin ("DatabasePlugin" for instance).</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the database model (for this plugin release, must be set to <b>209</b>).</td>
+  </tr>
+</table>
+<br>
+Each time the plugin connects to a database, it checks the existence and the content of this table.
+<ul>
+   <li>if the table does not exist, then it considers that all the other tables are missing and propose to create them,</li>
+   <li>if the table does exist but the plugin name is not listed, then the plugin refuses to work with the database,</li>
+   <li>if the plugin name is listed but the version is an old version, then the plugin updates the database to the newer version,</li>
+   <li>if the version is unknown, then the plugin refuses to work with the database.</li>
+</ul>
+<br>
+<h3 id="models">models</h3>
+This table contains the models metadata that are stored in the database. There is one line per model and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the model.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the model (starting from 1).</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the model.<br>Please note that the model name may change between one version to another, so one must not rely on the name to distinguish models but on the id instead.</td>
+  </tr>
+  <tr>
+    <td>note</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The release note associated to the version of the model.</td>
+  </tr>
+  <tr>
+    <td>purpose</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The purpose of the version of the model.</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the model to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the model has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+<br>
+Models may have <a href="#properties">properties</a>.
+<br>
+<h3 id="folders">folders</h3>
+This table contains the folders that are stored in the database. Please note that this table does not link the folders to any model (c.f. <a href="#folders_in_model">folders_in_model</a>). There is one row per folder and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the folder.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the folder (starting from 1).</td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The type of the folder (as specified by Archi):<ul>
+       <li>1 = strategy</li>
+       <li>2 = business</li>
+       <li>3 = application</li>
+       <li>4 = technology</li>
+       <li>5 = relations</li>
+       <li>6 = other</li>
+       <li>7 = diagrams</li>
+       <li>8 = motivation</li>
+       <li>9 = implementation and migration</li>
+       <li>0 = created by user</li>
+    </ul></td>
+  </tr>
+  <tr>
+    <td>root_type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The folder type of the root folder (used when the folder is created by user, i.e. when type = 0).</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the folder.<br>Please note that the folder may be renamed from one version to another, so one must not rely on the name to distinguish folders but rely on the id instead.</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The documentation of the folder.</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the folder to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the folder has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+<br>
+Folders may have <a href="#properties">properties</a>.
+<br>
+<h3 id="folders_in_model">folders_in_model</h3>
+This is a relation table that permits to know which folders is included in which model (a folder may be shared between several models). There is one row per folder and per model:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>fim_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>folder_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the folder.</td>
+  </tr> 
+  <tr>
+    <td>folder_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the folder.</td>
+  </tr>
+  <tr>
+    <td>parent_folder_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The id of the folder's parent folder in the model (a folder can be moved in the folder tree between model versions).<br>Null if the folder is a root folder.</td>
+  </tr>
+  <tr>
+    <td>model_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the model that contains the folder.</td>
+  </tr>
+  <tr>
+    <td>model_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the model that contains the folder.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the folders in the same order they've been exported.</td>
+  </tr>
+</table>
+   
+<h3 id="elements">elements</h3>
+This table contains the elements that are stored in the database. Please note that this table does not link the elements to any model (c.f. <a href="#elements_in_model">elements_in_model</a>). There is one row per element and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the element.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the element (starting from 1).</td>
+  </tr>
+  <tr>
+    <td>class</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The class of the element as stated by Archi (Node, BusinessActor, ApplicationInterface, ...).</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The name of the element.<br>Please note that an element can be renamed from one version to another, so one should not rely on the name to distinguish elements but rely on its id instead.</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The documentation of the element.</td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The type of the element (relevant when the class is Junction, null for an and junction, "or" for an or junction).</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the element to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the element has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+<br>
+Elements may have <a href="#properties">properties</a>.
+
+<h3 id="elements_in_model">elements_in_model</h3>
+This is a relation table that permits to know which elements is included in which model (an element may be shared between several models). There is one row per element and per model:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>eim_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>element_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the element.</td>
+  </tr> 
+  <tr>
+    <td>element_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the element.</td>
+  </tr>
+  <tr>
+    <td>parent_folder_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the element's parent folder in the model (an element can be moved in the folder tree between model versions).</td>
+  </tr>
+  <tr>
+    <td>model_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the model that contains the element.</td>
+  </tr>
+  <tr>
+    <td>model_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the model that contains the element.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the elements in the same order they've been exported.</td>
+  </tr>
+</table>
+
+<h3 id="relationsdhips">relationships</h3>
+This table contains the relationships that are stored in the database. Please note that this table does not link the relationships to any model (c.f. <a href="#relationships_in_model">relationships_in_model</a>). There is one row per relationship and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the relationship.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the relationship.</td>
+  </tr>
+  <tr>
+    <td>class</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The class of the relationship as stated by Archi (CompositionRelationship, ServingRelationship, ...).</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The name if the relationship.<br>Please note that the relationship may be renamed from one version to another, so you must not rely on the name to distinguish relationships but rely on the id instead.</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The documentation of the relationship.</td>
+  </tr>
+  <tr>
+    <td>source_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The id of the element or relationship that this relationship sources.</td>
+  </tr>
+  <tr>
+    <td>target_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the the element or the relationship that this relationship targets.</td>
+  </tr>
+  <tr>
+    <td>strength</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The strength of the relationship (relevant when the class is InfluenceRelationship).</td>
+  </tr>
+  <tr>
+    <td>access_type</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The access type of the relationship (relevant when the class is AccessRelationship).</td>
+  </tr>
+<tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the relationship to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the relationship has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+<br>
+Relationships may have <a href="#properties">properties</a>.
+
+<h3 id="relationships_in_model">relationships_in_model</h3>
+This is a relation table that permits to know which relationships is included in which model (a relationship may be shared between several models). There is one row per relationship and per model:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>rim_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>relationship_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the relationship.</td>
+  </tr> 
+  <tr>
+    <td>relationship_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the relationship.</td>
+  </tr>
+  <tr>
+    <td>parent_folder_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the relationship's parent folder in the model (a relationship can be moved in the folder tree between model versions).</td>
+  </tr>
+  <tr>
+    <td>model_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the model that contains the relationship.</td>
+  </tr>
+  <tr>
+    <td>model_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the model that contains the relationship.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the relationships in the same order they've been exported.</td>
+  </tr>
+</table>
+
+<h3 id="views">views</h3>
+This table contains the views (diagrams, canvas and sketchs) that are stored in the database. Please note that this table does not link the views to any model (c.f. <a href="#views_in_model">views_in_model</a>). There is one row per view and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view.</td>
+  </tr>
+    <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view.</td>
+  </tr>
+    <tr>
+    <td>class</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The class of the view as specified by Archi (may be one of ArchimateDiagramModel, CanvasModel or SketchModel).</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The name of the view.<br>Please note that the view may be renamed from one version to another, so you must not rely on the name to distinguish views but rely on the id instead.</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The documentation of the view.</td>
+  </tr>
+  <tr>
+    <td>background</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>The background of the view (relevant if the class is SketchModel).</td>
+  </tr>
+  <tr>
+    <td>connection_router_type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The connection router type of the view.</td>
+  </tr>
+  <tr>
+    <td>viewpoint</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The viewpoint of the view (relevant if the class is ArchimateDiagramModel).</td>
+  </tr>
+  <tr>
+    <td>screenshot</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>Screenshot of the view (only when option is activated in the plugin preferences).</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the view to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the view has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum that includes the view object content (when it is a container), calculated at export time to allow versions comparison.</td>
+  </tr>
+  <tr>
+    <td>container_checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum that does not includes the view object content (when it is a container), calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+<br>
+Views may have <a href="#properties">properties</a>.
+
+<h3 id="view_in_model">views_in_model</h3>
+This is a relation table that permits to know which views is included in which model (a view may be shared between several models). There is one row per view and per model:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>vim_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>view_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view.</td>
+  </tr> 
+  <tr>
+    <td>view_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view.</td>
+  </tr>
+  <tr>
+    <td>parent_folder_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view's parent folder in the model (a view can be moved in the folder tree between model versions).</td>
+  </tr>
+  <tr>
+    <td>model_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the model that contains the view.</td>
+  </tr>
+  <tr>
+    <td>model_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the model that contains the view.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the views in the same order they've been exported.</td>
+  </tr>
+</table>
+
+<h3 id="views_objects">views_objects</h3>
+This table contains the graphical objects (representation of elements, notes, ...) that are present in the model views. There is one line per graphical object and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view object.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view object (starting from 1).</td>
+  </tr>
+  <tr>
+    <td>class</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The class of the view object as stated by Archi (may be one of CanvasModelBlock, CanvasModelImage, DiagramModelArchimateObject, DiagramModelGroup, DiagramModelReference, SketchModelActor, SketchModelSticky).</td>
+  </tr>
+  <tr>
+    <td>container_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Id of the container that directly contains the view object (a view object can be contained by a view or by another view object).</td>
+  </tr>
+  <tr>
+    <td>element_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Id of the Archimate element that the view object refers to if any.</td>
+  </tr>
+  <tr>
+    <td>element_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Version of the Archimate element that the view object refers to if any.</td>
+  </tr>
+  <tr>
+    <td>diagram_ref_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Id of the view referenced by the view object if the class is DiagramModelReference.</td>
+  </tr>
+  <tr>
+    <td>border_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Color of the view object border.</td>
+  </tr>
+  <tr>
+    <td>border_type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Type of the view object border.</td>
+  </tr>
+  <tr>
+    <td>content</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>Text content of the view object if the class is CanvasModelBlock or CanvasModelSticky.</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>Documentation of the view object (only if the view object does not refer to an element, else the documentation of the element is used).</td>
+  </tr>
+  <tr>
+    <td>is_locked</td>
+    <td class="tg-center">boolean</td>
+    <td class="tg-center"></td>
+    <td>The lock status of the view object </td>
+  </tr>
+  <tr>
+    <td>image_path</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The path of the image displayed inside the view object (relevant when class is CanvasBlock or CanvasImage).</td>
+  </tr>
+  <tr>
+    <td>image_position</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>The position of the image inside the view object.</td>
+  </tr>
+  <tr>
+    <td>line_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The line color of the view object.</td>
+  </tr>
+  <tr>
+    <td>line_width</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>The line width of the view object.</td>
+  </tr>
+  <tr>
+    <td>fill_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The background color used to fill the view object.</td>
+  </tr>
+  <tr>
+    <td>alpha</td>
+    <td class="tg-center">integer</td>
+    <td class="tg-center"></td>
+    <td>The alpha (transparency) of the view object, from 0 (transparent) to 255(opaque).</td>
+  </tr>
+  <tr>
+    <td>font</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The font used to display the view object label.</td>
+  </tr>
+  <tr>
+    <td>font_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The color used display the view object label.</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The name of the view object (used only if the view object does not refer to an element, else the name of the element is used).</td>
+  </tr>
+  <tr>
+    <td>notes</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The notes of the view object.</td>
+  </tr>
+  <tr>
+    <td>text_alignment</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Horizontal alignment of the text in the view object.</td>
+  </tr>
+  <tr>
+    <td>text_position</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Vertical alignment of the text in the view object.</td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Type of the view object.</td>
+  </tr>
+  <tr>
+    <td>x</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>X coordinate of the view object inside its container.</td>
+  </tr>
+  <tr>
+    <td>y</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Y coordinate of the view object inside its container.</td>
+  </tr>
+  <tr>
+    <td>width</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Width of the view object.</td>
+  </tr>
+  <tr>
+    <td>height</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Height of the view object.</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the view object to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the view object has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+
+<h3 id="views_objects_in_view">views_objects_in_view</h3>
+This is a relation table that permits to know which view object is included in which view. There is one row per view object and per view:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>oiv_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>object_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view object.</td>
+  </tr> 
+  <tr>
+    <td>object_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view object.</td>
+  </tr>
+  <tr>
+    <td>view_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view that contains the view object.</td>
+  </tr>
+  <tr>
+    <td>view_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view that contains the view object.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the views objects in the same order they've been exported.</td>
+  </tr>
+</table>
+
+<h3 id="views_connections">views_connections</h3>
+This table contains the graphical connections (representation of relationships) that are present in the model views. There is one line per graphical connection and per version:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Id of the view connection.</td>
+  </tr>
+  <tr>
+    <td>version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Version of the view connection (starting from 1).</td>
+  </tr>
+  <tr>
+    <td>class</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Class of the view connection as stated by Archi (DiagramModelArchimateConnection, DiagramModelConnection or CanvasModelConnection)</td>
+  </tr>
+  <tr>
+    <td>container_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Id of the container that directly contains the view connection (view connections can be contained by a view or a <a href="#views_objects">view object</a>).</td>
+  </tr>
+  <tr>
+    <td>relationship_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>the id of the Archimate relationship referred by the view connection if any.</td>
+  </tr>
+  <tr>
+    <td>relationship_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>The version of the Archimte relationship referred by the view connection if any.</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The name of the view connection (used only if the view connection does not refer to a relationship, else the name of the relationship is used).</td>
+  </tr>
+  <tr>
+    <td>documentation</td>
+    <td class="tg-center">clob</td>
+    <td class="tg-center"></td>
+    <td>The documentation of the view connection (only if the view connection does not refer to a relationship, else the documentation of the relationship is used)</td>
+  </tr>
+  <tr>
+    <td>is_locked</td>
+    <td class="tg-center">boolean</td>
+    <td class="tg-center"></td>
+    <td>The locked status of the view connection.</td>
+  </tr>
+  <tr>
+    <td>line_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The line color of the view connection.</td>
+  </tr>
+  <tr>
+    <td>line_width</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>The line width of the view connection.</td>
+  </tr>
+  <tr>
+    <td>font</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The font used to display the view connection label.</td>
+  </tr>
+  <tr>
+    <td>font_color</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>The color used to display the view connection label.</td>
+  </tr>
+  <tr>
+    <td>source_object_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Id of the view object or view connection that this view connection sources.</td>
+  </tr>
+  <tr>
+    <td>target_object_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Id of the view object or view connection that this view connection targets.</td>
+  </tr>
+    <tr>
+    <td>text_position</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Vertical alignment of the text in the view object.</td>
+  </tr>
+  <tr>
+    <td>type</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center"></td>
+    <td>Type of the view connection.</td>
+  </tr>
+  <tr>
+    <td>created_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The name of the user who exported the version of the view connection to the database.</td>
+  </tr>
+  <tr>
+    <td>created_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center">x</td>
+    <td>The date and time when the version of the view connection has been exported to the database.</td>
+  </tr>
+  <tr>
+    <td>checkedin_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checkedin_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet</td>
+  </tr>
+  <tr>
+    <td>deleted_by</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>deleted_on</td>
+    <td class="tg-center">timestamp</td>
+    <td class="tg-center"></td>
+    <td>Not used yet.</td>
+  </tr>
+  <tr>
+    <td>checksum</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>A md5 checksum calculated at export time to allow versions comparison.</td>
+  </tr>
+</table>
+View connections are compound of <a href="#bendpoints">bendpoints</a>.
+
+<h3 id="views_connections_in_view">views_connections_in_view</h3>
+This is a relation table that permits to know which view connection is included in which view. There is one row per view connection and per view:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>civ_id</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Internal id of the row that guarantees uniqueness.</td>
+  </tr>
+  <tr>
+    <td>connection_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view connection.</td>
+  </tr> 
+  <tr>
+    <td>connection_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view connection.</td>
+  </tr>
+  <tr>
+    <td>view_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>The id of the view that contains the view connection.</td>
+  </tr>
+  <tr>
+    <td>view_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>The version of the view that contains the view connection.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import the views connections in the same order they've been exported.</td>
+  </tr>
+</table>
+
+<h3 id="bendpoints">bendpoints</h3>
+<a href="#views_connections">Views connections</a> are compound of bendpoints. There is one row per bendpoint and per view connection:
+<table class="tg">
+<tr>
+    <td>parent_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Id of the view connection.</td>
+  </tr>
+  <tr>
+    <td>parent_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Version of the view connection.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import properties in the same order they've been exported.</td>
+  </tr>
+  <tr>
+    <td>start_x</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>X coordinate of the point starting the segment.</td>
+  </tr>
+  <tr>
+    <td>start_y</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Y coordinate of the point starting the segment.</td>
+  </tr>
+  <tr>
+    <td>end_x</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>X coordinate of the point ending the segment.</td>
+  </tr>
+  <tr>
+    <td>end_y</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Y coordinate of the point ending the segment.</td>
+  </tr>
+</table>
+
+<h3 id="images">images</h3>
+This table contains the images of CanvasBlock and CanvasImage objects. There is one line per image:
+<table class="tg">
+  <tr>
+    <th class="tg-header">Name</th>
+    <th class="tg-header">Type</th>
+    <th class="tg-header">Not null</th>
+    <th class="tg-header">Comment</th>
+  </tr>
+  <tr>
+    <td>path</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Path of the image as calculated by Archi.</td>
+  </tr>
+  <tr>
+    <td>image</td>
+    <td class="tg-center">blob</td>
+    <td class="tg-center"></td>
+    <td>image itself in PNG format.</td>
+  </tr>
+</table>
+
+<h3 id="property">properties</h3>
+<a href="#models">Models</a>, <a href="#folders">folders</a>, <a href="#elements">elements</a>, <a href="#relationships">relationships</a> and <a href="#views">views</a> may have properties. There is one row per property and per parent:
+<table class="tg">
+  <tr>
+    <td>parent_id</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center">x</td>
+    <td>Id of the component that owns the property.</td>
+  </tr>
+  <tr>
+    <td>parent_version</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Version of the component that owns the property.</td>
+  </tr>
+  <tr>
+    <td>rank</td>
+    <td class="tg-center">int</td>
+    <td class="tg-center">x</td>
+    <td>Numerical increment that allows to import properties in the same order they've been exported.</td>
+  </tr>
+  <tr>
+    <td>name</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Name of the property.</td>
+  </tr>
+  <tr>
+    <td>value</td>
+    <td class="tg-center">varchar</td>
+    <td class="tg-center"></td>
+    <td>Value of the property.</td>
+  </tr>
+</table>
+</body>
+</html>

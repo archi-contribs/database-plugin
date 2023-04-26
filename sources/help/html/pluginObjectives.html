@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Plugin objectives</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Plugin's objectives</h1>
+The main objective of the database plugin, as its name states, is to use a <b>database</b> as a central <b>model repository</b>.<br>
+<br>
+The key functionalities are: 
+<ul>
+   <li>Export models to, and import models back from a SQL database (Microsoft SQL Server, MySQL, Oracle, PostGreSQL, and SQLite are supported so far)</li>
+   <li>Export elements and relationships to a graph database (Neo4j) to ease impact analysis</li>
+   <li>Version the models and all their components:<ul>
+      <li style="circle">Keeps a trace of who does what</li>
+      <li style="circle">Allows to roll back any model or component to any point in time</li>
+   </ul></li>
+   <li>Allows several people to work on the dame model at the same time<ul>
+      <li style="circle">During export, the updates done by other people are imported,</li>
+      <li style="circle">All the conflicts are detected and presented to the user for manual resolution.</li>
+   </ul></li>
+   <li>Allow to share components between models (all the updates done on those components through one model will be visible in all the models)</li>
+</ul>  
+</body>
+</html>

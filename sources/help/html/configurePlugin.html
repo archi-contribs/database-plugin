@@ -1,0 +1,170 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+	<title>Configure plugin</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Configure the plugin</h1>
+<br>
+The plugin can be configured through a preference page that can be accessed using Archi's menu: Edit / Preference / Database plugin.
+
+This preference page provides two tabs:
+<ul>
+   <li>Behaviour</li>
+   <li>Logger</li>
+</ul>
+
+<h2 id="behaviour">Behaviour</h2>
+This tab allows to change the plugin behaviour.<br>
+<img class="image" src="../img/preferences-behaviour.png">
+<br>
+<h3 id="version">Version</h3>
+This box shows up the actual plugin's version.<br>
+The <b><i>check for update</i></b> button allows to check if a new version is available on GitHub and automatically download it.<br>
+The <b><i>Automatically check for update at startup</i></b> allows to automate this check when Archi is started.<br>
+<br>
+Should Archi be behind a corporate proxy, one may define the following entries in the <b><i>Archi.ini</i></b> file:<br>
+<div style="margin-left:60px">
+<textarea name="proxy" cols="60" rows="10" readonly style="resize:none; overflow:hidden;background:WhiteSmoke">
+-Dhttp.proxyHost=&lt;@ip or DNS name of the proxy&gt;
+-Dhttp.proxyPort=&lt;port&gt;
+-Dhttp.proxyUser=&lt;username&gt;
+-Dhttp.proxyPassword=&lt;password&gt;
+-Dhttps.proxyHost=&lt;@ip or DNS name of the proxy&gt;
+-Dhttps.proxyPort=&lt;port&gt;
+-Dhttps.proxyUser=&lt;username&gt;
+-Dhttps.proxyPassword=&lt;password&gt;
+-Djdk.http.auth.tunneling.disabledSchemes=
+-Djdk.http.auth.proxying.disabledSchemes=
+</textarea>
+</div>
+<br>
+<h3 id="databases">Databases</h3>
+This box shows an array with all the databases that have been defined to to plugin.<br>
+<br>
+Databases must be defined with the following information:
+<ul>
+   <li><b>Name</b>: Name of the database entry in the array. This is just a label and may contain spaces but it must be unique.</li>
+   <li><b>Driver</b>: Driver used to connect to the database. This supported drivers are:<ul>
+      <li><b>ms-sql</b> for Microsoft SQL Server databases</li>
+      <li><b>mysql</b> for MySQL and MariaDB databases</li>
+      <li><b>neo4j</b> for Neo4J graph databases</li>
+      <li><b>oracle</b> for Oracle databases</li>
+      <li><b>postgresql</b> for PostGreSql databases</li>
+      <li><b>sqlite</b> for SQLite databases</li>
+   </ul></li>
+</ul>
+<br>
+<h4 id="sql">Client/server relational databases</h4>
+<img class="image" src="../img/preferences-relational.png"><br>
+<br>
+In addition, the following information is required for MS-SQL, MySQL, Oracle and PostGreSql databases:
+<ul>
+   <li><b>Server or IP</b>: DNS name or IP address of the server where the database stands
+   <li><b>Port</b>: TCP port on which the server listens</li>
+   <li><b>Database name</b>: Name of the database (lease empty to connect to the default database)</li>
+   <li><b>Schema</b>: Name of the schema (leave empty to connect to the default schema)</li>
+   <li><b>Username</b> and <b>Password</b>: Credentials used to connect to the database</li>
+   <li><b>Export view snapshots</b>: Choose if the plugin should export a snapshot on the views in the database (PNG format). In this case, you must choose the:<ul>
+      <li><b>Border width</b> in pixels (between 0 and 50)</li>
+      <li><b>Scale factor</b> in percentage (between 10% and 500%)</li>
+   </ul></li>
+</ul>
+<br>
+<h4 id="sqlite">SQLite databases</h4>
+<img class="image" src="../img/preferences-sqlite.png"><br>
+<br>
+In addition, the following information is required for SQLite databases:
+<ul>
+   <li><b>File</b>: Path of the database file. On Windows, the file may be hosted on a network drive. The <b>Browse</b> button allows to browse the desktop disks to choose the database file.</li>
+   <li><b>Export view snapshots</b>: Choose if the plugin should export a snapshot on the views in the database (PNG format). In this case, you must choose the:<ul>
+      <li><b>Border width</b> in pixels (between 0 and 50)</li>
+      <li><b>Scale factor</b> in percentage (between 10% and 500%)</li>
+   </ul></li>
+</ul>
+<br>
+<h4 id="neo4j">Neo4j databases</h4>
+<img class="image" src="../img/preferences-neo4j.png"><br>
+<br>
+In addition, the following information is required for Neo4j databases:
+<ul>
+   <li><b>Server or IP</b>: DNS name or IP address of the server where the database stands
+   <li><b>Port</b>: TCP port on which the server listens. Please note that the plugin uses the <b>bolt</b> protocol. Therefore, the default port is <b>7878</b>, not 7474.</li>
+   <li><b>Username</b> and <b>Password</b>: Credentials used to connect to the database</li>
+   <li><b>Empty database:</b>: Choose what the plugin should do before exporting the model:<ul>
+      <li><b>Empty database before every export</b>: the plugin deletes all the existing graphs, thus leaving the database with a single graph with the model content</li>
+      <li><b>Leave database content</b>: the plugin leaves the existing graphs, and creates a new one with the model content. As all the model components are versionned, exporting the same model several times will leads to one graph per export.</li>
+   </ul></li>
+   <li><b>Relationships type</b>: Choose what type of relationship the export plugin should create in the graph:<ul>
+      <li><b>Use unique relationships type</b>: One single relationship type called "relationships" will be created. The "class" property will be set to distinguish the different Archi relationships types.</li>
+      <li><b>Use typed relationships</b>: The plugin will create one relationship type per Archi relationship (FlowRelationship, AccessRelationship, InfluenceRelationship...).</li>
+   </ul></li>
+</ul>
+<br>
+<h3 id="miscelleanous">Miscellaneous</h3>
+You may change the behaviour of the database plugin by selecting or un-selecting the following options:
+<ul>
+   <li><b>Automatically start to export to the default database</b><ul>
+      <li class="selected">The plugin shows up the <a href="exportModel.html">export window</a> but automatically starts the export to the first database declared in the database list (one may use the up and down arrows to order your databases in the list).</li>
+      <li class="not_selected">The plugin shows up the <a href="exportModel.html">export window</a> and waits for the user to click on the "Export" button.</li>
+   </ul></li>
+   <li><b>Automatically close import and export windows on success</b><ul>
+      <li class="selected">When the import/export is successful, the <a href="importModel.html">import window</a>/<a href="exportModel.html">export window</a> is automatically closed</li>
+      <li class="not_selected">Even if the import/export is successful, the user needs to click on the "close" button in order to close the window.</li>
+   </ul></li>
+   <li><b>Show zero values on import and export windows</b><ul>
+      <li class="selected">A zero in shown in cases when no component is imported/exported.</li>
+      <li class="not_selected">Cases are left emptywhen no component is imported/exported.</li>
+   </ul></li>
+   <li><b>Check max memory available at startup</b><ul>
+      <li class="selected">As the plugin requires memory to work, it can check that Archi is ran with enough memory when it is initialized (at least 1 GB).</li>
+      <li class="not_selected">The plugin won't check for the available memory during its initialization.</li>
+   </ul></li>
+   <li><b>Remove model's dirty flag after successful export</b><ul>
+      <li class="selected">After a successful export, the model's dirty flag is removed so the model will be considered as saved by Archi (Archi will not ask to save the model to an Archimate file when it is closed).</li>
+      <li class="not_selected">The model's dirty flag is not removed, even after a successful export, so a popup will be displayed when Archi is closed, asking to save the model to an Archimate file.</li>
+   <li><b>Compare model to the database before export</b><ul>
+      <li class="selected">The plugin compares the model components to the database content and shows up the result in the <a href="exportModel.html">export window</a>. This slows down a bit the export process but the user knows what the export process will do in the database.</li>
+      <li class="not_selected">The plugin does not compare the model to the database until the user clicks on the "Export". This quicks up a bit the export process, but the user does not know in advance what the plugin will do in the database before he clicks on the "Export" button.</li> 
+   </ul></li>
+   <li><b>Keep partially imported model in case of error</b><ul>
+      <li class="selected">In case of an error during the import of a model, the plugin keeps the partially imported model. Please note that this option is for debugging purpose, you must never export back a partially imported model, else you will corrupt your model in the database. Use this option at your own risks.</li>
+      <li class="not_selected">The plugin does not keep in memory any partially imported model (highly recommended).</li>
+   </ul></li>
+   <li><b>Show debugging information in context menu</b><ul>
+      <li class="selected">Adds a context menu entry that leads to debugging information (ID, version, checksum, database status, ...).</li>
+      <li class="not_selected">The debug context menu entry will be hidden.</li> 
+   </ul></li>
+   <li><b>Append suffix when import component in copy mode</b><ul>
+      <li>It is possible to change the suffix that is added to components' name when the are imported in copy mode from the database.</li>
+   </ul></li>
+</ul>
+<br>
+<h3 id="online_help">Online help</h3>
+All the database plugin windows have got a <img src="../img/help.png" alt="help"> button that shows up these help pages.
+<br>
+
+<h2 id="logger">Logger</h2>
+The logger tab allows to specify a log file and the level of information to store in this log file.
+<h3 id="logger_disabled">Disabled</h3>
+When disabled, the logger does not generate any log nor error message.
+<br> 
+<h3 id="logger_simple_mode">Simple mode</h3>
+<img class="image" src="../img/preferences-logger_simple.png"><br>
+In simple mode, one should only specify the level of information and a filename (on Windows, it is not necessary to double the backslashes).<br>
+<br>
+Please note that enabling debug or, even more, trace level has got an impact on the plugin performances. You may activate it only if required.
+<br>
+<h3 id="logger_export_mode">Expert mode</h3>
+<img class="image" src="../img/preferences-logger_expert.png"><br>
+In expert mode, you are provided with a simple text editor and you may configure the Log4j logger manually (on Windows, <u>it is</u> necessary to double the backslashes).<br>
+<br>
+This mode is very powerful, as you may specify several log files, with different level of information. You may also change the lines format.<br>
+<br>
+This option must be reserved to people who have knowledge about Log4j as a bad configuration can stop the plugin from working correctly. In all cases, it is always possible to restore a safe and working configuration using the "Restore defaults" button. 
+</body>
+</html>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?NLS TYPE="org.eclipse.help.toc"?>
+
+<toc label="Database plugin" topic="help/html/index.html">
+	<topic href="help/html/pluginObjectives.html" label="Plugin objectives">
+ </topic>
+ <topic href="help/html/installPlugin.html" label="Install the plugin">
+ </topic>
+ <topic href="help/html/configurePlugin.html" label="Configure the plugin">
+ </topic>
+ <topic href="help/html/databaseStructure.html" label="Database structure">
+ </topic> 
+	<topic href="help/html/exportModel.html" label="Export a model">
+ </topic>
+	<topic label="Import a model" href="help/html/importModel.html"/>
+ <topic href="help/html/importComponent.html" label="Import a single component">
+ </topic>
+ <topic href="help/html/componentsHistory.html" label="Get a component&apos;s history">
+ </topic>
+ <topic href="help/html/releaseNotes.html" label="Release notes">
+ </topic> 
+</toc>
