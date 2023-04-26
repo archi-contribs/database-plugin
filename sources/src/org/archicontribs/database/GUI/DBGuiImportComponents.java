@@ -127,6 +127,7 @@ public class DBGuiImportComponents extends DBGui {
 
 	ComponentLabel resourceLabel;
 	ComponentLabel capabilityLabel;
+	ComponentLabel valueStreamLabel;
 	ComponentLabel courseOfActionLabel;
 	ComponentLabel applicationComponentLabel;
 	ComponentLabel applicationCollaborationLabel;
@@ -557,6 +558,7 @@ public class DBGuiImportComponents extends DBGui {
 		// Passive
 		// Behavior
 		this.capabilityLabel = new ComponentLabel(strategyBehaviorCompo,  "Capability");
+		this.valueStreamLabel = new ComponentLabel(strategyBehaviorCompo,  "Value Stream");
 		this.courseOfActionLabel = new ComponentLabel(strategyBehaviorCompo,  "Course Of Action");
 		// Active
 		this.resourceLabel = new ComponentLabel(strategyActiveCompo, "Resource");
@@ -645,7 +647,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.locationLabel = new ComponentLabel(otherCompo, "Location");
 		this.junctionLabel = new ComponentLabel(otherCompo, "Junction");
 
-		this.allElementLabels = new ComponentLabel[]{ this.resourceLabel, this.capabilityLabel, this.courseOfActionLabel, this.applicationComponentLabel, this.applicationCollaborationLabel, this.applicationInterfaceLabel, this.applicationFunctionLabel, this.applicationInteractionLabel, this.applicationEventLabel, this.applicationServiceLabel, this.dataObjectLabel, this.applicationProcessLabel, this.businessActorLabel, this.businessRoleLabel, this.businessCollaborationLabel, this.businessInterfaceLabel, this.businessProcessLabel, this.businessFunctionLabel, this.businessInteractionLabel, this.businessEventLabel, this.businessServiceLabel, this.businessObjectLabel, this.contractLabel, this.representationLabel, this.nodeLabel, this.deviceLabel, this.systemSoftwareLabel, this.technologyCollaborationLabel, this.technologyInterfaceLabel, this.pathLabel, this.communicationNetworkLabel, this.technologyFunctionLabel, this.technologyProcessLabel, this.technologyInteractionLabel, this.technologyEventLabel, this.technologyServiceLabel, this.artifactLabel, this.equipmentLabel, this.facilityLabel, this.distributionNetworkLabel, this.materialLabel, this.workpackageLabel, this.deliverableLabel, this.implementationEventLabel, this.plateauLabel, this.gapLabel, this.stakeholderLabel, this.driverLabel, this.assessmentLabel, this.goalLabel, this.outcomeLabel, this.principleLabel, this.requirementLabel, this.constaintLabel, this.smeaningLabel, this.valueLabel, this.productLabel, this.locationLabel, this.groupingLabel, this.junctionLabel};
+		this.allElementLabels = new ComponentLabel[]{ this.resourceLabel, this.capabilityLabel, this.valueStreamLabel, this.courseOfActionLabel, this.applicationComponentLabel, this.applicationCollaborationLabel, this.applicationInterfaceLabel, this.applicationFunctionLabel, this.applicationInteractionLabel, this.applicationEventLabel, this.applicationServiceLabel, this.dataObjectLabel, this.applicationProcessLabel, this.businessActorLabel, this.businessRoleLabel, this.businessCollaborationLabel, this.businessInterfaceLabel, this.businessProcessLabel, this.businessFunctionLabel, this.businessInteractionLabel, this.businessEventLabel, this.businessServiceLabel, this.businessObjectLabel, this.contractLabel, this.representationLabel, this.nodeLabel, this.deviceLabel, this.systemSoftwareLabel, this.technologyCollaborationLabel, this.technologyInterfaceLabel, this.pathLabel, this.communicationNetworkLabel, this.technologyFunctionLabel, this.technologyProcessLabel, this.technologyInteractionLabel, this.technologyEventLabel, this.technologyServiceLabel, this.artifactLabel, this.equipmentLabel, this.facilityLabel, this.distributionNetworkLabel, this.materialLabel, this.workpackageLabel, this.deliverableLabel, this.implementationEventLabel, this.plateauLabel, this.gapLabel, this.stakeholderLabel, this.driverLabel, this.assessmentLabel, this.goalLabel, this.outcomeLabel, this.principleLabel, this.requirementLabel, this.constaintLabel, this.smeaningLabel, this.valueLabel, this.productLabel, this.locationLabel, this.groupingLabel, this.junctionLabel};
 
 		Label passiveLabel = new Label(this.compoElements, SWT.TRANSPARENT | SWT.CENTER);
 		Canvas passiveCanvas = new Canvas(this.compoElements, SWT.TRANSPARENT | SWT.BORDER);
@@ -717,6 +719,7 @@ public class DBGuiImportComponents extends DBGui {
 				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
 				labelList.add(DBGuiImportComponents.this.capabilityLabel);
+				labelList.add(DBGuiImportComponents.this.valueStreamLabel);
 				labelList.add(DBGuiImportComponents.this.courseOfActionLabel);
 				labelList.add(DBGuiImportComponents.this.businessProcessLabel);
 				labelList.add(DBGuiImportComponents.this.businessFunctionLabel);
@@ -927,6 +930,7 @@ public class DBGuiImportComponents extends DBGui {
 				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
 
 				labelList.add(DBGuiImportComponents.this.capabilityLabel);
+				labelList.add(DBGuiImportComponents.this.valueStreamLabel);
 				labelList.add(DBGuiImportComponents.this.courseOfActionLabel);
 				labelList.add(DBGuiImportComponents.this.resourceLabel);
 
@@ -2126,6 +2130,7 @@ public class DBGuiImportComponents extends DBGui {
             case "BUSINESSROLE": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_ROLE);
             case "BUSINESSSERVICE": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_SERVICE);
             case "CAPABILITY": return ImageFactory.getImage(IArchiImages.ICON_CAPABILITY);
+            case "VALUESTREAM": return ImageFactory.getImage(IArchiImages.ICON_VALUE_STREAM);
             case "COMMUNICATIONNETWORK": return ImageFactory.getImage(IArchiImages.ICON_COMMUNICATION_NETWORK);
             case "CONTRACT": return ImageFactory.getImage(IArchiImages.ICON_CONTRACT);
             case "CONSTRAINT": return ImageFactory.getImage(IArchiImages.ICON_CONSTRAINT);

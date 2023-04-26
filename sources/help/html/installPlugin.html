@@ -1,34 +1,42 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 <html>
-<head>
-	<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-	<title>Preference page</title>
-	<link rel="stylesheet" href="style.css">
-</head>
-
-<body>
-<h1>Install the plugin</h1>
-The plugin consists of a single <b><i>org.archicontribs.database_xxx.jar</i></b> file. There are several ways to install it.
-<h2>First installation</h2>
-<h3>Method 1 (semi-automatic installation)</h3>
-Download the <b><i>org.archicontribs.database_xxx.zip</i></b> ZIP file from GitHub, then open the Help/Install Archi plugin-in menu in Archi and select the downloaded zip file.<br>
-<br>
-Once the plugin in installed, Archi will require to restart itself.
-<h3>Method 2 (manual installation)</h3>
-Download the <b><i>org.archicontribs.database_xxx.jar</i></b> JAR file from GitHub and manually copy it to Archi's plugin folder.<br>
-<br>
-Usually, this folder is _C:\Program Files\Archi\plugins_ or _C:\Program Files (x86)\Archi\plugins_ on Windows.<br>
-<br>
-Once the jar file is copied, start (or restart) Archi.
-<h2>Update the plugin to a newer release</h2>
-<h3>Method 1 (automatic update)</h3>
-Once installed, the plugin is able to update itself, provided you've got an Internet connection (please check the <a href="configurePlugin.html">Configure the plugin</a> page should you require to configure a proxy).<br>
-<br>
-Please go to the plugin's <a href="configurePlugin.html">preference page</a> and click on the <b><i>Check for update</i></b> button.<br>
-<br>
-The plugin will indicate if a new version is available. You'll then be able to print the release note and automatically download and install the new release.<br>
-<h3>Method 2 (manual update)</h3>
-Alternatively, you may delete the JAR file from Archi's plugin folder and use the new plugin installation procedure.
-</body>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=iso-8859-1">
+    <title>Install the plugin</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <h1>Install the plugin</h1>
+    <h2>Download the plugin from Github</h2>
+    <p>The plugin is available on <a href="https://github.com/archi-contribs/database-plugin/tree/master/v2">Github</a> at the following address: <a
+        href="https://github.com/archi-contribs/database-plugin/tree/master/v2">https://github.com/archi-contribs/database-plugin/tree/master/v2</a></p>
+    <p>Please download the <strong><em>org.archicontribs.database_4.9.4.archiplugin</em></strong> file.</p>
+    <h2>Install the plugin</h2>
+    <p>The easiest way to install the plugin is to use Archi's integrated mechanism which is accessible through the <i><b>Help </b></i>/ <i><b>Manage Plug-ins...</b></i> menu:</p>
+    <img src="../img/manage-plugins-menu.png" alt="Manage plug-ins menu"
+      title="Manage plug-ins menu">
+    <p><br>
+    </p>
+    <p>The <i><b>Manage Archi Plug-ins </b></i>window displays all the plugins installed in Archi. The procedure works the same to install a new plugin or update an existing plugin. Please click on the <i><b>Install New ...</b></i> button:</p>
+    <p><img src="../img/manage-plugins-window.png" alt="Manage plugins window"
+        title="Manage plugins window"></p>
+    <p><br>
+    </p>
+    <p>Please select the <em><strong>archiplugin </strong></em>file you've downloaded previously.</p>
+    <p>To complete the plugin installation, Archi needs to be restarted. Please click on the <i><b>Yes </b></i>button to restart Archi immediately, or press <i><b>No </b></i>if you prefer to restart later on.</p>
+    <p><img src="../img/manage-plugins-restart.png" alt="Archi requires to restart"
+        title="Archi requires to restart"><br>
+    </p>
+    <p>Once Archi restarts, a welcome message indicates if the plugin has been correctly installed:</p>
+    <img src="../img/welcome-database-plugin.png" alt="Welcome database plugin"
+      title="Welcome database plugin">
+    <p>Or upgraded:</p>
+    <p> <img src="../img/upgrade-database-plugin.png" alt="Database plugin upgraded"
+        title="Database plugin upgraded"> </p>
+    <h2>Update the plugin</h2>
+    <p>To update the plugin to a newer version, you may follow the same procedure used to install the plugin (ie download a new version of the <i><b>archiplugin </b></i>file and install it through Archi's <i><b>Manage plugin-ins </b></i>mechanism.</p>
+    <p>Alternatively, if your computer has got a direct access to the Internet, the plugin is able to automatically download updates from Github and install them. To activate this mechanism, please refer to the <a
+        href="file:///C:/Users/herve/git/archicontribs/database-plugin/v2/sources/help/html/configurePlugin.html#version"
+        title="Version">Version section of the preferences help page</a>.</p>
+  </body>
 </html>

@@ -195,21 +195,22 @@ public class DBGuiComponentHistory extends DBGui {
 		this.tblContent.setLayoutData(fd);
 		
 		TreeColumn colItem = new TreeColumn(this.tblContent, SWT.NONE);
-		colItem.setWidth(160);
+		colItem.setWidth(200);
 		colItem.setText("Items");
 		
 		TreeColumn colYourVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colYourVersion.setWidth(320);
+		colYourVersion.setWidth(400);
 		colYourVersion.setText("Local version");
 		
 		TreeColumn colDatabaseVersion = new TreeColumn(this.tblContent, SWT.NONE);
-		colDatabaseVersion.setWidth(320);
+		colDatabaseVersion.setWidth(400);
 		colDatabaseVersion.setText("Database version");
 		
 		this.btnImportDatabaseVersion = new Button(grpComponents, SWT.NONE);
 		this.btnImportDatabaseVersion.setImage(IMPORT_FROM_DATABASE_IMAGE);
 		this.btnImportDatabaseVersion.setText("Import database version");
 		this.btnImportDatabaseVersion.setEnabled(false);
+		this.btnImportDatabaseVersion.setVisible(!(this.selectedComponent instanceof ArchimateModel));
 		this.btnImportDatabaseVersion.addSelectionListener(new SelectionListener() {
 			@Override
             public void widgetSelected(SelectionEvent e) {
@@ -258,6 +259,7 @@ public class DBGuiComponentHistory extends DBGui {
 		this.btnExportModelVersion.setImage(EXPORT_TO_DATABASE_IMAGE);
 		this.btnExportModelVersion.setText("Export local version to the database");
 		this.btnExportModelVersion.setEnabled(false);
+		this.btnExportModelVersion.setVisible(!(this.selectedComponent instanceof ArchimateModel));
 		this.btnExportModelVersion.addSelectionListener(new SelectionListener() {
 		    @Override
             public void widgetSelected(SelectionEvent e) {

@@ -21,6 +21,7 @@ import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBBendpoint;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
+import org.archicontribs.database.data.DBProfile;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
@@ -237,6 +238,16 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						}
 					}
 					hashResult.put("bendpoints", databaseBendpoints);
+				}
+				
+				// profiles
+				if ( DBPlugin.areEqual(clazz,  "IArchimateModel") ) {
+					ArrayList<DBProfile> databaseProfiles = new ArrayList<DBProfile>();
+					try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, concept_type, is_specialization, image_path FROM "+this.schemaPrefix+"profiles JOIN "+this.schemaPrefix+"profiles_in_model pim WHERE profiles.id = pim.profile_id AND profiles.version = pim.profile_version AND pim.model_ID = ? AND pim.model_version = ? ORDER BY POS", id, version) ) {
+						while ( resultProfiles.next() )
+							databaseProfiles.add(new DBProfile(resultProfiles.getString("name"), resultProfiles.getString("concept_type"), DBPlugin.getBooleanValue(resultProfiles.getObject("is_specialization")), resultProfiles.getString("image_path")));
+					}
+					hashResult.put("profiles", databaseProfiles);
 				}
 				
                 logger.debug("   Found "+hashResult.get("class")+" \""+hashResult.get("name")+"\" version "+hashResult.get("version"));

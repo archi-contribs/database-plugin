@@ -271,8 +271,8 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		else
 			throw new SQLException("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
-		metadata.getCurrentVersion().setVersion(0);
-		metadata.getInitialVersion().reset();
+		//metadata.getCurrentVersion().setVersion(0);
+		//metadata.getInitialVersion().reset();
 		metadata.getDatabaseVersion().reset();
 		metadata.getLatestDatabaseVersion().reset();
 
