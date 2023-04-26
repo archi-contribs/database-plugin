@@ -896,7 +896,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id"));
 					if ( element == null ) {
-						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.templateMode, true);
+						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.templateMode, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						element = command.getImported();
@@ -1010,7 +1010,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id"));
 					if ( relationship == null ) {
-						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.templateMode);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.templateMode);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						relationship = command.getImported();
@@ -1371,14 +1371,18 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 	/**
 	 * Gets the latest folder where the elementId was in the model
-	 * @param model 
+	 * @param model
+	 * @param mergedModelId
 	 * @param clazz 
 	 * @param id 
 	 * @return 
 	 * @throws Exception 
 	 */
-	public IFolder getLastKnownFolder(DBArchimateModel model, String clazz, String id) throws Exception {
+	public IFolder getLastKnownFolder(DBArchimateModel model, String mergedModelId, String clazz, String id) throws Exception {
 		IFolder parentFolder = null;
+		String searchedModelId = mergedModelId;
+		if ( searchedModelId == null )
+			searchedModelId = model.getId();
 
 		if ( !model.isLatestVersionImported() ) {
 			String table;
@@ -1396,9 +1400,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT parent_folder_id, model_version"
 					+" FROM "+table
 					+" WHERE model_id = ? AND "+column+" = ? AND model_version = (SELECT MAX(model_version) FROM "+table+" WHERE model_id = ? AND "+column+" = ?)"
-					, model.getId()
+					, searchedModelId
 					, id
-					, model.getId()
+					, searchedModelId
 					, id
 					) ) {
 				if ( result.next() )

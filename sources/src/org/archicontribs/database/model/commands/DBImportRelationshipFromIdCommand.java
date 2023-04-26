@@ -58,7 +58,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 
 	// new values that are retrieved from the database
 	private HashMap<String, Object> newValues = null;
-	private IFolder newFolder = null;
+	private IFolder newParentFolder = null;
 
 	// old values that need to be retain to allow undo
 	private DBVersion oldInitialVersion;
@@ -69,7 +69,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	private String oldName = null;
 	private String oldStrength = null;
 	private Integer oldAccessType = null;
-	private IFolder oldFolder = null;
+	private IFolder oldParentFolder = null;
 	private IArchimateConcept oldSource = null;
 	private IArchimateConcept oldTarget = null;
 	private ArrayList<DBProperty> oldProperties = null;
@@ -79,13 +79,14 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 	 * Imports a relationship into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the relationship will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
-	 * @param folder if a folder is provided, the relationship will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
+	 * @param parentFolder if a folder is provided, the relationship will be created inside this parent folder. Else, we'll check in the database if the relationship has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the relationship to import
 	 * @param versionToImport version of the relationship to import (0 if the latest found in the database should be imported) 
 	 * @param importMode specifies if the relationship must be copied or shared
 	 */
-	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode) {
+	public DBImportRelationshipFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, String mergedModelId, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode) {
 		this.model = archimateModel;
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
@@ -109,10 +110,10 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
-			    this.newFolder = folder;
+			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			    this.newParentFolder = parentFolder;
 			else
-			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateRelationship", this.id);
+			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, mergedModelId, "IArchimateRelationship", this.id);
 
 			if ( DBPlugin.isEmpty((String)this.newValues.get("name")) ) {
 				setLabel("import relationship");
@@ -170,7 +171,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
-				this.oldFolder = dbMetadata.getParentFolder();
+				this.oldParentFolder = dbMetadata.getParentFolder();
 
 				this.isNew = false;
 			}
@@ -258,10 +259,10 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				}
 			}
 
-			if ( this.newFolder == null )
+			if ( this.newParentFolder == null )
 				dbMetadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
 			else
-				dbMetadata.setParentFolder(this.newFolder);
+				dbMetadata.setParentFolder(this.newParentFolder);
 
 			if ( this.isNew )
 				this.model.countObject(this.importedRelationship, false);
@@ -315,7 +316,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				dbMetadata.setRelationshipSource(this.oldSource);
 				dbMetadata.setRelationshipTarget(this.oldTarget);
 
-				dbMetadata.setParentFolder(this.oldFolder);
+				dbMetadata.setParentFolder(this.oldParentFolder);
 
 				this.importedRelationship.getProperties().clear();
 				for ( DBProperty oldProperty: this.oldProperties ) {

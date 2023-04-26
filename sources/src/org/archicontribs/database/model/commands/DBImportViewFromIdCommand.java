@@ -57,7 +57,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 
 	// new values that are retrieved from the database
 	private HashMap<String, Object> newValues = null;
-	private IFolder newFolder = null;
+	private IFolder newParentFolder = null;
 
 	// old values that need to be retain to allow undo
 	private DBVersion oldInitialVersion;
@@ -69,7 +69,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 	private Integer oldConnectionRouterType = null;
 	private String oldViewpoint = null;
 	private Integer oldBackground = null;
-	private IFolder oldFolder = null;
+	private IFolder oldParentFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
 	private ArrayList<DBProperty> oldFeatures = null;
 
@@ -78,15 +78,16 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 	 * Imports a view into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the view will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param view if a view is provided, then an ArchimateObject will be automatically created
-	 * @param folder if a folder is provided, the view will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
+	 * @param parentFolder if a folder is provided, the view will be created inside this parent folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the view to import
 	 * @param versionToImport version of the view to import
 	 * @param importMode mode of the import (template, shared or copy mode) 
 	 * @param mustImportContent true if the view content must be imported as well
 
 	 */
-	public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportContent) {
+	public DBImportViewFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportContent) {
 		this.model = archimateModel;
 		this.id = idToImport;
 		this.mustImportViewContent = mustImportContent;
@@ -109,10 +110,10 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
-			    this.newFolder = folder;
+			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			    this.newParentFolder = parentFolder;
 			else
-			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IDiagramModel", this.id);
+			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, mergedModelId, "IDiagramModel", this.id);
 
 			if ( this.mustImportViewContent ) {
 				// we import the objects and create the corresponding elements if they do not exist yet
@@ -121,7 +122,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT object_id, object_version, pos FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ?) ORDER BY pos", idToImport, idToImport)
 						: new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT object_id, object_version, pos FROM "+importConnection.getSchemaPrefix()+"views_objects_in_view WHERE view_id = ? AND view_version = ? ORDER BY pos", idToImport, versionToImport) ) {
 					while ( result.next() ) {
-					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, archimateModel, result.getString("object_id"), (versionToImport == 0) ? 0 : result.getInt("object_version"), this.mustCreateCopy, importMode);
+					    DBImportViewObjectFromIdCommand command = new DBImportViewObjectFromIdCommand(importConnection, archimateModel, mergedModelId, result.getString("object_id"), (versionToImport == 0) ? 0 : result.getInt("object_version"), this.mustCreateCopy, importMode);
 					    if ( command.getException() != null )
 					        throw command.getException();
 						this.importViewContentCommands.add(command);
@@ -134,7 +135,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 						? new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT connection_id, connection_version, pos FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ? AND view_version = (SELECT MAX(view_version) FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ?) ORDER BY pos", idToImport, idToImport)
 						: new DBSelect(importConnection.getDatabaseEntry().getName(), importConnection.getConnection(), "SELECT DISTINCT connection_id, connection_version, pos FROM "+importConnection.getSchemaPrefix()+"views_connections_in_view WHERE view_id = ? AND view_version = ? ORDER BY pos", idToImport, versionToImport) ) {
 					while ( result.next() ) {
-					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, archimateModel, result.getString("connection_id"), (versionToImport == 0) ? 0 : result.getInt("connection_version"), this.mustCreateCopy, importMode);
+					    DBImportViewConnectionFromIdCommand command = new DBImportViewConnectionFromIdCommand(importConnection, archimateModel, mergedModelId, result.getString("connection_id"), (versionToImport == 0) ? 0 : result.getInt("connection_version"), this.mustCreateCopy, importMode);
 					    if ( command.getException() != null )
 					        throw command.getException();
 						this.importViewContentCommands.add(command);
@@ -199,7 +200,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
-				this.oldFolder = dbMetadata.getParentFolder();
+				this.oldParentFolder = dbMetadata.getParentFolder();
 
 				this.isNew = false;
 			}
@@ -231,10 +232,10 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
     			}
 			}
 
-			if ( this.newFolder == null )
+			if ( this.newParentFolder == null )
 				metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedView));
 			else
-				metadata.setParentFolder(this.newFolder);
+				metadata.setParentFolder(this.newParentFolder);
 
 			if ( this.isNew )
 				this.model.countObject(this.importedView, false);
@@ -294,7 +295,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				dbMetadata.setViewpoint(this.oldViewpoint);
 				dbMetadata.setBackground(this.oldBackground);
 
-				dbMetadata.setParentFolder(this.oldFolder);
+				dbMetadata.setParentFolder(this.oldParentFolder);
 
 				this.importedView.getProperties().clear();
 				((IProperties)this.importedView).getProperties().clear();

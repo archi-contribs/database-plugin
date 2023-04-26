@@ -67,6 +67,10 @@ public enum DBImportMode {
 		}
 	}
 
+	/**
+	 * @param properties Array with Archimate component properties
+	 * @return true if import should be done in copy mode, false if import should be done in share mode
+	 */
 	public boolean shouldCreateCopy(ArrayList<DBProperty> properties) {
 		switch ( this.value ) {
 			case DBImportMode.forceSharedModeValue:
@@ -81,12 +85,12 @@ public enum DBImportMode {
 				if ( properties != null ) {
 					for ( DBProperty prop: properties) {
 						if ( DBPlugin.areEqual(prop.getKey(), "template") && DBPlugin.areEqual(prop.getValue(), "copy") ) {
-							logger.debug("   Import in template mode : the \"template\" property requires the copy mode.");
+							logger.debug("   Import in copy mode (as specified by the \"template\" property)");
 							return true;
 						}
 					}
 				}
-				logger.debug("   Import in template mode : the \"template\" property does not exist or does not require the copy mode.");
+				logger.debug("   Import in shared mode (no \"template\" property or value different from \"copy\")");
 				return false;
 
 			default:

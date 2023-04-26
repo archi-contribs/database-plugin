@@ -64,7 +64,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 	// new values that are retrieved from the database
 	private HashMap<String, Object> newValues = null;
-	private IFolder newFolder = null;
+	private IFolder newParentFolder = null;
 
 	// old values that need to be retain to allow undo
 	private DBVersion oldInitialVersion;
@@ -74,7 +74,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	private String oldDocumentation = null;
 	private String oldName = null;
 	private String oldType = null;
-	private IFolder oldFolder = null;
+	private IFolder oldParentFolder = null;
 	private ArrayList<DBProperty> oldProperties = null;
 	private ArrayList<DBProperty> oldFeatures = null;
 
@@ -83,14 +83,15 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	 * Imports an element into the model<br>
 	 * @param importConnection connection to the database
 	 * @param archimateModel model into which the element will be imported
+	 * @param mergedModelId ID of the model merged in the actual model, to search for its parent folder 
 	 * @param archimateDiagramModel if a view is provided, then an ArchimateObject will be automatically created
-	 * @param folder if a folder is provided, the element will be created inside this folder. Else, we'll check in the database if the view has already been part of this model in order to import it in the same folder.
+	 * @param parentFolder if a folder is provided, the element will be created inside this parent folder. Else, we'll check in the database if the element has already been part of this model in order to import it in the same parent folder.
 	 * @param idToImport id of the element to import
 	 * @param versionToImport version of the element to import (0 if the latest version should be imported)
 	 * @param importMode specifies if the element must be copied or shared
 	 * @param mustImportRelationships true if the relationships to and from  the newly created element must be imported as well  
 	 */
-	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, IArchimateDiagramModel archimateDiagramModel, IFolder folder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportRelationships) {
+	public DBImportElementFromIdCommand(DBDatabaseImportConnection importConnection, DBArchimateModel archimateModel, String mergedModelId, IArchimateDiagramModel archimateDiagramModel, IFolder parentFolder, String idToImport, int versionToImport, DBImportMode importMode, boolean mustImportRelationships) {
 		this.model = archimateModel;
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
@@ -112,10 +113,10 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				this.newValues.put("name", (String)this.newValues.get("name") + DBPlugin.INSTANCE.getPreferenceStore().getString("copySuffix"));
 			}
 
-			if ( (folder != null) && (archimateModel.getDBMetadata(folder).getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
-			    this.newFolder = folder;
+			if ( (parentFolder != null) && (archimateModel.getDBMetadata(parentFolder).getRootFolderType().intValue() == DBMetadata.getDefaultFolderType((String)this.newValues.get("class"))) )
+			    this.newParentFolder = parentFolder;
 			else
-			    this.newFolder = importConnection.getLastKnownFolder(this.model, "IArchimateElement", this.id);
+			    this.newParentFolder = importConnection.getLastKnownFolder(this.model, mergedModelId, "IArchimateElement", this.id);
 
 			if ( this.mustImportTheRelationships ) {
 				if ( logger.isDebugEnabled() ) logger.debug("   Checking if we must import relationships");
@@ -134,7 +135,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 					    
                         // we import only relationships that are not present in the model and, on the opposite, if the source and target do exist in the model
 						if ( (relationship  == null) && (DBPlugin.areEqual(resultRelationship.getString("source_id"), idToImport) || source != null) && (DBPlugin.areEqual(resultRelationship.getString("target_id"), idToImport) || target != null) ) {
-							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, null, resultRelationship.getString("id"), 0, importMode);
+							IDBImportCommand command = new DBImportRelationshipFromIdCommand(importConnection, this.model, this.view, mergedModelId, null, resultRelationship.getString("id"), 0, importMode);
 							if ( command.getException() == null )
 								this.importRelationshipCommands.add(command);
 							else
@@ -201,7 +202,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
-				this.oldFolder = metadata.getParentFolder();
+				this.oldParentFolder = metadata.getParentFolder();
 
 				this.isNew = false;
 			}
@@ -232,12 +233,12 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
     			}
 			}
 
-			if ( this.newFolder == null ) {
-				if ( this.oldFolder == null)
+			if ( this.newParentFolder == null ) {
+				if ( this.oldParentFolder == null)
 					metadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedElement));
 				// else we keep the existing folder 
 			} else
-				metadata.setParentFolder(this.newFolder);
+				metadata.setParentFolder(this.newParentFolder);
 
 			if ( this.view != null && metadata.findConnectables(this.view).isEmpty() ) {
 				this.createdViewObject = ArchimateDiagramModelFactory.createDiagramModelArchimateObject(this.importedElement);
@@ -304,7 +305,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				metadata.setDocumentation(this.oldDocumentation);
 				metadata.setType(this.oldType);
 
-				metadata.setParentFolder(this.oldFolder);
+				metadata.setParentFolder(this.oldParentFolder);
 
 				this.importedElement.getProperties().clear();
 				for ( DBProperty oldProperty: this.oldProperties ) {
