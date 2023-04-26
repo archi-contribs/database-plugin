@@ -1170,7 +1170,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             try {
 				this.txtPassword.setText(databaseEntry.getDecryptedPassword());
 			} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-				DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
+				DBGuiUtils.popup(Level.ERROR, "Database: "+databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 				this.txtPassword.setText("");
 			}
             this.btnExpertMode.setSelection(databaseEntry.isExpertMode());

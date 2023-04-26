@@ -1396,9 +1396,9 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 	/**
 	 * Empty a Neo4J database
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void emptyNeo4jDB() throws Exception {
+	public void emptyNeo4jDB() throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Emptying Neo4J database.");
 		executeRequest("MATCH (n) DETACH DELETE n");
 	}
@@ -2106,7 +2106,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
-			executeRequest("CREATE (new:profiles {id:?, version:?, name:?, is_specialization:?, image_path:?, concept_type:?})"
+			executeRequest("CREATE (new:profiles {id:?, version:?, name:?, is_specialization:?, image_path:?, concept_type:?, created_by:?, created_on:?})"
 				,profile.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,profile.getName()
@@ -2115,7 +2115,6 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 				,profile.getConceptType()
 				,System.getProperty("user.name")
 				,dbMetadata.getCurrentVersion().getTimestamp()
-				,dbMetadata.getCurrentVersion().getChecksum()
 				);
 		} else {
 			insert(this.schemaPrefix+"profiles", profilesColumns

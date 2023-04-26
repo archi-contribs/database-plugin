@@ -81,6 +81,7 @@ public class DBGuiImportModel extends DBGui {
     private Label lblReleaseNote;
     Text txtReleaseNote;
 
+    private Text txtTotalModelItself;
     private Text txtTotalProfiles;
     private Text txtTotalElements;
     private Text txtTotalRelationships;
@@ -90,6 +91,7 @@ public class DBGuiImportModel extends DBGui {
     private Text txtTotalViewConnections;
     private Text txtTotalImages;
 
+    private Text txtImportedModelItself;
     private Text txtImportedProfiles;
     private Text txtImportedElements;
     private Text txtImportedRelationships;
@@ -495,7 +497,7 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setText("Your model components: ");
         
         // we calculate the required height of the grpComponents group
-        int requiredHeight = 10 * (getDefaultLabelHeight() + getDefaultMargin());
+        int requiredHeight = 11 * (getDefaultLabelHeight() + getDefaultMargin());
         
         FormData fd = new FormData();
         fd.top = new FormAttachment(100, -requiredHeight);
@@ -505,11 +507,19 @@ public class DBGuiImportModel extends DBGui {
         this.grpComponents.setLayoutData(fd);
         this.grpComponents.setLayout(new FormLayout());
         
+        Label lblModelItself = new Label(this.grpComponents, SWT.NONE);
+        lblModelItself.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModelItself.setText("Model itself:");
+        fd = new FormData();
+        fd.top = new FormAttachment(0, 25);
+        fd.left = new FormAttachment(0, 30);
+        lblModelItself.setLayoutData(fd);
+        
         Label lblProfiles = new Label(this.grpComponents, SWT.NONE);
         lblProfiles.setBackground(GROUP_BACKGROUND_COLOR);
         lblProfiles.setText("Specializations:");
         fd = new FormData();
-        fd.top = new FormAttachment(0, 25);
+        fd.top = new FormAttachment(lblModelItself, getDefaultMargin());
         fd.left = new FormAttachment(0, 30);
         lblProfiles.setLayoutData(fd);
 
@@ -591,6 +601,24 @@ public class DBGuiImportModel extends DBGui {
 
         /* * * * * */
 
+        this.txtTotalModelItself = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtTotalModelItself.setEditable(false);
+        this.txtTotalModelItself.setEnabled(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblModelItself, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
+        this.txtTotalModelItself.setLayoutData(fd);
+        
+        this.txtImportedModelItself = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
+        this.txtImportedModelItself.setEditable(false);
+        this.txtImportedModelItself.setEnabled(false);
+        fd = new FormData(26,18);
+        fd.top = new FormAttachment(lblModelItself, 0, SWT.CENTER);
+        fd.left = new FormAttachment(lblImported, 0, SWT.LEFT);
+        fd.right = new FormAttachment(lblImported, 0, SWT.RIGHT);
+        this.txtImportedModelItself.setLayoutData(fd);
+        
         this.txtTotalProfiles = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
         this.txtTotalProfiles.setEditable(false);
         this.txtTotalProfiles.setEnabled(false);
@@ -849,6 +877,7 @@ public class DBGuiImportModel extends DBGui {
             
             setProgressBarMinAndMax(0, importSize);
 
+            this.txtTotalModelItself.setText("1");
             this.txtTotalProfiles.setText(toString(this.importConnection.getCountProfilesToImport()));
             this.txtTotalElements.setText(toString(this.importConnection.getCountElementsToImport()));
             this.txtTotalRelationships.setText(toString(this.importConnection.getCountRelationshipsToImport()));
@@ -858,6 +887,7 @@ public class DBGuiImportModel extends DBGui {
             this.txtTotalViewConnections.setText(toString(this.importConnection.getCountViewConnectionsToImport()));
             this.txtTotalImages.setText(toString(this.importConnection.getCountImagesToImport()));
 
+            this.txtImportedModelItself.setText("1");
             this.txtImportedProfiles.setText(toString(0));
             this.txtImportedElements.setText(toString(0));
             this.txtImportedRelationships.setText(toString(0));

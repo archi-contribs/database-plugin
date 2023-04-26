@@ -47,6 +47,7 @@ import com.archimatetool.model.ILineObject;
 import com.archimatetool.model.ILockable;
 import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProfile;
+import com.archimatetool.model.IProfiles;
 import com.archimatetool.model.IProperties;
 import com.archimatetool.model.IProperty;
 import com.archimatetool.model.ISketchModel;
@@ -249,6 +250,9 @@ public class DBChecksum {
 																	append(checksumBuilder, "image path", ((IProfile)eObject).getImagePath());
 																	append(checksumBuilder, "concept type", ((IProfile)eObject).getConceptType());
 			
+		}
+		if ( eObject instanceof IProfiles) {						for ( IProfile profile: ((IProfiles)eObject).getProfiles() )
+																		append(checksumBuilder, "has profile", profile.getId());
 		}
 		
 		return calculateChecksum(checksumBuilder);

@@ -46,7 +46,6 @@ import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
 import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
-import com.archimatetool.model.INameable;
 import com.archimatetool.model.IProfile;
 import com.archimatetool.model.IProfiles;
 import com.archimatetool.model.ModelVersion;
@@ -632,14 +631,16 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     private Comparator<IFolder> folderComparator = new Comparator<IFolder>() {
         @Override
         public int compare(IFolder f1, IFolder f2) {
-            return f1.getName().compareTo(f2.getName());
+            //return f1.getName().compareTo(f2.getName());
+        	return f1.getId().compareTo(f2.getId());
         }
     };
     
     private Comparator<EObject> objectComparator = new Comparator<EObject>() {
         @Override
         public int compare(EObject o1, EObject o2) {
-            return ((INameable)o1).getName().compareTo(((INameable)o2).getName());
+            //return ((INameable)o1).getName().compareTo(((INameable)o2).getName());
+            return ((IIdentifier)o1).getId().compareTo(((IIdentifier)o2).getId());
         }
     };
     

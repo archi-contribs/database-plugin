@@ -79,6 +79,22 @@ import lombok.Getter;
  * 						Fix specialization SQL failures when using PostGreSQL database
  *						Fix canvas import as single component
  *						Fix count images during import model check process
+ *
+ * v4.9.6	25/10/2022
+ * 						Update databases drivers
+ *							MySQL: from 5.1.8.4 to 8.0.30
+ *							PostGreSQL: from 42.2.12 to 42.5.0
+ *							SQLite: from 3.3.0.1 to 3.39.3.0
+ * 							Sql Server: from 8.22 to 11.2.0 (with SSL encryption activated)
+ * 							Oracle: from 10 to 11
+ * 							Neo4J: from 4.0.0 to 4.5.0
+ * 						Fix procedure that checks if a model needs to be exported
+ * 						Fix count images to import that was wrong when specializations did not have any attached image
+ * 						Fix Neo4J request that caused failures during export
+ * 						Fix nested folders import that could lead to components beeing imported in wrong parent
+ * 						Change folders checksum calculation as it could change if two objects have got the same name
+ * 						Update plugin windows position to center them from Archi main window
+ * 						Add stacktrace in error popup in case of exception
  * 
  * -----------------------------------------------------------------------------------------
  * 

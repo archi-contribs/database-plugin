@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.GUI;
 
+import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
@@ -43,6 +44,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -229,7 +231,8 @@ public class DBGui {
 
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
-		this.dialog.setMinimumSize(1280, 850);
+		this.dialog.setSize(1280, 900);
+		this.dialog.setMinimumSize(1280, 900);
 		
         /**
          * Calculate the default height of a Label widget
@@ -238,10 +241,19 @@ public class DBGui {
         label.setText("Test");
         this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
         label.dispose();
-
-        // we center the dialog on the screen
-		int locationX = (display.getBounds().width - this.dialog.getSize().x)/2;
-		int locationY = (display.getBounds().height - this.dialog.getSize().y)/2;
+        
+        // Use the active shell, if available, to determine the new window placing
+        int locationX = 0;
+        int locationY = 0;
+        Shell parent = display.getActiveShell();
+        if (parent!=null) { 
+        	Rectangle parentSize = parent.getBounds();
+	        locationX = (parentSize.width - 1280)/2+parentSize.x;
+	        locationY = (parentSize.height - 850)/2+parentSize.y;
+        } else {
+	        locationX = (Toolkit.getDefaultToolkit().getScreenSize().width - 500) / 4;
+	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - 70) / 4;
+        }    
 
 		this.dialog.setLocation(new Point(locationX, locationY));
 

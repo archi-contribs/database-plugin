@@ -21,6 +21,7 @@ import java.util.ArrayList;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
+
 import javax.crypto.BadPaddingException;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
@@ -40,6 +41,7 @@ import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
+
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
@@ -195,12 +197,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 				try {
 					password = this.databaseEntry.getDecryptedPassword();
 				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-					DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
+					DBGuiUtils.popup(Level.ERROR, "Database: "+this.databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 				}
 
 				// if the username is set but not the password, then we show a popup to ask for the password
 				if ( DBPlugin.isEmpty(password) ) {
-					password = DBGuiUtils.passwordDialog("Please provide the database password", "Database password:");
+					password = DBGuiUtils.passwordDialog("Please provide the database password", "Password for "+this.databaseEntry.getName()+":");
 					if ( password == null ) {
 						// password is null if the user clicked on cancel
 						throw new SQLException("No password provided.");
@@ -209,7 +211,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					try {
 						this.databaseEntry.setDecryptedPassword(password);
 					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
-						DBGuiUtils.popup(Level.ERROR, "Failed to decrypt the password.", err);
+						DBGuiUtils.popup(Level.ERROR, "Database: "+this.databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 					}
 				}
 			}

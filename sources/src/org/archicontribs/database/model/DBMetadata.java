@@ -433,7 +433,8 @@ public class DBMetadata  {
 	        case "capability":
 	        case "courseofaction":
 	    	case "resource":
-	        	return FolderType.STRATEGY_VALUE;
+	    	case "valuestream":
+	        	return FolderType.STRATEGY_VALUE; // 1
 	        	
 	        case "product":
 	        case "businessactor":
@@ -448,9 +449,9 @@ public class DBMetadata  {
 	        case "businessobject":
 	        case "contract":
 	        case "representation":
-	        	return FolderType.BUSINESS_VALUE;
+	        	return FolderType.BUSINESS_VALUE; // 2
 
-	        case "applicationcomponentlabel":
+	        case "applicationcomponent":
 	        case "applicationcollaboration":
 	        case "applicationinterface":
 	        case "applicationfunction":
@@ -458,8 +459,8 @@ public class DBMetadata  {
 	        case "applicationevent":
 	        case "applicationservice":
 	        case "applicationprocess":
-	        case "dataObject":
-	        	return FolderType.APPLICATION_VALUE;
+	        case "dataobject":
+	        	return FolderType.APPLICATION_VALUE; //3
 
 	        case "artifact":
 	        case "technologyfunction":
@@ -479,12 +480,17 @@ public class DBMetadata  {
 	        case "equipment":
 	        case "facility":
 	        case "distributionnetwork":
-	        case "workpackage":
-	        case "deliverable":
-	        case "implementationevent":
-	        case "plateau":
-	        case "gap":
-	        	return FolderType.TECHNOLOGY_VALUE;
+	        	return FolderType.TECHNOLOGY_VALUE; //4
+
+	        case "grouping":
+	        case "location":
+	        case "junction":
+	        	return FolderType.OTHER_VALUE; // 6
+	        
+	        case "archimatediagrammodel":
+	        case "canvasmodel":
+	        case "sketchmodel":
+	        	return FolderType.DIAGRAMS_VALUE; // 7
 
 	        case "stakeholder":
 	        case "driver":
@@ -493,24 +499,21 @@ public class DBMetadata  {
 	        case "outcome":
 	        case "principle":
 	        case "requirement":
-	        case "constaint":
-	        case "smeaning":
+	        case "constraint":
+	        case "meaning":
 	        case "value":
-	        	return FolderType.MOTIVATION_VALUE;
-
-	        case "grouping":
-	        case "location":
-	        case "junction":
-	        	return FolderType.OTHER_VALUE;
-	        
-	        case "archimatediagrammodel":
-	        case "canvasmodel":
-	        case "sketchmodel":
-	        	return FolderType.DIAGRAMS_VALUE;
+	        	return FolderType.MOTIVATION_VALUE; // 8
 	        	
+	        case "workpackage":
+	        case "deliverable":
+	        case "implementationevent":
+	        case "plateau":
+	        case "gap":
+	        	return FolderType.IMPLEMENTATION_MIGRATION_VALUE; // 9
+
 	        default:
 	        	if ( clazz.toLowerCase().endsWith("relationship") )
-	        		return FolderType.RELATIONS_VALUE;
+	        		return FolderType.RELATIONS_VALUE; // 5
 	        	return 0;
     	}
     }

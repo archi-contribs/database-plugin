@@ -91,10 +91,8 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 		this.view = archimateDiagramModel;
 		this.id = idToImport;
 		
-		DBMetadata dbMetadata = archimateModel.getDBMetadata(archimateDiagramModel);
-
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing relationship id " + idToImport + " version " + versionToImport + " in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+dbMetadata.getDebugName() : "."));
+		    logger.debug("   Importing relationship id " + this.id + " version " + versionToImport +" in " + importMode.getLabel() + ((archimateDiagramModel != null) ? ", into view."+archimateDiagramModel.getName()+"("+archimateDiagramModel.getId()+")" : ", no view") + ((parentFolder != null) ? ", into folder "+parentFolder.getName()+"("+parentFolder.getId()+")" : ", no folder"));
 
 
 		try {
@@ -258,10 +256,12 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 					}
 				}
 			}
-
-			if ( this.newParentFolder == null )
-				dbMetadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
-			else
+			
+			if ( this.newParentFolder == null ) {
+				if ( this.oldParentFolder == null)
+					dbMetadata.setParentFolder(this.model.getDefaultFolderForObject(this.importedRelationship));
+				// else we keep the existing folder 
+			} else
 				dbMetadata.setParentFolder(this.newParentFolder);
 
 			if ( this.isNew )

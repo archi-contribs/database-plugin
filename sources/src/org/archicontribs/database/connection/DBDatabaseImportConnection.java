@@ -179,7 +179,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		int version = objectVersion;
 		HashMap<String, Object> hashResult = null;
 
-		if ( logger.isDebugEnabled() ) logger.debug("   Getting "+clazz);
+		if ( logger.isDebugEnabled() ) logger.debug("   Getting "+clazz+" #"+id+" from the database");
 
 		try {
 			if ( version == 0 ) {
@@ -481,7 +481,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				" UNION "+
 				" SELECT DISTINCT image_path FROM "+this.schemaPrefix+"profiles_in_model"+
 				" JOIN "+this.schemaPrefix+"profiles ON profiles.id = profiles_in_model.profile_id AND profiles.version = "+profilesVersionToImport+
-				" WHERE model_id = ? AND model_version = ?"+
+				" WHERE model_id = ? AND model_version = ? AND image_path IS NOT NULL"+
 				") pldr"
 				,model.getId()
 				,model.getInitialVersion().getVersion()

@@ -306,11 +306,11 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
                 if ( (newContainer != null) && (newContainer != this.oldContainer) ) {
                     if ( this.oldContainer != null ) {
-                        if ( logger.isTraceEnabled() ) logger.trace("   Removing from container "+this.model.getDBMetadata(this.oldContainer).getDebugName());
+                        if ( logger.isTraceEnabled() ) logger.trace("   Removing "+this.model.getDBMetadata(this.importedViewObject).getDebugName()+" from container "+this.model.getDBMetadata(this.oldContainer).getDebugName());
                         this.oldContainer.getChildren().remove((IDiagramModelObject)this.importedViewObject);
                     }
 
-                    if ( logger.isTraceEnabled() ) logger.trace("   Assigning to container "+this.model.getDBMetadata(newContainer).getDebugName());
+                    if ( logger.isTraceEnabled() ) logger.trace("   Assigning "+this.model.getDBMetadata(this.importedViewObject).getDebugName()+" to container "+this.model.getDBMetadata(newContainer).getDebugName());
                     newContainer.getChildren().add((IDiagramModelObject)this.importedViewObject);
                 }
             }

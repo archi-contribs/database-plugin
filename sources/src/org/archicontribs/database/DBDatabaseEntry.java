@@ -75,7 +75,7 @@ public class DBDatabaseEntry {
         switch (this.getDriver()) {
             case "postgresql":  return "org.postgresql.Driver";
             case "ms-sql":      return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-            case "mysql":       return "com.mysql.jdbc.Driver";
+            case "mysql":       return "com.mysql.cj.jdbc.Driver";
             case "neo4j":       return "org.neo4j.jdbc.Driver";
             case "oracle":      return "oracle.jdbc.driver.OracleDriver";
             case "sqlite":      return "org.sqlite.JDBC";
@@ -270,11 +270,13 @@ public class DBDatabaseEntry {
                     break;
                 case "ms-sql":
                     this.jdbcConnectionString = "jdbc:sqlserver://" + this.getServer() + ":" + this.getPort() + ";databaseName=" + this.getDatabase();
-				try {
-					if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getDecryptedPassword()) )
-                        this.jdbcConnectionString += ";integratedSecurity=true";
+					try {
+						if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getDecryptedPassword()) )
+	                        this.jdbcConnectionString += ";integratedSecurity=true";
+						// we enable SSL encryption
+						this.jdbcConnectionString+=";encrypt=true;trustServerCertificate=true";
 					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException e) {
-						DBGuiUtils.popup(Level.ERROR, "Failed to decrypt password.", e);
+						DBGuiUtils.popup(Level.ERROR, "Database: "+this.database+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", e);
 						this.jdbcConnectionString = "";
 					}
                     break;

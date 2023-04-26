@@ -98,7 +98,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 		this.mustImportTheRelationships = mustImportRelationships;
 
 		if ( logger.isDebugEnabled() )
-			logger.debug("   Importing element id " + this.id + " version " + versionToImport +" in " + importMode.getLabel() + ((archimateDiagramModel != null) ? " into view."+archimateDiagramModel.getId() : "."));
+			logger.debug("   Importing element id " + this.id + " version " + versionToImport +" in " + importMode.getLabel() + ((archimateDiagramModel != null) ? ", into view."+archimateDiagramModel.getName()+"("+archimateDiagramModel.getId()+")" : ", no view") + ((parentFolder != null) ? ", into folder "+parentFolder.getName()+"("+parentFolder.getId()+")" : ", no folder"));
 
 		try {
 			// we get the new values from the database to allow execute and redo

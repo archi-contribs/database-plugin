@@ -12,7 +12,11 @@ import org.apache.log4j.Priority;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.model.DBMetadata;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.MultiStatus;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.jface.dialogs.ErrorDialog;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -158,29 +162,42 @@ public class DBGuiUtils {
         display.syncExec(new Runnable() {
         	@Override
         	public void run() {
-        		String popupMessage = msg;
-        		Throwable cause = e;
-        		while ( cause != null ) {
-        			if ( cause.getMessage() != null ) {
-        				if ( !popupMessage.endsWith(cause.getMessage()) )
-        					popupMessage += "\n\n" + cause.getClass().getSimpleName() + ": " + cause.getMessage();
-        			} else 
-        				popupMessage += "\n\n" + cause.getClass().getSimpleName();
-        			cause = cause.getCause();
-        		}
+        		int statusSeverity;
+        		int dialogKind;
 
         		switch ( level.toInt() ) {
         		case Priority.FATAL_INT:
         		case Priority.ERROR_INT:
-        			MessageDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+        			statusSeverity = IStatus.ERROR;
+        			dialogKind = MessageDialog.ERROR;
         			break;
         		case Priority.WARN_INT:
-        			MessageDialog.openWarning(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+        			statusSeverity = IStatus.WARNING;
+        			dialogKind = MessageDialog.WARNING;
         			break;
         		default:
-        			MessageDialog.openInformation(display.getActiveShell(), DBPlugin.pluginTitle, popupMessage);
+        			statusSeverity = IStatus.INFO;
+        			dialogKind = MessageDialog.INFORMATION;
         			break;
         		}
+        		
+    			if ( e != null ) {
+    				List<Status> childStatuses = new ArrayList<>();
+    		        Throwable err = e;
+    		        while ( err != null ) {
+	    				for (StackTraceElement stackTrace: e.getStackTrace())
+	    		            childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, stackTrace.toString()));
+	    				err = err.getCause();
+	    				if ( err != null ) {
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, ""));
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, "Caused by ..."));
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, ""));
+	    				}
+    		        }
+    		        MultiStatus multiStatus = new MultiStatus(DBPlugin.pluginTitle, statusSeverity, childStatuses.toArray(new Status[] {}), e.toString(), e);
+    				ErrorDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, msg, multiStatus);
+    			} else
+    				MessageDialog.open(dialogKind, display.getActiveShell(), DBPlugin.pluginTitle, msg, SWT.NONE);
         	}
         });
 
