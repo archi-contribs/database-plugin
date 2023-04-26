@@ -43,7 +43,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.ImageLoader;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -55,7 +54,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Monitor;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
@@ -119,7 +117,6 @@ public class DBGui {
 
 	protected static final Display display = Display.getCurrent() == null ? Display.getDefault() : Display.getCurrent();
 	protected Shell dialog;
-	protected Shell parentDialog;
 
 	protected boolean includeNeo4j = true;
 
@@ -230,11 +227,9 @@ public class DBGui {
 
 		DBGuiUtils.setWaitCursor();
 
-		this.parentDialog = display.getActiveShell();
-		Rectangle parentBounds = this.parentDialog.getBounds();
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
 		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
-		this.dialog.setMinimumSize(1024, 768);
+		this.dialog.setMinimumSize(1280, 850);
 		
         /**
          * Calculate the default height of a Label widget
@@ -243,18 +238,10 @@ public class DBGui {
         label.setText("Test");
         this.defaultLabelHeight = label.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
         label.dispose();
-		
-		// in case the monitor is smaller than 1280x850 (which may be the case on some laptops)
-		Monitor[] monitors = display.getMonitors();
-		
-		for (int i = 0; i < monitors.length; i++) {
-			Rectangle monitorBounds = monitors[i].getBounds();
-		    if (monitorBounds.intersects(parentBounds))
-		    	this.dialog.setSize(Math.min(monitorBounds.width, 1400), Math.min(monitorBounds.height, 1024));
-		}
 
-		int locationX = parentBounds.x + (parentBounds.width - this.dialog.getSize().x)/2;
-		int locationY = parentBounds.y + (parentBounds.height - this.dialog.getSize().y)/2;
+        // we center the dialog on the screen
+		int locationX = (display.getBounds().width - this.dialog.getSize().x)/2;
+		int locationY = (display.getBounds().height - this.dialog.getSize().y)/2;
 
 		this.dialog.setLocation(new Point(locationX, locationY));
 

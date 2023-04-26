@@ -374,27 +374,22 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
 		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
 
-		String versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"profiles WHERE profiles.id = profiles_in_model.profile_id)" : "profiles_in_model.profile_version";
+		String profilesVersionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"profiles WHERE profiles.id = profiles_in_model.profile_id)" : "profiles_in_model.profile_version";
 		String selectProfilesRequest = "SELECT DISTINCT profile_id, profile_version, name, is_specialization, image_path, concept_type, created_on, checksum, pos"
 				+ " FROM "+this.schemaPrefix+"profiles_in_model"
-				+ " JOIN "+this.schemaPrefix+"profiles ON profiles.id = profiles_in_model.profile_id AND profiles.version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"profiles ON profiles.id = profiles_in_model.profile_id AND profiles.version = "+profilesVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
 		try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countProfiles FROM ("+selectProfilesRequest+") pldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultProfiles.next();
 			this.countProfilesToImport = resultProfiles.getInt("countProfiles");
 			this.countProfilesImported = 0;
 		}
-		// images can also be found in profiles
-		try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countImages FROM ("+selectProfilesRequest+" AND image_path IS NOT null) pldr", model.getId(), model.getInitialVersion().getVersion()) ) {
-			resultProfiles.next();
-			this.countImagesToImport = resultProfiles.getInt("countImages");
-		}
 		this.importProfilesRequest = selectProfilesRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 		
-		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
+		String foldersVersionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE folders.id = folders_in_model.folder_id)" : "folders_in_model.folder_version";
 		String selectFoldersRequest = "SELECT DISTINCT folder_id, folder_version, parent_folder_id, type, root_type, name, "+this.toCharDocumentationAsDocumentation+", created_on, properties, features, checksum, pos"
 				+ " FROM "+this.schemaPrefix+"folders_in_model"
-				+ " JOIN "+this.schemaPrefix+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"folders ON folders.id = folders_in_model.folder_id AND folders.version = "+foldersVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
 		try ( DBSelect resultFolders = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countFolders FROM ("+selectFoldersRequest+") fldrs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultFolders.next();
@@ -403,10 +398,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 		this.importFoldersRequest = selectFoldersRequest + " ORDER BY pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 		
-		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = element_id)" : "element_version";
+		String elementsVersionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = element_id)" : "element_version";
 		this.importElementsRequest = "SELECT DISTINCT element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentationAsDocumentation+", profile, created_on, properties, features, checksum"
 				+ " FROM "+this.schemaPrefix+"elements_in_model"
-				+ " JOIN "+this.schemaPrefix+"elements ON elements.id = element_id AND version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"elements ON elements.id = element_id AND version = "+elementsVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
 				+ " GROUP BY element_id, parent_folder_id, version, class, name, type, "+this.toCharDocumentation+", profile, created_on, properties, features, checksum";
 		try (DBSelect resultElements = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countElements FROM ("+this.importElementsRequest+") elts", model.getId(), model.getInitialVersion().getVersion()) ) {
@@ -416,10 +411,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 
 
-		versionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"relationships WHERE id = relationship_id)" : "relationship_version";
+		String relationshipsVersionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"relationships WHERE id = relationship_id)" : "relationship_version";
 		this.importRelationshipsRequest = "SELECT DISTINCT relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentationAsDocumentation+", source_id, target_id, "+this.toCharStrengthAsStrength+", access_type, is_directed, profile, created_on, properties, features, checksum"
 				+ " FROM "+this.schemaPrefix+"relationships_in_model"
-				+ " INNER JOIN "+this.schemaPrefix+"relationships ON id = relationship_id AND version = "+versionToImport
+				+ " INNER JOIN "+this.schemaPrefix+"relationships ON id = relationship_id AND version = "+relationshipsVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?"
 				+ " GROUP BY relationship_id, parent_folder_id, version, class, name, "+this.toCharDocumentation+", source_id, target_id, "+this.toCharStrength+", access_type, is_directed, profile, created_on, properties, features, checksum";
 		try ( DBSelect resultRelationships = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countRelationships FROM ("+this.importRelationshipsRequest+") relts"
@@ -431,10 +426,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			this.countRelationshipsImported = 0;
 		}
 
-		versionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schemaPrefix+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
+		String viewsVersionToImport = model.isLatestVersionImported() ? "(select max(version) from "+this.schemaPrefix+"views where views.id = views_in_model.view_id)" : "views_in_model.view_version";
 		String selectViewsRequest = "SELECT DISTINCT id, version, parent_folder_id, class, name, "+this.toCharDocumentationAsDocumentation+", background, connection_router_type, viewpoint, created_on, properties, features, checksum, container_checksum, pos"
 				+ " FROM "+this.schemaPrefix+"views_in_model"
-				+ " JOIN "+this.schemaPrefix+"views ON views.id = views_in_model.view_id AND views.version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"views ON views.id = views_in_model.view_id AND views.version = "+viewsVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
 		try ( DBSelect resultViews = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countViews FROM ("+selectViewsRequest+") vws", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViews.next();
@@ -447,7 +442,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		String selectViewsObjectsRequest = "SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, "+this.toCharContentAsContent+", "+this.toCharDocumentationAsDocumentation+", is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, "+this.toCharNotesAsNotes+", text_alignment, text_position, type, x, y, width, height, properties, features, checksum"
 				+ " FROM "+this.schemaPrefix+"views_objects"
 				+ " JOIN "+this.schemaPrefix+"views_objects_in_view ON views_objects_in_view.object_id = views_objects.id AND views_objects_in_view.object_version = views_objects.version"
-				+ " JOIN "+this.schemaPrefix+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"views_in_model ON views_objects_in_view.view_id = views_in_model.view_id AND views_objects_in_view.view_version = "+viewsVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
 		try ( DBSelect resultViewObjects = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countViewsObjects FROM ("+selectViewsObjectsRequest+") vobjs", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewObjects.next();
@@ -460,7 +455,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		String selectViewsConnectionsRequest = "SELECT DISTINCT id, version, class, container_id, name, "+this.toCharDocumentationAsDocumentation+", is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, properties, features, checksum "
 				+ " FROM "+this.schemaPrefix+"views_connections"
 				+ " JOIN "+this.schemaPrefix+"views_connections_in_view ON views_connections_in_view.connection_id = views_connections.id AND views_connections_in_view.connection_version = views_connections.version"
-				+ " JOIN "+this.schemaPrefix+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = "+versionToImport
+				+ " JOIN "+this.schemaPrefix+"views_in_model ON views_connections_in_view.view_id = views_in_model.view_id AND views_connections_in_view.view_version = "+viewsVersionToImport
 				+ " WHERE model_id = ? AND model_version = ?";
 		try ( DBSelect resultViewConnections = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countViewsConnections FROM ("+selectViewsConnectionsRequest+") vcons", model.getId(), model.getInitialVersion().getVersion()) ) {
 			resultViewConnections.next();
@@ -469,12 +464,27 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 		// (unused) this.importViewsConnectionsRequest = this.selectViewsConnectionsRequest + " ORDER BY views_connections.pos";				// we need to put aside the ORDER BY from the SELECT FROM SELECT because of SQL Server
 
-		try ( DBSelect resultImages = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(DISTINCT image_path) AS countImages"+
-				" FROM "+this.schemaPrefix+"views_in_model"+
+		
+		
+		//try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(DISTINCT image_path) AS countImages FROM ("+selectProfilesRequest+" AND image_path IS NOT null) pldr", model.getId(), model.getInitialVersion().getVersion()) ) {
+		//	resultProfiles.next();
+		//	this.countImagesToImport = resultProfiles.getInt("countImages");
+		//}
+		
+		// images can be found in views and in profiles
+		try ( DBSelect resultImages = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT COUNT(*) AS countImages FROM ("+
+				" SELECT DISTINCT image_path FROM "+this.schemaPrefix+"views_in_model"+
 				" INNER JOIN "+this.schemaPrefix+"views ON views_in_model.view_id = views.id AND views_in_model.view_version = views.version"+
 				" INNER JOIN "+this.schemaPrefix+"views_objects_in_view ON views_objects_in_view.view_id = views.id AND views_objects_in_view.view_version = views.version"+
 				" INNER JOIN "+this.schemaPrefix+"views_objects ON views_objects.id = views_objects_in_view.object_id AND views_objects.version = views_objects_in_view.object_version"+
-				" WHERE model_id = ? AND model_version = ? AND image_path IS NOT NULL" 
+				" WHERE model_id = ? AND model_version = ? AND image_path IS NOT NULL"+
+				" UNION "+
+				" SELECT DISTINCT image_path FROM "+this.schemaPrefix+"profiles_in_model"+
+				" JOIN "+this.schemaPrefix+"profiles ON profiles.id = profiles_in_model.profile_id AND profiles.version = "+profilesVersionToImport+
+				" WHERE model_id = ? AND model_version = ?"+
+				") pldr"
+				,model.getId()
+				,model.getInitialVersion().getVersion()
 				,model.getId()
 				,model.getInitialVersion().getVersion()
 				))

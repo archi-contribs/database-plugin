@@ -1057,6 +1057,28 @@ public class DBMetadata  {
     	return null;
     }
     
+    public Boolean isSpecialization() {
+    	if ( this.component instanceof IProfile )
+    		return ((IProfile)this.component).isSpecialization();
+    	return null;
+    }
+    public Integer isSpecializationAsInteger() {
+    	if ( this.component instanceof IProfile )
+    		return ((IProfile)this.component).isSpecialization() ? 1 : 0;
+    	return null;
+    }
+    
+    public void setSpecialization(boolean specialization) {
+    	if ( this.component instanceof IProfile )
+    		((IProfile)this.component).setSpecialization(specialization);
+    }
+    
+    public void setSpecialization(Object specialization) {
+    	if ( this.component instanceof IProfile )
+    		((IProfile)this.component).setSpecialization(DBPlugin.getBooleanValue(specialization));
+    }
+    
+    
     public IProfile getPrimaryProfile() {
     	try {
     		if ( this.component instanceof IProfiles )
