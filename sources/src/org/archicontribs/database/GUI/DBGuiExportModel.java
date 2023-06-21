@@ -76,6 +76,8 @@ import com.archimatetool.model.IFolder;
 import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.IProfile;
 
+import lombok.Getter;
+
 /**
  * This class holds the methods requires to export a model in a database
  * 
@@ -141,8 +143,10 @@ public class DBGuiExportModel extends DBGui {
 		// We activate the Eclipse Help framework
 		setHelpHref("exportModel.html");
 
-		// we get the model'sstack that is used for undo / redo
+		// we get the model's stack that is used for undo / redo
 		this.stack = (CommandStack)this.exportedModel.getAdapter(CommandStack.class);
+		
+        this.includeNeo4j = true;
 	}
 
 	@Override
@@ -171,7 +175,7 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalImages.setText(toString(this.exportedModel.getAllImagePaths().size()));
 
 		try {
-			getDatabases(true, this.exportedModel.getImportDatabaseId(), null);
+			getDatabases(this.includeNeo4j, this.exportedModel.getImportDatabaseId(), null);
 		} catch (Exception err) {
 			DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
 			return;
@@ -1957,8 +1961,9 @@ public class DBGuiExportModel extends DBGui {
 	 * Loop on model components and call doExportEObject to export them<br>
 	 * <br>
 	 * This method is called when the user clicks on the "Export" button
+	 * @return 1 if the model has been successfully exported, 0 if the model does not need to be exported, -1 in case of error
 	 */
-	protected void export() {
+	public int export() {
 		logger.info("Exporting model: ");
 
 		// we disable the export button to avoid a second click
@@ -2016,7 +2021,7 @@ public class DBGuiExportModel extends DBGui {
 				if ( compareModelToDatabase(false) ) {
 					setActiveAction(STATUS.Ok);
 					doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
-					return;
+					return 0;
 				}
 			}
 
@@ -2116,7 +2121,7 @@ public class DBGuiExportModel extends DBGui {
 					this.tblListConflicts.notifyListeners(SWT.Selection, new Event());      // shows up the tblListConflicts table and calls fillInCompareTable()
 
 					// when the conflicts are resolved, the export() method will be called again
-					return;
+					return 0;
 				}
 			}
 
@@ -2552,7 +2557,7 @@ public class DBGuiExportModel extends DBGui {
 					setActiveAction(STATUS.Ok);
 					doShowResult(STATUS.Ok, "Your model is now in sync with the database.");
 					// TODO: loop on getAllXXX to fill in the txtTotalXXXX fields
-					return;
+					return 0;
 				}
 			}
 
@@ -2578,157 +2583,311 @@ public class DBGuiExportModel extends DBGui {
 				}
 			}
 			
-			// EXPORT PROFILES
+			// EXPORT SPECIALIZATIONS (ie profiles)
+			int countNew = 0;
+			int countUpdated = 0;
+			int countNotExported = 0;
 			setProgressBarLabel("Exporting specializations ...");
 			Iterator<IProfile> profilesIterator = this.exportedModel.getProfiles().iterator();
 			while ( profilesIterator.hasNext() ) {
-				EObject componentToExport = profilesIterator.next();
-				if ( isNeo4JDatabase )
-					doExport(componentToExport, this.txtNewProfilesInModel);
-				else {
-					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-						doExport(componentToExport, this.txtNewProfilesInModel);
-					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-						doExport(componentToExport, this.txtUpdatedProfilesInModel);
+				EObject componentToExport = profilesIterator.next();				
+				DATABASE_STATUS dbStatus = isNeo4JDatabase ? DATABASE_STATUS.isNewInModel : this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
+				
+				if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+					this.exportConnection.exportEObject(componentToExport);
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtNewProfilesInModel);
+						incrementText(this.txtTotalProfiles);
+						increaseProgressBar();
+					}
+					++countNew;
+				} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+					this.exportConnection.exportEObject(componentToExport);
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtUpdatedProfilesInModel);
+						incrementText(this.txtTotalProfiles);
+						increaseProgressBar();
+					}
+					++countUpdated;
+				} else
+					++countNotExported;
 
-					this.exportConnection.assignEObjectToModel(componentToExport);
-				}
-				incrementText(this.txtTotalProfiles);
-				increaseProgressBar();
+				this.exportConnection.assignEObjectToModel(componentToExport);
 			}
+            if ( !this.showRealTimeNumbers ) {
+            	incrementText(this.txtNewProfilesInModel, countNew);
+            	incrementText(this.txtUpdatedProfilesInModel, countUpdated);
+            	incrementText(this.txtTotalProfiles, countNew+countUpdated+countNotExported);
+            	increaseProgressBar(countNew+countUpdated+countNotExported);
+            }
 			
 			// EXPORT ELEMENTS
+			countNew = 0;
+			countUpdated = 0;
+			countNotExported = 0;
 			setProgressBarLabel("Exporting elements ...");
 			Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 			while ( elementsIterator.hasNext() ) {
 				EObject componentToExport = elementsIterator.next().getValue();
-				if ( isNeo4JDatabase )
-					doExport(componentToExport, this.txtNewElementsInModel);
-				else {
+				if ( isNeo4JDatabase ) {
+					this.exportConnection.exportEObject(componentToExport);
+					if ( this.showRealTimeNumbers )
+						incrementText(this.txtNewElementsInModel);
+					++countNew;
+				} else {
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-						doExport(componentToExport, this.txtNewElementsInModel);
-					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-						doExport(componentToExport, this.txtUpdatedElementsInModel);
-
+					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtNewElementsInModel);
+						++countNew;
+					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtUpdatedElementsInModel);
+						++countUpdated;
+					} else
+						++countNotExported;
+					
 					this.exportConnection.assignEObjectToModel(componentToExport);
+				} 
+				
+				if ( this.showRealTimeNumbers ) {
+					incrementText(this.txtTotalElements);
+					increaseProgressBar();
 				}
-				incrementText(this.txtTotalElements);
-				increaseProgressBar();
 			}
+            if ( !this.showRealTimeNumbers ) {
+            	incrementText(this.txtNewElementsInModel, countNew);
+            	incrementText(this.txtUpdatedElementsInModel, countUpdated);
+            	incrementText(this.txtTotalElements, countNew+countUpdated+countNotExported);
+            	increaseProgressBar(countNew+countUpdated+countNotExported);
+            }
 
 			// EXPORT RELATIONSHIPS
+			countNew = 0;
+			countUpdated = 0;
+			countNotExported = 0;
 			setProgressBarLabel("Exporting relationships ...");
 			Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 			while ( relationshipsIterator.hasNext() ) {
 				EObject componentToExport = relationshipsIterator.next().getValue();
-				if ( isNeo4JDatabase )
-					doExport(componentToExport, this.txtNewRelationshipsInModel);
-				else {
+				if ( isNeo4JDatabase ) {
+					this.exportConnection.exportEObject(componentToExport);
+					if ( this.showRealTimeNumbers )
+						incrementText(this.txtNewRelationshipsInModel);
+					++countNew;
+				} else {
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-						doExport(componentToExport, this.txtNewRelationshipsInModel);
-					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-						doExport(componentToExport, this.txtUpdatedRelationshipsInModel);
-
+					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtNewRelationshipsInModel);
+						++countNew;
+					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtUpdatedRelationshipsInModel);
+						++countUpdated;
+					} else
+						++countNotExported;
+					
 					this.exportConnection.assignEObjectToModel(componentToExport);
 				}
-				incrementText(this.txtTotalRelationships);
-				increaseProgressBar();
+				if ( this.showRealTimeNumbers ) {
+					incrementText(this.txtTotalRelationships);
+					increaseProgressBar();
+				}
 			}
+			if ( !this.showRealTimeNumbers ) {
+            	incrementText(this.txtNewRelationshipsInModel, countNew);
+            	incrementText(this.txtUpdatedRelationshipsInModel, countUpdated);
+            	incrementText(this.txtTotalRelationships, countNew+countUpdated+countNotExported);
+            	increaseProgressBar(countNew+countUpdated+countNotExported);
+            }
 
 			if ( !isNeo4JDatabase ) {
+				countNew = 0;
+				countUpdated = 0;
+				countNotExported = 0;
 				setProgressBarLabel("Exporting folders ...");
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
 					EObject componentToExport = foldersIterator.next().getValue();
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-						doExport(componentToExport, this.txtNewFoldersInModel);
-					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-						doExport(componentToExport, this.txtUpdatedFoldersInModel);
+					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtNewFoldersInModel);
+						++countNew;
+					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtUpdatedFoldersInModel);
+						++countUpdated;
+					} else
+						++countNotExported;
 					
 					this.exportConnection.assignEObjectToModel(componentToExport);
-					incrementText(this.txtTotalFolders);
-					increaseProgressBar();
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtTotalFolders);
+						increaseProgressBar();
+					}
 				}
+				if ( !this.showRealTimeNumbers ) {
+	            	incrementText(this.txtNewFoldersInModel, countNew);
+	            	incrementText(this.txtUpdatedFoldersInModel, countUpdated);
+	            	incrementText(this.txtTotalFolders, countNew+countUpdated+countNotExported);
+	            	increaseProgressBar(countNew+countUpdated+countNotExported);
+	            }
 
 				setProgressBarLabel("Exporting views ...");
+				countNew = 0;
+				countUpdated = 0;
+				countNotExported = 0;
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					EObject componentToExport = viewsIterator.next().getValue();
-					Text txtFieldToIncrement = null;
 					DBMetadata metadata = this.exportedModel.getDBMetadata(componentToExport);
 					DATABASE_STATUS dbStatus = metadata.getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-							txtFieldToIncrement = this.txtNewViewsInModel;
+					Text txtFieldToIncrement = null;
+					if ( dbStatus == DATABASE_STATUS.isNewInModel )
+						txtFieldToIncrement = this.txtNewViewsInModel;
 					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-							txtFieldToIncrement = this.txtUpdatedViewsInModel;
-
+						txtFieldToIncrement = this.txtUpdatedViewsInModel;
+					
 					if ( txtFieldToIncrement != null ) {
 						if ( metadata.getScreenshot().isScreenshotActive() ) {
-							setProgressBarLabel("Creating screenshot of view \""+metadata.getName()+"\"");
+							if ( this.showRealTimeNumbers )
+								setProgressBarLabel("Creating screenshot of view \""+metadata.getName()+"\"");
 							createImage((IDiagramModel)componentToExport, this.exportConnection.getDatabaseEntry().getViewsImagesScaleFactor(), this.exportConnection.getDatabaseEntry().getViewsImagesBorderWidth());
-							setProgressBarLabel("Exporting views ...");
+							if ( this.showRealTimeNumbers )
+								setProgressBarLabel("Exporting views ...");
 						}
-						doExport(componentToExport, txtFieldToIncrement);
+						this.exportConnection.exportEObject(componentToExport);
 						metadata.setExported(true);
-					} else
+						
+						if ( this.showRealTimeNumbers ) {
+							incrementText(txtFieldToIncrement);
+							if ( txtFieldToIncrement == this.txtNewViewsInModel )
+								++countNew;
+							else
+								++countUpdated;
+						}
+					} else {
+						++countNotExported;
 						metadata.setExported(false);
+					}
 
 					this.exportConnection.assignEObjectToModel(componentToExport);
-					incrementText(this.txtTotalViews);
-					increaseProgressBar();
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtTotalViews);
+						increaseProgressBar();
+					}
 				}
+				if ( !this.showRealTimeNumbers ) {
+	            	incrementText(this.txtNewViewsInModel, countNew);
+	            	incrementText(this.txtUpdatedViewsInModel, countUpdated);
+	            	incrementText(this.txtTotalViews, countNew+countUpdated+countNotExported);
+	            	increaseProgressBar(countNew+countUpdated+countNotExported);
+	            }
 
 				setProgressBarLabel("Exporting view objects ...");
+				countNew = 0;
+				countUpdated = 0;
+				countNotExported = 0;
 				Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 				while ( viewObjectsIterator.hasNext() ) {
 					IDiagramModelObject componentToExport = viewObjectsIterator.next().getValue();
 
 					if ( this.exportedModel.getDBMetadata(componentToExport.getDiagramModel()).isExported() ) {
 						DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-						if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-							doExport(componentToExport, this.txtNewViewObjectsInModel);
-						else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-							doExport(componentToExport, this.txtUpdatedViewObjectsInModel);
+						if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+							this.exportConnection.exportEObject(componentToExport);
+							if ( this.showRealTimeNumbers )
+								incrementText(this.txtNewViewObjectsInModel);
+							++countNew;
+						} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+							this.exportConnection.exportEObject(componentToExport);
+							if ( this.showRealTimeNumbers )
+								incrementText(this.txtUpdatedViewObjectsInModel);
+							++countUpdated;
+						} else
+							++countNotExported;
 						
 						this.exportConnection.assignEObjectToModel(componentToExport);
 					}
-					
-					incrementText(this.txtTotalViewObjects);
-					increaseProgressBar();
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtTotalViewObjects);
+						increaseProgressBar();
+					}
 				}
+				if ( !this.showRealTimeNumbers ) {
+	            	incrementText(this.txtNewViewObjectsInModel, countNew);
+	            	incrementText(this.txtUpdatedViewObjectsInModel, countUpdated);
+	            	incrementText(this.txtTotalViewObjects, countNew+countUpdated+countNotExported);
+	            	increaseProgressBar(countNew+countUpdated+countNotExported);
+	            }
 
 				setProgressBarLabel("Exporting view connections ...");
+				countNew = 0;
+				countUpdated = 0;
+				countNotExported = 0;
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection componentToExport = viewConnectionsIterator.next().getValue();
 					
 					if ( this.exportedModel.getDBMetadata(componentToExport.getDiagramModel()).isExported() ) {
 						DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-						if ( dbStatus == DATABASE_STATUS.isNewInModel ) 
-							doExport(componentToExport, this.txtNewViewConnectionsInModel);
-						else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
-							doExport(componentToExport, this.txtUpdatedViewConnectionsInModel);
-						
+						if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+							this.exportConnection.exportEObject(componentToExport);
+							if ( this.showRealTimeNumbers )
+								incrementText(this.txtNewViewConnectionsInModel);
+							++countNew;
+						} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+							this.exportConnection.exportEObject(componentToExport);
+							if ( this.showRealTimeNumbers )
+								incrementText(this.txtUpdatedViewConnectionsInModel);
+							++countUpdated;
+						} else
+							++countNotExported;
 						this.exportConnection.assignEObjectToModel(componentToExport);
 					}
-
-					incrementText(this.txtTotalViewConnections);
-					increaseProgressBar();
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtTotalViewConnections);
+						increaseProgressBar();
+					}
 				}
+				if ( !this.showRealTimeNumbers ) {
+	            	incrementText(this.txtNewViewConnectionsInModel, countNew);
+	            	incrementText(this.txtUpdatedViewConnectionsInModel, countUpdated);
+	            	incrementText(this.txtTotalViewConnections, countNew+countUpdated+countNotExported);
+	            	increaseProgressBar(countNew+countUpdated+countNotExported);
+	            }
 
 				setProgressBarLabel("Exporting images ...");
+				countNew = 0;
+				countNotExported = 0;
 				// no need to use imagesNotInModel as the requested images have been imported at the same time as their view object
 				IArchiveManager archiveMgr = (IArchiveManager)this.exportedModel.getAdapter(IArchiveManager.class);
 				for ( String path: this.exportedModel.getAllImagePaths() ) {
-					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) )
-						incrementText(this.txtNewImagesInModel);
-					incrementText(this.txtTotalImages);
-					increaseProgressBar();
+					if ( this.exportConnection.exportImage(path, archiveMgr.getBytesFromEntry(path)) ) {
+						if ( this.showRealTimeNumbers )
+							incrementText(this.txtNewImagesInModel);
+						++countNew;
+					} else
+						++countNotExported;
+					
+					if ( this.showRealTimeNumbers ) {
+						incrementText(this.txtTotalImages);
+						increaseProgressBar();
+					}
 				}
+				if ( !this.showRealTimeNumbers ) {
+					incrementText(this.txtNewImagesInModel, countNew);
+					incrementText(this.txtTotalImages, countNew+countNotExported);
+	            	increaseProgressBar(countNew+countNotExported);
+	            }
 
 				// we register the undoableCommands on the model's stack, this way, the user will be able to manually undo them
 				this.stack.execute(undoableCommands);
@@ -2772,7 +2931,7 @@ public class DBGuiExportModel extends DBGui {
 				}
 			}
 
-			return;
+			return -1;
 		}
 
 		// if we're here, it means that no exception has been raised during the export process
@@ -2783,18 +2942,20 @@ public class DBGuiExportModel extends DBGui {
 			copyCurrentVersionToInitialVersion();
 
 			doShowResult(STATUS.Ok, "*** Export successful ***");
+			return 1;
 		} catch (Exception err) {
 			setActiveAction(STATUS.Error);
 			doShowResult(STATUS.Error, "Failed to commit the database transaction.\n"+err.getMessage()+"\nPlease check your database carrefully.");
-			DBGuiUtils.popup(Level.FATAL, "The model has been successfully exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
-			return;
+			DBGuiUtils.popup(Level.FATAL, "The model has been exported to the database, but an exception has been raised during the database connection commit and closure, thus your dabase may be left in an incoherent state.\n\nPlease check carrefully your database !", err);
+			return -1;
 		}
 	}
 	
-	private void doExport(EObject objToExport, Text txtFieldToIncrement) throws Exception {
-		this.exportConnection.exportEObject(objToExport);
-		incrementText(txtFieldToIncrement);
-	}
+	//private void doExport(EObject objToExport, Text txtFieldToIncrement) throws Exception {
+	//	this.exportConnection.exportEObject(objToExport);
+	//	if ( txtFieldToIncrement != null )
+	//		incrementText(txtFieldToIncrement);
+	//}
 
 	void copyCurrentVersionToInitialVersion() {
 		if ( logger.isDebugEnabled() ) logger.debug("Copying current version to initial version.");
@@ -3092,14 +3253,14 @@ public class DBGuiExportModel extends DBGui {
 			}
 
 			setMessage(message, GREEN_COLOR);
+			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
+				if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
+				this.stack.markSaveLocation();
+			}
 			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("closeIfSuccessful") ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Automatically closing the window as set in preferences");
 				close();
 				return;
-			}
-			if ( DBPlugin.INSTANCE.getPreferenceStore().getBoolean("removeDirtyFlag") ) {
-				if ( logger.isDebugEnabled() ) logger.debug("Removing model's dirty flag");
-				this.stack.markSaveLocation();
 			}
 		} else {
 			setMessage(message, RED_COLOR);
@@ -3142,7 +3303,7 @@ public class DBGuiExportModel extends DBGui {
 	Table tblListConflicts;
 	private Label lblCantExport;
 
-	Text txtReleaseNote;
+	@Getter Text txtReleaseNote;
 
 	private Label lblTotal;
 	private Label lblModel;
@@ -3235,6 +3396,7 @@ public class DBGuiExportModel extends DBGui {
 	private Text txtNewImagesInModel;
 	private Text txtNewImagesInDatabase;
 
+    private boolean showRealTimeNumbers = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showRealTimeNumbers");
 
 	Table tblModelVersions;
 	Text txtModelName;

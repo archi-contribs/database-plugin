@@ -96,6 +96,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	Composite compoNeo4jRelationships;
 	Button btnNeo4jStandardRelationships;
 	Button btnNeo4jTypedRelationships;
+	Label lblNeo4jSSLEncryption;
+	Composite compoNeo4jSSLEncryption;
+	Button btnNeo4jNoSSLEncryption;
+	Button btnNeo4jSSLEncryption;
 	Label lblServer;
 	Text txtServer;
 	Label lblPort;
@@ -372,6 +376,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
                 DBDatabaseEntryTableEditor.this.txtServer.setVisible(!isFile && !isExpertMode);
                 DBDatabaseEntryTableEditor.this.lblPort.setVisible(!isFile && !isExpertMode);
                 DBDatabaseEntryTableEditor.this.txtPort.setVisible(!isFile && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.lblNeo4jSSLEncryption.setVisible(isNeo4j && !isExpertMode);
+                DBDatabaseEntryTableEditor.this.compoNeo4jSSLEncryption.setVisible(isNeo4j && !isExpertMode);
                 DBDatabaseEntryTableEditor.this.lblDatabase.setVisible(hasDatabaseName && !isExpertMode);
                 DBDatabaseEntryTableEditor.this.txtDatabase.setVisible(hasDatabaseName && !isExpertMode);
                 
@@ -386,7 +392,17 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
                 // if the txtJdbc is empty, we generate it
                 if ( DBDatabaseEntryTableEditor.this.txtJdbc.getText().isEmpty() ) {
                     try {
-                        DBDatabaseEntryTableEditor.this.txtJdbc.setText(DBDatabaseEntry.getJdbcConnectionString(DBDatabaseEntryTableEditor.this.comboDriver.getText(), DBDatabaseEntryTableEditor.this.txtServer.getText(), Integer.parseInt(DBDatabaseEntryTableEditor.this.txtPort.getText()), DBDatabaseEntryTableEditor.this.txtDatabase.getText(), DBDatabaseEntryTableEditor.this.txtUsername.getText(), DBDatabaseEntryTableEditor.this.txtPassword.getText()));
+                    	DBDatabaseEntryTableEditor.this.txtJdbc.setText(
+                    		DBDatabaseEntry.getJdbcConnectionString(
+                    			DBDatabaseEntryTableEditor.this.comboDriver.getText(),
+                    			DBDatabaseEntryTableEditor.this.txtServer.getText(),
+                    			Integer.parseInt(DBDatabaseEntryTableEditor.this.txtPort.getText()),
+                    			DBDatabaseEntryTableEditor.this.txtDatabase.getText(),
+                    			DBDatabaseEntryTableEditor.this.txtUsername.getText(),
+                    			DBDatabaseEntryTableEditor.this.txtPassword.getText(),
+                    			DBDatabaseEntryTableEditor.this.btnNeo4jSSLEncryption.isEnabled() ? DBDatabaseEntryTableEditor.this.btnNeo4jSSLEncryption.getSelection() : false
+                    		)
+                    	);
                     } catch (NumberFormatException | SQLException ign) {
                         /* */
                     }
@@ -506,6 +522,38 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	        }
 		});
 
+		this.lblNeo4jSSLEncryption = new Label(this.grpDatabases, SWT.NONE);
+		this.lblNeo4jSSLEncryption.setText("SSL encryption:");
+		this.lblNeo4jSSLEncryption.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblPort, 0, SWT.TOP);
+		fd.left = new FormAttachment(this.txtPort, 30);
+		this.lblNeo4jSSLEncryption.setLayoutData(fd);
+		this.lblNeo4jSSLEncryption.setVisible(false);
+		
+		this.compoNeo4jSSLEncryption = new Composite(this.grpDatabases, SWT.NONE);
+		this.compoNeo4jSSLEncryption.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		this.compoNeo4jSSLEncryption.setVisible(false);
+		fd = new FormData();
+		fd.top = new FormAttachment(this.lblNeo4jSSLEncryption, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(this.lblNeo4jSSLEncryption, 0, SWT.BOTTOM);
+		fd.left = new FormAttachment(this.lblNeo4jSSLEncryption, 15, SWT.RIGHT);
+		fd.right = new FormAttachment(this.lblNeo4jSSLEncryption, 150, SWT.RIGHT);
+		this.compoNeo4jSSLEncryption.setLayoutData(fd);
+		RowLayout rl = new RowLayout();
+		rl.marginTop = 0;
+		rl.marginLeft = 0;
+		rl.spacing = 10;
+		this.compoNeo4jSSLEncryption.setLayout(rl);
+		
+		this.btnNeo4jNoSSLEncryption = new Button(this.compoNeo4jSSLEncryption, SWT.RADIO);
+		this.btnNeo4jNoSSLEncryption.setText("No");
+		this.btnNeo4jNoSSLEncryption.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		
+		this.btnNeo4jSSLEncryption = new Button(this.compoNeo4jSSLEncryption, SWT.RADIO);
+		this.btnNeo4jSSLEncryption.setText("Yes");
+		this.btnNeo4jSSLEncryption.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
+		
 		this.lblDatabase = new Label(this.grpDatabases, SWT.NONE);
 		this.lblDatabase.setText("Database:");
 		this.lblDatabase.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -614,7 +662,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		fd.left = new FormAttachment(this.txtName, 65, SWT.LEFT);
 		fd.right = new FormAttachment(this.txtName, 0, SWT.RIGHT);
 		this.compoNeo4jMode.setLayoutData(fd);
-		RowLayout rl = new RowLayout();
+		rl = new RowLayout();
 		rl.marginTop = 0;
 		rl.marginLeft = 0;
 		rl.spacing = 10;
@@ -692,7 +740,6 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jTypedRelationships.setText("Use typed relationships");
 		this.btnNeo4jTypedRelationships.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		
-
 		this.lblExportViewsScreenshot = new Label(this.grpDatabases, SWT.NONE);
 		this.lblExportViewsScreenshot.setText("Export views screenshot:");
 		this.lblExportViewsScreenshot.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
@@ -988,6 +1035,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.compoNeo4jEmpty.setVisible(isNeo4j);
 		this.lblNeo4jRelationships.setVisible(isNeo4j);
 		this.compoNeo4jRelationships.setVisible(isNeo4j);
+		this.lblNeo4jSSLEncryption.setVisible(isNeo4j);
+		this.compoNeo4jSSLEncryption.setVisible(isNeo4j);
 		
 		this.lblServer.setVisible(!isFile && !isExpertMode);
 		this.txtServer.setVisible(!isFile && !isExpertMode);
@@ -1120,6 +1169,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		databaseEntry.setViewsImagesScaleFactor(Integer.valueOf(this.txtScaleFactor.getText())<10 ? 10 : Integer.valueOf(this.txtScaleFactor.getText()));
 		databaseEntry.setNeo4jNativeMode(this.btnNeo4jNativeMode.getSelection());
 		databaseEntry.setShouldEmptyNeo4jDB(this.btnNeo4jEmptyDB.getSelection());
+		databaseEntry.setNeo4jSSLEncrypted(this.btnNeo4jSSLEncryption.getSelection());
 		databaseEntry.setNeo4jTypedRelationship(this.btnNeo4jTypedRelationships.getSelection());
 		databaseEntry.setExpertMode(this.btnExpertMode.getSelection());
 		databaseEntry.setJdbcConnectionString(this.txtJdbc.getText());
@@ -1181,6 +1231,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.btnNeo4jDoNotEmptyDB.setSelection(!databaseEntry.shouldEmptyNeo4jDB());
             this.btnNeo4jStandardRelationships.setSelection(!databaseEntry.isNeo4jTypedRelationship());
             this.btnNeo4jTypedRelationships.setSelection(databaseEntry.isNeo4jTypedRelationship());
+            this.btnNeo4jNoSSLEncryption.setSelection(!databaseEntry.isNeo4jSSLEncrypted());
+            this.btnNeo4jSSLEncryption.setSelection(databaseEntry.isNeo4jSSLEncrypted());
             this.btnExportViewsScreenshot.setSelection(databaseEntry.isViewSnapshotRequired());
             this.btnDoNotExportViewsScreenshot.setSelection(!databaseEntry.isViewSnapshotRequired());
             this.txtBorderWidth.setText(String.valueOf(databaseEntry.getViewsImagesBorderWidth()));
@@ -1220,6 +1272,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNeo4jDoNotEmptyDB.setEnabled(editMode);
 		this.btnNeo4jStandardRelationships.setEnabled(editMode);
 		this.btnNeo4jTypedRelationships.setEnabled(editMode);
+		this.btnNeo4jNoSSLEncryption.setEnabled(editMode);
+		this.btnNeo4jSSLEncryption.setEnabled(editMode);
 	    
 	    this.btnExportViewsScreenshot.setEnabled(editMode);
 	    this.btnDoNotExportViewsScreenshot.setEnabled(editMode);
@@ -1330,6 +1384,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			this.compoNeo4jEmpty.setVisible(false);
 			this.lblNeo4jRelationships.setVisible(false);
 			this.compoNeo4jRelationships.setVisible(false);
+			this.lblNeo4jSSLEncryption.setVisible(false);
+			this.compoNeo4jSSLEncryption.setVisible(false);
 			this.lblServer.setVisible(false);
 			this.txtServer.setVisible(false);
 			this.lblPort.setVisible(false);

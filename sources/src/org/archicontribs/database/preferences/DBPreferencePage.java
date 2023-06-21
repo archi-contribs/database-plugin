@@ -78,6 +78,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Button btnCompareToDatabaseBeforeExport;
 	private Button btnKeepPartiallyImportedModel;
 	private Button btnShowIdInContextMenu;
+	private Button btnShowRealTimeNumbers;
 	private Text txtCopySuffix;
 	private Button btnTemplateImportMode;
 	private Button btnSharedImportMode;
@@ -335,11 +336,20 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(0, 10);
 		this.btnShowIdInContextMenu.setLayoutData(fd);
 		
+		this.btnShowRealTimeNumbers = new Button(grpMiscellaneous, SWT.CHECK);
+		this.btnShowRealTimeNumbers.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		this.btnShowRealTimeNumbers.setText("Show count of imported or exported components in real time");
+		this.btnShowRealTimeNumbers.setSelection(preferenceStore.getBoolean("showRealTimeNumbers"));
+		fd = new FormData();
+		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
+		fd.left = new FormAttachment(0, 10);
+		this.btnShowRealTimeNumbers.setLayoutData(fd);
+		
 		Label lblCopySuffix = new Label(grpMiscellaneous, SWT.NONE);
 		lblCopySuffix.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
 		lblCopySuffix.setText("Append suffix when import component in copy mode:");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.btnShowIdInContextMenu, 5);
+		fd.top = new FormAttachment(this.btnShowRealTimeNumbers, 5);
 		fd.left = new FormAttachment(0, 10);
 		lblCopySuffix.setLayoutData(fd);
 		
@@ -529,6 +539,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     	preferenceStore.setValue("compareBeforeExport", this.btnCompareToDatabaseBeforeExport.getSelection());
     	preferenceStore.setValue("deleteIfImportError", !this.btnKeepPartiallyImportedModel.getSelection());
     	preferenceStore.setValue("showIdInContextMenu", this.btnShowIdInContextMenu.getSelection());
+    	preferenceStore.setValue("showRealTimeNumbers", this.btnShowRealTimeNumbers.getSelection());
     	preferenceStore.setValue("copySuffix", this.txtCopySuffix.getText());
     	preferenceStore.setValue("defaultImportMode", this.btnTemplateImportMode.getSelection() ? "template" : (this.btnSharedImportMode.getSelection() ? "shared" : "copy"));
     	

@@ -15,6 +15,7 @@ import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
@@ -64,7 +65,7 @@ public class DropinsPluginHandler {
 	 * @return
 	 * @throws IOException
 	 */
-	public List<Bundle> getInstalledPlugins() throws IOException {
+	public List<Bundle> getInstalledPlugins() throws IOException, NoSuchElementException {
 		List<Bundle> list = new ArrayList<Bundle>();
 
 		for(Bundle bundle : ArchiPlugin.INSTANCE.getBundle().getBundleContext().getBundles()) {
@@ -194,9 +195,9 @@ public class DropinsPluginHandler {
 	 * @param shell
 	 * @param selected
 	 * @return
-	 * @throws IOException
+	 * @throws IOException,NoSuchElementException
 	 */
-	public int uninstall(Shell shell, List<Bundle> selected) throws IOException {
+	public int uninstall(Shell shell, List<Bundle> selected) throws IOException, NoSuchElementException {
 		if(selected.isEmpty()) {
 			return status();
 		}
@@ -401,10 +402,10 @@ public class DropinsPluginHandler {
 	 * If the bundle is in one of the "dropins" folders return its file (jar or folder), else return null
 	 * @param bundle 
 	 * @return 
-	 * @throws IOException 
+	 * @throws IOException, NoSuchElementException. 
 	 */
-	File getDropinsBundleFile(Bundle bundle) throws IOException {
-		File bundleFile = FileLocator.getBundleFile(bundle);
+	File getDropinsBundleFile(Bundle bundle) throws IOException, NoSuchElementException {
+		File bundleFile = FileLocator.getBundleFileLocation(bundle).get();
 		File parentFolder = bundleFile.getParentFile();
 		return (parentFolder.equals(getUserDropinsFolder())
 				|| parentFolder.equals(getInstanceDropinsFolder()) 

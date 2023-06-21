@@ -1505,13 +1505,14 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
 			// TODO: USE MERGE instead to replace existing nodes
-			executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, checksum:?})"
+			executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, specialization:?, checksum:?})"
 					,element.getId()
 					,dbMetadata.getCurrentVersion().getVersion()
 					,element.getClass().getSimpleName()
 					,element.getName()
 					,dbMetadata.getJunctionType()
 					,element.getDocumentation()
+					,dbMetadata.getPrimaryProfileName()
 					,dbMetadata.getCurrentVersion().getChecksum()
 					);
 		} else {
@@ -1595,7 +1596,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 			if ( this.databaseEntry.isNeo4jNativeMode() ) {
 				if ( (relationship.getSource() instanceof IArchimateElement) && (relationship.getTarget() instanceof IArchimateElement) ) {
-					executeRequest("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}]->(target)"
+					executeRequest("MATCH (source:elements {id:?, version:?}), (target:elements {id:?, version:?}) CREATE (source)-[relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, specialization:?, checksum:?}]->(target)"
 							,relationship.getSource().getId()
 							,model.getDBMetadata(relationship.getSource()).getCurrentVersion().getVersion()
 							,relationship.getTarget().getId()
@@ -1607,11 +1608,12 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 							,relationship.getDocumentation()
 							,dbMetadata.getStrength()
 							,dbMetadata.getAccessType()
+							,dbMetadata.getPrimaryProfileName()
 							,dbMetadata.getCurrentVersion().getChecksum()
 							);
 				}
 			} else {
-				executeRequest("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
+				executeRequest("MATCH (source {id:?, version:?}), (target {id:?, version:?}) CREATE (relationship:"+relationshipType+" {id:?, version:?, class:?, name:?, documentation:?, strength:?, access_type:?, specialization:?, checksum:?}), (source)-[rel1:relatedTo]->(relationship)-[rel2:relatedTo]->(target)"
 						,relationship.getSource().getId()
 						,model.getDBMetadata(relationship.getSource()).getCurrentVersion().getVersion()
 						,relationship.getTarget().getId()
@@ -1623,6 +1625,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 						,relationship.getDocumentation()
 						,dbMetadata.getStrength()
 						,dbMetadata.getAccessType()
+						,dbMetadata.getPrimaryProfileName()
 						,dbMetadata.getCurrentVersion().getChecksum()
 						);
 			}

@@ -1105,6 +1105,18 @@ public class DBMetadata  {
     	return null;
     }
     
+    public String getPrimaryProfileName() {
+    	try {
+    		if ( this.component instanceof IProfiles ) {
+    			IProfile profile = ((IProfiles)this.component).getPrimaryProfile();
+    			if ( profile != null ) return profile.getName();
+    		}
+    	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
+    		// prior to Archi 4.9, getPrimaryProfile() does not exist
+    	}
+    	return null;
+    }
+    
     public void addProfileId(String profileId) {
     	if ( profileId == null )
     		return;

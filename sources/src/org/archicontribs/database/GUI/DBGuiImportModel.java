@@ -62,7 +62,7 @@ public class DBGuiImportModel extends DBGui {
     @SuppressWarnings("hiding")
 	protected static final DBLogger logger = new DBLogger(DBGuiImportModel.class);
 
-    private DBArchimateModel modelToImport;
+    private @Getter DBArchimateModel modelToImport = null;
     
     DBDatabaseImportConnection importConnection;
     
@@ -100,6 +100,8 @@ public class DBGuiImportModel extends DBGui {
     private Text txtImportedViewObjects;
     private Text txtImportedViewConnections;
     private Text txtImportedImages;
+    
+    private boolean showRealTimeNumbers = DBPlugin.INSTANCE.getPreferenceStore().getBoolean("showRealTimeNumbers");
     
     /**
      * Creates the GUI to import a model
@@ -900,69 +902,136 @@ public class DBGuiImportModel extends DBGui {
 	        // Import the model components from the database
 
             logger.info("Importing specializations ...");
+            int count = 0;
             this.importConnection.prepareImportProfiles(this.modelToImport);
             while ( this.importConnection.importProfiles(this.modelToImport) ) {
-            	this.txtImportedProfiles.setText(toString(this.importConnection.getCountProfilesImported()));
-                increaseProgressBar();
+            	if ( this.showRealTimeNumbers ) {
+            		this.txtImportedProfiles.setText(toString(this.importConnection.getCountProfilesImported()));
+            		 increaseProgressBar();
+            	}
+            	++count;
+            }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedProfiles.setText(toString(count));
+            	increaseProgressBar(count);
             }
             
             logger.info("Importing folders ...");
+            count = 0;
             this.importConnection.prepareImportFolders(this.modelToImport);
             while ( this.importConnection.importFolders(this.modelToImport) ) {
-            	this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
-                increaseProgressBar();
+            	if ( this.showRealTimeNumbers ) {
+            		this.txtImportedFolders.setText(toString(this.importConnection.getCountFoldersImported()));
+                    increaseProgressBar();
+            	}
+            	++count;
+            }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedFolders.setText(toString(count));
+            	increaseProgressBar(count);
             }
 
             logger.info("Importing elements ...");
+            count = 0;
             this.importConnection.prepareImportElements(this.modelToImport);
             while ( this.importConnection.importElements(this.modelToImport) ) {
-            	this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
-                increaseProgressBar();
+            	if ( this.showRealTimeNumbers ) {
+            		this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
+                	increaseProgressBar();
+            	}
+            	++count;
+            }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedElements.setText(toString(count));
+            	increaseProgressBar(count);
             }
 
             logger.info("Importing relationships ...");
+            count = 0;
             this.importConnection.prepareImportRelationships(this.modelToImport);
             while ( this.importConnection.importRelationships(this.modelToImport) ) {
-            	this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
-                increaseProgressBar();
+            	if ( this.showRealTimeNumbers ) {
+            		this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
+                	increaseProgressBar();
+            	}
+            	++count;
             }
             this.modelToImport.resolveSourceAndTargetRelationships();
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedRelationships.setText(toString(count));
+            	increaseProgressBar(count);
+            }
 
             logger.info("Importing views ...");
+            count = 0;
             this.importConnection.prepareImportViews(this.modelToImport);
             while ( this.importConnection.importViews(this.modelToImport) ) {
-            	this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
-                increaseProgressBar();
+            	if ( this.showRealTimeNumbers ) {
+            		this.txtImportedViews.setText(toString(this.importConnection.getCountViewsImported()));
+                    increaseProgressBar();
+            	}
+            	++count;
+            }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedViews.setText(toString(count));
+            	increaseProgressBar(count);
             }
 
             logger.info("Importing view objects ...");
+            count = 0;
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsObjects(view.getId(), this.modelToImport.getDBMetadata(view).getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsObjects(this.modelToImport, view) ) {
-                	this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
-                    increaseProgressBar();
+                	if ( this.showRealTimeNumbers ) {
+                		this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
+                        increaseProgressBar(); 
+                	}
+                	++count;
                 }
+                this.txtImportedViewObjects.setText(toString(this.importConnection.getCountViewObjectsImported()));
             }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedViewObjects.setText(toString(count));
+            	increaseProgressBar(count);
+            }
+            // we refresh the numbers of elements imported as some may have been imported as part of view objects
             this.txtImportedElements.setText(toString(this.importConnection.getCountElementsImported()));
 
             logger.info("Importing view connections ...");
+            count = 0;
             for (IDiagramModel view: this.modelToImport.getAllViews().values()) {
                 this.importConnection.prepareImportViewsConnections(view.getId(), this.modelToImport.getDBMetadata(view).getInitialVersion().getVersion());
                 while ( this.importConnection.importViewsConnections(this.modelToImport) ) {
-                	this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
-                    increaseProgressBar();
+                	if ( this.showRealTimeNumbers ) {
+                		this.txtImportedViewConnections.setText(toString(this.importConnection.getCountViewConnectionsImported()));
+                        increaseProgressBar();
+                	}
+                	++count;
                 }
             }
             this.modelToImport.resolveSourceAndTargetConnections();
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedViewConnections.setText(toString(count));
+            	increaseProgressBar(count);
+            }
+            // we refresh the numbers of elements imported as some may have been imported as part of view objects
             this.txtImportedRelationships.setText(toString(this.importConnection.getCountRelationshipsImported()));
 
             closeMessage();
 
             logger.info("Importing images ...");
+            count = 0;
             for (String path: this.importConnection.getAllImagePaths()) {
                 this.importConnection.importImage(this.modelToImport, path);
-                this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
-                increaseProgressBar();
+                if ( this.showRealTimeNumbers ) {
+                	this.txtImportedImages.setText(toString(this.importConnection.getCountImagesImported()));
+                    increaseProgressBar();
+                }
+                ++count;
+            }
+            if ( !this.showRealTimeNumbers ) {
+            	this.txtImportedImages.setText(toString(count));
+            	increaseProgressBar(count);
             }
             
             // If the model contains a view called "default view", we open it.

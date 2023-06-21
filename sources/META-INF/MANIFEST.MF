@@ -2,21 +2,21 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Database export / import plugin for Archimate Tool
 Bundle-SymbolicName: org.archicontribs.database;singleton:=true
-Bundle-Version: 4.9.6
+Bundle-Version: 4.9.7
 Bundle-Vendor: Herve Jouin
 Bundle-Localization: plugin
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Bundle-ClassPath: .,
- lib/neo4j-jdbc-driver-4.0.5.jar,
  lib/json-simple-1.1.1.jar,
- lib/log4j-1.2.17.jar,
  lib/lombok.jar,
  lib/mssql-jdbc-11.2.0.jre11.jar,
  lib/mysql-connector-j-8.0.31.jar,
  lib/ojdbc11.jar,
  lib/orai18n-21.7.0.0.jar,
  lib/postgresql-42.5.0.jar,
- lib/sqlite-jdbc-3.39.3.0.jar
+ lib/sqlite-jdbc-3.39.3.0.jar,
+ lib/neo4j-jdbc-driver-4.0.9.jar,
+ lib/reload4j-1.2.25.jar
 Bundle-ActivationPolicy: lazy
 Bundle-Activator: org.archicontribs.database.DBPlugin
 Require-Bundle: org.eclipse.core.runtime,

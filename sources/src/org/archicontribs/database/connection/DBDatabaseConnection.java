@@ -602,6 +602,18 @@ public class DBDatabaseConnection implements AutoCloseable {
 						+ "BEGIN"
 						+ "  SELECT "+this.schemaPrefix+"seq_objects_in_view.NEXTVAL INTO :NEW.oiv_id FROM DUAL;"
 						+ "END;");
+				
+				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_profiles_in_model");
+				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_profiles_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
+				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_profiles_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
+
+				if ( logger.isDebugEnabled() ) logger.debug("Creating trigger "+this.schemaPrefix+"trigger_profiles_in_model");
+				executeRequest("CREATE OR REPLACE TRIGGER "+this.schemaPrefix+"trigger_profiles_in_model "
+						+ "BEFORE INSERT ON "+this.schemaPrefix+"profiles_in_model "
+						+ "FOR EACH ROW "
+						+ "BEGIN"
+						+ "  SELECT "+this.schemaPrefix+"seq_profiles_in_model.NEXTVAL INTO :NEW.pim_id FROM DUAL;"
+						+ "END;");
 			}
 
 			commit();

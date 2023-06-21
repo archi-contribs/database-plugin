@@ -157,7 +157,13 @@
             class="org.archicontribs.database.commandline.DBImportModelProvider"
             description="Import an Archi Model from a SQL database"
             id="org.archicontribs.database.commandlineImportModel"
-            name="Import an Archi Model from a SQL database">
+            name="Import from database">
+      </commandlineProvider>
+      <commandlineProvider
+            class="org.archicontribs.database.commandline.DBExportModelProvider"
+            description="Export an Archi Model to a database"
+            id="org.archicontribs.database.commandlineExportModel"
+            name="Export to database">
       </commandlineProvider>
    </extension>
 </plugin>

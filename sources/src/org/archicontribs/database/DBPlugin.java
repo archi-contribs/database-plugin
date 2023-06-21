@@ -66,8 +66,7 @@ import lombok.Getter;
  *  					Few other GUI improvements
  * 						Remove ID conversion from former size to new one as it is not needed anymore
  * 
- * v4.9.4	04/01/2022
- *  					Fix initial version of components which was incorrectly set to zero on some occasions 
+ * v4.9.4	04/01/2022	Fix initial version of components which was incorrectly set to zero on some occasions 
  *  					Fix missing Value Stream icon on import components window
  *  					Fix preferences apply button is greyed on new plugin installations
  *  					Hide export/import buttons on get history window when selected component is a model 
@@ -75,13 +74,11 @@ import lombok.Getter;
  *  					Add model specializations comparison when checking model history from database
  *  					Effort done to update the plugin documentation
  * 
- * v4.9.5	23/07/2022
- * 						Fix specialization SQL failures when using PostGreSQL database
+ * v4.9.5	23/07/2022	Fix specialization SQL failures when using PostGreSQL database
  *						Fix canvas import as single component
  *						Fix count images during import model check process
  *
- * v4.9.6	25/10/2022
- * 						Update databases drivers
+ * v4.9.6	25/10/2022	Update databases drivers
  *							MySQL: from 5.1.8.4 to 8.0.30
  *							PostGreSQL: from 42.2.12 to 42.5.0
  *							SQLite: from 3.3.0.1 to 3.39.3.0
@@ -95,6 +92,16 @@ import lombok.Getter;
  * 						Change folders checksum calculation as it could change if two objects have got the same name
  * 						Update plugin windows position to center them from Archi main window
  * 						Add stacktrace in error popup in case of exception
+ * 
+ * v4.9.7	04/06/2023	Adapt to version 4.26 of Eclipse
+ * 						Update SQL Server auth DLL file
+ * 						Add specializations during Neo4J databases exports
+ * 						Fix Oracle database initialization
+ * 						Add SSL option to Neo4J preference page. This activates the bolt+s protocol to support AuraDB databases
+ * 						Replace Log4J library by reload4J library
+ *						update libraries dependencies
+ *						Improve import and export from command line
+ *						Add option to show real time numbers in import and export screens
  * 
  * -----------------------------------------------------------------------------------------
  * 
@@ -197,6 +204,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("traceSQL",                true);
 		preferenceStore.setDefault("checkMaxMemory",          true);
 		preferenceStore.setDefault("checkNotNullConstraints", true);
+		preferenceStore.setDefault("showRealTimeNumbers",     true);
 		preferenceStore.setDefault("copySuffix",              " (copy)");
 		preferenceStore.setDefault("defaultImportMode",       "template");
 		preferenceStore.setDefault("loggerMode",		      "disabled");

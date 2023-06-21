@@ -214,6 +214,10 @@ public class DBDatabaseEntry {
 	 */
 	@Getter @Setter private boolean neo4jTypedRelationship = false;
 
+	/**
+	 * Should we use SSL Encryption in Neo4j databases
+	 */
+	@Getter @Setter private boolean neo4jSSLEncrypted = false;
 
 	/**
 	 * @param driver
@@ -284,7 +288,7 @@ public class DBDatabaseEntry {
                     this.jdbcConnectionString = "jdbc:mysql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
                     break;
                 case "neo4j":
-                    this.jdbcConnectionString = "jdbc:neo4j:bolt://" + this.getServer() + ":" + this.getPort();
+                	this.jdbcConnectionString = "jdbc:neo4j:bolt"+(this.isNeo4jSSLEncrypted()?"+s":"")+"://" + this.getServer() + ":" + this.getPort();
                     break;
                 case "oracle":
                     this.jdbcConnectionString = "jdbc:oracle:thin:@" + this.getServer() + ":" + this.getPort() + ":" + this.getDatabase();
@@ -301,16 +305,17 @@ public class DBDatabaseEntry {
     
     /**
      * Calculates a JDBC connection string 
-     * @param driverName 
-     * @param serverName 
-     * @param port 
-     * @param databaseName 
-     * @param username 
-     * @param password 
+     * @param driverName
+     * @param serverName
+     * @param port
+     * @param databaseName
+     * @param username
+     * @param password
+     * @param ssl
      * @return the JDBC connection string
      * @throws SQLException if the JDBC driver is unknown
      */
-    static public String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password) throws SQLException {
+    static public String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password, boolean ssl) throws SQLException {
         String jdbcString = "";
 
         switch (driverName) {
@@ -326,7 +331,7 @@ public class DBDatabaseEntry {
                 jdbcString = "jdbc:mysql://" + serverName + ":" + port + "/" + databaseName;
                 break;
             case "neo4j":
-                jdbcString = "jdbc:neo4j:bolt://" + serverName + ":" + port;
+            	jdbcString = "jdbc:neo4j:bolt"+(ssl?"+s":"")+"://" + serverName + ":" + port;
                 break;
             case "oracle":
                 jdbcString = "jdbc:oracle:thin:@" + serverName + ":" + port + ":" + databaseName;
@@ -378,7 +383,8 @@ public class DBDatabaseEntry {
 				databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
 				databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
 				databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
-					
+				databaseEntry.setNeo4jSSLEncrypted(store.getBoolean(preferenceName+"_neo4j-ssl-encrypted_"+String.valueOf(line)));
+				
 				databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
 				
 				databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
@@ -445,6 +451,7 @@ public class DBDatabaseEntry {
 			store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_"			+ indexString, false);
 			store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-empty-database_"		+ indexString, false);
 			store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-typed-relationships_"	+ indexString, false);
+			store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-ssl-encrypted_"	        + indexString, false);
 			store.setValue(DBDatabaseEntry.preferenceName + "_isExpertMode_"				+ indexString, false);
 			store.setValue(DBDatabaseEntry.preferenceName + "_jdbcConnectionString_"		+ indexString, "");
 		}
@@ -482,6 +489,7 @@ public class DBDatabaseEntry {
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-native-mode_" +         indexString, isNeo4j ? isNeo4jNativeMode() : false);
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-empty-database_" +      indexString, isNeo4j ? shouldEmptyNeo4jDB() : false);
 		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-typed-relationships_" + indexString, isNeo4j ? isNeo4jTypedRelationship() : false);
+		store.setValue(DBDatabaseEntry.preferenceName + "_neo4j-ssl-encrypted_" +       indexString, isNeo4j ? isNeo4jSSLEncrypted() : false);
 		
 		store.setValue(DBDatabaseEntry.preferenceName + "_schema_" +                    indexString, isNeo4j ? ""    : getSchema());
 		store.setValue(DBDatabaseEntry.preferenceName + "_export-views-images_" +       indexString, isNeo4j ? false : isViewSnapshotRequired());

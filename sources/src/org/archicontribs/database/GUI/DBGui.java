@@ -600,7 +600,7 @@ public class DBGui {
 	 * @param defaultDatabaseName Indicated the name of the default database (the first database will be selected, if the database is not found or if null) - if both ID and name are provided, the ID has got higher priority
 	 * @throws Exception 
 	 */
-	protected void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId, String defaultDatabaseName) throws Exception {
+	public void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId, String defaultDatabaseName) throws Exception {
 		refreshDisplay();
 
 		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
@@ -1046,8 +1046,15 @@ public class DBGui {
 	 * Increases the progressBar selection in the SWT thread (thread safe method)
 	 */
 	public void increaseProgressBar() {
+		increaseProgressBar(1);
+	}
+	
+	/**
+	 * Increases the progressBar selection in the SWT thread (thread safe method)
+	 */
+	public void increaseProgressBar(int nb) {
 		if ( this.lblProgressBar != null )
-			this.progressBar.setSelection(this.progressBar.getSelection()+1);
+			this.progressBar.setSelection(this.progressBar.getSelection()+nb);
 		refreshDisplay();
 	}
 
@@ -1386,7 +1393,7 @@ public class DBGui {
 				profilesTreeItem = new TreeItem(tree, SWT.NONE);
 			else
 				profilesTreeItem = new TreeItem(treeItem, SWT.NONE);
-			profilesTreeItem.setText("Spécializations");
+			profilesTreeItem.setText("Spï¿½cializations");
 			profilesTreeItem.setExpanded(true);
 
 			// we get a sorted list of model profiles
@@ -1587,9 +1594,13 @@ public class DBGui {
 	}
 
 	public static void incrementText(Text txt) {
+		incrementText(txt, 1);
+	}
+	
+	public static void incrementText(Text txt, int increment) {
 		if ( txt != null ) {
 			try {
-				txt.setText(toString(toInt(txt.getText())+1));
+				txt.setText(toString(toInt(txt.getText())+increment));
 			} catch (@SuppressWarnings("unused") Exception ign) {
 				// ignore
 			}
