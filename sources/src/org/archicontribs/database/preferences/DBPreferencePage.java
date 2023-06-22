@@ -11,6 +11,7 @@ import java.lang.reflect.Field;
 import java.sql.SQLException;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBCheckAndUpdatePlugin;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
@@ -163,7 +164,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		checkUpdateButton.setLayoutData(fd);
 		checkUpdateButton.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { DBPlugin.checkForUpdate(true); }
+            public void widgetSelected(SelectionEvent e) { DBCheckAndUpdatePlugin.checkAndUpdatePlugin(true); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});

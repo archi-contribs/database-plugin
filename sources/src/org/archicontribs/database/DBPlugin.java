@@ -302,7 +302,7 @@ public class DBPlugin extends AbstractUIPlugin {
 				if ( logger.isTraceEnabled() ) logger.trace("   The plugin's filename is not a jar file, so we do not check for new plugin version on GitHub.");
 			} else {
 				if ( preferenceStore.getBoolean("checkForUpdateAtStartup") )
-					checkForUpdate(false);
+					DBCheckAndUpdatePlugin.checkAndUpdatePlugin(false);
 			}
 		} catch ( IOException e ) {
 			DBGuiUtils.popup(Level.ERROR, "Failed to get database plugin's folder.", e);
@@ -362,19 +362,6 @@ public class DBPlugin extends AbstractUIPlugin {
 	 */
 	public static boolean isEmpty(String str) {
 		return (str==null) || str.isEmpty();
-	}
-	
-	/**
-	 * Checks on GitHub if a new version of the plugin is available
-	 * @param verbose
-	 */
-	public static void checkForUpdate(boolean verbose) {
-		@SuppressWarnings("unused")
-		DBCheckForPluginUpdate dbCheckForUpdate = new DBCheckForPluginUpdate(
-				verbose,
-				"https://api.github.com/repos/archi-contribs/database-plugin/contents/v2",
-				"https://github.com/archi-contribs/database-plugin/blob/master/v2/release_note%20versions%204.9.md"
-				);
 	}
 	
 	/**
