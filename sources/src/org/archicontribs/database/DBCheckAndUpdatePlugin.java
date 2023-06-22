@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
+import org.osgi.framework.Version;
 
 /**
  * Checks if a new version of the plugin exists on GitHub and download it if required
@@ -64,6 +65,13 @@ public class DBCheckAndUpdatePlugin {
 	static String newPluginFilename = null;
 	
 	static int answer = 0;
+	
+	/**
+	 * Explicit constructor that forbids class instantiation as it only contains static methods
+	 */
+	private DBCheckAndUpdatePlugin() {
+	    throw new IllegalStateException("This class is not meant to be instantiated.");
+	}
 	
 	/**
 	 * Establishes an https connection to GitHub, get a list of available jar files and get the versions from the jar filename.<br>
@@ -153,18 +161,14 @@ public class DBCheckAndUpdatePlugin {
 			
 			DBGuiUtils.closePopupMessage();
 	
-			//TODO: commented for testing purpose ... please uncomment prior to commit
-			/*
-			if ( DBPlugin.pluginVersion.compareTo(new Version(latestVersion) >= 0 ) {
+			if ( DBPlugin.pluginVersion.compareTo(new Version(latestVersion)) >= 0 ) {
 				if ( showPopup ) {
 					DBGuiUtils.popup(Level.INFO, "You already have got the latest version: "+latestVersion);
 				} else
 					logger.info("You already have got the latest version: "+latestVersion);
 				return;
 			}
-			*/
-	
-			
+
 			boolean ask = true;
 			while ( ask ) {
 				display.syncExec(new Runnable() { @Override public void run() { DBCheckAndUpdatePlugin.answer = DBGuiUtils.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+ DBCheckAndUpdatePlugin.latestVersion+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
