@@ -5,7 +5,7 @@ Bundle-SymbolicName: org.archicontribs.database;singleton:=true
 Bundle-Version: 4.9.7
 Bundle-Vendor: Herve Jouin
 Bundle-Localization: plugin
-Bundle-RequiredExecutionEnvironment: JavaSE-11
+Bundle-RequiredExecutionEnvironment: JavaSE-17
 Bundle-ClassPath: .,
  lib/json-simple-1.1.1.jar,
  lib/lombok.jar,
