@@ -37,12 +37,15 @@ public class DBDatabaseEntry {
 	/**
 	 * prefix used in the preference store
 	 */
-	final static String preferenceName = "databases";
+	static final String preferenceName = "databases";
 
     /**
      * Creates a new DBDatabaseEntry.
      */
     public DBDatabaseEntry() {
+    	this.index = -1;
+    	this.name = "";
+    	this.driver = null;
     }
     
 	/**
@@ -65,41 +68,7 @@ public class DBDatabaseEntry {
 	 * <br>
 	 * must be one of @DBDatabase.VALUES
 	 */
-	@Getter private String driver = "";
-	
-    /**
-     * @return the class of the JDBC driver
-     * @throws SQLException
-     */
-    public String getDriverClass() throws SQLException {
-        switch (this.getDriver()) {
-            case "postgresql":  return "org.postgresql.Driver";
-            case "ms-sql":      return "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-            case "mysql":       return "com.mysql.cj.jdbc.Driver";
-            case "neo4j":       return "org.neo4j.jdbc.Driver";
-            case "oracle":      return "oracle.jdbc.driver.OracleDriver";
-            case "sqlite":      return "org.sqlite.JDBC";
-            default:            throw new SQLException("Unknonwn driver " + this.getDriver());        // just in case;
-        }   
-    }
-	
-	/**
-     * Driver to use to access the database<br>
-     * <br>
-     * @param driverName must be one of {@link DBDatabase.VALUES}
-	 * @throws SQLException when the driver is not recognized
-     */
-    public void setDriver(String driverName) throws SQLException {
-        // we ensure that the driver is known
-        this.driver = null;
-        for ( DBDatabase db: DBDatabase.VALUES ) {
-            if ( DBPlugin.areEqual(db.getDriverName(), driverName) ) {
-                this.driver = driverName.toLowerCase();
-                return;
-            }
-        }
-        throw new SQLException("Unknown driver "+driverName);
-    }
+	@Getter @Setter private DBDatabaseDriver driver = null;
 	
 	/**
 	 * Name or IP address of the server hosting the database
@@ -117,12 +86,12 @@ public class DBDatabaseEntry {
      * TCP port on which the database listens to<br>
      * <br>
 	 * @param portValue should be between 0 and 65535 
-	 * @throws Exception if the port is negative or greater than 65535
+	 * @throws DBException if the port is negative or greater than 65535
      */
-    public void setPort(int portValue) throws Exception {
+    public void setPort(int portValue) throws DBException {
         // we ensure that the port is > 0 and < 65536
         if ( (portValue < 0) || (portValue > 65535) )
-            throw new Exception("Port should be between 0 and 65535");
+            throw new DBException("Port should be between 0 and 65535");
         this.port = portValue;
     }
 	
@@ -239,14 +208,14 @@ public class DBDatabaseEntry {
 		return this.schema + ".";
 	}
 	
-	/**
+	/*
 	 * @return CQL if Neo4j database selected, or SQL in all other cases
-	 */
+	 * /
 	public String getLanguage() {
 		if ( DBPlugin.areEqual(this.driver, "neo4j") )
 			return "CQL";
 		return "SQL";
-	}
+	}*/
 	
     
     /**
@@ -268,11 +237,11 @@ public class DBDatabaseEntry {
      */
     public String getJdbcConnectionString() {
         if ( ! isExpertMode() ) {
-            switch (this.getDriver()) {
-                case "postgresql":
+            switch (this.driver) {
+                case POSTGRESQL:
                     this.jdbcConnectionString = "jdbc:postgresql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
                     break;
-                case "ms-sql":
+                case MSSQL:
                     this.jdbcConnectionString = "jdbc:sqlserver://" + this.getServer() + ":" + this.getPort() + ";databaseName=" + this.getDatabase();
 					try {
 						if ( DBPlugin.isEmpty(this.getUsername()) && DBPlugin.isEmpty(this.getDecryptedPassword()) )
@@ -284,19 +253,20 @@ public class DBDatabaseEntry {
 						this.jdbcConnectionString = "";
 					}
                     break;
-                case "mysql":
+                case MYSQL:
                     this.jdbcConnectionString = "jdbc:mysql://" + this.getServer() + ":" + this.getPort() + "/" + this.getDatabase();
                     break;
-                case "neo4j":
+                case NEO4J:
                 	this.jdbcConnectionString = "jdbc:neo4j:bolt"+(this.isNeo4jSSLEncrypted()?"+s":"")+"://" + this.getServer() + ":" + this.getPort();
                     break;
-                case "oracle":
+                case ORACLE:
                     this.jdbcConnectionString = "jdbc:oracle:thin:@" + this.getServer() + ":" + this.getPort() + ":" + this.getDatabase();
                     break;
-                case "sqlite":
+                case SQLITE:
                     this.jdbcConnectionString = "jdbc:sqlite:"+this.getServer();
                     break;
                 default:
+                	// just in case ...
                     this.jdbcConnectionString = "";
             }
         }
@@ -315,7 +285,7 @@ public class DBDatabaseEntry {
      * @return the JDBC connection string
      * @throws SQLException if the JDBC driver is unknown
      */
-    static public String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password, boolean ssl) throws SQLException {
+    public static String getJdbcConnectionString(String driverName, String serverName, int port, String databaseName, String username, String password, boolean ssl) throws SQLException {
         String jdbcString = "";
 
         switch (driverName) {
@@ -354,7 +324,7 @@ public class DBDatabaseEntry {
 	 */
 	public static List<DBDatabaseEntry> getAllDatabasesFromPreferenceStore() {
 		if ( logger.isDebugEnabled() ) logger.debug("Getting databases preferences from preference store");
-		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();     
+		List<DBDatabaseEntry> databaseEntries = new ArrayList<>();     
 		IPersistentPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
 		
 		int lines = store.getInt(preferenceName);
@@ -364,48 +334,48 @@ public class DBDatabaseEntry {
 			try {
 				databaseEntry.setIndex(line);
 				
-				databaseEntry.setId(store.getString(preferenceName+"_id_"+String.valueOf(line)));
+				databaseEntry.setId(store.getString(preferenceName+"_id_"+line));
 				if ( databaseEntry.getId() == null ) 
 					databaseEntry.setId("");
 				
-				databaseEntry.setName(store.getString(preferenceName+"_name_"+String.valueOf(line)));
+				databaseEntry.setName(store.getString(preferenceName+"_name_"+line));
 				
 				if ( logger.isDebugEnabled() ) logger.debug("Getting database entry \""+databaseEntry.getName()+"\" from the preference store");
 				
-				Boolean isExpertMode = store.getBoolean(preferenceName+"_isExpertMode_"+String.valueOf(line));
+				Boolean isExpertMode = store.getBoolean(preferenceName+"_isExpertMode_"+line);
 				
 				databaseEntry.setExpertMode(isExpertMode);
-				databaseEntry.setDriver(store.getString(preferenceName+"_driver_"+String.valueOf(line)));
-				databaseEntry.setServer(store.getString(preferenceName+"_server_"+String.valueOf(line)));
+				databaseEntry.setDriver(DBDatabaseDriver.fromName(store.getString(preferenceName+"_driver_"+line)));
+				databaseEntry.setServer(store.getString(preferenceName+"_server_"+line));
 				
-				databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+String.valueOf(line)));
+				databaseEntry.setJdbcConnectionString(store.getString(preferenceName+"_jdbcConnectionString_"+line));
 
-				databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+String.valueOf(line)));
-				databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+String.valueOf(line)));
-				databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+String.valueOf(line)));
-				databaseEntry.setNeo4jSSLEncrypted(store.getBoolean(preferenceName+"_neo4j-ssl-encrypted_"+String.valueOf(line)));
+				databaseEntry.setNeo4jNativeMode(store.getBoolean(preferenceName+"_neo4j-native-mode_"+line));
+				databaseEntry.setShouldEmptyNeo4jDB(store.getBoolean(preferenceName+"_neo4j-empty-database_"+line));
+				databaseEntry.setNeo4jTypedRelationship(store.getBoolean(preferenceName+"_neo4j-typed-relationships_"+line));
+				databaseEntry.setNeo4jSSLEncrypted(store.getBoolean(preferenceName+"_neo4j-ssl-encrypted_"+line));
 				
-				databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+String.valueOf(line)));
+				databaseEntry.setSchema(store.getString(preferenceName+"_schema_"+line));
 				
-				databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+String.valueOf(line)));
-				databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+String.valueOf(line)));
-				databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+String.valueOf(line)));
+				databaseEntry.setViewSnapshotRequired(store.getBoolean(preferenceName+"_export-views-images_"+line));
+				databaseEntry.setViewsImagesBorderWidth(store.getInt(preferenceName+"_views-images-border-width_"+line));
+				databaseEntry.setViewsImagesScaleFactor(store.getInt(preferenceName+"_views-images-scale-factor_"+line));
 					
-				databaseEntry.setPort(store.getInt(preferenceName+"_port_"+String.valueOf(line)));
-				databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+String.valueOf(line)));
+				databaseEntry.setPort(store.getInt(preferenceName+"_port_"+line));
+				databaseEntry.setDatabase(store.getString(preferenceName+"_database_"+line));
 				
-				if ( !DBPlugin.areEqual(databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
-					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+String.valueOf(line)));
+				if ( !databaseEntry.getDriver().equals(DBDatabaseDriver.SQLITE) ) {
+					databaseEntry.setUsername(store.getString(preferenceName+"_username_"+line));
 						
-					String password = store.getString(preferenceName+"_password_"+String.valueOf(line));
+					String password = store.getString(preferenceName+"_password_"+line);
 					if ( DBPlugin.isEmpty(password) )
-						databaseEntry.setEncryptedPassword(store.getString(preferenceName+"_encrypted_password_"+String.valueOf(line)));
+						databaseEntry.setEncryptedPassword(store.getString(preferenceName+"_encrypted_password_"+line));
 					else {
 						logger.debug("*********** Got plain text password ... replacing by encrypted one in preference store.");
 						try {
 							databaseEntry.setDecryptedPassword(password);
-							store.setValue(preferenceName+"_encrypted_password_"+String.valueOf(line), databaseEntry.getEncryptedPassword());
-							store.setValue(preferenceName+"_password_"+String.valueOf(line), "");
+							store.setValue(preferenceName+"_encrypted_password_"+line, databaseEntry.getEncryptedPassword());
+							store.setValue(preferenceName+"_password_"+line, "");
 						} catch (InvalidKeyException|IllegalBlockSizeException|BadPaddingException|InvalidAlgorithmParameterException|NoSuchAlgorithmException|NoSuchPaddingException e) {
 							DBGuiUtils.popup(Level.ERROR, "Failed to encrypt password for database entry \""+databaseEntry.getName()+"\".\n\nYour password will be left unencrypted in your preference store.", e);
 						}
@@ -467,12 +437,12 @@ public class DBDatabaseEntry {
 		
 		IPersistentPreferenceStore store = DBPlugin.INSTANCE.getPreferenceStore();
 		String indexString = String.valueOf(getIndex());
-		boolean isNeo4j = getDriver().equals(DBDatabase.NEO4J.getDriverName());
-		boolean isSqlite = getDriver().equals(DBDatabase.SQLITE.getDriverName());
+		boolean isNeo4j = getDriver().equals(DBDatabaseDriver.NEO4J);
+		boolean isSqlite = getDriver().equals(DBDatabaseDriver.SQLITE);
 		
 		store.setValue(DBDatabaseEntry.preferenceName + "_id_" +                        indexString, getId());
 		store.setValue(DBDatabaseEntry.preferenceName + "_name_" +                      indexString, getName());
-		store.setValue(DBDatabaseEntry.preferenceName + "_driver_" +                    indexString, getDriver());
+		store.setValue(DBDatabaseEntry.preferenceName + "_driver_" +                    indexString, getDriver().getDriverName());
 		store.setValue(DBDatabaseEntry.preferenceName + "_server_" +                    indexString, getServer());
 		
 		store.setValue(DBDatabaseEntry.preferenceName + "_isExpertMode_" +              indexString, isExpertMode());
@@ -565,6 +535,7 @@ public class DBDatabaseEntry {
 	private static Cipher getCipher(int cipherMode) throws InvalidKeyException, InvalidAlgorithmParameterException, NoSuchAlgorithmException, NoSuchPaddingException {
 		String passwordEncryptionKey = null;	
 		boolean errorMessageAlreadyPrinted = false;
+		final String ciferTransformation = "Blowfish";
 		
 		// the default key is the MAC address of the first physical network interface
 		try {
@@ -596,7 +567,7 @@ public class DBDatabaseEntry {
 				logger.error("Failed to calculate encryption key, defaulting to default one.");
 		}
 		
-		int maxKeyLength = Cipher.getMaxAllowedKeyLength("Blowfish");
+		int maxKeyLength = Cipher.getMaxAllowedKeyLength(ciferTransformation);
 		if ( passwordEncryptionKey.length() > maxKeyLength )
 			passwordEncryptionKey = passwordEncryptionKey.substring(0, maxKeyLength-1);
 		
@@ -608,8 +579,8 @@ public class DBDatabaseEntry {
 			passwordEncryptionKey = sb.toString();
 		} 
 
-		SecretKeySpec secretKeySpec = new SecretKeySpec(passwordEncryptionKey.getBytes(), "Blowfish");
-		Cipher cipher = Cipher.getInstance("Blowfish");
+		SecretKeySpec secretKeySpec = new SecretKeySpec(passwordEncryptionKey.getBytes(), ciferTransformation);
+		Cipher cipher = Cipher.getInstance(ciferTransformation);
 		cipher.init(cipherMode, secretKeySpec, cipher.getParameters());
 		
 		return cipher;

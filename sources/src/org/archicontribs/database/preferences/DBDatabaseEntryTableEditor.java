@@ -19,6 +19,7 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
@@ -1157,7 +1158,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	    DBDatabaseEntry databaseEntry = entry==null ? new DBDatabaseEntry() : entry;
 
 		databaseEntry.setName(this.txtName.getText());
-		databaseEntry.setDriver(this.comboDriver.getText());
+		databaseEntry.setDriver(DBDatabaseDriver.fromName(this.comboDriver.getText()));
 		databaseEntry.setServer(this.comboDriver.getText().equalsIgnoreCase("sqlite") ? this.txtFile.getText() : this.txtServer.getText());
 		databaseEntry.setPort(this.txtPort.getText().isEmpty() ? 0 : Integer.valueOf(this.txtPort.getText()));
 		databaseEntry.setDatabase(this.txtDatabase.getText());
@@ -1208,8 +1209,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 			databaseEntry = (DBDatabaseEntry)this.tblDatabases.getItem(this.tblDatabases.getSelectionIndex()).getData();
 
             this.txtName.setText(databaseEntry.getName());
-            this.comboDriver.setText(databaseEntry.getDriver());
-            if ( !databaseEntry.getDriver().equalsIgnoreCase("neo4j") )
+            this.comboDriver.setText(databaseEntry.getDriver().getDriverName());
+            if ( !databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) )
             	shouldActivateAllowButton = true;
             this.txtFile.setText(databaseEntry.getServer());
             this.txtServer.setText(databaseEntry.getServer());

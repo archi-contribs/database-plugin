@@ -29,6 +29,7 @@ import javax.crypto.NoSuchPaddingException;
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBColumn;
 import org.archicontribs.database.DBColumnType;
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -173,7 +174,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 		if ( logger.isDebugEnabled() ) logger.debug("Opening connection to database "+this.databaseEntry.getName()+": driver="+this.databaseEntry.getDriver()+", server="+this.databaseEntry.getServer()+", port="+this.databaseEntry.getPort()+", database="+this.databaseEntry.getDatabase()+", schema="+this.schema+", username="+this.databaseEntry.getUsername());
 
-		String clazz = this.databaseEntry.getDriverClass();
+		String clazz = this.databaseEntry.getDriver().getDriverClass();
 		if ( logger.isDebugEnabled() ) logger.debug("JDBC class = " + clazz);
 
 		String connectionString = this.databaseEntry.getJdbcConnectionString();
@@ -185,7 +186,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		try {
 			// we load the jdbc class
 			Class.forName(clazz);
-			String driver = this.databaseEntry.getDriver();
+			String driver = this.databaseEntry.getDriver().getDriverName();
 			String username = this.databaseEntry.getUsername();
 			String encryptedPassword = this.databaseEntry.getEncryptedPassword();
 			String password = "";
@@ -229,7 +230,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			// so we need to trap this exception and change the error message
 			// For JDBC people, this is not a bug but a functionality :( 
 			if ( DBPlugin.areEqual(e.getMessage(), "JDBC URL is not correct.\nA valid URL format is: 'jdbc:neo4j:http://<host>:<port>'") ) {
-				if ( this.databaseEntry.getDriver().equals(DBDatabase.MSSQL.getDriverName()) )	// if SQL Server, we update the message for integrated authentication
+				if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.MSSQL) )	// if SQL Server, we update the message for integrated authentication
 					throw new SQLException("Please verify the database configuration in the preferences.\n\nPlease also check that you installed the \"sqljdbc_auth.dll\" file in the JRE bin folder to enable the SQL Server integrated security mode.");
 				throw new SQLException("Please verify the database configuration in the preferences.");
 			}
@@ -294,7 +295,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 */
 	public boolean checkDatabase(DBGui dbGui) throws Exception {
 		// No tables to be checked in Neo4J databases
-		if ( this.databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) )
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) )
 			return true;
 		
 		if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
@@ -341,7 +342,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.schema = this.databaseEntry.getSchema();
 		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
 
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 			// do not need to create tables
 			// shouldn't be here anyway if Neo4J database
 			return null;
@@ -384,7 +385,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			for (int t = 0; t < this.databaseTables.size() ; ++t ) {
 				String tableName = this.databaseTables.get(t).getName();
 				// oracle requires uppercase table names
-				if ( this.databaseEntry.getDriver().equals("oracle") ) {
+				if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
 					tableName = tableName.toUpperCase();
 					this.schema = this.schema.toUpperCase();
 					this.schemaPrefix = this.schemaPrefix.toUpperCase();
@@ -530,7 +531,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), DBPlugin.createID(null), DBPlugin.pluginName, databaseVersion);
 			
 			// Oracle do not implement AUTO_INCREMENT columns, so we have to manually create sequences and triggers
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_elements");
 				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_elements_in_model'; EXCEPTION WHEN OTHERS THEN NULL; END;");
 				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_elements_in_model START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -641,9 +642,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	public void dropTableIfExists(String tableName) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Dropping table "+tableName+" if it exists");
 
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 			executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP TABLE "+tableName+"'; EXCEPTION WHEN OTHERS THEN NULL; END;");
-		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
+		else if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.MSSQL) )
 			executeRequest("IF OBJECT_ID('"+tableName+"', 'U') IS NOT NULL DROP TABLE "+tableName);
 		else
 			executeRequest("DROP TABLE IF EXISTS "+tableName);
@@ -658,11 +659,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( logger.isDebugEnabled() ) logger.debug("Altering table "+tableName+", dropping column "+columnName);
 
 		// sqlite has got very limited alter table support. Especially, it does not allow to drop a column
-		if ( !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) ) {
+		if ( !this.databaseEntry.getDriver().equals(DBDatabaseDriver.SQLITE) ) {
 			StringBuilder requestString = new StringBuilder();
 			requestString.append("ALTER TABLE ");
 			requestString.append(tableName);
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.MYSQL) )
 				requestString.append(" DROP ");
 			else
 				requestString.append(" DROP COLUMN ");
@@ -751,9 +752,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 		StringBuilder requestString = new StringBuilder();
 		requestString.append("ALTER TABLE ");
 		requestString.append(tableName);
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) || DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) ) 
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.MYSQL) || this.databaseEntry.getDriver().equals(DBDatabaseDriver.MSSQL) ) 
 			requestString.append(" ADD ");
-		else if (  DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+		else if (  this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 			requestString.append(" ADD ( ");
 		else
 			requestString.append(" ADD COLUMN ");
@@ -766,12 +767,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( defaultValue instanceof Integer )
 				requestString.append(defaultValue);
 			else if ( defaultValue instanceof Timestamp ) {
-				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+				if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 					requestString.append("TO_DATE(");
 				requestString.append("'");
 				requestString.append(defaultValue.toString().substring(0, 19));		// we remove the milliseconds
 				requestString.append("'");
-				if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+				if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 					requestString.append(",'YYYY-MM-DD HH24:MI.SS')");
 			} else {
 				requestString.append("'");
@@ -783,7 +784,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( !canBeNull )
 			requestString.append(" NOT NULL");
 
-		if (  DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+		if (  this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 			requestString.append(" )");
 
 		executeRequest(requestString.toString());
@@ -798,21 +799,15 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 */
 	public void renameColumn(String tableName, String oldColumnName, String newColumnName, String columnType) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("Altering table "+tableName+", renaming column "+oldColumnName+" to "+ newColumnName);
-
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.SQLITE.getDriverName()) )
-			executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
-
-		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MSSQL.getDriverName()) )
-			executeRequest("EXEC sp_rename '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'");
-
-		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.POSTGRESQL.getDriverName()) )
-			executeRequest("ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName);
-
-		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.MYSQL.getDriverName()) )
-			executeRequest("ALTER TABLE "+tableName+" CHANGE COLUMN "+oldColumnName+" "+newColumnName+" "+columnType);
-
-		else if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
-			executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName);
+		switch ( this.databaseEntry.getDriver() ) {
+			case SQLITE: executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName); break;
+			case MSSQL: executeRequest("EXEC sp_rename '"+tableName+"."+oldColumnName+"','"+newColumnName+"','COLUMN'"); break;
+			case POSTGRESQL: executeRequest("ALTER TABLE "+tableName+" RENAME "+oldColumnName+" TO "+newColumnName); break;
+			case ORACLE: executeRequest("ALTER TABLE "+tableName+" RENAME COLUMN "+oldColumnName+" TO "+newColumnName); break;
+			case MYSQL: executeRequest("ALTER TABLE "+tableName+" CHANGE COLUMN "+oldColumnName+" "+newColumnName+" "+columnType); break;
+			case NEO4J:
+			default: //nothing to do
+		}	
 	}
 
 	/**
@@ -943,7 +938,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			addColumn(this.schemaPrefix+"views_connections", "created_by", userNameColumn.getType(), false, "databasePlugin");			// we set dummy value to satisfy the NOT NULL condition
 			addColumn(this.schemaPrefix+"views_connections", "created_on", datetimeColumn.getType(), false, now);						// we set dummy value to satisfy the NOT NULL condition
 
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 				executeRequest("UPDATE "+this.schemaPrefix+"views_connections c SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schemaPrefix+"views WHERE id = c.view_id AND version = c.view_version)");
 			else
 				executeRequest("UPDATE "+this.schemaPrefix+"views_connections SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schemaPrefix+"views_connections c JOIN "+this.schemaPrefix+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schemaPrefix+"views_connections.id = j.id");
@@ -956,7 +951,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			addColumn(this.schemaPrefix+"views_objects", "created_by", userNameColumn.getType(), false, "databasePlugin");				// we set dummy value to satisfy the NOT NULL condition
 			addColumn(this.schemaPrefix+"views_objects", "created_on", datetimeColumn.getType(), false, now);							// we set dummy value to satisfy the NOT NULL condition
 
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) )
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) )
 				executeRequest("UPDATE "+this.schemaPrefix+"views_objects o SET (created_on, created_by) = (SELECT created_on, created_by FROM "+this.schemaPrefix+"views WHERE id = o.view_id AND version = o.view_version)");
 			else
 				executeRequest("UPDATE "+this.schemaPrefix+"views_objects SET created_on = j.created_on, created_by = j.created_by FROM (SELECT c.id, v.created_on, v.created_by FROM "+this.schemaPrefix+"views_objects c JOIN "+this.schemaPrefix+"views v ON v.id = c.view_id AND v.version = c.view_version) j WHERE "+this.schemaPrefix+"views_objects.id = j.id");
@@ -973,7 +968,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "pos " + integerColumn.getType() +" NOT NULL"
 					+ ", PRIMARY KEY (civ_id)"
 					+ ")");
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_connections_in_view");
 				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_connections_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
 				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_connections_in_view START WITH 1 INCREMENT BY 1 CACHE 100");
@@ -1004,7 +999,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					+ "pos " + integerColumn.getType() +" NOT NULL"
 					+ ", PRIMARY KEY (oiv_id)"
 					+ ")");
-			if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ) {
+			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
 				if ( logger.isDebugEnabled() ) logger.debug("Creating sequence "+this.schemaPrefix+"seq_objects_in_view");
 				executeRequest("BEGIN EXECUTE IMMEDIATE 'DROP SEQUENCE "+this.schemaPrefix+"seq_objects_in_view'; EXCEPTION WHEN OTHERS THEN NULL; END;");
 				executeRequest("CREATE SEQUENCE "+this.schemaPrefix+"seq_objects_in_view START WITH 1 INCREMENT BY 1 CACHE 100");

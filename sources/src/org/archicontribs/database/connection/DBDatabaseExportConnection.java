@@ -16,11 +16,11 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBVersion;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
@@ -537,7 +537,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 */
 	public void getAllVersionFromDatabase(DBArchimateModel model, DBGui gui) throws SQLException {
 		// we do not manage versions in a Neo4J database
-		assert(!DBPlugin.areEqual(this.databaseEntry.getDriver().toLowerCase(), "neo4j"));
+		assert( !this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) );
 
 		// we reset the variables
 		this.profilesNotInModel.clear();
@@ -1503,7 +1503,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (element.getProperties() == null) ? 0 : element.getProperties().size();
 		int nbFeatures = (element.getFeatures() == null) ? 0 : element.getFeatures().size();
 
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 			// TODO: USE MERGE instead to replace existing nodes
 			executeRequest("CREATE (new:elements {id:?, version:?, class:?, name:?, type:?, documentation:?, specialization:?, checksum:?})"
 					,element.getId()
@@ -1585,7 +1585,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (relationship.getProperties() == null) ? 0 : relationship.getProperties().size();
 		int nbFeatures = (relationship.getFeatures() == null) ? 0 : relationship.getFeatures().size();
 
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 			String relationshipType = (this.databaseEntry.isNeo4jTypedRelationship() ? (relationship.getClass().getSimpleName()+"s") : "relationships");
 			// TODO: USE MERGE instead to replace existing nodes
 
@@ -2025,7 +2025,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					String value = prop.getValue();
 					if ( (key != null) && (value != null) ) {
 						++pos;
-						if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+						if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 							executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:property {pos:?, name:?, value:?}), (parent)-[:hasProperty]->(prop)"
 									,parentId
 									,parentVersion
@@ -2070,7 +2070,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 					String value = feature.getValue();
 					if ( (name != null) && (value != null) ) {
 						++pos;
-						if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+						if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 							executeRequest("MATCH (parent {id:?, version:?}) CREATE (feat:feature {pos:?, name:?, value:?}), (parent)-[:hasFeature]->(feat)"
 									,parentId
 									,parentVersion
@@ -2108,7 +2108,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		
 		if ( logger.isDebugEnabled() ) logger.debug("Exporting "+dbMetadata.getDebugName()+" (initial version = "+dbMetadata.getInitialVersion().getVersion()+", exported version = "+dbMetadata.getCurrentVersion().getVersion()+", database_version = "+dbMetadata.getDatabaseVersion().getVersion()+", latest_database_version = "+dbMetadata.getLatestDatabaseVersion().getVersion()+")");
 
-		if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 			executeRequest("CREATE (new:profiles {id:?, version:?, name:?, is_specialization:?, image_path:?, concept_type:?, created_by:?, created_on:?})"
 				,profile.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
@@ -2169,7 +2169,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	private void exportBendpoints(IDiagramModelConnection parent) throws SQLException {
 		final String[] bendpointsColumns = {"parent_id", "parent_version", "pos", "start_x", "start_y", "end_x", "end_y"};
 
-		if ( (parent.getBendpoints() != null) && !DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+		if ( (parent.getBendpoints() != null) && !this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 			logger.debug("   Exporting "+parent.getBendpoints().size()+" bendpoints");
 
 			String parentId = ((IIdentifier)parent).getId();
@@ -2204,7 +2204,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 			if ( parent.getMetadata() != null ) {        
 				for ( int propPos = 0 ; propPos < parent.getMetadata().getEntries().size(); ++propPos) {
 					IProperty prop = parent.getMetadata().getEntries().get(propPos);
-					if ( DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.NEO4J.getDriverName()) ) {
+					if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 						executeRequest("MATCH (parent {id:?, version:?}) CREATE (prop:metadata {pos:?, name:?, value:?}), (parent)-[:hasMetadata]->(prop)"
 								,parent.getId()
 								,parent.getCurrentVersion().getVersion()

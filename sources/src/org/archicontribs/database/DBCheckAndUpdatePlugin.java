@@ -47,14 +47,19 @@ import org.osgi.framework.Version;
  * @author Herve Jouin
  */
 public class DBCheckAndUpdatePlugin {
-    static final DBLogger logger = new DBLogger(DBCheckAndUpdatePlugin.class);
-    
-    private static final String githubLatestReleaseUrl = "https://api.github.com/repos/archi-contribs/database-plugin/releases/latest";
-    
+    private static final DBLogger logger = new DBLogger(DBCheckAndUpdatePlugin.class);
+    private static final String GITHUB_URL = "https://api.github.com/repos/archi-contribs/database-plugin/releases/latest";
     private static final DropinsPluginHandler dropinsPluginHandler = new DropinsPluginHandler();
     
-	static Display display = Display.getDefault();
-	static FileSystem fileSystem = FileSystems.getDefault();
+    static Display display = Display.getDefault();
+    static FileSystem fileSystem = FileSystems.getDefault();
+    
+	private static final FontData SYSTEM_FONT = display.getSystemFont().getFontData()[0];
+    private static final Color    LIGHT_BLUE  = new Color(display, 240, 248, 255);
+    private static final Font     TITLE_FONT  = new Font(display, SYSTEM_FONT.getName(), SYSTEM_FONT.getHeight() + 2, SWT.BOLD);
+    
+	
+	
     
 	static String latestVersion = null;
 	static String releaseNotes = null;
@@ -92,24 +97,15 @@ public class DBCheckAndUpdatePlugin {
 			dropinsFolderName = dropinsFolder.getCanonicalPath();
 			
 			if ( !dropinsFolder.canWrite() ) {
-				if ( showPopup )
-					DBGuiUtils.popup(Level.ERROR, "Can't write to \""+dropinsFolderName+"\" folder.");
-				else
-					logger.error("Can't write to \""+dropinsFolderName+"\" folder.");
+				error(showPopup, "Can't write to \""+dropinsFolderName+"\" folder.");
 				return;
 			}
 		} catch (IOException err) {
-			if ( showPopup )
-				DBGuiUtils.popup(Level.ERROR, "Failed to get dropins folder.", err);
-			else
-				logger.error("Failed to get dropins folder.", err);
+			error(showPopup, "Failed to get dropins folder.", err);
 			return;
 		}
 		
-		if ( showPopup )
-			DBGuiUtils.showPopupMessage("Checking for a new database plugin version on GitHub ...");
-		else
-			logger.debug("Checking for a new database plugin version on GitHub");
+		DBGuiUtils.showPopupMessage(showPopup, "Checking for a new database plugin version on GitHub ...");
 
 		try {
 			Authenticator.setDefault(new Authenticator() {
@@ -145,15 +141,15 @@ public class DBCheckAndUpdatePlugin {
 				}  
 			});
 
-			if ( logger.isDebugEnabled() ) logger.debug("Connecting to "+githubLatestReleaseUrl);
-			HttpsURLConnection conn = (HttpsURLConnection)new URL(githubLatestReleaseUrl).openConnection();
+			if ( logger.isDebugEnabled() ) logger.debug("Connecting to "+GITHUB_URL);
+			HttpsURLConnection conn = (HttpsURLConnection)new URL(GITHUB_URL).openConnection();
 			
 			if ( logger.isDebugEnabled() ) logger.debug("Getting latest release information");
 			try (InputStreamReader streamReader = new InputStreamReader(conn.getInputStream()) ) {
 				JSONParser parser = new JSONParser();
 				JSONObject latestReleaseJsonData = (JSONObject)parser.parse(streamReader);
 				latestVersion = (String)latestReleaseJsonData.get("name");
-				releaseNotes = ((String)latestReleaseJsonData.get("body")).replaceAll("\r\n", "\n");
+				releaseNotes = ((String)latestReleaseJsonData.get("body")).replace("\r\n", "\n");
 				downloadUrl = (String)((JSONObject)((JSONArray)latestReleaseJsonData.get("assets")).get(0)).get("browser_download_url");
 				logger.debug("latest version = " + latestVersion);
 				logger.debug("release notes = " + releaseNotes);
@@ -164,10 +160,7 @@ public class DBCheckAndUpdatePlugin {
 			DBGuiUtils.closePopupMessage();
 	
 			if ( DBPlugin.pluginVersion.compareTo(new Version(latestVersion)) >= 0 ) {
-				if ( showPopup ) {
-					DBGuiUtils.popup(Level.INFO, "You already have got the latest version: "+latestVersion);
-				} else
-					logger.info("You already have got the latest version: "+latestVersion);
+				info(showPopup, "You already have got the latest version: "+latestVersion);
 				return;
 			}
 
@@ -185,10 +178,7 @@ public class DBCheckAndUpdatePlugin {
 			}
 			
 			if ( !DBPlugin.pluginsFilename.endsWith(".jar") ) {
-				if ( showPopup )
-					DBGuiUtils.popup(Level.ERROR,"Plugin cannot be updated as Archi is running inside Eclipse.");
-				else
-					logger.error("Plugin cannot be updated as Archi is running inside Eclipse.");
+				error(showPopup, "Plugin cannot be updated as Archi is running inside Eclipse.");
 				return;
 			}
 	
@@ -234,11 +224,10 @@ public class DBCheckAndUpdatePlugin {
 			} catch (Exception err) {
 				DBGuiUtils.popup(Level.ERROR, "Failed to delete partially downloaded file \""+newPluginFilename+"\".", err);
 			}
-			if ( showPopup ) {
-				DBGuiUtils.closePopupMessage();
-				DBGuiUtils.popup(Level.ERROR, "Failed to download the new version of the database plugin.", e);
-			} else
-				logger.error("Failed to download the new version of the database plugin.",e);
+
+			DBGuiUtils.closePopupMessage();
+			error(showPopup, "Failed to download the new version of the database plugin.", e);
+			
 			return;
 		}
 
@@ -249,17 +238,11 @@ public class DBCheckAndUpdatePlugin {
 		try {
 			IStatus status = dropinsPluginHandler.installFile(new File(newPluginFilename));
 			if ( !status.isOK() ) {
-				if ( showPopup )
-					DBGuiUtils.popup(Level.ERROR, "Failed to install new plugin version.");
-				else
-					logger.error("Failed to install new plugin version.");
+				error(showPopup, "Failed to install new plugin version.");
 				return;
 			}
 		} catch (IOException e) {
-			if ( showPopup )
-				DBGuiUtils.popup(Level.ERROR, "Failed to install new plugin version.", e);
-			else
-				logger.error("Failed to install new plugin version.",e);
+			error(showPopup, "Failed to install new plugin version.", e);
 			return;
 		}
 		
@@ -282,10 +265,6 @@ public class DBCheckAndUpdatePlugin {
     static ProgressBar progressbarPopup(String msg) {
         if (logger.isDebugEnabled())
             logger.debug("New progressbarPopup(\"" + msg + "\")");
-        
-		final FontData SYSTEM_FONT = display.getSystemFont().getFontData()[0];
-	    final Color    LIGHT_BLUE  = new Color(display, 240, 248, 255);
-	    final Font     TITLE_FONT  = new Font(display, SYSTEM_FONT.getName(), SYSTEM_FONT.getHeight() + 2, SWT.BOLD);
         
         Shell shell = new Shell(display, SWT.SHELL_TRIM);
         shell.setSize(600, 100);
@@ -325,5 +304,42 @@ public class DBCheckAndUpdatePlugin {
         shell.open();
 
         return progressBar;
+    }
+    
+    /**
+     * Helper method that shows an error message
+     * @param showPopup
+     * @param msg
+     */
+    private static void error(boolean showPopup, String msg) {
+		if ( showPopup )
+			DBGuiUtils.popup(Level.ERROR, msg);
+		else
+			logger.error(msg);
+    }
+    
+    /**
+     * Helper method that shows an error message
+     * @param showPopup
+     * @param msg
+     * @param exception
+     */
+    private static void error(boolean showPopup, String msg, Exception exception) {
+		if ( showPopup )
+			DBGuiUtils.popup(Level.ERROR, msg, exception);
+		else
+			logger.error(msg, exception);
+    }
+    
+    /**
+     * Helper method that shows an info message
+     * @param showPopup
+     * @param msg
+     */
+    private static void info(boolean showPopup, String msg) {
+		if ( showPopup )
+			DBGuiUtils.popup(Level.INFO, msg);
+		else
+			logger.info(msg);
     }
 }

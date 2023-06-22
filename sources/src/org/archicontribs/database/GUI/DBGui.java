@@ -19,13 +19,13 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseConnection;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBBendpoint;
-import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBProfile;
 import org.archicontribs.database.data.DBProperty;
 import org.archicontribs.database.model.DBMetadata;
@@ -611,7 +611,7 @@ public class DBGui {
 			int databaseToSelect = -1;
 			int line = 0;
 			for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
-				if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
+				if ( mustIncludeNeo4j || !databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 					this.comboDatabases.add(databaseEntry.getName());
 					this.comboDatabaseEntries.add(databaseEntry);
 					if ( !DBPlugin.isEmpty(defaultDatabaseId) && databaseEntry.getId().equals(defaultDatabaseId) )
@@ -663,7 +663,7 @@ public class DBGui {
 			} else {
 				int line = 0;
 				for (DBDatabaseEntry databaseEntry: this.databaseEntries) {
-					if ( this.includeNeo4j || !databaseEntry.getDriver().equals(DBDatabase.NEO4J.getDriverName()) ) {
+					if ( this.includeNeo4j || !databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 						this.comboDatabases.add(databaseEntry.getName());
 						this.comboDatabaseEntries.add(databaseEntry);
 						++line;

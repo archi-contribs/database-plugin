@@ -1,5 +1,8 @@
 package org.archicontribs.database;
 
+/**
+ * Database columns type
+ */
 public enum DBColumnType {
     AUTO_INCREMENT,
     BOOLEAN,
@@ -10,7 +13,6 @@ public enum DBColumnType {
     INTEGER,
     OBJECTID,
     OBJ_NAME,
-    //PRIMARY_KEY,
     STRENGTH,
     TEXT,
     TYPE,

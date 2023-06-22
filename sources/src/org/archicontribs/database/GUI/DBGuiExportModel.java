@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
@@ -1160,7 +1161,7 @@ public class DBGuiExportModel extends DBGui {
 	protected void connectedToDatabase(boolean forceCheckDatabase) {
 		this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
 
-		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		boolean isNeo4j = (this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J));
 
 		this.lblModelNew.setText(isNeo4j ? "Exported" : "New");
 
@@ -1316,7 +1317,7 @@ public class DBGuiExportModel extends DBGui {
 		this.btnCompareModelToDatabase.setEnabled(false);
 
 		// we hide the comparison between the model and the database in case of a neo4j database
-		boolean isNeo4j = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		boolean isNeo4j = (this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J));
 		this.lblModel.setVisible(!isNeo4j);
 		this.lblModelNew.setVisible(!isNeo4j);
 		this.lblModelDeleted.setVisible(!isNeo4j);
@@ -1401,7 +1402,7 @@ public class DBGuiExportModel extends DBGui {
 	 */
 	protected boolean compareModelToDatabase(boolean updateTextFields) throws Exception {
 		// We do not verify the content of neo4j database, we just export the components
-		if ( DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") )
+		if ( this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J) )
 			return true;
 		
 		// calculating model's checksum
@@ -1935,7 +1936,7 @@ public class DBGuiExportModel extends DBGui {
 			logger.info(String.format("   Specializations:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllProfiles().size(), toInt(this.txtNewProfilesInModel.getText()), toInt(this.txtUpdatedProfilesInModel.getText()), toInt(this.txtDeletedProfilesInModel.getText()), toInt(this.txtNewProfilesInDatabase.getText()), toInt(this.txtUpdatedProfilesInDatabase.getText()), toInt(this.txtDeletedProfilesInDatabase.getText()), toInt(this.txtConflictingProfiles.getText())) );  
 			logger.info(String.format("   Elements:         %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
 			logger.info(String.format("   Relationships:    %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+			if ( !this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 				logger.info(String.format("   Folders:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
 				logger.info(String.format("   views:            %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
 				logger.info(String.format("   Objects:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );
@@ -1987,7 +1988,7 @@ public class DBGuiExportModel extends DBGui {
 		// commands that can be undone in case the export fails or is cancelled by the user
 		DBCompoundCommand undoableCommands = new DBCompoundCommand("Sync model with database");
 
-		boolean isNeo4JDatabase = DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j");
+		boolean isNeo4JDatabase = this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J);
 
 		String errorMessage = "Exporting model to the database";		// the error message that will be printed in case an exception is raised.
 		try {
@@ -3244,7 +3245,7 @@ public class DBGuiExportModel extends DBGui {
 			logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
 			logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
 			logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
-			if ( !DBPlugin.areEqual(this.selectedDatabase.getDriver().toLowerCase(), "neo4j") ) {
+			if ( !this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
 				logger.info(String.format("   Folders:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllFolders().size(), toInt(this.txtNewFoldersInModel.getText()), toInt(this.txtUpdatedFoldersInModel.getText()), toInt(this.txtDeletedFoldersInModel.getText()), toInt(this.txtNewFoldersInDatabase.getText()), toInt(this.txtUpdatedFoldersInDatabase.getText()), toInt(this.txtDeletedFoldersInDatabase.getText()), toInt(this.txtConflictingFolders.getText())) );
 				logger.info(String.format("   views:          %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViews().size(), toInt(this.txtNewViewsInModel.getText()), toInt(this.txtUpdatedViewsInModel.getText()), toInt(this.txtDeletedViewsInModel.getText()), toInt(this.txtNewViewsInDatabase.getText()), toInt(this.txtUpdatedViewsInDatabase.getText()), toInt(this.txtDeletedViewsInDatabase.getText()), toInt(this.txtConflictingViews.getText())) );
 				logger.info(String.format("   Objects:        %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllViewObjects().size(), toInt(this.txtNewViewObjectsInModel.getText()), toInt(this.txtUpdatedViewObjectsInModel.getText()), toInt(this.txtDeletedViewObjectsInModel.getText()), toInt(this.txtNewViewObjectsInDatabase.getText()), toInt(this.txtUpdatedViewObjectsInDatabase.getText()), toInt(this.txtDeletedViewObjectsInDatabase.getText()), toInt(this.txtConflictingViewObjects.getText())) );

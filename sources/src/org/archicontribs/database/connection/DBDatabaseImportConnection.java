@@ -15,11 +15,11 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBBendpoint;
-import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
 import org.archicontribs.database.data.DBProfile;
 import org.archicontribs.database.data.DBProperty;
@@ -100,12 +100,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		super.connection = exportConnection.connection;
 		this.isExportConnectionDuplicate = true;
 		
-		this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
-		this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
-		this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
-		this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
-		this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
-		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
+		boolean isOracle = this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE);
+		
+		this.toCharDocumentation = isOracle ? "TO_CHAR(documentation)" : "documentation";
+		this.toCharDocumentationAsDocumentation = isOracle ? "TO_CHAR(documentation) AS documentation" : "documentation";
+		this.toCharContentAsContent = isOracle ? "TO_CHAR(content) AS content" : "content";
+		this.toCharNotesAsNotes = isOracle ? "TO_CHAR(notes) AS notes" : "notes";
+		this.toCharStrength = isOracle ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = isOracle ? "TO_CHAR(strength) AS strength" : "strength";
 	}
 	
 	 /**
@@ -121,12 +123,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
         super.connection = databaseConnection.connection;
         this.isExportConnectionDuplicate = true;
         
-        this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
-        this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
-        this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
-        this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
-        this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
-		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
+        boolean isOracle = this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE);
+        
+        this.toCharDocumentation = isOracle ? "TO_CHAR(documentation)" : "documentation";
+        this.toCharDocumentationAsDocumentation = isOracle ? "TO_CHAR(documentation) AS documentation" : "documentation";
+        this.toCharContentAsContent = isOracle ? "TO_CHAR(content) AS content" : "content";
+        this.toCharNotesAsNotes = isOracle ? "TO_CHAR(notes) AS notes" : "notes";
+        this.toCharStrength = isOracle ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = isOracle ? "TO_CHAR(strength) AS strength" : "strength";
     }
 
 	/**
@@ -367,12 +371,14 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws Exception
 	 */
 	public int countModelComponents(DBArchimateModel model) throws Exception {
-	    this.toCharDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation)" : "documentation";
-	    this.toCharDocumentationAsDocumentation = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(documentation) AS documentation" : "documentation";
-	    this.toCharContentAsContent = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(content) AS content" : "content";
-	    this.toCharNotesAsNotes = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(notes) AS notes" : "notes";
-	    this.toCharStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength)" : "strength";
-		this.toCharStrengthAsStrength = DBPlugin.areEqual(this.databaseEntry.getDriver(), DBDatabase.ORACLE.getDriverName()) ? "TO_CHAR(strength) AS strength" : "strength";
+		boolean isOracle = this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE);
+		
+	    this.toCharDocumentation = isOracle ? "TO_CHAR(documentation)" : "documentation";
+	    this.toCharDocumentationAsDocumentation = isOracle ? "TO_CHAR(documentation) AS documentation" : "documentation";
+	    this.toCharContentAsContent = isOracle ? "TO_CHAR(content) AS content" : "content";
+	    this.toCharNotesAsNotes = isOracle ? "TO_CHAR(notes) AS notes" : "notes";
+	    this.toCharStrength = isOracle ? "TO_CHAR(strength)" : "strength";
+		this.toCharStrengthAsStrength = isOracle ? "TO_CHAR(strength) AS strength" : "strength";
 
 		String profilesVersionToImport = model.isLatestVersionImported() ? "(SELECT MAX(version) FROM "+this.schemaPrefix+"profiles WHERE profiles.id = profiles_in_model.profile_id)" : "profiles_in_model.profile_version";
 		String selectProfilesRequest = "SELECT DISTINCT profile_id, profile_version, name, is_specialization, image_path, concept_type, created_on, checksum, pos"

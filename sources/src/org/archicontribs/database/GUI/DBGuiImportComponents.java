@@ -17,6 +17,7 @@ import java.util.Locale;
 import java.util.Map;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -1857,7 +1858,7 @@ public class DBGuiImportComponents extends DBGui {
 			this.hideOption.setText("Hide components with empty names");
 			String addOn = "";
 			if ( this.hideOption.getSelection() ) {
-				if ( this.selectedDatabase.getDriver().equals("oracle") ) {
+				if ( this.selectedDatabase.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
 					addOn = " AND LENGTH(name) <> 0";
 				} else {
 					addOn = " AND name <> ''";

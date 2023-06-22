@@ -60,6 +60,22 @@ public class DBGuiUtils {
     static Shell popupShell = null;
     static Composite popupComposite = null;
     static Label popupLabel = null;
+    
+    /**
+     * Shows up an on screen popup displaying a message to the user but does not wait for any user input<br>
+     * The message can be changed in the popup window without closing the popup and opening a new one by calling several times the showPopupMessage method<br>
+     * To dismiss the popup windows, it is the the responsibility of the caller to call the {@link #closePopupMessage()} method<br>
+     * @param showPopup if true, shows the popop, else sends the message to the logger
+     * @param msg Message to show in the popup
+     * @return 
+     */
+    public static Shell showPopupMessage(boolean showPopup, String msg) {
+    	if ( showPopup )
+    		return showPopupMessage(msg);
+    	
+    	logger.debug(msg);
+    	return null;
+    }
     /**
      * Shows up an on screen popup displaying a message to the user but does not wait for any user input<br>
      * The message can be changed in the popup window without closing the popup and opening a new one by calling several times the showPopupMessage method<br>
