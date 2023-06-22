@@ -22,6 +22,7 @@ import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGuiUtils;
+import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Font;
@@ -34,6 +35,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.ProgressBar;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.ui.PlatformUI;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -240,8 +242,7 @@ public class DBCheckAndUpdatePlugin {
 			return;
 		}
 
-		/*
-		if( updateProgressbar != null ) display.syncExec(new Runnable() { @Override public void run() { DBCheckForPluginUpdate.updateProgressbar.getShell().dispose(); DBCheckForPluginUpdate.updateProgressbar = null;}});
+		if( updateProgressbar != null ) display.syncExec(new Runnable() { @Override public void run() { DBCheckAndUpdatePlugin.updateProgressbar.getShell().dispose(); DBCheckAndUpdatePlugin.updateProgressbar = null;}});
 		
 
 		// we ask Archi to install it
@@ -270,7 +271,6 @@ public class DBCheckAndUpdatePlugin {
 				}
 			});
 		}
-		*/
 	}
 	
     /**
