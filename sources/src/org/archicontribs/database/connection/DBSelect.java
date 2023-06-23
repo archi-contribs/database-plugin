@@ -1,10 +1,4 @@
 package org.archicontribs.database.connection;
-/**
- * Wrapper to generate and execute a SELECT request in the database<br>
- * One may use '?' in the request and provide the corresponding values as parameters (at the moment, only strings are accepted)<br>
- * The connection to the database should already exist 
- * @return the ResultSet with the data read from the database
- */
 
 import java.sql.Connection;
 import java.sql.Date;
@@ -16,11 +10,28 @@ import org.archicontribs.database.DBLogger;
 
 import lombok.Getter;
 
+/**
+ * Helper class that allows to execute a SQL select request upon a database
+ * 
+ * @author Herve Jouin
+ */
 public class DBSelect extends DBStatement {
 	private static final DBLogger logger = new DBLogger(DBSelect.class);
 	
 	@Getter ResultSet result = null;
 	
+	/**
+	 * Wrapper to generate and execute a SELECT request in the database<br>
+	 * One may use '?' in the request and provide the corresponding values as parameters (at the moment, only strings are accepted)<br>
+	 * The connection to the database should already exist 
+	 * @param theDriverName 
+	 * @param theConnection 
+	 * @param theRequest 
+	 * @param theParameters 
+	 * @param <T> 
+	 * @return the ResultSet with the data read from the database
+	 * @throws SQLException 
+	 */
 	@SafeVarargs
 	public <T> DBSelect(String theDriverName, Connection theConnection, String theRequest, T... theParameters) throws SQLException {
         super(theDriverName, theConnection, theRequest, theParameters);
@@ -34,6 +45,11 @@ public class DBSelect extends DBStatement {
         }
 	}
 	
+	/**
+	 * May be called after a DBselect call
+	 * @return the next value
+	 * @throws SQLException
+	 */
 	public boolean next() throws SQLException {
 		return this.result.next();
 	}

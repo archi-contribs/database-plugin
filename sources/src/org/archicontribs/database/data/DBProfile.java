@@ -23,11 +23,26 @@ public class DBProfile implements java.lang.Comparable<DBProfile>
     @Getter @Setter private String imagePath;
 
     
-    @Override public int compareTo(DBProfile o) {
+    @Override
+    public int compareTo(DBProfile o) {
 		int result = this.name.compareTo(o.getName());
 		if ( result == 0 ) result = this.conceptType.compareTo(o.getConceptType());
 		if ( result == 0 ) result = ((Boolean)this.specialization).compareTo(o.isSpecialization());
-		if ( result == 0 ) result = this.getImagePath().compareTo(o.getImagePath());
+		if ( result == 0 ) result = this.imagePath.compareTo(o.getImagePath());
 		return result;
+	}
+    
+    @Override
+    public boolean equals(Object o) {
+     	if ( o instanceof DBProfile) 
+     		return this.conceptType.equals(((DBProfile)o).getConceptType())
+				&& this.specialization == (((DBProfile)o).isSpecialization())
+				&& this.imagePath.equals(((DBProfile)o).getImagePath());
+    	return false;
+    }
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 }

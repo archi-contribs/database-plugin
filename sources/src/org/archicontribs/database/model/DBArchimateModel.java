@@ -19,6 +19,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
 import org.archicontribs.database.GUI.DBGuiUtils;
@@ -159,7 +160,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IArchimateElement> allElements = new LinkedHashMap<String, IArchimateElement>();
+    @Getter private Map<String, IArchimateElement> allElements = new LinkedHashMap<>();
 
     /**
      * List of all relationships in the model.<br>
@@ -168,7 +169,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<String, IArchimateRelationship>();
+    @Getter private Map<String, IArchimateRelationship> allRelationships = new LinkedHashMap<>();
 
     /**
      * List of all views in the model.<br>
@@ -177,7 +178,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IDiagramModel> allViews = new LinkedHashMap<String, IDiagramModel>();
+    @Getter private Map<String, IDiagramModel> allViews = new LinkedHashMap<>();
 
     /**
      * List of all objects in the model views.<br>
@@ -186,7 +187,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IDiagramModelObject> allViewObjects = new LinkedHashMap<String, IDiagramModelObject>();
+    @Getter private Map<String, IDiagramModelObject> allViewObjects = new LinkedHashMap<>();
 
     /**
      * List of all connections in the model views.<br>
@@ -195,7 +196,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IDiagramModelConnection> allViewConnections = new LinkedHashMap<String, IDiagramModelConnection>();
+    @Getter private Map<String, IDiagramModelConnection> allViewConnections = new LinkedHashMap<>();
 
     /**
      * List of all folders in the model.<br>
@@ -204,7 +205,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
      */
-    @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<String, IFolder>();
+    @Getter private Map<String, IFolder> allFolders = new LinkedHashMap<>();
     
     /**
      * List of all faulty eObjects found in the model.<br>
@@ -215,7 +216,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use HaspMap as the order is not important
      */
-    @Getter private Map<EObject, String> allFaultyObjects = new HashMap<EObject, String>();
+    @Getter private Map<EObject, String> allFaultyObjects = new HashMap<>();
     
     /**
      * List of all profiles in the model.<br>
@@ -224,62 +225,40 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * <br>
      * We use LinkedHashMap as the order is important
     */
-    @Getter private Map<String, IProfile> allProfiles = new LinkedHashMap<String, IProfile>();
+    @Getter private Map<String, IProfile> allProfiles = new LinkedHashMap<>();
     
-    /**
-     * List of the profiles usage.
-     */
-    @Getter private Map<IProfile, List<IProfiles>> allProfilesUsages = new LinkedHashMap<IProfile, List<IProfiles>>();
+    /** List of the profiles usage. */
+    @Getter private Map<IProfile, List<IProfiles>> allProfilesUsages = new LinkedHashMap<>();
 
-    /**
-     * List of the source relationships that have been imported but not yet created.
-     */
-    @Getter private Map<IArchimateRelationship, String> allSourceRelationshipsToResolve = new LinkedHashMap<IArchimateRelationship, String>();
+    /** List of the source relationships that have been imported but not yet created. */
+    @Getter private Map<IArchimateRelationship, String> allSourceRelationshipsToResolve = new LinkedHashMap<>();
 
-    /**
-     * List of the target relationships that have been imported but not yet created.
-     */
-    @Getter private Map<IArchimateRelationship, String> allTargetRelationshipsToResolve = new LinkedHashMap<IArchimateRelationship, String>();
+    /** List of the target relationships that have been imported but not yet created. */
+    @Getter private Map<IArchimateRelationship, String> allTargetRelationshipsToResolve = new LinkedHashMap<>();
 
-    /**
-     * List of all the source connections that have been imported but not yet created.
-     */
-    @Getter private Map<IDiagramModelConnection, String> allSourceConnectionsToResolve = new LinkedHashMap<IDiagramModelConnection, String>();
+    /** List of all the source connections that have been imported but not yet created. */
+    @Getter private Map<IDiagramModelConnection, String> allSourceConnectionsToResolve = new LinkedHashMap<>();
 
-    /**
-     * List of all the target connections that have been imported but not yet created.
-     */
-    @Getter private Map<IDiagramModelConnection, String> allTargetConnectionsToResolve = new LinkedHashMap<IDiagramModelConnection, String>();
+    /** List of all the target connections that have been imported but not yet created. */
+    @Getter private Map<IDiagramModelConnection, String> allTargetConnectionsToResolve = new LinkedHashMap<>();
 
-    /**
-     * List all the elements IDs that have been changed during the import process in copy mode
-     */
-    @Getter private Map<String, String> allCopiedElements = new LinkedHashMap<String, String>();
+    /** List all the elements IDs that have been changed during the import process in copy mode */
+    @Getter private Map<String, String> allCopiedElements = new LinkedHashMap<>();
     
-    /**
-     * List all the relationship IDs that have been changed during the import process in copy mode
-     */
-    @Getter private Map<String, String> allCopiedRelationships = new LinkedHashMap<String, String>();
+    /** List all the relationship IDs that have been changed during the import process in copy mode */
+    @Getter private Map<String, String> allCopiedRelationships = new LinkedHashMap<>();
     
-    /**
-     * List all the views IDs that have been changed during the import process in copy mode
-     */
-    @Getter private Map<String, String> allCopiedView = new LinkedHashMap<String, String>();
+    /** List all the views IDs that have been changed during the import process in copy mode */
+    @Getter private Map<String, String> allCopiedView = new LinkedHashMap<>();
 
-    /**
-     * List all the view objects IDs that have been changed during the import process in copy mode
-     */
-    @Getter private Map<String, String> allCopiedViewObjects = new LinkedHashMap<String, String>();
+    /** List all the view objects IDs that have been changed during the import process in copy mode */
+    @Getter private Map<String, String> allCopiedViewObjects = new LinkedHashMap<>();
     
-    /**
-     * List all the view connections IDs that have been changed during the import process in copy mode
-     */
-    @Getter private Map<String, String> allCopiedViewConnections = new LinkedHashMap<String, String>();
+    /** List all the view connections IDs that have been changed during the import process in copy mode */
+    @Getter private Map<String, String> allCopiedViewConnections = new LinkedHashMap<>();
     
-    /**
-     * List of all conflicts in the model and the option chosen by the user.<br>
-     */
-    @Getter private Map<EObject, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<EObject, CONFLICT_CHOICE>();
+    /** List of all conflicts in the model and the option chosen by the user. */
+    @Getter private Map<EObject, CONFLICT_CHOICE> allConflicts = new LinkedHashMap<>();
     
     /**
      * @return the list of all the image paths in the model.
@@ -356,12 +335,12 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     /**
      * Counts the number of objects in the model.<br>
      * At the same time, we calculate the current checksums
-     * @throws NoSuchAlgorithmException 
-     * @throws UnsupportedEncodingException 
-     * @throws Exception
+     * @throws DBException
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
      * @return true if all components have been counted, or false if inconstancy has been detected
      */
-    public boolean countAllObjects() throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
+    public boolean countAllObjects() throws NoSuchAlgorithmException, UnsupportedEncodingException, DBException {
     	return countAllObjects(true);
     }
 
@@ -369,12 +348,12 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Counts the number of objects in the model.<br>
      * At the same time, we calculate the current checksums
      * @param deleteFaultyComponents true if the method should ask the user which faulty component he wishes to delete, false if the faulty components are all kept
-     * @throws NoSuchAlgorithmException 
-     * @throws UnsupportedEncodingException 
-     * @throws Exception
+     * @throws DBException
+     * @throws NoSuchAlgorithmException
+     * @throws UnsupportedEncodingException
      * @return true if all components have been counted, or false if inconstancy has been detected
      */
-    public boolean countAllObjects(boolean deleteFaultyComponents) throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
+    public boolean countAllObjects(boolean deleteFaultyComponents) throws NoSuchAlgorithmException, UnsupportedEncodingException, DBException {
         // First, we reset all the counters as they can be be re-populated
     	resetCounters();
 
@@ -408,7 +387,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         	
         	for ( EObject objToBeDeleted: faultyEObjectSelected) {
         		// Stores the list of objects that needs to be removed from the model
-            	Set<EObject> toBeDeleted = new HashSet<EObject>();
+            	Set<EObject> toBeDeleted = new HashSet<>();
             	
         		// We delete the object from the model, using a command that can be rolled-back
         		if (objToBeDeleted instanceof IArchimateElement) {
@@ -460,13 +439,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * @param eObject 
      * @param mustCalculateChecksum 
      * @return the concatenation of the checksums of all the eObject components
-     * @throws Exception when the eObject class is unknown (should never happen, but who knows ...)
-     * @throws UnsupportedEncodingException 
-     * @throws NoSuchAlgorithmException 
+     * @throws DBException when the eObject class is unknown (should never happen, but who knows ...)
      * @throws NullPointerException when the calculateChecksum method raised a NullPointerException and the corresponding eObject has been removed from the model
      */
     @SuppressWarnings("null")
-    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws NoSuchAlgorithmException, UnsupportedEncodingException, Exception {
+    public String countObject(EObject eObject, boolean mustCalculateChecksum) throws DBException {
         StringBuilder checksumBuilder = null;
         DBMetadata objectMetadata = getDBMetadata(eObject);
         int len = 0;
@@ -477,7 +454,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         		objectMetadata.getScreenshot().dispose();
             try {
             	checksumBuilder = new StringBuilder(DBChecksum.calculateChecksum(eObject));
-            } catch (NullPointerException err)  {
+            } catch (Exception err)  {
             	this.allFaultyObjects.put(eObject, err.getMessage());
             	checksumBuilder = new StringBuilder();
             }
@@ -568,7 +545,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 			case "Folder":							this.allFolders.put(((IFolder)eObject).getId(), (IFolder)eObject);
 			
 										            // We sort the sub folders in order to guarantee the checksum changes when a sub-folder changes
-			                                        List<IFolder> sortedFolder = new ArrayList<IFolder>(((IFolder)eObject).getFolders());
+			                                        List<IFolder> sortedFolder = new ArrayList<>(((IFolder)eObject).getFolders());
 			                                        sortedFolder.sort(this.folderComparator);
 										            for ( IFolder subFolder: sortedFolder ) {
 														// we fix the folder type
@@ -578,7 +555,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 										            }
 										
 	                                                  // We sort the sub folders in order to guarantee the checksum changes when an element changes
-                                                    List<EObject> sortedChild = new ArrayList<EObject>(((IFolder)eObject).getElements());
+                                                    List<EObject> sortedChild = new ArrayList<>(((IFolder)eObject).getElements());
                                                     sortedChild.sort(this.objectComparator);
 										            for ( EObject child: sortedChild ) {
 										                countObject(child, mustCalculateChecksum);
@@ -600,7 +577,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 									                    this.allElements.put(((IIdentifier)eObject).getId(), (IArchimateElement)eObject);
 									                    for ( IProfile profile: ((IProfiles)eObject).getProfiles() ) {
 									                    	List<IProfiles> list = this.allProfilesUsages.get(profile);
-									                    	if ( list == null ) list = new ArrayList<IProfiles>();
+									                    	if ( list == null ) list = new ArrayList<>();
 									                    	list.add((IProfiles)eObject);
 									                    	this.allProfilesUsages.put(profile, list);
 									                    }
@@ -608,19 +585,24 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 									                    this.allRelationships.put(((IIdentifier)eObject).getId(), (IArchimateRelationship)eObject);
 									                    for ( IProfile profile: ((IProfiles)eObject).getProfiles() ) {
 									                    	List<IProfiles> list = this.allProfilesUsages.get(profile);
-									                    	if ( list == null ) list = new ArrayList<IProfiles>();
+									                    	if ( list == null ) list = new ArrayList<>();
 									                    	list.add((IProfiles)eObject);
 									                    	this.allProfilesUsages.put(profile, list);
 									                    }
 									                } else { //we should never be there, but just in case ...
-									                    throw new Exception("Unknown "+eObject.eClass().getName()+" object.");
+									                    throw new DBException("Unknown "+eObject.eClass().getName()+" object.");
 									                }
         }
 
         if ( mustCalculateChecksum ) {
             // if the checksumBuilder contains a single checksum, then we get it
             // else, we calculate a new checksum from the list of checksums
-            String checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
+            String checksum = null;
+            try {
+            	checksum = (checksumBuilder.length() != len) ? DBChecksum.calculateChecksum(checksumBuilder) : checksumBuilder.toString();
+            } catch (@SuppressWarnings("unused") Exception e) {
+            	// nothing to do
+            }
             objectMetadata.getCurrentVersion().setChecksum(checksum);
             return checksum;
         }
@@ -749,9 +731,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * As all the elements are imported before the relationships, the source of the relationship is another relationship (else, the element would have been existing in the model) 
      * @param relationship
      * @param sourceId
-     * @throws Exception
      */
-    public void registerSourceRelationship(IArchimateRelationship relationship, String sourceId) throws Exception {
+    public void registerSourceRelationship(IArchimateRelationship relationship, String sourceId) {
         if ( (sourceId != null) && (sourceId.length() != 0) )
         	this.allSourceRelationshipsToResolve.put(relationship, sourceId);
     }
@@ -763,18 +744,17 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * As all the elements are imported before the relationships, the target of the relationship is another relationship (else, the element would have been existing in the model) 
      * @param relationship
      * @param targetId
-     * @throws Exception
      */
-    public void registerTargetRelationship(IArchimateRelationship relationship, String targetId) throws Exception {
+    public void registerTargetRelationship(IArchimateRelationship relationship, String targetId) {
         if ( (targetId != null) && (targetId.length() != 0) )
         	this.allTargetRelationshipsToResolve.put(relationship, targetId);
     }
     
     /**
      * resolves the source and target relationships (see {@link #registerSourceRelationship(IArchimateRelationship relationship, String sourceId)} and @{link registerTargetRelationship(IArchimateRelationship relationship, String targetId)})
-     * @throws Exception 
+     * @throws DBException 
      */
-    public void resolveSourceAndTargetRelationships() throws Exception {
+    public void resolveSourceAndTargetRelationships() throws DBException {
         logger.info("Resolving source relationships.");
         for ( Map.Entry<IArchimateRelationship, String> entry: this.allSourceRelationshipsToResolve.entrySet() ) {
             IArchimateRelationship relationship = entry.getKey();
@@ -785,7 +765,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                 source = this.getAllElements().get(getNewElementId(entry.getValue()));
         
             if ( source == null )
-            	throw new Exception("Failed to resolve source relationship for "+getDBMetadata(relationship).getDebugName());
+            	throw new DBException("Failed to resolve source relationship for "+getDBMetadata(relationship).getDebugName());
 
             relationship.setSource(source);
             source.getSourceRelationships().add(relationship);
@@ -801,7 +781,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
                 target = this.getAllElements().get(getNewElementId(entry.getValue()));
         
             if ( target == null )
-            	throw new Exception("Failed to resolve target relationship for "+getDBMetadata(relationship).getDebugName());
+            	throw new DBException("Failed to resolve target relationship for "+getDBMetadata(relationship).getDebugName());
 
             relationship.setTarget(target);
             target.getTargetRelationships().add(relationship);
@@ -819,9 +799,8 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Register a source connection that will have to be resolved later on. This is necessary because when the connection is imported, its source may not be imported yet
      * @param connection
      * @param sourceId
-     * @throws Exception
      */
-    public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) throws Exception {
+    public void registerSourceConnection(IDiagramModelConnection connection, String sourceId) {
         if ( (sourceId != null) && (sourceId.length() != 0) )
         	this.allSourceConnectionsToResolve.put(connection, sourceId);
     }
@@ -830,18 +809,17 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Register a target connection that will have to be resolved later on. This is necessary because when the connection is imported, its target may not be imported yet
      * @param connection
      * @param targetId 
-     * @throws Exception
      */
-    public void registerTargetConnection(IDiagramModelConnection connection, String targetId) throws Exception {
+    public void registerTargetConnection(IDiagramModelConnection connection, String targetId) {
         if ( (targetId != null) && (targetId.length() != 0) )
         	this.allTargetConnectionsToResolve.put(connection, targetId);
     }
 
     /**
      * Resolve the sources and targets of all connections in the model
-     * @throws Exception
+     * @throws DBException
      */
-    public void resolveSourceAndTargetConnections() throws Exception {
+    public void resolveSourceAndTargetConnections() throws DBException {
         logger.info("Resolving source connections.");
         for ( Map.Entry<IDiagramModelConnection, String> entry: this.allSourceConnectionsToResolve.entrySet() ) {
             IDiagramModelConnection connection = entry.getKey();
@@ -853,7 +831,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         
             if ( source == null ) {
             	logger.error("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
-            	throw new Exception("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
+            	throw new DBException("Failed to resolve source connection for "+getDBMetadata(connection).getDebugName());
             }
 
             logger.trace("source connection resolved for "+DBMetadata.getDBMetadata(source).getDebugName());
@@ -872,7 +850,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
         
             if ( target == null ) {
             	logger.error("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
-            	throw new Exception("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
+            	throw new DBException("Failed to resolve target connection for "+getDBMetadata(connection).getDebugName());
         	}
 
             logger.trace("target connection resolved for "+DBMetadata.getDBMetadata(target).getDebugName());
@@ -889,7 +867,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	/**
 	 * HashMap containing the DBMetadata classes of model's components
 	 */
-	ConcurrentHashMap<String, DBMetadata> DBMetadataHashMap = new ConcurrentHashMap<String, DBMetadata>();
+	ConcurrentHashMap<String, DBMetadata> dbMetadataHashMap = new ConcurrentHashMap<>();
     
     /**
      * Gets the DBMetadata associated with an Archi component. If it does not exist yet, it is automatically created.
@@ -899,11 +877,11 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     public DBMetadata getDBMetadata(EObject obj) {
     	if ( obj instanceof IIdentifier ) {
     		String objId = ((IIdentifier)obj).getId();
-	    	DBMetadata dbMetadata = this.DBMetadataHashMap.get(objId);
+	    	DBMetadata dbMetadata = this.dbMetadataHashMap.get(objId);
 	    	if ( dbMetadata == null ) {
 	    		// in case the object metadata does not exist, we create it
 	    		dbMetadata = new DBMetadata(obj);
-	    		this.DBMetadataHashMap.put(objId, dbMetadata);
+	    		this.dbMetadataHashMap.put(objId, dbMetadata);
 	    	}
 	    	return dbMetadata;
     	}
@@ -916,7 +894,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
 	 * @return the DBArchimatemodel object, null if not found
 	 */
      public static DBArchimateModel getDBArchimateModel(EObject obj) {
-		if ( (obj != null) && (obj instanceof IArchimateModelObject) ) {
+		if ( obj instanceof IArchimateModelObject ) {
 			EObject container = ((IArchimateModelObject)obj).eContainer();
 			DBArchimateModel model = (DBArchimateModel) ((IArchimateModelObject)obj).getArchimateModel();
 			// in some weird occasions, the getArchimateModel() method returns null

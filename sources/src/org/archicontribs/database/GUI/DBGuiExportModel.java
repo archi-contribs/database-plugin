@@ -2267,7 +2267,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getProfilesNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+id+" has been created in the database. We import it from the database.");
-									undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode));
+									undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.FORCE_SHARED_MODE));
 									incrementText(this.txtNewProfilesInDatabase);
 									incrementText(this.txtTotalProfiles);
 								} else {
@@ -2283,7 +2283,7 @@ public class DBGuiExportModel extends DBGui {
 							IProfile profile = profilesIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+profile.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, profile.getId(), 0, DBImportMode.forceSharedMode));
+								undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, profile.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedProfilesInDatabase);
 							}
 						}
@@ -2298,7 +2298,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getFoldersNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The folder id "+id+" has been created in the database. We import it from the database.");
-									undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode));
+									undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.FORCE_SHARED_MODE));
 									incrementText(this.txtNewFoldersInDatabase);
 									incrementText(this.txtTotalFolders);
 								} else {
@@ -2314,7 +2314,7 @@ public class DBGuiExportModel extends DBGui {
 							IFolder folder = foldersIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(folder).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The folder id "+folder.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, null, folder.getId(), 0, DBImportMode.forceSharedMode));
+								undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, null, folder.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedFoldersInDatabase);
 							}
 						}
@@ -2330,7 +2330,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getElementsNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The element id "+id+" has been created in the database. We import it from the database.");
-									undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false));
+									undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.FORCE_SHARED_MODE, false));
 									incrementText(this.txtNewElementsInDatabase);
 									incrementText(this.txtTotalElements);
 								} else {
@@ -2346,7 +2346,7 @@ public class DBGuiExportModel extends DBGui {
 							IArchimateElement element = elementsIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The element id "+element.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, element.getId(), 0, DBImportMode.forceSharedMode, false));
+								undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, element.getId(), 0, DBImportMode.FORCE_SHARED_MODE, false));
 								incrementText(this.txtUpdatedElementsInDatabase);
 							}
 						}
@@ -2361,7 +2361,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getRelationshipsNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+id+" has been created in the database. We import it from the database.");
-									undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode));
+									undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.FORCE_SHARED_MODE));
 									incrementText(this.txtNewRelationshipsInDatabase);
 									incrementText(this.txtTotalRelationships);
 								} else {
@@ -2377,7 +2377,7 @@ public class DBGuiExportModel extends DBGui {
 							IArchimateRelationship relationship = relationshipsIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+relationship.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, relationship.getId(), 0, DBImportMode.forceSharedMode));
+								undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, relationship.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedRelationshipsInDatabase);
 							}
 						}
@@ -2392,7 +2392,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getViewsNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The view id "+id+" has been created in the database. We import it in the model.");
-									undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.forceSharedMode, false));
+									undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), DBImportMode.FORCE_SHARED_MODE, false));
 									incrementText(this.txtNewViewsInDatabase);
 									incrementText(this.txtTotalViews);
 								} else {
@@ -2408,7 +2408,7 @@ public class DBGuiExportModel extends DBGui {
 							IDiagramModel view = viewsIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view id "+view.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, view.getId(), 0, DBImportMode.forceSharedMode, false));
+								undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, view.getId(), 0, DBImportMode.FORCE_SHARED_MODE, false));
 								incrementText(this.txtUpdatedViewsInDatabase);
 							}
 						}
@@ -2423,7 +2423,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getViewObjectsNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The view object id "+id+" has been created in the database. We import it in the model.");
-									undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode));
+									undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.FORCE_SHARED_MODE));
 									incrementText(this.txtNewViewObjectsInDatabase);
 									incrementText(this.txtTotalViewObjects);
 								} else {
@@ -2439,7 +2439,7 @@ public class DBGuiExportModel extends DBGui {
 							IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view object id "+viewObject.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, viewObject.getId(), 0, false, DBImportMode.forceSharedMode));
+								undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, viewObject.getId(), 0, false, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedViewObjectsInDatabase);
 							}
 						}
@@ -2454,7 +2454,7 @@ public class DBGuiExportModel extends DBGui {
 								DBMetadata versionToImport = this.exportConnection.getViewConnectionsNotInModel().get(id);
 								if ( versionToImport.getInitialVersion().getVersion() == 0 ) {
 									if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+id+" has been created in the database. We import it in the model.");
-									undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.forceSharedMode));
+									undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, id, versionToImport.getLatestDatabaseVersion().getVersion(), false, DBImportMode.FORCE_SHARED_MODE));
 									incrementText(this.txtNewViewConnectionsInDatabase);
 									incrementText(this.txtTotalViewConnections);
 								} else {
@@ -2470,7 +2470,7 @@ public class DBGuiExportModel extends DBGui {
 							IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 							if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+viewConnection.getId()+" has been updated in the database. We import the new version from the database.");
-								undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, viewConnection.getId(), 0, false, DBImportMode.forceSharedMode));
+								undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, viewConnection.getId(), 0, false, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedViewConnectionsInDatabase);
 							}
 						}
@@ -2488,19 +2488,19 @@ public class DBGuiExportModel extends DBGui {
 								int latestDatabaseVersion = metadata.getLatestDatabaseVersion().getVersion();
 								
 								if ( componentToImport instanceof IArchimateElement ) {
-									command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode, false);
+									command = new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, id, latestDatabaseVersion, DBImportMode.FORCE_SHARED_MODE, false);
 									incrementText(this.txtUpdatedElementsInDatabase);
 								} else if ( componentToImport instanceof IArchimateRelationship ) {
-									command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode);
+									command = new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, id, latestDatabaseVersion, DBImportMode.FORCE_SHARED_MODE);
 									incrementText(this.txtUpdatedRelationshipsInDatabase);
 								} else if ( componentToImport instanceof IDiagramModel) {
-									command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, id, latestDatabaseVersion, DBImportMode.forceSharedMode, false);
+									command = new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, id, latestDatabaseVersion, DBImportMode.FORCE_SHARED_MODE, false);
 									incrementText(this.txtUpdatedViewsInDatabase);
 								} else if ( componentToImport instanceof IDiagramModelObject ) {
-									command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, id, latestDatabaseVersion, false, DBImportMode.forceSharedMode);
+									command = new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, id, latestDatabaseVersion, false, DBImportMode.FORCE_SHARED_MODE);
 									incrementText(this.txtUpdatedViewObjectsInDatabase);
 								} else if ( componentToImport instanceof IDiagramModelConnection ) {
-									command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, id, latestDatabaseVersion, false, DBImportMode.forceSharedMode);
+									command = new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, id, latestDatabaseVersion, false, DBImportMode.FORCE_SHARED_MODE);
 									incrementText(this.txtUpdatedViewConnectionsInDatabase);
 								}
 								

@@ -223,13 +223,13 @@ public class DBGuiComponentHistory extends DBGui {
 					IDBImportCommand command = null;
 					
 					if ( importedComponent instanceof IArchimateElement )
-						command = new DBImportElementFromIdCommand(importConnection, importedModel, null, null, parentFolder, id, version, DBImportMode.forceSharedMode, true); 
+						command = new DBImportElementFromIdCommand(importConnection, importedModel, null, null, parentFolder, id, version, DBImportMode.FORCE_SHARED_MODE, true); 
 					else if ( importedComponent instanceof IArchimateRelationship )
-						command = new DBImportRelationshipFromIdCommand(importConnection, importedModel, null, null, parentFolder, id, version, DBImportMode.forceSharedMode);
+						command = new DBImportRelationshipFromIdCommand(importConnection, importedModel, null, null, parentFolder, id, version, DBImportMode.FORCE_SHARED_MODE);
 					else if ( importedComponent instanceof IFolder )
-						command = new DBImportFolderFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.forceSharedMode);
+						command = new DBImportFolderFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.FORCE_SHARED_MODE);
 					else if ( importedComponent instanceof IArchimateDiagramModel || importedComponent instanceof ICanvasModel || importedComponent instanceof ISketchModel )
-						command = new DBImportViewFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.forceSharedMode, true);
+						command = new DBImportViewFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.FORCE_SHARED_MODE, true);
 					else
 					    throw new Exception("Cannot import components of class "+importedComponent.getClass().getSimpleName());
 

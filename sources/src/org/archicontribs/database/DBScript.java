@@ -1,5 +1,7 @@
 package org.archicontribs.database;
 
+import java.io.IOException;
+import java.sql.SQLException;
 import java.util.List;
 
 import org.archicontribs.database.connection.DBDatabaseConnection;
@@ -28,14 +30,15 @@ public class DBScript {
      * @param databaseName name of the database to import from, as stated in the list of databases on the plugin's preference page
      * @param force if true, allow to have another model with the same name, else, the model's name must be unique in Archi
      * @return the model
-     * @throws Exception if the model cannot be imported
+     * @throws DBException in case ofdatbase issue
+     * @throws SQLException if the model cannot be imported
+     * @throws IOException if the model cannot be closed (in case it cannot be imported)
      */
-    public static IArchimateModel importModel(String modelName, String databaseName, boolean force) throws Exception {
-
+    public static IArchimateModel importModel(String modelName, String databaseName, boolean force) throws DBException, SQLException, IOException {
         // we get the databases list from the preferences
         List<DBDatabaseEntry> databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
-        if ( (databaseEntries == null) || (databaseEntries.size() == 0) )
-            throw new RuntimeException("Cannot find any database.");
+        if ( (databaseEntries == null) || databaseEntries.isEmpty() )
+            throw new DBException("Cannot find any database.");
           
         // we get the database by its name
         DBDatabaseEntry databaseEntry = null;
@@ -49,27 +52,27 @@ public class DBScript {
         
         // we check that the database exists
         if ( databaseEntry == null )
-            throw new RuntimeException("Cannot find database \""+databaseName+"\"");
+            throw new DBException("Cannot find database \""+databaseName+"\"");
         
         // we connect to the database
         try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
 	        // we check if we are connected to the database
 	        if ( !connection.isConnected() )
-	            throw new RuntimeException("Cannot connect to the database \""+databaseName+"\"");
+	            throw new DBException("Cannot connect to the database \""+databaseName+"\"");
 	        
 	        // we check if the model exists in the database
 	        String modelId = connection.getModelId(modelName, false);
 	        
 	        if ( modelId == null )
-	            throw new RuntimeException("Cannot find model \""+ modelName +"\" in the database \""+databaseName+"\"");
+	            throw new DBException("Cannot find model \""+ modelName +"\" in the database \""+databaseName+"\"");
 	        
 	        // we check that the model is not already in memory
 	        List<IArchimateModel> allModels = IEditorModelManager.INSTANCE.getModels();
 	        for ( IArchimateModel existingModel: allModels ) {
 	            if ( DBPlugin.areEqual(modelId, existingModel.getId()) )
-	                throw new RuntimeException("A model with ID \""+modelId+"\" is already opened.");
+	                throw new DBException("A model with ID \""+modelId+"\" is already opened.");
 	            if ( DBPlugin.areEqual(modelName, existingModel.getName()) && !force )
-	                throw new RuntimeException("A model with name \""+modelName+"\" is already opened.");
+	                throw new DBException("A model with name \""+modelName+"\" is already opened.");
 	        }
 	
 	        // we create the model
@@ -131,7 +134,7 @@ public class DBScript {
 	            if ( logger.isDebugEnabled() ) logger.debug("Importing the images ...");
 	            for (String path: connection.getAllImagePaths())
 	                connection.importImage(modelToImport, path);
-	        } catch ( Exception e) {
+	        } catch ( SQLException e) {
 	            // in case of an import error, we remove the newly created model, except if we are in force mode
 	            if ( !force ) {
 	                // we remove the 'dirty' flag (i.e. we consider the model as saved) because we do not want the closeModel() method ask to save it

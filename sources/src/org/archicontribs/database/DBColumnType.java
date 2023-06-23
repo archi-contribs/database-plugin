@@ -2,6 +2,8 @@ package org.archicontribs.database;
 
 /**
  * Database columns type
+ * 
+ *  @author Herve Jouin
  */
 public enum DBColumnType {
     AUTO_INCREMENT,

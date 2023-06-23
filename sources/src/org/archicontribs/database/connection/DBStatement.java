@@ -1,7 +1,5 @@
 package org.archicontribs.database.connection;
-/**
- * HelperMethod to construct the PreparedStatement from the specified request and all its parameters
- */
+
 
 import java.io.ByteArrayInputStream;
 import java.sql.Connection;
@@ -18,6 +16,9 @@ import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBDatabase;
 
+/**
+ * Helper class that allows to construct a preparedStatement
+ */
 public class DBStatement implements AutoCloseable {
 	private static final DBLogger logger = new DBLogger(DBStatement.class);
 
@@ -27,6 +28,15 @@ public class DBStatement implements AutoCloseable {
 	PreparedStatement preparedStatement = null;
 	String request = null;
 
+	/**
+	 * HelperMethod to construct the PreparedStatement from the specified request and all its parameters
+	 * @param <T>
+	 * @param theDriverName
+	 * @param theConnection
+	 * @param theRequest
+	 * @param theParameters
+	 * @throws SQLException
+	 */
 	@SafeVarargs
 	public <T> DBStatement(String theDriverName, Connection theConnection, String theRequest, T... theParameters) throws SQLException {
 		this.driverName = theDriverName;
@@ -47,6 +57,11 @@ public class DBStatement implements AutoCloseable {
 
 	}
 
+	/**
+	 * Executes the preparedStatement where no answer is awaited
+	 * @return
+	 * @throws SQLException
+	 */
 	public ResultSet executeQuery() throws SQLException {
 		if ( this.statement != null && ! this.statement.isClosed() ) 
 			return this.statement.executeQuery(this.request);
@@ -57,6 +72,11 @@ public class DBStatement implements AutoCloseable {
 		return null;
 	}
 
+	/**
+	 * executes the preparedStement when it is related to an UPDATE request
+	 * @return the number or updated rows
+	 * @throws SQLException
+	 */
 	public int executeUpdate() throws SQLException {
 		Savepoint savepoint = null;
 		int rowCount = 0;
@@ -93,7 +113,9 @@ public class DBStatement implements AutoCloseable {
 	}
 
 	/**
-	 * Rollbacks the current transaction
+	 * Rollbacks the current database transactions from a specified savePoint
+	 * @param savepoint 
+	 * @throws SQLException 
 	 */
 	public void rollback(Savepoint savepoint) throws SQLException {
 		if ( this.connection.getAutoCommit() ) {
@@ -107,6 +129,10 @@ public class DBStatement implements AutoCloseable {
 		}
 	}
 
+	/**
+	 * Rollbacks the current database transactions
+	 * @throws SQLException
+	 */
 	public void rollback() throws SQLException {
 		rollback(null);
 	}

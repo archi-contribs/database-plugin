@@ -32,7 +32,7 @@ public class DBImportModelProvider extends AbstractCommandLineProvider {
 	 * 
 	 */
 	public DBImportModelProvider() {
-		
+		// nothing to do
 	}
 	
 	@Override
@@ -85,7 +85,7 @@ public class DBImportModelProvider extends AbstractCommandLineProvider {
     		throw new IOException(getLogPrefix()+": Model \""+modelName+"\" not found in the database \""+databaseName+"\"");
   	
     	// we check if the model version exists in the database
-		Boolean versionFound = false;
+		boolean versionFound = false;
     	if ( modelVersion == 0 ) {
     		// if the model does exist, there is a latest version
     		versionFound = true;

@@ -10,7 +10,6 @@ import java.io.File;
 import java.io.IOException;
 import org.osgi.framework.Version;
 import java.util.Locale;
-import java.util.UUID;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.GUI.DBGuiUtils;
@@ -21,7 +20,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
-import com.archimatetool.model.IIdentifier;
 import com.archimatetool.model.ModelVersion;
 
 import lombok.Getter;
@@ -124,7 +122,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
 	/** version of the plugin */
-	public static Version pluginVersion = Platform.getBundle(PLUGIN_ID).getVersion(); 
+	public static final Version pluginVersion = Platform.getBundle(PLUGIN_ID).getVersion(); 
 
 	
 	/** Name ofthe plugin */
@@ -155,7 +153,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	/**
 	 * Name of all the table names in a SQL database
 	 */
-	public static String[] allSQLTables = { "archimatediagrammodel", "archimateelement", "bendpoint", "canvasmodel", "canvasmodelblock", "canvasmodelimage", "canvasmodelsticky", "connection", "diagrammodelarchimateobject", "diagrammodelreference", "folder", "model", "property", "relationship", "sketchmodel", "sketchmodelactor", "sketchmodelsticky"};
+	public static final String[] allSQLTables = { "archimatediagrammodel", "archimateelement", "bendpoint", "canvasmodel", "canvasmodelblock", "canvasmodelimage", "canvasmodelsticky", "connection", "diagrammodelarchimateobject", "diagrammodelreference", "folder", "model", "property", "relationship", "sketchmodel", "sketchmodelactor", "sketchmodelsticky"};
 
 	static DBLogger logger;
 	
@@ -362,30 +360,6 @@ public class DBPlugin extends AbstractUIPlugin {
 	 */
 	public static boolean isEmpty(String str) {
 		return (str==null) || str.isEmpty();
-	}
-	
-	/**
-	 * Generates a new ID for any Archi component
-	 * 
-	 * @return Archi ID
-	 */
-	public static String createID() {
-		return createID(null);
-	}
-	
-	/**
-	 * Generates a new ID for a given Archi component
-	 * @param obj object for which the ID should be generated
-	 * 
-	 * @return Archi ID
-	 */
-	public static String createID(IIdentifier obj) {
-		// until Archi 4.4: the ID was created using model.getIDAdapter().getNewID()
-		// Archi 4.5 updated the ArchimateModel class to remove the getIDAdapter() method and introduces a new UUIDFactory class with a createID() method.
-		
-		// as I wish my plugin works for both versions, I decided to write my own method (based on UUIDFactory.createID())
-		
-		return UUID.randomUUID().toString();
 	}
 	
 	/**

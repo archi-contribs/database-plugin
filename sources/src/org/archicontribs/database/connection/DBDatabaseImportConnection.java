@@ -17,6 +17,7 @@ import java.util.List;
 
 import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.data.DBBendpoint;
@@ -150,9 +151,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param component component to get
 	 * @param version version of the component to get (0 to get the latest version) 
 	 * @return HashMap containing the object data
-	 * @throws Exception
+	 * @throws SQLException
+	 * @throws DBException
 	 */
-	public HashMap<String, Object> getObjectFromDatabase(EObject component, int version) throws Exception {
+	public HashMap<String, Object> getObjectFromDatabase(EObject component, int version) throws SQLException, DBException {
 		String id = ((IIdentifier)component).getId();
 		String clazz;
 		if ( component instanceof DBArchimateModel ) clazz = "IArchimateModel";
@@ -162,7 +164,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		else if ( component instanceof IDiagramModel ) clazz = "IDiagramModel";
 		else if ( component instanceof IDiagramModelObject ) clazz = "IDiagramModelObject";
 		else if ( component instanceof IDiagramModelConnection ) clazz = "IDiagramModelConnection";
-		else throw new Exception("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
+		else throw new DBException("Do not know how to get a "+component.getClass().getSimpleName()+" from the database.");
 
 		return getObjectFromDatabase(id, clazz, version);
 	}
@@ -174,11 +176,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param clazz class of component to get
 	 * @param objectVersion version of the component to get (0 to get the latest version) 
 	 * @return HashMap containing the object data
-	 * @throws Exception
+	 * @throws SQLException
+	 * @throws DBException
 	 */
 	// remove warning about the non closure of "result" as it IS closed in the finally block
 	@SuppressWarnings("resource")
-	public HashMap<String, Object> getObjectFromDatabase(String id, String clazz, int objectVersion) throws Exception {
+	public HashMap<String, Object> getObjectFromDatabase(String id, String clazz, int objectVersion) throws SQLException, DBException {
 		DBSelect result = null;
 		int version = objectVersion;
 		HashMap<String, Object> hashResult = null;
@@ -188,23 +191,57 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		try {
 			if ( version == 0 ) {
 				// because of PostGreSQL, we need to split the request in two
-				if (      DBPlugin.areEqual(clazz,  "IArchimateModel") )         result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'ArchimateModel' as class, name, note, purpose, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models m WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"models WHERE id = m.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IArchimateElement") )       result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"elements e WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = e.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") )  result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"relationships WHERE id = r.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IFolder") )                 result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'Folder' as class, type, root_type, name, documentation, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE id = f.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") )           result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, created_by, created_on, background, connection_router_type, viewpoint, properties, features, checksum, container_checksum FROM "+this.schemaPrefix+"views v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views WHERE id = v.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelObject") )     result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views_objects WHERE id = v.id)", id);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, properties, features, bendpoints, checksum FROM "+this.schemaPrefix+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views_connections WHERE id = v.id)", id);
-				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
+				switch ( clazz ) {
+					case "IArchimateModel":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'ArchimateModel' as class, name, note, purpose, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models m WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"models WHERE id = m.id)", id);
+						break;
+					case "IArchimateElement":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"elements e WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"elements WHERE id = e.id)", id);
+						break;
+					case "IArchimateRelationship":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"relationships r WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"relationships WHERE id = r.id)", id);
+						break;
+					case "IFolder":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'Folder' as class, type, root_type, name, documentation, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"folders f WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"folders WHERE id = f.id)", id);
+						break;
+					case "IDiagramModel":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, created_by, created_on, background, connection_router_type, viewpoint, properties, features, checksum, container_checksum FROM "+this.schemaPrefix+"views v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views WHERE id = v.id)", id);
+						break;
+					case "IDiagramModelObject":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"views_objects v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views_objects WHERE id = v.id)", id);
+						break;
+					case "IDiagramModelConnection":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, properties, features, bendpoints, checksum FROM "+this.schemaPrefix+"views_connections v WHERE id = ? AND version = (SELECT MAX(version) FROM "+this.schemaPrefix+"views_connections WHERE id = v.id)", id);
+						break;
+					default:
+						throw new DBException("Do not know how to get a "+clazz+" from the database.");
+				}
 			} else {
-				if (      DBPlugin.areEqual(clazz,  "IArchimateModel") )         result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'ArchimateModel' as class, name, note, purpose, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models m WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IArchimateElement") )       result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"elements WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") )  result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"relationships WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IFolder") )                 result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'Folder' as class, type, root_type, name, documentation, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"folders WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") )           result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, created_by, created_on, background, connection_router_type, viewpoint, properties, features, checksum, container_checksum FROM "+this.schemaPrefix+"views WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelObject") )     result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, properties, features, checksum FROM "+this.schemaPrefix+"views_objects WHERE id = ? AND version = ?", id, version);
-				else if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, properties, features, bendpoints, checksum FROM "+this.schemaPrefix+"views_connections v WHERE id = ? AND version = ?", id, version);
-				else throw new Exception("Do not know how to get a "+clazz+" from the database.");
+				switch ( clazz ) {
+					case "IArchimateModel":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'ArchimateModel' as class, name, note, purpose, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"models m WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IArchimateElement":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"elements WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IArchimateRelationship":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, source_id, target_id, strength, access_type, profile, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"relationships WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IFolder":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, 'Folder' as class, type, root_type, name, documentation, created_by, created_on, properties, features, checksum FROM "+this.schemaPrefix+"folders WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IDiagramModel":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, name, documentation, created_by, created_on, background, connection_router_type, viewpoint, properties, features, checksum, container_checksum FROM "+this.schemaPrefix+"views WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IDiagramModelObject":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, content, documentation, is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, notes, text_alignment, text_position, type, x, y, width, height, properties, features, checksum FROM "+this.schemaPrefix+"views_objects WHERE id = ? AND version = ?", id, version);
+						break;
+					case "IDiagramModelConnection":
+						result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, class, container_id, name, documentation, is_locked, line_color, line_width, font, font_color, relationship_id, relationship_version, source_object_id, target_object_id, text_position, type, created_by, created_on, properties, features, bendpoints, checksum FROM "+this.schemaPrefix+"views_connections v WHERE id = ? AND version = ?", id, version);
+						break;
+				default:
+					throw new DBException("Do not know how to get a "+clazz+" from the database.");
+				}
 			}
 
 			if ( result.next() ) {
@@ -213,7 +250,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				hashResult = resultSetToHashMap(result.getResult());
 
 				// properties
-				ArrayList<DBProperty> databaseProperties = new ArrayList<DBProperty>();
+				ArrayList<DBProperty> databaseProperties = new ArrayList<>();
 				if ( result.getInt("properties") != 0 ) {
 					try ( DBSelect resultProperties = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"properties WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version) ) {
 						while ( resultProperties.next() )
@@ -223,7 +260,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				hashResult.put("properties", databaseProperties);
 
 				// features
-				ArrayList<DBProperty> databaseFeatures = new ArrayList<DBProperty>();
+				ArrayList<DBProperty> databaseFeatures = new ArrayList<>();
 				if ( result.getInt("features") != 0 ) {
 					try ( DBSelect resultFeatures = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, value FROM "+this.schemaPrefix+"features WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version) ) {
 						while ( resultFeatures.next() )
@@ -234,7 +271,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 				// bendpoints
 				if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) {
-					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<DBBendpoint>();
+					ArrayList<DBBendpoint> databaseBendpoints = new ArrayList<>();
 					if ( result.getInt("bendpoints") != 0 ) {
 						try ( DBSelect resultBendpoints = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT start_x, start_y, end_x, end_y FROM "+this.schemaPrefix+"bendpoints WHERE parent_id = ? AND parent_version = ? ORDER BY POS", id, version ) ) {
 							while ( resultBendpoints.next() )
@@ -246,7 +283,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				
 				// profiles
 				if ( DBPlugin.areEqual(clazz,  "IArchimateModel") ) {
-					ArrayList<DBProfile> databaseProfiles = new ArrayList<DBProfile>();
+					ArrayList<DBProfile> databaseProfiles = new ArrayList<>();
 					try ( DBSelect resultProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT name, concept_type, is_specialization, image_path FROM "+this.schemaPrefix+"profiles JOIN "+this.schemaPrefix+"profiles_in_model pim WHERE profiles.id = pim.profile_id AND profiles.version = pim.profile_version AND pim.model_ID = ? AND pim.model_version = ? ORDER BY POS", id, version) ) {
 						while ( resultProfiles.next() )
 							databaseProfiles.add(new DBProfile(resultProfiles.getString("name"), resultProfiles.getString("concept_type"), DBPlugin.getBooleanValue(resultProfiles.getObject("is_specialization")), resultProfiles.getString("image_path")));
@@ -256,7 +293,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 				
                 logger.debug("   Found "+hashResult.get("class")+" \""+hashResult.get("name")+"\" version "+hashResult.get("version"));
 			} else
-				hashResult = new HashMap<String, Object>();
+				hashResult = new HashMap<>();
 		} finally {
 			if ( result != null ) {
 				result.close();
@@ -274,7 +311,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @throws SQLException 
 	 */
 	public static HashMap<String, Object> resultSetToHashMap(ResultSet rs) throws SQLException {
-		HashMap<String, Object> map = new HashMap<String, Object>();
+		HashMap<String, Object> map = new HashMap<>();
 
 		for (int column = 1; column <= rs.getMetaData().getColumnCount(); column++) {
 			if ( rs.getObject(column) != null ) {
@@ -300,7 +337,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		return map;
 	}
 
-	@Getter private HashSet<String> allImagePaths = new HashSet<String>();
+	@Getter private HashSet<String> allImagePaths = new HashSet<>();
 
 	@Getter private int countProfilesToImport = 0;
 	@Getter private int countFoldersToImport = 0;
@@ -330,9 +367,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Import the model metadata from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void importModel(DBArchimateModel model) throws Exception {
+	public void importModel(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   importing model");
 		// reseting the model's counters
 		model.resetCounters();
@@ -368,9 +405,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Count components in the database. this is used by the DBGuiImportModel class before the import is done, to fill in the number of components to import, and after the import is done, to check that all components have been correctly imported.
 	 * @param model
 	 * @return
-	 * @throws Exception
+	 * @throws SQLException
 	 */
-	public int countModelComponents(DBArchimateModel model) throws Exception {
+	public int countModelComponents(DBArchimateModel model) throws SQLException {
 		boolean isOracle = this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE);
 		
 	    this.toCharDocumentation = isOracle ? "TO_CHAR(documentation)" : "documentation";
@@ -512,9 +549,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the profiles from the database
 	 * @param model 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportProfiles(DBArchimateModel model) throws Exception {
+	public void prepareImportProfiles(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import specializations");
 		this.currentResultSetProfiles = new DBSelect(this.databaseEntry.getName(), this.connection, this.importProfilesRequest
 				,model.getId()
@@ -526,9 +563,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Import the profiles from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws DBException
 	 */
-	public boolean importProfiles(DBArchimateModel model) throws Exception {
+	public boolean importProfiles(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetProfiles != null ) {
 			if ( this.currentResultSetProfiles.next() ) {
 				IProfile profile = null;
@@ -578,9 +616,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the folders from the database
 	 * @param model 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportFolders(DBArchimateModel model) throws Exception {
+	public void prepareImportFolders(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import folders");
 		this.currentResultSetFolders = new DBSelect(this.databaseEntry.getName(), this.connection, this.importFoldersRequest
 				,model.getId()
@@ -592,10 +630,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Import the folders from the database
 	 * @param model 
-	 * @return 
-	 * @throws Exception 
+	 * @return
+	 * @throws SQLException
+	 * @throws DBException 
 	 */
-	public boolean importFolders(DBArchimateModel model) throws Exception {
+	public boolean importFolders(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetFolders != null ) {
 			if ( this.currentResultSetFolders.next() ) {
 				IFolder folder = IArchimateFactory.eINSTANCE.createFolder();
@@ -623,7 +662,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					if ( parent == null )
 						parent=model.getFolder(FolderType.get(this.currentResultSetFolders.getInt("root_type")));
 					if ( parent == null ) 
-						throw new Exception("Don't know where to create folder "+this.currentResultSetFolders.getString("name")+" of type "+this.currentResultSetFolders.getInt("type")+" and root_type "+this.currentResultSetFolders.getInt("root_type")+" (unknown folder ID "+this.currentResultSetFolders.getString("parent_folder_id")+")");
+						throw new DBException("Don't know where to create folder "+this.currentResultSetFolders.getString("name")+" of type "+this.currentResultSetFolders.getInt("type")+" and root_type "+this.currentResultSetFolders.getInt("root_type")+" (unknown folder ID "+this.currentResultSetFolders.getString("parent_folder_id")+")");
 
 					parent.getFolders().add(folder);
 				} else {
@@ -651,9 +690,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the elements from the database
 	 * @param model 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportElements(DBArchimateModel model) throws Exception {
+	public void prepareImportElements(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import elements");
 		this.currentResultSetElements = new DBSelect(this.databaseEntry.getName(), this.connection,this.importElementsRequest
 				,model.getId()
@@ -666,9 +705,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the elements from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException
+	 * @throws DBException
 	 */
-	public boolean importElements(DBArchimateModel model) throws Exception {
+	public boolean importElements(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetElements != null ) {
 			if ( this.currentResultSetElements.next() ) {
 				
@@ -722,9 +762,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the relationships from the database
 	 * @param model 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportRelationships(DBArchimateModel model) throws Exception {
+	public void prepareImportRelationships(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import relationships");
 		this.currentResultSetRelationships = new DBSelect(this.databaseEntry.getName(), this.connection,this.importRelationshipsRequest
 				,model.getId()
@@ -736,9 +776,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the relationships from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws DBException
 	 */
-	public boolean importRelationships(DBArchimateModel model) throws Exception {
+	public boolean importRelationships(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetRelationships != null ) {
 			if ( this.currentResultSetRelationships.next() ) {
 				IArchimateRelationship relationship = (IArchimateRelationship) IArchimateFactory.eINSTANCE.create((EClass)(IArchimateFactory.eINSTANCE.getEPackage().getEClassifier(this.currentResultSetRelationships.getString("class"))));
@@ -816,9 +857,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * Prepare the import of the views from the database
 	 * @param model 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportViews(DBArchimateModel model) throws Exception {
+	public void prepareImportViews(DBArchimateModel model) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views");
 		this.currentResultSetViews = new DBSelect(this.databaseEntry.getName(), this.connection,this.importViewsRequest,
 				model.getId(),
@@ -830,9 +871,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws DBException
 	 */
-	public boolean importViews(DBArchimateModel model) throws Exception {
+	public boolean importViews(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetViews != null ) {
 			if ( this.currentResultSetViews.next() ) {
 				IDiagramModel view;
@@ -882,9 +924,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views objects of a specific view from the database
 	 * @param id 
 	 * @param version 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportViewsObjects(String id, int version) throws Exception {
+	public void prepareImportViewsObjects(String id, int version) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views objects for view "+id+" version "+version);
 		this.currentResultSetViewsObjects = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, element_id, diagram_ref_id, border_color, border_type, "+this.toCharContentAsContent+", "+this.toCharDocumentationAsDocumentation+", is_locked, image_path, image_position, line_color, line_width, fill_color, alpha, font, font_color, name, "+this.toCharNotesAsNotes+", text_alignment, text_position, type, x, y, width, height, properties, features, checksum, created_on, pos"
 				+" FROM "+this.schemaPrefix+"views_objects"
@@ -901,9 +943,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param model 
 	 * @param view 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException
+	 * @throws DBException 
 	 */
-	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws Exception {
+	public boolean importViewsObjects(DBArchimateModel model, IDiagramModel view) throws SQLException, DBException {
 		if ( this.currentResultSetViewsObjects != null ) {
 			if ( this.currentResultSetViewsObjects.next() ) {
 				EObject eObject;
@@ -926,7 +969,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the element already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateElement element = model.getAllElements().get(this.currentResultSetViewsObjects.getString("element_id"));
 					if ( element == null ) {
-						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.templateMode, true);
+						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.TEMPLATE_MODE, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						element = command.getImported();
@@ -997,9 +1040,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * Prepare the import of the views connections of a specific view from the database
 	 * @param id 
 	 * @param version 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public void prepareImportViewsConnections(String id, int version) throws Exception {
+	public void prepareImportViewsConnections(String id, int version) throws SQLException {
 		if ( logger.isDebugEnabled() ) logger.debug("   Preparing to import views connections for view "+id+" version "+version);
 		this.currentResultSetViewsConnections = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT DISTINCT id, version, class, container_id, name, "+this.toCharDocumentationAsDocumentation+", is_locked, line_color, line_width, font, font_color, relationship_id, source_object_id, target_object_id, text_position, type, properties, features, bendpoints, checksum, pos"
 				+" FROM "+this.schemaPrefix+"views_connections"
@@ -1015,9 +1058,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views connections from the database
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws DBException
 	 */
-	public boolean importViewsConnections(DBArchimateModel model) throws Exception {
+	public boolean importViewsConnections(DBArchimateModel model) throws SQLException, DBException {
 		if ( this.currentResultSetViewsConnections != null ) {
 			if ( this.currentResultSetViewsConnections.next() ) {
 				EObject eObject;
@@ -1040,7 +1084,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 					// we check that the relationship already exists. If not, we import it (this may be the case during an individual view import.
 					IArchimateRelationship relationship = model.getAllRelationships().get(this.currentResultSetViewsConnections.getString("relationship_id"));
 					if ( relationship == null ) {
-						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.templateMode);
+						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.TEMPLATE_MODE);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
 						relationship = command.getImported();
@@ -1114,9 +1158,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import the views from the database
 	 * @param model 
 	 * @param path 
-	 * @throws Exception 
+	 * @throws SQLException
+	 * @throws DBException 
 	 */
-	public void importImage(DBArchimateModel model, String path) throws Exception {
+	public void importImage(DBArchimateModel model, String path) throws SQLException, DBException {
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT image FROM "+this.schemaPrefix+"images WHERE path = ?", path) ) {
 			if (result.next() ) {
 				IArchiveManager archiveMgr = (IArchiveManager)model.getAdapter(IArchiveManager.class);
@@ -1136,12 +1181,12 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						logger.debug( "... image imported but with new path "+imagePath);
 
 				} catch (Exception e) {
-					throw new Exception("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
+					throw new DBException("Import of image failed !", e.getCause()!=null ? e.getCause() : e);
 				}
 				++this.countImagesImported;
 			}
 			else
-				throw new Exception("Import of image failed: unkwnown image path "+path);
+				throw new DBException("Import of image failed: unkwnown image path "+path);
 		} 
 	}
 
@@ -1149,9 +1194,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * import an image from the database
 	 * @param path 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public Image getImageFromDatabase(String path) throws Exception {
+	public Image getImageFromDatabase(String path) throws SQLException {
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT image FROM "+this.schemaPrefix+"images WHERE path = ?", path) ) {
 			if ( result.next() ) {
 				byte[] imageContent = result.getBytes("image");
@@ -1165,10 +1210,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	/**
 	 * gets the list of all images in the database
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public List<String> getImageListFromDatabase() throws Exception {
-		List<String> list = new ArrayList<String>();
+	public List<String> getImageListFromDatabase() throws SQLException {
+		List<String> list = new ArrayList<>();
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT path FROM "+this.schemaPrefix+"images") ) {
 			while ( result.next() ) {
 				list.add(result.getString("path"));
@@ -1179,11 +1224,11 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 
 	/**
 	 * check if the number of imported images is equals to what is expected
-	 * @throws Exception 
+	 * @throws DBException 
 	 */
-	public void checkImportedImagesCount() throws Exception {
+	public void checkImportedImagesCount() throws DBException {
 		if ( this.countImagesImported != this.countImagesToImport )
-			throw new Exception(this.countImagesImported+" images imported instead of the "+this.countImagesToImport+" that were expected.");
+			throw new DBException(this.countImagesImported+" images imported instead of the "+this.countImagesToImport+" that were expected.");
 
 		if ( logger.isDebugEnabled() ) logger.debug(this.countImagesImported+" images imported.");
 	}
@@ -1418,9 +1463,10 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * @param clazz 
 	 * @param id 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws DBException
 	 */
-	public IFolder getLastKnownFolder(DBArchimateModel model, String mergedModelId, String clazz, String id) throws Exception {
+	public IFolder getLastKnownFolder(DBArchimateModel model, String mergedModelId, String clazz, String id) throws SQLException, DBException {
 		IFolder parentFolder = null;
 		String searchedModelId = mergedModelId;
 		if ( searchedModelId == null )
@@ -1431,14 +1477,35 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 			String column;
 			if ( logger.isDebugEnabled() ) logger.debug("   getting last known folder");
 
-			if ( DBPlugin.areEqual(clazz,  "IArchimateElement") ) { table = this.schemaPrefix+"elements_in_model" ; column = "element_id"; }
-			else if ( DBPlugin.areEqual(clazz,  "IArchimateRelationship") ) { table = this.schemaPrefix+"relationships_in_model" ; column = "relationship_id"; }
-			else if ( DBPlugin.areEqual(clazz,  "IFolder") ) { table = this.schemaPrefix+"folders_in_model" ; column = "folder_id"; }
-			else if ( DBPlugin.areEqual(clazz,  "IDiagramModel") ) { table = this.schemaPrefix+"views_in_model" ; column = "view_id"; }
-			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelObject") ) { table = this.schemaPrefix+"views_ojects_in_model" ; column = "object_id"; }
-			else if ( DBPlugin.areEqual(clazz,  "IDiagramModelConnection") ) { table = this.schemaPrefix+"views_connections_in_model" ; column = "connection_id"; }
-			else throw new Exception("Do not know how to get a "+clazz+" from the database.");
-
+			switch ( clazz ) {
+				case "IArchimateElement":
+					table = this.schemaPrefix+"elements_in_model";
+					column = "element_id";
+					break;
+				case "IArchimateRelationship":
+					table = this.schemaPrefix+"relationships_in_model";
+					column = "relationship_id";
+					break;
+				case "IFolder":
+					table = this.schemaPrefix+"folders_in_model";
+					column = "folder_id";
+					break;
+				case "IDiagramModel":
+					table = this.schemaPrefix+"views_in_model";
+					column = "view_id";
+					break;
+				case "IDiagramModelObject":
+					table = this.schemaPrefix+"views_ojects_in_model";
+					column = "object_id";
+					break;
+				case "IDiagramModelConnection":
+					table = this.schemaPrefix+"views_connections_in_model";
+					column = "connection_id";
+					break;
+				default:
+					throw new DBException("Do not know how to get a "+clazz+" from the database.");
+			}
+			
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT parent_folder_id, model_version"
 					+" FROM "+table
 					+" WHERE model_id = ? AND "+column+" = ? AND model_version = (SELECT MAX(model_version) FROM "+table+" WHERE model_id = ? AND "+column+" = ?)"
@@ -1461,9 +1528,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * if the component has never been part of the model, then is it set in the default folder for this component
 	 * @param model
 	 * @param folder 
-	 * @throws Exception
+	 * @throws SQLException
 	 */
-	public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws Exception {
+	public void setFolderToLastKnown(DBArchimateModel model, IFolder folder) throws SQLException {
 		if ( !model.isLatestVersionImported() ) {
 			IFolder parentFolder = null;
 			DBMetadata dbMetadta = model.getDBMetadata(folder);
@@ -1496,9 +1563,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * if the component has never been part of the model, then is it set in the default folder for this component
 	 * @param model
 	 * @param view 
-	 * @throws Exception
+	 * @throws SQLException
 	 */
-	public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws Exception {
+	public void setFolderToLastKnown(DBArchimateModel model, IDiagramModel view) throws SQLException {
 		if ( !model.isLatestVersionImported() ) {
 			IFolder parentFolder = null;
 
@@ -1523,7 +1590,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 		}
 	}
 	
-	private HashSet<String> alreadyImported = new HashSet<String>();
+	private HashSet<String> alreadyImported = new HashSet<>();
 	/**
 	 * Declare that the element has been imported in order to avoid to import it twice
 	 * @param id

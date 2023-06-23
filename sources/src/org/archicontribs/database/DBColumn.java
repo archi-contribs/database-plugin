@@ -8,7 +8,7 @@ import lombok.Setter;
 
 /**
  * 
- * @author Herve
+ * @author Herve Jouin
  *
  */
 public class DBColumn {
@@ -20,9 +20,15 @@ public class DBColumn {
 	@Getter int maxLength = 2000000000;	// do not know why, but it seems to be hard coded in JDBC
 	
 	private static final String VARCHAR = "VARCHAR";
+	private static final String NVARCHAR = "NVARCHAR";
 	private static final String INTEGER = "INTEGER";
 	private static final String NUMBER = "NUMBER";
 	private static final String TINYINT = "TINYINT";
+	private static final String SERIAL = "SERIAL";
+	private static final String TEXT = "TEXT";
+	private static final String BLOB = "BLOB";
+	private static final String CLOB = "CLOB";
+	private static final String DATETIME = "DATETIME";
 	
 	/**
 	 * 
@@ -49,7 +55,7 @@ public class DBColumn {
 		switch (dbEntry.getDriver()) {
 	        case POSTGRESQL:
 	        	switch ( columnType ) {
-	        		case AUTO_INCREMENT : set(name, "SERIAL",      0, isNotNull); break;
+	        		case AUTO_INCREMENT : set(name, SERIAL,      0, isNotNull); break;
 	        		case BOOLEAN :        set(name, "INT2",        0, isNotNull); break;
 	        		case COLOR :          set(name, VARCHAR,     7, isNotNull); break;
 	        		case DATETIME :       set(name, "TIMESTAMP",   0, isNotNull); break;
@@ -59,7 +65,7 @@ public class DBColumn {
 	        		case OBJECTID :       set(name, VARCHAR,    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, VARCHAR,  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, VARCHAR,    20, isNotNull); break;
-	        		case TEXT :           set(name, "TEXT",        0, isNotNull); break;
+	        		case TEXT :           set(name, TEXT,        0, isNotNull); break;
 	        		case TYPE :           set(name, VARCHAR,     3, isNotNull); break;
 	        		case USERNAME :       set(name, VARCHAR,    30, isNotNull); break;
 	        		default:              break;
@@ -70,14 +76,14 @@ public class DBColumn {
 	        		case AUTO_INCREMENT : set(name, "INT IDENTITY",0, isNotNull); break;
 	        		case BOOLEAN :        set(name, TINYINT,     0, isNotNull); break;
 	        		case COLOR :          set(name, VARCHAR,     7, isNotNull); break;
-	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
+	        		case DATETIME :       set(name, DATETIME,    0, isNotNull); break;
 	        		case FONT :           set(name, VARCHAR,   150, isNotNull); break;
 	        		case IMAGE :          set(name, "IMAGE",       0, isNotNull); break;
 	        		case INTEGER :        set(name, "INT",         0, isNotNull); break;
 	        		case OBJECTID :       set(name, VARCHAR,    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, VARCHAR,  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, VARCHAR,    20, isNotNull); break;
-	        		case TEXT :           set(name, "NVARCHAR",   -1, isNotNull); break;
+	        		case TEXT :           set(name, NVARCHAR,   -1, isNotNull); break;
 	        		case TYPE :           set(name, VARCHAR,     3, isNotNull); break;
 	        		case USERNAME :       set(name, VARCHAR,    30, isNotNull); break;
 	        		default:              break;
@@ -88,7 +94,7 @@ public class DBColumn {
 	        		case AUTO_INCREMENT : set(name, "INT AUTO_INCREMENT", 0, isNotNull); break;
 	        		case BOOLEAN :        set(name, TINYINT,     0, isNotNull); break;
 	        		case COLOR :          set(name, VARCHAR,     7, isNotNull); break;
-	        		case DATETIME :       set(name, "DATETIME",    0, isNotNull); break;
+	        		case DATETIME :       set(name, DATETIME,    0, isNotNull); break;
 	        		case FONT :           set(name, VARCHAR,   150, isNotNull); break;
 	        		case IMAGE :          set(name, "LONGBLOB",    0, isNotNull); break;
 	        		case INTEGER :        set(name, "INT",        10, isNotNull); break;
@@ -108,12 +114,12 @@ public class DBColumn {
 	        		case COLOR :          set(name, VARCHAR,     7, isNotNull); break;
 	        		case DATETIME :       set(name, "DATE",        0, isNotNull); break;
 	        		case FONT :           set(name, VARCHAR,   150, isNotNull); break;
-	        		case IMAGE :          set(name, "BLOB",        0, isNotNull); break;
+	        		case IMAGE :          set(name, BLOB,        0, isNotNull); break;
 	        		case INTEGER :        set(name, INTEGER,     0, isNotNull); break;
 	        		case OBJECTID :       set(name, VARCHAR,    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, VARCHAR,  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, VARCHAR,    20, isNotNull); break;
-	        		case TEXT :           set(name, "CLOB",        0, isNotNull); break;
+	        		case TEXT :           set(name, CLOB,        0, isNotNull); break;
 	        		case TYPE :           set(name, VARCHAR,     3, isNotNull); break;
 	        		case USERNAME :       set(name, VARCHAR,    30, isNotNull); break;
 	        		default:              break;
@@ -126,12 +132,12 @@ public class DBColumn {
 	        		case COLOR :          set(name, VARCHAR,     7, isNotNull); break;
 	        		case DATETIME :       set(name, "TIMESTAMP",   0, isNotNull); break;
 	        		case FONT :           set(name, VARCHAR,   150, isNotNull); break;
-	        		case IMAGE :          set(name, "BLOB",        0, isNotNull); break;
+	        		case IMAGE :          set(name, BLOB,        0, isNotNull); break;
 	        		case INTEGER :        set(name, INTEGER,    10, isNotNull); break;
 	        		case OBJECTID :       set(name, VARCHAR,    50, isNotNull); break;
 	        		case OBJ_NAME :       set(name, VARCHAR,  1024, isNotNull); break;
 	        		case STRENGTH :       set(name, VARCHAR,    20, isNotNull); break;
-	        		case TEXT :           set(name, "CLOB",        0, isNotNull); break;
+	        		case TEXT :           set(name, CLOB,        0, isNotNull); break;
 	        		case TYPE :           set(name, VARCHAR,     3, isNotNull); break;
 	        		case USERNAME :       set(name, VARCHAR,    30, isNotNull); break;
 	        		default:              break;

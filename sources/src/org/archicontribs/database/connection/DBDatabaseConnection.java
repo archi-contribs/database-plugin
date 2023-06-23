@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.connection;
 
+import java.io.UnsupportedEncodingException;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -31,6 +32,7 @@ import org.archicontribs.database.DBColumn;
 import org.archicontribs.database.DBColumnType;
 import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBTable;
@@ -46,6 +48,7 @@ import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
 import com.archimatetool.model.IDiagramModel;
 import com.archimatetool.model.IDiagramModelContainer;
 import com.archimatetool.model.IDiagramModelObject;
+import com.archimatetool.model.util.UUIDFactory;
 
 import lombok.Getter;
 
@@ -62,7 +65,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Version of the expected database model.<br>
 	 * If the value found into the columns version of the table "database_version", then the plugin will try to upgrade the datamodel.
 	 */
-	public static final int databaseVersion = 490;
+	public static final int DATABASE_VERSION = 490;
 
 	/**
 	 * the databaseEntry corresponding to the connection
@@ -310,13 +313,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 				throw new SQLException("Database not initialized.");
 
 			createTables(dbGui);
-			currentVersion = databaseVersion;
+			currentVersion = DATABASE_VERSION;
 		}
 
-		if ( (currentVersion < 200) || (currentVersion > databaseVersion) )
-			throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+databaseVersion+")");
+		if ( (currentVersion < 200) || (currentVersion > DATABASE_VERSION) )
+			throw new SQLException("The database has got an unknown model version (is "+currentVersion+" but should be between 200 and "+DATABASE_VERSION+")");
 
-		if ( currentVersion != databaseVersion ) {
+		if ( currentVersion != DATABASE_VERSION ) {
 			if ( DBGuiUtils.question("The database needs to be upgraded. You will not loose any data during this operation.\n\nDo you wish to upgrade your database ?") ) {
 				upgradeDatabase(currentVersion);
 				DBGuiUtils.popup(Level.INFO, "Database successfully upgraded.");
@@ -528,7 +531,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			
 			// we fill in the database_version table 
-			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), DBPlugin.createID(null), DBPlugin.pluginName, databaseVersion);
+			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), UUIDFactory.createID(null), DBPlugin.pluginName, DATABASE_VERSION);
 			
 			// Oracle do not implement AUTO_INCREMENT columns, so we have to manually create sequences and triggers
 			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
@@ -813,9 +816,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 	/**
 	 * Upgrades the database
 	 * @param version 
-	 * @throws Exception 
+	 * @throws SQLException 
+	 * @throws NullPointerException 
+	 * @throws UnsupportedEncodingException 
+	 * @throws NoSuchAlgorithmException 
+	 * @throws DBException 
 	 */
-	private void upgradeDatabase(int version) throws Exception {
+	private void upgradeDatabase(int version) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException, NullPointerException, DBException {
 		int dbVersion = version;
 		
 		DBColumn booleanColumn = new DBColumn("", this.databaseEntry, DBColumnType.BOOLEAN, false);
@@ -875,10 +882,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 			try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version, name, note, purpose FROM "+this.schemaPrefix+"models") ) {
 				while ( result.next() ) {
 					StringBuilder checksumBuilder = new StringBuilder();
-					DBChecksum.append(checksumBuilder, "id", result.getString("id"));
-					DBChecksum.append(checksumBuilder, "name", result.getString("name"));
-					DBChecksum.append(checksumBuilder, "purpose", result.getString("purpose"));
-					DBChecksum.append(checksumBuilder, "note", result.getString("note"));
+					DBChecksum.append(checksumBuilder, result.getString("id"));
+					DBChecksum.append(checksumBuilder, result.getString("name"));
+					DBChecksum.append(checksumBuilder, result.getString("purpose"));
+					DBChecksum.append(checksumBuilder, result.getString("note"));
 					String checksum;
 					try {
 						checksum = DBChecksum.calculateChecksum(checksumBuilder);
@@ -908,7 +915,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 				try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id, version FROM "+this.schemaPrefix+"views") ) {
 					while ( result.next() ) {
 						IDiagramModel view;
-						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.templateMode, false);
+						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.TEMPLATE_MODE, false);
 						if ( command.canExecute() )
 							command.execute();
 						if ( command.getException() != null )
@@ -1126,7 +1133,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					while ( result.next() ) {
 						IDiagramModel view;
 
-						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.forceSharedMode, false);
+						DBImportViewFromIdCommand command = new DBImportViewFromIdCommand(importConnection, tempModel, null, null, result.getString("id"), result.getInt("version"), DBImportMode.FORCE_SHARED_MODE, false);
 						if ( command.canExecute() )
 							command.execute();
 						if ( command.getException() != null )
@@ -1187,7 +1194,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			// we add the new id column with a generated ID and save this ID in the preferences file for later use
 			addColumn(this.schemaPrefix+"database_version", "id", objectIDColumn.getType(), false, "");
 
-			this.databaseEntry.setId(DBPlugin.createID(null));
+			this.databaseEntry.setId(UUIDFactory.createID(null));
 			executeRequest("UPDATE "+this.schemaPrefix+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
 			// if the databaseEntry.index is different from -1, then the databaseEntry is persisted in the database, so we persist the new ID in the preference store
 			if ( this.databaseEntry.getIndex() != -1 )
@@ -1331,7 +1338,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 		StringBuilder cols = new StringBuilder();
 		StringBuilder values = new StringBuilder();
-		ArrayList<T> newParameters = new ArrayList<T>();
+		ArrayList<T> newParameters = new ArrayList<>();
 
 		for (int i=0 ; i < columns.length ; ++i) {
 			if ( parameters[i] != null ) {
@@ -1361,9 +1368,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @param filter (use "%" as wildcard) 
 	 * @throws Exception
 	 * @return a list of Hashtables, each containing the name and the id of one model
+	 * @throws SQLException 
 	 */
-	public ArrayList<Hashtable<String, Object>> getModels(String filter) throws Exception {
-		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+	public List<Hashtable<String, Object>> getModels(String filter) throws SQLException {
+		ArrayList<Hashtable<String, Object>> list = new ArrayList<>();
 		
 		this.schema = this.databaseEntry.getSchema();
 		this.schemaPrefix = this.databaseEntry.getSchemaPrefix();
@@ -1378,7 +1386,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			while ( result.next() && result.getString("id") != null ) {
 				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\"");
-				Hashtable<String, Object> table = new Hashtable<String, Object>();
+				Hashtable<String, Object> table = new Hashtable<>();
 				table.put("name", result.getString("name"));
 				table.put("id", result.getString("id"));
 				table.put("created_on",  result.getDate("created_on"));
@@ -1398,9 +1406,9 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @param modelName
 	 * @param ignoreCase
 	 * @return
-	 * @throws Exception
+	 * @throws SQLException 
 	 */
-	public String getModelId(String modelName, boolean ignoreCase) throws Exception {
+	public String getModelId(String modelName, boolean ignoreCase) throws SQLException {
 		String whereClause = ignoreCase ? "UPPER(name) = UPPER(?)" : "name = ?";
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT id FROM "+this.schemaPrefix+"models m WHERE "+whereClause, modelName) ) {  
@@ -1416,14 +1424,15 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @param id the id of the model 
 	 * @throws Exception
 	 * @return a list of Hashtables, each containing the version, created_on, created_by, name, note and purpose of one version of the model
+	 * @throws SQLException 
 	 */
-	public ArrayList<Hashtable<String, Object>> getModelVersions(String id) throws Exception {
-		ArrayList<Hashtable<String, Object>> list = new ArrayList<Hashtable<String, Object>>();
+	public List<Hashtable<String, Object>> getModelVersions(String id) throws SQLException {
+		ArrayList<Hashtable<String, Object>> list = new ArrayList<>();
 
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT version, created_by, created_on, name, note, purpose, checksum FROM "+this.schemaPrefix+"models WHERE id = ? ORDER BY version DESC", id) ) {
 			while ( result.next() ) {
 				if (logger.isTraceEnabled() ) logger.trace("Found model \""+result.getString("name")+"\" version \""+result.getString("version")+"\" checksum=\""+result.getString("checksum")+"\"");
-				Hashtable<String, Object> table = new Hashtable<String, Object>();
+				Hashtable<String, Object> table = new Hashtable<>();
 				table.put("version", result.getString("version"));
 				table.put("created_by", result.getString("created_by"));
 				table.put("created_on", result.getTimestamp("created_on"));
@@ -1443,7 +1452,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @throws SQLException 
 	 */
 	public void setAutoCommit(boolean autoCommit) throws SQLException {
-		if ( logger.isDebugEnabled() ) logger.debug("Setting database auto commit to "+String.valueOf(autoCommit));
+		if ( logger.isDebugEnabled() ) logger.debug("Setting database auto commit to "+autoCommit);
 		this.connection.setAutoCommit(autoCommit);
 	}
 
@@ -1492,7 +1501,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @throws SQLException
 	 */
 	@SafeVarargs
-	final public <T> int executeRequest(String request, T... parameters) throws SQLException {
+	public final <T> int executeRequest(String request, T... parameters) throws SQLException {
 		int rowCount = 0;
 
 		@SuppressWarnings("resource")
@@ -1505,12 +1514,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 	
 	private void initializeDatabaseTables() throws SQLException {
 		// DatabaseVersions table
-		this.databaseVersionColumns = new ArrayList<DBColumn>();
+		this.databaseVersionColumns = new ArrayList<>();
 		this.databaseVersionColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.databaseVersionColumns.add(new DBColumn("archi_plugin", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.databaseVersionColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.modelsColumns = new ArrayList<DBColumn>();
+		this.modelsColumns = new ArrayList<>();
 		this.modelsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.modelsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.modelsColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, true));
@@ -1526,12 +1535,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.modelsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.modelsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.modelsPrimaryKeys = new ArrayList<String>();
+		this.modelsPrimaryKeys = new ArrayList<>();
 		this.modelsPrimaryKeys.add("id");
 		this.modelsPrimaryKeys.add("version");
 
 		// Folders table
-		this.foldersColumns = new ArrayList<DBColumn>();
+		this.foldersColumns = new ArrayList<>();
 		this.foldersColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.foldersColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.foldersColumns.add(new DBColumn("type", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1548,12 +1557,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.foldersColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.foldersColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.foldersPrimaryKeys = new ArrayList<String>();
+		this.foldersPrimaryKeys = new ArrayList<>();
 		this.foldersPrimaryKeys.add("id");
 		this.foldersPrimaryKeys.add("version");
 		
 		// FoldersInModel table
-		this.foldersInModelColumns = new ArrayList<DBColumn>();
+		this.foldersInModelColumns = new ArrayList<>();
 		this.foldersInModelColumns.add(new DBColumn("fim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.foldersInModelColumns.add(new DBColumn("folder_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.foldersInModelColumns.add(new DBColumn("folder_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1562,11 +1571,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.foldersInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.foldersInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.foldersInModelPrimaryKeys = new ArrayList<String>();
+		this.foldersInModelPrimaryKeys = new ArrayList<>();
 		this.foldersInModelPrimaryKeys.add("fim_id");
 
 		// Elements table
-		this.elementsColumns = new ArrayList<DBColumn>();
+		this.elementsColumns = new ArrayList<>();
 		this.elementsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.elementsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.elementsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1584,12 +1593,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.elementsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.elementsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.elementsPrimaryKeys = new ArrayList<String>();
+		this.elementsPrimaryKeys = new ArrayList<>();
 		this.elementsPrimaryKeys.add("id");
 		this.elementsPrimaryKeys.add("version");
 
 		// ElementsInModel table
-		this.elementsInModelColumns = new ArrayList<DBColumn>();
+		this.elementsInModelColumns = new ArrayList<>();
 		this.elementsInModelColumns.add(new DBColumn("eim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.elementsInModelColumns.add(new DBColumn("element_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.elementsInModelColumns.add(new DBColumn("element_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1598,11 +1607,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.elementsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.elementsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.elementsInModelPrimaryKeys = new ArrayList<String>();
+		this.elementsInModelPrimaryKeys = new ArrayList<>();
 		this.elementsInModelPrimaryKeys.add("eim_id");
 
 		// Relationships table
-		this.relationshipsColumns = new ArrayList<DBColumn>();
+		this.relationshipsColumns = new ArrayList<>();
 		this.relationshipsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.relationshipsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.relationshipsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1624,12 +1633,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.relationshipsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.relationshipsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.relationshipsPrimaryKeys = new ArrayList<String>();
+		this.relationshipsPrimaryKeys = new ArrayList<>();
 		this.relationshipsPrimaryKeys.add("id");
 		this.relationshipsPrimaryKeys.add("version");
 
 		// RelationshipsInModel table
-		this.relationshipsInModelColumns = new ArrayList<DBColumn>();
+		this.relationshipsInModelColumns = new ArrayList<>();
 		this.relationshipsInModelColumns.add(new DBColumn("rim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.relationshipsInModelColumns.add(new DBColumn("relationship_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.relationshipsInModelColumns.add(new DBColumn("relationship_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1638,11 +1647,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.relationshipsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.relationshipsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.relationshipsInModelPrimaryKeys = new ArrayList<String>();
+		this.relationshipsInModelPrimaryKeys = new ArrayList<>();
 		this.relationshipsInModelPrimaryKeys.add("rim_id");
 
 		// Views table
-		this.viewsColumns = new ArrayList<DBColumn>();
+		this.viewsColumns = new ArrayList<>();
 		this.viewsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1665,12 +1674,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsColumns.add(new DBColumn("container_checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.viewsPrimaryKeys = new ArrayList<String>();
+		this.viewsPrimaryKeys = new ArrayList<>();
 		this.viewsPrimaryKeys.add("id");
 		this.viewsPrimaryKeys.add("version");
 
 		// ViewsInModel table
-		this.viewsInModelColumns = new ArrayList<DBColumn>();
+		this.viewsInModelColumns = new ArrayList<>();
 		this.viewsInModelColumns.add(new DBColumn("vim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.viewsInModelColumns.add(new DBColumn("view_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsInModelColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1679,11 +1688,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.viewsInModelPrimaryKeys =  new ArrayList<String>();
+		this.viewsInModelPrimaryKeys =  new ArrayList<>();
 		this.viewsInModelPrimaryKeys.add("vim_id");
 
 		// ViewsObjects table
-		this.viewsObjectsColumns = new ArrayList<DBColumn>();
+		this.viewsObjectsColumns = new ArrayList<>();
 		this.viewsObjectsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsObjectsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsObjectsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1723,12 +1732,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsObjectsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.viewsObjectsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.viewsObjectsPrimaryKeys = new ArrayList<String>();
+		this.viewsObjectsPrimaryKeys = new ArrayList<>();
 		this.viewsObjectsPrimaryKeys.add("id");
 		this.viewsObjectsPrimaryKeys.add("version");
 	    
 		// ViewsConnections table
-		this.viewsConnectionsColumns = new ArrayList<DBColumn>();
+		this.viewsConnectionsColumns = new ArrayList<>();
 		this.viewsConnectionsColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsConnectionsColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsConnectionsColumns.add(new DBColumn("class", this.databaseEntry, DBColumnType.OBJECTID, true));
@@ -1757,38 +1766,38 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsConnectionsColumns.add(new DBColumn("features", this.databaseEntry, DBColumnType.INTEGER, false));
 		this.viewsConnectionsColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.viewsConnectionsPrimaryKeys = new ArrayList<String>();
+		this.viewsConnectionsPrimaryKeys = new ArrayList<>();
 		this.viewsConnectionsPrimaryKeys.add("id");
 		this.viewsConnectionsPrimaryKeys.add("version");
 
 		// Properties table
-		this.propertiesColumns = new ArrayList<DBColumn>();
+		this.propertiesColumns = new ArrayList<>();
 		this.propertiesColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.propertiesColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.propertiesColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.propertiesColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.propertiesColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
-		this.propertiesPrimaryKeys = new ArrayList<String>();
+		this.propertiesPrimaryKeys = new ArrayList<>();
 		this.propertiesPrimaryKeys.add("parent_id");
 		this.propertiesPrimaryKeys.add("parent_version");
 		this.propertiesPrimaryKeys.add("pos");
 
 		// Features table
-		this.featuresColumns = new ArrayList<DBColumn>();
+		this.featuresColumns = new ArrayList<>();
 		this.featuresColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.featuresColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.featuresColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.featuresColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.featuresColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
-		this.featuresPrimaryKeys = new ArrayList<String>();
+		this.featuresPrimaryKeys = new ArrayList<>();
 		this.featuresPrimaryKeys.add("parent_id");
 		this.featuresPrimaryKeys.add("parent_version");
 		this.featuresPrimaryKeys.add("pos");
 		
 		// Profiles table
-		this.profilesColumns = new ArrayList<DBColumn>();
+		this.profilesColumns = new ArrayList<>();
 		this.profilesColumns.add(new DBColumn("id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.profilesColumns.add(new DBColumn("version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.profilesColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
@@ -1803,12 +1812,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.profilesColumns.add(new DBColumn("deleted_on", this.databaseEntry, DBColumnType.DATETIME, false));
 		this.profilesColumns.add(new DBColumn("checksum", this.databaseEntry, DBColumnType.OBJECTID, true));
 
-		this.profilesPrimaryKeys = new ArrayList<String>();
+		this.profilesPrimaryKeys = new ArrayList<>();
 		this.profilesPrimaryKeys.add("id");
 		this.profilesPrimaryKeys.add("version");
 		
 		// ProfilesInModel table
-		this.profilesInModelColumns = new ArrayList<DBColumn>();
+		this.profilesInModelColumns = new ArrayList<>();
 		this.profilesInModelColumns.add(new DBColumn("pim_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.profilesInModelColumns.add(new DBColumn("profile_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.profilesInModelColumns.add(new DBColumn("profile_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1816,11 +1825,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.profilesInModelColumns.add(new DBColumn("model_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.profilesInModelColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.profilesInModelPrimaryKeys = new ArrayList<String>();
+		this.profilesInModelPrimaryKeys = new ArrayList<>();
 		this.profilesInModelPrimaryKeys.add("pim_id");
 		
 		// Bendpoints table
-		this.bendpointsColumns = new ArrayList<DBColumn>();
+		this.bendpointsColumns = new ArrayList<>();
 		this.bendpointsColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.bendpointsColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.bendpointsColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1829,31 +1838,31 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.bendpointsColumns.add(new DBColumn("end_x", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.bendpointsColumns.add(new DBColumn("end_y", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.bendpointsPrimaryKeys = new ArrayList<String>();
+		this.bendpointsPrimaryKeys = new ArrayList<>();
 		this.bendpointsPrimaryKeys.add("parent_id");
 		this.bendpointsPrimaryKeys.add("parent_version");
 		this.bendpointsPrimaryKeys.add("pos");
 		
 		// Metadata table
-		this.metadataColumns = new ArrayList<DBColumn>();
+		this.metadataColumns = new ArrayList<>();
 		this.metadataColumns.add(new DBColumn("parent_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.metadataColumns.add(new DBColumn("parent_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.metadataColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.metadataColumns.add(new DBColumn("name", this.databaseEntry, DBColumnType.OBJ_NAME, false));
 		this.metadataColumns.add(new DBColumn("value", this.databaseEntry, DBColumnType.TEXT, false));
 
-		this.metadataPrimaryKeys = new ArrayList<String>();
+		this.metadataPrimaryKeys = new ArrayList<>();
 		this.metadataPrimaryKeys.add("parent_id");
 		this.metadataPrimaryKeys.add("parent_version");
 		this.metadataPrimaryKeys.add("pos");
 
 		// images table
-		this.imagesColumns = new ArrayList<DBColumn>();
+		this.imagesColumns = new ArrayList<>();
 		this.imagesColumns.add(new DBColumn("path", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.imagesColumns.add(new DBColumn("image", this.databaseEntry, DBColumnType.IMAGE, true));
 		
 		// ViewsObjectsInView table
-		this.viewsObjectsInViewColumns = new ArrayList<DBColumn>();
+		this.viewsObjectsInViewColumns = new ArrayList<>();
 		this.viewsObjectsInViewColumns.add(new DBColumn("oiv_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.viewsObjectsInViewColumns.add(new DBColumn("object_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsObjectsInViewColumns.add(new DBColumn("object_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1861,11 +1870,11 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsObjectsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsObjectsInViewColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.viewsObjectsInViewPrimaryKeys = new ArrayList<String>();
+		this.viewsObjectsInViewPrimaryKeys = new ArrayList<>();
 		this.viewsObjectsInViewPrimaryKeys.add("oiv_id");
 	    
 		// ViewsConnectionsInView table
-		this.viewsConnectionsInViewColumns = new ArrayList<DBColumn>();
+		this.viewsConnectionsInViewColumns = new ArrayList<>();
 		this.viewsConnectionsInViewColumns.add(new DBColumn("civ_id", this.databaseEntry, DBColumnType.AUTO_INCREMENT, true));
 		this.viewsConnectionsInViewColumns.add(new DBColumn("connection_id", this.databaseEntry, DBColumnType.OBJECTID, true));
 		this.viewsConnectionsInViewColumns.add(new DBColumn("connection_version", this.databaseEntry, DBColumnType.INTEGER, true));
@@ -1873,12 +1882,12 @@ public class DBDatabaseConnection implements AutoCloseable {
 		this.viewsConnectionsInViewColumns.add(new DBColumn("view_version", this.databaseEntry, DBColumnType.INTEGER, true));
 		this.viewsConnectionsInViewColumns.add(new DBColumn("pos", this.databaseEntry, DBColumnType.INTEGER, true));
 
-		this.viewsConnectionsInViewPrimaryKeys = new ArrayList<String>();
+		this.viewsConnectionsInViewPrimaryKeys = new ArrayList<>();
 		this.viewsConnectionsInViewPrimaryKeys.add("civ_id");
 
 		/* ****************************************************************************************************** */
 
-		this.databaseTables = new ArrayList<DBTable>();
+		this.databaseTables = new ArrayList<>();
 		this.databaseTables.add(new DBTable(this.schema, "database_version", this.databaseVersionColumns, this.databaseVersionPrimaryKeys));
 		this.databaseTables.add(new DBTable(this.schema, "models", this.modelsColumns, this.modelsPrimaryKeys));
 		this.databaseTables.add(new DBTable(this.schema, "folders", this.foldersColumns, this.foldersPrimaryKeys));

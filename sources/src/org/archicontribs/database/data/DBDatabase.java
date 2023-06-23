@@ -13,12 +13,12 @@ import lombok.Getter;
  * @author Herve Jouin
  */
 public enum DBDatabase {
-	/** Microsoft SQL */	MSSQL(0, "ms-sql", 1433, true),
-	/** MySQL         */	MYSQL(1, "mysql", 3306, false),
-	/** Neo4J         */	NEO4J(2, "neo4j", 7687, false),
-	/** Oracle        */	ORACLE(3, "oracle", 1521, true),
-	/** PostGreSQL    */	POSTGRESQL(4, "postgresql", 5432, true),
-	/** SQLite        */	SQLITE(5, "sqlite", 0, false);
+	/** Microsoft SQL */	MSSQL(0, "ms-sql", 1433, "com.microsoft.sqlserver.jdbc.SQLServerDriver", true),
+	/** MySQL         */	MYSQL(1, "mysql", 3306, "com.mysql.cj.jdbc.Driver", false),
+	/** Neo4J         */	NEO4J(2, "neo4j", 7687, "org.neo4j.jdbc.Driver", false),
+	/** Oracle        */	ORACLE(3, "oracle", 1521, "oracle.jdbc.driver.OracleDriver", true),
+	/** PostGreSQL    */	POSTGRESQL(4, "postgresql", 5432, "org.postgresql.Driver", true),
+	/** SQLite        */	SQLITE(5, "sqlite", 0, "org.sqlite.JDBC", false);
 	
 	/** Microsoft SQL */	public static final int MSSQL_VALUE = 0;
 	/** MySQL         */	public static final int MYSQL_VALUE = 1;
@@ -29,31 +29,25 @@ public enum DBDatabase {
 	
     private static final DBDatabase[] VALUES_ARRAY = new DBDatabase[] {MSSQL, MYSQL, NEO4J, ORACLE, POSTGRESQL, SQLITE};
     
-    /**
-     * Numerical values affected to database drivers
-     */
-    public static final List<DBDatabase> VALUES = Collections.unmodifiableList(Arrays.asList(VALUES_ARRAY));
+    /** Numerical values affected to database drivers */
+    public static final List<DBDatabase> VALUES_LIST = Collections.unmodifiableList(Arrays.asList(VALUES_ARRAY));
     
-    /**
-     * List of database drivers
-     */
+    /** List of database drivers */
     public static final String[] DRIVER_NAMES = new String[] {MSSQL.getDriverName(), MYSQL.getDriverName(), NEO4J.getDriverName(), ORACLE.getDriverName(), POSTGRESQL.getDriverName(), SQLITE.getDriverName()};
     
-    /**
-     * Numeric value of the entry
-     */
+    /** Numeric value of the entry */
 	@Getter private final int value;
 	
-	/**
-	 * driver name of the database
-	 */
+	/** driver name of the database */
 	@Getter private final String driverName;
 	
-	/**
-	 * default port that can be used to connect to the database
-	 */
+	/** default port that can be used to connect to the database */
 	@Getter private final int defaultPort;
 	
+	/** driver class of the database */
+	@Getter private final String driverClass;
+	
+	/** indicates if the database handles schemas or not */
 	private final boolean hasSchema;
 	
 	/**
@@ -63,10 +57,11 @@ public enum DBDatabase {
         return this.hasSchema;
     }
 	
-	private DBDatabase(int val, String name, int port, boolean schema) {
+	private DBDatabase(int val, String name, int port, String clazz, boolean schema) {
         this.value = val;
         this.driverName = name.toLowerCase();
         this.defaultPort = port;
+        this.driverClass = clazz;
         this.hasSchema = schema;
     }
     

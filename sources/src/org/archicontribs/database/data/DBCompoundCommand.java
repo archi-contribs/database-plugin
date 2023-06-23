@@ -4,6 +4,11 @@ import org.archicontribs.database.model.commands.IDBCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
 
+/**
+ * Command that can be executed
+ * 
+ * @author Herve Jouin
+ */
 public class DBCompoundCommand extends CompoundCommand {
 	/**
 	 * Constructs an empty CompoundCommand
@@ -15,8 +20,7 @@ public class DBCompoundCommand extends CompoundCommand {
 	/**
 	 * Constructs an empty CompoundCommand with the specified label.
 	 * 
-	 * @param label
-	 *            the label for the Command
+	 * @param label the label for the Command
 	 */
 	public DBCompoundCommand(String label) {
 		super(label);
@@ -25,10 +29,8 @@ public class DBCompoundCommand extends CompoundCommand {
 	/**
 	 * Adds the specified command if it is not <code>null</code>.
 	 * 
-	 * @param command
-	 *            <code>null</code> or a IDBCommand
-	 * @throws Exception
-	 *            if any exception is raised during the initialization of the command
+	 * @param command <code>null</code> or a IDBCommand
+	 * @throws Exception if any exception is raised during the initialization of the command
 	 */
 	public void checkAndAdd(IDBCommand command) throws Exception {
 		if (command != null) {
@@ -43,10 +45,8 @@ public class DBCompoundCommand extends CompoundCommand {
 	/**
 	 * Execute the specified command and adds it if it is not <code>null</code>.
 	 * 
-	 * @param command
-	 *            <code>null</code> or a IDBCommand
-	 * @throws Exception 
-	 *            if any exception is raised during the initialization of the command
+	 * @param command <code>null</code> or a IDBCommand
+	 * @throws Exception if any exception is raised during the initialization of the command
 	 */
 	public void checkAndExecute(IDBCommand command) throws Exception {
 		if (command != null) {

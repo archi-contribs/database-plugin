@@ -20,9 +20,22 @@ public class DBProperty implements java.lang.Comparable<DBProperty>
     @Getter @Setter private String key;
     @Getter @Setter private String value;
 
-    @Override public int compareTo(DBProperty o) {
+    @Override
+    public int compareTo(DBProperty o) {
 		int result = this.key.compareTo(o.getKey());
 		if ( result == 0 ) result = this.value.compareTo(o.getValue());
 		return result;
+	}
+    
+    @Override
+    public boolean equals(Object o) {
+     	if ( o instanceof DBProperty )
+     		return this.key.equals(((DBProperty)o).key) && this.value.equals(((DBProperty)o).value);
+    	return false;
+    }
+
+	@Override
+	public int hashCode() {
+		return super.hashCode();
 	}
 }

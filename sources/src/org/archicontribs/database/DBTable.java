@@ -9,7 +9,7 @@ import lombok.Setter;
 
 /**
  * 
- * @author Herve
+ * @author Herve Jouin
  *
  */
 @AllArgsConstructor()

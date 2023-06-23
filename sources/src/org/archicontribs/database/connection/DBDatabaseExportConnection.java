@@ -111,15 +111,15 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		this.isconnectionDuplicate = true;
 	}
 
-	@Getter private HashMap<String, DBMetadata> profilesNotInModel = new HashMap<String, DBMetadata>();
-	@Getter private HashMap<String, DBMetadata> elementsNotInModel = new HashMap<String, DBMetadata>();
-	@Getter private HashMap<String, DBMetadata> relationshipsNotInModel = new HashMap<String, DBMetadata>();
-	@Getter private HashMap<String, DBMetadata> foldersNotInModel = new LinkedHashMap<String, DBMetadata>();			// must keep the order
-	@Getter private HashMap<String, DBMetadata> viewsNotInModel = new HashMap<String, DBMetadata>();
-	@Getter private HashMap<String, DBMetadata> viewObjectsNotInModel = new LinkedHashMap<String, DBMetadata>();		// must keep the order
-	@Getter private HashMap<String, DBMetadata> viewConnectionsNotInModel = new LinkedHashMap<String, DBMetadata>();	// must keep the order
-	@Getter private HashMap<String, DBMetadata> imagesNotInModel = new HashMap<String, DBMetadata>();
-	@Getter private HashMap<String, DBMetadata> imagesNotInDatabase = new HashMap<String, DBMetadata>();
+	@Getter private HashMap<String, DBMetadata> profilesNotInModel = new HashMap<>();
+	@Getter private HashMap<String, DBMetadata> elementsNotInModel = new HashMap<>();
+	@Getter private HashMap<String, DBMetadata> relationshipsNotInModel = new HashMap<>();
+	@Getter private HashMap<String, DBMetadata> foldersNotInModel = new LinkedHashMap<>();			// must keep the order
+	@Getter private HashMap<String, DBMetadata> viewsNotInModel = new HashMap<>();
+	@Getter private HashMap<String, DBMetadata> viewObjectsNotInModel = new LinkedHashMap<>();		// must keep the order
+	@Getter private HashMap<String, DBMetadata> viewConnectionsNotInModel = new LinkedHashMap<>();	// must keep the order
+	@Getter private HashMap<String, DBMetadata> imagesNotInModel = new HashMap<>();
+	@Getter private HashMap<String, DBMetadata> imagesNotInDatabase = new HashMap<>();
 
 	/**
 	 * Gets the version of the model from the database
@@ -428,7 +428,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 
 		// we construct the IN string
 		StringBuilder questionMarks = new StringBuilder();
-		ArrayList<String> idList = new ArrayList<String>();
+		ArrayList<String> idList = new ArrayList<>();
 
 		Iterator<Entry<String, IIdentifier>> iterator = componentHashMap.entrySet().iterator();
 		while (iterator.hasNext()) {
@@ -556,7 +556,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		String modelId = model.getId();
 		int modelInitialVersion = model.getInitialVersion().getVersion();
 		int modelDatabaseVersion = model.getDatabaseVersion().getVersion();
-		HashMap<String, IIdentifier> componentHashMap = new HashMap<String, IIdentifier>();
+		HashMap<String, IIdentifier> componentHashMap = new HashMap<>();
 		
 		
 		//////////////////// PROFILES
@@ -1745,7 +1745,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		insert(this.schemaPrefix+"folders_in_model", foldersInModelColumns
 				,folder.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
-				,(((IIdentifier)((Folder)folder).eContainer()).getId() == model.getId() ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
+				,(((IIdentifier)((Folder)folder).eContainer()).getId().equals(model.getId()) ? null : ((IIdentifier)((Folder)folder).eContainer()).getId())
 				,model.getId()
 				,model.getCurrentVersion().getVersion()
 				,++this.folderPos
@@ -1758,7 +1758,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportView(IDiagramModel view) throws Exception {
-		final String[] ViewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "properties", "features", "checksum", "container_checksum"};
+		final String[] viewsColumns = {"id", "version", "class", "created_by", "created_on", "name", "connection_router_type", "documentation", "viewpoint", "background", "screenshot", "screenshot_scale_factor", "screenshot_border_width", "properties", "features", "checksum", "container_checksum"};
 		DBArchimateModel model = (DBArchimateModel)view.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(view);
 
@@ -1770,7 +1770,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (view.getProperties() == null) ? 0 : view.getProperties().size();
 		int nbFeatures = (view.getFeatures() == null) ? 0 : view.getFeatures().size();
 
-		insert(this.schemaPrefix+"views", ViewsColumns
+		insert(this.schemaPrefix+"views", viewsColumns
 				,view.getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,view.getClass().getSimpleName()
@@ -1838,7 +1838,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportViewObject(IDiagramModelComponent viewObject) throws Exception {
-		final String[] ViewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "properties", "features", "checksum"};
+		final String[] viewsObjectsColumns = {"id", "version", "class", "container_id", "element_id", "diagram_ref_id", "type", "border_color", "border_type", "content", "documentation", "is_locked", "image_path", "image_position", "line_color", "line_width", "fill_color", "alpha", "font", "font_color", "name", "notes", "text_alignment", "text_position", "x", "y", "width", "height", "created_by", "created_on", "properties", "features", "checksum"};
 		DBArchimateModel model = (DBArchimateModel)viewObject.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(viewObject);
 
@@ -1850,7 +1850,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbProperties = (!(viewObject instanceof IProperties) || !(viewObject instanceof IDiagramModelArchimateComponent) || (((IProperties)viewObject).getProperties() == null)) ? 0 : ((IProperties)viewObject).getProperties().size();
 		int nbFeatures = (viewObject.getFeatures() == null) ? 0 : viewObject.getFeatures().size();
 
-		insert(this.schemaPrefix+"views_objects", ViewsObjectsColumns
+		insert(this.schemaPrefix+"views_objects", viewsObjectsColumns
 				,((IIdentifier)viewObject).getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewObject.getClass().getSimpleName()
@@ -1931,7 +1931,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 	 * @throws Exception 
 	 */
 	private void exportViewConnection(IDiagramModelConnection viewConnection) throws Exception {
-		final String[] ViewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "properties", "features", "bendpoints", "checksum"};
+		final String[] viewsConnectionsColumns = {"id", "version", "class", "container_id", "name", "documentation", "is_locked", "line_color", "line_width", "font", "font_color", "relationship_id", "source_object_id", "target_object_id", "text_position", "type", "created_by", "created_on", "properties", "features", "bendpoints", "checksum"};
 		DBArchimateModel model = (DBArchimateModel)viewConnection.getArchimateModel();
 		DBMetadata dbMetadata = model.getDBMetadata(viewConnection);
 
@@ -1944,7 +1944,7 @@ public class DBDatabaseExportConnection extends DBDatabaseConnection {
 		int nbFeatures = (viewConnection.getFeatures() == null) ? 0 : viewConnection.getFeatures().size();
 		int nbBendpoints = (viewConnection.getBendpoints() == null) ? 0 : viewConnection.getBendpoints().size();
 
-		insert(this.schemaPrefix+"views_connections", ViewsConnectionsColumns
+		insert(this.schemaPrefix+"views_connections", viewsConnectionsColumns
 				,((IIdentifier)viewConnection).getId()
 				,dbMetadata.getCurrentVersion().getVersion()
 				,viewConnection.getClass().getSimpleName()

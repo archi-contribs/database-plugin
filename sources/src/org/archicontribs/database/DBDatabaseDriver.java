@@ -4,6 +4,8 @@ import lombok.Getter;
 
 /**
  * Enumeration of all the database drivers managed by the database plugin.
+ * 
+ * @author Herve Jouin
  */
 public enum DBDatabaseDriver {
     MSSQL("ms-sql", "com.microsoft.sqlserver.jdbc.SQLServerDriver"),
@@ -31,7 +33,7 @@ public enum DBDatabaseDriver {
 	 * @param dbName
 	 * @return the DBDatabaseDriver value
 	 */
-	static public DBDatabaseDriver fromName(String dbName) {
+	public static DBDatabaseDriver fromName(String dbName) {
 		switch (dbName.toLowerCase()) {
 			case "ms-sql": return MSSQL;
 			case "mysql": return MYSQL;

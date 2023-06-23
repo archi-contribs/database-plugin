@@ -37,12 +37,13 @@ import com.archimatetool.editor.utils.PlatformUtils;
 import com.archimatetool.editor.utils.ZipUtils;
 
 /**
- * @author Herve
+ * @author Herve Jouin
  *
  */
 public class DropinsPluginHandler {
-
-	File userDropinsFolder, systemDropinsFolder, instanceDropinsFolder;
+	File userDropinsFolder;
+	File systemDropinsFolder;
+	File instanceDropinsFolder;
 
 	boolean success;
 	boolean needsClose;
@@ -58,15 +59,17 @@ public class DropinsPluginHandler {
 	/**
 	 * 
 	 */
-	public DropinsPluginHandler() { 
+	public DropinsPluginHandler() {
+		// nothing to do
 	}
 
 	/**
 	 * @return
 	 * @throws IOException
+	 * @throws NoSuchElementException 
 	 */
 	public List<Bundle> getInstalledPlugins() throws IOException, NoSuchElementException {
-		List<Bundle> list = new ArrayList<Bundle>();
+		List<Bundle> list = new ArrayList<>();
 
 		for(Bundle bundle : ArchiPlugin.INSTANCE.getBundle().getBundleContext().getBundles()) {
 			File file = getDropinsBundleFile(bundle);
@@ -93,7 +96,7 @@ public class DropinsPluginHandler {
 			return status();
 		}
 
-		List<IStatus> stats = new ArrayList<IStatus>();
+		List<IStatus> stats = new ArrayList<>();
 
 		Exception[] exception = new Exception[1];
 
@@ -117,7 +120,7 @@ public class DropinsPluginHandler {
 			return status();
 		}
 
-		String resultMessage = ""; //$NON-NLS-1$
+		StringBuilder resultMessage = new StringBuilder();
 		boolean hasError = false;
 
 		for(int i = 0; i < stats.size(); i++) {
@@ -125,23 +128,20 @@ public class DropinsPluginHandler {
 
 			if(status.isOK()) {
 				this.success = true;
-				resultMessage += NLS.bind("{0} - Installed\n", files.get(i).getName()); //$NON-NLS-1$
+				resultMessage.append(NLS.bind("{0} - Installed\n", files.get(i).getName())); //$NON-NLS-1$
 			}
 			else {
 				hasError = true;
 
-				if(status.getCode() == 666) {
-					resultMessage += NLS.bind("{0} - Is not an Archi plug-in.\n", files.get(i).getName()); //$NON-NLS-1$
-				}
-				else {
-					resultMessage += NLS.bind("{0} - Not installed.\n", files.get(i).getName()); //$NON-NLS-1$
-				}
+				if(status.getCode() == 666)
+					resultMessage.append(NLS.bind("{0} - Is not an Archi plug-in.\n", files.get(i).getName())); //$NON-NLS-1$
+				else
+					resultMessage.append(NLS.bind("{0} - Not installed.\n", files.get(i).getName())); //$NON-NLS-1$
 			}
 		}
 
-		if(hasError) {
-			MessageDialog.openInformation(shell, "Install status", resultMessage);
-		}
+		if(hasError)
+			MessageDialog.openInformation(shell, "Install status", resultMessage.toString());
 
 		return status();
 	}
@@ -385,24 +385,25 @@ public class DropinsPluginHandler {
 		}
 
 		// get the variable name and do a lookup
-		String var = path.substring(beginIndex, endIndex);
-		if(var.length() == 0 || var.indexOf(File.pathSeparatorChar) != -1) {
+		String variable = path.substring(beginIndex, endIndex);
+		if(variable.length() == 0 || variable.indexOf(File.pathSeparatorChar) != -1) {
 			return path;
 		}
 
-		var = ArchiPlugin.INSTANCE.getBundle().getBundleContext().getProperty(var);
-		if(var == null) {
+		variable = ArchiPlugin.INSTANCE.getBundle().getBundleContext().getProperty(variable);
+		if(variable == null) {
 			return path;
 		}
 
-		return path.substring(0, beginIndex - 1) + var + path.substring(endIndex + 1);
+		return path.substring(0, beginIndex - 1) + variable + path.substring(endIndex + 1);
 	}
 
 	/**
 	 * If the bundle is in one of the "dropins" folders return its file (jar or folder), else return null
 	 * @param bundle 
 	 * @return 
-	 * @throws IOException, NoSuchElementException. 
+	 * @throws IOException 
+	 * @throws NoSuchElementException 
 	 */
 	File getDropinsBundleFile(Bundle bundle) throws IOException, NoSuchElementException {
 		File bundleFile = FileLocator.getBundleFileLocation(bundle).get();
@@ -425,7 +426,7 @@ public class DropinsPluginHandler {
 			}
 		}
 
-		List<File> files = new ArrayList<File>();
+		List<File> files = new ArrayList<>();
 
 		if(path != null) {
 			for(String name : dialog.getFileNames()) {

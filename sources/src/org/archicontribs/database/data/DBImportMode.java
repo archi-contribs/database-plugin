@@ -5,7 +5,7 @@
  */
 package org.archicontribs.database.data;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
@@ -25,24 +25,24 @@ public enum DBImportMode {
 	/**
 	 * In <b>templateMode</b>, the components are imported in copy mode, except the concept that have the "template" property's value set to "shared" which will be imported in shared mode.
 	 */
-	templateMode(DBImportMode.templateModeValue, "template mode"),
+	TEMPLATE_MODE(DBImportMode.TEMPLATE_MODE_VALUE, "template mode"),
 	/**
 	 * In <b>forceSharedMode</b>, the components are imported in shared mode (i.e. modifications done will be seen by other models).
 	 */
-	forceSharedMode(DBImportMode.forceSharedModeValue, "force shared mode"),
+	FORCE_SHARED_MODE(DBImportMode.FORCE_SHARED_MODE_VALUE, "force shared mode"),
 	/**
 	 * In <b>forceCopyMode</b>, the components are imported in copy mode (i.e. modifications done are local to the model and are not seen by other models).
 	 */
-	forceCopyMode(DBImportMode.forceCopyModeValue, "force copy mode");
+	FORCE_COPY_MODE(DBImportMode.FORCE_COPY_MODE_VALUE, "force copy mode");
 
 	protected static final DBLogger logger = new DBLogger(DBImportMode.class);
 
 	@Getter private int value;
 	@Getter private String label;
 
-	public static final int templateModeValue = 1;
-	public static final int forceSharedModeValue = 2;
-	public static final int forceCopyModeValue = 3;
+	public static final int TEMPLATE_MODE_VALUE = 1;
+	public static final int FORCE_SHARED_MODE_VALUE = 2;
+	public static final int FORCE_COPY_MODE_VALUE = 3;
 
 	private DBImportMode(int v, String l) {
 		this.value = v;
@@ -51,18 +51,18 @@ public enum DBImportMode {
 
 	public static String getLabel(int value) {
 		switch ( value ) {
-			case DBImportMode.templateModeValue: return templateMode.getLabel();
-			case DBImportMode.forceSharedModeValue: return forceSharedMode.getLabel();
-			case DBImportMode.forceCopyModeValue: return forceCopyMode.getLabel();
+			case DBImportMode.TEMPLATE_MODE_VALUE: return TEMPLATE_MODE.getLabel();
+			case DBImportMode.FORCE_SHARED_MODE_VALUE: return FORCE_SHARED_MODE.getLabel();
+			case DBImportMode.FORCE_COPY_MODE_VALUE: return FORCE_COPY_MODE.getLabel();
 			default: return null;
 		}
 	}
 	
 	public static DBImportMode get(int value) {
 		switch ( value ) {
-			case DBImportMode.templateModeValue: return templateMode;
-			case DBImportMode.forceSharedModeValue: return forceSharedMode;
-			case DBImportMode.forceCopyModeValue: return forceCopyMode;
+			case DBImportMode.TEMPLATE_MODE_VALUE: return TEMPLATE_MODE;
+			case DBImportMode.FORCE_SHARED_MODE_VALUE: return FORCE_SHARED_MODE;
+			case DBImportMode.FORCE_COPY_MODE_VALUE: return FORCE_COPY_MODE;
 			default: return null;
 		}
 	}
@@ -71,17 +71,17 @@ public enum DBImportMode {
 	 * @param properties Array with Archimate component properties
 	 * @return true if import should be done in copy mode, false if import should be done in share mode
 	 */
-	public boolean shouldCreateCopy(ArrayList<DBProperty> properties) {
+	public boolean shouldCreateCopy(List<DBProperty> properties) {
 		switch ( this.value ) {
-			case DBImportMode.forceSharedModeValue:
+			case DBImportMode.FORCE_SHARED_MODE_VALUE:
 				logger.debug("   Import in forced shared mode.");
 				return false;
 
-			case DBImportMode.forceCopyModeValue:
+			case DBImportMode.FORCE_COPY_MODE_VALUE:
 				logger.debug("   Import in forced copy mode.");
 				return true;
 
-			case DBImportMode.templateModeValue:
+			case DBImportMode.TEMPLATE_MODE_VALUE:
 				if ( properties != null ) {
 					for ( DBProperty prop: properties) {
 						if ( DBPlugin.areEqual(prop.getKey(), "template") && DBPlugin.areEqual(prop.getValue(), "copy") ) {

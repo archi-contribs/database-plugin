@@ -27,7 +27,7 @@ public class DBExportModelProvider extends AbstractCommandLineProvider {
 	 * 
 	 */
 	public DBExportModelProvider() {
-		
+		// nothing to do
 	}
 	
 	@Override

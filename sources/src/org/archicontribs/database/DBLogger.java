@@ -30,7 +30,7 @@ import lombok.Getter;
  * @author Herve jouin
  */
 public class DBLogger {
-	static private boolean initialised = false;
+	private static boolean initialised = false;
 	private String topCornerString = (char)0x250c+" ";
 	private String verticalString = (char)0x2502+" ";
 	private String bottomCornerString = (char)0x2514+" ";
@@ -60,7 +60,7 @@ public class DBLogger {
 	 * Configure the logger
 	 * @throws Exception 
 	 */
-	public void configure() throws Exception {
+	public void configure() throws DBException {
 		LinkedProperties properties = getLoggerProperties();
 
 		if ( properties != null ) {
@@ -291,9 +291,9 @@ public class DBLogger {
 	/**
 	 * Gets the logger properties
 	 * @return the logger properties
-	 * @throws Exception if the properties cannot be get
+	 * @throws DBException if the properties cannot be get
 	 */
-	private LinkedProperties getLoggerProperties() throws Exception {
+	private LinkedProperties getLoggerProperties() throws DBException {
 		//LogManager.resetConfiguration();
 		
 		
@@ -337,7 +337,7 @@ public class DBLogger {
     		try {
 				properties.load(new StringReader(loggerExpert));
 			} catch (@SuppressWarnings("unused") IOException err) {
-				throw new Exception("Error while parsing \"loggerExpert\" properties from the preference store");
+				throw new DBException("Error while parsing \"loggerExpert\" properties from the preference store");
 			}
     		break;
     		
@@ -354,9 +354,10 @@ public class DBLogger {
 	private class LinkedProperties extends Properties {
 		private static final long serialVersionUID = 1L;
 		
-		private final HashSet<Object> keys = new LinkedHashSet<Object>();
+		private final HashSet<Object> keys = new LinkedHashSet<>();
 
 	    public LinkedProperties() {
+	    	super();
 	    }
 
 	    public Iterable<Object> orderedKeys() {
