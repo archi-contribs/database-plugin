@@ -162,12 +162,12 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 				this.oldSource = dbMetadata.getRelationshipSource();
 				this.oldTarget = dbMetadata.getRelationshipTarget();
 
-				this.oldProperties = new ArrayList<DBProperty>();
+				this.oldProperties = new ArrayList<>();
 				for ( IProperty prop: this.importedRelationship.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 				
-				this.oldFeatures = new ArrayList<DBProperty>();
+				this.oldFeatures = new ArrayList<>();
 				for ( IFeature feature: this.importedRelationship.getFeatures() ) {
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
@@ -242,7 +242,7 @@ public class DBImportRelationshipFromIdCommand extends Command implements IDBImp
 			// and create the corresponding connections
 			// TODO: add an option that the user can choose if he wants the connections or not
 			if ( this.view != null && dbMetadata.findConnectables(this.view).isEmpty() ) {
-				this.createdViewConnections = new ArrayList<IDiagramModelConnection>();
+				this.createdViewConnections = new ArrayList<>();
 				List<IConnectable> sourceConnections = dbMetadata.findConnectables(this.view, this.importedRelationship.getSource());
 				List<IConnectable> targetConnections = dbMetadata.findConnectables(this.view, this.importedRelationship.getTarget());
 

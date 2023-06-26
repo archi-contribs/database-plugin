@@ -39,7 +39,7 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
     public DBDeleteDiagramObjectCommand(DBArchimateModel archimateModel, IDiagramModelObject object) {
         this.viewObjectParent = (IDiagramModelContainer)object.eContainer();
         this.viewObject = object;
-        this.viewObjectChildren = new ArrayList<IDiagramModelObject>();
+        this.viewObjectChildren = new ArrayList<>();
         this.model = archimateModel;
     }
 

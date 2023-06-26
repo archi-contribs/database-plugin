@@ -30,8 +30,8 @@ import com.archimatetool.model.util.Logger;
 public class DBSetFolderToLastKnownCommand extends Command  implements IDBCommand {
     private DBException exception = null;
     
-    private Map<EObject, IFolder> oldObjectsFolders = new HashMap<EObject, IFolder>();
-    private Map<EObject, IFolder> newObjectsFolders = new HashMap<EObject, IFolder>();
+    private Map<EObject, IFolder> oldObjectsFolders = new HashMap<>();
+    private Map<EObject, IFolder> newObjectsFolders = new HashMap<>();
     
     private DBArchimateModel dbModel;
     

@@ -26,14 +26,14 @@ import com.archimatetool.model.IArchimateModel;
 import com.archimatetool.model.IArchimateModelObject;
 import com.archimatetool.model.ILockable;
 
-public abstract class AbstractPropertySection extends org.eclipse.ui.views.properties.tabbed.AbstractPropertySection{
+public abstract class DBAbstractPropertySection extends org.eclipse.ui.views.properties.tabbed.AbstractPropertySection {
     /**
      * EObjects that are the subject of this Property Section
      */
     private List<EObject> fObjects;
     
     protected TabbedPropertySheetPage fPage;
-    private static int V_SPACING = 10;
+    private static final int V_SPACING = 10;
     
     /**
      * Set this flag to true when executing a command to stop unnecessary refreshing of controls
@@ -45,7 +45,7 @@ public abstract class AbstractPropertySection extends org.eclipse.ui.views.prope
      * @param parent Parent composite
      * @param text Text to display
      * @param width Width of label in pixels
-     * @param v_position Vertical position. Should be SWT.CENTER or SWT.NONE
+     * @param verticalPosition Vertical position. Should be SWT.CENTER or SWT.NONE
      * @return
      */
     protected Label createLabel(Composite parent, String text, int width, int verticalPosition) {
@@ -92,7 +92,7 @@ public abstract class AbstractPropertySection extends org.eclipse.ui.views.prope
         @Override
         public void notifyChanged(Notification msg) {
             super.notifyChanged(msg);
-            AbstractPropertySection.this.notifyChanged(msg);
+            DBAbstractPropertySection.this.notifyChanged(msg);
         }
     };
     
@@ -124,11 +124,12 @@ public abstract class AbstractPropertySection extends org.eclipse.ui.views.prope
      * Filter selected objects.
      * Also ensure that selected objects are from only one model.
      * We don't support selections from more than one model due to each model having its own command stack.
+     * @param objects 
      * 
      * @return A list of filtered adaptable objects according to type
      */
     private List<EObject> getFilteredObjects(List<?> objects) {
-        ArrayList<EObject> list = new ArrayList<EObject>();
+        ArrayList<EObject> list = new ArrayList<>();
         
         IObjectFilter filter = getFilter();
         
@@ -188,6 +189,7 @@ public abstract class AbstractPropertySection extends org.eclipse.ui.views.prope
     /**
      * If the Property sheet was Active (or Pinned) and the Element deleted then the Element's
      * info could still be showing.
+     * @param eObject 
      * @return True if alive
      */
     protected static boolean isAlive(EObject eObject) {
@@ -233,14 +235,14 @@ public abstract class AbstractPropertySection extends org.eclipse.ui.views.prope
     
     /**
      * Execute a command on the selected objects' CommandStack
-     * @param cmd
+     * @param command
      */
     protected void executeCommand(Command command) {
         this.fIsExecutingCommand = true;
         
         EObject eObject = getFirstSelectedObject();
         
-        if(eObject != null && eObject instanceof IAdapter) {
+        if(eObject instanceof IAdapter) {
             CommandStack commandStack = (CommandStack)((IAdapter)eObject).getAdapter(CommandStack.class);
             if(commandStack != null) {
                 commandStack.execute(command);

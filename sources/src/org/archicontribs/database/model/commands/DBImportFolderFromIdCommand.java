@@ -142,12 +142,12 @@ public class DBImportFolderFromIdCommand extends Command implements IDBImportCom
 				this.oldFolderType = dbMetadata.getFolderType();
 				//this.oldRootFolderType = metadata.getRootFolderType();
 
-				this.oldProperties = new ArrayList<DBProperty>();
+				this.oldProperties = new ArrayList<>();
 				for ( IProperty prop: this.importedFolder.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 				
-				this.oldFeatures = new ArrayList<DBProperty>();
+				this.oldFeatures = new ArrayList<>();
 				for ( IFeature feature: this.importedFolder.getFeatures() ) {
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}

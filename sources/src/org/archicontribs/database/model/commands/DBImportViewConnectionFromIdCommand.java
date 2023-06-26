@@ -187,18 +187,18 @@ public class DBImportViewConnectionFromIdCommand extends CompoundCommand impleme
 				this.oldTarget = dbMetadata.getTargetConnection();
 
 				if ( dbMetadata.getArchimateConcept()==null ) {
-					this.oldProperties = new ArrayList<DBProperty>();
+					this.oldProperties = new ArrayList<>();
 					for ( IProperty prop: ((IProperties)this.importedViewConnection).getProperties() ) {
 						this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 					}
 				}
 				
-				this.oldFeatures = new ArrayList<DBProperty>();
+				this.oldFeatures = new ArrayList<>();
 				for ( IFeature feature: this.importedViewConnection.getFeatures() ) {
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}
 
-				this.oldBendpoints = new ArrayList<DBBendpoint>();
+				this.oldBendpoints = new ArrayList<>();
 				for ( IDiagramModelBendpoint bendpoint: this.importedViewConnection.getBendpoints() ) {
 					this.oldBendpoints.add(new DBBendpoint(bendpoint.getStartX(), bendpoint.getStartY(), bendpoint.getEndX(), bendpoint.getEndY()));
 				}

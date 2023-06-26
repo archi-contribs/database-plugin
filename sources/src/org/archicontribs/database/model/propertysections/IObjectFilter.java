@@ -24,6 +24,8 @@ public interface IObjectFilter {
     Object adaptObject(Object object);
 
     /**
+     * @param eObject 
+     * @param feature 
      * @return True if the feature should be exposed on the object
      */
     boolean shouldExposeFeature(EObject eObject, EAttribute feature);

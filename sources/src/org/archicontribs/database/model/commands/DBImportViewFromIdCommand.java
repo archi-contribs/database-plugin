@@ -47,7 +47,7 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 	private IDiagramModel importedView= null; 
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-	private List<IDBImportCommand> importViewContentCommands = new ArrayList<IDBImportCommand>();
+	private List<IDBImportCommand> importViewContentCommands = new ArrayList<>();
 	private DBException exception;
 
 	private DBArchimateModel model = null;
@@ -193,12 +193,12 @@ public class DBImportViewFromIdCommand extends Command implements IDBImportComma
 				this.oldViewpoint = dbMetadata.getViewpoint();
 				this.oldBackground = dbMetadata.getBackground();
 
-				this.oldProperties = new ArrayList<DBProperty>();
+				this.oldProperties = new ArrayList<>();
 				for ( IProperty prop: this.importedView.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 				
-				this.oldFeatures = new ArrayList<DBProperty>();
+				this.oldFeatures = new ArrayList<>();
 				for ( IFeature feature: this.importedView.getFeatures() ) {
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}

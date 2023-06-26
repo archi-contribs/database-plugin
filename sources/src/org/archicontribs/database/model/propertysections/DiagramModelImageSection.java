@@ -55,7 +55,7 @@ import com.archimatetool.model.IDiagramModelObject;
  * 
  * @author Herve Jouin
  */
-public class DiagramModelImageSection extends AbstractPropertySection {
+public class DiagramModelImageSection extends DBAbstractPropertySection {
 	private static final DBLogger logger = new DBLogger(DiagramModelImageSection.class);
 	
 	protected static final String HELP_ID = "com.archimatetool.help.elementPropertySection"; //$NON-NLS-1$
@@ -263,11 +263,12 @@ public class DiagramModelImageSection extends AbstractPropertySection {
     
     /**
      * sets the EObject for this Property Section (for 4.2 and prior compatibility)
+     * @param element 
      */
     protected void setElement(Object element) {
         this.fDiagramModelImage = (IDiagramModelImage)new Filter().adaptObject(element);
         if(this.fDiagramModelImage == null) {
-            System.err.println(getClass() + " failed to get element for " + element); //$NON-NLS-1$
+            logger.error("failed to get element for " + element); //$NON-NLS-1$
         }
     }
 }

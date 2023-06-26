@@ -53,7 +53,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	private IDiagramModelArchimateObject createdViewObject = null;
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-	private List<IDBImportCommand> importRelationshipCommands = new ArrayList<IDBImportCommand>();
+	private List<IDBImportCommand> importRelationshipCommands = new ArrayList<>();
 	private DBException exception = null;
 
 	private DBArchimateModel model = null;
@@ -195,12 +195,12 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 				this.oldDocumentation = metadata.getDocumentation();
 				this.oldType = metadata.getJunctionType();
 
-				this.oldProperties = new ArrayList<DBProperty>();
+				this.oldProperties = new ArrayList<>();
 				for ( IProperty prop: this.importedElement.getProperties() ) {
 					this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
 				}
 				
-				this.oldFeatures = new ArrayList<DBProperty>();
+				this.oldFeatures = new ArrayList<>();
 				for ( IFeature feature: this.importedElement.getFeatures() ) {
 					this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 				}

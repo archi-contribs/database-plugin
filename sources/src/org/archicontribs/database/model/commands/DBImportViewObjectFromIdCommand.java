@@ -56,7 +56,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
 
     private DBArchimateModel model = null;
     private DBImportElementFromIdCommand importElementCommand = null;
-    private List<DBImportViewFromIdCommand> importLinkedViewCommands = new ArrayList<DBImportViewFromIdCommand>(); 
+    private List<DBImportViewFromIdCommand> importLinkedViewCommands = new ArrayList<>(); 
 
     private String id;
     private boolean mustCreateCopy;
@@ -249,14 +249,14 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
                 this.oldHeight = dbMetadata.getHeight();
 
                 if ( (this.importedViewObject instanceof IProperties) && (dbMetadata.getArchimateConcept() == null) ) {
-                    this.oldProperties = new ArrayList<DBProperty>();
+                    this.oldProperties = new ArrayList<>();
                     for ( IProperty prop: ((IProperties)this.importedViewObject).getProperties() ) {
                         this.oldProperties.add(new DBProperty(prop.getKey(), prop.getValue()));
                     }
                 }
                 
 				if ( (this.importedViewObject instanceof IFeatures) && (dbMetadata.getArchimateConcept() == null) ) {
-					this.oldFeatures = new ArrayList<DBProperty>();
+					this.oldFeatures = new ArrayList<>();
 					for ( IFeature feature: ((IFeatures)this.importedViewObject).getFeatures() ) {
 						this.oldFeatures.add(new DBProperty(feature.getName(), feature.getValue()));
 					}
