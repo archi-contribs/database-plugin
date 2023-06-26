@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -51,7 +52,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
     private EObject importedViewObject = null; 
 
     private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-    private Exception exception;
+    private DBException exception;
 
     private DBArchimateModel model = null;
     private DBImportElementFromIdCommand importElementCommand = null;
@@ -175,7 +176,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
             }
         } catch (Exception err) {
             Logger.logError("Got Exception "+err.getMessage());
-            this.exception = err;
+            this.exception = new DBException("Failed to import view object from its ID");
+            this.exception.initCause(err);
         }
     }
 
@@ -366,7 +368,8 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
         } catch (Exception err) {
             Logger.logError("Got Exception "+err.getMessage());
             this.importedViewObject = null;
-            this.exception = err;
+            this.exception = new DBException("Failed to import view object from its ID");
+            this.exception.initCause(err);
         }
     }
 
@@ -456,7 +459,7 @@ public class DBImportViewObjectFromIdCommand extends CompoundCommand implements 
      * @return the view object that has been imported by the command (of course, the command must have been executed before)
      */
     @Override
-    public Exception getException() {
+    public DBException getException() {
         return this.exception;
     }
 }

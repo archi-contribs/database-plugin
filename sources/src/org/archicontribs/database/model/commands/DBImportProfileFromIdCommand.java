@@ -10,6 +10,7 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.HashMap;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -34,7 +35,7 @@ public class DBImportProfileFromIdCommand extends Command implements IDBImportCo
 	private IProfile importedProfile= null; 
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
-	private Exception exception = null;
+	private DBException exception = null;
 
 	private DBArchimateModel model = null;
 
@@ -90,7 +91,8 @@ public class DBImportProfileFromIdCommand extends Command implements IDBImportCo
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());
 			this.importedProfile = null;
-			this.exception = err;
+			this.exception = new DBException("Failed to import profile from its ID");
+            this.exception.initCause(err);
 		}
 	}
 
@@ -144,7 +146,8 @@ public class DBImportProfileFromIdCommand extends Command implements IDBImportCo
 
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());
-			this.exception = err;
+		    this.exception = new DBException("Failed to import profile from its ID");
+            this.exception.initCause(err);
 		}
 	}
 
@@ -190,7 +193,7 @@ public class DBImportProfileFromIdCommand extends Command implements IDBImportCo
 	 * @return the exception that has been raised during the import process, if any.
 	 */
 	@Override
-	public Exception getException() {
+	public DBException getException() {
 		return this.exception;
 	}
 }

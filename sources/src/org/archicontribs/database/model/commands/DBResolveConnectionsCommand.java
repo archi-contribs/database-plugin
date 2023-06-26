@@ -5,6 +5,7 @@
  */
 package org.archicontribs.database.model.commands;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.gef.commands.Command;
 
@@ -16,7 +17,7 @@ import org.eclipse.gef.commands.Command;
 public class DBResolveConnectionsCommand extends Command implements IDBCommand {
     private DBArchimateModel model = null;
     
-    private Exception exception = null;
+    private DBException exception = null;
     private boolean commandHasBeenExecuted = false;
     
     public DBResolveConnectionsCommand(DBArchimateModel archimateModel) {
@@ -35,7 +36,8 @@ public class DBResolveConnectionsCommand extends Command implements IDBCommand {
 	        try {
 				this.model.resolveSourceAndTargetConnections();
 			} catch (Exception e) {
-				this.exception = e;
+				this.exception = new DBException("Failed to resolve connections");
+	            this.exception.initCause(e);
 			}
     	}
     }
@@ -46,7 +48,7 @@ public class DBResolveConnectionsCommand extends Command implements IDBCommand {
     }
 
 	@Override
-	public Exception getException() {
+	public DBException getException() {
 		return this.exception;
 	}
 

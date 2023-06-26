@@ -8,6 +8,7 @@ package org.archicontribs.database.model.commands;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.connection.DBSelect;
 import org.archicontribs.database.model.DBArchimateModel;
@@ -27,7 +28,7 @@ import com.archimatetool.model.util.Logger;
  * This methods does nothing if the model is the latest in the database
  */
 public class DBSetFolderToLastKnownCommand extends Command  implements IDBCommand {
-    private Exception exception = null;
+    private DBException exception = null;
     
     private Map<EObject, IFolder> oldObjectsFolders = new HashMap<EObject, IFolder>();
     private Map<EObject, IFolder> newObjectsFolders = new HashMap<EObject, IFolder>();
@@ -130,7 +131,8 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
             }
         } catch (Exception e) {
             Logger.logError("Got Exception "+e.getMessage());
-            this.exception = e;
+            this.exception = new DBException("Failed to set folder to last known");
+            this.exception.initCause(e);
         }
     }
     
@@ -153,7 +155,7 @@ public class DBSetFolderToLastKnownCommand extends Command  implements IDBComman
     }
     
     @Override
-    public Exception getException() {
+    public DBException getException() {
         return this.exception;
     }
 }

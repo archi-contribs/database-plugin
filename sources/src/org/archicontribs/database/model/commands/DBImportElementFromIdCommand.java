@@ -12,6 +12,7 @@ import java.util.Calendar;
 import java.util.HashMap;
 import java.util.List;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -53,7 +54,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 	private boolean commandHasBeenExecuted = false;		// to avoid being executed several times
 	private List<IDBImportCommand> importRelationshipCommands = new ArrayList<IDBImportCommand>();
-	private Exception exception = null;
+	private DBException exception = null;
 
 	private DBArchimateModel model = null;
 	private IArchimateDiagramModel view = null;
@@ -157,7 +158,8 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 			}
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());
-			this.exception = err;
+		    this.exception = new DBException("Failed to import element from its ID");
+            this.exception.initCause(err);
 		}
 	}
 
@@ -267,7 +269,8 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 
 		} catch (Exception err) {
 		    Logger.logError("Got Exception "+err.getMessage());
-			this.exception = err;
+		    this.exception = new DBException("Failed to import element from its ID");
+            this.exception.initCause(err);
 		}
 	}
 
@@ -343,7 +346,7 @@ public class DBImportElementFromIdCommand extends Command implements IDBImportCo
 	 * @return the exception that has been raised during the import process, if any.
 	 */
 	@Override
-	public Exception getException() {
+	public DBException getException() {
 		return this.exception;
 	}
 	

@@ -8,6 +8,7 @@ package org.archicontribs.database.model.commands;
 
 import java.util.ArrayList;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.gef.commands.Command;
 
@@ -29,7 +30,7 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
     private DBArchimateModel model;
     private int viewObjectIndex;
     private ArrayList<IDiagramModelObject> viewObjectChildren;
-    private Exception exception = null;
+    private DBException exception = null;
     
     /**
      * @param archimateModel
@@ -71,7 +72,8 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
                 this.viewObjectParent.getChildren().remove(this.viewObject);
             }
         } catch (Exception e) {
-            this.exception = e;
+        	this.exception = new DBException("Failed to delete diagram object");
+            this.exception.initCause(e);
         }
     }
     
@@ -90,7 +92,8 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
                 this.model.getAllViewObjects().put(this.viewObject.getId(), this.viewObject);
             }
         } catch (Exception e) {
-            this.exception = e;
+        	this.exception = new DBException("Failed to restore deleted diagram object");
+            this.exception.initCause(e);
         }
     }
 

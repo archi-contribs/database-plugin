@@ -293,10 +293,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Checks the content of the "database_version" table
 	 * @param dbGui the dialog that holds the graphical interface
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 * @returns true if the database version is correct, generates an Exception if not
 	 */
-	public boolean checkDatabase(DBGui dbGui) throws Exception {
+	public boolean checkDatabase(DBGui dbGui) throws SQLException {
 		// No tables to be checked in Neo4J databases
 		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) )
 			return true;
@@ -335,10 +335,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * Checks the database structure
 	 * @param dbGui the dialog that holds the graphical interface
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 * @returns true if the database structure is correct, false if not
 	 */
-	public String checkDatabaseStructure(DBGui dbGui) throws Exception {
+	public String checkDatabaseStructure(DBGui dbGui) throws SQLException {
 		StringBuilder message = new StringBuilder();
 		boolean isDatabaseStructureCorrect = true;
 		

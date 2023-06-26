@@ -6,6 +6,7 @@
 
 package org.archicontribs.database.model.commands;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.gef.commands.Command;
 
@@ -22,14 +23,14 @@ import com.archimatetool.model.IDiagramModelConnection;
 public class DBDeleteDiagramConnectionCommand extends Command implements IDBCommand {
     private IDiagramModelConnection fConnection;
     private DBArchimateModel fModel;
-    Exception exception = null;
+    DBException exception = null;
     
     /** 
      * Create a command that will disconnect a connection from its endpoints.
      * @param model 
      * @param connection the connection instance to disconnect (non-null)
      */
-    public DBDeleteDiagramConnectionCommand(DBArchimateModel model, IDiagramModelConnection connection){
+    public DBDeleteDiagramConnectionCommand(DBArchimateModel model, IDiagramModelConnection connection) {
         this.fConnection = connection;
         this.fModel = model;
     }
@@ -43,7 +44,8 @@ public class DBDeleteDiagramConnectionCommand extends Command implements IDBComm
             this.fModel.getAllViewConnections().remove(this.fConnection.getId());
             this.fConnection.disconnect();
         } catch ( Exception e ) {
-            this.exception = e;
+            this.exception = new DBException("Failed to delete diagram connection");
+            this.exception.initCause(e);
         }
     }
     
@@ -53,7 +55,8 @@ public class DBDeleteDiagramConnectionCommand extends Command implements IDBComm
             this.fConnection.reconnect();
             this.fModel.getAllViewConnections().put(this.fConnection.getId(), this.fConnection);
         } catch (Exception e) {
-            this.exception = e;
+        	this.exception = new DBException("Failed to restore deleted diagram connection");
+            this.exception.initCause(e);
         }
     }
 
