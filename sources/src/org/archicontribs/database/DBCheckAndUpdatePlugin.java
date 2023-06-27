@@ -160,7 +160,7 @@ public class DBCheckAndUpdatePlugin {
 			DBGuiUtils.closePopupMessage();
 	
 			if ( DBPlugin.PLUGIN_VERSION.compareTo(new Version(latestVersion)) >= 0 ) {
-				info(showPopup, "You already have got the latest version: "+latestVersion);
+				info(showPopup, "You already have got the latest version: "+DBPlugin.PLUGIN_VERSION);
 				return;
 			}
 
