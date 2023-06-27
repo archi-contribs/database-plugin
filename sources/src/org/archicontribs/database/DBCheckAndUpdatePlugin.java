@@ -21,7 +21,7 @@ import java.nio.file.Files;
 import javax.net.ssl.HttpsURLConnection;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
@@ -159,14 +159,14 @@ public class DBCheckAndUpdatePlugin {
 			
 			DBGuiUtils.closePopupMessage();
 	
-			if ( DBPlugin.pluginVersion.compareTo(new Version(latestVersion)) >= 0 ) {
+			if ( DBPlugin.PLUGIN_VERSION.compareTo(new Version(latestVersion)) >= 0 ) {
 				info(showPopup, "You already have got the latest version: "+latestVersion);
 				return;
 			}
 
 			boolean ask = true;
 			while ( ask ) {
-				display.syncExec(new Runnable() { @Override public void run() { DBCheckAndUpdatePlugin.answer = DBGuiUtils.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.pluginVersion.toString()+"\n     new version: "+ DBCheckAndUpdatePlugin.latestVersion+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
+				display.syncExec(new Runnable() { @Override public void run() { DBCheckAndUpdatePlugin.answer = DBGuiUtils.question("A new version of the database plugin is available:\n     actual version: "+DBPlugin.PLUGIN_VERSION.toString()+"\n     new version: "+ DBCheckAndUpdatePlugin.latestVersion+"\n\nDo you wish to download and install it ?", new String[] {"Yes", "No", "Check release note"}); }});
 				switch ( answer ) {
 					case 0: ask = false ; break;  // Yes
 					case 1: return ;              // No

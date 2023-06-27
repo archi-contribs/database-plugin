@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.awt.Toolkit;
 import java.io.ByteArrayOutputStream;
@@ -122,7 +122,7 @@ public class DBGui {
 
 	protected boolean includeNeo4j = true;
 
-	String HELP_HREF = null;
+	String helpHRef = null;
 	boolean mouseOverHelpButton = false;
 
 	protected enum ACTION {One, Two, Three, Four}
@@ -230,7 +230,7 @@ public class DBGui {
 		DBGuiUtils.setWaitCursor();
 
 		this.dialog = new Shell(display, SWT.BORDER | SWT.TITLE | SWT.APPLICATION_MODAL | SWT.RESIZE);
-		this.dialog.setText(DBPlugin.pluginTitle + " - " + title);
+		this.dialog.setText(DBPlugin.PLUGIN_TITLE + " - " + title);
 		this.dialog.setSize(1280, 900);
 		this.dialog.setMinimumSize(1280, 900);
 		
@@ -312,7 +312,7 @@ public class DBGui {
 
 		Label lblPluginVersion = new Label(compoTitle, SWT.CENTER);
 		lblPluginVersion.setBackground(COMPO_LEFT_COLOR);
-		lblPluginVersion.setText("v" + DBPlugin.pluginVersion.toString());
+		lblPluginVersion.setText("v" + DBPlugin.PLUGIN_VERSION.toString());
 		fd = new FormData();
 		fd.top = new FormAttachment(lblTitle, getDefaultMargin());
 		fd.left = new FormAttachment(0);
@@ -405,32 +405,32 @@ public class DBGui {
 
 		this.compoRight = new Composite(this.dialog, SWT.BORDER);
 		this.compoRight.setBackground(COMPO_BACKGROUND_COLOR);
-		FormData fd_compoRight = new FormData();
-		fd_compoRight.top = new FormAttachment(0);
-		fd_compoRight.bottom = new FormAttachment(100, -40);
-		fd_compoRight.left = new FormAttachment(this.compoLeft);
-		fd_compoRight.right = new FormAttachment(100);
-		this.compoRight.setLayoutData(fd_compoRight);
+		FormData fdCompoRight = new FormData();
+		fdCompoRight.top = new FormAttachment(0);
+		fdCompoRight.bottom = new FormAttachment(100, -40);
+		fdCompoRight.left = new FormAttachment(this.compoLeft);
+		fdCompoRight.right = new FormAttachment(100);
+		this.compoRight.setLayoutData(fdCompoRight);
 		this.compoRight.setLayout(new FormLayout());
 
 		this.compoRightTop = new Composite(this.compoRight, SWT.NONE);
 		this.compoRightTop.setBackground(COMPO_BACKGROUND_COLOR);
-		FormData fd_compoRightUp = new FormData();
-		fd_compoRightUp.top = new FormAttachment(0, 10);
-		fd_compoRightUp.bottom = new FormAttachment(0, 100);
-		fd_compoRightUp.left = new FormAttachment(0, 10);
-		fd_compoRightUp.right = new FormAttachment(100, -10);
-		this.compoRightTop.setLayoutData(fd_compoRightUp);
+		FormData fdCompoRightUp = new FormData();
+		fdCompoRightUp.top = new FormAttachment(0, 10);
+		fdCompoRightUp.bottom = new FormAttachment(0, 100);
+		fdCompoRightUp.left = new FormAttachment(0, 10);
+		fdCompoRightUp.right = new FormAttachment(100, -10);
+		this.compoRightTop.setLayoutData(fdCompoRightUp);
 		this.compoRightTop.setLayout(new FormLayout());
 
 		this.compoRightBottom = new Composite(this.compoRight, SWT.NONE);
 		this.compoRightBottom.setBackground(COMPO_BACKGROUND_COLOR);
-		FormData fd_compoRightBottom = new FormData();
-		fd_compoRightBottom.top = new FormAttachment(this.compoRightTop, 10);
-		fd_compoRightBottom.bottom = new FormAttachment(100, -10);
-		fd_compoRightBottom.left = new FormAttachment(0, 10);
-		fd_compoRightBottom.right = new FormAttachment(100, -10);
-		this.compoRightBottom.setLayoutData(fd_compoRightBottom);
+		FormData fdCompoRightBottom = new FormData();
+		fdCompoRightBottom.top = new FormAttachment(this.compoRightTop, 10);
+		fdCompoRightBottom.bottom = new FormAttachment(100, -10);
+		fdCompoRightBottom.left = new FormAttachment(0, 10);
+		fdCompoRightBottom.right = new FormAttachment(100, -10);
+		this.compoRightBottom.setLayoutData(fdCompoRightBottom);
 		this.compoRightBottom.setLayout(new FormLayout());
 
 		this.grpDatabase = new Group(this.compoRightTop, SWT.SHADOW_ETCHED_IN);
@@ -510,7 +510,15 @@ public class DBGui {
 				event.gc.drawImage(HELP_ICON, 2, 2);
 			}
 		});
-		this.btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBGui.this.HELP_HREF != null ) { if ( logger.isDebugEnabled() ) logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.HELP_HREF); } } });
+		this.btnHelp.addListener(SWT.MouseUp, new Listener() {
+			@Override public void handleEvent(Event event) {
+				if ( DBGui.this.helpHRef != null ) {
+					if ( logger.isDebugEnabled() )
+						logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.helpHRef);
+					PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/"+DBGui.this.helpHRef);
+				}
+			}
+		});
 		fd = new FormData(30,30);
 		fd.top = new FormAttachment(0, 5);
 		fd.left = new FormAttachment(0, 5);
@@ -598,14 +606,13 @@ public class DBGui {
 	 * @param mustIncludeNeo4j if true, include the Neo4J databases in the list, if false, do not include them in the list
 	 * @param defaultDatabaseId Indicated the ID of the default database (the first database will be selected, if the database is not found or if null)
 	 * @param defaultDatabaseName Indicated the name of the default database (the first database will be selected, if the database is not found or if null) - if both ID and name are provided, the ID has got higher priority
-	 * @throws Exception 
 	 */
-	public void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId, String defaultDatabaseName) throws Exception {
+	public void getDatabases(boolean mustIncludeNeo4j, String defaultDatabaseId, String defaultDatabaseName) {
 		refreshDisplay();
 
 		this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
-		this.comboDatabaseEntries = new ArrayList<DBDatabaseEntry>();
-		if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
+		this.comboDatabaseEntries = new ArrayList<>();
+		if ( (this.databaseEntries == null) || this.databaseEntries.isEmpty() ) {
 			DBGuiUtils.popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
 		} else {
 			int databaseToSelect = -1;
@@ -636,18 +643,16 @@ public class DBGui {
 	/**
 	 * Gets the list of configured databases, fill-in the comboDatabases and select the first-one
 	 * @param mustIncludeNeo4j if true, include the Neo4J databases in the list, if false, do not include them in the list
-	 * @throws Exception 
 	 */
-	protected void getDatabases(boolean mustIncludeNeo4j) throws Exception {
+	protected void getDatabases(boolean mustIncludeNeo4j) {
 		getDatabases(mustIncludeNeo4j, null, null);
 	}
 
 	/**
 	 * Called when the user clicks on the "set preferences" button<br>
 	 * This method opens up the database plugin preference page that the user can configure database details.
-	 * @throws Exception 
 	 */
-	protected void setPreferences() throws Exception {
+	protected void setPreferences() {
 		if ( logger.isDebugEnabled() ) logger.debug("Openning preference page ...");
 		PreferenceDialog prefDialog = PreferencesUtil.createPreferenceDialogOn(PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell(), "org.archicontribs.database.DBPreferencePage", null, null);
 		prefDialog.setBlockOnOpen(true);
@@ -657,7 +662,7 @@ public class DBGui {
 			this.comboDatabases.removeAll();
 
 			this.databaseEntries = DBDatabaseEntry.getAllDatabasesFromPreferenceStore();
-			if ( (this.databaseEntries == null) || (this.databaseEntries.size() == 0) ) {
+			if ( (this.databaseEntries == null) || this.databaseEntries.isEmpty() ) {
 				this.comboDatabases.select(0);
 				DBGuiUtils.popup(Level.ERROR, "You haven't configure any database yet.\n\nPlease setup at least one database in Archi preferences.");
 			} else {
@@ -757,8 +762,8 @@ public class DBGui {
 	 * Sets the reference of the online help
 	 */
 	protected void setHelpHref(String href) {
-		this.HELP_HREF = href;
-		this.btnHelp.setVisible(this.HELP_HREF != null);
+		this.helpHRef = href;
+		this.btnHelp.setVisible(this.helpHRef != null);
 	}
 
 	private ACTION activeAction = null;
@@ -1161,7 +1166,9 @@ public class DBGui {
 	}
 
 	public boolean isDisposed() {
-		return this.dialog==null ? true : this.dialog.isDisposed();
+		if ( this.dialog == null )
+			return true;
+		return this.dialog.isDisposed();
 	}
 
 	protected Boolean fillInCompareTable(Tree tree, EObject memoryObject, int memoryObjectversion) {
@@ -1333,7 +1340,7 @@ public class DBGui {
 
 			// we show up the bendpoints only if they both exist
 			if ( databaseObject.containsKey("bendpoints") ) {
-				if ( (((IDiagramModelConnection)memoryObject).getBendpoints().size() != 0) || (((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).size() != 0) ) {
+				if ( !((IDiagramModelConnection)memoryObject).getBendpoints().isEmpty() || !((ArrayList<DBBendpoint>)databaseObject.get("bendpoints")).isEmpty() ) {
 					TreeItem bendpointsTreeItem;
 					if ( treeItem == null )
 						bendpointsTreeItem = new TreeItem(tree, SWT.NONE);
@@ -1397,7 +1404,7 @@ public class DBGui {
 			profilesTreeItem.setExpanded(true);
 
 			// we get a sorted list of model profiles
-			ArrayList<DBProfile> modelProfiles = new ArrayList<DBProfile>();
+			ArrayList<DBProfile> modelProfiles = new ArrayList<>();
 			for (int i = 0; i < ((IArchimateModel)memoryObject).getProfiles().size(); ++i) {
 				IProfile profile = ((IArchimateModel)memoryObject).getProfiles().get(i);
 				modelProfiles.add(new DBProfile(profile.getName(), profile.getConceptType(), profile.isSpecialization(), profile.getImagePath()));
@@ -1446,7 +1453,7 @@ public class DBGui {
 
 		// we show up the properties if both exist
 		if ( databaseObject.containsKey("properties") ) {
-			if ( memoryObject instanceof IProperties && ((IProperties)memoryObject).getProperties().size() != 0) {
+			if ( memoryObject instanceof IProperties && !((IProperties)memoryObject).getProperties().isEmpty() ) {
 				TreeItem propertiesTreeItem;
 				if ( treeItem == null )
 					propertiesTreeItem = new TreeItem(tree, SWT.NONE);
@@ -1456,7 +1463,7 @@ public class DBGui {
 				propertiesTreeItem.setExpanded(true);
 
 				// we get a sorted list of component's properties
-				ArrayList<DBProperty> componentProperties = new ArrayList<DBProperty>();
+				ArrayList<DBProperty> componentProperties = new ArrayList<>();
 				for (int i = 0; i < ((IProperties)memoryObject).getProperties().size(); ++i)
 					componentProperties.add(new DBProperty(((IProperties)memoryObject).getProperties().get(i).getKey(), ((IProperties)memoryObject).getProperties().get(i).getValue()));
 				Collections.sort(componentProperties, this.propertyComparator);
@@ -1568,7 +1575,7 @@ public class DBGui {
 				imageContent = out.toByteArray();
 
 				org.eclipse.draw2d.geometry.Rectangle bounds = viewImage.getBounds();
-				bounds.performScale(ImageFactory.getDeviceZoom() / 100); // Account for device zoom level
+				bounds.performScale((double)ImageFactory.getDeviceZoom() / 100); // Account for device zoom level
 
 				dbMetadata.getScreenshot().setScreenshotBytes(imageContent);
 				dbMetadata.getScreenshot().setScaleFactor(scalePercent);

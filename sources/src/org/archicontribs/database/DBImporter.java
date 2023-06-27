@@ -10,8 +10,9 @@ import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiImportModel;
+import org.archicontribs.database.gui.DBGuiImportModel;
+import org.archicontribs.database.gui.DBGuiUtils;
+
 import com.archimatetool.editor.model.IModelImporter;
 import com.archimatetool.editor.model.ISelectedModelImporter;
 import com.archimatetool.model.IArchimateModel;

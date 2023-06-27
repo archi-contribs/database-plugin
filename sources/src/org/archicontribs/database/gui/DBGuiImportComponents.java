@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.io.ByteArrayInputStream;
 import java.sql.SQLException;
@@ -18,6 +18,7 @@ import java.util.Map;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseDriver;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
@@ -94,7 +95,6 @@ public class DBGuiImportComponents extends DBGui {
 	protected IFolder selectedFolder;
 
 	private Group grpFilter;
-	private Group grpComponent;
 
 	Composite compoModels;
 	Composite compoElements;
@@ -204,9 +204,9 @@ public class DBGuiImportComponents extends DBGui {
 	 * @param view 
 	 * @param folder 
 	 * @param title 
-	 * @throws Exception 
+	 * @throws DBException 
 	 */
-	public DBGuiImportComponents(DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws Exception {
+	public DBGuiImportComponents(DBArchimateModel model, IArchimateDiagramModel view, IFolder folder, String title) throws DBException {
 		super(title);
 
 		this.includeNeo4j = false;
@@ -216,7 +216,7 @@ public class DBGuiImportComponents extends DBGui {
 		if ( logger.isDebugEnabled() ) logger.debug("The model has got "+model.getAllElements().size()+" elements and "+model.getAllRelationships().size()+" relationships.");
 		closeMessage();		
 
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.pluginVersion.toString()+").");
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a component (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");
 
 		// model in which the component should be imported
 		this.importedModel = model;
@@ -668,7 +668,7 @@ public class DBGuiImportComponents extends DBGui {
 		passiveLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.productLabel);
 				labelList.add(DBGuiImportComponents.this.dataObjectLabel);
@@ -717,7 +717,7 @@ public class DBGuiImportComponents extends DBGui {
 		behaviorLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.capabilityLabel);
 				labelList.add(DBGuiImportComponents.this.valueStreamLabel);
@@ -785,7 +785,7 @@ public class DBGuiImportComponents extends DBGui {
 		activeLabel.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.resourceLabel);
 				labelList.add(DBGuiImportComponents.this.businessActorLabel);
@@ -849,7 +849,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblMotivation.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.stakeholderLabel);
 				labelList.add(DBGuiImportComponents.this.driverLabel);
@@ -928,7 +928,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblStrategy.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.capabilityLabel);
 				labelList.add(DBGuiImportComponents.this.valueStreamLabel);
@@ -978,7 +978,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblBusiness.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.productLabel);
 				labelList.add(DBGuiImportComponents.this.businessProcessLabel);
@@ -1037,7 +1037,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblApplication.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.dataObjectLabel);
 				labelList.add(DBGuiImportComponents.this.applicationFunctionLabel);
@@ -1092,7 +1092,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblTechnology.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.artifactLabel);
 				labelList.add(DBGuiImportComponents.this.technologyFunctionLabel);
@@ -1151,7 +1151,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblPhysical.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.materialLabel);
 				labelList.add(DBGuiImportComponents.this.equipmentLabel);
@@ -1201,7 +1201,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.lblImplementation.addMouseListener(new MouseAdapter() {
 			@Override
 			public void mouseUp(MouseEvent event) {
-				ArrayList<ComponentLabel> labelList = new ArrayList<ComponentLabel>();
+				ArrayList<ComponentLabel> labelList = new ArrayList<>();
 
 				labelList.add(DBGuiImportComponents.this.workpackageLabel);
 				labelList.add(DBGuiImportComponents.this.deliverableLabel);
@@ -1584,19 +1584,19 @@ public class DBGuiImportComponents extends DBGui {
 	}
 
 	private void createGrpComponents() {
-		this.grpComponent = new Group(this.compoRightBottom, SWT.NONE);
-		this.grpComponent.setBackground(GROUP_BACKGROUND_COLOR);
-		this.grpComponent.setFont(GROUP_TITLE_FONT);
-		this.grpComponent.setText("Select the component to import: ");
+		Group grpComponent = new Group(this.compoRightBottom, SWT.NONE);
+		grpComponent.setBackground(GROUP_BACKGROUND_COLOR);
+		grpComponent.setFont(GROUP_TITLE_FONT);
+		grpComponent.setText("Select the component to import: ");
 		FormData fd = new FormData();
 		fd.top = new FormAttachment(this.grpFilter, getDefaultMargin());
 		fd.left = new FormAttachment(0);
 		fd.right = new FormAttachment(100);
 		fd.bottom = new FormAttachment(100);
-		this.grpComponent.setLayoutData(fd);
-		this.grpComponent.setLayout(new FormLayout());
+		grpComponent.setLayoutData(fd);
+		grpComponent.setLayout(new FormLayout());
 
-		this.lblComponents = new Label(this.grpComponent, SWT.CENTER);
+		this.lblComponents = new Label(grpComponent, SWT.CENTER);
 		this.lblComponents.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblComponents.setText("0 component matches your criterias.");
 		fd = new FormData();
@@ -1630,19 +1630,19 @@ public class DBGuiImportComponents extends DBGui {
 			}
 		};
 
-		this.hideAlreadyInModel = new Button(this.grpComponent, SWT.CHECK);
+		this.hideAlreadyInModel = new Button(grpComponent, SWT.CHECK);
 		this.hideAlreadyInModel.setBackground(GROUP_BACKGROUND_COLOR);
 		this.hideAlreadyInModel.setText("Hide components already in model");
 		this.hideAlreadyInModel.setSelection(true);
 		this.hideAlreadyInModel.addSelectionListener(redrawTblComponents);
 
-		this.hideOption = new Button(this.grpComponent, SWT.CHECK);
+		this.hideOption = new Button(grpComponent, SWT.CHECK);
 		this.hideOption.setBackground(GROUP_BACKGROUND_COLOR);
 		this.hideOption.setText("Hide components with empty names");
 		this.hideOption.setSelection(true);
 		this.hideOption.addSelectionListener(redrawTblComponents);
 
-		this.tblComponents = new Table(this.grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
+		this.tblComponents = new Table(grpComponent, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.MULTI);
 		this.tblComponents.setLinesVisible(true);
 		this.tblComponents.setHeaderVisible(true);
 		this.tblComponents.setBackground(TABLE_BACKGROUND_COLOR);
@@ -1682,7 +1682,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.tblComponents.addListener(SWT.MouseMove, this.tooltipListener);
 		this.tblComponents.addListener(SWT.MouseHover, this.tooltipListener);
 
-		this.lblPreview = new Label(this.grpComponent, SWT.BORDER);
+		this.lblPreview = new Label(grpComponent, SWT.BORDER);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.tblComponents, 0, SWT.TOP);
 		fd.left = new FormAttachment(this.tblComponents, 5);
@@ -1754,7 +1754,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.tblComponents.setLayoutData(fd);
 	}
 
-	void getModels() throws Exception {
+	void getModels() throws SQLException {
 		this.compoModels.setVisible(true);
 		this.compoElements.setVisible(false);
 		//compoFolders.setVisible(false);
@@ -1820,7 +1820,7 @@ public class DBGuiImportComponents extends DBGui {
 		this.btnDoAction.setEnabled(false);
 	}
 
-	void getElements() throws Exception {
+	void getElements() throws SQLException {
 		this.compoModels.setVisible(false);
 		this.compoElements.setVisible(true);
 		//compoFolders.setVisible(false);
@@ -1840,7 +1840,7 @@ public class DBGuiImportComponents extends DBGui {
 			return;
 
 		StringBuilder inList = new StringBuilder();
-		ArrayList<String> classList = new ArrayList<String>();
+		ArrayList<String> classList = new ArrayList<>();
 		for (ComponentLabel label: this.allElementLabels) {
 			if ( label.isSelected() ) {
 				inList.append(inList.length()==0 ? "?" : ", ?");
@@ -1989,7 +1989,7 @@ public class DBGuiImportComponents extends DBGui {
 	}
 	 */
 
-	void getViews() throws Exception {
+	void getViews() throws SQLException {
 		this.compoModels.setVisible(false);
 		this.compoElements.setVisible(false);
 		//compoFolders.setVisible(false);
@@ -2009,7 +2009,7 @@ public class DBGuiImportComponents extends DBGui {
 			return;
 
 		StringBuilder inList = new StringBuilder();
-		ArrayList<String> classList = new ArrayList<String>();
+		ArrayList<String> classList = new ArrayList<>();
 		if ( this.archimateViews.getSelection() ) {
 			inList.append(inList.length()==0 ? "?" : ", ?");
 			classList.add("ArchimateDiagramModel");
@@ -2099,102 +2099,102 @@ public class DBGuiImportComponents extends DBGui {
 	 * @return the image associated with the archimate class
 	 */
 	private static Image getImage(String className) {
-		ImageFactory ImageFactory;
+		ImageFactory imageFactory;
 		
 		if ( className.toUpperCase().startsWith("CANVAS") ) {
-			ImageFactory = new ImageFactory(CanvasEditorPlugin.INSTANCE);
-			return ImageFactory.getImage(ICanvasImages.ICON_CANVAS_MODEL);
+			imageFactory = new ImageFactory(CanvasEditorPlugin.INSTANCE);
+			return imageFactory.getImage(ICanvasImages.ICON_CANVAS_MODEL);
 		}
 		
-		ImageFactory = new ImageFactory(ArchiPlugin.INSTANCE);
+		imageFactory = new ImageFactory(ArchiPlugin.INSTANCE);
         switch (className.toUpperCase()) {
-            case "FOLDER": return ImageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_FOLDER);
-            case "JUNCTION": return ImageFactory.getImage(IArchiImages.ICON_AND_JUNCTION);
-            case "APPLICATIONCOLLABORATION": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_COLLABORATION);
-            case "APPLICATIONCOMPONENT": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_COMPONENT);
-            case "APPLICATIONEVENT": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_EVENT);
-            case "APPLICATIONFUNCTION": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_FUNCTION);
-            case "APPLICATIONINTERACTION": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_INTERACTION);
-            case "APPLICATIONINTERFACE": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_INTERFACE);
-            case "APPLICATIONPROCESS": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_PROCESS);
-            case "APPLICATIONSERVICE": return ImageFactory.getImage(IArchiImages.ICON_APPLICATION_SERVICE);
-            case "ARTIFACT": return ImageFactory.getImage(IArchiImages.ICON_ARTIFACT);
-            case "ASSESSMENT": return ImageFactory.getImage(IArchiImages.ICON_ASSESSMENT);
-            case "BUSINESSACTOR": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_ACTOR);
-            case "BUSINESSCOLLABORATION": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_COLLABORATION);
-            case "BUSINESSEVENT": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_EVENT);
-            case "BUSINESSFUNCTION": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_FUNCTION);
-            case "BUSINESSINTERACTION": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_INTERACTION);
-            case "BUSINESSINTERFACE": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_INTERFACE);
-            case "BUSINESSOBJECT": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_OBJECT);
-            case "BUSINESSPROCESS": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_PROCESS);
-            case "BUSINESSROLE": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_ROLE);
-            case "BUSINESSSERVICE": return ImageFactory.getImage(IArchiImages.ICON_BUSINESS_SERVICE);
-            case "CAPABILITY": return ImageFactory.getImage(IArchiImages.ICON_CAPABILITY);
-            case "VALUESTREAM": return ImageFactory.getImage(IArchiImages.ICON_VALUE_STREAM);
-            case "COMMUNICATIONNETWORK": return ImageFactory.getImage(IArchiImages.ICON_COMMUNICATION_NETWORK);
-            case "CONTRACT": return ImageFactory.getImage(IArchiImages.ICON_CONTRACT);
-            case "CONSTRAINT": return ImageFactory.getImage(IArchiImages.ICON_CONSTRAINT);
-            case "COURSEOFACTION": return ImageFactory.getImage(IArchiImages.ICON_COURSE_OF_ACTION);
-            case "DATAOBJECT": return ImageFactory.getImage(IArchiImages.ICON_DATA_OBJECT);
-            case "DELIVERABLE": return ImageFactory.getImage(IArchiImages.ICON_DELIVERABLE);
-            case "DEVICE": return ImageFactory.getImage(IArchiImages.ICON_DEVICE);
-            case "DISTRIBUTIONNETWORK": return ImageFactory.getImage(IArchiImages.ICON_DISTRIBUTION_NETWORK);
-            case "DRIVER": return ImageFactory.getImage(IArchiImages.ICON_DRIVER);
-            case "EQUIPMENT": return ImageFactory.getImage(IArchiImages.ICON_EQUIPMENT);
-            case "FACILITY": return ImageFactory.getImage(IArchiImages.ICON_FACILITY);
-            case "GAP": return ImageFactory.getImage(IArchiImages.ICON_GAP);
-            case "GOAL": return ImageFactory.getImage(IArchiImages.ICON_GOAL);
-            case "GROUPING": return ImageFactory.getImage(IArchiImages.ICON_GROUPING);
-            case "IMPLEMENTATIONEVENT": return ImageFactory.getImage(IArchiImages.ICON_IMPLEMENTATION_EVENT);
-            case "LOCATION": return ImageFactory.getImage(IArchiImages.ICON_LOCATION);
-            case "MATERIAL": return ImageFactory.getImage(IArchiImages.ICON_MATERIAL);
-            case "MEANING": return ImageFactory.getImage(IArchiImages.ICON_MEANING);
-            case "NODE": return ImageFactory.getImage(IArchiImages.ICON_NODE);
-            case "OUTCOME": return ImageFactory.getImage(IArchiImages.ICON_OUTCOME);
-            case "PATH": return ImageFactory.getImage(IArchiImages.ICON_PATH);
-            case "PLATEAU": return ImageFactory.getImage(IArchiImages.ICON_PLATEAU);
-            case "PRINCIPLE": return ImageFactory.getImage(IArchiImages.ICON_PRINCIPLE);
-            case "PRODUCT": return ImageFactory.getImage(IArchiImages.ICON_PRODUCT);
-            case "REPRESENTATION": return ImageFactory.getImage(IArchiImages.ICON_REPRESENTATION);
-            case "RESOURCE": return ImageFactory.getImage(IArchiImages.ICON_RESOURCE);
-            case "REQUIREMENT": return ImageFactory.getImage(IArchiImages.ICON_REQUIREMENT);
-            case "STAKEHOLDER": return ImageFactory.getImage(IArchiImages.ICON_STAKEHOLDER);
-            case "SYSTEMSOFTWARE": return ImageFactory.getImage(IArchiImages.ICON_SYSTEM_SOFTWARE);
-            case "TECHNOLOGYCOLLABORATION": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_COLLABORATION);
-            case "TECHNOLOGYEVENT": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_EVENT);
-            case "TECHNOLOGYFUNCTION": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_FUNCTION);
-            case "TECHNOLOGYINTERFACE": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_INTERFACE);
-            case "TECHNOLOGYINTERACTION": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_INTERACTION);
-            case "TECHNOLOGYPROCESS": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_PROCESS);
-            case "TECHNOLOGYSERVICE": return ImageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_SERVICE);
-            case "VALUE": return ImageFactory.getImage(IArchiImages.ICON_VALUE);
-            case "WORKPACKAGE": return ImageFactory.getImage(IArchiImages.ICON_WORKPACKAGE);
-            case "ACCESSRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_ACESS_RELATION);
-            case "AGGREGATIONRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_AGGREGATION_RELATION);
-            case "ASSIGNMENTRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_ASSIGNMENT_RELATION);
-            case "ASSOCIATIONRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_ASSOCIATION_RELATION);
-            case "COMPOSITIONRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_COMPOSITION_RELATION);
-            case "FLOWRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_FLOW_RELATION);
-            case "INFLUENCERELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_INFLUENCE_RELATION);
-            case "REALIZATIONRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_REALIZATION_RELATION);
-            case "SERVINGRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_SERVING_RELATION);
-            case "SPECIALIZATIONRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_SPECIALIZATION_RELATION);
-            case "TRIGGERINGRELATIONSHIP": return ImageFactory.getImage(IArchiImages.ICON_TRIGGERING_RELATION);
-            case "DIAGRAMMODELGROUP": return ImageFactory.getImage(IArchiImages.ICON_GROUP);
-            case "DIAGRAMMODELNOTE": return ImageFactory.getImage(IArchiImages.ICON_NOTE);
-            case "ARCHIMATEDIAGRAMMODEL": return ImageFactory.getImage(IArchiImages.ICON_DIAGRAM);
-            case "SKETCHMODEL": return ImageFactory.getImage(IArchiImages.ICON_SKETCH);
-            case "SKETCHMODELSTICKY": return ImageFactory.getImage(IArchiImages.ICON_STICKY);
-            case "SKETCHMODELACTOR": return ImageFactory.getImage(IArchiImages.ICON_ACTOR);
-            case "MODEL": return ImageFactory.getImage(IArchiImages.ICON_APP); 
+            case "FOLDER": return imageFactory.getImage(IArchiImages.ECLIPSE_IMAGE_FOLDER);
+            case "JUNCTION": return imageFactory.getImage(IArchiImages.ICON_AND_JUNCTION);
+            case "APPLICATIONCOLLABORATION": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_COLLABORATION);
+            case "APPLICATIONCOMPONENT": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_COMPONENT);
+            case "APPLICATIONEVENT": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_EVENT);
+            case "APPLICATIONFUNCTION": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_FUNCTION);
+            case "APPLICATIONINTERACTION": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_INTERACTION);
+            case "APPLICATIONINTERFACE": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_INTERFACE);
+            case "APPLICATIONPROCESS": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_PROCESS);
+            case "APPLICATIONSERVICE": return imageFactory.getImage(IArchiImages.ICON_APPLICATION_SERVICE);
+            case "ARTIFACT": return imageFactory.getImage(IArchiImages.ICON_ARTIFACT);
+            case "ASSESSMENT": return imageFactory.getImage(IArchiImages.ICON_ASSESSMENT);
+            case "BUSINESSACTOR": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_ACTOR);
+            case "BUSINESSCOLLABORATION": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_COLLABORATION);
+            case "BUSINESSEVENT": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_EVENT);
+            case "BUSINESSFUNCTION": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_FUNCTION);
+            case "BUSINESSINTERACTION": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_INTERACTION);
+            case "BUSINESSINTERFACE": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_INTERFACE);
+            case "BUSINESSOBJECT": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_OBJECT);
+            case "BUSINESSPROCESS": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_PROCESS);
+            case "BUSINESSROLE": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_ROLE);
+            case "BUSINESSSERVICE": return imageFactory.getImage(IArchiImages.ICON_BUSINESS_SERVICE);
+            case "CAPABILITY": return imageFactory.getImage(IArchiImages.ICON_CAPABILITY);
+            case "VALUESTREAM": return imageFactory.getImage(IArchiImages.ICON_VALUE_STREAM);
+            case "COMMUNICATIONNETWORK": return imageFactory.getImage(IArchiImages.ICON_COMMUNICATION_NETWORK);
+            case "CONTRACT": return imageFactory.getImage(IArchiImages.ICON_CONTRACT);
+            case "CONSTRAINT": return imageFactory.getImage(IArchiImages.ICON_CONSTRAINT);
+            case "COURSEOFACTION": return imageFactory.getImage(IArchiImages.ICON_COURSE_OF_ACTION);
+            case "DATAOBJECT": return imageFactory.getImage(IArchiImages.ICON_DATA_OBJECT);
+            case "DELIVERABLE": return imageFactory.getImage(IArchiImages.ICON_DELIVERABLE);
+            case "DEVICE": return imageFactory.getImage(IArchiImages.ICON_DEVICE);
+            case "DISTRIBUTIONNETWORK": return imageFactory.getImage(IArchiImages.ICON_DISTRIBUTION_NETWORK);
+            case "DRIVER": return imageFactory.getImage(IArchiImages.ICON_DRIVER);
+            case "EQUIPMENT": return imageFactory.getImage(IArchiImages.ICON_EQUIPMENT);
+            case "FACILITY": return imageFactory.getImage(IArchiImages.ICON_FACILITY);
+            case "GAP": return imageFactory.getImage(IArchiImages.ICON_GAP);
+            case "GOAL": return imageFactory.getImage(IArchiImages.ICON_GOAL);
+            case "GROUPING": return imageFactory.getImage(IArchiImages.ICON_GROUPING);
+            case "IMPLEMENTATIONEVENT": return imageFactory.getImage(IArchiImages.ICON_IMPLEMENTATION_EVENT);
+            case "LOCATION": return imageFactory.getImage(IArchiImages.ICON_LOCATION);
+            case "MATERIAL": return imageFactory.getImage(IArchiImages.ICON_MATERIAL);
+            case "MEANING": return imageFactory.getImage(IArchiImages.ICON_MEANING);
+            case "NODE": return imageFactory.getImage(IArchiImages.ICON_NODE);
+            case "OUTCOME": return imageFactory.getImage(IArchiImages.ICON_OUTCOME);
+            case "PATH": return imageFactory.getImage(IArchiImages.ICON_PATH);
+            case "PLATEAU": return imageFactory.getImage(IArchiImages.ICON_PLATEAU);
+            case "PRINCIPLE": return imageFactory.getImage(IArchiImages.ICON_PRINCIPLE);
+            case "PRODUCT": return imageFactory.getImage(IArchiImages.ICON_PRODUCT);
+            case "REPRESENTATION": return imageFactory.getImage(IArchiImages.ICON_REPRESENTATION);
+            case "RESOURCE": return imageFactory.getImage(IArchiImages.ICON_RESOURCE);
+            case "REQUIREMENT": return imageFactory.getImage(IArchiImages.ICON_REQUIREMENT);
+            case "STAKEHOLDER": return imageFactory.getImage(IArchiImages.ICON_STAKEHOLDER);
+            case "SYSTEMSOFTWARE": return imageFactory.getImage(IArchiImages.ICON_SYSTEM_SOFTWARE);
+            case "TECHNOLOGYCOLLABORATION": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_COLLABORATION);
+            case "TECHNOLOGYEVENT": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_EVENT);
+            case "TECHNOLOGYFUNCTION": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_FUNCTION);
+            case "TECHNOLOGYINTERFACE": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_INTERFACE);
+            case "TECHNOLOGYINTERACTION": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_INTERACTION);
+            case "TECHNOLOGYPROCESS": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_PROCESS);
+            case "TECHNOLOGYSERVICE": return imageFactory.getImage(IArchiImages.ICON_TECHNOLOGY_SERVICE);
+            case "VALUE": return imageFactory.getImage(IArchiImages.ICON_VALUE);
+            case "WORKPACKAGE": return imageFactory.getImage(IArchiImages.ICON_WORKPACKAGE);
+            case "ACCESSRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_ACESS_RELATION);
+            case "AGGREGATIONRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_AGGREGATION_RELATION);
+            case "ASSIGNMENTRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_ASSIGNMENT_RELATION);
+            case "ASSOCIATIONRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_ASSOCIATION_RELATION);
+            case "COMPOSITIONRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_COMPOSITION_RELATION);
+            case "FLOWRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_FLOW_RELATION);
+            case "INFLUENCERELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_INFLUENCE_RELATION);
+            case "REALIZATIONRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_REALIZATION_RELATION);
+            case "SERVINGRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_SERVING_RELATION);
+            case "SPECIALIZATIONRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_SPECIALIZATION_RELATION);
+            case "TRIGGERINGRELATIONSHIP": return imageFactory.getImage(IArchiImages.ICON_TRIGGERING_RELATION);
+            case "DIAGRAMMODELGROUP": return imageFactory.getImage(IArchiImages.ICON_GROUP);
+            case "DIAGRAMMODELNOTE": return imageFactory.getImage(IArchiImages.ICON_NOTE);
+            case "ARCHIMATEDIAGRAMMODEL": return imageFactory.getImage(IArchiImages.ICON_DIAGRAM);
+            case "SKETCHMODEL": return imageFactory.getImage(IArchiImages.ICON_SKETCH);
+            case "SKETCHMODELSTICKY": return imageFactory.getImage(IArchiImages.ICON_STICKY);
+            case "SKETCHMODELACTOR": return imageFactory.getImage(IArchiImages.ICON_ACTOR);
+            case "MODEL": return imageFactory.getImage(IArchiImages.ICON_APP); 
             default:
                 throw new IllegalArgumentException("The class '" + className + "' is not a valid class"); //$NON-NLS-1$ //$NON-NLS-2$
         }
 	}
 
 
-	void doImport() throws Exception {
+	void doImport() throws SQLException, DBException {
         // We rename the "close" button to "cancel"
         this.btnClose.setText("Cancel");
         
@@ -2213,9 +2213,9 @@ public class DBGuiImportComponents extends DBGui {
 					
 					// import folders
 					setMessage("("+done+"/"+this.tblComponents.getSelectionCount()+") Importing folders from model \""+mergedModelName+"\".");
-					Map<String, IFolder> foldersConversionMap = new HashMap<String, IFolder>();
+					Map<String, IFolder> foldersConversionMap = new HashMap<>();
 					
-					Map<String, String> translatedFolders = new HashMap<String, String>();
+					Map<String, String> translatedFolders = new HashMap<>();
 					
 					try ( DBSelect result = new DBSelect(DBGuiImportComponents.this.importConnection.getDatabaseEntry().getName(), DBGuiImportComponents.this.importConnection.getConnection(), "SELECT fim.folder_id, fim.folder_version, fim.parent_folder_id, f.type, f.root_type, f.name FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model fim JOIN "+this.selectedDatabase.getSchemaPrefix()+"folders f ON fim.folder_id = f.id and fim.folder_version = f.version WHERE fim.model_id = ? AND fim.model_version = (SELECT MAX(model_version) FROM "+this.selectedDatabase.getSchemaPrefix()+"folders_in_model WHERE model_id = ?) ORDER BY fim.pos", mergedModelId, mergedModelId) ) {
 						while ( result.next() ) {
@@ -2254,7 +2254,7 @@ public class DBGuiImportComponents extends DBGui {
 								
 								// we search for the corresponding path in the current model
 								IFolder parentFolder = null;
-								for ( String subFolderName: folderPath.split("[\0]") ) {
+								for ( String subFolderName: folderPath.split("\0") ) {
 									if ( parentFolder == null ) {
 										// root folders are get by their type
 										parentFolder = this.importedModel.getFolder(FolderType.get(folderType));
@@ -2285,9 +2285,9 @@ public class DBGuiImportComponents extends DBGui {
 								}
 								
 								if ( parentFolder == null )
-									throw new Exception("Failed to get folder for path "+folderPath.replaceAll("[\0]", "/"));
+									throw new DBException("Failed to get folder for path "+folderPath.replace("\0", "/"));
 								convertedFolderId = parentFolder.getId();
-								if ( logger.isTraceEnabled() ) logger.trace("Creating translation for path "+folderPath.replaceAll("[\0]", "/")+" to "+DBMetadata.getDBMetadata(parentFolder).getDebugName());
+								if ( logger.isTraceEnabled() ) logger.trace("Creating translation for path "+folderPath.replace("\0", "/")+" to "+DBMetadata.getDBMetadata(parentFolder).getDebugName());
 								//TODO: get folder properties from the database !!!
 								translatedFolders.put(result.getString("folder_id"), convertedFolderId);
 							}
@@ -2409,7 +2409,7 @@ public class DBGuiImportComponents extends DBGui {
 			((CommandStack)this.importedModel.getAdapter(CommandStack.class)).execute(undoRedoCommands);
 
 			// we select the imported components in the model tree 
-			List<Object> imported = new ArrayList<Object>();
+			List<Object> imported = new ArrayList<>();
 
 			Iterator<IDBCommand> iterator = undoRedoCommands.getCommands().iterator();
 			while ( iterator.hasNext() ) {
@@ -2464,7 +2464,7 @@ public class DBGuiImportComponents extends DBGui {
 		};
 
 		public String getElementClassname() {
-			return this.label.getToolTipText().replaceAll(" ",  "");
+			return this.label.getToolTipText().replace(" ", "");
 		}
 
 		public void setSelected(boolean selected) {
@@ -2510,7 +2510,7 @@ public class DBGuiImportComponents extends DBGui {
     };
 	 */
 
-	final private Listener getViewsListener = new Listener() {
+	private final Listener getViewsListener = new Listener() {
 		@Override
 		public void handleEvent(Event event) {
 			try {
@@ -2521,7 +2521,7 @@ public class DBGuiImportComponents extends DBGui {
 		}
 	};
 
-	final private Listener tooltipListener = new Listener() {
+	private final Listener tooltipListener = new Listener() {
 		Shell tip = null;
 		StyledText label = null;
 

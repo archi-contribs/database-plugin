@@ -1,5 +1,6 @@
 package org.archicontribs.database.data;
 
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.model.commands.IDBCommand;
 import org.eclipse.gef.commands.Command;
 import org.eclipse.gef.commands.CompoundCommand;
@@ -30,11 +31,11 @@ public class DBCompoundCommand extends CompoundCommand {
 	 * Adds the specified command if it is not <code>null</code>.
 	 * 
 	 * @param command <code>null</code> or a IDBCommand
-	 * @throws Exception if any exception is raised during the initialization of the command
+	 * @throws DBException if any exception is raised during the initialization of the command
 	 */
-	public void checkAndAdd(IDBCommand command) throws Exception {
+	public void checkAndAdd(IDBCommand command) throws DBException {
 		if (command != null) {
-			Exception exception = command.getException();
+			DBException exception = command.getException();
 			if ( exception != null )
 				throw exception;
 			
@@ -48,9 +49,9 @@ public class DBCompoundCommand extends CompoundCommand {
 	 * @param command <code>null</code> or a IDBCommand
 	 * @throws Exception if any exception is raised during the initialization of the command
 	 */
-	public void checkAndExecute(IDBCommand command) throws Exception {
+	public void checkAndExecute(IDBCommand command) throws DBException {
 		if (command != null) {
-			Exception exception = command.getException();
+			DBException exception = command.getException();
 			if ( exception != null )
 				throw exception;
 			

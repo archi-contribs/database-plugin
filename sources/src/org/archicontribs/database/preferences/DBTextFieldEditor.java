@@ -52,7 +52,7 @@ public class DBTextFieldEditor extends FieldEditor {
 	 * Text limit constant (value <code>-1</code>) indicating unlimited
 	 * text limit and width.
 	 */
-	public static int UNLIMITED = -1;
+	public static final int UNLIMITED = -1;
 
 	/**
 	 * Cached valid state.
@@ -64,7 +64,6 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	private String oldValue;
 	private String compTitle;
-	private Label title;
 
 	/**
 	 * The text field, or <code>null</code> if none.
@@ -166,6 +165,7 @@ public class DBTextFieldEditor extends FieldEditor {
 		// we assume it is setting the width.
 		gd.grabExcessHorizontalSpace = gd.horizontalSpan == 1;
 	}
+	
 	/**
 	 * Checks whether the text input field contains a valid value or not.
 	 *
@@ -174,21 +174,17 @@ public class DBTextFieldEditor extends FieldEditor {
 	 */
 	protected boolean checkState() {
 		boolean result = false;
-		if (this.emptyStringAllowed)
-			result = true;
-
-		if (this.textField == null)
+		
+		if ( this.textField == null )
 			result = false;
-
-		String txt = this.textField.getText();
-
-		if (txt == null) {
-			result = false;
-		}
 		else {
-			result = (txt.trim().length() > 0) || this.emptyStringAllowed;
+			String txt = this.textField.getText();
+			if ( txt == null )
+				result = false;
+			else
+				result = (txt.trim().length() > 0) || this.emptyStringAllowed;
 		}
-
+		
 		// call hook for subclasses
 		result = result && doCheckState();
 
@@ -224,11 +220,11 @@ public class DBTextFieldEditor extends FieldEditor {
 	@Override
 	protected void doFillIntoGrid(Composite parent, int numColumns) {
 
-		this.title = new Label(parent, SWT.UP);
-		this.title.setFont(parent.getFont());
+		Label title = new Label(parent, SWT.UP);
+		title.setFont(parent.getFont());
 		this.compTitle = getLabelText();
-		this.title.setText(this.compTitle);
-		this.title.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
+		title.setText(this.compTitle);
+		title.setLayoutData(new GridData(GridData.VERTICAL_ALIGN_BEGINNING));
 
 		this.textField = getTextControl(parent);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);

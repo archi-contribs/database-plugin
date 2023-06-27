@@ -163,7 +163,7 @@ public class DBMetadata  {
      * <li><b><strike>isNewInDatabase</strike></b></li> The component does not exist in the model but has been created in the database<br>
      * <li><b><strike>isDeletedInModel</strike></b></li> The component does not exist in the model because it has been deleted from the model
      */
-    public enum DATABASE_STATUS {isSynced, isNewInModel, isNewInDatabase, isUpadtedInDatabase, isUpdatedInModel, isDeletedInDatabase, isConflicting}
+    public enum DATABASE_STATUS {IS_SYNCED, IS_NEW_IN_MODEL, IS_NEW_IN_DATABASE, IS_UPDATED_IN_DATABASE, IS_UPDATED_IN_MODEL, IS_DELETED_IN_DATABASE, IS_CONFLICTING}
 
     /**
      * Gets the status of the component<br>
@@ -173,15 +173,15 @@ public class DBMetadata  {
         if ( this.initialVersion.getVersion() == 0 ) {
             if ( getComponent() == null ) {
                 // the component does not exist in the model, thus it is new in the database
-                return DATABASE_STATUS.isNewInDatabase;
+                return DATABASE_STATUS.IS_NEW_IN_DATABASE;
             }
             // The component does exist in the model but has not been found in the database, thus it is a new component in the model
-            return DATABASE_STATUS.isNewInModel;
+            return DATABASE_STATUS.IS_NEW_IN_MODEL;
         }
         
         if ( this.databaseVersion.getVersion() == 0 ) {
             // if the databaseVersion is zero, then it means that the component does not exist in the database version of the model anymore
-            return DATABASE_STATUS.isDeletedInDatabase;
+            return DATABASE_STATUS.IS_DELETED_IN_DATABASE;
         }
         
         if ( this.initialVersion.getVersion() == this.latestDatabaseVersion.getVersion() ) {
@@ -189,11 +189,11 @@ public class DBMetadata  {
             
             if ( DBPlugin.areEqual(this.currentVersion.getChecksum(), this.initialVersion.getChecksum()) ) {
                 // if the checksum are identical, it means that the component has not been updated since it has been imported
-                return DATABASE_STATUS.isSynced;
+                return DATABASE_STATUS.IS_SYNCED;
             }
 
             // else, it means that it has been updated since it has been imported
-            return DATABASE_STATUS.isUpdatedInModel;
+            return DATABASE_STATUS.IS_UPDATED_IN_MODEL;
         }
         
         // else, it means that the component has been updated in the database 
@@ -216,22 +216,22 @@ public class DBMetadata  {
         // ... except if the component is a folder (there is no conflict on folders as the conflicts are managed using their content)
         if ( modifiedInModel && modifiedInDatabase ) {
             if ( DBPlugin.areEqual(currentChecksum, databaseChecksum) )
-                return DATABASE_STATUS.isSynced;
+                return DATABASE_STATUS.IS_SYNCED;
 
             if ( getComponent() instanceof IFolder )
-                return DATABASE_STATUS.isUpdatedInModel;
+                return DATABASE_STATUS.IS_UPDATED_IN_MODEL;
             
-            return DATABASE_STATUS.isConflicting;
+            return DATABASE_STATUS.IS_CONFLICTING;
         }
 
         // if we're here, it means that the component has been updated either in the model, either in the database
         if ( modifiedInModel )
-            return DATABASE_STATUS.isUpdatedInModel;
+            return DATABASE_STATUS.IS_UPDATED_IN_MODEL;
 
         if ( modifiedInDatabase )
-            return DATABASE_STATUS.isUpadtedInDatabase;
+            return DATABASE_STATUS.IS_UPDATED_IN_DATABASE;
 
-        return DATABASE_STATUS.isSynced;
+        return DATABASE_STATUS.IS_SYNCED;
     }
 
     /**
@@ -240,7 +240,7 @@ public class DBMetadata  {
      * @param view view in which the concept should be searched in
      */
     public List<IConnectable> findConnectables(IArchimateDiagramModel view) {
-        List<IConnectable> connectables = new ArrayList<IConnectable>();
+        List<IConnectable> connectables = new ArrayList<>();
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {
             for ( IDiagramModelObject viewObject: view.getChildren() ) {
@@ -257,7 +257,7 @@ public class DBMetadata  {
      * @param concept Archimate concept to search in the view
      */
     public List<IConnectable> findConnectables(IArchimateDiagramModel view, IArchimateConcept concept) {
-        List<IConnectable> connectables = new ArrayList<IConnectable>();
+        List<IConnectable> connectables = new ArrayList<>();
 
         if ( (this.component instanceof IArchimateConcept) && (view != null) ) {
             for ( IDiagramModelObject viewObject: view.getChildren() ) {
@@ -274,7 +274,7 @@ public class DBMetadata  {
      * @param concept Archimate concept to search in the view object
      */
     private List<IConnectable> findConnectables(IDiagramModelArchimateComponent parentComponent, IArchimateConcept concept) {
-        List<IConnectable> connectables = new ArrayList<IConnectable>();
+        List<IConnectable> connectables = new ArrayList<>();
 
         if ( concept instanceof IArchimateElement ) {
             if ( DBPlugin.areEqual(parentComponent.getArchimateConcept().getId(), concept.getId()) )
@@ -1137,7 +1137,6 @@ public class DBMetadata  {
     	} catch (@SuppressWarnings("unused") NoSuchMethodError ign) {
     		// prior to Archi 4.9, getPrimaryProfile() does not exist
     	}
-    	return;
     }
     
     public int getNumberOfProfiles() {

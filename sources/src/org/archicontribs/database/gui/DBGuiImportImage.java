@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
@@ -43,25 +43,24 @@ public class DBGuiImportImage extends DBGui {
     @SuppressWarnings("hiding")
     private static final DBLogger logger = new DBLogger(DBGuiImportImage.class);
     
-    private int DEFAULT_GALLERY_ITEM_SIZE = 128;
-    private int MIN_GALLERY_ITEM_SIZE = 64;
-    private int MAX_GALLERY_ITEM_SIZE = 256;
+    private static final int DEFAULT_GALLERY_ITEM_SIZE = 128;
+    private static final int MIN_GALLERY_ITEM_SIZE = 64;
+    private static final int MAX_GALLERY_ITEM_SIZE = 256;
     
     String imagePath = null;
     Image image = null;
     
     DBDatabaseImportConnection importConnection;
     
-    private Group grpImages;
     Gallery gallery;
     GalleryItem rootGalleryItem;
     Scale scale;
     
-    public DBGuiImportImage(DBArchimateModel model, String title) throws Exception {
+    public DBGuiImportImage(DBArchimateModel model, String title) {
         // We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
         super(title);
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing an image \""+model.getName()+"\" (plugin version "+DBPlugin.pluginVersion.toString()+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing an image \""+model.getName()+"\" (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");
         
         createGrpImages();
         
@@ -103,7 +102,6 @@ public class DBGuiImportImage extends DBGui {
 	        getDatabases(false);
 	    } catch (Exception err) {
 	        DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
-	        return;
 	    }
 	}
     
@@ -111,19 +109,19 @@ public class DBGuiImportImage extends DBGui {
      * Creates a group displaying the images from the database
      */
     private void createGrpImages() {
-        this.grpImages = new Group(this.compoRightBottom, SWT.NONE);
-        this.grpImages.setBackground(GROUP_BACKGROUND_COLOR);
-        this.grpImages.setText("Images in the database: ");
-        this.grpImages.setFont(GROUP_TITLE_FONT);
+        Group grpImages = new Group(this.compoRightBottom, SWT.NONE);
+        grpImages.setBackground(GROUP_BACKGROUND_COLOR);
+        grpImages.setText("Images in the database: ");
+        grpImages.setFont(GROUP_TITLE_FONT);
         FormData fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
-        this.grpImages.setLayoutData(fd);
-        this.grpImages.setLayout(new GridLayout(2, false));
+        grpImages.setLayoutData(fd);
+        grpImages.setLayout(new GridLayout(2, false));
         
-        Composite galleryComposite = new Composite(this.grpImages, SWT.FILL);
+        Composite galleryComposite = new Composite(grpImages, SWT.FILL);
         galleryComposite.setLayoutData(new GridData(GridData.FILL_BOTH));
         GridLayout layout = new GridLayout();
         layout.marginWidth = 0;
@@ -135,7 +133,7 @@ public class DBGuiImportImage extends DBGui {
         
         // Renderers
         final NoGroupRenderer groupRenderer = new NoGroupRenderer();
-        groupRenderer.setItemSize(this.DEFAULT_GALLERY_ITEM_SIZE, this.DEFAULT_GALLERY_ITEM_SIZE);
+        groupRenderer.setItemSize(DEFAULT_GALLERY_ITEM_SIZE, DEFAULT_GALLERY_ITEM_SIZE);
         groupRenderer.setAutoMargin(true);
         groupRenderer.setMinMargin(10);
         this.gallery.setGroupRenderer(groupRenderer);
@@ -157,11 +155,11 @@ public class DBGuiImportImage extends DBGui {
             gd.heightHint = 18;
         }
         this.scale.setLayoutData(gd);
-        this.scale.setMinimum(this.MIN_GALLERY_ITEM_SIZE);
-        this.scale.setMaximum(this.MAX_GALLERY_ITEM_SIZE);
+        this.scale.setMinimum(MIN_GALLERY_ITEM_SIZE);
+        this.scale.setMaximum(MAX_GALLERY_ITEM_SIZE);
         this.scale.setIncrement(8);
         this.scale.setPageIncrement(32);
-        this.scale.setSelection(this.DEFAULT_GALLERY_ITEM_SIZE);
+        this.scale.setSelection(DEFAULT_GALLERY_ITEM_SIZE);
         this.scale.addSelectionListener(new SelectionAdapter() {
             @Override public void widgetSelected(SelectionEvent e) {
                 int inc = DBGuiImportImage.this.scale.getSelection();

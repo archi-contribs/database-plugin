@@ -972,7 +972,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						DBImportElementFromIdCommand command = new DBImportElementFromIdCommand(this, model, null, null, null, this.currentResultSetViewsObjects.getString("element_id"), 0, DBImportMode.TEMPLATE_MODE, true);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
-						element = command.getImported();
+						command.getImported();
 
 						if ( command.getException() != null )
 							throw command.getException();
@@ -1087,7 +1087,7 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 						DBImportRelationshipFromIdCommand command = new DBImportRelationshipFromIdCommand(this, model, null, null, null, this.currentResultSetViewsConnections.getString("relationship_id"), 0, DBImportMode.TEMPLATE_MODE);
 						((CommandStack)model.getAdapter(CommandStack.class)).execute(command);
 
-						relationship = command.getImported();
+						command.getImported();
 
 						if ( command.getException() != null )
 							throw command.getException();
@@ -1389,9 +1389,9 @@ public class DBDatabaseImportConnection extends DBDatabaseConnection {
 	 * gets the latest model version in the database (0 if the model does not exist in the database)
 	 * @param model 
 	 * @return 
-	 * @throws Exception 
+	 * @throws SQLException 
 	 */
-	public int getLatestModelVersion(DBArchimateModel model) throws Exception {
+	public int getLatestModelVersion(DBArchimateModel model) throws SQLException {
 		// we use COALESCE to guarantee that a value is returned, even if the model does not exist in the database
 		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection,"SELECT COALESCE(MAX(version),0) as version FROM "+this.schemaPrefix+"models WHERE id = ?", model.getId()) ) {
 			result.next();

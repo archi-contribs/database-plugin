@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.lang.reflect.Method;
 import java.sql.SQLException;
@@ -18,6 +18,7 @@ import java.util.Map.Entry;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseDriver;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
@@ -98,22 +99,21 @@ public class DBGuiExportModel extends DBGui {
 	private CommandStack stack;
 	DBDatabaseExportConnection exportConnection;
 
-	private final String ZERO = toString(0);
+	private static final String ZERO = toString(0);
 
 	/**
 	 * Creates the GUI to export components and model
 	 * @param model to export
 	 * @param title of the dialog
-	 * @throws Exception 
 	 */
-	public DBGuiExportModel(DBArchimateModel model, String title) throws Exception {
+	public DBGuiExportModel(DBArchimateModel model, String title) {
 		// We call the DBGui constructor that will create the underlying form and expose the compoRight, compoRightUp and compoRightBottom composites
 		super(title);
 		// We reference the exported model 
 		this.exportedModel = model;
 		this.includeNeo4j = true;
 
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+this.exportedModel.getName()+"\" (plugin version "+DBPlugin.pluginVersion.toString()+").");
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for exporting model \""+this.exportedModel.getName()+"\" (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");
 
 		createGrpComponents();
 		createGrpModel();
@@ -179,7 +179,6 @@ public class DBGuiExportModel extends DBGui {
 			getDatabases(this.includeNeo4j, this.exportedModel.getImportDatabaseId(), null);
 		} catch (Exception err) {
 			DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
-			return;
 		}
 	}
 
@@ -397,14 +396,14 @@ public class DBGuiExportModel extends DBGui {
 
 		/* * * * * */
 
-		this.lblTotal = new Label(this.grpComponents, SWT.CENTER);
-		this.lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
-		this.lblTotal.setText("Total");
+		Label lblTotal = new Label(this.grpComponents, SWT.CENTER);
+		lblTotal.setBackground(GROUP_BACKGROUND_COLOR);
+		lblTotal.setText("Total");
 		fd = new FormData();
 		fd.top = new FormAttachment(0, getDefaultLabelHeight());
 		fd.left = new FormAttachment(20, 0);
 		fd.right = new FormAttachment(28, 0);
-		this.lblTotal.setLayoutData(fd);
+		lblTotal.setLayoutData(fd);
 
 		this.lblModel = new Label(this.grpComponents, SWT.CENTER);
 		this.lblModel.setBackground(GROUP_BACKGROUND_COLOR);
@@ -419,7 +418,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblModelNew.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblModelNew.setText("New");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(33, 0);
 		fd.right = new FormAttachment(41, -2);
 		this.lblModelNew.setLayoutData(fd);
@@ -428,7 +427,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblModelUpdated.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblModelUpdated.setText("Updated");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(41, 1);
 		fd.right = new FormAttachment(49, -1);
 		this.lblModelUpdated.setLayoutData(fd);
@@ -437,7 +436,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblModelDeleted.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblModelDeleted.setText("Deleted");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(49, 2);
 		fd.right = new FormAttachment(57, 0);
 		this.lblModelDeleted.setLayoutData(fd);
@@ -449,12 +448,12 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(this.lblModelDeleted, 0, SWT.RIGHT);
 		this.modelHorizontalSeparator.setLayoutData(fd);
 
-		this.modelVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+		Label modelVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.modelHorizontalSeparator, -4, SWT.TOP);
 		fd.bottom = new FormAttachment(this.modelHorizontalSeparator, 4, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.modelHorizontalSeparator);
-		this.modelVerticalSeparatorLeft.setLayoutData(fd);
+		modelVerticalSeparatorLeft.setLayoutData(fd);
 
 		this.modelVerticalSeparatorRight = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
 		fd = new FormData();
@@ -476,7 +475,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblDatabaseNew.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblDatabaseNew.setText("New");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(62, 0);
 		fd.right = new FormAttachment(70, -2);
 		this.lblDatabaseNew.setLayoutData(fd);
@@ -485,7 +484,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblDatabaseUpdated.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblDatabaseUpdated.setText("Updated");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(70, 1);
 		fd.right = new FormAttachment(78, -2);
 		this.lblDatabaseUpdated.setLayoutData(fd);
@@ -494,7 +493,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblDatabaseDeleted.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblDatabaseDeleted.setText("Deleted");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(78, 1);
 		fd.right = new FormAttachment(86, 0);
 		this.lblDatabaseDeleted.setLayoutData(fd);
@@ -506,12 +505,12 @@ public class DBGuiExportModel extends DBGui {
 		fd.right = new FormAttachment(this.lblDatabaseDeleted, 0, SWT.RIGHT);
 		this.databaseHorizontalSeparator.setLayoutData(fd);
 
-		this.databaseVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
+		Label databaseVerticalSeparatorLeft = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
 		fd = new FormData();
 		fd.top = new FormAttachment(this.databaseHorizontalSeparator, -4, SWT.TOP);
 		fd.bottom = new FormAttachment(this.databaseHorizontalSeparator, 4, SWT.BOTTOM);
 		fd.left = new FormAttachment(this.databaseHorizontalSeparator);
-		this.databaseVerticalSeparatorLeft.setLayoutData(fd);
+		databaseVerticalSeparatorLeft.setLayoutData(fd);
 
 		this.databaseVerticalSeparatorRight = new Label(this.grpComponents, SWT.VERTICAL | SWT.SEPARATOR);
 		fd = new FormData();
@@ -524,7 +523,7 @@ public class DBGuiExportModel extends DBGui {
 		this.lblConflicts.setBackground(GROUP_BACKGROUND_COLOR);
 		this.lblConflicts.setText("Conflicts");
 		fd = new FormData();
-		fd.top = new FormAttachment(this.lblTotal, 0, SWT.TOP);
+		fd.top = new FormAttachment(lblTotal, 0, SWT.TOP);
 		fd.left = new FormAttachment(91, 0);
 		fd.right = new FormAttachment(99, 0);
 		this.lblConflicts.setLayoutData(fd);
@@ -536,8 +535,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalModelItself.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblModelItself, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalModelItself.setLayoutData(fd);
 		
 		this.txtNewModelItselfInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -583,8 +582,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalProfiles.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblProfiles, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalProfiles.setLayoutData(fd);
 		
 		this.txtNewProfilesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -657,8 +656,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalElements.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblElements, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalElements.setLayoutData(fd);
 
 		this.txtNewElementsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -731,8 +730,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalRelationships.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblRelationships, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalRelationships.setLayoutData(fd);
 
 		this.txtNewRelationshipsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -805,8 +804,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalFolders.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblFolders, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalFolders.setLayoutData(fd);
 
 		this.txtNewFoldersInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -879,8 +878,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalViews.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViews, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalViews.setLayoutData(fd);
 
 		this.txtNewViewsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -953,8 +952,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalViewObjects.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewObjects, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalViewObjects.setLayoutData(fd);
 
 		this.txtNewViewObjectsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -1027,8 +1026,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalViewConnections.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblViewConnections, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalViewConnections.setLayoutData(fd);
 
 		this.txtNewViewConnectionsInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -1101,8 +1100,8 @@ public class DBGuiExportModel extends DBGui {
 		this.txtTotalImages.setEnabled(false);
 		fd = new FormData(26,18);
 		fd.top = new FormAttachment(lblImages, 0, SWT.CENTER);
-		fd.left = new FormAttachment(this.lblTotal, 0, SWT.LEFT);
-		fd.right = new FormAttachment(this.lblTotal, 0, SWT.RIGHT);
+		fd.left = new FormAttachment(lblTotal, 0, SWT.LEFT);
+		fd.right = new FormAttachment(lblTotal, 0, SWT.RIGHT);
 		this.txtTotalImages.setLayoutData(fd);
 
 		this.txtNewImagesInModel = new Text(this.grpComponents, SWT.BORDER | SWT.CENTER);
@@ -1179,65 +1178,65 @@ public class DBGuiExportModel extends DBGui {
 		this.lblModelUpdated.setVisible(!isNeo4j);
 		this.txtTotalModelItself.setVisible(!isNeo4j);
 		
-		this.txtNewModelItselfInModel.setVisible(!isNeo4j);         this.txtNewModelItselfInModel.setText(this.ZERO);
-		                                                            this.txtNewProfilesInModel.setText(this.ZERO);
-		                                                            this.txtNewElementsInModel.setText(this.ZERO);
-		                                                            this.txtNewRelationshipsInModel.setText(this.ZERO);
-		this.txtUpdatedModelItselfInModel.setVisible(!isNeo4j);     this.txtUpdatedModelItselfInModel.setText(this.ZERO);
-		this.txtUpdatedProfilesInModel.setVisible(!isNeo4j);        this.txtUpdatedProfilesInModel.setText(this.ZERO);
-		this.txtDeletedProfilesInModel.setVisible(!isNeo4j);        this.txtDeletedProfilesInModel.setText(this.ZERO);
-		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);        this.txtUpdatedElementsInModel.setText(this.ZERO);
-		this.txtDeletedElementsInModel.setVisible(!isNeo4j);        this.txtDeletedElementsInModel.setText(this.ZERO);
-		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);   this.txtUpdatedRelationshipsInModel.setText(this.ZERO);
-		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);   this.txtDeletedRelationshipsInModel.setText(this.ZERO);
-		this.txtNewFoldersInModel.setVisible(!isNeo4j);             this.txtNewFoldersInModel.setText(this.ZERO);
-		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);         this.txtUpdatedFoldersInModel.setText(this.ZERO);
-		this.txtDeletedFoldersInModel.setVisible(!isNeo4j);         this.txtDeletedFoldersInModel.setText(this.ZERO);
-		this.txtNewViewsInModel.setVisible(!isNeo4j);               this.txtNewViewsInModel.setText(this.ZERO);
-		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);           this.txtUpdatedViewsInModel.setText(this.ZERO);
-		this.txtDeletedViewsInModel.setVisible(!isNeo4j);           this.txtDeletedViewsInModel.setText(this.ZERO);
-		this.txtNewViewObjectsInModel.setVisible(!isNeo4j);         this.txtNewViewObjectsInModel.setText(this.ZERO);
-		this.txtUpdatedViewObjectsInModel.setVisible(!isNeo4j);     this.txtUpdatedViewObjectsInModel.setText(this.ZERO);
-		this.txtDeletedViewObjectsInModel.setVisible(!isNeo4j);     this.txtDeletedViewObjectsInModel.setText(this.ZERO);
-		this.txtNewViewConnectionsInModel.setVisible(!isNeo4j);     this.txtNewViewConnectionsInModel.setText(this.ZERO);
-		this.txtUpdatedViewConnectionsInModel.setVisible(!isNeo4j); this.txtUpdatedViewConnectionsInModel.setText(this.ZERO);
-		this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j); this.txtDeletedViewConnectionsInModel.setText(this.ZERO);
-		this.txtNewImagesInModel.setVisible(!isNeo4j);              this.txtNewImagesInModel.setText(this.ZERO);
+		this.txtNewModelItselfInModel.setVisible(!isNeo4j);         this.txtNewModelItselfInModel.setText(ZERO);
+		                                                            this.txtNewProfilesInModel.setText(ZERO);
+		                                                            this.txtNewElementsInModel.setText(ZERO);
+		                                                            this.txtNewRelationshipsInModel.setText(ZERO);
+		this.txtUpdatedModelItselfInModel.setVisible(!isNeo4j);     this.txtUpdatedModelItselfInModel.setText(ZERO);
+		this.txtUpdatedProfilesInModel.setVisible(!isNeo4j);        this.txtUpdatedProfilesInModel.setText(ZERO);
+		this.txtDeletedProfilesInModel.setVisible(!isNeo4j);        this.txtDeletedProfilesInModel.setText(ZERO);
+		this.txtUpdatedElementsInModel.setVisible(!isNeo4j);        this.txtUpdatedElementsInModel.setText(ZERO);
+		this.txtDeletedElementsInModel.setVisible(!isNeo4j);        this.txtDeletedElementsInModel.setText(ZERO);
+		this.txtUpdatedRelationshipsInModel.setVisible(!isNeo4j);   this.txtUpdatedRelationshipsInModel.setText(ZERO);
+		this.txtDeletedRelationshipsInModel.setVisible(!isNeo4j);   this.txtDeletedRelationshipsInModel.setText(ZERO);
+		this.txtNewFoldersInModel.setVisible(!isNeo4j);             this.txtNewFoldersInModel.setText(ZERO);
+		this.txtUpdatedFoldersInModel.setVisible(!isNeo4j);         this.txtUpdatedFoldersInModel.setText(ZERO);
+		this.txtDeletedFoldersInModel.setVisible(!isNeo4j);         this.txtDeletedFoldersInModel.setText(ZERO);
+		this.txtNewViewsInModel.setVisible(!isNeo4j);               this.txtNewViewsInModel.setText(ZERO);
+		this.txtUpdatedViewsInModel.setVisible(!isNeo4j);           this.txtUpdatedViewsInModel.setText(ZERO);
+		this.txtDeletedViewsInModel.setVisible(!isNeo4j);           this.txtDeletedViewsInModel.setText(ZERO);
+		this.txtNewViewObjectsInModel.setVisible(!isNeo4j);         this.txtNewViewObjectsInModel.setText(ZERO);
+		this.txtUpdatedViewObjectsInModel.setVisible(!isNeo4j);     this.txtUpdatedViewObjectsInModel.setText(ZERO);
+		this.txtDeletedViewObjectsInModel.setVisible(!isNeo4j);     this.txtDeletedViewObjectsInModel.setText(ZERO);
+		this.txtNewViewConnectionsInModel.setVisible(!isNeo4j);     this.txtNewViewConnectionsInModel.setText(ZERO);
+		this.txtUpdatedViewConnectionsInModel.setVisible(!isNeo4j); this.txtUpdatedViewConnectionsInModel.setText(ZERO);
+		this.txtDeletedViewConnectionsInModel.setVisible(!isNeo4j); this.txtDeletedViewConnectionsInModel.setText(ZERO);
+		this.txtNewImagesInModel.setVisible(!isNeo4j);              this.txtNewImagesInModel.setText(ZERO);
 
 		this.lblDatabase.setVisible(!isNeo4j);
 		this.lblDatabaseNew.setVisible(!isNeo4j);
 		this.lblDatabaseDeleted.setVisible(!isNeo4j);
 		this.lblDatabaseUpdated.setVisible(!isNeo4j);
 		this.lblConflicts.setVisible(!isNeo4j);
-		this.txtNewProfilesInDatabase.setVisible(!isNeo4j);            this.txtNewProfilesInDatabase.setText(this.ZERO);
-		this.txtUpdatedProfilesInDatabase.setVisible(!isNeo4j);        this.txtUpdatedProfilesInDatabase.setText(this.ZERO);
-		this.txtDeletedProfilesInDatabase.setVisible(!isNeo4j);        this.txtDeletedProfilesInDatabase.setText(this.ZERO);
-		this.txtConflictingProfiles.setVisible(!isNeo4j);              this.txtConflictingProfiles.setText(this.ZERO);
-		this.txtNewElementsInDatabase.setVisible(!isNeo4j);            this.txtNewElementsInDatabase.setText(this.ZERO);
-		this.txtUpdatedElementsInDatabase.setVisible(!isNeo4j);        this.txtUpdatedElementsInDatabase.setText(this.ZERO);
-		this.txtDeletedElementsInDatabase.setVisible(!isNeo4j);        this.txtDeletedElementsInDatabase.setText(this.ZERO);
-		this.txtConflictingElements.setVisible(!isNeo4j);              this.txtConflictingElements.setText(this.ZERO);
-		this.txtNewRelationshipsInDatabase.setVisible(!isNeo4j);       this.txtNewRelationshipsInDatabase.setText(this.ZERO);
-		this.txtUpdatedRelationshipsInDatabase.setVisible(!isNeo4j);   this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);
-		this.txtDeletedRelationshipsInDatabase.setVisible(!isNeo4j);   this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);
-		this.txtConflictingRelationships.setVisible(!isNeo4j);         this.txtConflictingRelationships.setText(this.ZERO);
-		this.txtNewFoldersInDatabase.setVisible(!isNeo4j);             this.txtNewFoldersInDatabase.setText(this.ZERO);
-		this.txtUpdatedFoldersInDatabase.setVisible(!isNeo4j);         this.txtUpdatedFoldersInDatabase.setText(this.ZERO);
-		this.txtDeletedFoldersInDatabase.setVisible(!isNeo4j);         this.txtDeletedFoldersInDatabase.setText(this.ZERO);
-		this.txtConflictingFolders.setVisible(!isNeo4j);               this.txtConflictingFolders.setText(this.ZERO);
-		this.txtNewViewsInDatabase.setVisible(!isNeo4j);               this.txtNewViewsInDatabase.setText(this.ZERO);
-		this.txtUpdatedViewsInDatabase.setVisible(!isNeo4j);           this.txtUpdatedViewsInDatabase.setText(this.ZERO);
-		this.txtDeletedViewsInDatabase.setVisible(!isNeo4j);           this.txtDeletedViewsInDatabase.setText(this.ZERO);
-		this.txtConflictingViews.setVisible(!isNeo4j);                 this.txtConflictingViews.setText(this.ZERO);
-		this.txtNewViewObjectsInDatabase.setVisible(!isNeo4j);         this.txtNewViewObjectsInDatabase.setText(this.ZERO);
-		this.txtUpdatedViewObjectsInDatabase.setVisible(!isNeo4j);     this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);
-		this.txtDeletedViewObjectsInDatabase.setVisible(!isNeo4j);     this.txtDeletedViewObjectsInDatabase.setText(this.ZERO);
-		this.txtConflictingViewObjects.setVisible(!isNeo4j);           this.txtConflictingViewObjects.setText(this.ZERO);
-		this.txtNewViewConnectionsInDatabase.setVisible(!isNeo4j);     this.txtNewViewConnectionsInDatabase.setText(this.ZERO);
-		this.txtUpdatedViewConnectionsInDatabase.setVisible(!isNeo4j); this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);
-		this.txtDeletedViewConnectionsInDatabase.setVisible(!isNeo4j); this.txtDeletedViewConnectionsInDatabase.setText(this.ZERO);
-		this.txtConflictingViewConnections.setVisible(!isNeo4j);       this.txtConflictingViewConnections.setText(this.ZERO);
-		this.txtNewImagesInDatabase.setVisible(!isNeo4j);              this.txtNewImagesInDatabase.setText(this.ZERO);
+		this.txtNewProfilesInDatabase.setVisible(!isNeo4j);            this.txtNewProfilesInDatabase.setText(ZERO);
+		this.txtUpdatedProfilesInDatabase.setVisible(!isNeo4j);        this.txtUpdatedProfilesInDatabase.setText(ZERO);
+		this.txtDeletedProfilesInDatabase.setVisible(!isNeo4j);        this.txtDeletedProfilesInDatabase.setText(ZERO);
+		this.txtConflictingProfiles.setVisible(!isNeo4j);              this.txtConflictingProfiles.setText(ZERO);
+		this.txtNewElementsInDatabase.setVisible(!isNeo4j);            this.txtNewElementsInDatabase.setText(ZERO);
+		this.txtUpdatedElementsInDatabase.setVisible(!isNeo4j);        this.txtUpdatedElementsInDatabase.setText(ZERO);
+		this.txtDeletedElementsInDatabase.setVisible(!isNeo4j);        this.txtDeletedElementsInDatabase.setText(ZERO);
+		this.txtConflictingElements.setVisible(!isNeo4j);              this.txtConflictingElements.setText(ZERO);
+		this.txtNewRelationshipsInDatabase.setVisible(!isNeo4j);       this.txtNewRelationshipsInDatabase.setText(ZERO);
+		this.txtUpdatedRelationshipsInDatabase.setVisible(!isNeo4j);   this.txtUpdatedRelationshipsInDatabase.setText(ZERO);
+		this.txtDeletedRelationshipsInDatabase.setVisible(!isNeo4j);   this.txtDeletedRelationshipsInDatabase.setText(ZERO);
+		this.txtConflictingRelationships.setVisible(!isNeo4j);         this.txtConflictingRelationships.setText(ZERO);
+		this.txtNewFoldersInDatabase.setVisible(!isNeo4j);             this.txtNewFoldersInDatabase.setText(ZERO);
+		this.txtUpdatedFoldersInDatabase.setVisible(!isNeo4j);         this.txtUpdatedFoldersInDatabase.setText(ZERO);
+		this.txtDeletedFoldersInDatabase.setVisible(!isNeo4j);         this.txtDeletedFoldersInDatabase.setText(ZERO);
+		this.txtConflictingFolders.setVisible(!isNeo4j);               this.txtConflictingFolders.setText(ZERO);
+		this.txtNewViewsInDatabase.setVisible(!isNeo4j);               this.txtNewViewsInDatabase.setText(ZERO);
+		this.txtUpdatedViewsInDatabase.setVisible(!isNeo4j);           this.txtUpdatedViewsInDatabase.setText(ZERO);
+		this.txtDeletedViewsInDatabase.setVisible(!isNeo4j);           this.txtDeletedViewsInDatabase.setText(ZERO);
+		this.txtConflictingViews.setVisible(!isNeo4j);                 this.txtConflictingViews.setText(ZERO);
+		this.txtNewViewObjectsInDatabase.setVisible(!isNeo4j);         this.txtNewViewObjectsInDatabase.setText(ZERO);
+		this.txtUpdatedViewObjectsInDatabase.setVisible(!isNeo4j);     this.txtUpdatedViewObjectsInDatabase.setText(ZERO);
+		this.txtDeletedViewObjectsInDatabase.setVisible(!isNeo4j);     this.txtDeletedViewObjectsInDatabase.setText(ZERO);
+		this.txtConflictingViewObjects.setVisible(!isNeo4j);           this.txtConflictingViewObjects.setText(ZERO);
+		this.txtNewViewConnectionsInDatabase.setVisible(!isNeo4j);     this.txtNewViewConnectionsInDatabase.setText(ZERO);
+		this.txtUpdatedViewConnectionsInDatabase.setVisible(!isNeo4j); this.txtUpdatedViewConnectionsInDatabase.setText(ZERO);
+		this.txtDeletedViewConnectionsInDatabase.setVisible(!isNeo4j); this.txtDeletedViewConnectionsInDatabase.setText(ZERO);
+		this.txtConflictingViewConnections.setVisible(!isNeo4j);       this.txtConflictingViewConnections.setText(ZERO);
+		this.txtNewImagesInDatabase.setVisible(!isNeo4j);              this.txtNewImagesInDatabase.setText(ZERO);
 
 		DBGuiExportModel.this.tblModelVersions.removeAll();
 
@@ -1385,22 +1384,24 @@ public class DBGuiExportModel extends DBGui {
 		this.txtConflictingViewConnections.setVisible(!isNeo4j);
 		this.txtNewImagesInDatabase.setVisible(!isNeo4j);
 
-		                                             		  this.txtUpdatedModelItselfInModel.setText(this.ZERO);		                                                			/*this.txtUpdatedModelItselfInDatabase.setText(this.ZERO);			this.txtConflictingModelItself.setText(this.ZERO);*/
-		this.txtNewProfilesInModel.setText(this.ZERO);		  this.txtUpdatedProfilesInModel.setText(this.ZERO);		this.txtNewProfilesInDatabase.setText(this.ZERO);			this.txtUpdatedProfilesInDatabase.setText(this.ZERO);			this.txtConflictingProfiles.setText(this.ZERO);
-		this.txtNewElementsInModel.setText(this.ZERO);		  this.txtUpdatedElementsInModel.setText(this.ZERO);		this.txtNewElementsInDatabase.setText(this.ZERO);			this.txtUpdatedElementsInDatabase.setText(this.ZERO);			this.txtConflictingElements.setText(this.ZERO);
-		this.txtNewRelationshipsInModel.setText(this.ZERO);	  this.txtUpdatedRelationshipsInModel.setText(this.ZERO);	this.txtNewRelationshipsInDatabase.setText(this.ZERO);		this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);		this.txtConflictingRelationships.setText(this.ZERO);
-		this.txtNewFoldersInModel.setText(this.ZERO);		  this.txtUpdatedFoldersInModel.setText(this.ZERO);			this.txtNewFoldersInDatabase.setText(this.ZERO);			this.txtUpdatedFoldersInDatabase.setText(this.ZERO);			this.txtConflictingFolders.setText(this.ZERO);
-		this.txtNewViewsInModel.setText(this.ZERO);			  this.txtUpdatedViewsInModel.setText(this.ZERO);			this.txtNewViewsInDatabase.setText(this.ZERO);				this.txtUpdatedViewsInDatabase.setText(this.ZERO);				this.txtConflictingViews.setText(this.ZERO);
-		this.txtNewViewObjectsInModel.setText(this.ZERO);     this.txtUpdatedViewObjectsInModel.setText(this.ZERO);     this.txtNewViewObjectsInDatabase.setText(this.ZERO);     	this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);		this.txtConflictingViewObjects.setText(this.ZERO);
-		this.txtNewViewConnectionsInModel.setText(this.ZERO); this.txtUpdatedViewConnectionsInModel.setText(this.ZERO); this.txtNewViewConnectionsInDatabase.setText(this.ZERO); 	this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);	this.txtConflictingViewConnections.setText(this.ZERO);
+		                                             		  this.txtUpdatedModelItselfInModel.setText(ZERO);		                                                			/*this.txtUpdatedModelItselfInDatabase.setText(ZERO);			this.txtConflictingModelItself.setText(ZERO);*/
+		this.txtNewProfilesInModel.setText(ZERO);		  this.txtUpdatedProfilesInModel.setText(ZERO);		this.txtNewProfilesInDatabase.setText(ZERO);			this.txtUpdatedProfilesInDatabase.setText(ZERO);			this.txtConflictingProfiles.setText(ZERO);
+		this.txtNewElementsInModel.setText(ZERO);		  this.txtUpdatedElementsInModel.setText(ZERO);		this.txtNewElementsInDatabase.setText(ZERO);			this.txtUpdatedElementsInDatabase.setText(ZERO);			this.txtConflictingElements.setText(ZERO);
+		this.txtNewRelationshipsInModel.setText(ZERO);	  this.txtUpdatedRelationshipsInModel.setText(ZERO);	this.txtNewRelationshipsInDatabase.setText(ZERO);		this.txtUpdatedRelationshipsInDatabase.setText(ZERO);		this.txtConflictingRelationships.setText(ZERO);
+		this.txtNewFoldersInModel.setText(ZERO);		  this.txtUpdatedFoldersInModel.setText(ZERO);			this.txtNewFoldersInDatabase.setText(ZERO);			this.txtUpdatedFoldersInDatabase.setText(ZERO);			this.txtConflictingFolders.setText(ZERO);
+		this.txtNewViewsInModel.setText(ZERO);			  this.txtUpdatedViewsInModel.setText(ZERO);			this.txtNewViewsInDatabase.setText(ZERO);				this.txtUpdatedViewsInDatabase.setText(ZERO);				this.txtConflictingViews.setText(ZERO);
+		this.txtNewViewObjectsInModel.setText(ZERO);     this.txtUpdatedViewObjectsInModel.setText(ZERO);     this.txtNewViewObjectsInDatabase.setText(ZERO);     	this.txtUpdatedViewObjectsInDatabase.setText(ZERO);		this.txtConflictingViewObjects.setText(ZERO);
+		this.txtNewViewConnectionsInModel.setText(ZERO); this.txtUpdatedViewConnectionsInModel.setText(ZERO); this.txtNewViewConnectionsInDatabase.setText(ZERO); 	this.txtUpdatedViewConnectionsInDatabase.setText(ZERO);	this.txtConflictingViewConnections.setText(ZERO);
 	}
 
 	/**
 	 * Update the text widgets that shows up the new, updated and deleted components
+	 * @param updateTextFields 
 	 * 
 	 * @return true is the database is up to date, false if the model needs to be exported
+	 * @throws DBException 
 	 */
-	protected boolean compareModelToDatabase(boolean updateTextFields) throws Exception {
+	protected boolean compareModelToDatabase(boolean updateTextFields) throws DBException {
 		// We do not verify the content of neo4j database, we just export the components
 		if ( this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J) )
 			return true;
@@ -1459,7 +1460,7 @@ public class DBGuiExportModel extends DBGui {
 		if ( this.exportedModel.getDatabaseVersion().getVersion() == 0 ) {
 			this.txtNewModelItselfInModel.setText("1");
 			++total;
-		} else if ( ! this.exportedModel.getCurrentVersion().getChecksum().toString().equals(this.exportedModel.getDatabaseVersion().getChecksum().toString())) {
+		} else if ( ! this.exportedModel.getCurrentVersion().getChecksum().equals(this.exportedModel.getDatabaseVersion().getChecksum())) {
 			this.txtUpdatedModelItselfInModel.setText("1");
 			++total ;
 		}
@@ -1478,39 +1479,39 @@ public class DBGuiExportModel extends DBGui {
 			IProfile profile = profilesIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(profile);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(profile) == null )
-						this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(profile) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1546,39 +1547,39 @@ public class DBGuiExportModel extends DBGui {
 			IArchimateElement element = elementsIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(element);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(element) == null )
-						this.exportedModel.getAllConflicts().put(element, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(element, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(element) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1614,39 +1615,39 @@ public class DBGuiExportModel extends DBGui {
 			IArchimateRelationship relationship = relationshipsIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(relationship);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(relationship) == null )
-						this.exportedModel.getAllConflicts().put(relationship, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(relationship, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(relationship) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:    // askUSer
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1681,27 +1682,27 @@ public class DBGuiExportModel extends DBGui {
 			IFolder folder = folderIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(folder);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					// There is no conflict for folders: conflicts are managed with their content
 					// If a folder has been updated both in the model and the database, then we export a new version
 					++nbUpdated;
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1736,39 +1737,39 @@ public class DBGuiExportModel extends DBGui {
 			IDiagramModel view = viewsIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(view);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(view) == null )
-						this.exportedModel.getAllConflicts().put(view, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(view, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(view) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:    // askUSer
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1803,39 +1804,39 @@ public class DBGuiExportModel extends DBGui {
 			IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(viewObject);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(viewObject) == null )
-						this.exportedModel.getAllConflicts().put(viewObject, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(viewObject, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(viewObject) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:    // askUSer
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1870,39 +1871,39 @@ public class DBGuiExportModel extends DBGui {
 			IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
 			DBMetadata metadata = this.exportedModel.getDBMetadata(viewConnection);
 			switch ( metadata.getDatabaseStatus() ) {
-				case isNewInModel:
+				case IS_NEW_IN_MODEL:
 					++nbNew;
 					break;
-				case isUpadtedInDatabase:
+				case IS_UPDATED_IN_DATABASE:
 					++nbUpdatedInDb;
 					break;
-				case isUpdatedInModel:
+				case IS_UPDATED_IN_MODEL:
 					++nbUpdated;
 					break;
-				case isDeletedInDatabase:
+				case IS_DELETED_IN_DATABASE:
 					++nbDeletedInDb;
 					break;
-				case isConflicting:
+				case IS_CONFLICTING:
 					if ( this.exportedModel.getAllConflicts().get(viewConnection) == null )
-						this.exportedModel.getAllConflicts().put(viewConnection, CONFLICT_CHOICE.askUser);
+						this.exportedModel.getAllConflicts().put(viewConnection, CONFLICT_CHOICE.ASK_USER);
 					switch ( this.exportedModel.getAllConflicts().get(viewConnection) ) {
-						case doNotExport:   // nothing to do
+						case DO_NOT_EXPORT:   // nothing to do
 							break;
-						case exportToDatabase:
+						case EXPORT_TO_DATABASE:
 							++nbUpdated;
 							break;
-						case importFromDatabase:
+						case IMPORT_FROM_DATABASE:
 							++nbUpdatedInDb;
 							break;
-						case askUser:
+						case ASK_USER:
 						default:    // askUSer
 							++nbConflict;
 					}
 					break;
-				case isSynced:
+				case IS_SYNCED:
 					// nothing to do
 					break;
-				case isNewInDatabase:
+				case IS_NEW_IN_DATABASE:
 				default:
 					// should never be here
 			}
@@ -1930,8 +1931,8 @@ public class DBGuiExportModel extends DBGui {
 			this.txtNewImagesInDatabase.setText(toString(this.exportConnection.getImagesNotInModel().size()));
 
 			// we log the values uniquely if the updateTextFields has been requested, else the values are zero
-			logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-			logger.info(String.format("                     Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+			logger.info("                            <------ In model ------>   <----- In database ---->");
+			logger.info("                     Total      New  Updated  Deleted      New  Updated  Deleted Conflict");                 
 			logger.info(String.format("   Model itself:     %6d   %6d   %6d                     %6d            %6d",1, toInt(this.txtNewModelItselfInModel.getText()), toInt(this.txtUpdatedModelItselfInModel.getText()),0,0));
 			logger.info(String.format("   Specializations:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllProfiles().size(), toInt(this.txtNewProfilesInModel.getText()), toInt(this.txtUpdatedProfilesInModel.getText()), toInt(this.txtDeletedProfilesInModel.getText()), toInt(this.txtNewProfilesInDatabase.getText()), toInt(this.txtUpdatedProfilesInDatabase.getText()), toInt(this.txtDeletedProfilesInDatabase.getText()), toInt(this.txtConflictingProfiles.getText())) );  
 			logger.info(String.format("   Elements:         %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
@@ -2005,25 +2006,23 @@ public class DBGuiExportModel extends DBGui {
 			this.exportedModel.getCurrentVersion().setChecksum(DBChecksum.calculateChecksum(this.exportedModel, this.txtReleaseNote.getText()));
 
 			// we reset the counters as they will be updated during the import and export process
-			this.txtTotalModelItself.setText(this.ZERO);      this.txtNewModelItselfInModel.setText(this.ZERO);      this.txtUpdatedModelItselfInModel.setText(this.ZERO);                                                                                                                            /* this.txtUpdatedModelItselfInDatabase.setText(this.ZERO);                                                                       this.txtConflictingModelItself.setText(this.ZERO); */
-			this.txtTotalProfiles.setText(this.ZERO);         this.txtNewProfilesInModel.setText(this.ZERO);         this.txtUpdatedProfilesInModel.setText(this.ZERO);         this.txtDeletedProfilesInModel.setText(this.ZERO);         this.txtNewProfilesInDatabase.setText(this.ZERO);          this.txtUpdatedProfilesInDatabase.setText(this.ZERO);          this.txtDeletedProfilesInDatabase.setText(this.ZERO);        this.txtConflictingProfiles.setText(this.ZERO);
-			this.txtTotalElements.setText(this.ZERO);         this.txtNewElementsInModel.setText(this.ZERO);         this.txtUpdatedElementsInModel.setText(this.ZERO);         this.txtDeletedElementsInModel.setText(this.ZERO);         this.txtNewElementsInDatabase.setText(this.ZERO);          this.txtUpdatedElementsInDatabase.setText(this.ZERO);          this.txtDeletedElementsInDatabase.setText(this.ZERO);        this.txtConflictingElements.setText(this.ZERO);
-			this.txtTotalRelationships.setText(this.ZERO);    this.txtNewRelationshipsInModel.setText(this.ZERO);    this.txtUpdatedRelationshipsInModel.setText(this.ZERO);    this.txtDeletedRelationshipsInModel.setText(this.ZERO);    this.txtNewRelationshipsInDatabase.setText(this.ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(this.ZERO);     this.txtDeletedRelationshipsInDatabase.setText(this.ZERO);   this.txtConflictingRelationships.setText(this.ZERO);
-			this.txtTotalFolders.setText(this.ZERO);          this.txtNewFoldersInModel.setText(this.ZERO);          this.txtUpdatedFoldersInModel.setText(this.ZERO);          this.txtDeletedFoldersInModel.setText(this.ZERO);          this.txtNewFoldersInDatabase.setText(this.ZERO);           this.txtUpdatedFoldersInDatabase.setText(this.ZERO);           this.txtDeletedFoldersInDatabase.setText(this.ZERO);         this.txtConflictingFolders.setText(this.ZERO);
-			this.txtTotalViews.setText(this.ZERO);            this.txtNewViewsInModel.setText(this.ZERO);            this.txtUpdatedViewsInModel.setText(this.ZERO);            this.txtDeletedViewsInModel.setText(this.ZERO);            this.txtNewViewsInDatabase.setText(this.ZERO);             this.txtUpdatedViewsInDatabase.setText(this.ZERO);             this.txtDeletedViewsInDatabase.setText(this.ZERO);           this.txtConflictingViews.setText(this.ZERO);
-			this.txtTotalViewObjects.setText(this.ZERO);      this.txtNewViewObjectsInModel.setText(this.ZERO);      this.txtUpdatedViewObjectsInModel.setText(this.ZERO);      this.txtDeletedViewObjectsInModel.setText(this.ZERO);      this.txtNewViewObjectsInDatabase.setText(this.ZERO);       this.txtUpdatedViewObjectsInDatabase.setText(this.ZERO);       this.txtDeletedViewObjectsInDatabase.setText(this.ZERO);     this.txtConflictingViewObjects.setText(this.ZERO);
-			this.txtTotalViewConnections.setText(this.ZERO);  this.txtNewViewConnectionsInModel.setText(this.ZERO);  this.txtUpdatedViewConnectionsInModel.setText(this.ZERO);  this.txtDeletedViewConnectionsInModel.setText(this.ZERO);  this.txtNewViewConnectionsInDatabase.setText(this.ZERO);   this.txtUpdatedViewConnectionsInDatabase.setText(this.ZERO);   this.txtDeletedViewConnectionsInDatabase.setText(this.ZERO); this.txtConflictingViewConnections.setText(this.ZERO);
-			this.txtTotalImages.setText(this.ZERO);           this.txtNewImagesInModel.setText(this.ZERO);           this.txtNewImagesInDatabase.setText(this.ZERO);
+			this.txtTotalModelItself.setText(ZERO);      this.txtNewModelItselfInModel.setText(ZERO);      this.txtUpdatedModelItselfInModel.setText(ZERO);                                                                                                                            /* this.txtUpdatedModelItselfInDatabase.setText(ZERO);                                                                       this.txtConflictingModelItself.setText(ZERO); */
+			this.txtTotalProfiles.setText(ZERO);         this.txtNewProfilesInModel.setText(ZERO);         this.txtUpdatedProfilesInModel.setText(ZERO);         this.txtDeletedProfilesInModel.setText(ZERO);         this.txtNewProfilesInDatabase.setText(ZERO);          this.txtUpdatedProfilesInDatabase.setText(ZERO);          this.txtDeletedProfilesInDatabase.setText(ZERO);        this.txtConflictingProfiles.setText(ZERO);
+			this.txtTotalElements.setText(ZERO);         this.txtNewElementsInModel.setText(ZERO);         this.txtUpdatedElementsInModel.setText(ZERO);         this.txtDeletedElementsInModel.setText(ZERO);         this.txtNewElementsInDatabase.setText(ZERO);          this.txtUpdatedElementsInDatabase.setText(ZERO);          this.txtDeletedElementsInDatabase.setText(ZERO);        this.txtConflictingElements.setText(ZERO);
+			this.txtTotalRelationships.setText(ZERO);    this.txtNewRelationshipsInModel.setText(ZERO);    this.txtUpdatedRelationshipsInModel.setText(ZERO);    this.txtDeletedRelationshipsInModel.setText(ZERO);    this.txtNewRelationshipsInDatabase.setText(ZERO);     this.txtUpdatedRelationshipsInDatabase.setText(ZERO);     this.txtDeletedRelationshipsInDatabase.setText(ZERO);   this.txtConflictingRelationships.setText(ZERO);
+			this.txtTotalFolders.setText(ZERO);          this.txtNewFoldersInModel.setText(ZERO);          this.txtUpdatedFoldersInModel.setText(ZERO);          this.txtDeletedFoldersInModel.setText(ZERO);          this.txtNewFoldersInDatabase.setText(ZERO);           this.txtUpdatedFoldersInDatabase.setText(ZERO);           this.txtDeletedFoldersInDatabase.setText(ZERO);         this.txtConflictingFolders.setText(ZERO);
+			this.txtTotalViews.setText(ZERO);            this.txtNewViewsInModel.setText(ZERO);            this.txtUpdatedViewsInModel.setText(ZERO);            this.txtDeletedViewsInModel.setText(ZERO);            this.txtNewViewsInDatabase.setText(ZERO);             this.txtUpdatedViewsInDatabase.setText(ZERO);             this.txtDeletedViewsInDatabase.setText(ZERO);           this.txtConflictingViews.setText(ZERO);
+			this.txtTotalViewObjects.setText(ZERO);      this.txtNewViewObjectsInModel.setText(ZERO);      this.txtUpdatedViewObjectsInModel.setText(ZERO);      this.txtDeletedViewObjectsInModel.setText(ZERO);      this.txtNewViewObjectsInDatabase.setText(ZERO);       this.txtUpdatedViewObjectsInDatabase.setText(ZERO);       this.txtDeletedViewObjectsInDatabase.setText(ZERO);     this.txtConflictingViewObjects.setText(ZERO);
+			this.txtTotalViewConnections.setText(ZERO);  this.txtNewViewConnectionsInModel.setText(ZERO);  this.txtUpdatedViewConnectionsInModel.setText(ZERO);  this.txtDeletedViewConnectionsInModel.setText(ZERO);  this.txtNewViewConnectionsInDatabase.setText(ZERO);   this.txtUpdatedViewConnectionsInDatabase.setText(ZERO);   this.txtDeletedViewConnectionsInDatabase.setText(ZERO); this.txtConflictingViewConnections.setText(ZERO);
+			this.txtTotalImages.setText(ZERO);           this.txtNewImagesInModel.setText(ZERO);           this.txtNewImagesInDatabase.setText(ZERO);
 
 
 			//////////////////////////// PHASE 1 : we compare the model to the database
 
-			if ( !isNeo4JDatabase ) {
-				if ( compareModelToDatabase(false) ) {
-					setActiveAction(STATUS.Ok);
-					doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
-					return 0;
-				}
+			if ( !isNeo4JDatabase && compareModelToDatabase(false) ) {
+				setActiveAction(STATUS.Ok);
+				doShowResult(STATUS.Ok, "Nothing has been exported as the database is already up to date.");
+				return 0;
 			}
 
 			//////////////////////////// PHASE 2 : we detect the conflicts and ask the user to resolve them
@@ -2038,9 +2037,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
 				while ( profilesIterator.hasNext() ) {
 					IProfile profile = profilesIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(profile) != null ) {
-							this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(profile, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(profile.getId());
 							item.setData(profile);
@@ -2051,9 +2050,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
 					IArchimateElement element = elementsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(element) != null ) {
-							this.exportedModel.getAllConflicts().put(element, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(element, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(element.getId());
 							item.setData(element);
@@ -2064,9 +2063,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 				while ( relationshipsIterator.hasNext() ) {
 					IArchimateRelationship relationship = relationshipsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(relationship) != null ) {
-							this.exportedModel.getAllConflicts().put(relationship, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(relationship, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(relationship.getId());
 							item.setData(relationship);
@@ -2077,9 +2076,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(view) != null ) {
-							this.exportedModel.getAllConflicts().put(view, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(view, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(view.getId());
 							item.setData(view);
@@ -2090,9 +2089,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 				while ( viewObjectsIterator.hasNext() ) {
 					IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(viewObject) != null ) {
-							this.exportedModel.getAllConflicts().put(viewObject, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(viewObject, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(viewObject.getId());
 							item.setData(viewObject);
@@ -2103,9 +2102,9 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.isConflicting ) {
+					if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.IS_CONFLICTING ) {
 						if ( this.exportedModel.getAllConflicts().get(viewConnection) != null ) {
-							this.exportedModel.getAllConflicts().put(viewConnection, CONFLICT_CHOICE.askUser);
+							this.exportedModel.getAllConflicts().put(viewConnection, CONFLICT_CHOICE.ASK_USER);
 							TableItem item = new TableItem(this.tblListConflicts, SWT.NONE);
 							item.setText(viewConnection.getId());
 							item.setData(viewConnection);
@@ -2141,7 +2140,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
 				while ( profilesIterator.hasNext() ) {
 					IProfile profile = profilesIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.add(new DBDeleteProfileCommand(this.exportedModel, profile));
 						incrementText(this.txtDeletedProfilesInDatabase);
 						decrementText(this.txtTotalProfiles);
@@ -2151,7 +2150,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 				while ( elementsIterator.hasNext() ) {
 					IArchimateElement element = elementsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.add(new DeleteArchimateElementCommand(element));
 						incrementText(this.txtDeletedElementsInDatabase);
 						decrementText(this.txtTotalElements);
@@ -2161,7 +2160,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 				while ( relationshipsIterator.hasNext() ) {
 					IArchimateRelationship relationship = relationshipsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.add(new DeleteArchimateRelationshipCommand(relationship));
 						incrementText(this.txtDeletedRelationshipsInDatabase);
 						decrementText(this.txtTotalRelationships);
@@ -2171,7 +2170,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 				while ( foldersIterator.hasNext() ) {
 					IFolder folder = foldersIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(folder).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(folder).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.add(new DeleteFolderCommand(folder));
 						incrementText(this.txtDeletedFoldersInDatabase);
 						decrementText(this.txtTotalFolders);
@@ -2181,7 +2180,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 				while ( viewsIterator.hasNext() ) {
 					IDiagramModel view = viewsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.add(new DeleteDiagramModelCommand(view));
 						incrementText(this.txtDeletedViewsInDatabase);
 						decrementText(this.txtTotalViews);
@@ -2191,7 +2190,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 				while ( viewObjectsIterator.hasNext() ) {
 					IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.checkAndAdd(new DBDeleteDiagramObjectCommand(this.exportedModel, viewObject));
 						incrementText(this.txtDeletedViewObjectsInDatabase);
 						decrementText(this.txtTotalViewObjects);
@@ -2201,7 +2200,7 @@ public class DBGuiExportModel extends DBGui {
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 				while ( viewConnectionsIterator.hasNext() ) {
 					IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
-					if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.isDeletedInDatabase ) {
+					if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.IS_DELETED_IN_DATABASE ) {
 						undoableCommands.checkAndAdd(new DBDeleteDiagramConnectionCommand(this.exportedModel, viewConnection));
 						incrementText(this.txtDeletedViewConnectionsInDatabase);
 						decrementText(this.txtTotalViewConnections);
@@ -2222,31 +2221,31 @@ public class DBGuiExportModel extends DBGui {
 				
 				// we add the number of updated components to import from the database
 				Iterator<Entry<String, IProfile>> profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
-				while ( profilesIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(profilesIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( profilesIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(profilesIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IFolder>> foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
-				while ( foldersIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(foldersIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( foldersIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(foldersIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IArchimateElement>> elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
-				while ( elementsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(elementsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( elementsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(elementsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IArchimateRelationship>> relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
-				while ( relationshipsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(relationshipsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( relationshipsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(relationshipsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IDiagramModel>> viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
-				while ( viewsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( viewsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IDiagramModelObject>> viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
-				while ( viewObjectsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewObjectsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( viewObjectsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewObjectsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				Iterator<Entry<String, IDiagramModelConnection>> viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
-				while ( viewConnectionsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewConnectionsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) ++progressBarWidth;
+				while ( viewConnectionsIterator.hasNext() ) if ( this.exportedModel.getDBMetadata(viewConnectionsIterator.next().getValue()).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) ++progressBarWidth;
 				
 				// we count the number of conflict that have been resolved by an import from the database
 				Iterator<Entry<EObject, CONFLICT_CHOICE>> conflictsIterator = this.exportedModel.getAllConflicts().entrySet().iterator();
 				while ( conflictsIterator.hasNext() ) {
 					CONFLICT_CHOICE choice = conflictsIterator.next().getValue();
-					if ( choice == CONFLICT_CHOICE.importFromDatabase )
+					if ( choice == CONFLICT_CHOICE.IMPORT_FROM_DATABASE )
 						++progressBarWidth;
 				}
 
@@ -2281,7 +2280,7 @@ public class DBGuiExportModel extends DBGui {
 						profilesIterator = this.exportedModel.getAllProfiles().entrySet().iterator();
 						while ( profilesIterator.hasNext() ) {
 							IProfile profile = profilesIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(profile).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The specialization id "+profile.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportProfileFromIdCommand(importConnection, this.exportedModel, profile.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedProfilesInDatabase);
@@ -2312,7 +2311,7 @@ public class DBGuiExportModel extends DBGui {
 						foldersIterator = this.exportedModel.getAllFolders().entrySet().iterator();
 						while ( foldersIterator.hasNext() ) {
 							IFolder folder = foldersIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(folder).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(folder).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The folder id "+folder.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportFolderFromIdCommand(importConnection, this.exportedModel, null, null, folder.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedFoldersInDatabase);
@@ -2344,7 +2343,7 @@ public class DBGuiExportModel extends DBGui {
 						elementsIterator = this.exportedModel.getAllElements().entrySet().iterator();
 						while ( elementsIterator.hasNext() ) {
 							IArchimateElement element = elementsIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(element).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The element id "+element.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportElementFromIdCommand(importConnection, this.exportedModel, null, null, null, element.getId(), 0, DBImportMode.FORCE_SHARED_MODE, false));
 								incrementText(this.txtUpdatedElementsInDatabase);
@@ -2375,7 +2374,7 @@ public class DBGuiExportModel extends DBGui {
 						relationshipsIterator = this.exportedModel.getAllRelationships().entrySet().iterator();
 						while ( relationshipsIterator.hasNext() ) {
 							IArchimateRelationship relationship = relationshipsIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(relationship).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The relationship id "+relationship.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportRelationshipFromIdCommand(importConnection, this.exportedModel, null, null, null, relationship.getId(), 0, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedRelationshipsInDatabase);
@@ -2406,7 +2405,7 @@ public class DBGuiExportModel extends DBGui {
 						viewsIterator = this.exportedModel.getAllViews().entrySet().iterator();
 						while ( viewsIterator.hasNext() ) {
 							IDiagramModel view = viewsIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(view).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view id "+view.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewFromIdCommand(importConnection, this.exportedModel, null, null, view.getId(), 0, DBImportMode.FORCE_SHARED_MODE, false));
 								incrementText(this.txtUpdatedViewsInDatabase);
@@ -2437,7 +2436,7 @@ public class DBGuiExportModel extends DBGui {
 						viewObjectsIterator = this.exportedModel.getAllViewObjects().entrySet().iterator();
 						while ( viewObjectsIterator.hasNext() ) {
 							IDiagramModelObject viewObject = viewObjectsIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(viewObject).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view object id "+viewObject.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewObjectFromIdCommand(importConnection, this.exportedModel, null, viewObject.getId(), 0, false, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedViewObjectsInDatabase);
@@ -2468,7 +2467,7 @@ public class DBGuiExportModel extends DBGui {
 						viewConnectionsIterator = this.exportedModel.getAllViewConnections().entrySet().iterator();
 						while ( viewConnectionsIterator.hasNext() ) {
 							IDiagramModelConnection viewConnection = viewConnectionsIterator.next().getValue();
-							if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.isUpadtedInDatabase ) {
+							if ( this.exportedModel.getDBMetadata(viewConnection).getDatabaseStatus() == DATABASE_STATUS.IS_UPDATED_IN_DATABASE ) {
 								if ( logger.isDebugEnabled() ) logger.debug("The view connection id "+viewConnection.getId()+" has been updated in the database. We import the new version from the database.");
 								undoableCommands.checkAndExecute(new DBImportViewConnectionFromIdCommand(importConnection, this.exportedModel, null, viewConnection.getId(), 0, false, DBImportMode.FORCE_SHARED_MODE));
 								incrementText(this.txtUpdatedViewConnectionsInDatabase);
@@ -2481,7 +2480,7 @@ public class DBGuiExportModel extends DBGui {
 							EObject componentToImport = entry.getKey();
 							CONFLICT_CHOICE choice = entry.getValue();
 							
-							if ( choice == CONFLICT_CHOICE.importFromDatabase ) {
+							if ( choice == CONFLICT_CHOICE.IMPORT_FROM_DATABASE ) {
 								IDBCommand command = null;
 								String id = ((IIdentifier)componentToImport).getId();
 								DBMetadata metadata = this.exportedModel.getDBMetadata(componentToImport);
@@ -2504,7 +2503,7 @@ public class DBGuiExportModel extends DBGui {
 									incrementText(this.txtUpdatedViewConnectionsInDatabase);
 								}
 								
-								if ( logger.isDebugEnabled() ) logger.debug("The conflicting "+metadata.getDebugName()+" conflicts with the database, but the conflict resolution has been set to "+CONFLICT_CHOICE.importFromDatabase);
+								if ( logger.isDebugEnabled() ) logger.debug("The conflicting "+metadata.getDebugName()+" conflicts with the database, but the conflict resolution has been set to "+CONFLICT_CHOICE.IMPORT_FROM_DATABASE);
 								undoableCommands.checkAndExecute(command);
 							}
 						}
@@ -2592,9 +2591,9 @@ public class DBGuiExportModel extends DBGui {
 			Iterator<IProfile> profilesIterator = this.exportedModel.getProfiles().iterator();
 			while ( profilesIterator.hasNext() ) {
 				EObject componentToExport = profilesIterator.next();				
-				DATABASE_STATUS dbStatus = isNeo4JDatabase ? DATABASE_STATUS.isNewInModel : this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
+				DATABASE_STATUS dbStatus = isNeo4JDatabase ? DATABASE_STATUS.IS_NEW_IN_MODEL : this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
 				
-				if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+				if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 					this.exportConnection.exportEObject(componentToExport);
 					if ( this.showRealTimeNumbers ) {
 						incrementText(this.txtNewProfilesInModel);
@@ -2602,7 +2601,7 @@ public class DBGuiExportModel extends DBGui {
 						increaseProgressBar();
 					}
 					++countNew;
-				} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+				} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 					this.exportConnection.exportEObject(componentToExport);
 					if ( this.showRealTimeNumbers ) {
 						incrementText(this.txtUpdatedProfilesInModel);
@@ -2637,12 +2636,12 @@ public class DBGuiExportModel extends DBGui {
 					++countNew;
 				} else {
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+					if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtNewElementsInModel);
 						++countNew;
-					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+					} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtUpdatedElementsInModel);
@@ -2680,12 +2679,12 @@ public class DBGuiExportModel extends DBGui {
 					++countNew;
 				} else {
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+					if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtNewRelationshipsInModel);
 						++countNew;
-					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+					} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtUpdatedRelationshipsInModel);
@@ -2716,12 +2715,12 @@ public class DBGuiExportModel extends DBGui {
 				while ( foldersIterator.hasNext() ) {
 					EObject componentToExport = foldersIterator.next().getValue();
 					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-					if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+					if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtNewFoldersInModel);
 						++countNew;
-					} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+					} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 						this.exportConnection.exportEObject(componentToExport);
 						if ( this.showRealTimeNumbers )
 							incrementText(this.txtUpdatedFoldersInModel);
@@ -2752,9 +2751,9 @@ public class DBGuiExportModel extends DBGui {
 					DBMetadata metadata = this.exportedModel.getDBMetadata(componentToExport);
 					DATABASE_STATUS dbStatus = metadata.getDatabaseStatus();
 					Text txtFieldToIncrement = null;
-					if ( dbStatus == DATABASE_STATUS.isNewInModel )
+					if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL )
 						txtFieldToIncrement = this.txtNewViewsInModel;
-					else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel )
+					else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL )
 						txtFieldToIncrement = this.txtUpdatedViewsInModel;
 					
 					if ( txtFieldToIncrement != null ) {
@@ -2803,12 +2802,12 @@ public class DBGuiExportModel extends DBGui {
 
 					if ( this.exportedModel.getDBMetadata(componentToExport.getDiagramModel()).isExported() ) {
 						DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-						if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+						if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 							this.exportConnection.exportEObject(componentToExport);
 							if ( this.showRealTimeNumbers )
 								incrementText(this.txtNewViewObjectsInModel);
 							++countNew;
-						} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+						} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 							this.exportConnection.exportEObject(componentToExport);
 							if ( this.showRealTimeNumbers )
 								incrementText(this.txtUpdatedViewObjectsInModel);
@@ -2840,12 +2839,12 @@ public class DBGuiExportModel extends DBGui {
 					
 					if ( this.exportedModel.getDBMetadata(componentToExport.getDiagramModel()).isExported() ) {
 						DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-						if ( dbStatus == DATABASE_STATUS.isNewInModel ) {
+						if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
 							this.exportConnection.exportEObject(componentToExport);
 							if ( this.showRealTimeNumbers )
 								incrementText(this.txtNewViewConnectionsInModel);
 							++countNew;
-						} else if ( dbStatus == DATABASE_STATUS.isUpdatedInModel ) {
+						} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
 							this.exportConnection.exportEObject(componentToExport);
 							if ( this.showRealTimeNumbers )
 								incrementText(this.txtUpdatedViewConnectionsInModel);
@@ -3105,10 +3104,10 @@ public class DBGuiExportModel extends DBGui {
 						// at the end, only those with errors will stay
 						DBGuiExportModel.this.tblListConflicts.setSelection(0);
 						for ( int i=0; i<DBGuiExportModel.this.tblListConflicts.getItemCount(); ++i)
-							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.IMPORT_FROM_DATABASE);
 					} else {
 						// we only apply the choice to the selected component
-						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.importFromDatabase);
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.IMPORT_FROM_DATABASE);
 					}
 				}
 				@Override
@@ -3131,10 +3130,10 @@ public class DBGuiExportModel extends DBGui {
 						// at the end, only those with errors will stay
 						DBGuiExportModel.this.tblListConflicts.setSelection(0);
 						for ( int i=0; i<DBGuiExportModel.this.tblListConflicts.getItemCount(); ++i)
-							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.EXPORT_TO_DATABASE);
 					} else {
 						// we only apply the choice to the selected component
-						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.exportToDatabase);
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.EXPORT_TO_DATABASE);
 					}
 				}
 				@Override
@@ -3156,10 +3155,10 @@ public class DBGuiExportModel extends DBGui {
 						// at the end, only those with errors will stay
 						DBGuiExportModel.this.tblListConflicts.setSelection(0);
 						for ( int i=0; i<DBGuiExportModel.this.tblListConflicts.getItemCount(); ++i)
-							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+							tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.DO_NOT_EXPORT);
 					} else {
 						// we only apply the choice to the selected component
-						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.doNotExport);
+						tagComponentWithConflictResolutionChoice(CONFLICT_CHOICE.DO_NOT_EXPORT);
 					}
 				}
 				@Override
@@ -3202,10 +3201,10 @@ public class DBGuiExportModel extends DBGui {
 
 		this.exportedModel.getAllConflicts().put(component, effectiveChoice);
 		switch (effectiveChoice) {
-			case doNotExport:        if ( logger.isDebugEnabled() ) logger.debug("Tagging component to do not export");                      break;
-			case exportToDatabase:   if ( logger.isDebugEnabled() ) logger.debug("Tagging component to export current version to database"); break;
-			case importFromDatabase: if ( logger.isDebugEnabled() ) logger.debug("Tagging component to import database version");            break;
-			case askUser:            if ( logger.isDebugEnabled() ) logger.debug("Tagging component to ask user");                           break;
+			case DO_NOT_EXPORT:        if ( logger.isDebugEnabled() ) logger.debug("Tagging component to do not export");                      break;
+			case EXPORT_TO_DATABASE:   if ( logger.isDebugEnabled() ) logger.debug("Tagging component to export current version to database"); break;
+			case IMPORT_FROM_DATABASE: if ( logger.isDebugEnabled() ) logger.debug("Tagging component to import database version");            break;
+			case ASK_USER:            if ( logger.isDebugEnabled() ) logger.debug("Tagging component to ask user");                           break;
 			default:
 		}
 
@@ -3241,8 +3240,8 @@ public class DBGuiExportModel extends DBGui {
 		setActiveAction(ACTION.Three);
 
 		if ( status == STATUS.Ok ) {
-			logger.info(String.format("                            <------ In model ------>   <----- In database ---->"));
-			logger.info(String.format("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict"));                 
+			logger.info("                            <------ In model ------>   <----- In database ---->");
+			logger.info("                    Total      New  Updated  Deleted      New  Updated  Deleted Conflict");                 
 			logger.info(String.format("   Elements:       %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllElements().size(), toInt(this.txtNewElementsInModel.getText()), toInt(this.txtUpdatedElementsInModel.getText()), toInt(this.txtDeletedElementsInModel.getText()), toInt(this.txtNewElementsInDatabase.getText()), toInt(this.txtUpdatedElementsInDatabase.getText()), toInt(this.txtDeletedElementsInDatabase.getText()), toInt(this.txtConflictingElements.getText())) );  
 			logger.info(String.format("   Relationships:  %6d   %6d   %6d   %6d   %6d   %6d   %6d   %6d", this.exportedModel.getAllRelationships().size(), toInt(this.txtNewRelationshipsInModel.getText()), toInt(this.txtUpdatedRelationshipsInModel.getText()), toInt(this.txtDeletedRelationshipsInModel.getText()), toInt(this.txtNewRelationshipsInDatabase.getText()), toInt(this.txtUpdatedRelationshipsInDatabase.getText()), toInt(this.txtDeletedRelationshipsInDatabase.getText()), toInt(this.txtConflictingRelationships.getText())) );
 			if ( !this.selectedDatabase.getDriver().equals(DBDatabaseDriver.NEO4J) ) {
@@ -3306,7 +3305,6 @@ public class DBGuiExportModel extends DBGui {
 
 	@Getter Text txtReleaseNote;
 
-	private Label lblTotal;
 	private Label lblModel;
 	private Label lblModelNew;
 	private Label lblModelUpdated;
@@ -3318,10 +3316,8 @@ public class DBGuiExportModel extends DBGui {
 	private Label lblConflicts;
 
 	private Label modelHorizontalSeparator;
-	private Label modelVerticalSeparatorLeft;
 	private Label modelVerticalSeparatorRight;
 	private Label databaseHorizontalSeparator;
-	private Label databaseVerticalSeparatorLeft;
 	private Label databaseVerticalSeparatorRight;
 
 	private Text txtTotalModelItself;

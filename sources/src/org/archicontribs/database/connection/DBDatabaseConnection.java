@@ -6,10 +6,6 @@
 
 package org.archicontribs.database.connection;
 
-import java.io.UnsupportedEncodingException;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -23,10 +19,6 @@ import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBColumn;
 import org.archicontribs.database.DBColumnType;
@@ -36,11 +28,11 @@ import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.DBTable;
-import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBDatabase;
 import org.archicontribs.database.data.DBImportMode;
+import org.archicontribs.database.gui.DBGui;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.model.commands.DBImportViewFromIdCommand;
@@ -200,13 +192,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 			} else {
 				try {
 					password = this.databaseEntry.getDecryptedPassword();
-				} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+				} catch (DBException err) {
 					DBGuiUtils.popup(Level.ERROR, "Database: "+this.databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 				}
 
 				// if the username is set but not the password, then we show a popup to ask for the password
 				if ( DBPlugin.isEmpty(password) ) {
-					password = DBGuiUtils.passwordDialog("Please provide the database password", "Password for "+this.databaseEntry.getName()+":");
+					password = DBGuiUtils.passwordDialog("Please provide the database password");
 					if ( password == null ) {
 						// password is null if the user clicked on cancel
 						throw new SQLException("No password provided.");
@@ -214,7 +206,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					// we register the new password for the current session
 					try {
 						this.databaseEntry.setDecryptedPassword(password);
-					} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+					} catch (DBException err) {
 						DBGuiUtils.popup(Level.ERROR, "Database: "+this.databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 					}
 				}
@@ -294,9 +286,13 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @param dbGui the dialog that holds the graphical interface
 	 * @return 
 	 * @throws SQLException 
+	 * @throws DBException 
+	 * @throws NullPointerException 
+	 * @throws UnsupportedEncodingException 
+	 * @throws NoSuchAlgorithmException 
 	 * @returns true if the database version is correct, generates an Exception if not
 	 */
-	public boolean checkDatabase(DBGui dbGui) throws SQLException {
+	public boolean checkDatabase(DBGui dbGui) throws SQLException, DBException {
 		// No tables to be checked in Neo4J databases
 		if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.NEO4J) )
 			return true;
@@ -304,7 +300,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		if ( logger.isTraceEnabled() ) logger.trace("Checking \""+this.schemaPrefix+"database_version\" table");
 
 		int currentVersion = 0;
-		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+		try ( DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT version FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.PLUGIN_NAME) ) {
 			result.next();
 			currentVersion = result.getInt("version");
 		} catch (@SuppressWarnings("unused") SQLException err) {
@@ -336,9 +332,10 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @param dbGui the dialog that holds the graphical interface
 	 * @return 
 	 * @throws SQLException 
+	 * @throws DBException 
 	 * @returns true if the database structure is correct, false if not
 	 */
-	public String checkDatabaseStructure(DBGui dbGui) throws SQLException {
+	public String checkDatabaseStructure(DBGui dbGui) throws SQLException, DBException {
 		StringBuilder message = new StringBuilder();
 		boolean isDatabaseStructureCorrect = true;
 		
@@ -366,7 +363,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 
 			// we check after the eventual database upgrade as database before version 212 did not have an ID
 			String databaseId = "";
-			try (DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.pluginName) ) {
+			try (DBSelect result = new DBSelect(this.databaseEntry.getName(), this.connection, "SELECT id FROM "+this.schemaPrefix+"database_version WHERE archi_plugin = ?", DBPlugin.PLUGIN_NAME) ) {
 				result.next();
 				databaseId = result.getString("id");
 			} // the "try" manages the result closure even in case of an exception
@@ -460,6 +457,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 					if ( !isTableCorrect )
 						isDatabaseStructureCorrect = false;
 				} catch (SQLException err) {
+					logger.error("Failed to check database structure", err);
 					throw err;
 				}
 				
@@ -480,7 +478,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			if ( hasGotNotNullErrorsOnly )
 				message.append("\n\nYou may uncheck the \"Check for NOT NULL\" option in the plugin preferences pages should you wish to use this database.");
 
-		} catch (Exception err) {
+		} catch (SQLException err) {
 			rollback();
 			throw err;
 		} finally {
@@ -531,7 +529,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			}
 			
 			// we fill in the database_version table 
-			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), UUIDFactory.createID(null), DBPlugin.pluginName, DATABASE_VERSION);
+			insert(this.schemaPrefix+"database_version", DBColumn.getColumnNames(this.databaseVersionColumns), UUIDFactory.createID(null), DBPlugin.PLUGIN_NAME, DATABASE_VERSION);
 			
 			// Oracle do not implement AUTO_INCREMENT columns, so we have to manually create sequences and triggers
 			if ( this.databaseEntry.getDriver().equals(DBDatabaseDriver.ORACLE) ) {
@@ -822,7 +820,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 	 * @throws NoSuchAlgorithmException 
 	 * @throws DBException 
 	 */
-	private void upgradeDatabase(int version) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException, NullPointerException, DBException {
+	private void upgradeDatabase(int version) throws SQLException, DBException {
 		int dbVersion = version;
 		
 		DBColumn booleanColumn = new DBColumn("", this.databaseEntry, DBColumnType.BOOLEAN, false);
@@ -1195,7 +1193,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 			addColumn(this.schemaPrefix+"database_version", "id", objectIDColumn.getType(), false, "");
 
 			this.databaseEntry.setId(UUIDFactory.createID(null));
-			executeRequest("UPDATE "+this.schemaPrefix+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+			executeRequest("UPDATE "+this.schemaPrefix+"database_version SET id = '"+this.databaseEntry.getId()+"' WHERE archi_plugin = '"+DBPlugin.PLUGIN_NAME+"'");
 			// if the databaseEntry.index is different from -1, then the databaseEntry is persisted in the database, so we persist the new ID in the preference store
 			if ( this.databaseEntry.getIndex() != -1 )
 				this.databaseEntry.persistIntoPreferenceStore();
@@ -1303,7 +1301,7 @@ public class DBDatabaseConnection implements AutoCloseable {
 		}
 
 		if ( logger.isTraceEnabled() ) logger.trace("Updating database version to 490");
-		executeRequest("UPDATE "+this.schemaPrefix+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.pluginName+"'");
+		executeRequest("UPDATE "+this.schemaPrefix+"database_version SET version = "+dbVersion+" WHERE archi_plugin = '"+DBPlugin.PLUGIN_NAME+"'");
 		commit();
 
 		setAutoCommit(true);

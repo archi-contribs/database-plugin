@@ -6,8 +6,6 @@
 
 package org.archicontribs.database.model;
 
-import java.io.UnsupportedEncodingException;
-import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -22,9 +20,9 @@ import org.apache.log4j.Level;
 import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin.CONFLICT_CHOICE;
-import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.data.DBChecksum;
 import org.archicontribs.database.data.DBVersion;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.commands.DBDeleteDiagramConnectionCommand;
 import org.archicontribs.database.model.commands.DBDeleteDiagramObjectCommand;
 import org.eclipse.emf.ecore.EObject;
@@ -336,11 +334,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * Counts the number of objects in the model.<br>
      * At the same time, we calculate the current checksums
      * @throws DBException
-     * @throws NoSuchAlgorithmException
-     * @throws UnsupportedEncodingException
      * @return true if all components have been counted, or false if inconstancy has been detected
      */
-    public boolean countAllObjects() throws NoSuchAlgorithmException, UnsupportedEncodingException, DBException {
+    public boolean countAllObjects() throws DBException {
     	return countAllObjects(true);
     }
 
@@ -349,11 +345,9 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
      * At the same time, we calculate the current checksums
      * @param deleteFaultyComponents true if the method should ask the user which faulty component he wishes to delete, false if the faulty components are all kept
      * @throws DBException
-     * @throws NoSuchAlgorithmException
-     * @throws UnsupportedEncodingException
      * @return true if all components have been counted, or false if inconstancy has been detected
      */
-    public boolean countAllObjects(boolean deleteFaultyComponents) throws NoSuchAlgorithmException, UnsupportedEncodingException, DBException {
+    public boolean countAllObjects(boolean deleteFaultyComponents) throws DBException {
         // First, we reset all the counters as they can be be re-populated
     	resetCounters();
 
@@ -383,7 +377,7 @@ public class DBArchimateModel extends com.archimatetool.model.impl.ArchimateMode
     		CompoundCommand deleteCommand = new NonNotifyingCompoundCommand("remove inconsistant components");
     		
         	// if here, it means that we detected relationships or connections that miss source or target. So we need to ask the user what to do with them (i.e. keep or delete them)
-        	List<EObject> faultyEObjectSelected = DBGuiUtils.selectItemsDialog("Faulty objects to Delete", "Hummm, that's weird ... We detetected inconcistencies in your model.\n\n Please choose the faulty components to delete from your model to fix those inconcistencies.", this.allFaultyObjects, false);
+        	List<EObject> faultyEObjectSelected = DBGuiUtils.selectItemsDialog("Faulty objects to Delete", "Hummm, that's weird ... We detetected inconcistencies in your model.\n\n Please choose the faulty components to delete from your model to fix those inconcistencies.", this.allFaultyObjects);
         	
         	for ( EObject objToBeDeleted: faultyEObjectSelected) {
         		// Stores the list of objects that needs to be removed from the model

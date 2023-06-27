@@ -7,11 +7,11 @@
 package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGuiComponentHistory;
 import org.archicontribs.database.model.DBMetadata;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGuiComponentHistory;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;

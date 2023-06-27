@@ -6,7 +6,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGuiExportModel;
+import org.archicontribs.database.gui.DBGuiExportModel;
 import org.archicontribs.database.model.DBArchimateModel;
 import com.archimatetool.commandline.AbstractCommandLineProvider;
 import com.archimatetool.commandline.CommandLineState;

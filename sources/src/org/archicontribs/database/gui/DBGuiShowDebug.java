@@ -3,7 +3,7 @@
  * are made available under the terms of the License
  * which accompanies this distribution in the file LICENSE.txt
  */
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.sql.SQLException;
 
@@ -45,14 +45,9 @@ public class DBGuiShowDebug extends DBGui {
     private DBMetadata selectedMetadata;
     private DBArchimateModel model;
     
-    private DBDatabaseExportConnection exportConnection = null;
-    
     private Group grpDebug;
     
-    private Label selectedComponentLbl;
-    private Label selectedComponentNameLbl;
     private Label selectedComponentNameValueLbl;
-    private Label selectedComponentIdLbl;
     private Label selectedComponentIdValueLbl;
     private Label selectedComponentClassLbl;
     private Label selectedComponentClassValueLbl;
@@ -123,39 +118,39 @@ public class DBGuiShowDebug extends DBGui {
         this.grpDebug.setLayout(new FormLayout());
         
         // selected component
-        this.selectedComponentLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        this.selectedComponentLbl.setText("You selected the following component:");
+        Label selectedComponentLbl = new Label(this.grpDebug, SWT.NONE);
+        selectedComponentLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        selectedComponentLbl.setText("You selected the following component:");
         fd = new FormData();
         fd.top = new FormAttachment(0, 10);
         fd.left = new FormAttachment(0, 20);
-        this.selectedComponentLbl.setLayoutData(fd);
+        selectedComponentLbl.setLayoutData(fd);
         
         // Name label
-        this.selectedComponentNameLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentNameLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        this.selectedComponentNameLbl.setText("Name:");
+        Label selectedComponentNameLbl = new Label(this.grpDebug, SWT.NONE);
+        selectedComponentNameLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        selectedComponentNameLbl.setText("Name:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentLbl, 5);
+        fd.top = new FormAttachment(selectedComponentLbl, 5);
         fd.left = new FormAttachment(0, 70);
-        this.selectedComponentNameLbl.setLayoutData(fd);
+        selectedComponentNameLbl.setLayoutData(fd);
         
         // Id label
-        this.selectedComponentIdLbl = new Label(this.grpDebug, SWT.NONE);
-        this.selectedComponentIdLbl.setBackground(GROUP_BACKGROUND_COLOR);
-        this.selectedComponentIdLbl.setText("Id:");
+        Label selectedComponentIdLbl = new Label(this.grpDebug, SWT.NONE);
+        selectedComponentIdLbl.setBackground(GROUP_BACKGROUND_COLOR);
+        selectedComponentIdLbl.setText("Id:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentNameLbl, 2);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
-        this.selectedComponentIdLbl.setLayoutData(fd);
+        fd.top = new FormAttachment(selectedComponentNameLbl, 2);
+        fd.left = new FormAttachment(selectedComponentNameLbl, 0, SWT.LEFT);
+        selectedComponentIdLbl.setLayoutData(fd);
         
         // Class label
         this.selectedComponentClassLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentClassLbl.setBackground(GROUP_BACKGROUND_COLOR);
         this.selectedComponentClassLbl.setText("Class:");
         fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentIdLbl, 2);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
+        fd.top = new FormAttachment(selectedComponentIdLbl, 2);
+        fd.left = new FormAttachment(selectedComponentNameLbl, 0, SWT.LEFT);
         this.selectedComponentClassLbl.setLayoutData(fd);
         
         // Image Path label
@@ -164,7 +159,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentImagePathLbl.setText("Image Path:");
         fd = new FormData();
         fd.top = new FormAttachment(this.selectedComponentClassLbl, 2);
-        fd.left = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.LEFT);
+        fd.left = new FormAttachment(selectedComponentNameLbl, 0, SWT.LEFT);
         this.selectedComponentImagePathLbl.setLayoutData(fd);
         
         // Database status label
@@ -183,7 +178,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentNameValueLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentNameValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentNameLbl, 0, SWT.TOP);
+        fd.top = new FormAttachment(selectedComponentNameLbl, 0, SWT.TOP);
         fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentNameValueLbl.setLayoutData(fd);
@@ -192,7 +187,7 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentIdValueLbl = new Label(this.grpDebug, SWT.NONE);
         this.selectedComponentIdValueLbl.setBackground(GROUP_BACKGROUND_COLOR);
         fd = new FormData();
-        fd.top = new FormAttachment(this.selectedComponentIdLbl, 0, SWT.TOP);
+        fd.top = new FormAttachment(selectedComponentIdLbl, 0, SWT.TOP);
         fd.left = new FormAttachment(this.selectedComponentDatabaseStatusLbl, 10);
         fd.right = new FormAttachment(100, -20);
         this.selectedComponentIdValueLbl.setLayoutData(fd);
@@ -451,7 +446,6 @@ public class DBGuiShowDebug extends DBGui {
             getDatabases(true);
         } catch (Exception err) {
             DBGuiUtils.popup(Level.ERROR, "Failed to get the databases.", err);
-            return;
         }
     }
     
@@ -465,23 +459,23 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentDebugTable.removeAll();
         this.correspondingConceptDebugTable.removeAll();
         
-        this.exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
+        DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
         
         // we get the version and checksum from the database
         try {
         	if ( this.selectedObject instanceof IArchimateModelObject )
-        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
+        		exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
         	else if ( this.selectedObject instanceof IDiagramModelObject )
-        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelObject)this.selectedObject).getDiagramModel().getArchimateModel());
+        		exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelObject)this.selectedObject).getDiagramModel().getArchimateModel());
         	else if ( this.selectedObject instanceof IDiagramModelConnection )
-        		this.exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelConnection)this.selectedObject).getDiagramModel().getArchimateModel());
+        		exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IDiagramModelConnection)this.selectedObject).getDiagramModel().getArchimateModel());
         	
             if ( this.selectedObject instanceof IDiagramModelArchimateComponent ) {
-            	this.exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getDiagramModel());
-                this.exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
+            	exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getDiagramModel());
+                exportConnection.getVersionFromDatabase(((IDiagramModelArchimateComponent)this.selectedObject).getArchimateConcept());
             }
             
-            this.exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
+            exportConnection.getVersionFromDatabase((IIdentifier)this.selectedObject);
         } catch (SQLException err) {
             DBGuiUtils.popup(Level.ERROR, "Failed to get information about component from the database.", err);
             return;

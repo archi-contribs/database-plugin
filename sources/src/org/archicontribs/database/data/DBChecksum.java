@@ -6,14 +6,14 @@
 
 package org.archicontribs.database.data;
 
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.emf.ecore.EObject;
 
@@ -73,10 +73,9 @@ public class DBChecksum {
 	 * @param model 
 	 * @param releaseNote 
 	 * @return 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException 
+	 * @throws DBException
 	 */
-	public static String calculateChecksum(IArchimateModel model, String releaseNote) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+	public static String calculateChecksum(IArchimateModel model, String releaseNote) throws DBException {
 		StringBuilder checksumBuilder = new StringBuilder();
 		
 		append(checksumBuilder, model.getId());
@@ -112,11 +111,9 @@ public class DBChecksum {
 	 * Please note that this method is *NOT* recursive: the recursion should be managed at a higher level for folders and views.
 	 * @param eObject 
 	 * @return the eObject's checksum, empty string ("") if the eObject is null
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException
-	 * @throws NullPointerException if the EObject is missing information in case of an inconsistent model (like source or target missing for a relationship or a connection).   
+	 * @throws DBException
 	 */
-	public static String calculateChecksum(EObject eObject) throws NoSuchAlgorithmException, UnsupportedEncodingException, NullPointerException {
+	public static String calculateChecksum(EObject eObject) throws DBException {
 		if ( eObject == null )
 			return "";
 		
@@ -303,10 +300,9 @@ public class DBChecksum {
 	 * Calculate a MD5 from a StringBuilder
 	 * @param input 
 	 * @return 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException 
+	 * @throws DBException
 	 */
-	public static String calculateChecksum(StringBuilder input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+	public static String calculateChecksum(StringBuilder input) throws DBException {
 		return calculateChecksum(input.toString().getBytes(StandardCharsets.UTF_8));
 	}
 	
@@ -314,10 +310,9 @@ public class DBChecksum {
 	 * Calculate a MD5 from a String
 	 * @param input 
 	 * @return 
-	 * @throws NoSuchAlgorithmException 
-	 * @throws UnsupportedEncodingException 
+	 * @throws DBException
 	 */
-	public static String calculateChecksum(String input) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+	public static String calculateChecksum(String input) throws DBException {
 		return calculateChecksum(input.getBytes(StandardCharsets.UTF_8));
 	}
 	
@@ -325,9 +320,9 @@ public class DBChecksum {
 	 * Calculate a MD5 from a byte array
 	 * @param bytes 
 	 * @return 
-	 * @throws NoSuchAlgorithmException 
+	 * @throws DBException 
 	 */
-	public static String calculateChecksum(byte[] bytes) throws NoSuchAlgorithmException {
+	public static String calculateChecksum(byte[] bytes) throws DBException {
 	    if ( bytes == null )
 	    	return null;
 	    
@@ -350,7 +345,9 @@ public class DBChecksum {
 	    	}
 		} catch (NoSuchAlgorithmException e) {
 			DBGuiUtils.popup(Level.ERROR, "Failed to calculate checksum.", e);
-			throw e;
+			DBException exception = new DBException("Failed to calculate checksum");
+			exception.initCause(e);
+			throw exception;
 		}
 
 		return md5.toString();

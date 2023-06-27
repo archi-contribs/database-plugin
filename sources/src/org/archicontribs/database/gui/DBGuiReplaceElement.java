@@ -4,9 +4,10 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
@@ -26,7 +27,7 @@ public class DBGuiReplaceElement extends DBGuiImportComponents {
 	
 	IArchimateElement selectedElement; 
 
-	public DBGuiReplaceElement(DBArchimateModel model, IArchimateElement element, String title) throws Exception {
+	public DBGuiReplaceElement(DBArchimateModel model, IArchimateElement element, String title) throws DBException {
 	   super(model, null, null, title);
 	   
 	   this.selectedElement = element;

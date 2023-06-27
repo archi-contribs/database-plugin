@@ -6,7 +6,7 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGuiImportModel;
+import org.archicontribs.database.gui.DBGuiImportModel;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Table;

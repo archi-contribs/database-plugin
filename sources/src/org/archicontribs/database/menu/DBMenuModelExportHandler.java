@@ -8,8 +8,8 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiExportModel;
+import org.archicontribs.database.gui.DBGuiExportModel;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -45,7 +45,8 @@ public class DBMenuModelExportHandler extends AbstractHandler {
         	exportedModel = (DBArchimateModel) ((IArchimateModelObject) selection).getArchimateModel();
 		
 		if ( exportedModel != null ) {
-			if ( logger.isDebugEnabled() ) logger.debug("Exporting model "+exportedModel.getName());
+			if ( logger.isDebugEnabled() )
+				logger.debug("Exporting model "+exportedModel.getName());
 	
 	        try {
 	        	DBGuiExportModel exportModel = new DBGuiExportModel(exportedModel, "Export model");

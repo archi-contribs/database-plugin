@@ -8,8 +8,8 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiImportModel;
+import org.archicontribs.database.gui.DBGuiImportModel;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
@@ -24,7 +24,8 @@ public class DBMenuModelImportHandler extends AbstractHandler {
 	
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		if ( logger.isDebugEnabled() ) logger.debug("Launching Import model window");
+		if ( logger.isDebugEnabled() )
+			logger.debug("Launching Import model window");
 
         try {
         	DBGuiImportModel importModel = new DBGuiImportModel("Import model");

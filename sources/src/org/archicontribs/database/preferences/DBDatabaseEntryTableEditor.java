@@ -7,26 +7,20 @@
 package org.archicontribs.database.preferences;
 
 import java.io.File;
-import java.security.InvalidAlgorithmParameterException;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.crypto.BadPaddingException;
-import javax.crypto.IllegalBlockSizeException;
-import javax.crypto.NoSuchPaddingException;
-
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBDatabaseDriver;
 import org.archicontribs.database.DBDatabaseEntry;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.GUI.DBGuiAdminDatabase;
-import org.archicontribs.database.GUI.DBGuiUtils;
 import org.archicontribs.database.connection.DBDatabaseImportConnection;
 import org.archicontribs.database.data.DBDatabase;
+import org.archicontribs.database.gui.DBGui;
+import org.archicontribs.database.gui.DBGuiAdminDatabase;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.jface.preference.FieldEditor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
@@ -227,7 +221,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnNew.setLayoutData(fd);
 		this.btnNew.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { try { newCallback(); } catch (SQLException ign) { /* */ } }
+            public void widgetSelected(SelectionEvent e) { newCallback(); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -271,7 +265,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnRemove.setLayoutData(fd);
 		this.btnRemove.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { try { removeCallback(); } catch (SQLException ign) { /* */ } }
+            public void widgetSelected(SelectionEvent e) { removeCallback(); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -927,7 +921,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		this.btnSave.setLayoutData(fd);
 		this.btnSave.addSelectionListener(new SelectionListener() {
 			@Override
-            public void widgetSelected(SelectionEvent e) { try { saveCallback(); } catch (SQLException ign) { /* */ } }
+            public void widgetSelected(SelectionEvent e) { saveCallback(); }
 			@Override
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
@@ -994,7 +988,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	 */
 	@Override
     protected void doStore() {
-		List<DBDatabaseEntry> databaseEntries = new ArrayList<DBDatabaseEntry>();
+		List<DBDatabaseEntry> databaseEntries = new ArrayList<>();
 
 		for ( TableItem tableItem : this.tblDatabases.getItems() )
 			databaseEntries.add((DBDatabaseEntry)tableItem.getData());
@@ -1111,9 +1105,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "new" button has been pressed
-	 * @throws SQLException 
 	 */
-	void newCallback() throws SQLException {
+	void newCallback() {
 		// we unselect all the lines of the tblDatabases table
 		this.tblDatabases.deselectAll();
 		
@@ -1123,9 +1116,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "save" button has been pressed
-	 * @throws SQLException 
 	 */
-	void saveCallback() throws SQLException {
+	void saveCallback() {
 		if ( this.txtName.getText().isEmpty() ) {
 		    DBGuiUtils.popup(Level.ERROR, "Please provide a name for your configuration.");
 			return;
@@ -1154,7 +1146,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		setDatabaseDetails(false);
 	}
 
-	DBDatabaseEntry getDatabaseDetails(DBDatabaseEntry entry) throws NumberFormatException, Exception {
+	DBDatabaseEntry getDatabaseDetails(DBDatabaseEntry entry) throws NumberFormatException, DBException {
 	    DBDatabaseEntry databaseEntry = entry==null ? new DBDatabaseEntry() : entry;
 
 		databaseEntry.setName(this.txtName.getText());
@@ -1220,7 +1212,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
             this.txtUsername.setText(databaseEntry.getUsername());
             try {
 				this.txtPassword.setText(databaseEntry.getDecryptedPassword());
-			} catch (InvalidKeyException | IllegalBlockSizeException | BadPaddingException | InvalidAlgorithmParameterException | NoSuchAlgorithmException | NoSuchPaddingException err) {
+			} catch (DBException err) {
 				DBGuiUtils.popup(Level.ERROR, "Database: "+databaseEntry.getName()+"\n\nFailed to decrypt the password. Did you change your network configuration since passwords have been registered ?", err);
 				this.txtPassword.setText("");
 			}
@@ -1341,7 +1333,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		}
 		
 		try ( DBDatabaseImportConnection connection = new DBDatabaseImportConnection(databaseEntry) ) {
-			List<DBDatabaseEntry> entries = new ArrayList<DBDatabaseEntry>(); 
+			List<DBDatabaseEntry> entries = new ArrayList<>(); 
 	        for ( int i = 0 ; i < this.tblDatabases.getItemCount() ; ++i ) {
 	        	entries.add((DBDatabaseEntry)this.tblDatabases.getItem(i).getData());
 	        }
@@ -1355,9 +1347,8 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 
 	/**
 	 * Called when the "remove" button has been pressed
-	 * @throws SQLException 
 	 */
-	void removeCallback() throws SQLException {
+	void removeCallback() {
 		// setPresentsDefaultValue(false);
 		int index = this.tblDatabases.getSelectionIndex();
 
@@ -1427,7 +1418,7 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 		dlg.setFileName(this.txtFile.getText());
 		dlg.setFilterExtensions(new String[]{"*.sqlite", "*.sqlite2", "*.sqlite3", "*.db", "*.*"});
 		if (dlg.open() != null) {
-			StringBuffer buf = new StringBuffer(dlg.getFilterPath());
+			StringBuilder buf = new StringBuilder(dlg.getFilterPath());
 			if (buf.charAt(buf.length() - 1) != File.separatorChar)
 				buf.append(File.separatorChar);
 			buf.append(dlg.getFileName());
@@ -1473,14 +1464,10 @@ public class DBDatabaseEntryTableEditor extends FieldEditor {
 	
 	/**
 	 * If we are in edit mode, then ask the user is if wants to save or discard
-	 * @throws SQLException 
 	 */
-	public void close() throws SQLException {
-		if ( this.txtName.isVisible() && this.txtName.isEnabled() ) {
-			if ( DBGuiUtils.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 ) {
-				saveCallback();
-			}			
-		}
+	public void close() {
+		if ( this.txtName.isVisible() && this.txtName.isEnabled() && DBGuiUtils.question("Do you wish to save or discard your currents updates ?", new String[] {"save", "discard"}) == 0 )
+			saveCallback();
 	}
 	
 	ModifyListener setPortListener = new ModifyListener() {

@@ -8,14 +8,13 @@ package org.archicontribs.database.preferences;
 
 import java.io.IOException;
 import java.lang.reflect.Field;
-import java.sql.SQLException;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBCheckAndUpdatePlugin;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
-import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGui;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.jface.preference.*;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.PropertyChangeEvent;
@@ -50,10 +49,10 @@ import org.eclipse.ui.IWorkbench;
  * @author Herve Jouin
  */
 public class DBPreferencePage extends FieldEditorPreferencePage	implements IWorkbenchPreferencePage {
-	private static String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
-	private static String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
+	private static final String[][] LOGGER_MODES = {{"Disabled", "disabled"}, {"Simple mode", "simple"}, {"Expert mode", "expert"}};
+	private static final String[][] LOGGER_LEVELS = {{"Fatal", "fatal"}, {"Error", "error"}, {"Warn", "warn"}, {"Info", "info"}, {"Debug", "debug"}, {"Trace", "trace"}};
 	
-	private static String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
+	private static final String HELP_ID = "org.archicontribs.database.preferences.configurePlugin";
 	
 	private static final IPersistentPreferenceStore preferenceStore = DBPlugin.INSTANCE.getPreferenceStore();
 	
@@ -83,11 +82,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 	private Text txtCopySuffix;
 	private Button btnTemplateImportMode;
 	private Button btnSharedImportMode;
-	private Button btnCopyImportMode;
 	
 	DBLogger logger = new DBLogger(DBPreferencePage.class);
-	
-	private TabFolder tabFolder;
 	
 	boolean mouseOverHelpButton = false;
 	
@@ -110,14 +106,14 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     protected void createFieldEditors() {
 		if ( this.logger.isDebugEnabled() ) this.logger.debug("Creating field editors on preference page");
         
-		this.tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
-		this.tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
-		this.tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		TabFolder tabFolder = new TabFolder(getFieldEditorParent(), SWT.NONE);
+		tabFolder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true, 1, 1));
+		tabFolder.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
 		
 		// ********************************
 		// * Behaviour tab ****************
 		// ********************************
-		Composite behaviourComposite = new Composite(this.tabFolder, SWT.NULL);
+		Composite behaviourComposite = new Composite(tabFolder, SWT.NULL);
         RowLayout rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -129,7 +125,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         behaviourComposite.setLayoutData(rowLayout);
         behaviourComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-		TabItem behaviourTabItem = new TabItem(this.tabFolder, SWT.NONE);
+		TabItem behaviourTabItem = new TabItem(tabFolder, SWT.NONE);
         behaviourTabItem.setText("  Behaviour  ");
         behaviourTabItem.setControl(behaviourComposite);
         
@@ -147,7 +143,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		versionLbl.setLayoutData(fd);
 		
 		Label versionValue = new Label(grpVersion, SWT.NONE);
-		versionValue.setText(DBPlugin.pluginVersion.toString());
+		versionValue.setText(DBPlugin.PLUGIN_VERSION.toString());
 		versionValue.setBackground(DBGui.COMPO_BACKGROUND_COLOR);
 		versionValue.setFont(DBGui.BOLD_FONT);
 		fd = new FormData();
@@ -212,7 +208,13 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
                  e.gc.drawImage(DBGui.HELP_ICON, 2, 2);
             }
         });
-        btnHelp.addListener(SWT.MouseUp, new Listener() { @Override public void handleEvent(Event event) { if ( DBPreferencePage.this.logger.isDebugEnabled() ) DBPreferencePage.this.logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html"); } });
+        btnHelp.addListener(SWT.MouseUp, new Listener() {
+        	@Override public void handleEvent(Event event) {
+        		if ( DBPreferencePage.this.logger.isDebugEnabled() )
+        			DBPreferencePage.this.logger.debug("Showing help: /"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html");
+        		PlatformUI.getWorkbench().getHelpSystem().displayHelpResource("/"+DBPlugin.PLUGIN_ID+"/help/html/configurePlugin.html");
+        	}
+        });
         fd = new FormData(30,30);
         fd.top = new FormAttachment(0, 11);
         fd.bottom = new FormAttachment(0, 41);
@@ -239,11 +241,11 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		// ********************************
 		// * Options tab ******************
 		// ********************************
-        Composite optionsComposite = new Composite(this.tabFolder, SWT.NONE);
+        Composite optionsComposite = new Composite(tabFolder, SWT.NONE);
         optionsComposite.setLayout(new FormLayout());
         optionsComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-        TabItem optionsTabItem = new TabItem(this.tabFolder, SWT.NONE);
+        TabItem optionsTabItem = new TabItem(tabFolder, SWT.NONE);
         optionsTabItem.setText("  Options  ");
         optionsTabItem.setControl(optionsComposite);
         
@@ -389,21 +391,21 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		fd.left = new FormAttachment(this.btnTemplateImportMode, 10);
 		this.btnSharedImportMode.setLayoutData(fd);
 		
-		this.btnCopyImportMode = new Button(grpMiscellaneous, SWT.RADIO);
-		this.btnCopyImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
-		this.btnCopyImportMode.setText("Force copy mode");
-		this.btnCopyImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("copy"));
+		Button btnCopyImportMode = new Button(grpMiscellaneous, SWT.RADIO);
+		btnCopyImportMode.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
+		btnCopyImportMode.setText("Force copy mode");
+		btnCopyImportMode.setSelection(preferenceStore.getString("defaultImportMode").equals("copy"));
 		fd = new FormData();
 		fd.top = new FormAttachment(this.btnSharedImportMode, 0, SWT.CENTER);
 		fd.left = new FormAttachment(this.btnSharedImportMode, 10);
-		this.btnCopyImportMode.setLayoutData(fd);
+		btnCopyImportMode.setLayoutData(fd);
 		
 		grpMiscellaneous.layout(true);
 		
 		// ********************************* */
 		// * Logger tab  ******************* */
 		// ********************************* */
-        this.loggerComposite = new Composite(this.tabFolder, SWT.NONE);
+        this.loggerComposite = new Composite(tabFolder, SWT.NONE);
         rowLayout = new RowLayout();
         rowLayout.type = SWT.VERTICAL;
         rowLayout.pack = true;
@@ -414,7 +416,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
         this.loggerComposite.setLayoutData(rowLayout);
         this.loggerComposite.setBackground(DBGui.GROUP_BACKGROUND_COLOR);
         
-        TabItem loggerTabItem = new TabItem(this.tabFolder, SWT.NONE);
+        TabItem loggerTabItem = new TabItem(tabFolder, SWT.NONE);
         loggerTabItem.setText("  Logger  ");
         loggerTabItem.setControl(this.loggerComposite);
         
@@ -526,7 +528,7 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
     @Override
     public boolean performOk() {
     	if ( this.table != null )
-            try { this.table.close(); } catch (@SuppressWarnings("unused") SQLException ign) { /* */ }
+           this.table.close();
     	
     	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving preferences in preference store");
     	
@@ -578,7 +580,8 @@ public class DBPreferencePage extends FieldEditorPreferencePage	implements IWork
 		this.expertTextFieldEditor.store();
 		
         try {
-        	if ( this.logger.isDebugEnabled() ) this.logger.debug("Saving the preference store to disk.");
+        	if ( this.logger.isDebugEnabled() )
+        		this.logger.debug("Saving the preference store to disk.");
             preferenceStore.save();
         } catch (IOException err) {
         	DBGuiUtils.popup(Level.ERROR, "Failed to save the preference store to disk.", err);

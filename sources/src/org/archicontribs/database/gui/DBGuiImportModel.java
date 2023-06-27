@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.io.IOException;
 import java.sql.Date;
@@ -116,12 +116,11 @@ public class DBGuiImportModel extends DBGui {
      * Creates the GUI to import a model
      * @param title Title of the window
      * @param defaultDatabaseName Name of the default database name to connect to
-     * @throws Exception 
      */
-    public DBGuiImportModel(String title, String defaultDatabaseName) throws Exception {
+    public DBGuiImportModel(String title, String defaultDatabaseName) {
         super(title);
         
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.pluginVersion.toString()+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for importing a model (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");
 
         createAction(ACTION.One, "1 - Choose model");
         createAction(ACTION.Two, "2 - Import model");
@@ -1067,7 +1066,6 @@ public class DBGuiImportModel extends DBGui {
             setActiveAction(STATUS.Ok);
             doShowResult(null);
         }
-        return;
     }
 
     protected void doShowResult(Exception err) {
@@ -1113,7 +1111,7 @@ public class DBGuiImportModel extends DBGui {
 		                List<Object> elements;
 		                
 		                // we select the view folder in order to show the model folders in the tree
-		                elements = new ArrayList<Object>();
+		                elements = new ArrayList<>();
 		                IFolder viewsFolder = this.modelToImport.getFolder(FolderType.DIAGRAMS);
 		                if ( viewsFolder != null ) {
 		                    elements.add(viewsFolder);

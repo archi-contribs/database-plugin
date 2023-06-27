@@ -16,9 +16,9 @@ import javax.imageio.ImageIO;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGui;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiImportImage;
+import org.archicontribs.database.gui.DBGui;
+import org.archicontribs.database.gui.DBGuiImportImage;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;

@@ -105,7 +105,7 @@ public class DBDeleteDiagramObjectCommand extends Command implements IDBCommand 
     }
 
     @Override
-    public Exception getException() {
+    public DBException getException() {
         return this.exception;
     }
 }

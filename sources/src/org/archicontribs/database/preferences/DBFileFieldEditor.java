@@ -28,8 +28,8 @@ import org.eclipse.swt.widgets.Text;
 public class DBFileFieldEditor extends FileFieldEditor {
 	protected static final DBLogger logger = new DBLogger(DBFileFieldEditor.class);
 	
-	protected Color RED_COLOR = new Color(null, 255, 0 ,0);
-	protected Color GREEN_COLOR = new Color(null, 0, 255 ,0);
+	protected static final Color RED_COLOR = new Color(null, 255, 0 ,0);
+	protected static final Color GREEN_COLOR = new Color(null, 0, 255 ,0);
 	
 	Color borderColor = null;
 		
@@ -90,11 +90,11 @@ public class DBFileFieldEditor extends FileFieldEditor {
     	
     	if ( state ) {
     		logger.debug("\""+path + "\" is a valid filename");
-    		this.borderColor = this.GREEN_COLOR;
+    		this.borderColor = GREEN_COLOR;
    			text.setToolTipText(null);
     	} else {
     		logger.debug("\""+path + "\" is an invalid filename");
-    		this.borderColor = this.RED_COLOR;
+    		this.borderColor = RED_COLOR;
     		if ( page != null ) 
     			text.setToolTipText(page.getErrorMessage());
     	}

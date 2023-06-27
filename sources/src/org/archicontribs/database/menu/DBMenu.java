@@ -308,7 +308,7 @@ public class DBMenu extends ExtensionContributionFactory {
         if ( label.length() > 100 )
             label = label.substring(0, 100);
         
-        HashMap<String, String> parameters = new HashMap<String, String>();
+        HashMap<String, String> parameters = new HashMap<>();
         parameters.put("mustConsiderConcept", (component instanceof IArchimateConcept ? "yes" : "no"));
 
         if ( logger.isDebugEnabled() ) logger.debug("Adding menu label: "+label);

@@ -4,7 +4,7 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.sql.SQLException;
 import java.sql.Timestamp;
@@ -51,15 +51,8 @@ public class DBGuiAdminDatabase extends DBGui {
     Table tblModelVersions;
     Text txtFilterModels;
 
-    private Group grpModels;
-    private Group grpModelVersions;
-    private Group grpActions;
-    
-    private Label lblModelName;
     Text txtModelName;
-    private Label lblPurpose;
     Text txtPurpose;
-    private Label lblReleaseNote;
     Text txtReleaseNote;
     
     Button btnCheckStructure;
@@ -73,14 +66,13 @@ public class DBGuiAdminDatabase extends DBGui {
      * @param databaseImportconnection 
      * @param entries 
      * @param title Title of the window
-     * @throws Exception 
      */
-    public DBGuiAdminDatabase(DBDatabaseImportConnection databaseImportconnection, List<DBDatabaseEntry> entries, String title) throws Exception {
+    public DBGuiAdminDatabase(DBDatabaseImportConnection databaseImportconnection, List<DBDatabaseEntry> entries, String title) {
         super(title);
         
         this.importConnection = databaseImportconnection;
 
-        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for administering the \""+databaseImportconnection.getDatabaseEntry().getName()+"\" database (plugin version "+DBPlugin.pluginVersion.toString()+").");
+        if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for administering the \""+databaseImportconnection.getDatabaseEntry().getName()+"\" database (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");
 
         createAction(ACTION.One, "1 - Admin database");
         setActiveAction(ACTION.One);
@@ -157,19 +149,19 @@ public class DBGuiAdminDatabase extends DBGui {
 
 
     protected void createGrpModel() {
-        this.grpModels = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
-        this.grpModels.setBackground(GROUP_BACKGROUND_COLOR);
-        this.grpModels.setFont(GROUP_TITLE_FONT);
-        this.grpModels.setText("Models: ");
+        Group grpModels = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpModels.setBackground(GROUP_BACKGROUND_COLOR);
+        grpModels.setFont(GROUP_TITLE_FONT);
+        grpModels.setText("Models: ");
         FormData fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(50, -5);
         fd.bottom = new FormAttachment(100);
-        this.grpModels.setLayoutData(fd);
-        this.grpModels.setLayout(new FormLayout());
+        grpModels.setLayoutData(fd);
+        grpModels.setLayout(new FormLayout());
 
-        Label lblListModels = new Label(this.grpModels, SWT.NONE);
+        Label lblListModels = new Label(grpModels, SWT.NONE);
         lblListModels.setBackground(GROUP_BACKGROUND_COLOR);
         lblListModels.setText("Filter:");
         fd = new FormData();
@@ -177,7 +169,7 @@ public class DBGuiAdminDatabase extends DBGui {
         fd.left = new FormAttachment(0, getDefaultMargin());
         lblListModels.setLayoutData(fd);
 
-        this.txtFilterModels = new Text(this.grpModels, SWT.BORDER);
+        this.txtFilterModels = new Text(grpModels, SWT.BORDER);
         this.txtFilterModels.setToolTipText("You may use '%' as wildcard.");
         this.txtFilterModels.addModifyListener(new ModifyListener() {
             @Override
@@ -203,7 +195,7 @@ public class DBGuiAdminDatabase extends DBGui {
 
 
 
-        this.tblModels = new Table(this.grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
+        this.tblModels = new Table(grpModels, SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL | SWT.H_SCROLL);
         this.tblModels.setLinesVisible(true);
         this.tblModels.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblModels.addListener(SWT.Selection, new Listener() {
@@ -251,19 +243,19 @@ public class DBGuiAdminDatabase extends DBGui {
         colModelName.setText("Model name");
         colModelName.setWidth(265);
 
-        this.grpModelVersions = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
-        this.grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
-        this.grpModelVersions.setFont(GROUP_TITLE_FONT);
-        this.grpModelVersions.setText("Versions of selected model: ");
+        Group grpModelVersions = new Group(this.compoRightBottom, SWT.SHADOW_ETCHED_IN);
+        grpModelVersions.setBackground(GROUP_BACKGROUND_COLOR);
+        grpModelVersions.setFont(GROUP_TITLE_FONT);
+        grpModelVersions.setText("Versions of selected model: ");
         fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(50, 5);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
-        this.grpModelVersions.setLayoutData(fd);
-        this.grpModelVersions.setLayout(new FormLayout());
+        grpModelVersions.setLayoutData(fd);
+        grpModelVersions.setLayout(new FormLayout());
 
-        this.tblModelVersions = new Table(this.grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
+        this.tblModelVersions = new Table(grpModelVersions,  SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.V_SCROLL);
         this.tblModelVersions.setBackground(TABLE_BACKGROUND_COLOR);
         this.tblModelVersions.setLinesVisible(true);
         this.tblModelVersions.setHeaderVisible(true);
@@ -306,54 +298,54 @@ public class DBGuiAdminDatabase extends DBGui {
         colCreatedBy.setText("Author");
         colCreatedBy.setWidth(150);
 
-        this.lblModelName = new Label(this.grpModelVersions, SWT.NONE);
-        this.lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblModelName.setText("Model name:");
+        Label lblModelName = new Label(grpModelVersions, SWT.NONE);
+        lblModelName.setBackground(GROUP_BACKGROUND_COLOR);
+        lblModelName.setText("Model name:");
         fd = new FormData();
         fd.top = new FormAttachment(this.tblModelVersions, getDefaultMargin());
         fd.left = new FormAttachment(0, getDefaultMargin());
-        this.lblModelName.setLayoutData(fd);
+        lblModelName.setLayoutData(fd);
 
-        this.txtModelName = new Text(this.grpModelVersions, SWT.BORDER);
+        this.txtModelName = new Text(grpModelVersions, SWT.BORDER);
         this.txtModelName.setBackground(GROUP_BACKGROUND_COLOR);
         this.txtModelName.setEnabled(false);
         fd = new FormData();
-        fd.top = new FormAttachment(this.lblModelName);
+        fd.top = new FormAttachment(lblModelName);
         fd.left = new FormAttachment(0, getDefaultMargin());
         fd.right = new FormAttachment(100, -getDefaultMargin());
         this.txtModelName.setLayoutData(fd);
 
-        this.lblPurpose = new Label(this.grpModelVersions, SWT.NONE);
-        this.lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblPurpose.setText("Purpose:");
+        Label lblPurpose = new Label(grpModelVersions, SWT.NONE);
+        lblPurpose.setBackground(GROUP_BACKGROUND_COLOR);
+        lblPurpose.setText("Purpose:");
         fd = new FormData();
         fd.top = new FormAttachment(this.txtModelName, getDefaultMargin());
         fd.left = new FormAttachment(0, getDefaultMargin());
-        this.lblPurpose.setLayoutData(fd);
+        lblPurpose.setLayoutData(fd);
 
-        this.txtPurpose = new Text(this.grpModelVersions, SWT.BORDER);
+        this.txtPurpose = new Text(grpModelVersions, SWT.BORDER);
         this.txtPurpose.setBackground(GROUP_BACKGROUND_COLOR);
         this.txtPurpose.setEnabled(false);
         fd = new FormData();
-        fd.top = new FormAttachment(this.lblPurpose);
+        fd.top = new FormAttachment(lblPurpose);
         fd.left = new FormAttachment(0, getDefaultMargin());
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(80, -5);
         this.txtPurpose.setLayoutData(fd);
 
-        this.lblReleaseNote = new Label(this.grpModelVersions, SWT.NONE);
-        this.lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
-        this.lblReleaseNote.setText("Release note:");
+        Label lblReleaseNote = new Label(grpModelVersions, SWT.NONE);
+        lblReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
+        lblReleaseNote.setText("Release note:");
         fd = new FormData();
         fd.top = new FormAttachment(this.txtPurpose, getDefaultMargin());
         fd.left = new FormAttachment(0, getDefaultMargin());
-        this.lblReleaseNote.setLayoutData(fd);
+        lblReleaseNote.setLayoutData(fd);
 
-        this.txtReleaseNote = new Text(this.grpModelVersions, SWT.BORDER);
+        this.txtReleaseNote = new Text(grpModelVersions, SWT.BORDER);
         this.txtReleaseNote.setBackground(GROUP_BACKGROUND_COLOR);
         this.txtReleaseNote.setEnabled(false);
         fd = new FormData();
-        fd.top = new FormAttachment(this.lblReleaseNote);
+        fd.top = new FormAttachment(lblReleaseNote);
         fd.left = new FormAttachment(0, getDefaultMargin());
         fd.right = new FormAttachment(100, -getDefaultMargin());
         fd.bottom = new FormAttachment(100, -getDefaultMargin());
@@ -371,22 +363,22 @@ public class DBGuiAdminDatabase extends DBGui {
         compoBottom.setLayoutData(fd);
         compoBottom.setLayout(new FormLayout());
         
-        this.grpActions = new Group(compoBottom, SWT.SHADOW_ETCHED_IN);
-        this.grpActions.setBackground(GROUP_BACKGROUND_COLOR);
-        this.grpActions.setFont(GROUP_TITLE_FONT);
-        this.grpActions.setText("Actions: ");
+        Group grpActions = new Group(compoBottom, SWT.SHADOW_ETCHED_IN);
+        grpActions.setBackground(GROUP_BACKGROUND_COLOR);
+        grpActions.setFont(GROUP_TITLE_FONT);
+        grpActions.setText("Actions: ");
         fd = new FormData();
         fd.top = new FormAttachment(0);
         fd.left = new FormAttachment(0);
         fd.right = new FormAttachment(100);
         fd.bottom = new FormAttachment(100);
-        this.grpActions.setLayoutData(fd);
+        grpActions.setLayoutData(fd);
         
         RowLayout rowLayout = new RowLayout();
         rowLayout.justify = true;
-        this.grpActions.setLayout(rowLayout);
+        grpActions.setLayout(rowLayout);
 		
-		this.btnCheckStructure = new Button(this.grpActions, SWT.NONE);
+		this.btnCheckStructure = new Button(grpActions, SWT.NONE);
 		this.btnCheckStructure.setText("Check structure");
 		this.btnCheckStructure.setToolTipText("Checks that the database has got the right structure.");
 		this.btnCheckStructure.addSelectionListener(new SelectionListener() {
@@ -396,7 +388,7 @@ public class DBGuiAdminDatabase extends DBGui {
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		
-		this.btnCheckContent = new Button(this.grpActions, SWT.NONE);
+		this.btnCheckContent = new Button(grpActions, SWT.NONE);
 		this.btnCheckContent.setText("Check content");
 		this.btnCheckContent.setToolTipText("Checks the database content and show up all the errors found.");
 		this.btnCheckContent.addSelectionListener(new SelectionListener() {
@@ -406,7 +398,7 @@ public class DBGuiAdminDatabase extends DBGui {
             public void widgetDefaultSelected(SelectionEvent e) { widgetSelected(e); }
 		});
 		
-		this.btnDeleteModel = new Button(this.grpActions, SWT.NONE);
+		this.btnDeleteModel = new Button(grpActions, SWT.NONE);
 		this.btnDeleteModel.setText("Delete model");
 		this.btnDeleteModel.setToolTipText("Completely delete a whole model and all the components that are not shared with another model\n(shared components will be kept)\n\nBeware, components versions my be recalculated.");
 		this.btnDeleteModel.addSelectionListener(new SelectionListener() {
@@ -435,7 +427,6 @@ public class DBGuiAdminDatabase extends DBGui {
 			this.importConnection.checkDatabaseStructure(this);
 		} catch (@SuppressWarnings("unused") Exception ign) {
 			// messages are shown in the checkDatabase method
-			return;
 		}
 	}
 	

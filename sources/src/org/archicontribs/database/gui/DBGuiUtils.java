@@ -1,4 +1,4 @@
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.awt.Toolkit;
 import java.util.ArrayList;
@@ -202,18 +202,18 @@ public class DBGuiUtils {
     		        Throwable err = e;
     		        while ( err != null ) {
 	    				for (StackTraceElement stackTrace: e.getStackTrace())
-	    		            childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, stackTrace.toString()));
+	    		            childStatuses.add(new Status(statusSeverity, DBPlugin.PLUGIN_TITLE, stackTrace.toString()));
 	    				err = err.getCause();
 	    				if ( err != null ) {
-	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, ""));
-	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, "Caused by ..."));
-	    					childStatuses.add(new Status(statusSeverity, DBPlugin.pluginTitle, ""));
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.PLUGIN_TITLE, ""));
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.PLUGIN_TITLE, "Caused by ..."));
+	    					childStatuses.add(new Status(statusSeverity, DBPlugin.PLUGIN_TITLE, ""));
 	    				}
     		        }
-    		        MultiStatus multiStatus = new MultiStatus(DBPlugin.pluginTitle, statusSeverity, childStatuses.toArray(new Status[] {}), e.toString(), e);
-    				ErrorDialog.openError(display.getActiveShell(), DBPlugin.pluginTitle, msg, multiStatus);
+    		        MultiStatus multiStatus = new MultiStatus(DBPlugin.PLUGIN_TITLE, statusSeverity, childStatuses.toArray(new Status[] {}), e.toString(), e);
+    				ErrorDialog.openError(display.getActiveShell(), DBPlugin.PLUGIN_TITLE, msg, multiStatus);
     			} else
-    				MessageDialog.open(dialogKind, display.getActiveShell(), DBPlugin.pluginTitle, msg, SWT.NONE);
+    				MessageDialog.open(dialogKind, display.getActiveShell(), DBPlugin.PLUGIN_TITLE, msg, SWT.NONE);
         	}
         });
 
@@ -266,7 +266,7 @@ public class DBGuiUtils {
         	        locationY = (Toolkit.getDefaultToolkit().getScreenSize().height - questionShell.getSize().y) / 4;
                 }
                 questionShell.setLocation(new Point(locationX, locationY));
-                MessageDialog messageDialog = new MessageDialog(questionShell, DBPlugin.pluginTitle, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
+                MessageDialog messageDialog = new MessageDialog(questionShell, DBPlugin.PLUGIN_TITLE, null, msg, MessageDialog.QUESTION, buttonLabels, 0);
                 questionResult = messageDialog.open();
             }
         });
@@ -284,10 +284,9 @@ public class DBGuiUtils {
     /**
      * Open up an input dialog and ask for a password
      * @param title the dialog title 
-     * @param message the message on the password dialog
      * @return the password entered by the user
      */
-    public static String passwordDialog(String title, String message) {
+    public static String passwordDialog(String title) {
     	if ( logger.isDebugEnabled() ) logger.debug("Asking for password");
     	answeredPassword = "";
     	display.syncExec(new Runnable() {
@@ -326,17 +325,16 @@ public class DBGuiUtils {
     }
     
     /********************* selectItemsDialog ******************/
-    protected List<EObject> selectedItemsToReturn = new ArrayList<EObject>();
+    protected List<EObject> selectedItemsToReturn = new ArrayList<>();
     
     /**
      * Open up an input dialog with a list of items and allow to select items in the list 
      * @param title the dialog title 
      * @param message the message on the dialog
      * @param map the list to display under the form of Map<EObject, String>
-     * @param singleMode true if only a single item in the list can be selected, false if multiple items can be selected 
      * @return the password entered by the user
      */
-    public static List<EObject> selectItemsDialog(String title, String message, Map<EObject, String> map, boolean singleMode) {
+    public static List<EObject> selectItemsDialog(String title, String message, Map<EObject, String> map) {
         logger.info(message);
 
         Display.getDefault().syncExec(new Runnable() {
@@ -440,7 +438,7 @@ public class DBGuiUtils {
     
     
     /*************** cursors ******************/
-    protected static Stack<Map<Shell, Cursor>> cursorsStack = new Stack<Map<Shell, Cursor>>();
+    protected static Stack<Map<Shell, Cursor>> cursorsStack = new Stack<>();
     
     /**
      * Sets the mouse cursor as WAIT
@@ -449,7 +447,7 @@ public class DBGuiUtils {
     	display.syncExec(new Runnable() {
             @Override
             public void run() {
-            	Map<Shell, Cursor> cursors = new HashMap<Shell, Cursor>();
+            	Map<Shell, Cursor> cursors = new HashMap<>();
             	for ( Shell shell: display.getShells() ) {
             		cursors.put(shell,  shell.getCursor());
             		shell.setCursor(CURSOR_WAIT);

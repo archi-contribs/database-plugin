@@ -8,8 +8,8 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiReplaceElement;
+import org.archicontribs.database.gui.DBGuiReplaceElement;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBArchimateModel;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.core.commands.AbstractHandler;

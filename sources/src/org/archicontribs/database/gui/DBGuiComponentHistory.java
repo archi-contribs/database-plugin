@@ -4,12 +4,13 @@
  * which accompanies this distribution in the file LICENSE.txt
  */
 
-package org.archicontribs.database.GUI;
+package org.archicontribs.database.gui;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
 
 import org.apache.log4j.Level;
+import org.archicontribs.database.DBException;
 import org.archicontribs.database.DBLogger;
 import org.archicontribs.database.DBPlugin;
 import org.archicontribs.database.connection.DBDatabaseExportConnection;
@@ -77,15 +78,15 @@ public class DBGuiComponentHistory extends DBGui {
 	/**
 	 * Creates the GUI to show the differences between a component in the model and the database
 	 * @param component 
-	 * @throws Exception 
+	 * @throws DBException 
 	 */
-	public DBGuiComponentHistory(IArchimateModelObject component) throws Exception {
+	public DBGuiComponentHistory(IArchimateModelObject component) throws DBException {
 		super("Component history");
 		this.selectedComponent = component;
 		
 		this.includeNeo4j = false;
 		
-		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.pluginVersion.toString()+").");		
+		if ( logger.isDebugEnabled() ) logger.debug("Setting up GUI for showing history of "+DBMetadata.getDBMetadata(component).getDebugName()+" (plugin version "+DBPlugin.PLUGIN_VERSION.toString()+").");		
 		
 		// we calculate the checksum of the component
 		if ( component instanceof ArchimateModel )
@@ -219,7 +220,7 @@ public class DBGuiComponentHistory extends DBGui {
 					DBArchimateModel importedModel = (DBArchimateModel)importedComponent.getArchimateModel();
 					IFolder parentFolder = (IFolder)importedComponent.eContainer();
 					String id = importedComponent.getId();
-					int version = Integer.valueOf(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0)).intValue();
+					int version = Integer.parseInt(DBGuiComponentHistory.this.tblVersions.getSelection()[0].getText(0));
 					IDBImportCommand command = null;
 					
 					if ( importedComponent instanceof IArchimateElement )
@@ -231,7 +232,7 @@ public class DBGuiComponentHistory extends DBGui {
 					else if ( importedComponent instanceof IArchimateDiagramModel || importedComponent instanceof ICanvasModel || importedComponent instanceof ISketchModel )
 						command = new DBImportViewFromIdCommand(importConnection, importedModel, null, parentFolder, id, version, DBImportMode.FORCE_SHARED_MODE, true);
 					else
-					    throw new Exception("Cannot import components of class "+importedComponent.getClass().getSimpleName());
+					    throw new DBException("Cannot import components of class "+importedComponent.getClass().getSimpleName());
 
 					if ( command.getException() != null )
 						throw command.getException();

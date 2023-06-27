@@ -8,8 +8,8 @@ package org.archicontribs.database.menu;
 
 import org.apache.log4j.Level;
 import org.archicontribs.database.DBLogger;
-import org.archicontribs.database.GUI.DBGuiUtils;
-import org.archicontribs.database.GUI.DBGuiShowDebug;
+import org.archicontribs.database.gui.DBGuiShowDebug;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.archicontribs.database.model.DBMetadata;
 import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
@@ -68,6 +68,6 @@ public class DBMenuShowDebugHandler extends AbstractHandler {
             }
         }
         
-        return null;
+        return dbMetadata;
     }
 }

@@ -21,7 +21,7 @@ public class DBVersion {
     /**
      * value used to represent the "NEVER" concept
      */
-    private static final Timestamp NEVER = Timestamp.from(Instant.EPOCH);
+    public static final Timestamp NEVER = Timestamp.from(Instant.EPOCH);
     
     @Getter private int version;
     

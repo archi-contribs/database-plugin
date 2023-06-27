@@ -20,7 +20,7 @@ import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGuiUtils;
 
 import lombok.Getter;
 

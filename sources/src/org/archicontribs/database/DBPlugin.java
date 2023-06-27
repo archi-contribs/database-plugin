@@ -12,7 +12,7 @@ import org.osgi.framework.Version;
 import java.util.Locale;
 
 import org.apache.log4j.Level;
-import org.archicontribs.database.GUI.DBGuiUtils;
+import org.archicontribs.database.gui.DBGuiUtils;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.IPersistentPreferenceStore;
@@ -122,14 +122,14 @@ public class DBPlugin extends AbstractUIPlugin {
 	public static final String PLUGIN_ID = "org.archicontribs.database";
 
 	/** version of the plugin */
-	public static final Version pluginVersion = Platform.getBundle(PLUGIN_ID).getVersion(); 
+	public static final Version PLUGIN_VERSION = Platform.getBundle(PLUGIN_ID).getVersion(); 
 
 	
 	/** Name ofthe plugin */
-	public static final String pluginName = "DatabasePlugin";
+	public static final String PLUGIN_NAME = "DatabasePlugin";
 	
 	/** Title od the plugin's windows */
-	public static final String pluginTitle = "Database import/export plugin v" + pluginVersion.toString();
+	public static final String PLUGIN_TITLE = "Database import/export plugin v" + PLUGIN_VERSION.toString();
 
 	/** Name of the plugin's package */
 	public static String pluginsPackage;
@@ -165,16 +165,16 @@ public class DBPlugin extends AbstractUIPlugin {
      * <li><b>importFromDatabase</b> Replace the component with the version in the database</li>
      */
     public enum CONFLICT_CHOICE {
-    	/** Ask the user what he wishes to do                      */	askUser,
-    	/** Do not export to the database                          */	doNotExport,
-    	/** Export to the database                                 */	exportToDatabase,
-    	/** Replace the component with the version in the database */	importFromDatabase
+    	/** Ask the user what he wishes to do                      */	ASK_USER,
+    	/** Do not export to the database                          */	DO_NOT_EXPORT,
+    	/** Export to the database                                 */	EXPORT_TO_DATABASE,
+    	/** Replace the component with the version in the database */	IMPORT_FROM_DATABASE
     }
 	
 	/**
 	 * Returns true is runs on Windows operating system, false for all other operating systems
 	 */
-	@Getter private static boolean WindowsOperatingSystem = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("windows");
+	@Getter private static boolean isWindowsOperatingSystem = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("windows");
 
 	/**
 	 * The DBPlugin class is instantiated when Archi starts<b>
@@ -207,7 +207,7 @@ public class DBPlugin extends AbstractUIPlugin {
 		preferenceStore.setDefault("defaultImportMode",       "template");
 		preferenceStore.setDefault("loggerMode",		      "disabled");
 		preferenceStore.setDefault("loggerLevel",		      "INFO");
-		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+pluginName+".log");
+		preferenceStore.setDefault("loggerFilename",	      System.getProperty("user.home")+File.separator+PLUGIN_NAME+".log");
 		preferenceStore.setDefault("loggerExpert",
 		        "log4j.rootLogger                               = INFO, stdout, file\n"+
 				"\n"+
@@ -220,11 +220,11 @@ public class DBPlugin extends AbstractUIPlugin {
 				"log4j.appender.file.ImmediateFlush             = true\n"+
 				"log4j.appender.file.Append                     = false\n"+
 				"log4j.appender.file.Encoding                   = UTF-8\n"+
-				"log4j.appender.file.File                       = "+(System.getProperty("user.home")+File.separator+pluginName+".log").replace("\\", "\\\\")+"\n"+
+				"log4j.appender.file.File                       = "+(System.getProperty("user.home")+File.separator+PLUGIN_NAME+".log").replace("\\", "\\\\")+"\n"+
 				"log4j.appender.file.layout                     = org.apache.log4j.PatternLayout\n"+
 				"log4j.appender.file.layout.ConversionPattern   = %d{yyyy-MM-dd HH:mm:ss} %-5p %4L:%-40.40C{1} %m%n");
 		logger = new DBLogger(DBPlugin.class);
-		logger.info("Initialising "+pluginTitle+" ...");
+		logger.info("Initialising "+PLUGIN_TITLE+" ...");
 		
 		logger.info("===============================================");
 		// we force the class initialization by the SWT thread
@@ -259,18 +259,18 @@ public class DBPlugin extends AbstractUIPlugin {
 			welcomeMessage = "Welcome to the Archi Database Plugin.\n\nThis plugin allows you to centralize your models in a SQL database, and export them to a graph database for analysis purpose.\n\nThe next step is to configure your database(s) on the plugin's preference page.";
 		} else {
 			Version oldPluginVersion = new Version(preferenceStorePluginVersion);
-			if ( oldPluginVersion.compareTo(pluginVersion) < 0 ) {
+			if ( oldPluginVersion.compareTo(PLUGIN_VERSION) < 0 ) {
 				// if the "pluginVersion" preference is older, then the plugin has been upgraded
 				// so we print out a message confirming the upgrade
-				welcomeMessage = "The Database plugin has been upgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
-			} else if ( oldPluginVersion.compareTo(pluginVersion) > 0 ) {
+				welcomeMessage = "The Database plugin has been upgraded from version "+preferenceStorePluginVersion+" to version "+PLUGIN_VERSION.toString()+".";
+			} else if ( oldPluginVersion.compareTo(PLUGIN_VERSION) > 0 ) {
 				// if the "pluginVersion" preference is newer, then the plugin has been downgraded
 				// so we print out a message confirming the downgrade
-				welcomeMessage = "The Database plugin has been downgraded from version "+preferenceStorePluginVersion+" to version "+pluginVersion.toString()+".";
+				welcomeMessage = "The Database plugin has been downgraded from version "+preferenceStorePluginVersion+" to version "+PLUGIN_VERSION.toString()+".";
 			}
 		}
 
-		preferenceStore.setValue("pluginVersion", pluginVersion.toString());
+		preferenceStore.setValue("pluginVersion", PLUGIN_VERSION.toString());
 		if ( welcomeMessage != null ) {
 			// we get all the DBDatabaseEntries in order to replace plain text passwords by encrypted passwords
 			try {
@@ -290,7 +290,7 @@ public class DBPlugin extends AbstractUIPlugin {
 
 			if ( logger.isDebugEnabled() ) {
 				logger.debug("Plugin's package  = "+pluginsPackage);
-				logger.debug("Plugin's version  = "+pluginVersion.toString());
+				logger.debug("Plugin's version  = "+PLUGIN_VERSION.toString());
 				logger.debug("Archi's version   = "+ModelVersion.VERSION);
 				logger.debug("Plugin's folder   = "+pluginsFolder);
 				logger.debug("Plugin's filename = "+pluginsFilename);
@@ -367,7 +367,7 @@ public class DBPlugin extends AbstractUIPlugin {
 	 * @param obj
 	 * @return Boolean : true if the obj value is true<BR>Integer: true if the obj value is greater than 0<BR>String : true if the string can be converted to an Integer greater then 0<BR>false in all other cases
 	 */
-	static public boolean getBooleanValue(Object obj) {
+	public static boolean getBooleanValue(Object obj) {
 		if ( obj == null )
 			return false;
 		

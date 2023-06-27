@@ -26,11 +26,15 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 * Instance of the DBArchimateFactory class
 	 */
 	@SuppressWarnings("hiding")
-	public static DBArchimateFactory eINSTANCE = init();
+	public static final DBArchimateFactory eINSTANCE = init();
 	
     public static DBArchimateFactory init() {
-    	if ( logger.isDebugEnabled() ) logger.debug("Initializing DBArchimateFactory");
-        return eINSTANCE==null ? new DBArchimateFactory() : eINSTANCE;
+    	if ( logger.isDebugEnabled() )
+    		logger.debug("Initializing DBArchimateFactory");
+        
+    	if ( eINSTANCE==null )
+        	return new DBArchimateFactory();
+        return eINSTANCE;
     }
 	
     /**
@@ -48,7 +52,6 @@ public class DBArchimateFactory extends ArchimateFactory {
 	 */
     @Override
     public IArchimateModel createArchimateModel() {
-        IArchimateModel model = new org.archicontribs.database.model.DBArchimateModel();
-        return model;
+        return new org.archicontribs.database.model.DBArchimateModel();
     }
 }
