@@ -2591,28 +2591,36 @@ public class DBGuiExportModel extends DBGui {
 			Iterator<IProfile> profilesIterator = this.exportedModel.getProfiles().iterator();
 			while ( profilesIterator.hasNext() ) {
 				EObject componentToExport = profilesIterator.next();				
-				DATABASE_STATUS dbStatus = isNeo4JDatabase ? DATABASE_STATUS.IS_NEW_IN_MODEL : this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
-				
-				if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
+				if ( isNeo4JDatabase ) {
 					this.exportConnection.exportEObject(componentToExport);
-					if ( this.showRealTimeNumbers ) {
+					if ( this.showRealTimeNumbers )
 						incrementText(this.txtNewProfilesInModel);
-						incrementText(this.txtTotalProfiles);
-						increaseProgressBar();
-					}
 					++countNew;
-				} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
-					this.exportConnection.exportEObject(componentToExport);
-					if ( this.showRealTimeNumbers ) {
-						incrementText(this.txtUpdatedProfilesInModel);
-						incrementText(this.txtTotalProfiles);
-						increaseProgressBar();
-					}
-					++countUpdated;
-				} else
-					++countNotExported;
+				} else {
+					DATABASE_STATUS dbStatus = this.exportedModel.getDBMetadata(componentToExport).getDatabaseStatus();
+					
+					if ( dbStatus == DATABASE_STATUS.IS_NEW_IN_MODEL ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers ) {
+							incrementText(this.txtNewProfilesInModel);
+							incrementText(this.txtTotalProfiles);
+							increaseProgressBar();
+						}
+						++countNew;
+					} else if ( dbStatus == DATABASE_STATUS.IS_UPDATED_IN_MODEL ) {
+						this.exportConnection.exportEObject(componentToExport);
+						if ( this.showRealTimeNumbers ) {
+							incrementText(this.txtUpdatedProfilesInModel);
+							incrementText(this.txtTotalProfiles);
+							increaseProgressBar();
+						}
+						++countUpdated;
+					} else
+						++countNotExported;
+					
+					this.exportConnection.assignEObjectToModel(componentToExport);
+				}
 
-				this.exportConnection.assignEObjectToModel(componentToExport);
 			}
             if ( !this.showRealTimeNumbers ) {
             	incrementText(this.txtNewProfilesInModel, countNew);
