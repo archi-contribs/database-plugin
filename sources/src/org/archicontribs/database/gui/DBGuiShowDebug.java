@@ -459,10 +459,8 @@ public class DBGuiShowDebug extends DBGui {
         this.selectedComponentDebugTable.removeAll();
         this.correspondingConceptDebugTable.removeAll();
         
-        DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection());
-        
         // we get the version and checksum from the database
-        try {
+        try ( DBDatabaseExportConnection exportConnection = new DBDatabaseExportConnection(getDatabaseConnection()) ) {
         	if ( this.selectedObject instanceof IArchimateModelObject )
         		exportConnection.getModelVersionFromDatabase((DBArchimateModel) ((IArchimateModelObject)this.selectedObject).getArchimateModel());
         	else if ( this.selectedObject instanceof IDiagramModelObject )
