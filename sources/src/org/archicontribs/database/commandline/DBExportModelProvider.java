@@ -61,6 +61,9 @@ public class DBExportModelProvider extends AbstractCommandLineProvider {
     	if ( (guiExportModel.getComboDatabases().getItemCount() == 0) || !(databaseName.equals(guiExportModel.getComboDatabases().getItem(guiExportModel.getComboDatabases().getSelectionIndex()))) )
     		throw new IOException(getLogPrefix()+": Database \""+databaseName+"\" is unknown. You must declare it in the plugin preferences before using the commandline interface.");
     	
+    	// we count the model's components
+    	guiExportModel.getExportedModel().countAllObjects();
+    	
     	// we set the release note if provided
     	if ( releaseNote != null )
     		guiExportModel.getTxtReleaseNote().setText(releaseNote);

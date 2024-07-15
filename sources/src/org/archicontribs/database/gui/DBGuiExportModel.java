@@ -89,7 +89,7 @@ public class DBGuiExportModel extends DBGui {
 	@SuppressWarnings("hiding")
 	private static final DBLogger logger = new DBLogger(DBGuiExportModel.class);
 
-	DBArchimateModel exportedModel = null;
+	@Getter DBArchimateModel exportedModel = null;
 
 	Group grpComponents;
 	Group grpModelVersions;
